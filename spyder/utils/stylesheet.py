@@ -23,8 +23,14 @@ from spyder.config.gui import is_dark_interface, OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 MAC = sys.platform == 'darwin'
 WIN = os.name == 'nt'
+
+# Size of margins (in pixels).
+MARGIN_SIZE = 3
 
 
 # =============================================================================
@@ -495,8 +501,13 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         # Basic style
         css['QTabBar::tab'].setValues(
             # No margins to left/right but top/bottom to separate tabbar from
-            # the dockwidget areas
-            margin='6px 0px',
+            # the dockwidget areas.
+            # Notes:
+            # * Top margin is half the one at the bottom so that we can show
+            #   a bottom margin on dockwidgets that are not tabified.
+            # * The other half is added through the _margin_bottom attribute of
+            #   PluginMainWidget.
+            margin=f'{MARGIN_SIZE}px 0px {2 * MARGIN_SIZE}px 0px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove a colored border added by QDarkStyle
@@ -531,13 +542,13 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderBottomLeftRadius='4px',
-            marginLeft='6px',
+            marginLeft=f'{2 * MARGIN_SIZE}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderTopRightRadius='4px',
             borderBottomRightRadius='4px',
-            marginRight='6px',
+            marginRight='{2 * MARGIN_SIZE}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -546,6 +557,14 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             css[state].setValues(
                 borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
             )
+
+        # Make top and bottom margins for scroll buttons even.
+        # This is necessary since the tabbar top margin is half the one at the
+        # bottom (see the notes in the 'QTabBar::tab' style above).
+        css['QTabBar QToolButton'].setValues(
+            marginTop='0px',
+            marginBottom=f'{MARGIN_SIZE}px',
+        )
 
 
 class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
@@ -565,7 +584,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab'].setValues(
             # No margins to top/bottom but left/right to separate tabbar from
             # the dockwidget areas
-            margin='0px 6px',
+            margin=f'0px {2 * MARGIN_SIZE}px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove colored borders added by QDarkStyle
@@ -599,13 +618,13 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderTopRightRadius='4px',
-            marginTop='6px',
+            marginTop=f'{2 * MARGIN_SIZE}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderBottomLeftRadius='4px',
             borderBottomRightRadius='4px',
-            marginBottom='6px',
+            marginBottom=f'{2 * MARGIN_SIZE}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -614,6 +633,12 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             css[state].setValues(
                 borderBottomColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
             )
+
+        # Make style for scroll buttons match the horizontal one
+        css['QTabBar QToolButton'].setValues(
+            marginLeft=f'{MARGIN_SIZE}px',
+            marginRight=f'{MARGIN_SIZE}px',
+        )
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()

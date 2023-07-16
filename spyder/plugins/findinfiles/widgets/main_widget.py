@@ -24,6 +24,7 @@ from spyder.plugins.findinfiles.widgets.combobox import (
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
@@ -81,7 +82,11 @@ class FindInFilesWidget(PluginMainWidget):
     Find in files main widget.
     """
 
+    # PluginMainWidget constants
     ENABLE_SPINNER = True
+    MARGIN_TOP = MARGIN_SIZE + 5
+
+    # Other constants
     REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
     REGEX_ERROR = _("Regular expression error")
 
@@ -201,7 +206,6 @@ class FindInFilesWidget(PluginMainWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.stacked_widget)
-        self.MARGIN_TOP = self._margin_size + 5
         self.setLayout(layout)
 
         # Signals
