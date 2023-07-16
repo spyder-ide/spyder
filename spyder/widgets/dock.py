@@ -14,25 +14,30 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
 
 from spyder.api.translations import _
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import (
-    PanesToolbarStyleSheet, DOCK_TABBAR_STYLESHEET)
+    PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
+    VERTICAL_DOCK_TABBAR_STYLESHEET)
 
 
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject):
+class TabFilter(QObject, SpyderConfigurationObserver):
     """Filter event attached to each DockWidget QTabBar."""
+
+    CONF_SECTION = 'main'
 
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
-        self.dock_tabbar = dock_tabbar
+        self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None
 
-        self.dock_tabbar.setStyleSheet(str(DOCK_TABBAR_STYLESHEET))
+        self._set_tabbar_stylesheet(self.get_conf('vertical_tabs'))
         self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
@@ -72,6 +77,18 @@ class TabFilter(QObject):
         """Show the context menu assigned to nontabs section."""
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
+
+    def _set_tabbar_stylesheet(self, vertical_tabs):
+        if vertical_tabs:
+            self.dock_tabbar.setStyleSheet(
+                str(VERTICAL_DOCK_TABBAR_STYLESHEET))
+        else:
+            self.dock_tabbar.setStyleSheet(
+                str(HORIZONTAL_DOCK_TABBAR_STYLESHEET))
+
+    @on_conf_change(option='vertical_tabs')
+    def _on_tabs_orientation_change(self, value):
+        self._set_tabbar_stylesheet(value)
 
 
 # =============================================================================

@@ -294,7 +294,12 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
     """Base style for tabbars."""
 
     OBJECT_NAME = ''
-    BORDER_RIGHT_WIDTH = '0px'
+
+    # Additional border for scroll buttons
+    SCROLL_BUTTONS_BORDER_WIDTH = '0px'
+
+    # Position for the scroll buttons additional border
+    SCROLL_BUTTONS_BORDER_POS = ''
 
     def set_stylesheet(self):
         css = self.get_stylesheet()
@@ -304,8 +309,20 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
             background=buttons_color,
             borderRadius='0px',
-            borderRight=f'{self.BORDER_RIGHT_WIDTH} solid {buttons_color}'
         )
+
+        if self.SCROLL_BUTTONS_BORDER_POS == 'right':
+            css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+                borderRight=(
+                    f'{self.SCROLL_BUTTONS_BORDER_WIDTH} solid {buttons_color}'
+                )
+            )
+        else:
+            css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+                borderBottom=(
+                    f'{self.SCROLL_BUTTONS_BORDER_WIDTH} solid {buttons_color}'
+                )
+            )
 
         # Hover and pressed state for scroll buttons
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
@@ -330,7 +347,8 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
 
     TOP_MARGIN = '15px'
     OBJECT_NAME = '#pane-tabbar'
-    BORDER_RIGHT_WIDTH = '5px'
+    SCROLL_BUTTONS_BORDER_WIDTH = '5px'
+    SCROLL_BUTTONS_BORDER_POS = 'right'
 
     def set_stylesheet(self):
         # Calling super().set_stylesheet() here doesn't work.
@@ -421,51 +439,27 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
             )
 
 
-class DockTabBarStyleSheet(BaseTabBarStyleSheet):
-    """
-    This implements the design for dockwidget tabs discussed on issue
-    spyder-ide/ux-improvements#4.
-    """
+class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
+    """Base style for dockwidget tabbars."""
 
-    BORDER_RIGHT_WIDTH = '2px'
+    SCROLL_BUTTONS_BORDER_WIDTH = '2px'
 
     def set_stylesheet(self):
         super().set_stylesheet()
 
         # Main constants
         css = self.get_stylesheet()
-        color_tabs_separator = f'{Gray.B70}'
+        self.color_tabs_separator = f'{Gray.B70}'
+
         if is_dark_interface():
-            color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
+            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
         else:
-            color_selected_tab = f'{QStylePalette.COLOR_ACCENT_5}'
+            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_5}'
 
         # Center tabs to differentiate them from the regular ones.
         # See spyder-ide/spyder#9763 for details.
         css.QTabBar.setValues(
             alignment='center'
-        )
-
-        # Basic style
-        css['QTabBar::tab'].setValues(
-            # No margins to left and right
-            marginRight='0px',
-            marginLeft='0px',
-            # Add top and bottom margins to separate tabbar from the dockwidget
-            # areas.
-            marginTop='6px',
-            marginBottom='6px',
-            # Border radius is added for specific tabs (see below)
-            borderRadius='0px',
-            # Remove a colored border added by QDarkStyle
-            borderTop='0px',
-            # Add right border to make it work as our tabs separator
-            borderRight=f'1px solid {color_tabs_separator}',
-            # Padding for text inside tabs
-            paddingTop='4px',
-            paddingBottom='4px',
-            paddingRight='10px',
-            paddingLeft='10px'
         )
 
         # Style for selected tabs
@@ -474,7 +468,43 @@ class DockTabBarStyleSheet(BaseTabBarStyleSheet):
                 f'{QStylePalette.COLOR_TEXT_1}' if is_dark_interface() else
                 f'{QStylePalette.COLOR_BACKGROUND_1}'
             ),
-            backgroundColor=f'{color_selected_tab}',
+            backgroundColor=f'{self.color_selected_tab}',
+        )
+
+        # Make scroll button icons smaller on Windows and Mac
+        if WIN or MAC:
+            css['QTabBar QToolButton'].setValues(
+                padding='10px',
+            )
+
+
+class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
+    """
+    This implements the design for dockwidget tabs discussed on issue
+    spyder-ide/ux-improvements#4.
+    """
+
+    SCROLL_BUTTONS_BORDER_POS = 'right'
+
+    def set_stylesheet(self):
+        super().set_stylesheet()
+
+        # Main constants
+        css = self.get_stylesheet()
+
+        # Basic style
+        css['QTabBar::tab'].setValues(
+            # No margins to left/right but top/bottom to separate tabbar from
+            # the dockwidget areas
+            margin='6px 0px',
+            # Border radius is added for specific tabs (see below)
+            borderRadius='0px',
+            # Remove a colored border added by QDarkStyle
+            borderTop='0px',
+            # Add right border to make it work as our tabs separator
+            borderRight=f'1px solid {self.color_tabs_separator}',
+            # Padding for text inside tabs
+            padding='4px 10px',
         )
 
         # Hide tabs separator for the selected tab and the one to its left.
@@ -482,18 +512,18 @@ class DockTabBarStyleSheet(BaseTabBarStyleSheet):
         # the left tab.
         for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
             css[state].setValues(
-                borderRight=f'1px solid {color_selected_tab}',
+                borderRight=f'1px solid {self.color_selected_tab}',
             )
 
         # Style for hovered tabs
         css['QTabBar::tab:!selected:hover'].setValues(
             border='0px',
-            borderRight=f'1px solid {color_tabs_separator}',
+            borderRight=f'1px solid {self.color_tabs_separator}',
             backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
         )
 
         css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderLeft=f'1px solid {color_tabs_separator}',
+            borderLeft=f'1px solid {self.color_tabs_separator}',
         )
 
         # First and last tabs have rounded borders. Also, add margin to avoid
@@ -517,15 +547,78 @@ class DockTabBarStyleSheet(BaseTabBarStyleSheet):
                 borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
             )
 
-        # Make scroll button icons smaller on Windows and Mac
-        if WIN or MAC:
-            css['QTabBar QToolButton'].setValues(
-                padding='10px',
+
+class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
+    """
+    Vertical implementation for the design on spyder-ide/ux-improvements#4.
+    """
+
+    SCROLL_BUTTONS_BORDER_POS = 'bottom'
+
+    def set_stylesheet(self):
+        super().set_stylesheet()
+
+        # Main constants
+        css = self.get_stylesheet()
+
+        # Basic style
+        css['QTabBar::tab'].setValues(
+            # No margins to top/bottom but left/right to separate tabbar from
+            # the dockwidget areas
+            margin='0px 6px',
+            # Border radius is added for specific tabs (see below)
+            borderRadius='0px',
+            # Remove colored borders added by QDarkStyle
+            borderLeft='0px',
+            borderRight='0px',
+            # Add border to make it work as our tabs separator
+            borderBottom=f'1px solid {self.color_tabs_separator}',
+            # Padding for text inside tabs
+            padding='10px 4px',
+        )
+
+        # Hide tabs separator for the selected tab and the one to its bottom.
+        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
+            css[state].setValues(
+                borderBottom=f'1px solid {self.color_selected_tab}',
+            )
+
+        # Style for hovered tabs
+        css['QTabBar::tab:!selected:hover'].setValues(
+            border='0px',
+            borderBottom=f'1px solid {self.color_tabs_separator}',
+            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+        )
+
+        css['QTabBar::tab:previous-selected:hover'].setValues(
+            borderTop=f'1px solid {self.color_tabs_separator}',
+        )
+
+        # First and last tabs have rounded borders. Also, add margin to avoid
+        # them touch the top and bottom borders, respectively.
+        css['QTabBar::tab:first'].setValues(
+            borderTopLeftRadius='4px',
+            borderTopRightRadius='4px',
+            marginTop='6px',
+        )
+
+        css['QTabBar::tab:last'].setValues(
+            borderBottomLeftRadius='4px',
+            borderBottomRightRadius='4px',
+            marginBottom='6px',
+        )
+
+        # Last tab doesn't need to show the separator
+        for state in ['QTabBar::tab:last:!selected:hover',
+                      'QTabBar::tab:last']:
+            css[state].setValues(
+                borderBottomColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
             )
 
 
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
-DOCK_TABBAR_STYLESHEET = DockTabBarStyleSheet()
+HORIZONTAL_DOCK_TABBAR_STYLESHEET = HorizontalDockTabBarStyleSheet()
+VERTICAL_DOCK_TABBAR_STYLESHEET = VerticalDockTabBarStyleSheet()
 
 
 # =============================================================================

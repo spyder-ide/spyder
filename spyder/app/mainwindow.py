@@ -1253,7 +1253,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         default = self.DOCKOPTIONS
         if self.get_conf('vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
+            default = default | QMainWindow.VerticalTabs
         self.setDockOptions(default)
 
         self.apply_panes_settings()
