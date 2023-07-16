@@ -11,7 +11,7 @@ import re
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QInputDialog, QLabel, QStackedLayout
+from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -147,7 +147,8 @@ class FindInFilesWidget(PluginMainWidget):
             self,
             "find_empty",
             _("Nothing searched for yet"),
-            _("Search the content of text files in any directory using the search box.")
+            _("Search the content of text files in any directory using the "
+              "search box.")
         )
         
         self.search_text_edit = PatternComboBox(
@@ -194,10 +195,14 @@ class FindInFilesWidget(PluginMainWidget):
             search_in_index)
 
         # Layout
-        self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(self.result_browser)
-        self.stack_layout.addWidget(self.pane_empty)
-        self.setLayout(self.stack_layout)
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.addWidget(self.result_browser)
+        self.stacked_widget.addWidget(self.pane_empty)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
+        self.MARGIN_TOP = self._margin_size + 5
+        self.setLayout(layout)
 
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
@@ -325,9 +330,9 @@ class FindInFilesWidget(PluginMainWidget):
 
     def set_pane_empty(self):
         if self.result_browser.data:
-            self.stack_layout.setCurrentWidget(self.result_browser)
+            self.stacked_widget.setCurrentWidget(self.result_browser)
         else:
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.stacked_widget.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(

@@ -112,6 +112,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     the plugin, then this attribute should have a `None` value.
     """
 
+    MARGIN_TOP = 0
+    """
+    Use this attribute to adjust the widget's top margin in pixels.
+    """
+
     # ---- Signals
     # -------------------------------------------------------------------------
     sig_free_memory_requested = Signal()
@@ -286,13 +291,22 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             title=_('Options menu'),
         )
 
-        # Layout
+        # Margins
         # --------------------------------------------------------------------
         # These margins are necessary to give some space between the widgets
-        # inside this widget and the window vertical separator.
-        self._margin_left = 1
-        self._margin_right = 1
+        # inside this one and the window separator and borders.
+        self._margin_size = 3
+        if not self.get_conf('vertical_tabs', section='main'):
+            self._margin_left = self._margin_size
+            self._margin_right = self._margin_size
+            self._margin_bottom = 0
+        else:
+            self._margin_left = 0
+            self._margin_right = self._margin_size
+            self._margin_bottom = self._margin_size
 
+        # Layout
+        # --------------------------------------------------------------------
         self._main_layout = QVBoxLayout()
         self._toolbars_layout = QVBoxLayout()
         self._main_toolbar_layout = QHBoxLayout()
@@ -480,7 +494,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         self._main_layout.addLayout(layout, stretch=1000000)
         super().setLayout(self._main_layout)
-        layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
+        layout.setContentsMargins(
+            self._margin_left, self.MARGIN_TOP, self._margin_right,
+            self._margin_bottom
+        )
         layout.setSpacing(0)
 
     def closeEvent(self, event):

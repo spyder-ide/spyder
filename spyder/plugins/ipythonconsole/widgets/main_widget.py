@@ -332,9 +332,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         pager_label_css.setValues(**{
             'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
             'color': f'{QStylePalette.COLOR_TEXT_1}',
-            'margin': '0px 1px 4px 1px',
+            'margin': '2px 1px 0px 1px',
             'padding': '5px',
-            'qproperty-alignment': 'AlignCenter'
+            'qproperty-alignment': 'AlignCenter',
+            'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
         })
         self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()
@@ -344,6 +345,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         layout.addWidget(self.find_widget)
+
+        # These margins need to be adjusted manually, don't know why.
+        # Note: Do this before setting the layout.
+        if not self.get_conf('vertical_tabs', section='main'):
+            self._margin_left = self._margin_right = self._margin_size - 1
+        else:
+            self._margin_right = self._margin_bottom = self._margin_size - 1
 
         self.setLayout(layout)
 
