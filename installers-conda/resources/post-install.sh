@@ -13,55 +13,75 @@ echo ""
 name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
 spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
+all_user=$([[ -e ${PREFIX}/.nonadmin ]] && echo false || echo true)
 
-sed_opts=("-i")
 alias_text="alias uninstall-spyder=${u_spy_exe}"
-if [[ $OSTYPE = "darwin"* ]]; then
+if [[ "$OSTYPE" = "darwin"* ]]; then
     shortcut_path="/Applications/${INSTALLER_NAME}.app"
-    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}${shortcut_path}"
-    sed_opts+=("", "-e")
+    if [[ "$all_user" = "false" ]]; then
+        shortcut_path="${HOME}${shortcut_path}"
+    else
+        unset alias_text  # Do not create uninstall alias
+    fi
 else
     shortcut_path="/share/applications/${name_lower}_${name_lower}.desktop"
-    [[ -e ${PREFIX}/.nonadmin ]] && shortcut_path="${HOME}/.local${shortcut_path}" || shortcut_path="/usr${shortcut_path}"
-    alias_text="alias spyder=${spy_exe}\n${alias_text}"
+    if [[ "$all_user" = "true" ]]; then
+        shortcut_path="/usr${shortcut_path}"
+        alias_text="alias spyder=${spy_exe}"  # Do not create uninstall alias
+    else
+        shortcut_path="${HOME}/.local${shortcut_path}"
+        alias_text="alias spyder=${spy_exe}\n${alias_text}"
+    fi
 fi
-
-case $SHELL in
-    (*"zsh") shell_init=$HOME/.zshrc ;;
-    (*"bash") shell_init=$HOME/.bashrc ;;
-esac
 
 m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
 
-add_alias() (
+add_alias() {
     if [[ ! -f "$shell_init" || ! -s "$shell_init" ]]; then
-        echo -e "$m1\n$1\n$m2" > $shell_init
+        echo -e "$m1\n${alias_text}\n$m2" > $shell_init
         exit 0
     fi
 
     # Remove old-style markers, if present; discard after EXPERIMENTAL
     # installer attrition.
-    sed ${sed_opts[@]} "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
+    sed -i "" -e "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
 
     # Posix compliant sed does not like semicolons.
     # Must use newlines to work on macOS
-    sed ${sed_opts[@]} "
+    sed -i "" -e "
     /$m1/,/$m2/{
         h
-        /$m2/ s|.*|$m1\n$1\n$m2|
+        /$m2/ s|.*|$m1\n$alias_text\n$m2|
         t
         d
     }
     \${
         x
         /^$/{
-            s||\n$m1\n$1\n$m2|
+            s||\n$m1\n$alias_text\n$m2|
             H
         }
         x
     }" $shell_init
-)
+}
+
+# ----
+if [[ "$all_user" = "true" ]]; then
+    shell_init_list=("/etc/zshrc")
+    [[ "$OSTYPE" = "darwin"* ]] && shell_init_list+=("/etc/bashrc") || shell_init_list+=("/etc/bash.bashrc")
+else
+    case $SHELL in
+        (*"zsh") shell_init_list=("$HOME/.zshrc") ;;
+        (*"bash") shell_init_list=("$HOME/.bashrc") ;;
+    esac
+fi
+for shell_init in ${shell_init_list[@]}; do
+    [[ -z "$shell_init" || -z "$alias_text" ]] && continue
+    [[ "$all_user" = "true" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
+    echo "Creating aliases in $shell_init ..."
+    add_alias
+done
 
 # ----
 echo "Creating uninstall script..."
@@ -78,8 +98,9 @@ shift \$((\$OPTIND - 1))
 if [[ -z \$force ]]; then
     cat <<EOF
 You are about to uninstall Spyder.
-If you proceed, aliases will be removed from ${shell_init}
-(if present) and the following will be removed:
+If you proceed, aliases will be removed from:
+  ${shell_init_list[@]}
+and the following will be removed:
   ${shortcut_path}
   ${PREFIX}
 
@@ -93,16 +114,18 @@ EOF
     fi
 fi
 
+# Quit Spyder
 if [[ \$OSTYPE = "darwin"* ]]; then
     echo "Quitting Spyder.app..."
     osascript -e 'quit app "Spyder.app"' 2> /dev/null
 fi
 
 # Remove aliases from shell startup
-if [[ -f "$shell_init" ]]; then
-    echo "Removing shell commands..."
-    sed ${sed_opts[@]} "/$m1/,/$m2/d" $shell_init
-fi
+for x in ${shell_init_list[@]}; do
+    [[ ! -f "\$x" ]] && continue
+    echo "Removing Spyder shell commands from \$x..."
+    sed -i "" -e "/$m1/,/$m2/d" \$x
+done
 
 # Remove shortcut and environment
 echo "Removing Spyder and environment..."
@@ -112,12 +135,6 @@ rm -rf ${PREFIX}
 echo "Spyder successfully uninstalled."
 END
 chmod u+x ${u_spy_exe}
-
-# ----
-if [[ -n "$shell_init" ]]; then
-    echo "Creating aliases in $shell_init ..."
-    add_alias "$alias_text"
-fi
 
 # ----
 if [[ "$OSTYPE" = "linux"* ]]; then
@@ -137,9 +154,9 @@ To uninstall Spyder, run the following from the command line:
 $ uninstall-spyder
 
 These commands will only be available in new shell sessions. To make them
-available in this session, you must source your $shell_init file with:
+available in this session, you must source your $user_shell_init file with:
 
-$ source $shell_init
+$ source $user_shell_init
 
 ###############################################################################
 
