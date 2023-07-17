@@ -333,7 +333,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         pager_label_css.setValues(**{
             'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
             'color': f'{QStylePalette.COLOR_TEXT_1}',
-            'margin': '2px 1px 0px 1px',
+            'margin': '2px 1px 1px 1px',
             'padding': '5px',
             'qproperty-alignment': 'AlignCenter',
             'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
@@ -345,6 +345,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
+
+        # Manually adjust margins for the find/replace widget
+        if not self.get_conf('vertical_tabs', section='main'):
+            # Remove an extra pixel that it's not present in other plugins
+            layout.addSpacing(-1)
+
+            # Align close button with the one in other plugins
+            self.find_widget.setStyleSheet("margin-left: 1px")
+        else:
+            self.find_widget.setStyleSheet("margin-bottom: 1px")
+
         layout.addWidget(self.find_widget)
 
         # Manually adjust pane margins, don't know why this is necessary.
