@@ -327,19 +327,24 @@ def test_progress_simple(workspace, consumer):
 
 
 @pytest.mark.parametrize("exc", [Exception("something"), TimeoutError()])
-def test_progress_initialization_fails(workspace, consumer, endpoint, exc):
+def test_progress_initialization_fails_but_is_skipped(workspace, consumer, endpoint, exc):
     def failing_token_initialization(self, *_args, **_kwargs):
         raise exc
     endpoint._dispatcher.m_window__work_done_progress__create = failing_token_initialization
 
     workspace._config.capabilities['window'] = {"workDoneProgress": True}
 
-    with workspace.report_progress("some_title"):
+    with workspace.report_progress("some_title", skip_token_initialization=True):
         pass
 
     # we only see the failing token initialization call, no other calls
-    init_call, = consumer.call_args_list
-    assert init_call[0][0]['method'] == 'window/workDoneProgress/create'
+    progress_calls = consumer.call_args_list
+    assert all(call[0][0]["method"] == "$/progress" for call in progress_calls)
+    assert len({call[0][0]["params"]["token"] for call in progress_calls}) == 1
+    assert [call[0][0]["params"]["value"] for call in progress_calls] == [
+        {"kind": "begin", "title": "some_title"},
+        {"kind": "end"},
+    ]
 
 
 def test_progress_with_percent(workspace, consumer):
