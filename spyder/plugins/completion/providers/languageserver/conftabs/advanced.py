@@ -116,7 +116,8 @@ class AdvancedConfigTab(SpyderPreferencesTab):
             self.advanced_port.spinbox.setEnabled(True)
             self.external_server.checkbox.setChecked(False)
             self.external_server.checkbox.setEnabled(True)
-            self.external_server.checkbox.stateChanged.connect(self.disable_stdio)
+            self.external_server.checkbox.stateChanged.connect(
+                self.disable_stdio)
 
     def disable_stdio(self, state):
         if state == Qt.Checked:

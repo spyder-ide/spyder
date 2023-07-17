@@ -181,7 +181,8 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.clicked.connect(self.delete_scheme)
         self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
-        system_font_checkbox.checkbox.stateChanged.connect(self.update_app_font_group)
+        system_font_checkbox.checkbox.stateChanged.connect(
+            self.update_app_font_group)
 
         # Setup
         for name in names:

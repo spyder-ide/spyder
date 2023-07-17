@@ -461,6 +461,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.setContentsMargins(0, 0, 0, 0)
         checkbox = QCheckBox(text)
         layout.addWidget(checkbox)
+
         self.checkboxes[checkbox] = (section, option, default)
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
@@ -475,6 +476,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                                                 msg_info, QMessageBox.Ok)
             checkbox.clicked.connect(show_message)
         checkbox.restart_required = restart
+
         widget = QWidget(self)
         widget.checkbox = checkbox
         if tip is not None:
@@ -494,6 +496,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.setContentsMargins(0, 0, 0, 0)
         radiobutton = QRadioButton(text)
         layout.addWidget(radiobutton)
+
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         if button_group is None:
@@ -514,6 +517,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             radiobutton.toggled.connect(show_message)
         radiobutton.restart_required = restart
         radiobutton.label_text = text
+
         if tip is not None:
             if help_info:
                 layout, help_label = self.add_help_info_label(layout, tip)
@@ -544,6 +548,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if placeholder:
             edit.setPlaceholderText(placeholder)
         self.lineedits[edit] = (section, option, default)
+
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
@@ -573,6 +578,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addWidget(edit)
         layout.setContentsMargins(0, 0, 0, 0)
         self.textedits[edit] = (section, option, default)
+
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
@@ -720,6 +726,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 layout, help_label = self.add_help_info_label(layout, tip)
             else:
                 clayout.setToolTip(tip)
+
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
@@ -828,6 +835,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addWidget(combobox, 0, 0, 0, 9)
         layout.addWidget(browse_btn, 0, 10)
         layout.setContentsMargins(0, 0, 0, 0)
+
         widget = QWidget(self)
         widget.combobox = combobox
         widget.browse_btn = browse_btn

@@ -65,8 +65,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             "", _(" ms"),
             'occurrence_highlighting/timeout',
             min_=100, max_=1000000, step=100)
-        occurrence_box.checkbox.toggled.connect(occurrence_spin.spinbox.setEnabled)
-        occurrence_box.checkbox.toggled.connect(occurrence_spin.slabel.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.spinbox.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
                 self.get_option('occurrence_highlighting'))
         occurrence_spin.slabel.setEnabled(

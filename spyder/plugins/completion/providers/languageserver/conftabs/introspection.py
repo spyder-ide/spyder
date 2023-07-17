@@ -54,7 +54,8 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
         introspection_layout.addWidget(enable_hover_hints_box)
         introspection_group.setLayout(introspection_layout)
 
-        goto_definition_box.checkbox.toggled.connect(follow_imports_box.setEnabled)
+        goto_definition_box.checkbox.toggled.connect(
+            follow_imports_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
