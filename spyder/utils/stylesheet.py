@@ -31,8 +31,14 @@ from spyder.utils.palette import QStylePalette
 MAC = sys.platform == 'darwin'
 WIN = os.name == 'nt'
 
-# Size of margins (in pixels).
+# -- Values below are in pixels
+
+# Size of margins.
 MARGIN_SIZE = 3
+
+# Size of find widget line edits (e.g. FinderWidget and FindReplace)
+FIND_MIN_WIDTH = 400
+FIND_HEIGHT = 26
 
 
 # =============================================================================

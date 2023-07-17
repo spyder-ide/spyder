@@ -143,6 +143,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
             layout.addWidget(self.editor)
             layout.addWidget(self.finder)
 

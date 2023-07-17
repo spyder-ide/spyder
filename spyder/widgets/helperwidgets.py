@@ -34,6 +34,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
+from spyder.utils.stylesheet import MARGIN_SIZE, FIND_HEIGHT, FIND_MIN_WIDTH
+
 
 
 # Valid finder chars. To be improved
@@ -397,6 +399,13 @@ class FinderLineEdit(QLineEdit):
         else:
             super(FinderLineEdit, self).keyPressEvent(event)
 
+    def sizeHint(self):
+        """Recommended size."""
+        # The extra height is compensated with FinderWidget's top margin, which
+        # has almost the same value (the -1 is necessary to make the height of
+        # this widget match the one of the find/replace line edit).
+        return QSize(FIND_MIN_WIDTH, FIND_HEIGHT + MARGIN_SIZE - 1)
+
 
 class FinderWidget(QWidget):
     sig_find_text = Signal(str)
@@ -405,6 +414,7 @@ class FinderWidget(QWidget):
     def __init__(self, parent, regex_base=None, key_filter_dict=None,
                  find_on_change=False):
         super().__init__(parent)
+
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
@@ -425,7 +435,10 @@ class FinderWidget(QWidget):
         finder_layout = QHBoxLayout()
         finder_layout.addWidget(self.finder_close_button)
         finder_layout.addWidget(self.text_finder)
-        finder_layout.setContentsMargins(0, 0, 0, 0)
+        finder_layout.addStretch()
+        finder_layout.setContentsMargins(
+            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, 0
+        )
         self.setLayout(finder_layout)
         self.setVisible(False)
 
