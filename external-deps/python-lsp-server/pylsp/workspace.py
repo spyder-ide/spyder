@@ -135,7 +135,20 @@ class Workspace:
         title: str,
         message: Optional[str] = None,
         percentage: Optional[int] = None,
+        skip_token_initialization: bool = False,
     ) -> Generator[Callable[[str, Optional[int]], None], None, None]:
+        """
+        Report progress to the editor / client.
+
+        ``skip_token_initialization` is necessary due to some current
+        limitations of our LSP implementation. When `report_progress`
+        is used from a synchronous LSP handler, the token initialization
+        will time out because we can't receive the response.
+
+        Many editors will still correctly show the progress messages though, which
+        is why we are giving progress users the option to skip the initialization
+        of the progress token.
+        """
         if self._config:
             client_supports_progress_reporting = (
                 self._config.capabilities.get("window", {}).get("workDoneProgress", False)
@@ -144,30 +157,21 @@ class Workspace:
             client_supports_progress_reporting = False
 
         if client_supports_progress_reporting:
+            token = self._progress_begin(title, message, percentage, skip_token_initialization)
+
+            def progress_message(message: str, percentage: Optional[int] = None) -> None:
+                self._progress_report(token, message, percentage)
+
             try:
-                token = self._progress_begin(title, message, percentage)
-            except Exception:  # pylint: disable=broad-exception-caught
-                log.warning(
-                    "There was an error while trying to initialize progress reporting."
-                    "Likely progress reporting was used in a synchronous LSP handler, "
-                    "which is not supported by progress reporting yet.",
-                    exc_info=True
-                )
+                yield progress_message
+            finally:
+                self._progress_end(token)
 
-            else:
-                def progress_message(message: str, percentage: Optional[int] = None) -> None:
-                    self._progress_report(token, message, percentage)
-
-                try:
-                    yield progress_message
-                finally:
-                    self._progress_end(token)
-
-                return
+            return
 
         # FALLBACK:
-        # If the client doesn't support progress reporting, or if we failed to
-        # initialize it, we have a dummy method for the caller to use.
+        # If the client doesn't support progress reporting, we have a dummy method
+        # for the caller to use.
         def dummy_progress_message(message: str, percentage: Optional[int] = None) -> None:
             # pylint: disable=unused-argument
             pass
@@ -179,10 +183,23 @@ class Workspace:
         title: str,
         message: Optional[str] = None,
         percentage: Optional[int] = None,
+        skip_token_initialization: bool = False,
     ) -> str:
         token = str(uuid.uuid4())
 
-        self._endpoint.request(self.M_INITIALIZE_PROGRESS, {'token': token}).result(timeout=1.0)
+        if not skip_token_initialization:
+            try:
+                self._endpoint.request(self.M_INITIALIZE_PROGRESS, {'token': token}).result(timeout=1.0)
+            except Exception:  # pylint: disable=broad-exception-caught
+                log.warning(
+                    "There was an error while trying to initialize progress reporting."
+                    "Likely progress reporting was used in a synchronous LSP handler, "
+                    "which is not supported by progress reporting yet. "
+                    "To prevent waiting for the timeout you can set "
+                    "`skip_token_initialization=True`. "
+                    "Not every editor will show progress then, but many will.",
+                    exc_info=True
+                )
 
         value = {
             "kind": "begin",
@@ -389,6 +406,11 @@ class Document:
             jedi.settings.auto_import_modules = jedi_settings.get('auto_import_modules',
                                                                   DEFAULT_AUTO_IMPORT_MODULES)
             environment_path = jedi_settings.get('environment')
+            # Jedi itself cannot deal with homedir-relative paths.
+            # On systems, where it is expected, expand the home directory.
+            if environment_path and os.name != 'nt':
+                environment_path = os.path.expanduser(environment_path)
+
             extra_paths = jedi_settings.get('extra_paths') or []
             env_vars = jedi_settings.get('env_vars')
 

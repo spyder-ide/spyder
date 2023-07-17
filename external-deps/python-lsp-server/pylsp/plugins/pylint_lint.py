@@ -48,7 +48,7 @@ class PylintLinter:
     last_diags = collections.defaultdict(list)
 
     @classmethod
-    def lint(cls, document, is_saved, flags=''):
+    def lint(cls, document, is_saved, flags=''):  # pylint: disable=too-many-locals,too-many-branches
         """Plugin interface to pylsp linter.
 
         Args:
@@ -95,11 +95,13 @@ class PylintLinter:
         ] + (shlex.split(str(flags)) if flags else [])
         log.debug("Calling pylint with '%s'", ' '.join(cmd))
 
+        cwd = document._workspace.root_path
+        if not cwd:
+            cwd = os.path.dirname(__file__)
+
         with Popen(cmd, stdout=PIPE, stderr=PIPE,
-                   cwd=document._workspace.root_path, universal_newlines=True) as process:
-            process.wait()
-            json_out = process.stdout.read()
-            err = process.stderr.read()
+                   cwd=cwd, universal_newlines=True) as process:
+            json_out, err = process.communicate()
 
         if err != '':
             log.error("Error calling pylint: '%s'", err)
