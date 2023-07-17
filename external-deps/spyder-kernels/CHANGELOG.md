@@ -1,5 +1,26 @@
 # History of changes
 
+## Version 2.4.4 (2023-06-29)
+
+### Issues Closed
+
+* [Issue 454](https://github.com/spyder-ide/spyder-kernels/issues/454) - Codecov Package was Yanked ([PR 455](https://github.com/spyder-ide/spyder-kernels/pull/455) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 461](https://github.com/spyder-ide/spyder-kernels/pull/461) - PR: Increase minimal required version of IPykernel to 6.23.2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 459](https://github.com/spyder-ide/spyder-kernels/pull/459) - PR: Skip more buggy IPython versions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 458](https://github.com/spyder-ide/spyder-kernels/pull/458) - PR: Disable IPython's debugger skip functionality by default, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 455](https://github.com/spyder-ide/spyder-kernels/pull/455) - PR: Remove `codecov` package and use Github action to upload coverage instead, by [@ccordoba12](https://github.com/ccordoba12) ([454](https://github.com/spyder-ide/spyder-kernels/issues/454))
+
+In this release 4 pull requests were closed.
+
+
+----
+
+
 ## Version 2.4.3 (2023-04-02)
 
 ### Issues Closed
