@@ -12,7 +12,7 @@
             "platforms": {
                 "win": {
                     "desktop": true,
-                    "app_user_model_id": "Spyder-IDE.Spyder",
+                    "app_user_model_id": "spyder.Spyder",
                     "command": ["{{ PREFIX }}/pythonw.exe", "{{ PREFIX }}/Scripts/spyder-script.py"]
                 },
                 "linux": {
