@@ -50,7 +50,7 @@ log "Certificate ID: $CNAME"
 
 # --- Notarize
 log "Notarizing..."
-auth_args=("--username" "$APPLEID" "--password" "$PWD")
+auth_args=("--username" "$APPLEID" "--password" "$PWD" "--asc-provider" "$CNAME")
 
 xcrun altool --notarize-app  --file $DMG --primary-bundle-id $BUNDLEID ${auth_args[@]} | tee result.txt
 requuid=$(pcregrep -o1 "^\s*RequestUUID = ([0-9a-z-]+)$" result.txt)
