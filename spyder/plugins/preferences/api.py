@@ -441,13 +441,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             self.changed_options.add((section, option))
 
-    def add_help_info_label(self, layout, help_info):
+    def add_help_info_label(self, layout, tip_text):
         help_label = QLabel()
         image = ima.icon('help_gray').pixmap(QSize(20, 20))
         help_label.setPixmap(image)
         help_label.setFixedWidth(23)
         help_label.setFixedHeight(23)
-        help_label.setToolTip(help_info)
+        help_label.setToolTip(tip_text)
         layout.addWidget(help_label)
         layout.addStretch(100)
 
@@ -455,8 +455,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
-                        msg_if_enabled=False, section=None, restart=False,
-                        help_info=True):
+                        msg_if_enabled=False, section=None, restart=False):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         checkbox = QCheckBox(text)
@@ -480,18 +479,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.checkbox = checkbox
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                checkbox.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
         return widget
 
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None,
-                           restart=False, section=None, help_info=True):
+                           restart=False, section=None):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         radiobutton = QRadioButton(text)
@@ -519,11 +515,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         radiobutton.label_text = text
 
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                radiobutton.help_label = help_label
-            else:
-                radiobutton.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
+            radiobutton.help_label = help_label
         widget = QWidget(self)
         widget.radiobutton = radiobutton
         widget.setLayout(layout)
@@ -532,7 +525,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
-                        content_type=None, section=None, help_info=True):
+                        content_type=None, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -552,12 +545,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
-        if tip:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                edit.setToolTip(tip)
+        if tip is not None:
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
@@ -565,7 +555,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_textedit(self, text, option, default=NoDefault,
                         tip=None, restart=False, content_type=None,
-                        section=None, help_info=True):
+                        section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -582,19 +572,16 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
-        if tip:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                edit.setToolTip(tip)
+        if tip is not None:
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
         return widget
 
     def create_browsedir(self, text, option, default=NoDefault, tip=None,
-                         section=None, help_info=True):
+                         section=None):
         widget = self.create_lineedit(text, option, default, section=section,
                                       alignment=Qt.Horizontal)
         for edit in self.lineedits:
@@ -609,7 +596,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addWidget(widget)
         layout.addWidget(browse_btn)
         layout.setContentsMargins(0, 0, 0, 0)
-        if tip and help_info:
+        if tip is not None:
             layout, help_label = self.add_help_info_label(layout, tip)
         browsedir = QWidget(self)
         browsedir.setLayout(layout)
@@ -626,7 +613,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             edit.setText(directory)
 
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
-                          filters=None, section=None, help_info=True):
+                          filters=None, section=None):
         widget = self.create_lineedit(text, option, default, section=section,
                                       alignment=Qt.Horizontal)
         for edit in self.lineedits:
@@ -641,7 +628,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addWidget(widget)
         layout.addWidget(browse_btn)
         layout.setContentsMargins(0, 0, 0, 0)
-        if tip and help_info:
+        if tip is not None:
             layout, help_label = self.add_help_info_label(layout, tip)
         browsedir = QWidget(self)
         browsedir.setLayout(layout)
@@ -662,7 +649,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None,
-                       section=None, help_info=True):
+                       section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         widget = QWidget(self)
@@ -698,16 +685,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.setContentsMargins(0, 0, 0, 0)
         widget.spinbox = spinbox
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                spinbox.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
         return widget
 
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
-                         without_layout=False, section=None, help_info=True):
+                         without_layout=False, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -722,17 +706,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-            else:
-                clayout.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
 
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
 
     def create_scedit(self, text, option, default=NoDefault, tip=None,
-                      without_layout=False, section=None, help_info=True):
+                      without_layout=False, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
@@ -757,16 +738,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-            else:
-                clayout.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
 
     def create_combobox(self, text, choices, option, default=NoDefault,
-                        tip=None, restart=False, section=None, help_info=True):
+                        tip=None, restart=False, section=None):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
@@ -792,11 +770,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget.label = label
         widget.combobox = combobox
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                combobox.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
         combobox.restart_required = restart
         combobox.label_text = text
@@ -806,7 +781,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                              tip=None, restart=False, filters=None,
                              adjust_to_contents=False,
                              default_line_edit=False, section=None,
-                             validate_callback=None, help_info=True):
+                             validate_callback=None):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
@@ -840,18 +815,15 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget.combobox = combobox
         widget.browse_btn = browse_btn
         if tip is not None:
-            if help_info:
-                layout, help_label = self.add_help_info_label(layout, tip)
-                widget.help_label = help_label
-            else:
-                combobox.setToolTip(tip)
+            layout, help_label = self.add_help_info_label(layout, tip)
+            widget.help_label = help_label
         widget.setLayout(layout)
 
         return widget
 
     def create_fontgroup(self, option=None, text=None, title=None,
                          tip=None, fontfilters=None, without_group=False,
-                         help_info=True, restart=False):
+                         restart=False):
         """Option=None -> setting plugin font"""
 
         if title:
@@ -887,10 +859,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             group.setLayout(layout)
 
             if tip is not None:
-                if help_info:
-                    layout, help_label = self.add_help_info_label(layout, tip)
-                else:
-                    group.setToolTip(tip)
+                layout, help_label = self.add_help_info_label(layout, tip)
 
             return group
         else:
