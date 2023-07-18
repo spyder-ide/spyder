@@ -115,10 +115,17 @@ EOF
 fi
 
 # Quit Spyder
-if [[ \$OSTYPE = "darwin"* ]]; then
-    echo "Quitting Spyder.app..."
-    osascript -e 'quit app "Spyder.app"' 2> /dev/null
+echo "Quitting Spyder..."
+if [[ "\$OSTYPE" = "darwin"* ]]; then
+    osascript -e 'quit app "Spyder.app"' 2>/dev/null
+else
+    pkill spyder 2>/dev/null
 fi
+sleep 1
+while [[ \$(pgrep spyder 2>/dev/null) ]]; do
+    echo "Waiting for Spyder to quit..."
+    sleep 1
+done
 
 # Remove aliases from shell startup
 for x in ${shell_init_list[@]}; do
@@ -159,7 +166,7 @@ To uninstall Spyder, run the following from the command line:
 $ sudo $PREFIX/uninstall-spyder.sh
 
 EOF
-    else 
+    else
         cat <<EOF
 To uninstall Spyder, run the following from the command line:
 
