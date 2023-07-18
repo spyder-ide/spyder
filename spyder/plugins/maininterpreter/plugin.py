@@ -112,11 +112,12 @@ class MainInterpreter(SpyderPluginV2):
     def _open_interpreter_preferences(self):
         """Open the Preferences dialog in the main interpreter section."""
         self._main.show_preferences()
-        preferences = self._main.preferences
-        container = preferences.get_container()
-        dlg = container.dialog
-        index = dlg.get_index_by_name("main_interpreter")
-        dlg.set_current_index(index)
+        preferences = self.get_plugin(Plugins.Preferences)
+        if preferences:
+            container = preferences.get_container()
+            dlg = container.dialog
+            index = dlg.get_index_by_name("main_interpreter")
+            dlg.set_current_index(index)
 
     @Slot(str)
     def _add_to_custom_interpreters(self, interpreter):

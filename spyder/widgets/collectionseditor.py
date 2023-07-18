@@ -406,6 +406,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        if role == Qt.ToolTipRole and index.column() == 3:
+            return value['view']
+        elif role == Qt.ToolTipRole:
+            return value
         if index.column() == 4 and role == Qt.DisplayRole:
             # TODO: Check the effect of not hiding the column
             # Treating search scores as a table column simplifies the
@@ -910,6 +914,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                and index_clicked in self.selectedIndexes():
                 self.clearSelection()
             else:
+                row = index_clicked.row()
+                # TODO: Remove hard coded "Value" column number (3 here)
+                index_clicked = index_clicked.child(row, 3)
+                self.edit(index_clicked)
                 QTableView.mousePressEvent(self, event)
         else:
             self.clearSelection()
@@ -925,6 +933,13 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.edit(index_clicked)
         else:
             event.accept()
+
+    def mouseMoveEvent(self, event):
+        """Change cursor shape."""
+        if self.rowAt(event.y()) != -1:
+            self.setCursor(Qt.PointingHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
 
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""

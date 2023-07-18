@@ -303,8 +303,7 @@ jobs:
       - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
         run: |
-          # Skip notarization for now because our Apple ID is expired.
-          if [[ $RUNNER_OS == "skip" ]]; then
+          if [[ $RUNNER_OS == "macOS" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
           else
               cd $(dirname $PKG_PATH)

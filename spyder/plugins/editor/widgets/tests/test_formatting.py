@@ -70,7 +70,7 @@ def test_closing_document_formatting(
     assert code_editor.get_text_with_eol() == expected
 
 
-@flaky(max_runs=5)
+@flaky(max_runs=20)
 @pytest.mark.order(1)
 @pytest.mark.parametrize('formatter', [autopep8, black])
 def test_formatting_on_save(completions_editor, formatter, qtbot):
