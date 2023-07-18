@@ -167,6 +167,7 @@ class IconManager():
             'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'findf':                   [('mdi.file-find',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
+            'help_gray':               [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_OCCURRENCE_4}],            
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
             'lock':                    [('mdi.lock',), {'color': self.MAIN_FG_COLOR}],
             'lock_open':               [('mdi.lock-open',), {'color': self.MAIN_FG_COLOR}],

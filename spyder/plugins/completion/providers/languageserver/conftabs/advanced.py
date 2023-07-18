@@ -59,8 +59,8 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         self.use_stdio = self.create_checkbox(
             _("Use stdio pipes to communicate with server"),
             'advanced/stdio')
-        self.use_stdio.stateChanged.connect(self.disable_tcp)
-        self.external_server.stateChanged.connect(self.disable_stdio)
+        self.use_stdio.checkbox.stateChanged.connect(self.disable_tcp)
+        self.external_server.checkbox.stateChanged.connect(self.disable_stdio)
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
@@ -87,9 +87,9 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         advanced_options_widget = QWidget()
         advanced_options_widget.setLayout(advanced_options_layout)
         advanced_options_widget.setEnabled(self.get_option('advanced/enabled'))
-        self.advanced_options_check.toggled.connect(
+        self.advanced_options_check.checkbox.toggled.connect(
             advanced_options_widget.setEnabled)
-        self.advanced_options_check.toggled.connect(
+        self.advanced_options_check.checkbox.toggled.connect(
             self.show_advanced_warning)
 
         # Advanced options layout
@@ -108,15 +108,16 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         if state == Qt.Checked:
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
-            self.external_server.stateChanged.disconnect()
-            self.external_server.setChecked(False)
-            self.external_server.setEnabled(False)
+            self.external_server.checkbox.stateChanged.disconnect()
+            self.external_server.checkbox.setChecked(False)
+            self.external_server.checkbox.setEnabled(False)
         else:
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
-            self.external_server.setChecked(False)
-            self.external_server.setEnabled(True)
-            self.external_server.stateChanged.connect(self.disable_stdio)
+            self.external_server.checkbox.setChecked(False)
+            self.external_server.checkbox.setEnabled(True)
+            self.external_server.checkbox.stateChanged.connect(
+                self.disable_stdio)
 
     def disable_stdio(self, state):
         if state == Qt.Checked:
@@ -167,10 +168,10 @@ class AdvancedConfigTab(SpyderPreferencesTab):
         # and we need to automatically check the corresponding
         # option
         if host not in ['127.0.0.1', 'localhost']:
-            self.external_server.setChecked(True)
+            self.external_server.checkbox.setChecked(True)
 
         # Checks for external PyLS
-        if self.external_server.isChecked():
+        if self.external_server.checkbox.isChecked():
             port = int(self.advanced_port.spinbox.text())
 
             # Check that host and port of the current server are

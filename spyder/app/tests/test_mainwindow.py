@@ -3033,7 +3033,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         check_name = tab_widgets[tabname]
         check = getattr(tab, check_name)
         page.tabs.setCurrentIndex(idx)
-        check.animateClick()
+        check.checkbox.animateClick()
         qtbot.wait(500)
     dlg.ok_btn.animateClick()
 
@@ -3222,7 +3222,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'main_interpreter')
-    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_radio.radiobutton.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
 
     mi_container = main_window.main_interpreter.get_container()

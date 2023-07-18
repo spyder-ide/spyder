@@ -99,8 +99,10 @@ class MainInterpreterConfigPage(PluginConfigPage):
             adjust_to_contents=True,
             validate_callback=programs.is_python_interpreter,
         )
-        self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
-        self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
+        self.def_exec_radio.radiobutton.toggled.connect(
+            self.cus_exec_combo.setDisabled)
+        self.cus_exec_radio.radiobutton.toggled.connect(
+            self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
         pyexec_group.setLayout(pyexec_layout)
 
