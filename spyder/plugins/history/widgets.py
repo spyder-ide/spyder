@@ -25,7 +25,7 @@ from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET
 
 
 # --- Constants
@@ -315,8 +315,14 @@ class HistoryWidget(PluginMainWidget):
         css = tabs_stylesheet.get_stylesheet()
 
         css['QTabBar::tab'].setValues(
-            padding='4px'
+            marginTop="14px",
+            padding=f'6px {4 if MAC else 10}px',
         )
+
+        for state in ['selected', 'selected:hover', 'hover']:
+            css[f'QTabBar::tab:{state}'].setValues(
+                padding=f'6px {4 if MAC else 10}px',
+            )
 
         css['QTabWidget::pane'].setValues(
             border='1px',
