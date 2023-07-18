@@ -149,15 +149,30 @@ distros with the command:
 
 $ spyder
 
+EOF
+    if [[ "$all_user" = "true" ]]; then
+        cat <<EOF
+This command will only be available in new shell sessions.
+
+To uninstall Spyder, run the following from the command line:
+
+$ sudo $PREFIX/uninstall-spyder.sh
+
+EOF
+    else 
+        cat <<EOF
 To uninstall Spyder, run the following from the command line:
 
 $ uninstall-spyder
 
 These commands will only be available in new shell sessions. To make them
-available in this session, you must source your $user_shell_init file with:
+available in this session, you must source your $shell_init file with:
 
-$ source $user_shell_init
+$ source $shell_init
 
+EOF
+    fi
+    cat <<EOF
 ###############################################################################
 
 EOF
