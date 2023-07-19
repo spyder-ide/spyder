@@ -17,6 +17,7 @@ import os.path as osp
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
                             QTabWidget, QWidget, QLineEdit)
 
@@ -46,6 +47,9 @@ class EditTabNamePopup(QLineEdit):
         # Track which tab is being edited
         self.tab_index = None
 
+        # Track if any text has been typed
+        self.has_typed = False
+
         # Widget setup
         QLineEdit.__init__(self, parent=parent)
 
@@ -69,24 +73,34 @@ class EditTabNamePopup(QLineEdit):
             )
         self.setFrame(False)
 
-        # Align with tab name
-        self.setTextMargins(9, 0, 0, 0)
-
     def eventFilter(self, widget, event):
         """Catch clicks outside the object and ESC key press."""
-        if ((event.type() == QEvent.MouseButtonPress and
-                 not self.geometry().contains(event.globalPos())) or
-                (event.type() == QEvent.KeyPress and
-                 event.key() == Qt.Key_Escape)):
+        if (
+            (
+                event.type() == QEvent.MouseButtonPress
+                and not self.geometry().contains(event.globalPos())
+            )
+            or (
+                event.type() == QEvent.KeyPress
+                and event.key() == Qt.Key_Escape
+            )
+        ):
             # Exits editing
             self.hide()
             return True
+        elif event.type() == QEvent.KeyPress and event.text():
+            # Remove left margin when the user starts typing to not crop long
+            # names.
+            if not self.has_typed:
+                self.setTextMargins(0, 0, 0, 0)
+                self.has_typed = True
 
-        # Event is not interessant, raise to parent
+        # Event is not interesting, raise to parent
         return QLineEdit.eventFilter(self, widget, event)
 
     def edit_tab(self, index):
         """Activate the edit tab."""
+        self.has_typed = False
 
         # Sets focus, shows cursor
         self.setFocus()
@@ -94,9 +108,10 @@ class EditTabNamePopup(QLineEdit):
         # Updates tab index
         self.tab_index = index
 
-        # Gets tab size and shrinks to avoid overlapping tab borders
+        # Gets tab size and adjust top margin
         rect = self.main.tabRect(index)
-        rect.adjust(1, 1, -2, -1)
+        top_margin = PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0]
+        rect.adjust(2, int(top_margin), 0, 0)
 
         # Sets size
         self.setFixedSize(rect.size())
@@ -112,6 +127,11 @@ class EditTabNamePopup(QLineEdit):
 
         self.setText(text)
         self.selectAll()
+
+        # Center text because it looks nicer.
+        metrics = QFontMetrics(self.font())
+        text_width = metrics.width(text) + self.font().pointSize()
+        self.setTextMargins((rect.width() - text_width) // 2, 0, 0, 0)
 
         if not self.isVisible():
             # Makes editor visible
