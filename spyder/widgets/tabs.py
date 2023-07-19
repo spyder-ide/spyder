@@ -215,8 +215,10 @@ class TabBar(QTabBar):
         mimeData = event.mimeData()
         formats = list(mimeData.formats())
 
-        if "parent-id" in formats and \
-          int(mimeData.data("parent-id")) == id(self.ancestor):
+        if (
+            "parent-id" in formats
+            and int(mimeData.data("parent-id")) == id(self.ancestor)
+        ):
             event.acceptProposedAction()
 
         QTabBar.dragEnterEvent(self, event)
@@ -245,8 +247,10 @@ class TabBar(QTabBar):
 
     def mouseDoubleClickEvent(self, event):
         """Override Qt method to trigger the tab name editor."""
-        if self.rename_tabs is True and \
-                event.buttons() == Qt.MouseButtons(Qt.LeftButton):
+        if (
+            self.rename_tabs is True
+            and event.buttons() == Qt.MouseButtons(Qt.LeftButton)
+        ):
             # Tab index
             index = self.tabAt(event.pos())
             if index >= 0:
