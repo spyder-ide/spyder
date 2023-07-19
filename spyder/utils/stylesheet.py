@@ -417,12 +417,27 @@ class DialogStyle(SpyderFontsMixin):
 
     @classproperty
     def TitleFontSize(cls):
-        return f"{cls._fs + 9}pt" if MAC else f"{cls._fs + 4}pt"
+        if WIN:
+            return f"{cls._fs + 6}pt"
+        elif MAC:
+            return f"{cls._fs + 6}pt"
+        else:
+            return f"{cls._fs + 4}pt"
 
     @classproperty
     def ContentFontSize(cls):
-        return f"{cls._fs + 5}pt" if MAC else f"{cls._fs + 2}pt"
+        if WIN:
+            return f"{cls._fs + 4}pt"
+        elif MAC:
+            return f"{cls._fs + 2}pt"
+        else:
+            return f"{cls._fs + 2}pt"
 
     @classproperty
     def ButtonsFontSize(cls):
-        return f"{cls._fs + 5}pt" if MAC else f"{cls._fs + 3}pt"
+        if WIN:
+            return f"{cls._fs + 5}pt"
+        elif MAC:
+            return f"{cls._fs + 2}pt"
+        else:
+            return f"{cls._fs + 3}pt"
