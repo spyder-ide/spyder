@@ -50,6 +50,9 @@ class EditTabNamePopup(QLineEdit):
         # Track if any text has been typed
         self.has_typed = False
 
+        # Track the initial tab text
+        self.initial_text = None
+
         # Widget setup
         QLineEdit.__init__(self, parent=parent)
 
@@ -76,16 +79,15 @@ class EditTabNamePopup(QLineEdit):
     def eventFilter(self, widget, event):
         """Catch clicks outside the object and ESC key press."""
         if (
-            (
-                event.type() == QEvent.MouseButtonPress
-                and not self.geometry().contains(event.globalPos())
-            )
-            or (
-                event.type() == QEvent.KeyPress
-                and event.key() == Qt.Key_Escape
-            )
+            event.type() == QEvent.MouseButtonPress
+            and not self.geometry().contains(event.globalPos())
         ):
-            # Exits editing
+            # Exit editing and change text
+            self.hide()
+            return True
+        elif event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+            # Exit editing and restore initial text
+            self.setText(self.initial_text)
             self.hide()
             return True
         elif event.type() == QEvent.KeyPress and event.text():
@@ -120,8 +122,8 @@ class EditTabNamePopup(QLineEdit):
         self.move(self.main.mapToGlobal(rect.topLeft()))
 
         # Copies tab name and selects all
-        text = self.main.tabText(index)
-        text = text.replace(u'&', u'')
+        self.initial_text = self.main.tabText(index)
+        text = self.initial_text.replace('&', '')
         if self.split_char:
             text = text.split(self.split_char)[self.split_index]
 
