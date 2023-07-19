@@ -67,15 +67,17 @@ add_alias() {
 }
 
 # ----
-if [[ "$all_user" = "true" ]]; then
-    shell_init_list=("/etc/zshrc")
-    [[ "$OSTYPE" = "darwin"* ]] && shell_init_list+=("/etc/bashrc") || shell_init_list+=("/etc/bash.bashrc")
+if [[ "$all_user" = "true" && "$OSTYPE" = "darwin"* ]]; then
+    shell_init_list=("/etc/zshrc" "/etc/bashrc")
+elif [[ "$all_user" = "true" ]]; then
+    shell_init_list=("/etc/zsh/zshrc" "/etc/bash.bashrc")
 else
     case $SHELL in
         (*"zsh") shell_init_list=("$HOME/.zshrc") ;;
         (*"bash") shell_init_list=("$HOME/.bashrc") ;;
     esac
 fi
+
 for shell_init in ${shell_init_list[@]}; do
     [[ -z "$shell_init" || -z "$alias_text" ]] && continue
     [[ "$all_user" = "true" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
@@ -152,7 +154,7 @@ if [[ "$OSTYPE" = "linux"* ]]; then
 ###############################################################################
 Spyder can be launched by standard methods in Gnome and KDE desktop
 environments. It can also be launched from the command line on all Linux
-distros with the command:
+distributions with the command:
 
 $ spyder
 
