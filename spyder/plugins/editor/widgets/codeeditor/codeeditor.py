@@ -52,7 +52,6 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.panels import (
     ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
     LineNumberArea, PanelsManager, ScrollFlagArea)
@@ -2052,7 +2051,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
-                title_color=SpyderPalette.COLOR_SUCCESS_2,
                 at_line=line_number,
                 with_html_format=True
             )

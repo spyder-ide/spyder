@@ -30,11 +30,13 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.color_system import Green, Orange
+from spyder.utils.palette import QStylePalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 
@@ -59,16 +61,22 @@ EOL_SYMBOLS = [
 
 class BaseEditMixin(object):
 
-    _PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
-    _DEFAULT_TITLE_COLOR = SpyderPalette.COLOR_SUCCESS_2
-    _CHAR_HIGHLIGHT_COLOR = SpyderPalette.COLOR_SUCCESS_2
+    _BACKGROUND_COLOR = (
+        QStylePalette.COLOR_BACKGROUND_4 if is_dark_interface() else
+        QStylePalette.COLOR_BACKGROUND_2
+    )
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
+    _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
+    _DEFAULT_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
+    _CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
+
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 55
     _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 50
     _DEFAULT_MAX_HINT_LINES = 7
     _DEFAULT_MAX_HINT_WIDTH = 55
+
     _BUILTINS_DOCSTRING_MAP = {
         int.__doc__: 'integer',
         list.__doc__: 'list',
@@ -155,16 +163,18 @@ class BaseEditMixin(object):
         # because Qt is slow to repeatedly parse & apply CSS
         if id(widget) in self._styled_widgets:
             return
+
         self._styled_widgets.add(id(widget))
-        background = QStylePalette.COLOR_BACKGROUND_4
-        border = QStylePalette.COLOR_TEXT_4
         name = widget.__class__.__name__
         widget.setObjectName(name)
-        css = '''
-            {0}#{0} {{
-                background-color:{1};
-                border: 1px solid {2};
-            }}'''.format(name, background, border)
+
+        # Don't use qstylizer here to run this faster.
+        css = (
+            f'{name}#{name} {{'
+            f'    background-color: {self._BACKGROUND_COLOR};'
+            f'    border: 1px solid {QStylePalette.COLOR_TEXT_4};'
+            f'}}'
+        )
         widget.setStyleSheet(css)
 
     @property
@@ -345,7 +355,7 @@ class BaseEditMixin(object):
                 template += (
                     f'<hr>'
                     f'<div align="left">'
-                    f'<span style="color: {SpyderPalette.COLOR_SUCCESS_2};'
+                    f'<span style="color: {self._DEFAULT_TITLE_COLOR};'
                     f'text-decoration:none;'
                     f'font-family:"{font_family}";font-size:{text_size}pt;>'
                 ) + help_text + '</span></div>'
@@ -382,7 +392,7 @@ class BaseEditMixin(object):
         )
         chars_template = (
             '<span style="color:{0};'.format(self._CHAR_HIGHLIGHT_COLOR) +
-            'font-weight:bold">{char}'
+            'font-weight:bold"><b>{char}</b>'
             '</span>'
         )
 
@@ -451,13 +461,12 @@ class BaseEditMixin(object):
 
             # Get current font properties
             font = self.font()
-            font_size = font.pointSize()
             font_family = font.family()
 
             # Format title to display active parameter
             if parameter and language == 'python':
                 title = title_template.format(
-                    font_size=font_size,
+                    font_size=self._tip_text_size,
                     font_family=font_family,
                     color=parameter_color,
                     parameter=parameter,
