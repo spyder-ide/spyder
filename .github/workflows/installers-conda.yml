@@ -252,16 +252,24 @@ jobs:
 
           installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
 
-          app_path=$HOME/Applications/Spyder.app
+          root_prefix=$(compgen -G $HOME/Library/spyder-*)
+
+          echo "Install info:"
+          echo "Contents of ${root_prefix}:"
+          ls -al $root_prefix
+          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
+          cat $root_prefix/uninstall-spyder.sh
+
+          app_path=/Applications/Spyder.app
+          [[ -e ${root_prefix}/.nonadmin ]] && app_path=${HOME}${app_path}
+
           if [[ -e "$app_path" ]]; then
-              echo "\nContents of $app_path/Contents/MacOS:"
+              echo "Contents of $app_path/Contents/MacOS:"
               ls -al $app_path/Contents/MacOS
               echo -e "\nContents of $app_path/Contents/Info.plist:"
               cat $app_path/Contents/Info.plist
               echo -e "\nContents of $app_path/Contents/MacOS/spyder-script:"
               cat $app_path/Contents/MacOS/spyder-script
-              echo -e "\n\nContents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
-              cat $HOME/Library/spyder-*/uninstall-spyder.sh
           else
               echo "$app_path does not exist"
               exit 1
@@ -272,14 +280,20 @@ jobs:
         run: |
           $PKG_PATH -b
 
-          shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+          root_prefix=$(compgen -G $HOME/.local/spyder-*)
+
+          echo "Install info:"
+          echo "Contents of ${root_prefix}:"
+          ls -al $root_prefix
+          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
+          cat ${root_prefix}/uninstall-spyder.sh
+
+          shortcut_path=/share/applications/spyder_spyder.desktop
+          [[ -e ${root_prefix}/.nonadmin ]] && shortcut_path=${HOME}/.local${shortcut_path} || shortcut_path=/usr${shortcut_path}
+
           if [[ -e $shortcut_path ]]; then
-              echo -e "\nContents of" $HOME/.local/spyder-* :
-              ls -al $HOME/.local/spyder-*
               echo -e "\nContents of ${shortcut_path}:"
               cat $shortcut_path
-              echo -e "\nContents of" $HOME/.local/spyder-*/uninstall-spyder.sh :
-              cat $HOME/.local/spyder-*/uninstall-spyder.sh
           else
               echo "$shortcut_path does not exist"
               exit 1
