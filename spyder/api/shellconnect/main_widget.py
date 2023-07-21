@@ -43,6 +43,24 @@ class ShellConnectMainWidget(PluginMainWidget):
         layout.addWidget(self._stack)
         self.setLayout(layout)
 
+    # ---- PluginMainWidget API
+    # ------------------------------------------------------------------------
+    def current_widget(self):
+        """
+        Return the current widget in the stack.
+
+        Returns
+        -------
+        QWidget
+            The current widget.
+        """
+        return self._stack.currentWidget()
+
+    def get_focus_widget(self):
+        return self.current_widget()
+
+    # ---- SpyderWidgetMixin API
+    # ------------------------------------------------------------------------
     def update_style(self):
         self._stack.setStyleSheet("QStackedWidget {padding: 0px; border: 0px}")
 
@@ -58,20 +76,6 @@ class ShellConnectMainWidget(PluginMainWidget):
             The number of widgets in the stack.
         """
         return self._stack.count()
-
-    def current_widget(self):
-        """
-        Return the current figure browser widget in the stack.
-
-        Returns
-        -------
-        QWidget
-            The current widget.
-        """
-        return self._stack.currentWidget()
-
-    def get_focus_widget(self):
-        return self.current_widget()
 
     def get_widget_for_shellwidget(self, shellwidget):
         """return widget corresponding to shellwidget."""
@@ -163,3 +167,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         if self.count():
             widget = self.current_widget()
             widget.refresh()
+
+    def is_current_widget_empty(self):
+        """Check if the current widget is a PaneEmptyWidget."""
+        return isinstance(self.current_widget(), PaneEmptyWidget)

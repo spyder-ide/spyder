@@ -420,18 +420,24 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update the actions."""
+        nsb = self.current_widget()
+        if self.is_current_widget_empty():
+            return
+
         action = self.get_action(VariableExplorerWidgetActions.ToggleMinMax)
         action.setEnabled(is_module_installed('numpy'))
-        nsb = self.current_widget()
+
         if nsb:
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
         search_action = self.get_action(VariableExplorerWidgetActions.Search)
+
         if nsb is None:
             checked = False
         else:
             checked = nsb.finder_is_visible()
+
         search_action.setChecked(checked)
 
     @on_conf_change
@@ -483,19 +489,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         Import data in current namespace.
         """
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=filenames)
 
     def save_data(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.save_data()
             self.update_actions()
 
     def reset_namespace(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.reset_namespace()
 
@@ -503,7 +509,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Hide or show the finder."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return
         widget.toggle_finder(checked)
 
@@ -514,7 +520,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         action.setChecked(False)
 
     def refresh_table(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.refresh_table()
 
@@ -530,10 +536,12 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                           self.sig_free_memory_requested)
 
     def resize_rows(self):
-        self._current_editor.resizeRowsToContents()
+        if self._current_editor is not None:
+            self._current_editor.resizeRowsToContents()
 
     def resize_columns(self):
-        self._current_editor.resize_column_contents()
+        if self._current_editor is not None:
+            self._current_editor.resize_column_contents()
 
     def paste(self):
         self._current_editor.paste()
@@ -576,7 +584,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     @property
     def _current_editor(self):
         editor = None
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             editor = nsb.editor
         return editor
