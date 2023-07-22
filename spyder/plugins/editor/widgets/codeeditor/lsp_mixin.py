@@ -915,7 +915,8 @@ class LSPMixin:
 
                 # Show hover
                 self.show_hint(
-                    content, inspect_word=word, at_point=self._last_point
+                    content, inspect_word=word, at_point=self._last_point,
+                    vertical_position='top'
                 )
 
                 self._last_point = None

@@ -18,13 +18,12 @@ Now located at qtconsole/call_tip_widget.py as part of the
 
 # Standard library imports
 from unicodedata import category
-import os
 import sys
 
 # Third party imports
 from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
                          Signal)
-from qtpy.QtGui import QCursor, QPalette
+from qtpy.QtGui import QCursor, QFontMetrics, QPalette
 from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
                             QPlainTextEdit, QStyle, QStyleOptionFrame,
                             QStylePainter, QToolTip)
@@ -125,10 +124,10 @@ class ToolTipWidget(QLabel):
         self.show()
         return True
 
-    def show_tip(self, point, tip, cursor=None, completion_doc=None):
-        """
-        Attempts to show the specified tip at the current cursor location.
-        """
+    def show_tip(self, point, tip, cursor=None, completion_doc=None,
+                 vertical_position='bottom'):
+        """Attempt to show the tip at the current mouse location."""
+
         # Don't show the widget if the main window is not focused
         if QApplication.instance().applicationState() != Qt.ApplicationActive:
             return
@@ -140,62 +139,74 @@ class ToolTipWidget(QLabel):
 
         self.completion_doc = completion_doc
 
-        padding = 0
         text_edit = self._text_edit
-        if cursor is None:
-            cursor_rect = text_edit.cursorRect()
-        else:
-            cursor_rect = text_edit.cursorRect(cursor)
-
         screen_rect = self.screen().geometry()
-        point.setY(point.y() + padding)
+
         tip_height = self.size().height()
         tip_width = self.size().width()
 
-        vertical = 'bottom'
+        text_edit_height = text_edit.size().height()
+        text_edit_gpos = text_edit.mapToGlobal(text_edit.pos())
+
+        vertical = vertical_position
         horizontal = 'Right'
 
-        if point.y() + tip_height > screen_rect.height() + screen_rect.y():
-            point_ = text_edit.mapToGlobal(cursor_rect.topRight())
-            # If tip is still off screen, check if point is in top or bottom
-            # half of screen.
-            if point_.y() - tip_height < padding:
-                # If point is in upper half of screen, show tip below it.
-                # otherwise above it.
-                if 2 * point.y() < screen_rect.height():
-                    vertical = 'bottom'
-                else:
-                    vertical = 'top'
+        # Check if tip is vertically off text_edit
+        if (
+            # Tip is off at text_edit's bottom
+            point.y() + tip_height > text_edit_gpos.y() + text_edit_height
+            # Tip is off at the top
+            or point.y() - tip_height < text_edit_gpos.y()
+        ):
+            if point.y() - tip_height < text_edit_gpos.y():
+                vertical = 'bottom'
             else:
                 vertical = 'top'
 
-        if point.x() + tip_width > screen_rect.width() + screen_rect.x():
-            point_ = text_edit.mapToGlobal(cursor_rect.topRight())
-            # If tip is still off-screen, check if point is in the right or
-            # left half of the screen.
-            if point_.x() - tip_width < padding:
-                if 2 * point.x() < screen_rect.width():
-                    horizontal = 'Right'
-                else:
-                    horizontal = 'Left'
+        # Check if tip is horizontally off screen to the right
+        if point.x() + tip_width > screen_rect.x() + screen_rect.width():
+            if 2 * point.x() < screen_rect.width():
+                horizontal = 'Right'
             else:
                 horizontal = 'Left'
-        pos = getattr(cursor_rect, '%s%s' % (vertical, horizontal))
-        adjusted_point = text_edit.mapToGlobal(pos())
 
+        # Set coordinates where the tip will be placed
         if vertical == 'top':
-            if os.name == 'nt':
-                padding = -7
+            # The +2 below is necessary to leave no vertical space between the
+            # tooltip and the text.
+            point.setY(point.y() - tip_height + 2)
+        else:
+            font = text_edit.font()
+            text_height = QFontMetrics(font).capHeight()
+
+            # Ubuntu Mono has a strange behavior regarding its height that we
+            # need to account for. Other monospaced fonts behave as expected.
+            if font.family() == 'Ubuntu Mono':
+                padding = 0
             else:
-                padding = -4
-            point.setY(adjusted_point.y() - tip_height - padding)
+                padding = 3
+
+            # Qt sets the mouse coordinates (given by `point`) a bit above the
+            # line where it's placed, i.e. not exactly where the text
+            # vertically starts. So, we need to add an extra height (twice the
+            # cap height plus some padding) to place the tip at the line's
+            # bottom.
+            point.setY(point.y() + 2 * text_height + padding)
 
         if horizontal == 'Left':
-            point.setX(adjusted_point.x() - tip_width - padding)
+            point.setX(point.x() - tip_width)
+        else:
+            # The -1 below is necessary to horizontally align the tooltip to
+            # the text.
+            point.setX(point.x() - 1)
 
+        # Move tip to new coordinates
         self.move(point)
+
+        # Show tip
         if not self.isVisible():
             self.show()
+
         return True
 
     def mousePressEvent(self, event):
@@ -458,53 +469,65 @@ class CallTipWidget(QLabel):
         self.resize(self.sizeHint())
 
         # Locate and show the widget. Place the tip below the current line
-        # unless it would be off the screen.  In that case, decide the best
-        # location based trying to minimize the  area that goes off-screen.
-        padding = 0  # Distance in pixels between cursor bounds and tip box.
+        # unless it would be off the window or screen. In that case, decide the
+        # best location based trying to minimize the area that goes off-screen.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = self.screen().geometry()
-        point.setY(point.y() + padding)
+        window_rect = self.app.activeWindow().geometry()
         tip_height = self.size().height()
         tip_width = self.size().width()
 
         vertical = 'bottom'
         horizontal = 'Right'
-        if point.y() + tip_height > screen_rect.height() + screen_rect.y():
+
+        if point.y() + tip_height > window_rect.height() + window_rect.y():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off screen, check if point is in top or bottom
             # half of screen.
-            if point_.y() - tip_height < padding:
+            if point_.y() < tip_height :
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
-                if 2*point.y() < screen_rect.height():
+                if 2 * point.y() < window_rect.height():
                     vertical = 'bottom'
                 else:
                     vertical = 'top'
             else:
                 vertical = 'top'
+
         if point.x() + tip_width > screen_rect.width() + screen_rect.x():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off-screen, check if point is in the right or
             # left half of the screen.
-            if point_.x() - tip_width < padding:
-                if 2*point.x() < screen_rect.width():
+            if point_.x() < tip_width:
+                if 2 * point.x() < screen_rect.width():
                     horizontal = 'Right'
                 else:
                     horizontal = 'Left'
             else:
                 horizontal = 'Left'
-        pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
-        adjusted_point = text_edit.mapToGlobal(pos())
 
         if vertical == 'top':
-            if os.name == 'nt':
-                padding = -7
+            point.setY(point.y() - tip_height)
+        else:
+            font = text_edit.font()
+            text_height = QFontMetrics(font).capHeight()
+
+            # Ubuntu Mono has a strange behavior regarding its height that we
+            # need to account for. Other monospaced fonts behave as expected.
+            if font.family() == 'Ubuntu Mono':
+                padding = 0
             else:
-                padding = -4
-            point.setY(adjusted_point.y() - tip_height - padding)
+                padding = 3
+
+            # Qt sets the mouse coordinates (given by `point`) a bit above the
+            # line where it's placed, i.e. not exactly where the text
+            # vertically starts. So, we need to add an extra height (twice the
+            # cap height plus some padding) to place the tip at the line's
+            # bottom.
+            point.setY(point.y() + 2 * text_height + padding)
 
         if horizontal == 'Left':
-            point.setX(adjusted_point.x() - tip_width - padding)
+            point.setX(point.x() - tip_width)
 
         self.move(point)
         self.show()

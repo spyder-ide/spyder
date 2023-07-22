@@ -121,13 +121,10 @@ class BaseEditMixin(object):
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        font = self.font()
-
         if at_point is not None:
             # Showing tooltip at point position
-            margin = (self.document().documentMargin() / 2) + 1
-            cx = int(at_point.x() - margin)
-            cy = int(at_point.y() - margin)
+            cx = at_point.x()
+            cy = at_point.y()
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
@@ -137,23 +134,21 @@ class BaseEditMixin(object):
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
-            cx = int(cx)
-            cy = int(cy - font.pointSize() / 2)
 
-        # Calculate vertical delta
-        # The needed delta changes with font size, so we use a power law
-        if sys.platform == 'darwin':
-            delta = int((font.pointSize() * 1.20) ** 0.98 + 4.5)
-        elif os.name == 'nt':
-            delta = int((font.pointSize() * 1.20) ** 1.05) + 7
-        else:
-            delta = int((font.pointSize() * 1.20) ** 0.98) + 7
-        # delta = font.pointSize() + 5
+            # Ubuntu Mono has a strange behavior regarding its height that we
+            # need to account for. Other monospaced fonts behave as expected.
+            if self.font().family() == 'Ubuntu Mono':
+                padding = 3
+            else:
+                padding = 0
+
+            # This is necessary because the point Qt returns for the cursor is
+            # much below the line's bottom position.
+            cy = int(cy - QFontMetrics(self.font()).xHeight() + padding)
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
         point = self.calculate_real_position(point)
-        point.setY(point.y() + delta)
 
         return point
 
@@ -604,16 +599,15 @@ class BaseEditMixin(object):
                      at_line=None, at_point=None, display_link=False,
                      max_lines=_DEFAULT_MAX_LINES,
                      max_width=_DEFAULT_MAX_WIDTH,
-                     cursor=None,
                      with_html_format=False,
                      text_new_line=True,
-                     completion_doc=None):
+                     completion_doc=None,
+                     vertical_position='bottom'):
         """Show tooltip."""
-        # Find position of calltip
-        point = self._calculate_position(
-            at_line=at_line,
-            at_point=at_point,
-        )
+
+        # Find position
+        point = self._calculate_position(at_line=at_line, at_point=at_point)
+
         # Format text
         tiptext = self._format_text(
             title=title,
@@ -637,14 +631,17 @@ class BaseEditMixin(object):
         )
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
-                                     completion_doc=completion_doc)
+        self.tooltip_widget.show_tip(
+            point, tiptext, completion_doc=completion_doc,
+            vertical_position=vertical_position
+        )
 
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
                   text_new_line=True,
-                  completion_doc=None):
+                  completion_doc=None,
+                  vertical_position='bottom'):
         """Show code hint and crop text as needed."""
         # Don't show full docstring for builtin types, just its type
         display_link = True
@@ -679,7 +676,7 @@ class BaseEditMixin(object):
 
         # Only display hover hint if there is documentation
         if extra_text is not None:
-            # This is needed to get hover hints
+            # This is needed to show help when clicking on hover hints
             cursor = self.cursorForPosition(at_point)
             cursor.movePosition(QTextCursor.StartOfWord,
                                 QTextCursor.MoveAnchor)
@@ -688,9 +685,9 @@ class BaseEditMixin(object):
             self.show_tooltip(signature=html_signature, text=extra_text,
                               at_point=point, inspect_word=inspect_word,
                               display_link=display_link, max_lines=max_lines,
-                              max_width=max_width, cursor=cursor,
-                              text_new_line=text_new_line,
-                              completion_doc=completion_doc)
+                              max_width=max_width, text_new_line=text_new_line,
+                              completion_doc=completion_doc,
+                              vertical_position=vertical_position)
 
     def hide_tooltip(self):
         """
