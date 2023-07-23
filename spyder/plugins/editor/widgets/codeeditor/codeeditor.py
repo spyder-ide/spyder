@@ -69,7 +69,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import SpyderPalette, QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
@@ -2189,28 +2189,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     # ---- Tasks management
     # -------------------------------------------------------------------------
-    def go_to_next_todo(self):
-        """Go to next todo and return new cursor position"""
-        block = self.textCursor().block()
-        line_count = self.document().blockCount()
-        while True:
-            if block.blockNumber()+1 < line_count:
-                block = block.next()
-            else:
-                block = self.document().firstBlock()
-            data = block.userData()
-            if data and data.todo:
-                break
-        line_number = block.blockNumber()+1
-        self.go_to_line(line_number)
+    def show_todo(self, line_number, data):
+        """
+        Show TODO tooltip when hovering their markers in the line number area.
+        """
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color=QStylePalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
-
-        return self.get_position('cursor')
 
     def process_todo(self, todo_results):
         """Process todo finder results"""
