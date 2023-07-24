@@ -150,6 +150,7 @@ jobs:
       - build-noarch-pkgs
     if: ${{ ! failure() && ! cancelled() }}
     strategy:
+      fail-fast: false
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
