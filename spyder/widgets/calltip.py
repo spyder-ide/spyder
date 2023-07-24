@@ -58,6 +58,7 @@ class ToolTipWidget(QLabel):
         self.tip = None
         self._timer_hide = QTimer()
         self._text_edit = parent
+        self.show_help_on_click = False
 
         # Setup
         # This keeps the hints below other applications
@@ -120,7 +121,7 @@ class ToolTipWidget(QLabel):
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_tip(self, point, tip, cursor=None, completion_doc=None,
-                 vertical_position='bottom'):
+                 vertical_position='bottom', show_help_on_click=False):
         """Attempt to show the tip at the current mouse location."""
 
         # Don't show the widget if the main window is not focused
@@ -133,6 +134,7 @@ class ToolTipWidget(QLabel):
         self.resize(self.sizeHint())
 
         self.completion_doc = completion_doc
+        self.show_help_on_click = show_help_on_click
 
         text_edit = self._text_edit
         screen_rect = self.screen().geometry()
@@ -223,7 +225,9 @@ class ToolTipWidget(QLabel):
             name = self.completion_doc.get('name', '')
             signature = self.completion_doc.get('signature', '')
             self.sig_completion_help_requested.emit(name, signature)
-        else:
+        elif self.show_help_on_click:
+            self.sig_help_requested.emit('')
+        elif self._url:
             self.sig_help_requested.emit(self._url)
 
         super().mousePressEvent(event)
@@ -234,7 +238,12 @@ class ToolTipWidget(QLabel):
         self._hide()
 
     def enterEvent(self, event):
-        """Reimplemented to keep tooltip visible."""
+        """Reimplemented to keep tooltip visible and change cursor shape."""
+        if self.show_help_on_click:
+            self.setCursor(Qt.PointingHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+
         self._timer_hide.stop()
         super().enterEvent(event)
 
@@ -257,10 +266,6 @@ class ToolTipWidget(QLabel):
 class CallTipWidget(QLabel):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
     """
-
-    #--------------------------------------------------------------------------
-    # 'QObject' interface
-    #--------------------------------------------------------------------------
 
     def __init__(self, text_edit, hide_timer_on=False, as_tooltip=False):
         """ Create a call tip manager that is attached to the specified Qt

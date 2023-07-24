@@ -1974,7 +1974,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     at_point=at_point,
                     completion_doc=completion_doc,
                     max_lines=self._DEFAULT_MAX_LINES,
-                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
+                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH,
+                    show_help_on_click=True
+                )
                 self.tooltip_widget.move(at_point)
             else:
                 self.hide_tooltip()

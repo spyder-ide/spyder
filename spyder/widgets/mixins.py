@@ -322,7 +322,7 @@ class BaseEditMixin(object):
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
             # If there's enough content in the docstring or signature, then we
-            # an hr to separate them.
+            # add an hr to separate them.
             if len(lines) > 2 or signature.count('<br>') > 2:
                 separator = '<hr>'
             else:
@@ -341,7 +341,7 @@ class BaseEditMixin(object):
             help_text = (
                 f'<span style="font-family: \'{font_family}\';'
                 f'font-size:{text_size}pt;">'
-                f'Click anywhere in this tooltip for additional help'
+                f'Click on this tooltip for additional help'
                 f'</span>'
             )
 
@@ -602,7 +602,8 @@ class BaseEditMixin(object):
                      with_html_format=False,
                      text_new_line=True,
                      completion_doc=None,
-                     vertical_position='bottom'):
+                     vertical_position='bottom',
+                     show_help_on_click=False):
         """Show tooltip."""
 
         # Find position
@@ -633,7 +634,8 @@ class BaseEditMixin(object):
         # Display tooltip
         self.tooltip_widget.show_tip(
             point, tiptext, completion_doc=completion_doc,
-            vertical_position=vertical_position
+            vertical_position=vertical_position,
+            show_help_on_click=show_help_on_click
         )
 
     def show_hint(self, text, inspect_word, at_point,
@@ -641,7 +643,8 @@ class BaseEditMixin(object):
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
                   text_new_line=True,
                   completion_doc=None,
-                  vertical_position='bottom'):
+                  vertical_position='bottom',
+                  show_help_on_click=False):
         """Show code hint and crop text as needed."""
         # Don't show full docstring for builtin types, just its type
         display_link = True
@@ -668,6 +671,7 @@ class BaseEditMixin(object):
                     builtin
                 )
                 display_link = False
+                show_help_on_click = False
 
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)
@@ -687,7 +691,8 @@ class BaseEditMixin(object):
                               display_link=display_link, max_lines=max_lines,
                               max_width=max_width, text_new_line=text_new_line,
                               completion_doc=completion_doc,
-                              vertical_position=vertical_position)
+                              vertical_position=vertical_position,
+                              show_help_on_click=show_help_on_click)
 
     def hide_tooltip(self):
         """
