@@ -114,21 +114,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Build Environment
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: installers-conda/build-environment.yml
-          create-args: python=${{ matrix.python-version }}
-          cache-downloads: true
-          cache-environment: true
-
-      - name: Env Variables
-        run: |
-          # conda build path should be in the workspace for caching
-          CONDA_BLD_PATH=$PWD/build/conda-bld
-          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
-          env | sort
-
       - name: Cache ${{ matrix.pkg }} Conda Build
         id: cache
         uses: actions/cache@v3
@@ -138,8 +123,19 @@ jobs:
           lookup-only: true
           enableCrossOsArchive: true
 
-      - name: Build ${{ matrix.pkg }} Conda Package
+      - name: Setup Build Environment
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: installers-conda/build-environment.yml
+          create-args: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-environment: true
+
+      - name: Build & Cache ${{ matrix.pkg }} Conda Package
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
         run: python build_conda_pkgs.py --build $pkg
 
   build-installers:
@@ -175,17 +171,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Build Environment
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: installers-conda/build-environment.yml
-          create-args: python=${{ matrix.python-version }}
-          cache-downloads: true
-          cache-environment: true
-
-      - name: Env Variables
-        run: env | sort
-
       - name: Restore python-lsp-server Cache
         if: env.IS_STANDARD_PR == 'true'
         uses: actions/cache/restore@v3
@@ -217,7 +202,18 @@ jobs:
           path: installers-conda/build/conda-bld/**/spyder-kernels-*.tar.bz2
           key: spyder-kernels_${{ matrix.target-platform }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
 
-      - name: Build Windows spyder-kernels Conda Package
+      - name: Setup Build Environment
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: installers-conda/build-environment.yml
+          create-args: python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-environment: true
+
+      - name: Env Variables
+        run: env | sort
+
+      - name: Build & Cache Windows spyder-kernels Conda Package
         if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
         env:
           CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
@@ -228,7 +224,8 @@ jobs:
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
-          # Copy built packages to new build location
+          # Copy built packages to new build location because spyder cannot be
+          # built in workspace
           [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
 
           python build_conda_pkgs.py --build spyder
