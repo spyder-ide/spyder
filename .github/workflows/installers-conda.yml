@@ -217,13 +217,20 @@ jobs:
 
           mamba search -c $CONDA_BLD_PATH --override-channels || true
 
-      - name: Build ${{ matrix.target-platform }} conda packages
-        run: |
-          pkgs=("spyder")
-          if [[ $IS_STANDARD_PR == "true" ]]; then
-              pkgs+=("spyder-kernels")
-          fi
-          python build_conda_pkgs.py --build ${pkgs[@]}
+      - name: Cache spyder-kernels Conda Build
+        if: env.IS_STANDARD_PR == 'true'
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CONDA_BLD_PATH }}/**/spyder-kernels-*.tar.bz2
+
+      - name: Build spyder-kernels Conda Package
+        if: env.IS_STANDARD_PR == 'true' && steps.cache.outputs.cache-hit != 'true'
+        run: python build_conda_pkgs.py --build spyder-kernels
+
+      - name: Build ${{ matrix.target-platform }} spyder Conda Package
+        if: env.IS_STANDARD_PR == 'true'
+        run: python build_conda_pkgs.py --build spyder
 
       - name: Create Keychain
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
