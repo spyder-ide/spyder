@@ -185,8 +185,6 @@ DEFAULTS = [
             ('debugger',
              {
               'exclude_internal': True,
-              'capture_locals': False,
-              'show_locals_on_click': False,
               'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
