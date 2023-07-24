@@ -235,8 +235,9 @@ jobs:
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
+          conda config --set bld_path $CONDA_BLD_PATH
           mamba index $CONDA_BLD_PATH
-          mamba search -c $CONDA_BLD_PATH --override-channels || true
+          mamba search -c local --override-channels || true
 
       - name: Create Keychain
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
