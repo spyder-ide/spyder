@@ -243,7 +243,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
     def perform_adjustments(self):
         """Perform some adjustments to the page after applying preferences."""
-        if not self.def_exec_radio.isChecked():
+        if not self.def_exec_radio.radiobutton.isChecked():
             # Get current executable
             executable = self.pyexec_edit.text()
             executable = osp.normpath(executable)
