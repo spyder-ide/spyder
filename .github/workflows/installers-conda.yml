@@ -106,7 +106,7 @@ jobs:
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
       pkg: ${{ matrix.pkg }}
-      artifact_name: ${{ matrix.pkg }}_${{ matrix.python-version }}
+      cache_base: ${{ matrix.pkg }}_${{ matrix.python-version }}
 
     steps:
       - name: Checkout Code
@@ -122,17 +122,25 @@ jobs:
           cache-downloads: true
           cache-environment: true
 
-      - name: Build Conda Packages
-        run: python build_conda_pkgs.py --build $pkg
+      - name: Env Variables
+        run: |
+          # conda build path should be in the workspace for caching
+          CONDA_BLD_PATH=$PWD/build/conda-bld
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+          env | sort
 
-      - name: Build Artifact
-        run: tar -a -C $CONDA_PREFIX -cf $PWD/${artifact_name}.tar.bz2 conda-bld
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+      - name: Cache ${{ matrix.pkg }} Conda Build
+        id: cache
+        uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
-          name: ${{ env.artifact_name }}
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: ${{ env.cache_base }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
+          lookup-only: true
+          enableCrossOsArchive: true
+
+      - name: Build ${{ matrix.pkg }} Conda Package
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: python build_conda_pkgs.py --build $pkg
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
@@ -176,33 +184,34 @@ jobs:
 
       - name: Env Variables
         run: |
-          ARTIFACTS_PATH=$RUNNER_TEMP/artifacts
           CONDA_BLD_PATH=$RUNNER_TEMP/conda-bld
 
-          echo "ARTIFACTS_PATH=$ARTIFACTS_PATH" >> $GITHUB_ENV
           echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
 
-          [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
           [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
 
           env | sort
 
-      - name: Download Local Conda Packages
-        if: needs.build-noarch-pkgs.result == 'success'
-        uses: actions/download-artifact@v3
+      - name: Restore python-lsp-server Cache
+        if: env.IS_STANDARD_PR == 'true'
+        uses: actions/cache/restore@v3
         with:
-          path: ${{ env.ARTIFACTS_PATH }}
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: python-lsp-server_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
+          enableCrossOsArchive: true
+
+      - name: Restore qtconsole Cache
+        if: env.IS_STANDARD_PR == 'true'
+        uses: actions/cache/restore@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: qtconsole_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
+          enableCrossOsArchive: true
 
       - name: Create Local Conda Channel
         run: |
-          files=($(find $ARTIFACTS_PATH -name *.tar.bz2))
-          echo ${files[@]}
-          cd $(dirname $CONDA_BLD_PATH)
-
-          [[ $RUNNER_OS == "Windows" ]] && opts=("--force-local") || opts=()
-          for file in ${files[@]}; do
-              tar -xf $file ${opts[@]}
-          done
+          # Copy cached packages to build location outside workspace
+          [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
 
           mamba index $CONDA_BLD_PATH
 
