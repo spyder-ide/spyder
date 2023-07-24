@@ -153,7 +153,7 @@ jobs:
         include: ${{fromJson(needs.build-matrix.outputs.include)}}
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -le {0}
         working-directory: ${{ github.workspace }}/installers-conda
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
