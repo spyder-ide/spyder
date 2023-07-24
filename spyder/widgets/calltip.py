@@ -37,6 +37,10 @@ class ToolTipWidget(QLabel):
     Shows tooltips that can be styled with the different themes.
     """
 
+    # Delay in miliseconds before hiding the tooltip
+    HIDE_DELAY = 50
+
+    # Signals
     sig_completion_help_requested = Signal(str, str)
     sig_help_requested = Signal(str)
 
@@ -62,7 +66,7 @@ class ToolTipWidget(QLabel):
         else:
             self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint)
 
-        self._timer_hide.setInterval(500)
+        self._timer_hide.setInterval(self.HIDE_DELAY)
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.setOpenExternalLinks(False)
@@ -79,20 +83,12 @@ class ToolTipWidget(QLabel):
 
         # Signals
         self.linkHovered.connect(self._update_hover_html_link_style)
-        self._timer_hide.timeout.connect(self.hide)
+        self._timer_hide.timeout.connect(self._hide)
         QApplication.instance().applicationStateChanged.connect(
             self._should_hide)
 
-    def paintEvent(self, event):
-        """Reimplemented to paint the background panel."""
-        painter = QStylePainter(self)
-        option = QStyleOptionFrame()
-        option.initFrom(self)
-        painter.drawPrimitive(QStyle.PE_PanelTipLabel, option)
-        painter.end()
-
-        super(ToolTipWidget, self).paintEvent(event)
-
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _update_hover_html_link_style(self, url):
         """Update style of labels that include rich text and html links."""
         link = 'text-decoration:none;'
@@ -100,30 +96,29 @@ class ToolTipWidget(QLabel):
         self._url = url
 
         if url:
-            QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+            self.setCursor(Qt.PointingHandCursor)
             new_text, old_text = link_hovered, link
         else:
             new_text, old_text = link, link_hovered
-            QApplication.restoreOverrideCursor()
 
         text = self.text()
         new_text = text.replace(old_text, new_text)
 
         self.setText(new_text)
 
-    # ------------------------------------------------------------------------
-    # --- 'ToolTipWidget' interface
-    # ------------------------------------------------------------------------
-    def show_basic_tip(self, point, tip):
-        """Show basic tip."""
-        self.tip = tip
-        self.setText(tip)
-        self.resize(self.sizeHint())
-        y = point.y() - self.height()
-        self.move(point.x(), y)
-        self.show()
-        return True
+    def _should_hide(self, state):
+        """
+        This widget should hide itself if the application is not active.
+        """
+        if state != Qt.ApplicationActive:
+            self._hide()
 
+    def _hide(self):
+        """Call the actual hide method."""
+        super().hide()
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def show_tip(self, point, tip, cursor=None, completion_doc=None,
                  vertical_position='bottom'):
         """Attempt to show the tip at the current mouse location."""
@@ -205,52 +200,58 @@ class ToolTipWidget(QLabel):
 
         # Show tip
         if not self.isVisible():
+            self._timer_hide.stop()
             self.show()
 
         return True
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def paintEvent(self, event):
+        """Reimplemented to paint the background."""
+        painter = QStylePainter(self)
+        option = QStyleOptionFrame()
+        option.initFrom(self)
+        painter.drawPrimitive(QStyle.PE_PanelTipLabel, option)
+        painter.end()
+
+        super().paintEvent(event)
+
     def mousePressEvent(self, event):
-        """
-        Reimplemented to hide it when focus goes out of the main window.
-        """
-        QApplication.restoreOverrideCursor()
+        """Reimplemented to handle mouse press events."""
         if self.completion_doc:
             name = self.completion_doc.get('name', '')
             signature = self.completion_doc.get('signature', '')
             self.sig_completion_help_requested.emit(name, signature)
         else:
             self.sig_help_requested.emit(self._url)
-        super(ToolTipWidget, self).mousePressEvent(event)
+
+        super().mousePressEvent(event)
         self._hide()
 
     def focusOutEvent(self, event):
-        """
-        Reimplemented to hide it when focus goes out of the main window.
-        """
-        self.hide()
+        """Reimplemented to hide tooltip when focus goes out."""
+        self._hide()
+
+    def enterEvent(self, event):
+        """Reimplemented to keep tooltip visible."""
+        self._timer_hide.stop()
+        super().enterEvent(event)
 
     def leaveEvent(self, event):
-        """Override Qt method to hide the tooltip on leave."""
-        super(ToolTipWidget, self).leaveEvent(event)
-        self.hide()
-
-    def _hide(self):
-        """Hide method helper."""
-        QApplication.restoreOverrideCursor()
-        self._timer_hide.start()
+        """Reimplemented to hide tooltip on leave."""
+        super().leaveEvent(event)
+        self._hide()
 
     def hide(self):
-        """Override Qt method to add timer and restore cursor."""
-        super(ToolTipWidget, self).hide()
-        self._timer_hide.stop()
-
-    def _should_hide(self, state):
         """
-        This widget should hide itself if the application is not active.
-        """
-        if state != Qt.ApplicationActive:
-            self.hide()
+        Reimplemented to wait for a little bit before hiding the tooltip.
 
+        This is necessary to leave time to users to hover over the tooltip if
+        they want to click on it. If not, the tooltip hides too quickly because
+        Qt can emit a hideEvent in the meantime.
+        """
+        self._timer_hide.start()
 
 
 class CallTipWidget(QLabel):
