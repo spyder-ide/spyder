@@ -5417,8 +5417,8 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     assert str(new_dir) in shell.get_value("sys_path")
 
 
-@flaky(max_runs=3)
-def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
+@flaky(max_runs=10)
+def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     """
     Test that file names in IPython console tracebacks are clickable.
 
@@ -5429,8 +5429,11 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Open test file
-    test_file = osp.join(LOCATION, 'script.py')
+    # Copy test file to a temporary location to avoid modifying it.
+    # See spyder-ide/spyder#21186 for the details
+    test_file_orig = osp.join(LOCATION, 'script.py')
+    test_file = str(tmp_path / 'script.py')
+    shutil.copyfile(test_file_orig, test_file)
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
@@ -5472,11 +5475,6 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     # Check we are in the right line
     cursor = code_editor.textCursor()
     assert cursor.blockNumber() == code_editor.blockCount() - 1
-
-    # Remove error and save file
-    code_editor.delete_line()
-    code_editor.sig_save_requested.emit()
-    qtbot.wait(500)
 
 
 if __name__ == "__main__":
