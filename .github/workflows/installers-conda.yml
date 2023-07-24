@@ -97,7 +97,7 @@ jobs:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
-        pkg: ["python-lsp-server", "qtconsole"]
+        pkg: ["python-lsp-server", "qtconsole", "spyder-kernels"]
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
     defaults:
       run:
@@ -183,14 +183,7 @@ jobs:
           cache-environment: true
 
       - name: Env Variables
-        run: |
-          CONDA_BLD_PATH=$RUNNER_TEMP/conda-bld
-
-          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
-
-          [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
-
-          env | sort
+        run: env | sort
 
       - name: Restore python-lsp-server Cache
         if: env.IS_STANDARD_PR == 'true'
@@ -208,29 +201,44 @@ jobs:
           key: qtconsole_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
           enableCrossOsArchive: true
 
-      - name: Create Local Conda Channel
-        run: |
-          # Copy cached packages to build location outside workspace
-          [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
+      - name: Restore Unix spyder-kernels Cache
+        if: env.IS_STANDARD_PR == 'true' && runner.os != 'Windows'
+        uses: actions/cache/restore@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: spyder-kernels_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
 
-          mamba index $CONDA_BLD_PATH
-
-          mamba search -c $CONDA_BLD_PATH --override-channels || true
-
-      - name: Cache spyder-kernels Conda Build
-        if: env.IS_STANDARD_PR == 'true'
+      - name: Restore Windows spyder-kernels Cache
         id: cache
+        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows'
         uses: actions/cache@v3
         with:
-          path: ${{ env.CONDA_BLD_PATH }}/**/spyder-kernels-*.tar.bz2
+          path: installers-conda/build/conda-bld/**/spyder-kernels-*.tar.bz2
+          key: spyder-kernels_${{ matrix.target-platform }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
 
-      - name: Build spyder-kernels Conda Package
-        if: env.IS_STANDARD_PR == 'true' && steps.cache.outputs.cache-hit != 'true'
+      - name: Build Windows spyder-kernels Conda Package
+        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
         run: python build_conda_pkgs.py --build spyder-kernels
 
       - name: Build ${{ matrix.target-platform }} spyder Conda Package
         if: env.IS_STANDARD_PR == 'true'
-        run: python build_conda_pkgs.py --build spyder
+        env:
+          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
+        run: |
+          # Copy built packages to new build location
+          [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
+
+          python build_conda_pkgs.py --build spyder
+
+      - name: Create Local Conda Channel
+        if: env.IS_STANDARD_PR == 'true'
+        env:
+          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
+        run: |
+          mamba index $CONDA_BLD_PATH
+          mamba search -c $CONDA_BLD_PATH --override-channels || true
 
       - name: Create Keychain
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
