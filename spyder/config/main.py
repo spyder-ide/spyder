@@ -354,6 +354,7 @@ DEFAULTS = [
               'history_filenames': [],
               'max_entries': 30,
               'project_dir': None,
+              'real_time_analysis': False,
               }),
             ('workingdir',
              {

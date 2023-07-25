@@ -114,6 +114,9 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    #: Signal emitted when diagnostics is defined/set
+    sig_diagnostics_update = Signal(str, list)
+
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
 
@@ -512,6 +515,7 @@ class LSPMixin:
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
         self.cleanup_code_analysis()
+        self.sig_diagnostics_update.emit(self.filename, diagnostics)
         self._diagnostics = diagnostics
 
         # Process diagnostics in a thread to improve performance.

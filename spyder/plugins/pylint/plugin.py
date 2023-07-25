@@ -21,7 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
-from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.pylint.confpage import PylintConfigPage
 from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.run.api import (
@@ -79,6 +79,9 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_start_analysis_requested.connect(self.start_code_analysis)
+        widget.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
 
         # To have a reference to the run action of this plugin
         self.run_action = None
@@ -104,7 +107,9 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
         # Connect to Editor
         widget.sig_edit_goto_requested.connect(editor.load)
+        widget.sig_open_file_requested.connect(editor.load)
         editor.sig_editor_focus_changed.connect(self._set_filename)
+        editor.sig_diagnostics_update.connect(self._set_code_analysis_results)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -133,8 +138,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             shortcut_context='pylint',
             register_shortcut=True,
             add_to_menu={
-                "menu": ApplicationMenus.Source,
-                "section": SourceMenuSections.CodeAnalysis
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.RunInExecutors
             }
         )
 
@@ -183,6 +188,11 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             # Editor was deleted
             pass
 
+    def _set_code_analysis_results(self, filename, diagnostics):
+        if self.get_conf("real_time_analysis"):
+            widget = self.get_widget()
+            widget.set_code_analysis_results(filename, diagnostics)
+
     def _set_project_dir(self, value):
         widget = self.get_widget()
         widget.set_conf("project_dir", value)
@@ -190,6 +200,15 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     def _unset_project_dir(self, _unused):
         widget = self.get_widget()
         widget.set_conf("project_dir", None)
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the Code analysis section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("pylint")
+        dlg.set_current_index(index)
 
     # ---- Public API
     # -------------------------------------------------------------------------

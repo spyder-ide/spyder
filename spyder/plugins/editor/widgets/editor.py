@@ -91,6 +91,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     active_languages_stats = Signal(set)
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
+    sig_diagnostics_update = Signal(str, list)
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
     text_changed_at = Signal(str, int)
@@ -2373,6 +2374,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
+        editor.sig_diagnostics_update.connect(
+            self.sig_diagnostics_update)
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
         editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)

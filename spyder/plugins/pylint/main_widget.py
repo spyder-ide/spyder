@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import ast
 import os
 import os.path as osp
 import pickle
@@ -21,7 +22,7 @@ import time
 
 # Third party imports
 import pylint
-from qtpy.compat import getopenfilename
+from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
@@ -41,7 +42,7 @@ from spyder.utils.misc import get_python_executable
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
-from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -63,9 +64,11 @@ MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
 
 class PylintWidgetActions:
     ChangeHistory = "change_history_depth_action"
+    ChangeHistoryPreferencesPage = "change_history_depth_action_preferences_page"
+    LoadData = 'load_data_action'
     RunCodeAnalysis = "run_analysis_action"
-    BrowseFile = "browse_action"
     ShowLog = "log_action"
+    SaveHistory = "save_history"
 
 
 class PylintWidgetOptionsMenuSections:
@@ -112,6 +115,14 @@ class CategoryItem(QTreeWidgetItem):
         "Error": {
             'translation_string': _("Error"),
             'icon': ima.icon("error")
+        },
+        "Information": {
+            'translation_string': _("Information"),
+            'icon': ima.icon("information")
+        },
+        "Hint": {
+            'translation_string': _("Hint"),
+            'icon': ima.icon("hint")
         }
     }
 
@@ -186,6 +197,26 @@ class ResultsTree(OneColumnTree):
         self.results = results
         self.refresh()
 
+    def save_data(self, filename):
+        """Save analysis data."""
+        if len(self.results) > 0:
+            with open(filename, 'w') as f:
+                f.write("%s\n" % (self.filename))
+                for nombre, valor in self.results.items():
+                    f.write("%s %s\n" % (nombre, valor))
+
+    def load_data(self, filename):
+        """Load analysis data."""
+        with open(filename, 'r') as file:
+            separador = ':'
+            data = {}
+            name = file.readline()
+            for line in file:
+                key, value = line.split(separador, maxsplit=1)
+                value = ast.literal_eval(value.strip())
+                data["%s%s" % (key, ':')] = value
+        self.set_results(name, data)
+
     def refresh(self):
         title = _("Results for ") + self.filename
         self.set_title(title)
@@ -198,6 +229,8 @@ class ResultsTree(OneColumnTree):
             ("Refactor", self.results["R:"]),
             ("Warning", self.results["W:"]),
             ("Error", self.results["E:"]),
+            ("Information", self.results["I:"]),
+            ("Hint", self.results["H:"]),
         )
 
         for category, messages in results:
@@ -244,19 +277,19 @@ class ResultsTree(OneColumnTree):
                 else:
                     parent = title_item
 
+                message_string = "{lineno}: {message} - "
+
                 if len(msg_id) > 1:
                     if not message_name:
-                        message_string = "{msg_id} "
+                        message_string += "{msg_id}"
                     else:
-                        message_string = "{msg_id} ({message_name}) "
+                        message_string += "{msg_id} ({message_name})"
 
-                message_string += "line {lineno}: {message}"
                 message_string = message_string.format(
                     msg_id=msg_id, message_name=message_name,
                     lineno=lineno, message=message)
                 msg_item = QTreeWidgetItem(
                     parent, [message_string], QTreeWidgetItem.Type)
-                msg_item.setIcon(0, ima.icon("arrow"))
                 self.data[id(msg_item)] = (modname, lineno)
 
 
@@ -270,6 +303,15 @@ class PylintWidget(PluginMainWidget):
     VERSION = "1.1.0"
 
     # --- Signals
+    sig_open_file_requested = Signal(str)
+    """
+    This signal will request to open a file using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    """
     sig_edit_goto_requested = Signal(str, int, str)
     """
     This signal will request to open a file in a given row and column
@@ -283,6 +325,10 @@ class PylintWidget(PluginMainWidget):
         Cursor starting row position.
     word: str
         Word to select on given row.
+    """
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the pylint preferences.
     """
 
     sig_start_analysis_requested = Signal()
@@ -439,6 +485,9 @@ class PylintWidget(PluginMainWidget):
         self.stop_spinner()
 
     def _check_new_file(self):
+        self.code_analysis_action.setEnabled(
+            not self.get_conf("real_time_analysis")
+        )
         fname = self.get_filename()
         if fname != self.filename:
             self.filename = fname
@@ -486,6 +535,62 @@ class PylintWidget(PluginMainWidget):
         else:
             self.curr_filenames = []
 
+    def _parse_diagnostics(self, filename, diagnostics):
+        """
+        Parse code analysis diagnostics results following treewidget format.
+        """
+        results = {}
+        results['C:'] = []
+        results['R:'] = []
+        results['E:'] = []
+        results['W:'] = []
+        results['I:'] = []
+        results['H:'] = []
+        for result in diagnostics:
+            code = " " if not result.get('code') else result['code']
+            data = (filename, result['range']['end']['line'],
+                    result['message'],
+                    code,
+                    result['source'])
+            severity = result['severity']
+            if severity == 1:
+                results['E:'].append(data)
+            if severity == 2:
+                results['W:'].append(data)
+            if severity == 3:
+                results['I:'].append(data)
+            if severity == 4:
+                results['H:'].append(data)
+        return results
+
+    def load_data(self):
+        filename, _selfilter = getopenfilename(
+            self,
+            _("Select file to load"),
+            getcwd_or_home(),
+            _("Analysis result") + " (*.Result)",
+        )
+        if filename:
+            self.treewidget.load_data(filename)
+
+    def save_history(self):
+        """Save data."""
+        title = _("Save code analysis result")
+        filename, _selfilter = getsavefilename(
+            self,
+            title,
+            getcwd_or_home(),
+            _("Code analysis result") + " (*.Result)",
+        )
+        extension = osp.splitext(filename)[1].lower()
+        if not extension:
+            # Needed to prevent trying to save a data file without extension
+            # See spyder-ide/spyder#19633
+            filename = filename + '.Result'
+
+        if filename:
+            self.treewidget.save_data(filename)
+
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -497,10 +602,17 @@ class PylintWidget(PluginMainWidget):
     def setup(self):
         change_history_depth_action = self.create_action(
             PylintWidgetActions.ChangeHistory,
-            text=_("History..."),
+            text=_("History results"),
             tip=_("Set history maximum entries"),
             icon=self.create_icon("history"),
             triggered=self.change_history_depth,
+        )
+        change_history_depth_preferences_page = self.create_action(
+            PylintWidgetActions.ChangeHistoryPreferencesPage,
+            text=_("History results"),
+            tip=_("Set history maximum entries"),
+            icon=self.create_icon("history"),
+            triggered=self.change_history_depth_from_preferences_page,
         )
         self.code_analysis_action = self.create_action(
             PylintWidgetActions.RunCodeAnalysis,
@@ -509,12 +621,13 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("run"),
             triggered=self.sig_start_analysis_requested,
         )
-        self.browse_action = self.create_action(
-            PylintWidgetActions.BrowseFile,
-            text=_("Select Python file"),
-            tip=_("Select Python file"),
-            icon=self.create_icon("fileopen"),
-            triggered=self.select_file,
+
+        self.load_action = self.create_action(
+            PylintWidgetActions.LoadData,
+            text=_("Load data"),
+            tip=_('Load code analysis'),
+            icon=self.create_icon('fileimport'),
+            triggered=self.load_data,
         )
         self.log_action = self.create_action(
             PylintWidgetActions.ShowLog,
@@ -523,34 +636,17 @@ class PylintWidget(PluginMainWidget):
             icon=self.create_icon("log"),
             triggered=self.show_log,
         )
+        self.save_action = self.create_action(
+            PylintWidgetActions.SaveHistory,
+            text=_("Save"),
+            tip=_("Save output"),
+            icon=self.create_icon("filesave"),
+            triggered=self.save_history,
+        )
 
         options_menu = self.get_options_menu()
         self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseAllAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Global,
-        )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandAllAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Global,
-        )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.CollapseSelectionAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Section,
-        )
-        self.add_item_to_menu(
-            self.treewidget.get_action(
-                OneColumnTreeActions.ExpandSelectionAction),
-            menu=options_menu,
-            section=PylintWidgetOptionsMenuSections.Section,
-        )
-        self.add_item_to_menu(
-            change_history_depth_action,
+            change_history_depth_preferences_page,
             menu=options_menu,
             section=PylintWidgetOptionsMenuSections.History,
         )
@@ -562,9 +658,11 @@ class PylintWidget(PluginMainWidget):
             section=PylintWidgetOptionsMenuSections.History,
         )
         self.treewidget.restore_action.setVisible(False)
+        self.treewidget.collapse_selection_action.setVisible(False)
+        self.treewidget.expand_selection_action.setVisible(False)
 
         toolbar = self.get_main_toolbar()
-        for item in [self.filecombo, self.browse_action,
+        for item in [self.filecombo,
                      self.code_analysis_action]:
             self.add_item_to_toolbar(
                 item,
@@ -579,7 +677,7 @@ class PylintWidget(PluginMainWidget):
                      self.datelabel,
                      self.create_stretcher(
                          id_=PylintWidgetToolbarItems.Stretcher2),
-                     self.log_action]:
+                     self.log_action, self.save_action, self.load_action]:
             self.add_item_to_toolbar(
                 item,
                 secondary_toolbar,
@@ -591,20 +689,33 @@ class PylintWidget(PluginMainWidget):
         if self.rdata:
             self.remove_obsolete_items()
             self.filecombo.insertItems(0, self.get_filenames())
-            self.code_analysis_action.setEnabled(self.filecombo.is_valid())
+            self.code_analysis_action.setEnabled(
+                self.filecombo.is_valid()
+                and not self.get_conf("real_time_analysis")
+            )
         else:
             self.code_analysis_action.setEnabled(False)
 
         # Signals
-        self.filecombo.valid.connect(self.code_analysis_action.setEnabled)
+        self.filecombo.valid.connect(
+            lambda valid: self.code_analysis_action.setEnabled(
+                    valid and not self.get_conf("real_time_analysis")
+                )
+        )
 
-    @on_conf_change(option=['max_entries', 'history_filenames'])
+    @on_conf_change(
+        option=[
+            'max_entries', 'history_filenames', 'real_time_analysis'
+        ]
+    )
     def on_conf_update(self, option, value):
         if option == "max_entries":
             self._update_combobox_history()
         elif option == "history_filenames":
             self.curr_filenames = value
             self._update_combobox_history()
+        elif option == "real_time_analysis":
+            self.code_analysis_action.setEnabled(not value)
 
     def update_actions(self):
         if self._is_running():
@@ -636,8 +747,11 @@ class PylintWidget(PluginMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
-            dialog.setWindowTitle(_("History"))
-            dialog.setLabelText(_("Maximum entries"))
+            dialog.setWindowTitle(_("History results"))
+            dialog.setLabelText(
+                _("Choose how many results you want to store <br>"
+                  "in the history results, pick a number between 1-100")
+            )
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
             dialog.setIntStep(1)
@@ -650,6 +764,10 @@ class PylintWidget(PluginMainWidget):
             dialog.show()
         else:
             self.set_conf("max_entries", value)
+
+    def change_history_depth_from_preferences_page(self):
+        """Request to open the pylint preferences."""
+        self.sig_open_preferences_requested.emit()
 
     def get_filename(self):
         """
@@ -696,6 +814,15 @@ class PylintWidget(PluginMainWidget):
             self.filecombo.removeItem(num_elements - 1)
 
         self.filecombo.selected()
+
+    @Slot(str, list)
+    def set_code_analysis_results(self, filename, diagnostics):
+        """
+        Set code analysis results from pre calculated diagnostics.
+        """
+        results = self._parse_diagnostics(filename, diagnostics)
+        self.treewidget.set_results(filename, results)
+        self.update_actions()
 
     def start_code_analysis(self, filename=None):
         """
@@ -818,12 +945,15 @@ class PylintWidget(PluginMainWidget):
                     text_prun = " (%s %s/10)" % (text_prun, previous_rate)
                     text += prevrate_style % (prevrate_color, text_prun)
 
+                results['I:'] = []
+                results['H:'] = []
                 self.treewidget.set_results(filename, results)
                 date = time.strftime("%Y-%m-%d %H:%M:%S", datetime)
                 date_text = text_style % (text_color, date)
 
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)
+        self.sig_open_file_requested.emit(filename)
 
     @Slot()
     def show_log(self):
@@ -858,27 +988,6 @@ class PylintWidget(PluginMainWidget):
         ]
 
         return get_pylintrc_path(search_paths=search_paths)
-
-    @Slot()
-    def select_file(self, filename=None):
-        """
-        Select filename using a open file dialog and set as current filename.
-
-        If `filename` is provided, the dialog is not used.
-        """
-        if filename is None:
-            self.sig_redirect_stdio_requested.emit(False)
-            filename, _selfilter = getopenfilename(
-                self,
-                _("Select Python file"),
-                getcwd_or_home(),
-                _("Python files") + " (*.py ; *.pyw)",
-            )
-            self.sig_redirect_stdio_requested.emit(True)
-
-        if filename:
-            self.set_filename(filename)
-            self.start_code_analysis()
 
     def test_for_custom_interpreter(self):
         """
