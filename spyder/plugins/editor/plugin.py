@@ -54,8 +54,8 @@ from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
-                                                  EditorSplitter,
-                                                  EditorStack)
+                                                  EditorSplitter)
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,

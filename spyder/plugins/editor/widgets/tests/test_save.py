@@ -23,6 +23,7 @@ from qtpy.QtCore import Qt
 from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -47,7 +48,7 @@ def add_files(editorstack):
 # ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
-    editor_stack = editor.EditorStack(None, [], False)
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot

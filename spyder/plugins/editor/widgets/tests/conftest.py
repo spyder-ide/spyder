@@ -26,7 +26,7 @@ from spyder.plugins.completion.tests.conftest import (
     completion_plugin_all_started,
     completion_plugin_all,
 )
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     outlineexplorer,
 )

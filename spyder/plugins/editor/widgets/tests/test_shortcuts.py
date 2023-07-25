@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.config.manager import CONF
 
 

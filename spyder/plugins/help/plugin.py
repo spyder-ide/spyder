@@ -355,7 +355,7 @@ class Help(SpyderDockablePlugin):
 
         See Also
         --------
-        :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+        :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
         """
         force_refresh = help_data.pop('force_refresh', False)
         self.switch_to_plugin()

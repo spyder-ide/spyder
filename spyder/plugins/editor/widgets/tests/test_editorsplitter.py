@@ -21,7 +21,8 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editor import EditorSplitter
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 
 
 # ---- Qt Test Fixtures
