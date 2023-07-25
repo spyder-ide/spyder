@@ -118,15 +118,10 @@ class ShellConnectMainWidget(PluginMainWidget):
         widget = self.get_widget_for_shellwidget(shellwidget)
         if widget is None:
             return
-        self._stack.setCurrentWidget(widget)
 
-        # This prevents errors when the widget we're switching to is a
-        # PaneEmptyWidget
-        try:
-            self.switch_widget(widget, old_widget)
-            self.update_actions()
-        except AttributeError:
-            pass
+        self._stack.setCurrentWidget(widget)
+        self.switch_widget(widget, old_widget)
+        self.update_actions()
 
     def add_errored_shellwidget(self, shellwidget):
         """

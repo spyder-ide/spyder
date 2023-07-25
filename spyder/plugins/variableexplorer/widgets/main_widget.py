@@ -420,24 +420,26 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update the actions."""
-        nsb = self.current_widget()
         if self.is_current_widget_empty():
+            self._set_main_toolbar_state(False)
             return
+        else:
+            self._set_main_toolbar_state(True)
 
         action = self.get_action(VariableExplorerWidgetActions.ToggleMinMax)
         action.setEnabled(is_module_installed('numpy'))
 
+        nsb = self.current_widget()
         if nsb:
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
-        search_action = self.get_action(VariableExplorerWidgetActions.Search)
 
+        search_action = self.get_action(VariableExplorerWidgetActions.Search)
         if nsb is None:
             checked = False
         else:
             checked = nsb.finder_is_visible()
-
         search_action.setChecked(checked)
 
     @on_conf_change
@@ -455,7 +457,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
         nsb = NamespaceBrowser(self)
@@ -630,3 +631,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self.exclude_capitalized_action.setEnabled(value)
         self.exclude_unsupported_action.setEnabled(value)
         self.exclude_callables_and_modules_action.setEnabled(value)
+
+    def _set_main_toolbar_state(self, enabled):
+        """Set main toolbar enabled state."""
+        main_toolbar = self.get_main_toolbar()
+        for action in main_toolbar.actions():
+            action.setEnabled(enabled)
