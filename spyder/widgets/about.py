@@ -62,31 +62,42 @@ class AboutDialog(QDialog):
         instagram_url = "https://www.instagram.com/spyderide/",
         self.label_overview = QLabel(
             f"""
+            <style>
+                p, h1 {{margin-bottom: 2em}}
+                h1 {{margin-top: 0}}
+            </style>
+
             <div style='font-family: "{font_family}";
                         font-size: {font_size};
                         font-weight: normal;
                         '>
             <br>
+            <h1>Spyder IDE</h1>
+
             <p>
-            <b> Spyder IDE</b>
-            <br> <br>
-            The Scientific Python Development Environment |
-            <a href="{website_url}">Spyder-IDE.org</a>
+            The Scientific Python Development Environment
             <br>
+            <a href="{website_url}">Spyder-IDE.org</a>
+            </p>
+
             <p>
             Python {versions['python']} {versions['bitness']}-bit |
             Qt {versions['qt']} |
-            {versions['qt_api']} {versions['qt_api_ver']} |
+            {versions['qt_api']} {versions['qt_api_ver']}
+            <br>
             {versions['system']} {versions['release']} ({versions['machine']})
             </p>
-            <br> <br>
+
+            <p>
             <a href="{project_url}">GitHub</a> | <a href="{twitter_url}">
             Twitter</a> |
             <a href="{facebook_url}">Facebook</a> | <a href="{youtube_url}">
             YouTube</a> |
             <a href="{instagram_url}">Instagram</a>
+            </p>
 
-            </div>""")
+            </div>"""
+        )
 
         self.label_community = QLabel(
             f"""
@@ -178,7 +189,6 @@ class AboutDialog(QDialog):
                 font-weight: normal;
                 '>
             <p>
-            <b>Spyder IDE</b>
             <br>{spyder_ver}
             <br>{revision}
             <br>({installer})
@@ -251,7 +261,7 @@ class AboutDialog(QDialog):
         bbox.accepted.connect(self.accept)
 
         # Size
-        self.resize(550, 430)
+        self.resize(720, 480)
 
         # Style
         css = qstylizer.style.StyleSheet()
