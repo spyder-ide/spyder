@@ -69,7 +69,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
     @staticmethod
     def get_description():
-        return _("Display static and real time code analysis results.")
+        return _("Analyze code and view the results from both static and "
+                 "real-time analysis.")
 
     @classmethod
     def get_icon(cls):

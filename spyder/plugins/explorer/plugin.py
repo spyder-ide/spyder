@@ -160,7 +160,7 @@ class Explorer(SpyderDockablePlugin):
     @staticmethod
     def get_description():
         """Return the description of the explorer widget."""
-        return _("Explore filesystem in a tree view.")
+        return _("Explore your filesystem in a tree view.")
 
     @classmethod
     def get_icon(cls):

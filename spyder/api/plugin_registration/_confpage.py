@@ -23,9 +23,9 @@ class PluginsConfigPage(PluginConfigPage):
         self.plugins_checkboxes = {}
 
         header_label = QLabel(
-            _("Here you can turn on/off any internal or external Spyder "
-              "plugin to disable functionality that is not desired or to have "
-              "a lighter experience.")
+            _("Disable a Spyder plugin (external or built-in) to prevent it "
+              "from loading until re-enabled here, to simplify the interface "
+              "or in case it causes problems.")
         )
         header_label.setWordWrap(True)
 
@@ -53,7 +53,7 @@ class PluginsConfigPage(PluginConfigPage):
                     description=PluginClass.get_description(),
                     icon=PluginClass.get_icon(),
                     widget=cb,
-                    additional_info=_("Core plugin")
+                    additional_info=_("Built-in")
                 )
             )
 

@@ -194,8 +194,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @staticmethod
     def get_description():
         return _(
-            "Run Python files interactively in different ways (whole file, by "
-            "cells or selections)."
+            "Run Python files, cells, code and commands interactively."
         )
 
     @classmethod

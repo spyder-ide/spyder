@@ -46,7 +46,7 @@ class Toolbar(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _('Application toolbars management.')
+        return _('Manage application toolbars.')
 
     @classmethod
     def get_icon(cls):

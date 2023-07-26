@@ -59,7 +59,7 @@ class StatusBar(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Manage main window status bar.")
+        return _("Display the main window status bar.")
 
     def on_initialize(self):
         # --- Status widgets

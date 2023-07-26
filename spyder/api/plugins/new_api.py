@@ -766,7 +766,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        This method needs to be decorated with `staticmethod`
+        This method needs to be decorated with `staticmethod`.
         """
         raise NotImplementedError('A plugin description must be defined!')
 

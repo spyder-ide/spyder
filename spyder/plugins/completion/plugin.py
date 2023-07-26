@@ -266,9 +266,9 @@ class CompletionPlugin(SpyderPluginV2):
 
     @staticmethod
     def get_description() -> str:
-        return _('This plugin is in charge of handling and dispatching, as '
-                 'well as of receiving the responses of completion, linting, '
-                 'symbols and folding requests sent to multiple providers.')
+        return _('Handle code completion, analysis, formatting, introspection, '
+                 'folding and more via the Language Server Protocol and other '
+                 'providers.')
 
     @classmethod
     def get_icon(cls):

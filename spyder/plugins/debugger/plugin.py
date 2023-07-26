@@ -58,7 +58,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
 
     @staticmethod
     def get_description():
-        return _('Display and explore frames while debugging.')
+        return _('View, explore and navigate stack frames while debugging.')
 
     @classmethod
     def get_icon(cls):

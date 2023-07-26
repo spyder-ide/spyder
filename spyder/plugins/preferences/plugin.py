@@ -268,7 +268,7 @@ class Preferences(SpyderPluginV2):
 
     @staticmethod
     def get_description() -> str:
-        return _("Manage Spyder's main preferences dialog.")
+        return _("Manage Spyder's preferences.")
 
     @classmethod
     def get_icon(cls) -> QIcon:

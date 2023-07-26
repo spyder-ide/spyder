@@ -110,7 +110,7 @@ class Switcher(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Display and manage a multi-purpose switcher.")
+        return _("Quickly switch between files and other items.")
 
     @classmethod
     def get_icon(cls):

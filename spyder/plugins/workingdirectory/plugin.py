@@ -63,8 +63,7 @@ class WorkingDirectory(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Display and manage the current working directory used by "
-                 "other plugins in Spyder.")
+        return _("Manage the current working directory used in Spyder.")
 
     @classmethod
     def get_icon(cls):

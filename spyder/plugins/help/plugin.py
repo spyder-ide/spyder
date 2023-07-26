@@ -64,8 +64,7 @@ class Help(SpyderDockablePlugin):
     @staticmethod
     def get_description():
         return _(
-            "Get documentation for objects used in the editor or IPython "
-            "console."
+            "Get documentation for objects in the Editor and IPython console."
         )
 
     @classmethod

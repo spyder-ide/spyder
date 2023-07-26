@@ -35,7 +35,7 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
 
     @staticmethod
     def get_description():
-        return _('Display, explore and save console generated plots.')
+        return _('View, browse and save generated figures.')
 
     @classmethod
     def get_icon(cls):

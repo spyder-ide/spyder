@@ -42,7 +42,7 @@ class Tours(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Provide interactive tours for the Spyder interface.")
+        return _("Provide interactive tours of the Spyder interface.")
 
     @classmethod
     def get_icon(cls):

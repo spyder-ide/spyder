@@ -652,8 +652,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @staticmethod
     def get_description():
         return _(
-            "Edit Python, Markdown, Cython and many other types of plain text "
-            "files."
+            "Edit Python, Markdown, Cython and many other types of text files."
         )
 
     @classmethod

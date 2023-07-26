@@ -47,8 +47,8 @@ class MainInterpreter(SpyderPluginV2):
     @staticmethod
     def get_description():
         return _(
-            "Manage default Python interpreter used by other plugins in "
-            "Spyder."
+            "Manage the default Python interpreter used to run, analyze and "
+            "profile your code in Spyder."
         )
 
     @classmethod

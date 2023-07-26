@@ -88,7 +88,7 @@ class Console(SpyderDockablePlugin):
 
     @staticmethod
     def get_description():
-        return _('Internal console running Spyder.')
+        return _('An internal Python console running Spyder itself.')
 
     def on_initialize(self):
         widget = self.get_widget()

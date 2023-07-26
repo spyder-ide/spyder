@@ -65,7 +65,7 @@ class Shortcuts(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Manage application, widget and actions shortcuts.")
+        return _("Manage application, pane and actions shortcuts.")
 
     @classmethod
     def get_icon(cls):

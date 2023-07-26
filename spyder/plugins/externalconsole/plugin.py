@@ -51,7 +51,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
     @staticmethod
     def get_description():
-        return _("Run files in an external system terminal.")
+        return _("Run scripts in an external system terminal.")
 
     @classmethod
     def get_icon(cls):

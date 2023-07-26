@@ -92,7 +92,7 @@ class Breakpoints(SpyderDockablePlugin):
 
     @staticmethod
     def get_description():
-        return _("Manage code breakpoints in a unified pane.")
+        return _("Manage debugger breakpoints in a unified pane.")
 
     @classmethod
     def get_icon(cls):

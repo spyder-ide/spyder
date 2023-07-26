@@ -70,7 +70,7 @@ class Run(SpyderPluginV2):
 
     @staticmethod
     def get_description():
-        return _("Manage run configuration to execute files.")
+        return _("Manage run configuration for executing files.")
 
     @classmethod
     def get_icon(cls):
