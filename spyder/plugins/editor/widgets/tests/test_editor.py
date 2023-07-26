@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import get_conf_path, running_in_ci
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
 

@@ -53,9 +53,9 @@ from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
-                                                  EditorSplitter,
-                                                  EditorStack)
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWindow
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
@@ -153,7 +153,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     sig_open_files_finished = Signal()
