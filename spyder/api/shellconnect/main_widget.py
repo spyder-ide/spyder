@@ -137,8 +137,8 @@ class ShellConnectMainWidget(PluginMainWidget):
                 self,
                 "variable-explorer",  # TODO: Use custom icon here
                 _("No connected console"),
-                _("The associated console failed to start, so it is not "
-                  "possible to show any content here.")
+                _("The current console failed to start, so there is no "
+                  "content to show here.")
             )
 
             self._stack.addWidget(widget)
