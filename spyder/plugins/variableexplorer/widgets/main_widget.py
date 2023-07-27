@@ -108,12 +108,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-
         # Widgets
         self.context_menu = None
         self.empty_context_menu = None
-
         self.filter_button = None
+
+        # Attributes
+        self._is_filter_button_checked = True
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -227,6 +228,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Filter variables")
             )
         self.filter_button.setCheckable(True)
+        self.filter_button.toggled.connect(self._set_filter_button_state)
 
         # ---- Context menu actions
         resize_rows_action = self.create_action(
@@ -637,3 +639,18 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         main_toolbar = self.get_main_toolbar()
         for action in main_toolbar.actions():
             action.setEnabled(enabled)
+
+        # Adjustments for the filter button
+        if enabled:
+            # Restore state for active consoles
+            self.filter_button.setChecked(self._is_filter_button_checked)
+        else:
+            # Uncheck button for dead consoles if it's checked so that the
+            # toolbar looks good
+            if self.filter_button.isChecked():
+                self.filter_button.setChecked(False)
+                self._is_filter_button_checked = True
+
+    def _set_filter_button_state(self, checked):
+        """Keep track of the filter button checked state."""
+        self._is_filter_button_checked = checked
