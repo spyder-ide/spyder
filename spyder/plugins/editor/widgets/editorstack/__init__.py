@@ -10,6 +10,7 @@
 """
 spyder.plugins.editor.widgets.editorstack
 =========================================
+
 Main widget handler of CodeEditors.
 """
 
