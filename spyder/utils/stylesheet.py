@@ -441,7 +441,7 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         # Make scroll button icons smaller on Windows and Mac
         if WIN or MAC:
             css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
-                padding='9px',
+                padding='7px',
             )
 
 
@@ -480,7 +480,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         # Make scroll button icons smaller on Windows and Mac
         if WIN or MAC:
             css['QTabBar QToolButton'].setValues(
-                padding='10px',
+                padding='5px',
             )
 
 
