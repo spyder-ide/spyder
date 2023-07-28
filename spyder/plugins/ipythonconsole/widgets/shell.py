@@ -9,7 +9,6 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
-import ast
 import os
 import os.path as osp
 import time
@@ -118,9 +117,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
-    # To notify of kernel connection / disconnection
+    # To notify of kernel connection, disconnection and kernel errors
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
+    sig_shellwidget_errored = Signal(object)
 
     # To request restart
     sig_restart_kernel = Signal()

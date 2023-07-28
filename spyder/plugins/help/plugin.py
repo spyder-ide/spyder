@@ -61,12 +61,15 @@ class Help(SpyderDockablePlugin):
     def get_name():
         return _('Help')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _(
-            'Get rich text documentation from the editor and the console')
+            "Get documentation for objects in the Editor and IPython console."
+        )
 
-    def get_icon(self):
-        return self.create_icon('help')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('help')
 
     def on_initialize(self):
         widget = self.get_widget()

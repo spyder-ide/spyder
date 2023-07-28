@@ -406,10 +406,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
-        if role == Qt.ToolTipRole and index.column() == 3:
-            return value['view']
-        elif role == Qt.ToolTipRole:
-            return value
         if index.column() == 4 and role == Qt.DisplayRole:
             # TODO: Check the effect of not hiding the column
             # Treating search scores as a table column simplifies the
@@ -428,6 +424,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
                 display = to_text_string(value)
             else:
                 display = value
+        if role == Qt.ToolTipRole:
+            return display
         if role == Qt.UserRole:
             if isinstance(value, NUMERIC_TYPES):
                 return to_qvariant(value)

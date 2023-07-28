@@ -750,11 +750,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        This is a method to be able to update localization without a restart.
+        This method needs to be decorated with `staticmethod`.
         """
         raise NotImplementedError('A plugin name must be defined!')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         """
         Return the plugin localized description.
 
@@ -765,11 +766,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        This is a method to be able to update localization without a restart.
+        This method needs to be decorated with `staticmethod`.
         """
         raise NotImplementedError('A plugin description must be defined!')
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         """
         Return the plugin associated icon.
 
@@ -777,6 +779,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -------
         QIcon
             QIcon instance
+
+        Notes
+        -----
+        This method needs to be decorated with `classmethod` or `staticmethod`.
         """
         raise NotImplementedError('A plugin icon must be defined!')
 

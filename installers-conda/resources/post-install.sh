@@ -15,8 +15,10 @@ spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
 all_user=$([[ -e ${PREFIX}/.nonadmin ]] && echo false || echo true)
 
+sed_opts=("-i")
 alias_text="alias uninstall-spyder=${u_spy_exe}"
 if [[ "$OSTYPE" = "darwin"* ]]; then
+    sed_opts+=("", "-e")
     shortcut_path="/Applications/${INSTALLER_NAME}.app"
     if [[ "$all_user" = "false" ]]; then
         shortcut_path="${HOME}${shortcut_path}"
@@ -45,11 +47,11 @@ add_alias() {
 
     # Remove old-style markers, if present; discard after EXPERIMENTAL
     # installer attrition.
-    sed -i "" -e "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
+    sed ${sed_opts[@]} "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
 
     # Posix compliant sed does not like semicolons.
     # Must use newlines to work on macOS
-    sed -i "" -e "
+    sed ${sed_opts[@]} "
     /$m1/,/$m2/{
         h
         /$m2/ s|.*|$m1\n$alias_text\n$m2|
@@ -133,7 +135,7 @@ done
 for x in ${shell_init_list[@]}; do
     [[ ! -f "\$x" ]] && continue
     echo "Removing Spyder shell commands from \$x..."
-    sed -i "" -e "/$m1/,/$m2/d" \$x
+    sed ${sed_opts[@]} "/$m1/,/$m2/d" \$x
 done
 
 # Remove shortcut and environment

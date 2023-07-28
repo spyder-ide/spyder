@@ -596,9 +596,9 @@ class FrameWebView(QFrame):
         css = qstylizer.style.StyleSheet()
         css.QFrame.setValues(
             border=f'1px solid {border_color}',
-            margin='0px 1px 0px 1px',
-            padding='0px 0px 1px 0px',
-            borderRadius='3px'
+            margin='0px',
+            padding='0px',
+            borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}'
         )
 
         self.setStyleSheet(css.toString())

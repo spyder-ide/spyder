@@ -49,11 +49,13 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     def get_name():
         return _("External console")
 
-    def get_description(self):
-        return _("Manage run configuration.")
+    @staticmethod
+    def get_description():
+        return _("Run scripts in an external system terminal.")
 
-    def get_icon(self):
-        return self.create_icon('copywop')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('DollarFileIcon')
 
     def on_initialize(self):
         self.editor_configurations = [
