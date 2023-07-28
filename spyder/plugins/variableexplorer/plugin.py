@@ -12,7 +12,7 @@ Variable Explorer Plugin.
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
 from spyder.plugins.variableexplorer.confpage import (
     VariableExplorerConfigPage)
@@ -20,7 +20,7 @@ from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
 
 
-class VariableExplorer(SpyderDockablePlugin, ShellConnectMixin):
+class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     """
     Variable explorer plugin.
     """

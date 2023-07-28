@@ -141,6 +141,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         The shellwigdet.
     """
 
+    sig_shellwidget_errored = Signal(object)
+    """
+    This signal is emitted when the current shellwidget failed to start.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -212,6 +222,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
         widget.sig_shellwidget_changed.connect(self.sig_shellwidget_changed)
+        widget.sig_shellwidget_errored.connect(self.sig_shellwidget_errored)
         widget.sig_render_plain_text_requested.connect(
             self.sig_render_plain_text_requested)
         widget.sig_render_rich_text_requested.connect(

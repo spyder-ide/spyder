@@ -19,6 +19,8 @@ import qstylizer.style
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface, OLD_PYQT
 from spyder.utils.palette import QStylePalette
 
@@ -649,11 +651,39 @@ VERTICAL_DOCK_TABBAR_STYLESHEET = VerticalDockTabBarStyleSheet()
 # =============================================================================
 # ---- Style for special dialogs
 # =============================================================================
-class DialogStyle:
-    """Style constants for tour, about and kite dialogs."""
+class DialogStyle(SpyderFontsMixin):
+    """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    TitleFontSize = '19pt' if MAC else '14pt'
-    ContentFontSize = '15pt' if MAC else '12pt'
-    ButtonsFontSize = '15pt' if MAC else '13pt'
     ButtonsPadding = '6px' if MAC else '4px 10px'
+
+    @classproperty
+    def _fs(cls):
+        return cls.get_font(SpyderFontType.Interface).pointSize()
+
+    @classproperty
+    def TitleFontSize(cls):
+        if WIN:
+            return f"{cls._fs + 6}pt"
+        elif MAC:
+            return f"{cls._fs + 6}pt"
+        else:
+            return f"{cls._fs + 4}pt"
+
+    @classproperty
+    def ContentFontSize(cls):
+        if WIN:
+            return f"{cls._fs + 4}pt"
+        elif MAC:
+            return f"{cls._fs + 2}pt"
+        else:
+            return f"{cls._fs + 2}pt"
+
+    @classproperty
+    def ButtonsFontSize(cls):
+        if WIN:
+            return f"{cls._fs + 5}pt"
+        elif MAC:
+            return f"{cls._fs + 2}pt"
+        else:
+            return f"{cls._fs + 3}pt"

@@ -666,11 +666,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
         color_scheme = self.get_conf('selected', section='appearance')
+        qapp = QApplication.instance()
 
         if ui_theme == 'dark':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
@@ -680,7 +680,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         elif ui_theme == 'light':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             light_qss = str(APP_STYLESHEET)
             self.setStyleSheet(light_qss)
@@ -691,7 +690,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if not is_dark_font_color(color_scheme):
                 if not running_under_pytest():
                     # Set style proxy to fix combobox popup on mac and qdark
-                    qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
                 dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
@@ -702,6 +700,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 self.setStyleSheet(light_qss)
                 self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
+
+        # This needs to done after applying the stylesheet to the window
+        logger.info("Set color for links in Qt widgets")
+        set_links_color(qapp)
 
         # Set css_path as a configuration to be used by the plugins
         self.set_conf('css_path', css_path, section='appearance')
@@ -1455,9 +1457,6 @@ def main(options, args):
         except Exception:
             pass
     CONF.set('main', 'previous_crash', previous_crash)
-
-    # **** Set color for links ****
-    set_links_color(app)
 
     # **** Create main window ****
     mainwindow = None

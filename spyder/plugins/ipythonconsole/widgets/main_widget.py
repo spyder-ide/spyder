@@ -215,6 +215,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         The shellwigdet.
     """
 
+    sig_shellwidget_errored = Signal(object)
+    """
+    This signal is emitted when the current shellwidget failed to start.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -1668,11 +1678,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
 
-        # Closing Shellwidget
+        # Signals
         shellwidget.sig_shellwidget_deleted.connect(
             self.sig_shellwidget_deleted)
         shellwidget.sig_shellwidget_created.connect(
             self.sig_shellwidget_created)
+        shellwidget.sig_shellwidget_errored.connect(
+            self.sig_shellwidget_errored)
         shellwidget.sig_restart_kernel.connect(self.restart_kernel)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
