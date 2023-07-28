@@ -17,12 +17,12 @@ from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
 from qtpy.QtCore import Qt, Signal, Slot, QRegExp, QSize
-from qtpy.QtGui import QColor, QRegExpValidator, QTextOption, QPixmap
+from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
                             QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
-                            QSpinBox, QTabWidget, QVBoxLayout, QWidget, QSizePolicy)
+                            QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -30,7 +30,6 @@ from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
@@ -144,11 +143,16 @@ class ConfigPage(QWidget):
 class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     """Plugin configuration dialog box page widget"""
     CONF_SECTION = None
+    MAX_WIDTH = 620
 
     def __init__(self, parent):
-        ConfigPage.__init__(self, parent,
-                            apply_callback=lambda:
-                            self._apply_settings_tabs(self.changed_options))
+        ConfigPage.__init__(
+            self,
+            parent,
+            apply_callback=lambda: self._apply_settings_tabs(
+                self.changed_options)
+        )
+
         self.checkboxes = {}
         self.radiobuttons = {}
         self.lineedits = {}
@@ -165,6 +169,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.default_button_group = None
         self.main = parent.main
         self.tabs = None
+
+        # Maximum width
+        self.setMaximumWidth(self.MAX_WIDTH)
+
+    def sizeHint(self):
+        """Default page size."""
+        return QSize(self.MAX_WIDTH, 400)
 
     def _apply_settings_tabs(self, options):
         if self.tabs is not None:

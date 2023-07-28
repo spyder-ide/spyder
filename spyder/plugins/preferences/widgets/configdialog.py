@@ -10,7 +10,7 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListView, QListWidget, QListWidgetItem,
                             QPushButton, QScrollArea, QSplitter,
-                            QStackedWidget, QVBoxLayout)
+                            QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
@@ -18,8 +18,16 @@ from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 
 
+class PageScrollArea(QScrollArea):
+    """Scroll area for preference pages."""
+
+    def widget(self):
+        """Return the page widget inside the scroll area."""
+        return super().widget().page
+
+
 class ConfigDialog(QDialog):
-    """Spyder configuration ('Preferences') dialog box"""
+    """Preferences dialog."""
 
     # Signals
     check_settings = Signal()
@@ -146,22 +154,36 @@ class ConfigDialog(QDialog):
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
 
-    def add_page(self, widget):
-        self.check_settings.connect(widget.check_settings)
-        widget.show_this_page.connect(lambda row=self.contents_widget.count():
-                                      self.contents_widget.setCurrentRow(row))
-        widget.apply_button_enabled.connect(self.apply_btn.setEnabled)
-        scrollarea = QScrollArea(self)
+    def add_page(self, page):
+        # Signals
+        self.check_settings.connect(page.check_settings)
+        page.show_this_page.connect(lambda row=self.contents_widget.count():
+                                    self.contents_widget.setCurrentRow(row))
+        page.apply_button_enabled.connect(self.apply_btn.setEnabled)
+
+        # Container widget so that we can center the page
+        container = QWidget(self)
+        layout = QHBoxLayout()
+        layout.addWidget(page)
+        layout.setAlignment(Qt.AlignHCenter)
+        container.setLayout(layout)
+        container.page = page
+
+        # Add container to a scroll area in case the page contents don't fit
+        # in the dialog
+        scrollarea = PageScrollArea(self)
         scrollarea.setWidgetResizable(True)
-        scrollarea.setWidget(widget)
+        scrollarea.setWidget(container)
         self.pages_widget.addWidget(scrollarea)
+
+        # Add entry to the list widget on the left
         item = QListWidgetItem(self.contents_widget)
         try:
-            item.setIcon(widget.get_icon())
+            item.setIcon(page.get_icon())
         except TypeError:
             pass
-        item.setText(widget.get_name())
-        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
+        item.setText(page.get_name())
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
 
     def check_all_settings(self):
