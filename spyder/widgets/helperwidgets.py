@@ -21,7 +21,7 @@ from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
-                            QToolButton, QToolTip, QVBoxLayout,
+                            QTableView, QToolButton, QToolTip, QVBoxLayout,
                             QWidget, QHBoxLayout, QLabel, QFrame)
 
 # Local imports
@@ -31,6 +31,7 @@ from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.stylesheet import DialogStyle
+
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -112,14 +113,18 @@ class MessageCheckBox(QMessageBox):
 
 
 class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
+    """
+    With this delegate, a QListWidgetItem or a QTableItem can render HTML.
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
 
-    def __init__(self, parent, margin=0):
+    def __init__(self, parent, margin=0, wrap_text=False, align_vcenter=False):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
+        self._wrap_text = wrap_text
+        self._hovered_row = -1
+        self._align_vcenter = align_vcenter
 
     def _prepare_text_document(self, option, index):
         # This logic must be shared between paint and sizeHint for consistency
@@ -129,7 +134,21 @@ class HTMLDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setDocumentMargin(self._margin)
         doc.setHtml(options.text)
+        if self._wrap_text:
+            # The -25 here is used to avoid the text to go totally up to the
+            # right border of the widget that contains the delegate, which
+            # doesn't look good.
+            doc.setTextWidth(option.rect.width() - 25)
+
         return options, doc
+
+    def on_hover_index_changed(self, index):
+        """
+        This can be used by a widget that inherits from HoverRowsTableView to
+        connect its sig_hover_index_changed signal to this method to paint an
+        entire row when it's hovered.
+        """
+        self._hovered_row = index.row()
 
     def paint(self, painter, option, index):
         options, doc = self._prepare_text_document(option, index)
@@ -137,6 +156,14 @@ class HTMLDelegate(QStyledItemDelegate):
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
         options.text = ""
+
+        # This paints the entire row associated to the delegate when it's
+        # hovered and the table that holds it informs it what's the current
+        # row (see HoverRowsTableView for an example).
+        if index.row() == self._hovered_row:
+            painter.fillRect(
+                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+            )
 
         # Note: We need to pass the options widget as an argument of
         # drawCrontol to make sure the delegate is painted with a style
@@ -153,18 +180,21 @@ class HTMLDelegate(QStyledItemDelegate):
 
         # Adjustments for the file switcher
         if hasattr(options.widget, 'files_list'):
-            if style.objectName() in ['oxygen', 'qtcurve', 'breeze']:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, -9))
-                else:
-                    painter.translate(textRect.topLeft())
+            if options.widget.files_list:
+                painter.translate(textRect.topLeft() + QPoint(4, 4))
             else:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, 4))
-                else:
-                    painter.translate(textRect.topLeft() + QPoint(2, 4))
+                painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
-            painter.translate(textRect.topLeft() + QPoint(0, -3))
+            if not self._align_vcenter:
+                painter.translate(textRect.topLeft() + QPoint(0, -3))
+
+        # Center text vertically if requested.
+        # Take from https://stackoverflow.com/a/32911270/438386
+        if self._align_vcenter:
+            doc.setTextWidth(option.rect.width())
+            offset_y = (option.rect.height() - doc.size().height()) / 2
+            painter.translate(options.rect.x(), options.rect.y() + offset_y)
+            doc.drawContents(painter)
 
         # Type check: Prevent error in PySide where using
         # doc.documentLayout().draw() may fail because doc.documentLayout()
@@ -529,9 +559,67 @@ class PaneEmptyWidget(QFrame):
         self.setStyleSheet(qss.toString())
 
 
+class HoverRowsTableView(QTableView):
+    """
+    QTableView subclass that can highlight an entire row when hovered.
+
+    Notes
+    -----
+    * Classes that inherit from this one need to connect a slot to
+      sig_hover_index_changed that handles how the row is painted.
+    """
+
+    sig_hover_index_changed = Signal(object)
+    """
+    This is emitted when the index that is currently hovered has changed.
+
+    Parameters
+    ----------
+    index: object
+        QModelIndex that has changed on hover.
+    """
+
+    def __init__(self, parent):
+        QTableView.__init__(self, parent)
+
+        # For mouseMoveEvent
+        self.setMouseTracking(True)
+
+        # To remove background color for the hovered row when the mouse is not
+        # over the widget.
+        css = qstylizer.style.StyleSheet()
+        css["QTableView::item"].setValues(
+            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+        )
+        self._stylesheet = css.toString()
+
+    # ---- Qt methods
+    def mouseMoveEvent(self, event):
+        self._inform_hover_index_changed(event)
+
+    def wheelEvent(self, event):
+        super().wheelEvent(event)
+        self._inform_hover_index_changed(event)
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.setStyleSheet(self._stylesheet)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.setStyleSheet("")
+
+    # ---- Private methods
+    def _inform_hover_index_changed(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.sig_hover_index_changed.emit(index)
+            self.viewport().update()
+
+
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     box = MessageCheckBox()
     box.setWindowTitle(_("Spyder updates"))
     box.setText("Testing checkbox")

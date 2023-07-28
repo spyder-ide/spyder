@@ -108,11 +108,13 @@ class Switcher(SpyderPluginV2):
     def get_name():
         return _("Switcher")
 
-    def get_description(self):
-        return _("A multi-purpose switcher.")
+    @staticmethod
+    def get_description():
+        return _("Quickly switch between files and other items.")
 
-    def get_icon(self):
-        return self.create_icon('filelist')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('switcher')
 
     def on_initialize(self):
         container = self.get_container()

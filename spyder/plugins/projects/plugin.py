@@ -89,11 +89,13 @@ class Projects(SpyderDockablePlugin):
     def get_name():
         return _("Projects")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Create Spyder projects and manage their files.")
 
-    def get_icon(self):
-        return self.create_icon('project')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('project')
 
     def on_initialize(self):
         """Register plugin in Spyder's main window"""

@@ -56,11 +56,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
     def get_name():
         return _('Debugger')
 
-    def get_description(self):
-        return _('Display and explore frames while debugging.')
+    @staticmethod
+    def get_description():
+        return _('View, explore and navigate stack frames while debugging.')
 
-    def get_icon(self):
-        return self.create_icon('debug')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('debug')
 
     def on_initialize(self):
         widget = self.get_widget()
