@@ -30,6 +30,7 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.sourcecode import get_eol_chars
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -71,7 +72,9 @@ class FindReplace(QWidget):
         self.is_code_editor = None
 
         glayout = QGridLayout()
-        glayout.setContentsMargins(6, 3, 6, 3)
+        glayout.setContentsMargins(
+            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, 0
+        )
         self.setLayout(glayout)
 
         self.close_button = create_toolbutton(

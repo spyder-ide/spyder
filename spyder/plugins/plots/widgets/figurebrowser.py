@@ -21,9 +21,9 @@ from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
-                            QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget, QStackedLayout)
+from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QScrollArea,
+                            QScrollBar, QSplitter, QStyle, QVBoxLayout,
+                            QWidget, QStackedLayout)
 
 # Local library imports
 from spyder.api.translations import _
@@ -188,6 +188,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.addWidget(self.thumbnails_sb)
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
+        splitter.setStyleSheet(
+            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}")
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)

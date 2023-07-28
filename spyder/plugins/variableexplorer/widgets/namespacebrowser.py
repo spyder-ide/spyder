@@ -144,7 +144,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.editor)
-            layout.addSpacing(1)
             layout.addWidget(self.finder)
 
             self.table_widget = QWidget(self)

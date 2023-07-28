@@ -38,8 +38,6 @@ class ShellConnectMainWidget(PluginMainWidget):
 
         # Layout
         layout = QVBoxLayout()
-        layout.setSpacing(0)
-        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._stack)
         self.setLayout(layout)
 

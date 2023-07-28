@@ -820,6 +820,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """
         logger.info("Setting up window...")
 
+        if self.get_conf('vertical_tabs'):
+            self.DOCKOPTIONS = self.DOCKOPTIONS | QMainWindow.VerticalTabs
+        self.setDockOptions(self.DOCKOPTIONS)
+
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
@@ -1253,13 +1257,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Apply main window settings."""
         qapp = QApplication.instance()
 
-        default = self.DOCKOPTIONS
-        if self.get_conf('vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
-        self.setDockOptions(default)
-
         self.apply_panes_settings()
-
         if self.get_conf('use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
                 self.get_conf('custom_cursor_blinking'))

@@ -44,6 +44,7 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
@@ -342,9 +343,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         pager_label_css.setValues(**{
             'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
             'color': f'{QStylePalette.COLOR_TEXT_1}',
-            'margin': '0px 1px 4px 1px',
+            'margin': '2px 1px 1px 1px',
             'padding': '5px',
-            'qproperty-alignment': 'AlignCenter'
+            'qproperty-alignment': 'AlignCenter',
+            'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
         })
         self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()
@@ -353,7 +355,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
+
+        # Manually adjust margins for the find/replace widget
+        if not self.get_conf('vertical_tabs', section='main'):
+            # Remove an extra pixel that it's not present in other plugins
+            layout.addSpacing(-1)
+
+            # Align close button with the one in other plugins
+            self.find_widget.setStyleSheet("margin-left: 1px")
+        else:
+            self.find_widget.setStyleSheet("margin-bottom: 1px")
+
         layout.addWidget(self.find_widget)
+
+        # Manually adjust pane margins, don't know why this is necessary.
+        # Note: Do this before setting the layout.
+        if not self.get_conf('vertical_tabs', section='main'):
+            self._margin_left = self._margin_right = MARGIN_SIZE - 1
+        else:
+            self._margin_right = self._margin_bottom = MARGIN_SIZE - 1
 
         self.setLayout(layout)
 

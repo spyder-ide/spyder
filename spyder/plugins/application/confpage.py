@@ -97,7 +97,7 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Panes"))
 
         verttabs_box = newcb(_("Vertical tabs in panes"),
-                             'vertical_tabs')
+                             'vertical_tabs', restart=True)
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',

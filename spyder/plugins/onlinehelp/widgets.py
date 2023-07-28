@@ -175,7 +175,6 @@ class PydocBrowser(PluginMainWidget):
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.webview)
-        layout.addSpacing(1)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
 
