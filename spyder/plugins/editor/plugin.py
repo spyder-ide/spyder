@@ -70,6 +70,7 @@ from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -367,6 +368,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
+
+        # TODO: This is a hack! Remove it after migrating to the new API
+        self.find_widget.layout().setContentsMargins(
+            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, MARGIN_SIZE
+        )
 
         # Start autosave component
         # (needs to be done before EditorSplitter)

@@ -241,7 +241,8 @@ class WorkingDirectory(SpyderPluginV2):
 
     def _explorer_change_dir(self, path):
         explorer = self.get_plugin(Plugins.Explorer)
-        explorer.chdir(path, emit=False)
+        if explorer:
+            explorer.chdir(path, emit=False)
 
     def _explorer_dir_opened(self, path):
         explorer = self.get_plugin(Plugins.Explorer)

@@ -25,7 +25,7 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QStackedLayout)
+                            QStackedWidget, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -341,10 +341,13 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
-        self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(self.pane_empty)
-        self.stack_layout.addWidget(self.treewidget)
-        self.setLayout(self.stack_layout)
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.addWidget(self.pane_empty)
+        self.stacked_widget.addWidget(self.treewidget)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
+        self.setLayout(layout)
 
         # Signals
         self.filecombo.valid.connect(self._check_new_file)
@@ -790,17 +793,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.stacked_widget.setCurrentWidget(self.pane_empty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
-                self.stack_layout.setCurrentWidget(self.treewidget)
+                self.stacked_widget.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
-                self.stack_layout.setCurrentWidget(self.treewidget)
+                self.stacked_widget.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"
