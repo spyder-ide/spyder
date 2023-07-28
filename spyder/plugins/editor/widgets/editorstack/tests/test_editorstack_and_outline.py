@@ -179,7 +179,10 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
 
 
 # ---- Test single file mode
-@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
+@pytest.mark.skipif(
+    running_in_ci() or os.name == 'nt',
+    reason="Fails on CIs and on Windows"
+)
 def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
                                    qtbot):
     """

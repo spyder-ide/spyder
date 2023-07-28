@@ -22,7 +22,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
-from spyder.plugins.editor.widgets import editorstack as editor
+from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 
