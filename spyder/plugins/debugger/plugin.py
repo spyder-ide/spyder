@@ -17,7 +17,7 @@ from qtpy.QtCore import Slot
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
@@ -37,7 +37,7 @@ from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
+class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
@@ -56,11 +56,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
     def get_name():
         return _('Debugger')
 
-    def get_description(self):
-        return _('Display and explore frames while debugging.')
+    @staticmethod
+    def get_description():
+        return _('View, explore and navigate stack frames while debugging.')
 
-    def get_icon(self):
-        return self.create_icon('debug')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('debug')
 
     def on_initialize(self):
         widget = self.get_widget()

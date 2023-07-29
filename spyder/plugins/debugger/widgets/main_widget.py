@@ -411,28 +411,29 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update actions."""
-        widget = self.current_widget()
         search_action = self.get_action(DebuggerWidgetActions.Search)
         enter_debug_action = self.get_action(
             DebuggerWidgetActions.EnterDebug)
         inspect_action = self.get_action(
             DebuggerWidgetActions.Inspect)
 
-        if widget is None:
-            search = False
+        widget = self.current_widget()
+        if self.is_current_widget_empty() or widget is None:
+            search_action.setEnabled(False)
             show_enter_debugger = False
             executing = False
             is_inspecting = False
             pdb_prompt = False
         else:
-            search = widget.finder_is_visible()
+            search_action.setEnabled(True)
+            search_action.setChecked(widget.finder_is_visible())
             post_mortem = widget.state == FramesBrowserState.Error
             sw = widget.shellwidget
             executing = sw._executing
             show_enter_debugger = post_mortem or executing
             is_inspecting = widget.state == FramesBrowserState.Inspect
             pdb_prompt = sw.is_waiting_pdb_input()
-        search_action.setChecked(search)
+
         enter_debug_action.setEnabled(show_enter_debugger)
         inspect_action.setEnabled(executing)
         self.context_menu.setEnabled(is_inspecting)
@@ -443,8 +444,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                 DebuggerWidgetActions.Step,
                 DebuggerWidgetActions.Return,
                 DebuggerWidgetActions.Stop,
-                DebuggerWidgetActions.GotoCursor,
-                ]:
+                DebuggerWidgetActions.GotoCursor]:
             action = self.get_action(action_name)
             action.setEnabled(pdb_prompt)
 
@@ -510,9 +510,10 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def switch_widget(self, widget, old_widget):
         """Set the current FramesBrowser."""
-        sw = widget.shellwidget
-        state = sw.is_waiting_pdb_input()
-        self.sig_pdb_state_changed.emit(state)
+        if not self.is_current_widget_empty():
+            sw = widget.shellwidget
+            state = sw.is_waiting_pdb_input()
+            self.sig_pdb_state_changed.emit(state)
 
     def close_widget(self, widget):
         """Close widget."""
@@ -575,7 +576,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         next call.
         """
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return False
         widget.shellwidget._pdb_take_focus = take_focus
 
@@ -583,14 +584,14 @@ class DebuggerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Show or hide finder."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return
         widget.toggle_finder(checked)
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return False
         sw = widget.shellwidget
         if sw is not None:
@@ -600,7 +601,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return None, None
         sw = widget.shellwidget
         if sw is not None:

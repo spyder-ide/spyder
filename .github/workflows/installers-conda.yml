@@ -97,7 +97,7 @@ jobs:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     strategy:
       matrix:
-        pkg: ["python-lsp-server", "qtconsole"]
+        pkg: ["python-lsp-server", "qtconsole", "spyder-kernels"]
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
     defaults:
       run:
@@ -106,7 +106,7 @@ jobs:
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
       pkg: ${{ matrix.pkg }}
-      artifact_name: ${{ matrix.pkg }}_${{ matrix.python-version }}
+      cache_base: ${{ matrix.pkg }}_${{ matrix.python-version }}
 
     steps:
       - name: Checkout Code
@@ -114,7 +114,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Cache ${{ matrix.pkg }} Conda Build
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: ${{ env.cache_base }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
+          lookup-only: true
+          enableCrossOsArchive: true
+
       - name: Setup Build Environment
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
@@ -122,17 +132,11 @@ jobs:
           cache-downloads: true
           cache-environment: true
 
-      - name: Build Conda Packages
+      - name: Build & Cache ${{ matrix.pkg }} Conda Package
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
         run: python build_conda_pkgs.py --build $pkg
-
-      - name: Build Artifact
-        run: tar -a -C $CONDA_PREFIX -cf $PWD/${artifact_name}.tar.bz2 conda-bld
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          path: ${{ github.workspace }}/installers-conda/${{ env.artifact_name }}.tar.bz2
-          name: ${{ env.artifact_name }}
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
@@ -142,13 +146,14 @@ jobs:
       - build-noarch-pkgs
     if: ${{ ! failure() && ! cancelled() }}
     strategy:
+      fail-fast: false
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
         python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
         include: ${{fromJson(needs.build-matrix.outputs.include)}}
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -le {0}
         working-directory: ${{ github.workspace }}/installers-conda
     env:
       DISTDIR: ${{ github.workspace }}/installers-conda/dist
@@ -166,6 +171,37 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Restore python-lsp-server Cache
+        if: env.IS_STANDARD_PR == 'true'
+        uses: actions/cache/restore@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: python-lsp-server_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
+          enableCrossOsArchive: true
+
+      - name: Restore qtconsole Cache
+        if: env.IS_STANDARD_PR == 'true'
+        uses: actions/cache/restore@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: qtconsole_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
+          enableCrossOsArchive: true
+
+      - name: Restore Unix spyder-kernels Cache
+        if: env.IS_STANDARD_PR == 'true' && runner.os != 'Windows'
+        uses: actions/cache/restore@v3
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: spyder-kernels_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
+
+      - name: Restore Windows spyder-kernels Cache
+        id: cache
+        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows'
+        uses: actions/cache@v3
+        with:
+          path: installers-conda/build/conda-bld/**/spyder-kernels-*.tar.bz2
+          key: spyder-kernels_${{ matrix.target-platform }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
+
       - name: Setup Build Environment
         uses: mamba-org/setup-micromamba@v1
         with:
@@ -175,46 +211,33 @@ jobs:
           cache-environment: true
 
       - name: Env Variables
+        run: env | sort
+
+      - name: Build & Cache Windows spyder-kernels Conda Package
+        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
+        run: python build_conda_pkgs.py --build spyder-kernels
+
+      - name: Build ${{ matrix.target-platform }} spyder Conda Package
+        if: env.IS_STANDARD_PR == 'true'
+        env:
+          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
-          ARTIFACTS_PATH=$RUNNER_TEMP/artifacts
-          CONDA_BLD_PATH=$RUNNER_TEMP/conda-bld
+          # Copy built packages to new build location because spyder cannot be
+          # built in workspace
+          [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
 
-          echo "ARTIFACTS_PATH=$ARTIFACTS_PATH" >> $GITHUB_ENV
-          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
-
-          [[ -d $ARTIFACTS_PATH ]] || mkdir $ARTIFACTS_PATH
-          [[ -d $CONDA_BLD_PATH ]] || mkdir $CONDA_BLD_PATH
-
-          env | sort
-
-      - name: Download Local Conda Packages
-        if: needs.build-noarch-pkgs.result == 'success'
-        uses: actions/download-artifact@v3
-        with:
-          path: ${{ env.ARTIFACTS_PATH }}
+          python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
+        if: env.IS_STANDARD_PR == 'true'
+        env:
+          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
-          files=($(find $ARTIFACTS_PATH -name *.tar.bz2))
-          echo ${files[@]}
-          cd $(dirname $CONDA_BLD_PATH)
-
-          [[ $RUNNER_OS == "Windows" ]] && opts=("--force-local") || opts=()
-          for file in ${files[@]}; do
-              tar -xf $file ${opts[@]}
-          done
-
+          conda config --set bld_path $CONDA_BLD_PATH
           mamba index $CONDA_BLD_PATH
-
-          mamba search -c $CONDA_BLD_PATH --override-channels || true
-
-      - name: Build ${{ matrix.target-platform }} conda packages
-        run: |
-          pkgs=("spyder")
-          if [[ $IS_STANDARD_PR == "true" ]]; then
-              pkgs+=("spyder-kernels")
-          fi
-          python build_conda_pkgs.py --build ${pkgs[@]}
+          mamba search -c local --override-channels || true
 
       - name: Create Keychain
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
@@ -252,16 +275,24 @@ jobs:
 
           installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
 
-          app_path=$HOME/Applications/Spyder.app
+          root_prefix=$(compgen -G $HOME/Library/spyder-*)
+
+          echo "Install info:"
+          echo "Contents of ${root_prefix}:"
+          ls -al $root_prefix
+          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
+          cat $root_prefix/uninstall-spyder.sh
+
+          app_path=/Applications/Spyder.app
+          [[ -e ${root_prefix}/.nonadmin ]] && app_path=${HOME}${app_path}
+
           if [[ -e "$app_path" ]]; then
-              echo "\nContents of $app_path/Contents/MacOS:"
+              echo "Contents of $app_path/Contents/MacOS:"
               ls -al $app_path/Contents/MacOS
               echo -e "\nContents of $app_path/Contents/Info.plist:"
               cat $app_path/Contents/Info.plist
               echo -e "\nContents of $app_path/Contents/MacOS/spyder-script:"
               cat $app_path/Contents/MacOS/spyder-script
-              echo -e "\n\nContents of" $HOME/Library/spyder-*/uninstall-spyder.sh :
-              cat $HOME/Library/spyder-*/uninstall-spyder.sh
           else
               echo "$app_path does not exist"
               exit 1
@@ -272,14 +303,20 @@ jobs:
         run: |
           $PKG_PATH -b
 
-          shortcut_path=$HOME/.local/share/applications/spyder_spyder.desktop
+          root_prefix=$(compgen -G $HOME/.local/spyder-*)
+
+          echo "Install info:"
+          echo "Contents of ${root_prefix}:"
+          ls -al $root_prefix
+          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
+          cat ${root_prefix}/uninstall-spyder.sh
+
+          shortcut_path=/share/applications/spyder_spyder.desktop
+          [[ -e ${root_prefix}/.nonadmin ]] && shortcut_path=${HOME}/.local${shortcut_path} || shortcut_path=/usr${shortcut_path}
+
           if [[ -e $shortcut_path ]]; then
-              echo -e "\nContents of" $HOME/.local/spyder-* :
-              ls -al $HOME/.local/spyder-*
               echo -e "\nContents of ${shortcut_path}:"
               cat $shortcut_path
-              echo -e "\nContents of" $HOME/.local/spyder-*/uninstall-spyder.sh :
-              cat $HOME/.local/spyder-*/uninstall-spyder.sh
           else
               echo "$shortcut_path does not exist"
               exit 1
@@ -303,8 +340,7 @@ jobs:
       - name: Notarize or Compute Checksum
         if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
         run: |
-          # Skip notarization for now because our Apple ID is expired.
-          if [[ $RUNNER_OS == "skip" ]]; then
+          if [[ $RUNNER_OS == "macOS" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
           else
               cd $(dirname $PKG_PATH)

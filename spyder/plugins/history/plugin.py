@@ -55,11 +55,13 @@ class HistoryLog(SpyderDockablePlugin):
     def get_name():
         return _('History')
 
-    def get_description(self):
-        return _('Provide command history for IPython Consoles')
+    @staticmethod
+    def get_description():
+        return _('View command history for the IPython console.')
 
-    def get_icon(self):
-        return self.create_icon('history')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('history')
 
     def on_initialize(self):
         widget = self.get_widget()

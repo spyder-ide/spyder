@@ -12,11 +12,9 @@ API utilities.
 
 def get_class_values(cls):
     """
-    Get the attribute values for the class enumerations used in our
-    API.
+    Get the attribute values for the class enumerations used in our API.
 
-    Idea from:
-    https://stackoverflow.com/a/17249228/438386
+    Idea from: https://stackoverflow.com/a/17249228/438386
     """
     return [v for (k, v) in cls.__dict__.items() if k[:1] != '_']
 
@@ -54,3 +52,15 @@ class PrefixedTuple(PrefixNode):
             child = self.children[key]
             for prefix in child:
                 yield prefix
+
+
+class classproperty(property):
+    """
+    Decorator to declare class constants as properties that require additional
+    computation.
+
+    Taken from: https://stackoverflow.com/a/7864317/438386
+    """
+
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()

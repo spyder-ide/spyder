@@ -65,8 +65,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             "", _(" ms"),
             'occurrence_highlighting/timeout',
             min_=100, max_=1000000, step=100)
-        occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
-        occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.spinbox.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
                 self.get_option('occurrence_highlighting'))
         occurrence_spin.slabel.setEnabled(
@@ -220,7 +222,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _('seconds'),
             'autosave_interval',
             min_=1, max_=3600)
-        autosave_checkbox.toggled.connect(autosave_spinbox.setEnabled)
+        autosave_checkbox.checkbox.toggled.connect(autosave_spinbox.setEnabled)
 
         autosave_layout = QVBoxLayout()
         autosave_layout.addWidget(autosave_checkbox)
@@ -297,7 +299,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             eol_combo_choices,
             'convert_eol_on_save_to',
         )
-        convert_eol_on_save_box.toggled.connect(
+        convert_eol_on_save_box.checkbox.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
                 self.get_option('convert_eol_on_save'))

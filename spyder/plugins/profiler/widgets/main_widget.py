@@ -28,7 +28,7 @@ from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
-                            QTreeWidgetItem, QStackedLayout)
+                            QTreeWidgetItem, QStackedWidget, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -186,10 +186,13 @@ class ProfilerWidget(PluginMainWidget):
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
 
         # Layout
-        self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(self.pane_empty)
-        self.stack_layout.addWidget(self.datatree)
-        self.setLayout(self.stack_layout)
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.addWidget(self.pane_empty)
+        self.stacked_widget.addWidget(self.datatree)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
+        self.setLayout(layout)
 
         # Signals
         self.datatree.sig_edit_goto_requested.connect(
