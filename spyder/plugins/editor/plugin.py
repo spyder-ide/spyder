@@ -16,6 +16,7 @@ from datetime import datetime
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import sys
 import time
@@ -2449,7 +2450,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
 
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
+            fname = encoding.to_unicode_from_fs(fname)
+            if os.name == 'nt':
+                # Try to get the correct capitalization and absolute path
+                try:
+                    # This should correctly capitalize the path on Windows
+                    fname = str(Path(fname).resolve())
+                except OSError:
+                    # On Windows, "<string>" is not a valid path
+                    # But it can be used as filename while debugging
+                    fname = osp.abspath(fname)
+            else:
+                fname = osp.abspath(fname)
+
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
