@@ -127,7 +127,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     sig_clear_breakpoint = Signal(str, int)
     """
-    Clear Single breakpoint.
+    Clear single breakpoint.
 
     Parameters
     ----------
@@ -382,8 +382,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                      enter_debug_action,
                      inspect_action,
                      search_action,
-                     toggle_breakpoints_action,
-                     ]:
+                     toggle_breakpoints_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
@@ -450,10 +449,12 @@ class DebuggerWidget(ShellConnectMainWidget):
             action.setEnabled(pdb_prompt)
 
         rows = self.breakpoints_table.selectionModel().selectedRows()
-        c_row = rows[0] if rows else None
+        initial_row = rows[0] if rows else None
 
-        enabled = (bool(self.breakpoints_table.model.breakpoints)
-                   and c_row is not None)
+        enabled = (
+            bool(self.breakpoints_table.model.breakpoints)
+            and initial_row is not None
+        )
         clear_action = self.get_action(
             BreakpointTableViewActions.ClearBreakpoint)
         edit_action = self.get_action(
@@ -674,7 +675,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             return
         widget.shellwidget.pdb_execute_command(command)
 
-    def _load_data(self):
+    def load_data(self):
         """
         Load breakpoint data from configuration file.
         """
@@ -697,8 +698,6 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         return breakpoints_dict
 
-    # --- Public API
-    # ------------------------------------------------------------------------
     def set_data(self, data=None):
         """
         Set breakpoint data on widget.
@@ -710,7 +709,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             will be loaded. Default is None.
         """
         if data is None:
-            data = self._load_data()
+            data = self.load_data()
         self.breakpoints_table.set_data(data)
 
     def list_breakpoints(self):
