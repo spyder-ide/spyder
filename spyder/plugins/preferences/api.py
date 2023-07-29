@@ -849,7 +849,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
 
-        sizelabel = QLabel("  " + _("Size"))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         sizebox.restart_required = restart
@@ -858,7 +857,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.fontboxes[(fontbox, sizebox)] = option
 
         layout = QHBoxLayout()
-        for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
+        for subwidget in (fontlabel, fontbox, sizebox):
             layout.addWidget(subwidget)
         layout.addStretch(1)
 
@@ -876,7 +875,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             widget = QWidget(self)
             widget.fontlabel = fontlabel
-            widget.sizelabel = sizelabel
             widget.fontbox = fontbox
             widget.sizebox = sizebox
             widget.setLayout(layout)
