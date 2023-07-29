@@ -46,7 +46,6 @@ class Plugins:
 
 
 class DockablePlugins:
-    Breakpoints = 'breakpoints'
     Console = 'internal_console'
     Debugger = 'debugger'
     Editor = 'editor'
