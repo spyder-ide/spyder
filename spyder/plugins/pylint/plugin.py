@@ -67,11 +67,14 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     def get_name():
         return _("Code Analysis")
 
-    def get_description(self):
-        return _("Run Code Analysis.")
+    @staticmethod
+    def get_description():
+        return _("Analyze code and view the results from both static and "
+                 "real-time analysis.")
 
-    def get_icon(self):
-        return self.create_icon("pylint")
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon("pylint")
 
     def on_initialize(self):
         widget = self.get_widget()

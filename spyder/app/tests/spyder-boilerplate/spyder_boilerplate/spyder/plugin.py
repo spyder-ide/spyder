@@ -9,15 +9,16 @@ Spyder Boilerplate Plugin.
 """
 
 # Third party imports
-from qtpy.QtGui import QIcon
+import qtawesome as qta
 from qtpy.QtWidgets import QHBoxLayout, QLabel
 
 # Spyder imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugins import SpyderDockablePlugin
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.layout.layouts import VerticalSplitLayout2
+from spyder.utils.palette import SpyderPalette
 
 
 class SpyderBoilerplateConfigPage(PluginConfigPage):
@@ -60,7 +61,7 @@ class SpyderBoilerplateWidget(PluginMainWidget):
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        return "Spyder Boilerplate"
+        return "Spyder boilerplate plugin"
 
     def get_focus_widget(self):
         pass
@@ -121,13 +122,15 @@ class SpyderBoilerplate(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return "Spyder Boilerplate"
+        return "Spyder boilerplate plugin"
 
-    def get_description(self):
-        return "Boilerplate needed to create a Spyder Plugin."
+    @staticmethod
+    def get_description():
+        return "A boilerplate plugin for testing."
 
-    def get_icon(self):
-        return QIcon()
+    @staticmethod
+    def get_icon():
+        return qta.icon('mdi6.alpha-b-box', color=SpyderPalette.ICON_1)
 
     def on_initialize(self):
         pass

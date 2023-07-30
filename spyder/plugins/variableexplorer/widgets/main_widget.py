@@ -108,12 +108,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-
         # Widgets
         self.context_menu = None
         self.empty_context_menu = None
-
         self.filter_button = None
+
+        # Attributes
+        self._is_filter_button_checked = True
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -227,6 +228,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             tip=_("Filter variables")
             )
         self.filter_button.setCheckable(True)
+        self.filter_button.toggled.connect(self._set_filter_button_state)
 
         # ---- Context menu actions
         resize_rows_action = self.create_action(
@@ -420,13 +422,21 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update the actions."""
+        if self.is_current_widget_empty():
+            self._set_main_toolbar_state(False)
+            return
+        else:
+            self._set_main_toolbar_state(True)
+
         action = self.get_action(VariableExplorerWidgetActions.ToggleMinMax)
         action.setEnabled(is_module_installed('numpy'))
+
         nsb = self.current_widget()
         if nsb:
             save_data_action = self.get_action(
                 VariableExplorerWidgetActions.SaveData)
             save_data_action.setEnabled(nsb.filename is not None)
+
         search_action = self.get_action(VariableExplorerWidgetActions.Search)
         if nsb is None:
             checked = False
@@ -449,7 +459,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
         nsb = NamespaceBrowser(self)
@@ -483,19 +492,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         Import data in current namespace.
         """
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=filenames)
 
     def save_data(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.save_data()
             self.update_actions()
 
     def reset_namespace(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.reset_namespace()
 
@@ -503,7 +512,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Hide or show the finder."""
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_empty():
             return
         widget.toggle_finder(checked)
 
@@ -514,7 +523,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         action.setChecked(False)
 
     def refresh_table(self):
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             nsb.refresh_table()
 
@@ -530,10 +539,12 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                           self.sig_free_memory_requested)
 
     def resize_rows(self):
-        self._current_editor.resizeRowsToContents()
+        if self._current_editor is not None:
+            self._current_editor.resizeRowsToContents()
 
     def resize_columns(self):
-        self._current_editor.resize_column_contents()
+        if self._current_editor is not None:
+            self._current_editor.resize_column_contents()
 
     def paste(self):
         self._current_editor.paste()
@@ -576,7 +587,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     @property
     def _current_editor(self):
         editor = None
-        if self.count():
+        if not self.is_current_widget_empty():
             nsb = self.current_widget()
             editor = nsb.editor
         return editor
@@ -622,3 +633,24 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         self.exclude_capitalized_action.setEnabled(value)
         self.exclude_unsupported_action.setEnabled(value)
         self.exclude_callables_and_modules_action.setEnabled(value)
+
+    def _set_main_toolbar_state(self, enabled):
+        """Set main toolbar enabled state."""
+        main_toolbar = self.get_main_toolbar()
+        for action in main_toolbar.actions():
+            action.setEnabled(enabled)
+
+        # Adjustments for the filter button
+        if enabled:
+            # Restore state for active consoles
+            self.filter_button.setChecked(self._is_filter_button_checked)
+        else:
+            # Uncheck button for dead consoles if it's checked so that the
+            # toolbar looks good
+            if self.filter_button.isChecked():
+                self.filter_button.setChecked(False)
+                self._is_filter_button_checked = True
+
+    def _set_filter_button_state(self, checked):
+        """Keep track of the filter button checked state."""
+        self._is_filter_button_checked = checked

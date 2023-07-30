@@ -16,6 +16,7 @@ from datetime import datetime
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import sys
 import time
@@ -70,6 +71,7 @@ from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -368,6 +370,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
 
+        # TODO: This is a hack! Remove it after migrating to the new API
+        self.find_widget.layout().setContentsMargins(
+            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, MARGIN_SIZE
+        )
+
         # Start autosave component
         # (needs to be done before EditorSplitter)
         self.autosave = AutosaveForPlugin(self)
@@ -646,9 +653,22 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         title = _('Editor')
         return title
 
-    def get_plugin_icon(self):
+    # TODO: Remove when the editor is migrated to the new API
+    get_name = get_plugin_title
+
+    @staticmethod
+    def get_description():
+        return _(
+            "Edit Python, Markdown, Cython and many other types of text files."
+        )
+
+    @classmethod
+    def get_plugin_icon(cls):
         """Return widget icon."""
         return ima.icon('edit')
+
+    # TODO: Remove when the editor is migrated to the new API
+    get_icon = get_plugin_icon
 
     def get_focus_widget(self):
         """
@@ -2430,7 +2450,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
 
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
+            fname = encoding.to_unicode_from_fs(fname)
+            if os.name == 'nt':
+                # Try to get the correct capitalization and absolute path
+                try:
+                    # This should correctly capitalize the path on Windows
+                    fname = str(Path(fname).resolve())
+                except OSError:
+                    # On Windows, "<string>" is not a valid path
+                    # But it can be used as filename while debugging
+                    fname = osp.abspath(fname)
+            else:
+                fname = osp.abspath(fname)
+
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
