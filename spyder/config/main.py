@@ -185,8 +185,6 @@ DEFAULTS = [
             ('debugger',
              {
               'exclude_internal': True,
-              'capture_locals': False,
-              'show_locals_on_click': False,
               'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
@@ -655,4 +653,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '78.0.0'
+CONF_VERSION = '79.0.0'

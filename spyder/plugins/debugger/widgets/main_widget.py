@@ -37,8 +37,6 @@ class DebuggerWidgetActions:
 
     # Toggles
     ToggleExcludeInternal = 'toggle_exclude_internal_action'
-    ToggleCaptureLocals = 'toggle_capture_locals_action'
-    ToggleLocalsOnClick = 'toggle_show_locals_on_click_action'
 
 
 class DebuggerBreakpointActions:
@@ -165,23 +163,6 @@ class DebuggerWidget(ShellConnectMainWidget):
             option='exclude_internal',
         )
 
-        capture_locals_action = self.create_action(
-            DebuggerWidgetActions.ToggleCaptureLocals,
-            text=_("Capture locals when inspecting execution"),
-            tip=_("Capture the variables in the Variable Explorer"),
-            toggled=True,
-            option='capture_locals',
-        )
-
-        show_locals_on_click_action = self.create_action(
-            DebuggerWidgetActions.ToggleLocalsOnClick,
-            text=_("Show selected frame locals from inspection "
-                   "in the Variable Explorer"),
-            tip=_("Show frame locals in the Variable explorer when selected."),
-            toggled=True,
-            option='show_locals_on_click',
-        )
-
         # ---- Toolbar actions
         search_action = self.create_action(
             DebuggerWidgetActions.Search,
@@ -291,10 +272,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [
-                exclude_internal_action,
-                capture_locals_action,
-                show_locals_on_click_action]:
+        for item in [exclude_internal_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
@@ -550,8 +528,8 @@ class DebuggerWidget(ShellConnectMainWidget):
             sw.call_kernel(
                 interrupt=True, callback=widget.show_pdb_preview
                 ).get_current_frames(
-                    ignore_internal_threads=True,
-                    capture_locals=False)
+                    ignore_internal_threads=True
+                )
 
             sw.call_kernel(interrupt=True).request_pdb_stop()
             return
@@ -572,8 +550,8 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget.shellwidget.call_kernel(
             interrupt=True, callback=widget.show_captured_frames
             ).get_current_frames(
-                ignore_internal_threads=self.get_conf("exclude_internal"),
-                capture_locals=self.get_conf("capture_locals"))
+                ignore_internal_threads=self.get_conf("exclude_internal")
+            )
 
     def stop_debugging(self):
         """Stop debugging"""
