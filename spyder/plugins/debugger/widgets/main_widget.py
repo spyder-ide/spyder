@@ -272,8 +272,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        for item in [
-                exclude_internal_action]:
+        for item in [exclude_internal_action]:
             self.add_item_to_menu(
                 item,
                 menu=options_menu,
