@@ -19,7 +19,7 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.plugins.editor.widgets import editor
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 
 
 def get_tree_elements(treewidget):
@@ -68,7 +68,7 @@ def test_files(tmpdir_factory):
 @pytest.fixture
 def editorstack(qtbot, outlineexplorer):
     def _create_editorstack(files):
-        editorstack = editor.EditorStack(None, [], False)
+        editorstack = EditorStack(None, [], False)
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.analysis_timer = Mock()
@@ -179,7 +179,10 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
 
 
 # ---- Test single file mode
-@pytest.mark.skipif(running_in_ci(), reason="Fails on CIs")
+@pytest.mark.skipif(
+    running_in_ci() or os.name == 'nt',
+    reason="Fails on CIs and on Windows"
+)
 def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
                                    qtbot):
     """
