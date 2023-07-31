@@ -16,6 +16,7 @@ Breakpoint widget.
 
 
 # Third party imports
+import qstylizer.style
 from qtpy import PYQT5
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
@@ -26,6 +27,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidgetMenus
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.sourcecode import disambiguate_fname
+from spyder.utils.palette import QStylePalette
 
 
 # --- Constants
@@ -195,11 +197,24 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         self.setSelectionMode(self.SingleSelection)
         self.setModel(self.model)
         self.setItemDelegate(self.delegate)
-        self.adjust_columns()
-        self.columnAt(0)
+        self._adjust_columns()
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
         self.setMinimumWidth(self.MIN_WIDTH)
+
+        # Attributes
+        self._update_when_shown = True
+
+        # Style
+        # Remove border radius to the left and add it to the right.
+        css = qstylizer.style.StyleSheet()
+        css.setValues(
+            borderTopLeftRadius='0px',
+            borderBottomLeftRadius='0px',
+            borderTopRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+            borderBottomRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+        )
+        self.setStyleSheet(css.toString())
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
@@ -258,6 +273,18 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         if index_clicked.column() == COL_CONDITION:
             self.sig_conditional_breakpoint_requested.emit()
 
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            self._adjust_file_column()
+            self._update_when_shown = False
+        super().showEvent(event)
+
+    def resizeEvent(self, event):
+        """Adjustments when the widget is resized."""
+        self._adjust_file_column()
+        super().resizeEvent(event)
+
     # ---- Public API
     # ------------------------------------------------------------------------
     def set_data(self, data):
@@ -270,15 +297,9 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
             Breakpoint data to use.
         """
         self.model.set_data(data)
-        self.adjust_columns()
+        if self.model.rowCount() > 0:
+            self._adjust_columns()
         self.sortByColumn(COL_FILE, Qt.DescendingOrder)
-
-    def adjust_columns(self):
-        """
-        Resize three first columns to contents.
-        """
-        for col in range(COLUMN_COUNT - 1):
-            self.resizeColumnToContents(col)
 
     def clear_breakpoints(self):
         """
@@ -304,3 +325,15 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
 
             self.sig_edit_goto_requested.emit(filename, lineno, '')
             self.sig_conditional_breakpoint_requested.emit()
+
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    def _adjust_columns(self):
+        """
+        Resize three first columns to contents.
+        """
+        for col in range(COLUMN_COUNT - 1):
+            self.resizeColumnToContents(col)
+
+    def _adjust_file_column(self):
+        self.horizontalHeader().resizeSection(COL_FILE, self.width() / 2)

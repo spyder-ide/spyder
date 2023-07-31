@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QSplitter
 
 # Local imports
+import qstylizer.style
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.api.translations import _
@@ -25,6 +26,7 @@ from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.plugins.debugger.widgets.breakpoint_table_view import (
     BreakpointTableView, BreakpointTableViewActions)
+from spyder.utils.palette import QStylePalette
 
 
 # =============================================================================
@@ -183,6 +185,11 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.splitter.addWidget(self.breakpoints_table)
         self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.setChildrenCollapsible(False)
+
+        # This is necessary so that the border radius is maintained when
+        # showing/hiding the breakpoints table
+        self.splitter.setStyleSheet(
+            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}")
 
         # Layout
         # Create the layout.
@@ -472,9 +479,11 @@ class DebuggerWidget(ShellConnectMainWidget):
     def on_breakpoints_table_option_update(self, value):
         if value:
             self.breakpoints_table.show()
+            self._update_stylesheet(is_table_shown=True)
             self._stack.setMinimumWidth(450)
         else:
             self.breakpoints_table.hide()
+            self._update_stylesheet(is_table_shown=False)
             self._stack.setMinimumWidth(100)
 
     # ---- ShellConnectMainWidget API
@@ -764,3 +773,19 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         if base_width - table_width > 0:
             self.splitter.setSizes([base_width - table_width, table_width])
+
+    def _update_stylesheet(self, is_table_shown=False):
+        """Update stylesheet when the breakpoints table is shown/hidden."""
+        # Remove right border radius for stack when table is shown and restore
+        # it when hidden.
+        if is_table_shown:
+            border_radius = '0px'
+        else:
+            border_radius = QStylePalette.SIZE_BORDER_RADIUS
+
+        css = qstylizer.style.StyleSheet()
+        css.setValues(
+            borderTopRightRadius=f'{border_radius}',
+            borderBottomRightRadius=f'{border_radius}',
+        )
+        self._stack.setStyleSheet(css.toString())
