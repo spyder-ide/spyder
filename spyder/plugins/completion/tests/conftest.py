@@ -61,9 +61,6 @@ class MainWindowMock(QMainWindow):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
-    def set_prefs_size(self, size):
-        pass
-
 
 @pytest.fixture(scope="module")
 def qtbot_module(qapp, request):

@@ -32,7 +32,7 @@ class ConfigDialog(QDialog):
 
     # Signals
     check_settings = Signal()
-    size_change = Signal(QSize)
+    sig_size_changed = Signal(QSize)
     sig_reset_preferences_requested = Signal()
 
     def __init__(self, parent=None):
@@ -203,7 +203,7 @@ class ConfigDialog(QDialog):
         main application
         """
         QDialog.resizeEvent(self, event)
-        self.size_change.emit(self.size())
+        self.sig_size_changed.emit(self.size())
 
     @property
     def _stylesheet(self):

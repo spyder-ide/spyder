@@ -69,9 +69,6 @@ class MainWindowMock(QMainWindow):
         if plugin_name in PLUGIN_REGISTRY:
             return PLUGIN_REGISTRY.get_plugin(plugin_name)
 
-    def set_prefs_size(self, size):
-        pass
-
 
 class ConfigDialogTester(QWidget):
     def __init__(self, parent, main_class,
@@ -80,9 +77,6 @@ class ConfigDialogTester(QWidget):
         self._main = main_class(self) if main_class else None
         if self._main is None:
             self._main = MainWindowMock(self)
-
-        def set_prefs_size(self, size):
-            pass
 
         def register_plugin(self, plugin_name, external=False):
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -97,8 +91,6 @@ class ConfigDialogTester(QWidget):
                 types.MethodType(register_plugin, self._main))
         setattr(self._main, 'get_plugin',
                 types.MethodType(get_plugin, self._main))
-        setattr(self._main, 'set_prefs_size',
-                types.MethodType(set_prefs_size, self._main))
 
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)

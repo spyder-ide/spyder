@@ -223,7 +223,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.thirdparty_plugins = []
 
         # Preferences
-        self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
 
         # Actions
@@ -1301,11 +1300,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     @Slot()
     def show_preferences(self):
         """Edit Spyder preferences."""
-        self.preferences.open_dialog(self.prefs_dialog_size)
-
-    def set_prefs_size(self, size):
-        """Save preferences dialog size."""
-        self.prefs_dialog_size = size
+        self.preferences.open_dialog()
 
     # ---- Open files server
     # -------------------------------------------------------------------------

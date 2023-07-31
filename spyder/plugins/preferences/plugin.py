@@ -255,11 +255,11 @@ class Preferences(SpyderPluginV2):
                            f'by {new_value}')
             return current_value
 
-    def open_dialog(self, prefs_dialog_size):
+    def open_dialog(self):
         container = self.get_container()
         container.create_dialog(
-            self.config_pages, self.config_tabs, prefs_dialog_size,
-            self.get_main())
+            self.config_pages, self.config_tabs, self.get_main()
+        )
 
     # ---------------- Public Spyder API required methods ---------------------
     @staticmethod
@@ -276,10 +276,7 @@ class Preferences(SpyderPluginV2):
 
     def on_initialize(self):
         container = self.get_container()
-        main = self.get_main()
-
-        container.sig_show_preferences_requested.connect(
-            lambda: self.open_dialog(main.prefs_dialog_size))
+        container.sig_show_preferences_requested.connect(self.open_dialog)
         container.sig_reset_preferences_requested.connect(self.reset)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
