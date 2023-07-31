@@ -7,15 +7,16 @@
 # Third party imports
 import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
-                            QListView, QListWidget, QListWidgetItem,
-                            QPushButton, QScrollArea, QSplitter,
-                            QStackedWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QListView,
+    QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
+    QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 
 
 class PageScrollArea(QScrollArea):
@@ -40,9 +41,8 @@ class ConfigDialog(QDialog):
         self.main = parent
 
         # Widgets
-        self.pages_widget = QStackedWidget()
-        self.pages_widget.setMinimumWidth(600)
-        self.contents_widget = QListWidget()
+        self.pages_widget = QStackedWidget(self)
+        self.contents_widget = QListWidget(self)
         self.button_reset = QPushButton(_('Reset to defaults'))
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
@@ -50,7 +50,6 @@ class ConfigDialog(QDialog):
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
         self.ok_btn = bbox.button(QDialogButtonBox.Ok)
 
-        # Widgets setup
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -58,29 +57,35 @@ class ConfigDialog(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
+
+        # Widgets setup
+        self.pages_widget.setMinimumWidth(600)
+
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(1)
         self.contents_widget.setCurrentRow(0)
         self.contents_widget.setMinimumWidth(220)
-        self.contents_widget.setMinimumHeight(400)
+        self.contents_widget.setObjectName('configdialog-contents')
 
         # Layout
-        hsplitter = QSplitter()
-        hsplitter.addWidget(self.contents_widget)
-        hsplitter.addWidget(self.pages_widget)
-        hsplitter.setStretchFactor(0, 1)
-        hsplitter.setStretchFactor(1, 2)
+        contents_and_pages_layout = QGridLayout()
+        contents_and_pages_layout.addWidget(self.contents_widget, 0, 0)
+        contents_and_pages_layout.addWidget(self.pages_widget, 0, 1)
+        contents_and_pages_layout.setContentsMargins(0, 0, 0, 0)
+        contents_and_pages_layout.setColumnStretch(0, 1)
+        contents_and_pages_layout.setColumnStretch(1, 3)
+        contents_and_pages_layout.setHorizontalSpacing(0)
 
         btnlayout = QHBoxLayout()
         btnlayout.addWidget(self.button_reset)
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(hsplitter)
-        vlayout.addLayout(btnlayout)
+        layout = QVBoxLayout()
+        layout.addLayout(contents_and_pages_layout)
+        layout.addLayout(btnlayout)
 
-        self.setLayout(vlayout)
+        self.setLayout(layout)
 
         # Stylesheet
         self.setStyleSheet(self._stylesheet)
@@ -172,6 +177,7 @@ class ConfigDialog(QDialog):
         # Add container to a scroll area in case the page contents don't fit
         # in the dialog
         scrollarea = PageScrollArea(self)
+        scrollarea.setObjectName('configdialog-scrollarea')
         scrollarea.setWidgetResizable(True)
         scrollarea.setWidget(container)
         self.pages_widget.addWidget(scrollarea)
@@ -206,6 +212,24 @@ class ConfigDialog(QDialog):
         # Show tabs aligned to the left
         css['QTabWidget::tab-bar'].setValues(
             alignment='left'
+        )
+
+        # Remove right border radius of contents area
+        css['QListView#configdialog-contents'].setValues(
+            borderTopRightRadius='0px',
+            borderBottomRightRadius='0px',
+        )
+
+        # Remove border color on focus of contents area
+        css['QListView#configdialog-contents:focus'].setValues(
+            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
+        )
+
+        # Remove left border and border radius of all page scroll areas
+        css['QScrollArea#configdialog-scrollarea'].setValues(
+            borderLeft='0px',
+            borderTopLeftRadius='0px',
+            borderBottomLeftRadius='0px',
         )
 
         return css.toString()
