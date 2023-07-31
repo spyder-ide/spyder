@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QSplitter
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.api.translations import _
 from spyder.config.manager import CONF
@@ -171,21 +172,25 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.context_menu = None
         self.empty_context_menu = None
         self.breakpoints_table = BreakpointTableView(self, {})
+        self.breakpoints_table.hide()
+
+        # Attributes
+        self._update_when_shown = True
+
+        # Splitter
+        self.splitter = QSplitter(self)
+        self.splitter.addWidget(self._stack)
+        self.splitter.addWidget(self.breakpoints_table)
+        self.splitter.setContentsMargins(0, 0, 0, 0)
+        self.splitter.setChildrenCollapsible(False)
 
         # Layout
         # Create the layout.
-        self.splitter = splitter = QSplitter()
-        splitter.addWidget(self._stack)
-        splitter.addWidget(self.breakpoints_table)
-        splitter.setContentsMargins(0, 0, 0, 0)
-        
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(splitter)
+        layout.addWidget(self.splitter)
         self.setLayout(layout)
-        self.breakpoints_table.setVisible(
-            self.get_conf('breakpoints_table_visible'))
 
         # Signals
         bpt = self.breakpoints_table
@@ -341,14 +346,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             DebuggerBreakpointActions.ShowBreakpointsTable,
             _("List breakpoints"),
             triggered=self.list_breakpoints,
-            icon=self.create_icon('dictedit'),
         )
 
         toggle_breakpoints_action = self.create_action(
             DebuggerBreakpointActions.ToggleBreakpointsTable,
-            _("Toggle breakpoints table"),
-            triggered=self.toggle_breakpoints_table,
-            icon=self.create_icon('view_split_vertical'),
+            _("Show breakpoints"),
+            icon=self.create_icon('breakpoint_big'),
+            toggled=True,
+            initial=self.get_conf('breakpoints_table_visible'),
+            option='breakpoints_table_visible'
         )
 
         # ---- Context menu actions
@@ -461,6 +467,15 @@ class DebuggerWidget(ShellConnectMainWidget):
             BreakpointTableViewActions.EditBreakpoint)
         clear_action.setEnabled(enabled)
         edit_action.setEnabled(enabled)
+
+    @on_conf_change(option='breakpoints_table_visible')
+    def on_breakpoints_table_option_update(self, value):
+        if value:
+            self.breakpoints_table.show()
+            self._stack.setMinimumWidth(450)
+        else:
+            self.breakpoints_table.hide()
+            self._stack.setMinimumWidth(100)
 
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
@@ -716,14 +731,36 @@ class DebuggerWidget(ShellConnectMainWidget):
     def list_breakpoints(self):
         """Show breakpoints state and switch to plugin."""
         self.set_conf('breakpoints_table_visible', True)
-        self.breakpoints_table.show()
         self.sig_switch_to_plugin_requested.emit()
 
-    def toggle_breakpoints_table(self):
-        """Show and hide breakpoints pannel."""
-        if self.breakpoints_table.isVisible():
-            self.breakpoints_table.hide()
-            self.set_conf('breakpoints_table_visible', False)
+    # ---- Qt methods
+    # ------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            # We only do this the first time the widget is shown to not change
+            # the splitter widths that users can set themselves.
+            self._update_splitter_widths(self.width())
+            self._update_when_shown = False
+
+        super().showEvent(event)
+
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    def _update_splitter_widths(self, base_width):
+        """
+        Update the splitter widths to provide the breakpoints table with a
+        fixed minimum width.
+
+        Parameters
+        ----------
+        base_width: int
+            The available splitter width.
+        """
+        if (base_width / 3) > self.breakpoints_table.MIN_WIDTH:
+            table_width = base_width / 3
         else:
-            self.breakpoints_table.show()
-            self.set_conf('breakpoints_table_visible', True)
+            table_width = self.breakpoints_table.MIN_WIDTH
+
+        if base_width - table_width > 0:
+            self.splitter.setSizes([base_width - table_width, table_width])

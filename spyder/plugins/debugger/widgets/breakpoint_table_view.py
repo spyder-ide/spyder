@@ -44,7 +44,7 @@ class BreakpointTableViewActions:
     EditBreakpoint = 'edit_breakpoint_action'
 
 
-# --- Widgets
+# --- Model
 # ----------------------------------------------------------------------------
 class BreakpointTableModel(QAbstractTableModel):
     """
@@ -169,6 +169,9 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
     Table to display code breakpoints.
     """
 
+    # Constants
+    MIN_WIDTH = 300
+
     # Signals
     sig_clear_all_breakpoints_requested = Signal()
     sig_clear_breakpoint_requested = Signal(str, int)
@@ -196,8 +199,9 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         self.columnAt(0)
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
+        self.setMinimumWidth(self.MIN_WIDTH)
 
-    # --- SpyderWidgetMixin API
+    # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
     def setup(self):
         clear_all_action = self.create_action(
@@ -220,7 +224,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         for item in [clear_all_action, clear_action, edit_action]:
             self.add_item_to_menu(item, menu=self.popup_menu)
 
-    # --- Qt overrides
+    # ---- Qt overrides
     # ------------------------------------------------------------------------
     def contextMenuEvent(self, event):
         """
@@ -254,7 +258,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         if index_clicked.column() == COL_CONDITION:
             self.sig_conditional_breakpoint_requested.emit()
 
-    # --- API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def set_data(self, data):
         """
