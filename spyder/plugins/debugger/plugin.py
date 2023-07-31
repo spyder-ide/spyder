@@ -72,9 +72,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget.sig_toggle_conditional_breakpoints.connect(
             self._set_or_edit_conditional_breakpoint)
         widget.sig_clear_all_breakpoints.connect(self.clear_all_breakpoints)
-
-        widget.sig_load_pdb_file.connect(
-            self._load_pdb_file_in_editor)
+        widget.sig_load_pdb_file.connect(self._load_pdb_file_in_editor)
+        widget.sig_clear_breakpoint.connect(self.clear_breakpoint)
+        widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
@@ -212,6 +212,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor_shortcuts = [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+            DebuggerBreakpointActions.ShowBreakpointsTable,
         ]
         for name in editor_shortcuts:
             action = self.get_action(name)
@@ -241,6 +242,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor_shortcuts = [
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
+            DebuggerBreakpointActions.ShowBreakpointsTable,
         ]
         for name in editor_shortcuts:
             action = self.get_action(name)
@@ -275,12 +277,12 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         # Breakpoints section
         for action in [DebuggerBreakpointActions.ToggleBreakpoint,
                        DebuggerBreakpointActions.ToggleConditionalBreakpoint,
-                       DebuggerBreakpointActions.ClearAllBreakpoints]:
+                       DebuggerBreakpointActions.ClearAllBreakpoints,
+                       DebuggerBreakpointActions.ShowBreakpointsTable]:
             mainmenu.add_item_to_application_menu(
                 self.get_action(action),
                 menu_id=ApplicationMenus.Debug,
-                section=DebugMenuSections.EditBreakpoints,
-                before_section=DebugMenuSections.ListBreakpoints)
+                section=DebugMenuSections.EditBreakpoints)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -294,7 +296,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             DebuggerWidgetActions.Stop,
             DebuggerBreakpointActions.ToggleBreakpoint,
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
-            DebuggerBreakpointActions.ClearAllBreakpoints
+            DebuggerBreakpointActions.ClearAllBreakpoints,
+            DebuggerBreakpointActions.ShowBreakpointsTable,
         ]
         for name in names:
             mainmenu.remove_item_from_application_menu(

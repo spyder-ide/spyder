@@ -29,6 +29,8 @@
   `Preferences > Appearance`
 * Files can be opened in the editor by pasting their path in the Working
   Directory toolbar.
+* Add a new button to the Variable Explorer to indicate when variables are being
+  filtered.
 
 ### New API features
 
@@ -39,8 +41,9 @@
 * Generalize the Run plugin to support generic inputs and executors. This allows
   plugins to declare what kind of inputs (i.e. file, cell or selection) they
   can execute and how they will display the result.
-* Add a new plugin called `Switcher` for the files and symbols switcher.
+* Add a new plugin called Switcher for the files and symbols switcher.
 * Declare a proper API for the Projects plugin.
+* Remove the Breakpoints plugin and add its functionality to the Debugger one.
 
 ----
 

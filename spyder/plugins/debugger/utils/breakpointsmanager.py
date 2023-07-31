@@ -122,10 +122,10 @@ class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
     def update_panel_visibility(self):
         """Update the panel visibility."""
         self.debugger_panel.setVisible(
-            self.get_conf('breakpoints_panel', default=True))
+            self.get_conf('editor_debugger_panel', default=True))
 
-    @on_conf_change(option='breakpoints_panel')
-    def on_breakpoints_panel_update(self, value):
+    @on_conf_change(option='editor_debugger_panel')
+    def on_editor_debugger_panel_update(self, value):
         self.update_panel_visibility()
 
     def toogle_breakpoint(
