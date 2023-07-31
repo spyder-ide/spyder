@@ -20,7 +20,7 @@ import qstylizer.style
 from qtpy import PYQT5
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
-from qtpy.QtWidgets import QItemDelegate, QTableView
+from qtpy.QtWidgets import QTableView
 
 # Local imports
 from spyder.api.translations import _
@@ -160,12 +160,6 @@ class BreakpointTableModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class BreakpointDelegate(QItemDelegate):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-
 class BreakpointTableView(QTableView, SpyderWidgetMixin):
     """
     Table to display code breakpoints.
@@ -189,14 +183,12 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
 
         # Widgets
         self.model = BreakpointTableModel(self, data)
-        self.delegate = BreakpointDelegate(self)
 
         # Setup
         self.setSortingEnabled(False)
         self.setSelectionBehavior(self.SelectRows)
         self.setSelectionMode(self.SingleSelection)
         self.setModel(self.model)
-        self.setItemDelegate(self.delegate)
         self._adjust_columns()
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()

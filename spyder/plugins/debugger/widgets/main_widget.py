@@ -477,12 +477,17 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     @on_conf_change(option='breakpoints_table_visible')
     def on_breakpoints_table_option_update(self, value):
+        action = self.get_action(
+            DebuggerBreakpointActions.ToggleBreakpointsTable)
+
         if value:
             self.breakpoints_table.show()
+            action.setToolTip(_("Hide breakpoints"))
             self._update_stylesheet(is_table_shown=True)
             self._stack.setMinimumWidth(450)
         else:
             self.breakpoints_table.hide()
+            action.setToolTip(_("Show breakpoints"))
             self._update_stylesheet(is_table_shown=False)
             self._stack.setMinimumWidth(100)
 
