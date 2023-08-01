@@ -76,7 +76,9 @@ class PylspTaskHandle(BaseTaskHandle):
         self.observers = []
 
     def create_jobset(self, name="JobSet", count: Optional[int] = None):
-        report_iter = self.workspace.report_progress(name, None, None)
+        report_iter = self.workspace.report_progress(
+            name, None, None, skip_token_initialization=True
+        )
         result = PylspJobSet(count, report_iter)
         self.job_sets.append(result)
         self._inform_observers()

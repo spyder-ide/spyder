@@ -24,10 +24,10 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
-from spyder.config.gui import get_font
 from spyder.widgets.helperwidgets import FinderWidget
 
 
@@ -88,7 +88,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, shellwidget, color_scheme):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
@@ -153,7 +153,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.results_browser)
-        layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
 
@@ -454,7 +453,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
+class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
+                     SpyderFontsMixin):
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
@@ -462,7 +462,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
         self.color_scheme = color_scheme
@@ -497,8 +497,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
             self.sig_edit_goto.emit(filename, lineno, '')
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
-        if self.get_conf("show_locals_on_click"):
-            self.view_item_locals()
 
     def view_item_locals(self):
         """View item locals."""

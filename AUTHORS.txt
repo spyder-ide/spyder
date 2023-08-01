@@ -10,10 +10,6 @@ authors or projects, including:
 
 * The icons for the Spyder 3 theme are derived from Font Awesome, by
   David Gandy <https://fontawesome.com/>
-* Most Spyder 2 theme icons are sourced from the Crystal Project icon set, by
-  Everaldo Coelho <https://www.everaldo.com>
-* Other Spyder 2 icons are from Yusuke Kamiyamane's icon sets, by
-  Yusuke Kamiyamane <http://p.yusukekamiyamane.com/>
 * As well as the FamFamFam Silk icon set, by
   Mark James <http://www.famfamfam.com/lab/icons/silk/>
 * And the KDE Oxygen icons, by

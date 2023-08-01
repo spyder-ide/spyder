@@ -27,7 +27,7 @@ from spyder.plugins.ipythonconsole import (
     SpyderKernelError)
 from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
                                 find_conda)
-from spyder.utils.environ import clean_env
+from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter, is_module_installed
 
@@ -61,26 +61,6 @@ def is_different_interpreter(pyexec):
     executable_validation = osp.basename(real_pyexe).startswith('python')
     directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
     return directory_validation and executable_validation
-
-
-def get_activation_script(quote=False):
-    """
-    Return path for bash/batch conda activation script to run spyder-kernels.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
-    if os.name == 'nt':
-        script = 'conda-activate.bat'
-    else:
-        script = 'conda-activate.sh'
-
-    script_path = os.path.join(scripts_folder_path, script)
-
-    if quote:
-        script_path = add_quotes(script_path)
-
-    return script_path
 
 
 def has_spyder_kernels(pyexec):
@@ -171,7 +151,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         """Env vars for kernels"""
         default_interpreter = self.get_conf(
             'default', section='main_interpreter')
-        env_vars = os.environ.copy()
+
+        # Ensure that user environment variables are included, but don't
+        # override existing environ values
+        env_vars = get_user_environment_variables()
+        env_vars.update(os.environ)
 
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
@@ -193,7 +177,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Environment variables that we need to pass to the kernel
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
-                or self.path_to_custom_interpreter),
+                                         or self.path_to_custom_interpreter),
             'SPY_UMR_ENABLED': self.get_conf(
                 'umr/enabled', section='main_interpreter'),
             'SPY_UMR_VERBOSE': self.get_conf(

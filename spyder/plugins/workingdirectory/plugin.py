@@ -61,11 +61,13 @@ class WorkingDirectory(SpyderPluginV2):
     def get_name():
         return _('Working directory')
 
-    def get_description(self):
-        return _('Set the current working directory for various plugins.')
+    @staticmethod
+    def get_description():
+        return _("Manage the current working directory used in Spyder.")
 
-    def get_icon(self):
-        return self.create_icon('DirOpenIcon')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('DirOpenIcon')
 
     def on_initialize(self):
         container = self.get_container()
@@ -241,7 +243,8 @@ class WorkingDirectory(SpyderPluginV2):
 
     def _explorer_change_dir(self, path):
         explorer = self.get_plugin(Plugins.Explorer)
-        explorer.chdir(path, emit=False)
+        if explorer:
+            explorer.chdir(path, emit=False)
 
     def _explorer_dir_opened(self, path):
         explorer = self.get_plugin(Plugins.Explorer)

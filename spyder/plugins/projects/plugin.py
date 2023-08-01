@@ -23,7 +23,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import _
-from spyder.config.base import is_conda_based_app
 from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
 from spyder.plugins.projects.api import EmptyProject
@@ -44,7 +43,7 @@ class Projects(SpyderDockablePlugin):
     CONF_FILE = False
     REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
-                Plugins.MainMenu]
+                Plugins.MainMenu, Plugins.Switcher]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
@@ -90,17 +89,20 @@ class Projects(SpyderDockablePlugin):
     def get_name():
         return _("Projects")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Create Spyder projects and manage their files.")
 
-    def get_icon(self):
-        return self.create_icon('project')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('project')
 
     def on_initialize(self):
         """Register plugin in Spyder's main window"""
         widget = self.get_widget()
         treewidget = widget.treewidget
         self._completions = None
+        self._switcher = None
 
         # Emit public signals so that other plugins can connect to them
         widget.sig_project_created.connect(self.sig_project_created)
@@ -145,6 +147,9 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].connect(self._setup_editor_files)
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
+
+        if self._switcher:
+            widget.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -203,6 +208,16 @@ class Projects(SpyderDockablePlugin):
             menu_id=ApplicationMenus.Projects,
             section=ProjectsMenuSections.Extras)
 
+    @on_plugin_available(plugin=Plugins.Switcher)
+    def on_switcher_available(self):
+        # Connect to switcher
+        self._switcher = self.get_plugin(Plugins.Switcher)
+        self._switcher.sig_mode_selected.connect(self._handle_switcher_modes)
+        self._switcher.sig_item_selected.connect(
+            self._handle_switcher_selection)
+        self._switcher.sig_search_text_available.connect(
+            self._handle_switcher_results)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -224,6 +239,7 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
+        widget.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
@@ -257,6 +273,17 @@ class Projects(SpyderDockablePlugin):
         main_menu = self.get_plugin(Plugins.MainMenu)
         main_menu.remove_application_menu(ApplicationMenus.Projects)
 
+    @on_plugin_teardown(plugin=Plugins.Switcher)
+    def on_switcher_teardown(self):
+        # Disconnect from switcher
+        self._switcher.sig_mode_selected.disconnect(
+            self._handle_switcher_modes)
+        self._switcher.sig_item_selected.disconnect(
+            self._handle_switcher_selection)
+        self._switcher.sig_search_text_available.disconnect(
+            self._handle_switcher_results)
+        self._switcher = None
+
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.get_widget().save_config()
@@ -278,6 +305,7 @@ class Projects(SpyderDockablePlugin):
                 workdir=cli_options.working_directory
             )
         else:
+            self.get_widget().set_pane_empty()
             logger.debug('Reopening project from last session')
             self.get_widget().reopen_last_project()
 
@@ -466,3 +494,73 @@ class Projects(SpyderDockablePlugin):
 
     def _broadcast_notification(self, method, params):
         self._completions.broadcast_notification(method, params)
+
+    def _handle_switcher_modes(self, mode):
+        """
+        Populate switcher with files in active project.
+
+        List the file names of the current active project with their
+        directories in the switcher. It only handles the files mode, i.e.
+        an empty string.
+
+        Parameters
+        ----------
+        mode: str
+            The selected mode (open files "", symbol "@" or line ":").
+        """
+        items = self.get_widget().handle_switcher_modes()
+        for (title, description, icon, section, path, is_last_item) in items:
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item
+            )
+        self._switcher.set_current_row(0)
+
+    def _handle_switcher_selection(self, item, mode, search_text):
+        """
+        Handle user selecting item in switcher.
+
+        If the selected item is not in the section of the switcher that
+        corresponds to this plugin, then ignore it. Otherwise, switch to
+        selected project file and hide the switcher.
+
+        Parameters
+        ----------
+        item: object
+            The current selected item from the switcher list (QStandardItem).
+        mode: str
+            The current selected mode (open files "", symbol "@" or line ":").
+        search_text: str
+            Cleaned search/filter text.
+        """
+        self.get_widget().handle_switcher_selection(item, mode, search_text)
+        self._switcher.hide()
+
+    def _handle_switcher_results(self, search_text, items_data):
+        """
+        Handle user typing in switcher to filter results.
+
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        items_data: list
+            List of items shown in the switcher.
+        """
+        items = self.get_widget().handle_switcher_results(search_text,
+                                                          items_data)
+        for (title, description, icon, section, path, is_last_item) in items:
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item,
+                score=100
+            )

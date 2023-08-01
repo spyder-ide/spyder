@@ -14,6 +14,7 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QApplication, QDesktopWidget
 
 # Local imports
@@ -80,11 +81,13 @@ class Layout(SpyderPluginV2):
     def get_name():
         return _("Layout")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Layout manager")
 
-    def get_icon(self):
-        return self.create_icon("history")  # FIXME:
+    @classmethod
+    def get_icon(cls):
+        return QIcon()
 
     def on_initialize(self):
         self._last_plugin = None
@@ -892,7 +895,7 @@ class Layout(SpyderPluginV2):
         order = ['editor', 'ipython_console', 'variable_explorer',
                  'debugger', 'help', 'plots', None, 'explorer',
                  'outline_explorer', 'project_explorer', 'find_in_files', None,
-                 'historylog', 'profiler', 'breakpoints', 'pylint', None,
+                 'historylog', 'profiler', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
 
         for plugin in self.get_dockable_plugins():
@@ -905,7 +908,13 @@ class Layout(SpyderPluginV2):
                 action.action_id = f'switch to {plugin.CONF_SECTION}'
 
             if action:
-                action.setChecked(plugin.dockwidget.isVisible())
+                # Plugins that fail their compatibility checks don't have a
+                # dockwidget. So, we need to skip them from the plugins menu.
+                # Fixes spyder-ide/spyder#21074
+                if plugin.dockwidget is None:
+                    continue
+                else:
+                    action.setChecked(plugin.dockwidget.isVisible())
 
             try:
                 name = plugin.CONF_SECTION
@@ -935,6 +944,12 @@ class Layout(SpyderPluginV2):
         self._update_lock_interface_action()
         # Apply lock to panes
         for plugin in self.get_dockable_plugins():
+            # Plugins that fail their compatibility checks don't have a
+            # dockwidget. So, we need to skip them from the code below.
+            # Fixes spyder-ide/spyder#21074
+            if plugin.dockwidget is None:
+                continue
+
             if self._interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
@@ -965,7 +980,12 @@ class Layout(SpyderPluginV2):
         # Restore visible plugins
         for plugin in visible_plugins:
             plugin_class = self.get_plugin(plugin, error=False)
-            if plugin_class and plugin_class.dockwidget.isVisible():
+            if (
+                plugin_class
+                # This check is necessary for spyder-ide/spyder#21074
+                and plugin_class.dockwidget is not None
+                and plugin_class.dockwidget.isVisible()
+            ):
                 plugin_class.dockwidget.raise_()
 
     def save_visible_plugins(self):

@@ -12,6 +12,7 @@
             "platforms": {
                 "win": {
                     "desktop": true,
+                    "app_user_model_id": "spyder.Spyder",
                     "command": ["{{ PREFIX }}/pythonw.exe", "{{ PREFIX }}/Scripts/spyder-script.py"]
                 },
                 "linux": {
@@ -23,7 +24,6 @@
                     "StartupWMClass": "Spyder"
                 },
                 "osx": {
-                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
                     "command": [
                         "$(dirname $0)/python",
                         "{{ PREFIX }}/bin/spyder",

@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/bin/bash -i
 set -e
+unset HISTFILE
 
 echo "*** Running post install script for ${INSTALLER_NAME} ..."
 
@@ -12,29 +13,35 @@ echo ""
 name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
 spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
+all_user=$([[ -e ${PREFIX}/.nonadmin ]] && echo false || echo true)
 
 sed_opts=("-i")
 alias_text="alias uninstall-spyder=${u_spy_exe}"
-if [[ $OSTYPE = "darwin"* ]]; then
-    shortcut_path="/Applications/Spyder.app"
-    [[ ${PREFIX} = "$HOME"* ]] && shortcut_path="${HOME}${shortcut_path}"
+if [[ "$OSTYPE" = "darwin"* ]]; then
     sed_opts+=("", "-e")
+    shortcut_path="/Applications/${INSTALLER_NAME}.app"
+    if [[ "$all_user" = "false" ]]; then
+        shortcut_path="${HOME}${shortcut_path}"
+    else
+        unset alias_text  # Do not create uninstall alias
+    fi
 else
-    shortcut_path="$HOME/.local/share/applications/${name_lower}_${name_lower}.desktop"
-    alias_text="alias spyder=${spy_exe}\n${alias_text}"
+    shortcut_path="/share/applications/${name_lower}_${name_lower}.desktop"
+    if [[ "$all_user" = "true" ]]; then
+        shortcut_path="/usr${shortcut_path}"
+        alias_text="alias spyder=${spy_exe}"  # Do not create uninstall alias
+    else
+        shortcut_path="${HOME}/.local${shortcut_path}"
+        alias_text="alias spyder=${spy_exe}\n${alias_text}"
+    fi
 fi
-
-case $SHELL in
-    (*"zsh") shell_init=$HOME/.zshrc ;;
-    (*"bash") shell_init=$HOME/.bashrc ;;
-esac
 
 m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
 
-add_alias() (
+add_alias() {
     if [[ ! -f "$shell_init" || ! -s "$shell_init" ]]; then
-        echo -e "$m1\n$1\n$m2" > $shell_init
+        echo -e "$m1\n${alias_text}\n$m2" > $shell_init
         exit 0
     fi
 
@@ -47,48 +54,89 @@ add_alias() (
     sed ${sed_opts[@]} "
     /$m1/,/$m2/{
         h
-        /$m2/ s|.*|$m1\n$1\n$m2|
+        /$m2/ s|.*|$m1\n$alias_text\n$m2|
         t
         d
     }
     \${
         x
         /^$/{
-            s||\n$m1\n$1\n$m2|
+            s||\n$m1\n$alias_text\n$m2|
             H
         }
         x
     }" $shell_init
-)
+}
+
+# ----
+if [[ "$all_user" = "true" && "$OSTYPE" = "darwin"* ]]; then
+    shell_init_list=("/etc/zshrc" "/etc/bashrc")
+elif [[ "$all_user" = "true" ]]; then
+    shell_init_list=("/etc/zsh/zshrc" "/etc/bash.bashrc")
+else
+    case $SHELL in
+        (*"zsh") shell_init_list=("$HOME/.zshrc") ;;
+        (*"bash") shell_init_list=("$HOME/.bashrc") ;;
+    esac
+fi
+
+for shell_init in ${shell_init_list[@]}; do
+    [[ -z "$shell_init" || -z "$alias_text" ]] && continue
+    [[ "$all_user" = "true" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
+    echo "Creating aliases in $shell_init ..."
+    add_alias
+done
 
 # ----
 echo "Creating uninstall script..."
-cat <<EOF > ${u_spy_exe}
+cat <<END > ${u_spy_exe}
 #!/bin/bash
 
-echo "You are about to uninstall Spyder."
-echo "If you proceed, aliases will be removed from ~/.bashrc (if present)"
-echo "and the following will be removed:"
-echo "  ${shortcut_path}"
-echo "  ${PREFIX}"
-echo ""
-echo "Do you wish to continue?"
-read -p " [yes|NO]: " confirm
-if [[ \$confirm != [yY] && \$confirm != [yY][eE][sS] ]]; then
-    echo "Uninstall aborted."
-    exit 1
+while getopts "f" option; do
+    case "\$option" in
+        (f) force=true ;;
+    esac
+done
+shift \$((\$OPTIND - 1))
+
+if [[ -z \$force ]]; then
+    cat <<EOF
+You are about to uninstall Spyder.
+If you proceed, aliases will be removed from:
+  ${shell_init_list[@]}
+and the following will be removed:
+  ${shortcut_path}
+  ${PREFIX}
+
+Do you wish to continue?
+EOF
+    read -p " [yes|NO]: " confirm
+    confirm=\$(echo \$confirm | tr '[:upper:]' '[:lower:]')
+    if [[ ! "\$confirm" =~ ^y(es)?$ ]]; then
+        echo "Uninstall aborted."
+        exit 1
+    fi
 fi
 
-if [[ \$OSTYPE = "darwin"* ]]; then
-    echo "Quitting Spyder.app..."
-    osascript -e 'quit app "Spyder.app"' 2> /dev/null
+# Quit Spyder
+echo "Quitting Spyder..."
+if [[ "\$OSTYPE" = "darwin"* ]]; then
+    osascript -e 'quit app "Spyder.app"' 2>/dev/null
+else
+    pkill spyder 2>/dev/null
 fi
+sleep 1
+while [[ \$(pgrep spyder 2>/dev/null) ]]; do
+    echo "Waiting for Spyder to quit..."
+    sleep 1
+done
 
 # Remove aliases from shell startup
-if [[ -f "$shell_init" ]]; then
-    echo "Removing shell commands..."
-    sed ${sed_opts[@]} "/$m1/,/$m2/d" $shell_init
-fi
+for x in ${shell_init_list[@]}; do
+    [[ ! -f "\$x" ]] && continue
+    echo "Removing Spyder shell commands from \$x..."
+    sed ${sed_opts[@]} "/$m1/,/$m2/d" \$x
+done
 
 # Remove shortcut and environment
 echo "Removing Spyder and environment..."
@@ -96,47 +144,74 @@ rm -rf ${shortcut_path}
 rm -rf ${PREFIX}
 
 echo "Spyder successfully uninstalled."
-EOF
+END
 chmod u+x ${u_spy_exe}
 
 # ----
-if [[ -n "$shell_init" ]]; then
-    echo "Creating aliases in $shell_init ..."
-    add_alias "$alias_text"
-fi
-
-# ----
-if [[ $OSTYPE = "linux"* ]]; then
+if [[ "$OSTYPE" = "linux"* ]]; then
     cat <<EOF
 
 ###############################################################################
+#                             !!! IMPORTANT !!!
+###############################################################################
 Spyder can be launched by standard methods in Gnome and KDE desktop
-environments. Additionally, Spyder can be launched in Gtk-based desktop
-environments (e.g. Xfce) from the command line:
-
-$ gtk-launch spyder
-
-Spyder can also be launched from the command line for all Linux variants by:
+environments. It can also be launched from the command line on all Linux
+distributions with the command:
 
 $ spyder
 
+EOF
+    if [[ "$all_user" = "true" ]]; then
+        cat <<EOF
+This command will only be available in new shell sessions.
+
+To uninstall Spyder, run the following from the command line:
+
+$ sudo $PREFIX/uninstall-spyder.sh
+
+EOF
+    else
+        cat <<EOF
 To uninstall Spyder, run the following from the command line:
 
 $ uninstall-spyder
 
-#####################
-# !!! IMPORTANT !!! #
-#####################
+These commands will only be available in new shell sessions. To make them
+available in this session, you must source your $shell_init file with:
 
-The spyder and uninstall-spyder commands will only be available in new shell
-sessions. To make them available in this session you must source your .bashrc
-file with:
+$ source $shell_init
 
-$ source ~/.bashrc
-
+EOF
+    fi
+    cat <<EOF
 ###############################################################################
 
 EOF
 fi
 
 echo "*** Post install script for ${INSTALLER_NAME} complete"
+
+# ----
+[[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
+
+echo "Launching Spyder now..."
+if [[ "$OSTYPE" = "darwin"* ]]; then
+    tmp_dir=${TMPDIR:-$SHARED_INSTALLER_TEMP/}spyder
+    launch_script=${tmp_dir}/post-install-launch.sh
+    echo "Creating post-install launch script ..."
+    mkdir -p $tmp_dir
+    cat <<EOF > $launch_script
+#!/bin/bash
+while pgrep -fq Installer.app; do
+    sleep 1
+done
+open -a $shortcut_path
+EOF
+    chmod +x $launch_script
+
+    nohup $launch_script &>/dev/null &
+elif [[ -n "$(which gtk-launch)" ]]; then
+    gtk-launch $(basename $shortcut_path)
+else
+    nohup $spy_exe &>/dev/null &
+fi

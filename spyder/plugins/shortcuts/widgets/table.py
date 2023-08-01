@@ -17,7 +17,7 @@ from qtpy.QtGui import QIcon, QKeySequence, QRegExpValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QSpacerItem, QTableView, QVBoxLayout)
+                            QSpacerItem, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -25,10 +25,8 @@ from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
-from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
-                                          CustomSortFilterProxy,
-                                          HelperToolButton,
-                                          HTMLDelegate)
+from spyder.widgets.helperwidgets import (
+    HelperToolButton, HTMLDelegate, HoverRowsTableView, VALID_FINDER_CHARS)
 
 
 # Valid shortcut keys
@@ -400,7 +398,7 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<p style="margin-bottom: 0.3em">{0}</p>{1}{2}'
+            template = '<p style="margin-bottom: 5px">{0}</p>{1}{2}'
             tip_title = _('This key sequence conflicts with:')
             tip_body = ''
             for s in conflicts:
@@ -653,10 +651,10 @@ class ShortcutsModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class ShortcutsTable(QTableView):
-    def __init__(self,
-                 parent=None, text_color=None, text_color_highlight=None):
-        QTableView.__init__(self, parent)
+class ShortcutsTable(HoverRowsTableView):
+    def __init__(self, parent=None, text_color=None,
+                 text_color_highlight=None):
+        HoverRowsTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
         self.shortcut_data = None
@@ -675,8 +673,7 @@ class ShortcutsTable(QTableView):
         self.setModel(self.proxy_model)
 
         self.hideColumn(SEARCH_SCORE)
-        self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
-        self.setItemDelegateForColumn(CONTEXT, HTMLDelegate(self, margin=9))
+        self.setItemDelegate(HTMLDelegate(self, margin=9))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
@@ -684,6 +681,10 @@ class ShortcutsTable(QTableView):
         self.selectionModel().selectionChanged.connect(self.selection)
 
         self.verticalHeader().hide()
+
+        self.sig_hover_index_changed.connect(
+            self.itemDelegate().on_hover_index_changed
+        )
 
     def set_shortcut_data(self, shortcut_data):
         """
@@ -783,7 +784,7 @@ class ShortcutsTable(QTableView):
     def show_editor(self):
         """Create, setup and display the shortcut editor dialog."""
         index = self.proxy_model.mapToSource(self.currentIndex())
-        row, column = index.row(), index.column()
+        row = index.row()
         shortcuts = self.source_model.shortcuts
         context = shortcuts[row].context
         name = shortcuts[row].name

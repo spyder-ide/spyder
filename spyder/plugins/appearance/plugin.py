@@ -40,11 +40,13 @@ class Appearance(SpyderPluginV2):
     def get_name():
         return _("Appearance")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Manage application appearance and themes.")
 
-    def get_icon(self):
-        return self.create_icon('eyedropper')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('eyedropper')
 
     def on_initialize(self):
         # NOTES:

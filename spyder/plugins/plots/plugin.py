@@ -10,12 +10,12 @@ Plots Plugin.
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
 from spyder.plugins.plots.widgets.main_widget import PlotsWidget
 
 
-class Plots(SpyderDockablePlugin, ShellConnectMixin):
+class Plots(SpyderDockablePlugin, ShellConnectPluginMixin):
     """
     Plots plugin.
     """
@@ -33,11 +33,13 @@ class Plots(SpyderDockablePlugin, ShellConnectMixin):
     def get_name():
         return _('Plots')
 
-    def get_description(self):
-        return _('Display, explore and save console generated plots.')
+    @staticmethod
+    def get_description():
+        return _('View, browse and save generated figures.')
 
-    def get_icon(self):
-        return self.create_icon('plot')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('plot')
 
     def on_initialize(self):
         # If a figure is loaded, raise the dockwidget the first time

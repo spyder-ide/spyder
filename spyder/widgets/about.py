@@ -10,6 +10,7 @@
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -28,7 +29,7 @@ from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import APP_STYLESHEET, DialogStyle
+from spyder.utils.stylesheet import DialogStyle
 
 
 class AboutDialog(QDialog):
@@ -39,6 +40,7 @@ class AboutDialog(QDialog):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         versions = get_versions()
+
         # Show Git revision for development version
         revlink = ''
         if versions['revision']:
@@ -60,31 +62,42 @@ class AboutDialog(QDialog):
         instagram_url = "https://www.instagram.com/spyderide/",
         self.label_overview = QLabel(
             f"""
+            <style>
+                p, h1 {{margin-bottom: 2em}}
+                h1 {{margin-top: 0}}
+            </style>
+
             <div style='font-family: "{font_family}";
                         font-size: {font_size};
                         font-weight: normal;
                         '>
             <br>
+            <h1>Spyder IDE</h1>
+
             <p>
-            <b> Spyder IDE</b>
-            <br> <br>
-            The Scientific Python Development Environment |
-            <a href="{website_url}">Spyder-IDE.org</a>
+            The Scientific Python Development Environment
             <br>
+            <a href="{website_url}">Spyder-IDE.org</a>
+            </p>
+
             <p>
             Python {versions['python']} {versions['bitness']}-bit |
             Qt {versions['qt']} |
-            {versions['qt_api']} {versions['qt_api_ver']} |
+            {versions['qt_api']} {versions['qt_api_ver']}
+            <br>
             {versions['system']} {versions['release']} ({versions['machine']})
             </p>
-            <br> <br>
+
+            <p>
             <a href="{project_url}">GitHub</a> | <a href="{twitter_url}">
             Twitter</a> |
             <a href="{facebook_url}">Facebook</a> | <a href="{youtube_url}">
             YouTube</a> |
             <a href="{instagram_url}">Instagram</a>
+            </p>
 
-            </div>""")
+            </div>"""
+        )
 
         self.label_community = QLabel(
             f"""
@@ -138,16 +151,6 @@ class AboutDialog(QDialog):
             (&copy; 2016 David Gandy; SIL OFL 1.1) and
             <a href="http://materialdesignicons.com/">Material Design</a>
             (&copy; 2014 Austin Andrews; SIL OFL 1.1).
-            Most Spyder 2 theme icons sourced from the
-            <a href="https://www.everaldo.com">Crystal Project iconset</a>
-            (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).
-            Other icons from
-            <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
-            (&copy; 2013 Yusuke Kamiyamane; CC-BY 3.0),
-            the <a href="http://www.famfamfam.com/lab/icons/silk/">FamFamFam
-            Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and
-            the <a href="https://www.kde.org/">KDE Oxygen icons</a>
-            (&copy; 2007 KDE Artists; LGPL 3.0+).
             </p>
             <p>
             Splash screen photo by
@@ -186,7 +189,6 @@ class AboutDialog(QDialog):
                 font-weight: normal;
                 '>
             <p>
-            <b>Spyder IDE</b>
             <br>{spyder_ver}
             <br>{revision}
             <br>({installer})
@@ -239,9 +241,10 @@ class AboutDialog(QDialog):
         tabslayout.setContentsMargins(0, 15, 15, 0)
 
         btmhlayout = QHBoxLayout()
+        btmhlayout.addStretch(1)
         btmhlayout.addWidget(btn)
         btmhlayout.addWidget(bbox)
-        btmhlayout.setContentsMargins(100, 20, 0, 20)
+        btmhlayout.setContentsMargins(0, 20, 15, 20)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -258,14 +261,16 @@ class AboutDialog(QDialog):
         bbox.accepted.connect(self.accept)
 
         # Size
-        self.resize(550, 430)
+        self.resize(720, 480)
 
         # Style
-        css = APP_STYLESHEET.get_copy()
-        css = css.get_stylesheet()
+        css = qstylizer.style.StyleSheet()
         css.QDialog.setValues(backgroundColor=dialog_background_color)
         css.QLabel.setValues(backgroundColor=dialog_background_color)
-        self.setStyleSheet(str(css))
+        css.QTabBar.setValues(fontSize=font_size)
+        css['QTabBar::tab!selected'].setValues(
+            borderBottomColor=dialog_background_color)
+        self.setStyleSheet(css.toString())
 
     def copy_to_clipboard(self):
         QApplication.clipboard().setText(get_versions_text())

@@ -16,7 +16,6 @@ import sys
 
 # Local import
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
-from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
@@ -180,19 +179,19 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
-              'show_special_attributes': False
+              'show_special_attributes': False,
+              'filter_on': True
              }),
             ('debugger',
              {
               'exclude_internal': True,
-              'capture_locals': False,
-              'show_locals_on_click': False,
               'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
               'pdb_stop_first_line': True,
-              'breakpoints_panel': True,
+              'editor_debugger_panel': True,
+              'breakpoints_table_visible': False,
              }),
             ('run',
              {
@@ -207,10 +206,6 @@ DEFAULTS = [
              }),
             ('editor',
              {
-              'printer_header/font/family': SANS_SERIF,
-              'printer_header/font/size': MEDIUM,
-              'printer_header/font/italic': False,
-              'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
               'todo_list': True,
@@ -334,10 +329,6 @@ DEFAULTS = [
               'case_sensitive': False,
               'exclude_case_sensitive': False,
               'max_results': 1000,
-              }),
-            ('breakpoints',
-             {
-              'enable': True,
               }),
             ('completions',
              {
@@ -537,6 +528,7 @@ DEFAULTS = [
               'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
+              'debugger/show breakpoint table': "",
               # -- Plots --
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -664,4 +656,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '77.0.0'
+CONF_VERSION = '79.0.0'

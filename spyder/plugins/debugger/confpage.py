@@ -83,10 +83,6 @@ class DebuggerConfigPage(PluginConfigPage):
         filter_group = QGroupBox(_("Execution Inspector"))
         filter_data = [
             ('exclude_internal', _("Exclude internal frames when inspecting execution")),
-            ('capture_locals', _("Capture locals when inspecting execution")),
-            ('show_locals_on_click',
-             _("Show selected frame locals from inspection "
-               "in the Variable Explorer")),
         ]
         filter_boxes = [self.create_checkbox(text, option)
                         for option, text in filter_data]

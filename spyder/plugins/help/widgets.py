@@ -19,7 +19,7 @@ from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
-                            QMessageBox, QSizePolicy, QStackedLayout,
+                            QMessageBox, QSizePolicy, QStackedWidget,
                             QVBoxLayout, QWidget)
 
 # Local imports
@@ -339,9 +339,12 @@ class HelpWidget(PluginMainWidget):
             self.source_label.hide()
 
         # Layout
-        self.stack_layout = layout = QStackedLayout()
-        layout.addWidget(self.rich_text)
-        layout.addWidget(self.plain_text)
+        self.stacked_widget = QStackedWidget()
+        self.stacked_widget.addWidget(self.rich_text)
+        self.stacked_widget.addWidget(self.plain_text)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
         self.setLayout(layout)
 
         # Signals
@@ -519,13 +522,13 @@ class HelpWidget(PluginMainWidget):
         if value:
             # Plain Text OFF / Rich text ON
             self.docstring = not value
-            self.stack_layout.setCurrentWidget(self.rich_text)
+            self.stacked_widget.setCurrentWidget(self.rich_text)
             self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
                 False)
         else:
             # Plain Text ON / Rich text OFF
             self.docstring = value
-            self.stack_layout.setCurrentWidget(self.plain_text)
+            self.stacked_widget.setCurrentWidget(self.plain_text)
 
         if self._should_display_welcome_page():
             self.show_intro_message()
@@ -1094,7 +1097,6 @@ class HelpWidget(PluginMainWidget):
         fixed_font: QFont
             The current rich text font to use.
         """
-
         self.rich_text.set_font(font, fixed_font=fixed_font)
 
     def set_plain_text_font(self, font, color_scheme=None):

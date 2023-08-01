@@ -8,28 +8,36 @@
 Dock widgets for plugins
 """
 
+import qstylizer.style
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
-import qstylizer.style
 
 from spyder.api.translations import _
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import PanesToolbarStyleSheet
+from spyder.utils.stylesheet import (
+    PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
+    VERTICAL_DOCK_TABBAR_STYLESHEET)
 
 
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject):
+class TabFilter(QObject, SpyderConfigurationAccessor):
     """Filter event attached to each DockWidget QTabBar."""
+
+    CONF_SECTION = 'main'
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
-        self.dock_tabbar = dock_tabbar
+        self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None
-        self.dock_tabbar.setStyleSheet(self._tabbar_stylesheet)
+
+        self._set_tabbar_stylesheet()
+        self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -69,23 +77,13 @@ class TabFilter(QObject):
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
-    @property
-    def _tabbar_stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Center tabs to differentiate them from plugin ones.
-        # See spyder-ide/spyder#9763
-        css.QTabBar.setValues(
-            alignment='center'
-        )
-
-        # Also add a border below selected tabs so they don't touch either the
-        # window separator or the status bar.
-        css['QTabBar::tab:bottom:selected'].setValues(
-            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}'
-        )
-
-        return css.toString()
+    def _set_tabbar_stylesheet(self):
+        if self.get_conf('vertical_tabs'):
+            self.dock_tabbar.setStyleSheet(
+                str(VERTICAL_DOCK_TABBAR_STYLESHEET))
+        else:
+            self.dock_tabbar.setStyleSheet(
+                str(HORIZONTAL_DOCK_TABBAR_STYLESHEET))
 
 
 # =============================================================================
