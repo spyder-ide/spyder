@@ -4,283 +4,222 @@
 # Licensed under the terms of the MIT License
 #
 
-import pytest
+# Standard library imports
+import os
+import tempfile
 
+# Third party imports
+import pytest
 from qtpy.QtGui import QTextOption
 
+# Local imports
+from spyder.config.base import get_conf_path
+from spyder.config.manager import CONF
 from spyder.plugins.history import plugin as history
-from spyder.py3compat import to_text_string
 
-#==============================================================================
+
+# =============================================================================
 # Utillity Functions
-#==============================================================================
-options = {'wrap': False,
-           'line_numbers': False,
-           'go_to_eof': True,
-           'max_entries': 100}
+# =============================================================================
+def create_file(name, content):
+    path = os.path.join(tempfile.gettempdir(), name)
+    with open(path, 'w') as fh:
+        fh.write(content)
+
+    return path
 
 
-def get_option(self, option):
-    global options
-    return options[option]
-
-
-def set_option(self, option, value):
-    global options
-    options[option] = value
-
-#==============================================================================
+# =============================================================================
 # Qt Test Fixtures
-#==============================================================================
+# =============================================================================
 @pytest.fixture
-def historylog(qtbot, monkeypatch):
-    """Return a fixture for base history log, which is a plugin widget."""
-    monkeypatch.setattr(history.HistoryLog,
-                        'register_widget_shortcuts',
-                        lambda *args: None)
-    historylog = history.HistoryLog(None)
-    historylog._setup()
-    qtbot.addWidget(historylog)
-    historylog.show()
+def historylog(qtbot):
+    """
+    Return a fixture for base history log, which is a plugin widget.
+    """
+    historylog = history.HistoryLog(None, configuration=CONF)
+    historylog.close = lambda: True
+    qtbot.addWidget(historylog.get_widget())
+    historylog.get_widget().show()
     yield historylog
-    historylog.closing_plugin()
+    historylog.on_close()
     historylog.close()
 
 
-@pytest.fixture
-def historylog_with_tab(historylog, mocker, monkeypatch):
-    """Return a fixture for a history log with one tab.
-
-    The base history log is a plugin widget.  Within the plugin widget,
-    the method add_history creates a tab containing a code editor
-    for each history file.  This fixture creates a history log with
-    one tab containing no text.
-    """
-    hl = historylog
-    # Mock read so file doesn't have to exist.
-    mocker.patch.object(history.encoding, 'read')
-    history.encoding.read.return_value = ('', '')
-
-    # Monkeypatch current options.
-    monkeypatch.setattr(history.HistoryLog, 'get_option', get_option)
-    monkeypatch.setattr(history.HistoryLog, 'set_option', set_option)
-
-    # Create tab for page.
-    hl.set_option('wrap', False)
-    hl.set_option('line_numbers', False)
-    hl.set_option('max_entries', 100)
-    hl.set_option('go_to_eof', True)
-    hl.add_history('test_history.py')
-    return hl
-
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
-def test_max_entries(historylog, tmpdir):
-    """Test that history is truncated at max_entries."""
-    max_entries = historylog.get_option('max_entries')
-
-    # Write more than max entries in a test file
-    history = ''
-    for i in range(max_entries + 1):
-        history = history + '{}\n'.format(i)
-
-    history_file = tmpdir.join('history.py')
-    history_file.write(history)
-
-    # Load test file in plugin
-    historylog.add_history(to_text_string(history_file))
-
-    # Assert that we have max_entries after loading history and
-    # that there's no 0 in the first line
-    assert len(history_file.readlines()) == max_entries
-    assert '0' not in history_file.readlines()[0]
-
-
+# =============================================================================
 def test_init(historylog):
-    """Test HistoryLog.__init__.
+    """
+    Test HistoryLog
 
     Test that the initialization created the expected instance variables
     and widgets for a new HistoryLog instance.
     """
     hl = historylog
-    assert hl.editors == []
-    assert hl.filenames == []
-    assert len(hl._plugin_actions) == 5
-    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
+    assert len(hl.get_widget().editors) == 1
+    assert len(hl.get_widget().filenames) == 1
+    assert len(hl.get_actions()) == 7
 
 
-def test_add_history(historylog, mocker, monkeypatch):
-    """Test the add_history method.
+def test_add_history(historylog):
+    """
+    Test the add_history method.
 
     Test adding a history file to the history log widget and the
     code editor properties that are enabled/disabled.
     """
     hl = historylog
-    hle = hl.editors
+    hw = historylog.get_widget()
 
-    # Mock read so file doesn't have to exist.
-    mocker.patch.object(history.encoding, 'read')
-
-    # Monkeypatch current options.
-    monkeypatch.setattr(history.HistoryLog, 'get_option', get_option)
-    monkeypatch.setattr(history.HistoryLog, 'set_option', set_option)
     # No editors yet.
-    assert len(hl.editors) == 0
+    assert len(hw.editors) == 1
 
     # Add one file.
-    tab1 = 'test_history.py'
+    name1 = 'test_history.py'
     text1 = 'a = 5\nb= 10\na + b\n'
-    hl.set_option('line_numbers', False)
-    hl.set_option('wrap', False)
-    history.encoding.read.return_value = (text1, '')
-    hl.add_history(tab1)
-    # Check tab and editor were created correctly.
-    assert len(hle) == 1
-    assert hl.filenames == [tab1]
-    assert hl.tabwidget.currentIndex() == 0
-    assert not hle[0].linenumberarea.isVisible()
-    assert hle[0].wordWrapMode() == QTextOption.NoWrap
-    assert hl.tabwidget.tabText(0) == tab1
-    assert hl.tabwidget.tabToolTip(0) == tab1
+    path1 = create_file(name1, text1)
+    tab1 = os.path.basename(path1)
+    hw.set_conf('line_numbers', False)
+    hw.set_conf('wrap', False)
+    hl.add_history(path1)
 
-    hl.set_option('line_numbers', True)
-    hl.set_option('wrap', True)
+    # Check tab and editor were created correctly.
+    assert len(hw.editors) == 2
+    assert hw.filenames == [get_conf_path('history.py'), path1]
+    assert hw.tabwidget.currentIndex() == 1
+    assert not hw.editors[0].linenumberarea.isVisible()
+    assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
+    assert hw.tabwidget.tabText(1) == tab1
+    assert hw.tabwidget.tabToolTip(1) == path1
+
     # Try to add same file -- does not process filename again, so
     # linenumbers and wrap doesn't change.
-    hl.add_history(tab1)
-    assert hl.tabwidget.currentIndex() == 0
-    assert not hl.editors[0].linenumberarea.isVisible()
+    hw.add_history(path1)
+    assert hw.tabwidget.currentIndex() == 1
+    # assert not hw.editors[0].linenumberarea.isVisible()
 
     # Add another file.
-    tab2 = 'history2.js'
+    name2 = 'history2.js'
     text2 = 'random text\nspam line\n\n\n\n'
-    history.encoding.read.return_value = (text2, '')
-    hl.add_history(tab2)
-    # Check second tab and editor were created correctly.
-    assert len(hle) == 2
-    assert hl.filenames == [tab1, tab2]
-    assert hl.tabwidget.currentIndex() == 1
-    assert hle[1].linenumberarea.isVisible()
-    assert hle[1].wordWrapMode() == QTextOption.WrapAtWordBoundaryOrAnywhere
-    assert hl.tabwidget.tabText(1) == tab2
-    assert hl.tabwidget.tabToolTip(1) == tab2
+    path2 = create_file(name2, text2)
+    tab2 = os.path.basename(path2)
+    hw.set_conf('line_numbers', True)
+    hw.set_conf('wrap', True)
+    hw.add_history(path2)
 
-    assert hl.filenames == [tab1, tab2]
+    # Check second tab and editor were created correctly.
+    assert len(hw.editors) == 3
+    assert hw.filenames == [get_conf_path('history.py'), path1, path2]
+    assert hw.tabwidget.currentIndex() == 2
+    assert hw.editors[2].wordWrapMode() == (
+        QTextOption.WrapAtWordBoundaryOrAnywhere)
+    assert hw.editors[2].linenumberarea.isVisible()
+    assert hw.tabwidget.tabText(2) == tab2
+    assert hw.tabwidget.tabToolTip(2) == path2
 
     # Check differences between tabs based on setup.
-    assert hle[0].supported_language
-    assert hle[0].is_python()
-    assert hle[0].isReadOnly()
-    assert not hle[0].isVisible()
-    assert hle[0].toPlainText() == text1
+    assert hw.editors[1].supported_language
+    assert hw.editors[1].isReadOnly()
+    assert not hw.editors[1].isVisible()
+    assert hw.editors[1].toPlainText() == text1
 
-    assert not hle[1].supported_language
-    assert not hle[1].is_python()
-    assert hle[1].isReadOnly()
-    assert hle[1].isVisible()
-    assert hle[1].toPlainText() == text2
+    assert not hw.editors[2].supported_language
+    assert hw.editors[2].isReadOnly()
+    assert hw.editors[2].isVisible()
+    assert hw.editors[2].toPlainText() == text2
 
 
-def test_append_to_history(historylog_with_tab, mocker):
-    """Test the append_to_history method.
+def test_append_to_history(qtbot, historylog):
+    """
+    Test the append_to_history method.
 
     Test adding text to a history file.  Also test the go_to_eof config
     option for positioning the cursor.
     """
-    hl = historylog_with_tab
+    hw = historylog.get_widget()
 
     # Toggle to move to the end of the file after appending.
-    hl.set_option('go_to_eof', True)
+    hw.set_conf('go_to_eof', True)
+
     # Force cursor to the beginning of the file.
-    hl.editors[0].set_cursor_position('sof')
-    hl.append_to_history('test_history.py', 'import re\n')
-    assert hl.editors[0].toPlainText() == 'import re\n'
-    assert hl.tabwidget.currentIndex() == 0
+    text1 = 'import re\n'
+    path1 = create_file('test_history.py', text1)
+    hw.add_history(path1)
+    hw.editors[1].set_cursor_position('sof')
+    hw.append_to_history(path1, 'foo = "bar"\n')
+    assert hw.editors[1].toPlainText() == text1 + 'foo = "bar"\n'
+    assert hw.tabwidget.currentIndex() == 1
+
     # Cursor moved to end.
-    assert hl.editors[0].is_cursor_at_end()
-    assert not hl.editors[0].linenumberarea.isVisible()
+    assert hw.editors[1].is_cursor_at_end()
+    assert not hw.editors[1].linenumberarea.isVisible()
 
     # Toggle to not move cursor after appending.
-    hl.set_option('go_to_eof', False)
+    hw.set_conf('go_to_eof', False)
+
     # Force cursor to the beginning of the file.
-    hl.editors[0].set_cursor_position('sof')
-    hl.append_to_history('test_history.py', 'a = r"[a-z]"\n')
-    assert hl.editors[0].toPlainText() == 'import re\na = r"[a-z]"\n'
+    hw.editors[1].set_cursor_position('sof')
+    hw.append_to_history(path1, 'a = r"[a-z]"\n')
+    assert hw.editors[1].toPlainText() == ('import re\n'
+                                           'foo = "bar"\n'
+                                           'a = r"[a-z]"\n')
+
     # Cursor not at end.
-    assert not hl.editors[0].is_cursor_at_end()
+    assert not hw.editors[1].is_cursor_at_end()
 
 
-def test_change_history_depth(historylog_with_tab, mocker):
-    """Test the change_history_depth method.
-
-    Modify the 'Maximum history entries' values to test the config action.
+def test_toggle_wrap_mode(historylog):
     """
-    hl = historylog_with_tab
-    action = hl.history_action
-    # Mock dialog.
-    mocker.patch.object(history.QInputDialog, 'getInt')
-
-    # Starts with default.
-    assert hl.get_option('max_entries') == 100
-
-    # Invalid data.
-    history.QInputDialog.getInt.return_value = (10, False)
-    action.trigger()
-    assert hl.get_option('max_entries') == 100  # No change.
-
-    # Valid data.
-    history.QInputDialog.getInt.return_value = (475, True)
-    action.trigger()
-    assert hl.get_option('max_entries') == 475
-
-
-def test_toggle_wrap_mode(historylog_with_tab):
-    """Test the toggle_wrap_mode method.
+    Test the toggle_wrap_mode method.
 
     Toggle the 'Wrap lines' config action.
     """
-    hl = historylog_with_tab
-    action = hl.wrap_action
-    action.setChecked(False)
+    hw = historylog.get_widget()
+    path = create_file('test.py', 'a = 1')
+    hw.add_history(path)
 
     # Starts with wrap mode off.
-    assert hl.editors[0].wordWrapMode() == QTextOption.NoWrap
-    assert not hl.get_option('wrap')
+    hw.set_conf('wrap', False)
+    assert hw.editors[1].wordWrapMode() == QTextOption.NoWrap
+    assert not hw.get_conf('wrap')
 
     # Toggles wrap mode on.
-    action.setChecked(True)
-    assert hl.editors[0].wordWrapMode() == QTextOption.WrapAtWordBoundaryOrAnywhere
-    assert hl.get_option('wrap')
+    hw.set_conf('wrap', True)
+    assert hw.editors[1].wordWrapMode() == (
+        QTextOption.WrapAtWordBoundaryOrAnywhere)
+    assert hw.get_conf('wrap')
 
     # Toggles wrap mode off.
-    action.setChecked(False)
-    assert hl.editors[0].wordWrapMode() == QTextOption.NoWrap
-    assert not hl.get_option('wrap')
+    hw.set_conf('wrap', False)
+    assert hw.editors[1].wordWrapMode() == QTextOption.NoWrap
+    assert not hw.get_conf('wrap')
 
 
-def test_toggle_line_numbers(historylog_with_tab):
-    """Test toggle_line_numbers method.
+def test_toggle_line_numbers(historylog):
+    """
+    Test toggle_line_numbers method.
 
     Toggle the 'Show line numbers' config action.
     """
-    hl = historylog_with_tab
-    action = hl.linenumbers_action
-    action.setChecked(False)
+    hw = historylog.get_widget()
+    path = create_file('test.py', 'a = 1')
+    hw.add_history(path)
 
     # Starts without line numbers.
-    assert not hl.editors[0].linenumberarea.isVisible()
-    assert not hl.get_option('line_numbers')
+    hw.set_conf('line_numbers', False)
+    assert not hw.editors[1].linenumberarea.isVisible()
+    assert not hw.get_conf('line_numbers')
 
     # Toggles line numbers on.
-    action.setChecked(True)
-    assert hl.editors[0].linenumberarea.isVisible()
-    assert hl.get_option('line_numbers')
+    hw.set_conf('line_numbers', True)
+    assert hw.editors[1].linenumberarea.isVisible()
+    assert hw.get_conf('line_numbers')
 
     # Toggles line numbers off.
-    action.setChecked(False)
-    assert not hl.editors[0].linenumberarea.isVisible()
-    assert not hl.get_option('line_numbers')
+    hw.set_conf('line_numbers', False)
+    assert not hw.editors[1].linenumberarea.isVisible()
+    assert not hw.get_conf('line_numbers')
 
 
 if __name__ == "__main__":

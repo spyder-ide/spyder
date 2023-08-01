@@ -7,6 +7,7 @@
 """Tests for config/manager.py."""
 
 # Standard library imports
+import configparser
 import os
 import os.path as osp
 import shutil
@@ -19,7 +20,6 @@ import pytest
 from spyder.config.base import get_conf_path, get_conf_paths
 from spyder.config.manager import ConfigurationManager
 from spyder.plugins.console.plugin import Console
-from spyder.py3compat import configparser
 
 
 def clear_site_config():
@@ -105,8 +105,8 @@ startup/run_lines =
         manager.get_shortcut('foo', 'bar', plugin_name='internal_console')
 
     # Change an option in the console
-    console = Console()
-    console.set_option('max_line_count', 600)
+    console = Console(None, configuration=manager)
+    console.set_conf('max_line_count', 600)
 
     # Read config filew directly
     user_path = manager.get_user_config_path()

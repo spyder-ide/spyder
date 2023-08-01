@@ -6,27 +6,19 @@
 # ----------------------------------------------------------------------------
 """Tests for plugin config dialog."""
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
 
 # Test library imports
 import pytest
 
 # Local imports
 from spyder.plugins.history.plugin import HistoryLog
-from spyder.preferences.tests.conftest import config_dialog
-
-
-class MainWindowMock:
-    register_shortcut = Mock()
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(
     'config_dialog',
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
-    [[MainWindowMock, [], [HistoryLog]]],
+    [[None, [], [HistoryLog]]],
     indirect=True)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()

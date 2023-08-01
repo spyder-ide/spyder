@@ -20,17 +20,15 @@ from difflib import SequenceMatcher
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QBrush, QColor
-from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
     TreeItem)
-from spyder.py3compat import to_unichr
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # The main window inherits from a Qt class, therefore it has many
 # ancestors public methods and attributes.
-class TreeModel(QAbstractItemModel):
+class TreeModel(QAbstractItemModel, SpyderFontsMixin):
     """
     Model that provides an interface to an objectree
     that is build of TreeItems.
@@ -55,9 +53,7 @@ class TreeModel(QAbstractItemModel):
                  obj,
                  obj_name='',
                  attr_cols=None,
-                 parent=None,
-                 regular_font=None,
-                 special_attribute_font=None):
+                 parent=None):
         """
         Constructor
 
@@ -71,12 +67,12 @@ class TreeModel(QAbstractItemModel):
         self._attr_cols = attr_cols
 
         # Font for members (non-functions)
-        self.regular_font = regular_font if regular_font else get_font()
-        # Font for __special_attributes__
-        self.special_attribute_font = (special_attribute_font
-                                       if special_attribute_font
-                                       else get_font())
-        self.special_attribute_font.setItalic(False)
+        self.regular_font = self.get_font(SpyderFontType.MonospaceInterface)
+
+        # Font for __special_attributes__ (in case we want to change it in the
+        # future).
+        self.special_attribute_font = self.get_font(
+            SpyderFontType.MonospaceInterface)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))
         self.callable_color = QBrush(
@@ -146,9 +142,9 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                return (attr.replace('\r\n', to_unichr(0x21B5))
-                            .replace('\n', to_unichr(0x21B5))
-                            .replace('\r', to_unichr(0x21B5)))
+                return (attr.replace('\r\n', chr(0x21B5))
+                            .replace('\n', chr(0x21B5))
+                            .replace('\r', chr(0x21B5)))
             except Exception as ex:
                 # logger.exception(ex)
                 return "**ERROR**: {}".format(ex)
@@ -284,29 +280,27 @@ class TreeModel(QAbstractItemModel):
         path_strings = []
         tree_items = []
 
-        # Only populate children for objects without their own editor
-        if not is_editable_type(obj):
-            is_attr_list = [False] * len(obj_children)
+        is_attr_list = [False] * len(obj_children)
 
-            # Object attributes
-            # Needed to handle errors while getting object's attributes
-            # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
-            for attr_name in dir(obj):
-                try:
-                    attr_value = getattr(obj, attr_name)
-                    obj_children.append((attr_name, attr_value))
-                    path_strings.append('{}.{}'.format(obj_path, attr_name)
-                                        if obj_path else attr_name)
-                    is_attr_list.append(True)
-                except Exception:
-                    # Attribute could not be get
-                    pass
-            assert len(obj_children) == len(path_strings), "sanity check"
+        # Object attributes
+        # Needed to handle errors while getting object's attributes
+        # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
+        for attr_name in dir(obj):
+            try:
+                attr_value = getattr(obj, attr_name)
+                obj_children.append((attr_name, attr_value))
+                path_strings.append('{}.{}'.format(obj_path, attr_name)
+                                    if obj_path else attr_name)
+                is_attr_list.append(True)
+            except Exception:
+                # Attribute could not be get
+                pass
+        assert len(obj_children) == len(path_strings), "sanity check"
 
-            for item, path_str, is_attr in zip(obj_children, path_strings,
-                                               is_attr_list):
-                name, child_obj = item
-                tree_items.append(TreeItem(child_obj, name, path_str, is_attr))
+        for item, path_str, is_attr in zip(obj_children, path_strings,
+                                           is_attr_list):
+            name, child_obj = item
+            tree_items.append(TreeItem(child_obj, name, path_str, is_attr))
 
         return tree_items
 
@@ -503,7 +497,6 @@ class TreeProxyModel(QSortFilterProxyModel):
     def __init__(self,
                  show_callable_attributes=True,
                  show_special_attributes=True,
-                 dataframe_format=None,
                  parent=None):
         """
         Constructor
@@ -514,14 +507,12 @@ class TreeProxyModel(QSortFilterProxyModel):
         :param show_special_attributes: if True the objects special attributes,
             i.e. methods with a name that starts and ends with two underscores,
             will be displayed (in italics). If False they are hidden.
-        :param dataframe_format: the dataframe format from config.
         :param parent: the parent widget
         """
         super(TreeProxyModel, self).__init__(parent)
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes
-        self.dataframe_format = dataframe_format
 
     def get_key(self, proxy_index):
         """Get item handler for the given index."""

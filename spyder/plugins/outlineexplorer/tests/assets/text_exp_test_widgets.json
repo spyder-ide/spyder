@@ -1,0 +1,106 @@
+{
+    "text_test_widgets.py": [
+        {
+            "functions": [
+                {
+                    "d": [
+                        {
+                            "inner": [],
+                            "kind": 12
+                        }
+                    ],
+                    "kind": 12
+                },
+                {
+                    "func 1 and 2": [],
+                    "kind": 224
+                },
+                {
+                    "func1": [
+                        {
+                            "i": [],
+                            "kind": 13
+                        }
+                    ],
+                    "kind": 12
+                },
+                {
+                    "func2": [],
+                    "kind": 12
+                },
+                {
+                    "other functions": [],
+                    "kind": 224
+                },
+                {
+                    "cell level 2": [
+                        {
+                            "a": [],
+                            "kind": 12
+                        },
+                        {
+                            "cell level 3": [
+                                {
+                                    "b": [],
+                                    "kind": 12
+                                },
+                                {
+                                    "cell level 4": [
+                                        {
+                                            "c": [],
+                                            "kind": 12
+                                        }
+                                    ],
+                                    "kind": 225
+                                }
+                            ],
+                            "kind": 225
+                        },
+                        {
+                            "cell level 3-1": [
+                                {
+                                    "func3": [],
+                                    "kind": 12
+                                }
+                            ],
+                            "kind": 225
+                        }
+                    ],
+                    "kind": 225
+                }
+            ],
+            "kind": 225
+        },
+        {
+            "classes": [
+                {
+                    "Class1": [
+                        {
+                            "__init__": [
+                                {
+                                    "x": [],
+                                    "kind": 8
+                                }
+                            ],
+                            "kind": 6
+                        },
+                        {
+                            "method3": [],
+                            "kind": 6
+                        },
+                        {
+                            "method2": [],
+                            "kind": 6
+                        },
+                        {
+                            "method1": [],
+                            "kind": 6
+                        }
+                    ],
+                    "kind": 5
+                }
+            ],
+            "kind": 225
+        }
+    ]
+}

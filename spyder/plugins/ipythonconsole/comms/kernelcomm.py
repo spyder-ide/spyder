@@ -12,17 +12,15 @@ from contextlib import contextmanager
 import logging
 import pickle
 
-import jupyter_client
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
-import zmq
 
 from spyder_kernels.comms.commbase import CommBase
-from spyder.py3compat import TimeoutError
+
+from spyder.config.base import (
+    get_debug_level, running_under_pytest)
 
 logger = logging.getLogger(__name__)
-
-# Patch jupyter_client to define 'comm' as a socket type
-jupyter_client.connect.channel_socket_types['comm'] = zmq.DEALER
+TIMEOUT_KERNEL_START = 30
 
 
 class KernelComm(CommBase, QObject):
@@ -32,106 +30,155 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
-    _sig_channel_open = Signal()
-    sig_exception_occurred = Signal(str, bool)
+    sig_exception_occurred = Signal(dict)
+    sig_comm_ready = Signal()
 
     def __init__(self):
         super(KernelComm, self).__init__()
-        self.comm_port = None
         self.kernel_client = None
 
         # Register handlers
         self.register_call_handler('_async_error', self._async_error)
-        self.register_call_handler('_set_comm_port', self._set_comm_port)
+        self.register_call_handler('_comm_ready', self._comm_ready)
 
-    def _set_comm_port(self, port):
-        """Set comm port."""
-        client = self.kernel_client
-        if not (hasattr(client, 'comm_port') and client.comm_port == port):
-            client.comm_port = port
-            identity = client.session.bsession
-            socket = client._create_connected_socket(
-                'comm', identity=identity)
-            client.comm_channel = client.shell_channel_class(
-                socket, client.session, client.ioloop)
-        # We emit in case we are waiting on this
-        self._sig_channel_open.emit()
-
-    def shutdown_comm_channel(self):
-        """Shutdown the comm channel."""
-        channel = self.kernel_client.comm_channel
-        if channel:
-            msg = self.kernel_client.session.msg('shutdown_request', {})
-            channel.send(msg)
-            self.kernel_client.comm_channel = None
-
-    def comm_channel_connected(self):
-        """Check if the comm channel is connected."""
-        return self.kernel_client.comm_channel is not None
+    def is_open(self, comm_id=None):
+        """
+        Check to see if the comm is open and ready to communicate.
+        """
+        id_list = self.get_comm_id_list(comm_id)
+        if len(id_list) == 0:
+            return False
+        return all([self._comms[cid]['status'] == 'ready' for cid in id_list])
 
     @contextmanager
     def comm_channel_manager(self, comm_id, queue_message=False):
-        """Use comm_channel instead of shell_channel."""
+        """Use control_channel instead of shell_channel."""
         if queue_message:
-            # Send without comm_channel
+            # Send without control_channel
             yield
             return
-
-        if not self.comm_channel_connected():
-            # Ask again for comm config
-            self.remote_call()._send_comm_config()
-            timeout = 10
-            self._wait(self.comm_channel_connected,
-                       self._sig_channel_open,
-                       "Timeout while waiting for comm port.",
-                       timeout)
 
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             self._comms[comm_id]['comm']._send_channel = (
-                self.kernel_client.comm_channel)
+                self.kernel_client.control_channel)
         try:
             yield
         finally:
+            id_list = self.get_comm_id_list(comm_id)
             for comm_id in id_list:
                 self._comms[comm_id]['comm']._send_channel = (
                     self.kernel_client.shell_channel)
 
     def _set_call_return_value(self, call_dict, data, is_error=False):
         """Override to use the comm_channel for all replies."""
-        with self.comm_channel_manager(self.calling_comm_id):
+        with self.comm_channel_manager(self.calling_comm_id, False):
+            if is_error and (get_debug_level() or running_under_pytest()):
+                # Disable error muting when debugging or testing
+                call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)
+
+    def remove(self, comm_id=None, only_closing=False):
+        """
+        Remove the comm without notifying the other side.
+
+        Use when the other side is already down.
+        """
+        id_list = self.get_comm_id_list(comm_id)
+        for comm_id in id_list:
+            if only_closing and self._comms[comm_id]['status'] != 'closing':
+                continue
+            del self._comms[comm_id]
+
+    def close(self, comm_id=None):
+        """Ask kernel to close comm and send confirmation."""
+        id_list = self.get_comm_id_list(comm_id)
+        for comm_id in id_list:
+            # Send comm_close directly to avoid really closing the comm
+            self._comms[comm_id]['comm']._send_msg(
+                'comm_close', {}, None, None, None)
+            self._comms[comm_id]['status'] = 'closing'
 
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
         self.kernel_client = kernel_client
-        self.kernel_client.comm_channel = None
-        self._register_comm(
-            # Create new comm and send the highest protocol
-            kernel_client.comm_manager.new_comm(self._comm_name, data={
-                'pickle_protocol': pickle.HIGHEST_PROTOCOL}))
+        try:
+            self._register_comm(
+                # Create new comm and send the highest protocol
+                kernel_client.comm_manager.new_comm(self._comm_name, data={
+                    'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL}))
+        except AttributeError:
+            logger.info(
+                "Unable to open comm due to unexistent comm manager: " +
+                "kernel_client.comm_manager=" + str(kernel_client.comm_manager)
+            )
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
-                    comm_id=None, timeout=None):
+                    comm_id=None, timeout=None, display_error=False):
         """Get a handler for remote calls."""
         return super(KernelComm, self).remote_call(
             interrupt=interrupt, blocking=blocking, callback=callback,
-            comm_id=comm_id, timeout=timeout)
+            comm_id=comm_id, timeout=timeout, display_error=display_error)
+
+    def on_incoming_call(self, call_dict):
+        """A call was received"""
+        super().on_incoming_call(call_dict)
+        # Just in case the call was not received
+        self._comm_ready()
 
     # ---- Private -----
-    def _get_call_return_value(self, call_dict, call_data, comm_id):
-        """
-        Interupt the kernel if needed.
-        """
-        settings = call_dict['settings']
-        interrupt = 'interrupt' in settings and settings['interrupt']
+    def _comm_ready(self):
+        """If this function is called, the comm is ready"""
+        if self._comms[self.calling_comm_id]['status'] != 'ready':
+            self._comms[self.calling_comm_id]['status'] = 'ready'
+            self.sig_comm_ready.emit()
 
-        with self.comm_channel_manager(comm_id, queue_message=not interrupt):
-            return super(KernelComm, self)._get_call_return_value(
+    def _send_call(self, call_dict, call_data, comm_id):
+        """Send call and interupt the kernel if needed."""
+        settings = call_dict['settings']
+        blocking = 'blocking' in settings and settings['blocking']
+        interrupt = 'interrupt' in settings and settings['interrupt']
+        queue_message = not interrupt and not blocking
+
+        if not self.kernel_client.is_alive():
+            if blocking:
+                raise RuntimeError("Kernel is dead")
+            else:
+                # The user has other problems
+                logger.info(
+                    "Dropping message because kernel is dead: %s",
+                    str(call_dict)
+                )
+                return
+
+        with self.comm_channel_manager(
+                comm_id, queue_message=queue_message):
+            return super(KernelComm, self)._send_call(
                 call_dict, call_data, comm_id)
 
-    def _wait_reply(self, call_id, call_name, timeout):
+    def _get_call_return_value(self, call_dict, comm_id):
+        """
+        Catch exception if call is not blocking.
+        """
+        try:
+            return super(KernelComm, self)._get_call_return_value(
+                call_dict, comm_id)
+        except RuntimeError as e:
+            settings = call_dict['settings']
+            blocking = 'blocking' in settings and settings['blocking']
+            if blocking:
+                raise
+            else:
+                # The user has other problems
+                logger.info(
+                    "Dropping message because of exception: ",
+                    str(e),
+                    str(call_dict)
+                )
+                return
+
+    def _wait_reply(self, comm_id, call_id, call_name, timeout):
         """Wait for the other side reply."""
 
         def got_reply():
@@ -146,31 +193,43 @@ class KernelComm(CommBase, QObject):
         Wait until condition() is True by running an event loop.
 
         signal: qt signal that should interrupt the event loop.
-        timeout_msg: Meaage to display in case of a timeout.
+        timeout_msg: Message to display in case of a timeout.
         timeout: time in seconds before a timeout
         """
+        # Exit if condition is fulfilled or the kernel is dead.
         if condition():
             return
+        if not self.kernel_client.is_alive():
+            raise RuntimeError("Kernel is dead")
 
         # Create event loop to wait with
-        wait_loop = QEventLoop()
-        signal.connect(wait_loop.quit)
-        wait_timeout = QTimer()
+        wait_loop = QEventLoop(None)
+        wait_timeout = QTimer(self)
         wait_timeout.setSingleShot(True)
+
+        # Connect signals to stop kernel loop
         wait_timeout.timeout.connect(wait_loop.quit)
+        self.kernel_client.hb_channel.kernel_died.connect(wait_loop.quit)
+        signal.connect(wait_loop.quit)
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
         while not condition():
             if not wait_timeout.isActive():
                 signal.disconnect(wait_loop.quit)
-                if not condition():
-                    raise TimeoutError(timeout_msg)
-                return
+                self.kernel_client.hb_channel.kernel_died.disconnect(
+                    wait_loop.quit)
+                if condition():
+                    return
+                if not self.kernel_client.is_alive():
+                    raise RuntimeError("Kernel is dead")
+                raise TimeoutError(timeout_msg)
             wait_loop.exec_()
 
         wait_timeout.stop()
         signal.disconnect(wait_loop.quit)
+        self.kernel_client.hb_channel.kernel_died.disconnect(
+            wait_loop.quit)
 
     def _handle_remote_call_reply(self, msg_dict, buffer):
         """
@@ -185,4 +244,6 @@ class KernelComm(CommBase, QObject):
         Handle an error that was raised on the other side and sent back.
         """
         for line in error_wrapper.format_error():
-            self.sig_exception_occurred.emit(line, True)
+            self.sig_exception_occurred.emit(
+                dict(text=line, is_traceback=True)
+            )

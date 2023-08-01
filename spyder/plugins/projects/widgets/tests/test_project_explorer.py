@@ -15,7 +15,7 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest
+from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
 from spyder.py3compat import to_text_string
 
 
@@ -30,6 +30,13 @@ def project_explorer(qtbot, request, tmpdir):
     project_explorer = ProjectExplorerTest(directory=project_dir)
     qtbot.addWidget(project_explorer)
     return project_explorer
+
+
+def test_project_explorer(project_explorer):
+    """Run ProjectExplorerTest."""
+    project_explorer.resize(640, 480)
+    project_explorer.show()
+    assert project_explorer
 
 
 @pytest.mark.change_directory

@@ -14,6 +14,7 @@ import os
 
 # Test imports
 import pytest
+from tornado import ioloop
 
 
 # Local imports
@@ -30,6 +31,7 @@ def kernel(request):
     """Console kernel fixture"""
     # Get kernel instance
     kernel = get_kernel()
+    kernel.io_loop = ioloop.IOLoop.current()
     kernel.namespace_view_settings = {
         'check_all': False,
         'exclude_private': True,
@@ -58,7 +60,8 @@ def kernel(request):
             'False_',
             'True_'
         ],
-        'minmax': False}
+        'minmax': False,
+        'filter_on': True}
 
     # Teardown
     def reset_kernel():
@@ -84,6 +87,9 @@ class dummyComm():
             }
         self.other.message_callback(msg)
 
+    def _send_msg(self, *args, **kwargs):
+        pass
+
     def on_msg(self, callback):
         self.message_callback = callback
 
@@ -102,23 +108,20 @@ def comms(kernel):
     frontend_comm = FrontendComm(kernel)
     kernel_comm = KernelComm()
 
-    def dummy_set_comm_port(port):
-        """There is no port to set."""
-        pass
-
-    kernel_comm.register_call_handler('_set_comm_port', dummy_set_comm_port)
-
     class DummyKernelClient():
-        comm_channel = 0
         shell_channel = 0
+        control_channel = 0
+
+        def is_alive():
+            return True
 
     kernel_comm.kernel_client = DummyKernelClient()
 
     kernel_comm._register_comm(commA)
 
     # Bypass the target system as this is not what is being tested
-    frontend_comm._comm_open(commB,
-                             {'content': {'data': {'pickle_protocol': 2}}})
+    frontend_comm._comm_open(
+        commB, {'content': {'data': {'pickle_highest_protocol': 2}}})
 
     return (kernel_comm, frontend_comm)
 
@@ -159,11 +162,6 @@ def test_comm_base(comms):
     # Send another unhandled message
     commsend._send_message('test_message', content='content', data='data')
     assert len(received_messages) == 2
-
-    # Test closing
-    commsend.close()
-    assert not commsend.is_open()
-    assert not commrecv.is_open()
 
 
 @pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")

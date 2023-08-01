@@ -5,16 +5,12 @@
 #
 
 """
-Tests for EditorSplitter class in editor.py
+Tests for EditorSplitter class in splitter.py
 """
 
 # Standard library imports
-try:
-    from unittest.mock import Mock
-    import pathlib
-except ImportError:
-    from mock import Mock  # Python 2
-    import pathlib2 as pathlib
+from unittest.mock import Mock
+import pathlib
 
 import os
 import os.path as osp
@@ -25,13 +21,14 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
 
 
 # ---- Qt Test Fixtures
 
 def editor_stack():
-    editor_stack = EditorStack(None, [])
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack
@@ -42,16 +39,17 @@ def editor_splitter_bot(qtbot):
     """Create editor splitter."""
     es = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
+    es.resize(640, 480)
     es.show()
     return es
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
+def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     text = """
     import sys
     """
-    completions = lsp_plugin
+    completions, capabilities  = completion_plugin_all_started
 
     def report_file_open(options):
         filename = options['filename']
@@ -59,28 +57,23 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         callback = options['codeeditor']
         completions.register_file(
             language.lower(), filename, callback)
-        settings = completions.main.editor.lsp_editor_settings['python']
-        callback.start_completion_services()
-        callback.update_completion_configuration(settings)
+        callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
-                callback.lsp_response_signal, timeout=30000):
-            callback.document_did_open()
+                callback.completions_response_signal, timeout=30000):
+            callback.start_completion_services()
 
     def register_editorstack(editorstack):
         editorstack.sig_perform_completion_request.connect(
             completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        settings = completions.main.editor.lsp_editor_settings['python']
-        editorstack.update_server_configuration('python', settings)
+        editorstack.register_completion_capabilities(capabilities, 'python')
 
     def clone(editorstack, template=None):
-        # editorstack.clone_from(template)
-        editor_stack = EditorStack(None, [])
-        editor_stack.set_find_widget(Mock())
-        editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+        editorstack.set_find_widget(Mock())
+        editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         # Emulate "cloning"
-        editorsplitter.editorstack.new('test.py', 'utf-8', text)
+        editorstack.new('test.py', 'utf-8', text)
 
     mock_plugin = Mock()
     editorsplitter = EditorSplitter(
@@ -93,6 +86,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
     mock_plugin.clone_editorstack.side_effect = partial(
         clone, template=editorsplitter.editorstack)
     qtbot_module.addWidget(editorsplitter)
+    editorsplitter.resize(640, 480)
     editorsplitter.show()
 
     def teardown():
@@ -100,7 +94,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    lsp = completions.get_client('lsp')
+    lsp = completions.get_provider('lsp')
     return editorsplitter, lsp
 
 
@@ -154,7 +148,7 @@ def test_init(editor_splitter_bot):
 
 
 def test_close(editor_splitter_bot, qtbot):
-    """Test the inteface for closing the editor splitters."""
+    """Test the interface for closing the editor splitters."""
     # Split the main editorspliter once, than split the second editorsplitter
     # twice.
     es = editor_splitter_bot
@@ -395,8 +389,7 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
                                              (False, 'foo.py', [1, 1, 1])]
 
 
-@pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.order(1)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Makes other tests fail on Windows")
 def test_lsp_splitter_close(editor_splitter_lsp):

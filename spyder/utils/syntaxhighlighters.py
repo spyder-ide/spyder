@@ -10,7 +10,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 """
 
 # Standard library imports
-from __future__ import print_function
+import builtins
 import keyword
 import os
 import re
@@ -29,8 +29,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
-                              PY36_OR_MORE)
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
@@ -54,34 +53,60 @@ DEFAULT_PATTERNS = {
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
 }
+
 COLOR_SCHEME_KEYS = {
-                      "background":     _("Background:"),
-                      "currentline":    _("Current line:"),
-                      "currentcell":    _("Current cell:"),
-                      "occurrence":     _("Occurrence:"),
-                      "ctrlclick":      _("Link:"),
-                      "sideareas":      _("Side areas:"),
-                      "matched_p":      _("Matched <br>parens:"),
-                      "unmatched_p":    _("Unmatched <br>parens:"),
-                      "normal":         _("Normal text:"),
-                      "keyword":        _("Keyword:"),
-                      "builtin":        _("Builtin:"),
-                      "definition":     _("Definition:"),
-                      "comment":        _("Comment:"),
-                      "string":         _("String:"),
-                      "number":         _("Number:"),
-                      "instance":       _("Instance:"),
-                      }
+    "background":     _("Background:"),
+    "currentline":    _("Current line:"),
+    "currentcell":    _("Current cell:"),
+    "occurrence":     _("Occurrence:"),
+    "ctrlclick":      _("Link:"),
+    "sideareas":      _("Side areas:"),
+    "matched_p":      _("Matched <br>parens:"),
+    "unmatched_p":    _("Unmatched <br>parens:"),
+    "normal":         _("Normal text:"),
+    "keyword":        _("Keyword:"),
+    "builtin":        _("Builtin:"),
+    "definition":     _("Definition:"),
+    "comment":        _("Comment:"),
+    "string":         _("String:"),
+    "number":         _("Number:"),
+    "instance":       _("Instance:"),
+    "magic":          _("Magic:"),
+}
+
+COLOR_SCHEME_DEFAULT_VALUES = {
+    "background":  "#19232D",
+    "currentline": "#3a424a",
+    "currentcell": "#292d3e",
+    "occurrence":  "#1A72BB",
+    "ctrlclick":   "#179ae0",
+    "sideareas":   "#222b35",
+    "matched_p":   "#0bbe0b",
+    "unmatched_p": "#ff4340",
+    "normal":     ("#ffffff", False, False),
+    "keyword":    ("#c670e0", False, False),
+    "builtin":    ("#fab16c", False, False),
+    "definition": ("#57d6e4", True, False),
+    "comment":    ("#999999", False, False),
+    "string":     ("#b0e686", False, True),
+    "number":     ("#faed5c", False, False),
+    "instance":   ("#ee6772", False, True),
+    "magic":      ("#c670e0", False, False),
+}
+
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
+
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
-CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
-                          '.txt': 'text',
-                          '.nt': 'bat',
-                          '.m': 'matlab',
-                          ('.properties', '.session', '.inf', '.reg', '.url',
-                           '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
+CUSTOM_EXTENSION_LEXER = {
+    '.ipynb': 'json',
+    '.nt': 'bat',
+    '.m': 'matlab',
+    ('.properties', '.session', '.inf', '.reg', '.url',
+     '.cfg', '.cnf', '.aut', '.iss'): 'ini'
+}
+
 # Convert custom extensions into a one-to-one mapping for easier lookup.
 custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
@@ -102,9 +127,9 @@ def get_span(match, key=None):
         start, end = match.span(key)
     else:
         start, end = match.span()
-    start = qstring_length(match.string[:start])
-    end = qstring_length(match.string[:end])
-    return start, end
+    start16 = qstring_length(match.string[:start])
+    end16 = start16 + qstring_length(match.string[start:end])
+    return start16, end16
 
 
 def get_color_scheme(name):
@@ -162,8 +187,9 @@ class BaseSH(QSyntaxHighlighter):
     BLANK_ALPHA_FACTOR = 0.31
 
     sig_outline_explorer_data_changed = Signal()
-    # Signal to advertise a new cell
-    sig_new_cell = Signal(OutlineExplorerData)
+
+    # Use to signal font change
+    sig_font_changed = Signal()
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -189,6 +215,9 @@ class BaseSH(QSyntaxHighlighter):
         self.cell_separators = None
         self.editor = None
         self.patterns = DEFAULT_COMPILED_PATTERNS
+
+        # List of cells
+        self._cell_list = []
 
     def get_background_color(self):
         return QColor(self.background_color)
@@ -232,6 +261,7 @@ class BaseSH(QSyntaxHighlighter):
             self.font = font
         if self.font is not None:
             base_format.setFont(self.font)
+            self.sig_font_changed.emit()
         self.formats = {}
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
@@ -255,6 +285,7 @@ class BaseSH(QSyntaxHighlighter):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
+
         self.setup_formats()
         self.rehighlight()
 
@@ -303,18 +334,15 @@ class BaseSH(QSyntaxHighlighter):
 
     def highlight_patterns(self, text, offset=0):
         """Highlight URI and mailto: patterns."""
-        match = self.patterns.search(text, offset)
-        while match:
+        for match in self.patterns.finditer(text, offset):
             for __, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match)
                     start = max([0, start + offset])
                     end = max([0, end + offset])
                     font = self.format(start)
-                    font.setUnderlineStyle(True)
+                    font.setUnderlineStyle(QTextCharFormat.SingleUnderline)
                     self.setFormat(start, end - start, font)
-
-            match = self.patterns.search(text, match.end())
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -326,8 +354,8 @@ class BaseSH(QSyntaxHighlighter):
         if show_blanks:
             format_leading = self.formats.get("leading", None)
             format_trailing = self.formats.get("trailing", None)
-            match = self.BLANKPROG.search(text, offset)
-            while match:
+            text = text[offset:]
+            for match in self.BLANKPROG.finditer(text):
                 start, end = get_span(match)
                 start = max([0, start+offset])
                 end = max([0, end+offset])
@@ -342,7 +370,6 @@ class BaseSH(QSyntaxHighlighter):
                 alpha_new = self.BLANK_ALPHA_FACTOR * color_foreground.alphaF()
                 color_foreground.setAlphaF(alpha_new)
                 self.setFormat(start, end - start, color_foreground)
-                match = self.BLANKPROG.search(text, match.end())
 
     def highlight_extras(self, text, offset=0):
         """
@@ -380,16 +407,13 @@ class GenericSH(BaseSH):
         text = to_text_string(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
                     index += end-start
                     self.setFormat(start, end-start, self.formats[key])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -417,10 +441,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                     r"\b[+-]?0[oO][0-7]+[lL]?\b",
                     r"\b[+-]?0[bB][01]+[lL]?\b",
                     r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
-    if PY3:
-        prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
-    else:
-        prefix = "r|u|ur|R|U|UR|Ur|uR|b|B|br|Br|bR|BR"
+    prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
     uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
@@ -435,21 +456,20 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                    % prefix
     # Needed to achieve correct highlighting in Python 3.6+
     # See spyder-ide/spyder#7324.
-    if PY36_OR_MORE:
-        # Based on
-        # https://github.com/python/cpython/blob/
-        # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
-        # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
-        # Pointfloat + Exponent, Expfloat, Imagnumber
-        number_regex = [
-                r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
-                r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
-                r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
-                r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
-                r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
-                "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-                r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-                r"\b[0-9](?:_?[0-9])*[jJ]\b"]
+    # Based on
+    # https://github.com/python/cpython/blob/
+    # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
+    # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
+    # Pointfloat + Exponent, Expfloat, Imagnumber
+    number_regex = [
+            r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
+            r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
+            r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
+            r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
+            r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
+            "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+            r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+            r"\b[0-9](?:_?[0-9])*[jJ]\b"]
     number = any("number", number_regex)
 
     string = any("string", [sq3string, dq3string, sqstring, dqstring])
@@ -462,6 +482,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     return "|".join([instance, kw, builtin, comment,
                      ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
                      ufstring6, string, number, any("SYNC", [r"\n"])])
+
+
+def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
+    return (make_python_patterns(additional_keywords, additional_builtins)
+            + r"|^\s*%%?(?P<magic>[^\s]*)")
 
 
 def get_code_cell_name(text):
@@ -480,7 +505,7 @@ def get_code_cell_name(text):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    add_kw = ['async', 'await']
+    add_kw = ['async', 'await', 'match', 'case']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r"\b(as)\b")
@@ -499,8 +524,6 @@ class PythonSH(BaseSH):
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)
-        self.outline_explorer_data_update_timer.timeout.connect(
-            self.sig_outline_explorer_data_changed)
 
     def highlight_match(self, text, match, key, value, offset,
                         state, import_stmt, oedata):
@@ -530,7 +553,7 @@ class PythonSH(BaseSH):
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
-                    # cell_head: string contaning the first group
+                    # cell_head: string containing the first group
                     # of '%'s in the cell header
                     cell_head = re.search(r"%+|$", text.lstrip()).group()
                     if cell_head == '':
@@ -541,8 +564,8 @@ class PythonSH(BaseSH):
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
                     oedata.def_name = def_name
-                    # Let the editor know a new cell was added in the document
-                    self.sig_new_cell.emit(oedata)
+                    # Keep list of cells for performence reasons
+                    self._cell_list.append(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
@@ -616,15 +639,12 @@ class PythonSH(BaseSH):
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         state = self.NORMAL
-        match = self.PROG.search(text)
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     state, import_stmt, oedata = self.highlight_match(
                         text, match, key, value, offset,
                         state, import_stmt, oedata)
-
-            match = self.PROG.search(text, match.end())
 
         tbh.set_state(self.currentBlock(), state)
 
@@ -678,6 +698,15 @@ class PythonSH(BaseSH):
 
     def rehighlight(self):
         BaseSH.rehighlight(self)
+
+
+# =============================================================================
+# IPython syntax highlighter
+# =============================================================================
+class IPythonSH(PythonSH):
+    """IPython Syntax Highlighter"""
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_ipython_patterns(additional_keywords=add_kw), re.S)
 
 
 #==============================================================================
@@ -763,9 +792,8 @@ class CppSH(BaseSH):
         self.setFormat(0, qstring_length(text),
                        self.formats["comment" if inside_comment else "normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
@@ -786,8 +814,6 @@ class CppSH(BaseSH):
                                        self.formats["number"])
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -849,9 +875,8 @@ class FortranSH(BaseSH):
         text = to_text_string(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
-        match = self.PROG.search(text)
         index = 0
-        while match:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = get_span(match, key)
@@ -863,8 +888,6 @@ class FortranSH(BaseSH):
                             start1, end1 = get_span(match1, 1)
                             self.setFormat(start1, end1-start1,
                                            self.formats["definition"])
-
-            match = self.PROG.search(text, match.end())
 
         self.highlight_extras(text)
 
@@ -1028,12 +1051,11 @@ class BaseWebSH(BaseSH):
             self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         tbh.set_state(self.currentBlock(), previous_state)
-        match = self.PROG.search(text)
 
         match_count = 0
         n_characters = qstring_length(text)
         # There should never be more matches than characters in the text.
-        while match and match_count < n_characters:
+        for match in self.PROG.finditer(text):
             match_dict = match.groupdict()
             for key, value in list(match_dict.items()):
                 if value:
@@ -1061,9 +1083,9 @@ class BaseWebSH(BaseSH):
                                 # Happens with unmatched end-of-comment.
                                 # See spyder-ide/spyder#1462.
                                 pass
-
-            match = self.PROG.search(text, match.end())
             match_count += 1
+            if match_count >= n_characters:
+                break
 
         self.highlight_extras(text)
 
@@ -1152,11 +1174,9 @@ class MarkdownSH(BaseSH):
 
         self.setCurrentBlockState(previous_state)
 
-        match = self.PROG.search(text)
         match_count = 0
         n_characters = qstring_length(text)
-
-        while match and match_count< n_characters:
+        for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 start, end = get_span(match, key)
 
@@ -1181,8 +1201,9 @@ class MarkdownSH(BaseSH):
 
                     self.setFormat(start, end - start, self.formats[key])
 
-            match = self.PROG.search(text, match.end())
             match_count += 1
+            if match_count >= n_characters:
+                break
 
         self.highlight_extras(text)
 
@@ -1200,7 +1221,7 @@ class MarkdownSH(BaseSH):
         self.formats['strikethrough'] = font
 
         font = QTextCharFormat(self.formats['string'])
-        font.setUnderlineStyle(True)
+        font.setUnderlineStyle(QTextCharFormat.SingleUnderline)
         self.formats['link'] = font
 
         self.formats['code'] = self.formats['string']
@@ -1224,7 +1245,7 @@ class MarkdownSH(BaseSH):
 # current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
-    """ Generic Pygments syntax highlighter """
+    """Generic Pygments syntax highlighter."""
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
@@ -1259,6 +1280,9 @@ class PygmentsSH(BaseSH):
         # Flag variable to avoid unnecessary highlights if the worker has not
         # yet finished processing
         self._allow_highlight = True
+
+    def stop(self):
+        self._worker_manager.terminate_all()
 
     def make_charlist(self):
         """Parses the complete text and stores format for each character."""
@@ -1372,20 +1396,25 @@ class PythonLoggingLexer(RegexLexer):
 
 
 def guess_pygments_highlighter(filename):
-    """Factory to generate syntax highlighter for the given filename.
+    """
+    Factory to generate syntax highlighter for the given filename.
 
     If a syntax highlighter is not available for a particular file, this
-    function will attempt to generate one based on the lexers in Pygments.  If
+    function will attempt to generate one based on the lexers in Pygments. If
     Pygments is not available or does not have an appropriate lexer, TextSH
     will be returned instead.
-
     """
     try:
         from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
     except Exception:
         return TextSH
+
     root, ext = os.path.splitext(filename)
-    if ext in custom_extension_lexer_mapping:
+    if ext == '.txt':
+        # Pygments assigns a lexer that doesn’t highlight anything to
+        # txt files. So we avoid that here.
+        return TextSH
+    elif ext in custom_extension_lexer_mapping:
         try:
             lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
         except Exception:
@@ -1397,6 +1426,8 @@ def guess_pygments_highlighter(filename):
             lexer = get_lexer_for_filename(filename)
         except Exception:
             return TextSH
+
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
+
     return GuessedPygmentsSH

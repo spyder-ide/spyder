@@ -22,6 +22,9 @@ from qtpy.QtCore import QObject, Signal, Qt
 from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
+# Local imports
+from spyder.utils.palette import QStylePalette, SpyderPalette
+
 
 # DRAW_ORDERS are used for make some decorations appear in top of others,
 # and avoid a decoration from overlapping/hiding other decorations.
@@ -70,7 +73,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def __init__(self, cursor_or_bloc_or_doc, start_pos=None, end_pos=None,
                  start_line=None, end_line=None, draw_order=0, tooltip=None,
-                 full_width=False, font=None):
+                 full_width=False, font=None, kind=None):
         """
         Creates a text decoration.
 
@@ -90,6 +93,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         :param tooltip: An optional tooltips that will be automatically shown
             when the mouse cursor hover the decoration.
         :param full_width: True to select the full line width.
+        :param font: Decoration font.
+        :param kind: Decoration kind, e.g. 'current_cell'.
 
         .. note:: Use the cursor selection if startPos and endPos are none.
         """
@@ -98,6 +103,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         self.draw_order = draw_order
         self.tooltip = tooltip
         self.cursor = QTextCursor(cursor_or_bloc_or_doc)
+        self.kind = kind
+
         if full_width:
             self.set_full_width(full_width)
         if start_pos is not None:
@@ -208,7 +215,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             QTextCharFormat.SpellCheckUnderline)
         self.format.setUnderlineColor(color)
 
-    def set_as_error(self, color=Qt.red):
+    def set_as_error(self, color=SpyderPalette.COLOR_ERROR_2):
         """
         Highlights text as a syntax error.
 
@@ -219,7 +226,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
             QTextCharFormat.WaveUnderline)
         self.format.setUnderlineColor(color)
 
-    def set_as_warning(self, color=QColor("orange")):
+    def set_as_warning(self, color=QColor(SpyderPalette.COLOR_WARN_1)):
         """
         Highlights text as a syntax warning.
 

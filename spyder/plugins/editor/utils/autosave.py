@@ -39,7 +39,6 @@ from qtpy.QtCore import QTimer
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
-from spyder.py3compat import PY2
 from spyder.utils.programs import is_spyder_process
 
 
@@ -253,16 +252,21 @@ class AutosaveForStack(object):
         """
         Create unique autosave file name for specified file name.
 
+        The created autosave file name does not yet exist either in
+        `self.name_mapping` or on disk.
+
         Args:
             filename (str): original file name
             autosave_dir (str): directory in which autosave files are stored
         """
         basename = osp.basename(filename)
         autosave_filename = osp.join(autosave_dir, basename)
-        if autosave_filename in self.name_mapping.values():
+        if (autosave_filename in self.name_mapping.values()
+                or osp.exists(autosave_filename)):
             counter = 0
             root, ext = osp.splitext(basename)
-            while autosave_filename in self.name_mapping.values():
+            while (autosave_filename in self.name_mapping.values()
+                   or osp.exists(autosave_filename)):
                 counter += 1
                 autosave_basename = '{}-{}{}'.format(root, counter, ext)
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
@@ -281,10 +285,7 @@ class AutosaveForStack(object):
         pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
         if self.name_mapping:
             with open(pidfile_name, 'w') as pidfile:
-                if PY2:
-                    pidfile.write(repr(self.name_mapping))
-                else:
-                    pidfile.write(ascii(self.name_mapping))
+                pidfile.write(ascii(self.name_mapping))
         else:
             try:
                 os.remove(pidfile_name)
@@ -310,7 +311,15 @@ class AutosaveForStack(object):
             msgbox = AutosaveErrorDialog(action, error)
             msgbox.exec_if_enabled()
         del self.name_mapping[filename]
-        del self.file_hashes[autosave_filename]
+
+        # This is necessary to catch an error when a file is changed externally
+        # but it's left unsaved in Spyder.
+        # Fixes spyder-ide/spyder#19283
+        try:
+            del self.file_hashes[autosave_filename]
+        except KeyError:
+            pass
+
         self.save_autosave_mapping()
         logger.debug('Removing autosave file %s', autosave_filename)
 
@@ -360,6 +369,7 @@ class AutosaveForStack(object):
         finfo = self.stack.data[index]
         if finfo.newly_created:
             return
+
         orig_filename = finfo.filename
         try:
             orig_hash = self.file_hashes[orig_filename]
@@ -368,8 +378,9 @@ class AutosaveForStack(object):
             # In this case, use an impossible value for the hash, so that
             # contents of buffer are considered different from contents of
             # original file.
-            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            logger.debug('KeyError when retrieving hash of %s', orig_filename)
             orig_hash = None
+
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]
@@ -419,9 +430,16 @@ class AutosaveForStack(object):
             old_name (str): name of file before it is renamed
             new_name (str): name of file after it is renamed
         """
-        old_hash = self.file_hashes[old_name]
+        try:
+            old_hash = self.file_hashes[old_name]
+        except KeyError:
+            # This should not happen, but it does: spyder-ide/spyder#12396
+            logger.debug('KeyError when handling rename %s -> %s',
+                         old_name, new_name)
+            old_hash = None
         self.remove_autosave_file(old_name)
-        del self.file_hashes[old_name]
-        self.file_hashes[new_name] = old_hash
+        if old_hash is not None:
+            del self.file_hashes[old_name]
+            self.file_hashes[new_name] = old_hash
         index = self.stack.has_filename(new_name)
         self.maybe_autosave(index)

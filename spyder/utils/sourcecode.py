@@ -8,30 +8,39 @@
 Source code text utilities
 """
 
+# Standard library imports
 import re
 import os
 import sys
 
-# Local imports
-from spyder.py3compat import PY2
-
-if PY2:
-    from itertools import izip as zip
+# Third-part imports
+from pylsp._utils import get_eol_chars as _get_eol_chars
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
+CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
 
 
 def get_eol_chars(text):
     """
-    Get text EOL characters.
+    Get text end-of-line (eol) characters.
 
-    If None is found, return the eol based on the operatin system.
+    If no eol chars are found, return ones based on the operating
+    system.
+
+    Parameters
+    ----------
+    text: str
+        Text to get its eol chars from
+
+    Returns
+    -------
+    eol: str or None
+        Eol found in ``text``.
     """
-    for eol_chars, _os_name in EOL_CHARS:
-        if text.find(eol_chars) > -1:
-            break
-    else:
+    eol_chars = _get_eol_chars(text)
+
+    if not eol_chars:
         if os.name == 'nt':
             eol_chars = "\r\n"
         elif sys.platform.startswith('linux'):
@@ -82,7 +91,7 @@ def fix_indentation(text, indent_chars):
 
 def is_builtin(text):
     """Test if passed string is the name of a Python builtin object"""
-    from spyder.py3compat import builtins
+    import builtins
     return text in [str(name) for name in dir(builtins)
                     if not name.startswith('_')]
 
@@ -229,3 +238,8 @@ def shortest_path(files_path_list):
                 shortest_path_length = len(path_elmts)
                 shortest_path = path_elmts
         return os.path.join(*shortest_path)
+
+
+def camel_case_to_snake_case(input_str: str) -> str:
+    """Convert a CamelCase string into a snake_case one."""
+    return CAMEL_CASE_RE.sub('_', input_str).lower()

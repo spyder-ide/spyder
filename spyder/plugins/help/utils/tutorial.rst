@@ -44,7 +44,7 @@ We are going to run this program as a first example:
 
    .. code-block:: python
 
-        In [1]: runfile('/File/Path/hello.py', wdir=r'/File/Path')
+        In [1]: %runfile '/File/Path/hello.py' --wdir
         Hello World
 
         In [2]:
@@ -53,7 +53,7 @@ If so, then you have just run your first Python program -- well done.
 
 .. note::
 
-   The particular paths shown inside ``runfile()`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
+   The particular paths shown next to ``%runfile`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
 
 
 What happens when you execute a program?
@@ -200,7 +200,7 @@ To update the console's namespace with modified function, we have two options:
 * Option 1: Execute the whole file :file:`hello.py` again by pressing :kbd:`F5`: this creates a new function object ``hello`` (and overrides the old one).
   You should find that if you press :kbd:`F5`, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
 
-* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
+* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later World")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
 
   This will update the ``hello`` object in the :guilabel:`Console` without having to execute the whole :file:`hello.py` file:
 
@@ -310,7 +310,7 @@ Warn if PEP 8 code style guidelines are violated
 
 .. _pep8-enable-ref:
 
-Go to :menuselection:`Preferences --> Editor --> Code Introspection/Analysis` and tick the checkbox next to ``Real-time code style analysis``.
+Go to :menuselection:`Tools --> Preferences --> Completion and linting --> Code style and formatting --> Code style` and tick the checkbox next to ``Enable code style linting``.
 
 
 Automatic Symbolic Python
@@ -323,7 +323,6 @@ You'll need to have SymPy installed for it to work, and a LaTeX distribution on 
 .. code-block:: python
 
     These commands were executed:
-    >>> from __future__ import division
     >>> from sympy import *
     >>> x, y, z, t = symbols('x y z t')
     >>> k, m, n = symbols('k m n', integer=True)
@@ -628,7 +627,7 @@ Finally, to get out of a function and continue with the next line you need to us
 or the shortcut :kbd:`Ctrl-Shift-F12`.
 
 If you prefer to inspect your program at a specific point, you need to insert a
-*breakpoint* by pressing :kbd:`F12` on the line on which you want to stop, or double-clicking to the left of the line number.
+*breakpoint* by pressing :kbd:`F12` on the line on which you want to stop, or clicking to the right of the line number.
 A red dot in this position indicates a breakpoint; it can be removed by repeating the same procedure.
 
 After entering the Debugger, you can press the ``Continue`` button

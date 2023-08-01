@@ -8,7 +8,7 @@ r"""
 Patching PIL (Python Imaging Library) to avoid triggering the error:
 AccessInit: hash collision: 3 for both 1 and 1
 
-This error is occuring because of a bug in the PIL import mechanism.
+This error is occurring because of a bug in the PIL import mechanism.
 
 How to reproduce this bug in a standard Python interpreter outside Spyder?
 By importing PIL by two different mechanisms

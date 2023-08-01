@@ -10,6 +10,27 @@
 
 import re
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=100)
+def is_module_installed(module_name):
+    """
+    Simpler version of spyder.utils.programs.is_module_installed.
+    """
+    try:
+        mod = __import__(module_name)
+        # This is necessary to not report that the module is installed
+        # when only its __pycache__ directory is present.
+        if getattr(mod, '__file__', None):
+            return True
+        else:
+            return False
+    except Exception:
+        # Module is not installed
+        return False
+
+
 def fix_reference_name(name, blacklist=None):
     """Return a syntax-valid Python reference name from an arbitrary name"""
     name = "".join(re.split(r'[^0-9a-zA-Z_]', name))

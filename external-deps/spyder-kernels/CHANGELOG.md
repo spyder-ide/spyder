@@ -1,5 +1,657 @@
 # History of changes
 
+## Version 3.0.0b1 (2023-06-14)
+
+### Issues Closed
+
+* [Issue 425](https://github.com/spyder-ide/spyder-kernels/issues/425) - Possible minor issues related to post mortem debugging ([PR 444](https://github.com/spyder-ide/spyder-kernels/pull/444) by [@impact27](https://github.com/impact27))
+* [Issue 340](https://github.com/spyder-ide/spyder-kernels/issues/340) - Drop support for Python 2 ([PR 341](https://github.com/spyder-ide/spyder-kernels/pull/341) by [@impact27](https://github.com/impact27))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 456](https://github.com/spyder-ide/spyder-kernels/pull/456) - PR: Remove unnecessary code for old IPykernel versions in our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 453](https://github.com/spyder-ide/spyder-kernels/pull/453) - PR: Move code that loads and saves HDF5 and DICOM files from Spyder, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 447](https://github.com/spyder-ide/spyder-kernels/pull/447) - PR: Create magics for run|debug file|cell, by [@impact27](https://github.com/impact27)
+* [PR 446](https://github.com/spyder-ide/spyder-kernels/pull/446) - PR: Make call to interrupt children processes work for IPykernel greater than 6.21.2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 444](https://github.com/spyder-ide/spyder-kernels/pull/444) - PR: Fix post mortem for debugging, by [@impact27](https://github.com/impact27) ([425](https://github.com/spyder-ide/spyder-kernels/issues/425))
+* [PR 443](https://github.com/spyder-ide/spyder-kernels/pull/443) - PR: Fix small typo in Readme, by [@davidbrochart](https://github.com/davidbrochart)
+* [PR 437](https://github.com/spyder-ide/spyder-kernels/pull/437) - PR: Remove imports from __future__, by [@oscargus](https://github.com/oscargus)
+* [PR 421](https://github.com/spyder-ide/spyder-kernels/pull/421) - PR: Update variable explorer from the kernel, by [@impact27](https://github.com/impact27)
+* [PR 417](https://github.com/spyder-ide/spyder-kernels/pull/417) - PR: Fix error in `globalsfilter`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 412](https://github.com/spyder-ide/spyder-kernels/pull/412) - PR: Use temporary file for faulthandler and make sure iopub is open for comms, by [@impact27](https://github.com/impact27)
+* [PR 409](https://github.com/spyder-ide/spyder-kernels/pull/409) - PR: Add Python executable as part of kernel info, by [@impact27](https://github.com/impact27)
+* [PR 408](https://github.com/spyder-ide/spyder-kernels/pull/408) - PR: Expose package version in SpyderShell, by [@impact27](https://github.com/impact27)
+* [PR 403](https://github.com/spyder-ide/spyder-kernels/pull/403) - PR: Make debugger faster by avoiding unnecessary comm messages, by [@impact27](https://github.com/impact27)
+* [PR 401](https://github.com/spyder-ide/spyder-kernels/pull/401) - PR: Wait for connection file to be written, by [@impact27](https://github.com/impact27)
+* [PR 400](https://github.com/spyder-ide/spyder-kernels/pull/400) - PR: Use `execute_interactive` to print errors during tests, by [@impact27](https://github.com/impact27)
+* [PR 397](https://github.com/spyder-ide/spyder-kernels/pull/397) - PR: Remove Python 2 code introduced when merging PR #395, by [@impact27](https://github.com/impact27)
+* [PR 396](https://github.com/spyder-ide/spyder-kernels/pull/396) - PR: Add handlers to interrupt executions and enter the debugger after that, by [@impact27](https://github.com/impact27)
+* [PR 390](https://github.com/spyder-ide/spyder-kernels/pull/390) - PR: Filter comm socket thread, by [@impact27](https://github.com/impact27)
+* [PR 387](https://github.com/spyder-ide/spyder-kernels/pull/387) - PR: Minor changes to finish the migration to Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 366](https://github.com/spyder-ide/spyder-kernels/pull/366) - PR: Print warning when using `global` in an empty namespace, by [@impact27](https://github.com/impact27)
+* [PR 341](https://github.com/spyder-ide/spyder-kernels/pull/341) - PR: Drop support for Python 2, by [@impact27](https://github.com/impact27) ([340](https://github.com/spyder-ide/spyder-kernels/issues/340))
+* [PR 339](https://github.com/spyder-ide/spyder-kernels/pull/339) - PR: Use control channel for comms, by [@impact27](https://github.com/impact27)
+* [PR 286](https://github.com/spyder-ide/spyder-kernels/pull/286) - PR: Improve and refactor the way we run and debug code, by [@impact27](https://github.com/impact27)
+* [PR 257](https://github.com/spyder-ide/spyder-kernels/pull/257) - PR: Notify frontend of Matplotlib backend change, by [@impact27](https://github.com/impact27)
+* [PR 171](https://github.com/spyder-ide/spyder-kernels/pull/171) - PR: Publish Pdb stack frames to Spyder, by [@impact27](https://github.com/impact27)
+
+In this release 25 pull requests were closed.
+
+
+----
+
+
+## Version 2.4.4 (2023-06-29)
+
+### Issues Closed
+
+* [Issue 454](https://github.com/spyder-ide/spyder-kernels/issues/454) - Codecov Package was Yanked ([PR 455](https://github.com/spyder-ide/spyder-kernels/pull/455) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 461](https://github.com/spyder-ide/spyder-kernels/pull/461) - PR: Increase minimal required version of IPykernel to 6.23.2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 459](https://github.com/spyder-ide/spyder-kernels/pull/459) - PR: Skip more buggy IPython versions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 458](https://github.com/spyder-ide/spyder-kernels/pull/458) - PR: Disable IPython's debugger skip functionality by default, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 455](https://github.com/spyder-ide/spyder-kernels/pull/455) - PR: Remove `codecov` package and use Github action to upload coverage instead, by [@ccordoba12](https://github.com/ccordoba12) ([454](https://github.com/spyder-ide/spyder-kernels/issues/454))
+
+In this release 4 pull requests were closed.
+
+
+----
+
+
+## Version 2.4.3 (2023-04-02)
+
+### Issues Closed
+
+* [Issue 440](https://github.com/spyder-ide/spyder-kernels/issues/440) - distutils and LooseVersion deprecation ([PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 452](https://github.com/spyder-ide/spyder-kernels/pull/452) - PR: Fix error when executing empty Python script, by [@rear1019](https://github.com/rear1019)
+* [PR 450](https://github.com/spyder-ide/spyder-kernels/pull/450) - PR: Remove usage of `distutils.LooseVersion`, by [@ccordoba12](https://github.com/ccordoba12) ([440](https://github.com/spyder-ide/spyder-kernels/issues/440))
+* [PR 449](https://github.com/spyder-ide/spyder-kernels/pull/449) - PR: Add support for Jupyter-client 8, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 448](https://github.com/spyder-ide/spyder-kernels/pull/448) - PR: Skip IPython versions that give buggy code completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 442](https://github.com/spyder-ide/spyder-kernels/pull/442) - PR: Add FreeBSD to `test_user_sitepackages_in_pathlist`, by [@rhurlin](https://github.com/rhurlin)
+* [PR 434](https://github.com/spyder-ide/spyder-kernels/pull/434) - PR: Use `allow_pickle=True` when loading Numpy arrays, by [@nkleinbaer](https://github.com/nkleinbaer)
+* [PR 430](https://github.com/spyder-ide/spyder-kernels/pull/430) - PR: Inform GUI about position of exception in post mortem debugging, by [@rear1019](https://github.com/rear1019)
+
+In this release 7 pull requests were closed.
+
+
+----
+
+
+## Version 2.4.2 (2023-01-17)
+
+### Issues Closed
+
+* [Issue 307](https://github.com/spyder-ide/spyder-kernels/issues/307) - formatargspec is deprecated since Python 3.5 ([PR 435](https://github.com/spyder-ide/spyder-kernels/pull/435) by [@juliangilbey](https://github.com/juliangilbey))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 438](https://github.com/spyder-ide/spyder-kernels/pull/438) - PR: Increase minimal required Jupyter-client version to 7.4.9, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 435](https://github.com/spyder-ide/spyder-kernels/pull/435) - PR: Replace deprecated `inspect.formatargspec` call, by [@juliangilbey](https://github.com/juliangilbey) ([307](https://github.com/spyder-ide/spyder-kernels/issues/307))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 2.4.1 (2022-12-29)
+
+### Issues Closed
+
+* [Issue 427](https://github.com/spyder-ide/spyder-kernels/issues/427) - Make spyder-kernels compatible with IPython 8 ([PR 419](https://github.com/spyder-ide/spyder-kernels/pull/419) by [@eendebakpt](https://github.com/eendebakpt))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 419](https://github.com/spyder-ide/spyder-kernels/pull/419) - PR: Update IPython requirement to support version 8, by [@eendebakpt](https://github.com/eendebakpt) ([427](https://github.com/spyder-ide/spyder-kernels/issues/427))
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 2.4.0 (2022-11-02)
+
+### New features
+
+* Add support for Python 3.11
+* Flush standard streams after execution.
+
+### Pull Requests Merged
+
+* [PR 428](https://github.com/spyder-ide/spyder-kernels/pull/428) - PR: Patch for CVE-2007-4559 Tar directory traversal, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 426](https://github.com/spyder-ide/spyder-kernels/pull/426) - PR: Update ipykernel constraint to >=6.16.1, by [@dalthviz](https://github.com/dalthviz)
+* [PR 423](https://github.com/spyder-ide/spyder-kernels/pull/423) - PR: Fix lineno range, by [@impact27](https://github.com/impact27) ([19862](https://github.com/spyder-ide/spyder/issues/19862))
+* [PR 422](https://github.com/spyder-ide/spyder-kernels/pull/422) - PR: Make comm lock reentrant, by [@impact27](https://github.com/impact27)
+* [PR 420](https://github.com/spyder-ide/spyder-kernels/pull/420) - PR: Only access sys.stdout and sys.stderr once, by [@impact27](https://github.com/impact27)
+* [PR 416](https://github.com/spyder-ide/spyder-kernels/pull/416) - PR: Fix some errors when computing the namespace view, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 415](https://github.com/spyder-ide/spyder-kernels/pull/415) - PR: Fix tk eventloop handling when debugging on Windows, by [@dalthviz](https://github.com/dalthviz)
+* [PR 413](https://github.com/spyder-ide/spyder-kernels/pull/413) - PR: Flush standard streams after execution, by [@impact27](https://github.com/impact27)
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
+## Version 2.3.3 (2022-08-28)
+
+### Issues Closed
+
+* [Issue 405](https://github.com/spyder-ide/spyder-kernels/issues/405) - Python 2 tests are broken in Conda slots ([PR 404](https://github.com/spyder-ide/spyder-kernels/pull/404) by [@impact27](https://github.com/impact27))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 407](https://github.com/spyder-ide/spyder-kernels/pull/407) - PR: Use `get_size` to get variable length for `get_var_properties` to prevent triggering Dask tasks, by [@dalthviz](https://github.com/dalthviz)
+* [PR 404](https://github.com/spyder-ide/spyder-kernels/pull/404) - PR: Use debugging namespace when curframe is active, by [@impact27](https://github.com/impact27) ([405](https://github.com/spyder-ide/spyder-kernels/issues/405))
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 2.3.2 (2022-07-06)
+
+### Issues Closed
+
+* [Issue 394](https://github.com/spyder-ide/spyder-kernels/issues/394) - The variable explorer is broken while debugging ([PR 395](https://github.com/spyder-ide/spyder-kernels/pull/395) by [@impact27](https://github.com/impact27))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 399](https://github.com/spyder-ide/spyder-kernels/pull/399) - PR: Increase minimal required version of jupyter_client to 7.3.4, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 398](https://github.com/spyder-ide/spyder-kernels/pull/398) - PR: Fix module namespace, by [@impact27](https://github.com/impact27)
+* [PR 395](https://github.com/spyder-ide/spyder-kernels/pull/395) - PR: Fix running namespace and improve eventloop integration while debugging, by [@impact27](https://github.com/impact27) ([394](https://github.com/spyder-ide/spyder-kernels/issues/394))
+* [PR 389](https://github.com/spyder-ide/spyder-kernels/pull/389) - PR: Fix debug filename path for remote debugging, by [@impact27](https://github.com/impact27) ([18330](https://github.com/spyder-ide/spyder/issues/18330))
+* [PR 388](https://github.com/spyder-ide/spyder-kernels/pull/388) - PR: Fix getting args from functions or methods, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 386](https://github.com/spyder-ide/spyder-kernels/pull/386) - PR: Fix flaky test, by [@impact27](https://github.com/impact27)
+* [PR 381](https://github.com/spyder-ide/spyder-kernels/pull/381) - PR: Eliminate unnecessary updates of the Variable Explorer while debugging, by [@rear1019](https://github.com/rear1019)
+* [PR 378](https://github.com/spyder-ide/spyder-kernels/pull/378) - PR: Append paths that come from Spyder's Python path manager to the end of `sys.path`, by [@mrclary](https://github.com/mrclary)
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
+## Version 2.3.1 (2022-05-21)
+
+### Pull Requests Merged
+
+* [PR 385](https://github.com/spyder-ide/spyder-kernels/pull/385) - PR: Add an upper constraint to our most important dependencies, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 384](https://github.com/spyder-ide/spyder-kernels/pull/384) - PR: Prevent an error in Python 2 with our tests, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 382](https://github.com/spyder-ide/spyder-kernels/pull/382) - PR: Increase minimal required version of jupyter_client to 7.3.1, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+
+---
+
+
+## Version 2.3.0 (2022-03-30)
+
+### New features
+
+* Add new handler to detect the current Matplotlib interactive backend.
+* Print last line of cells and Pdb code.
+
+### Issues Closed
+
+* [Issue 371](https://github.com/spyder-ide/spyder-kernels/issues/371) - Can't debug comprehensions ([PR 370](https://github.com/spyder-ide/spyder-kernels/pull/370) by [@impact27](https://github.com/impact27))
+* [Issue 344](https://github.com/spyder-ide/spyder-kernels/issues/344) - Drop support for Python 3.6 by requiring a more recent IPython version ([PR 373](https://github.com/spyder-ide/spyder-kernels/pull/373) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 330](https://github.com/spyder-ide/spyder-kernels/issues/330) - spydercustomize in debug stack ([PR 355](https://github.com/spyder-ide/spyder-kernels/pull/355) by [@impact27](https://github.com/impact27))
+* [Issue 320](https://github.com/spyder-ide/spyder-kernels/issues/320) - The length of the "excluded_names" list increases. ([PR 372](https://github.com/spyder-ide/spyder-kernels/pull/372) by [@impact27](https://github.com/impact27))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 379](https://github.com/spyder-ide/spyder-kernels/pull/379) - PR: Increase minimal required version of ipykernel to 6.9.2, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 377](https://github.com/spyder-ide/spyder-kernels/pull/377) - PR: Handle getting dasks objects size, by [@dalthviz](https://github.com/dalthviz)
+* [PR 376](https://github.com/spyder-ide/spyder-kernels/pull/376) - PR: Add new handler to detect the current Matplotlib interactive backend, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 375](https://github.com/spyder-ide/spyder-kernels/pull/375) - PR: Remove support for outdated and unused Matplotlib backends, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 374](https://github.com/spyder-ide/spyder-kernels/pull/374) - PR: Catch FileNotFoundError when trying to get file code from the frontend, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 373](https://github.com/spyder-ide/spyder-kernels/pull/373) - PR: Increase minimal required IPython version to 7.31.1, by [@ccordoba12](https://github.com/ccordoba12) ([344](https://github.com/spyder-ide/spyder-kernels/issues/344))
+* [PR 372](https://github.com/spyder-ide/spyder-kernels/pull/372) - PR: Avoid modifying the namespace view settings by reference, by [@impact27](https://github.com/impact27) ([320](https://github.com/spyder-ide/spyder-kernels/issues/320))
+* [PR 370](https://github.com/spyder-ide/spyder-kernels/pull/370) - PR: Fix issues when debugging comprehensions, by [@impact27](https://github.com/impact27) ([371](https://github.com/spyder-ide/spyder-kernels/issues/371))
+* [PR 369](https://github.com/spyder-ide/spyder-kernels/pull/369) - PR: Leave unsaved files in linecache, by [@impact27](https://github.com/impact27)
+* [PR 355](https://github.com/spyder-ide/spyder-kernels/pull/355) - PR: Print last line of Pdb code and some debugger fixes, by [@impact27](https://github.com/impact27) ([330](https://github.com/spyder-ide/spyder-kernels/issues/330))
+
+In this release 10 pull requests were closed.
+
+
+----
+
+
+## Version 2.2.1 (2022-01-13)
+
+### Issues Closed
+
+* [Issue 365](https://github.com/spyder-ide/spyder-kernels/issues/365) - `IOStream.flush timed out` message shown after every evaluation ([PR 367](https://github.com/spyder-ide/spyder-kernels/pull/367) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 347](https://github.com/spyder-ide/spyder-kernels/issues/347) - Issues handling Matplotlib backend settings ([PR 368](https://github.com/spyder-ide/spyder-kernels/pull/368) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 345](https://github.com/spyder-ide/spyder-kernels/issues/345) - Namespace issues ([PR 346](https://github.com/spyder-ide/spyder-kernels/pull/346) by [@impact27](https://github.com/impact27))
+* [Issue 343](https://github.com/spyder-ide/spyder-kernels/issues/343) - Shapely 1.8 and get_namespace_view spyder call raising deprecation warning ([PR 350](https://github.com/spyder-ide/spyder-kernels/pull/350) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 368](https://github.com/spyder-ide/spyder-kernels/pull/368) - PR: Improve error message when setting a Matplotlib backend whose module is not present, by [@ccordoba12](https://github.com/ccordoba12) ([347](https://github.com/spyder-ide/spyder-kernels/issues/347))
+* [PR 367](https://github.com/spyder-ide/spyder-kernels/pull/367) - PR: Filter another benign message coming from comm handlers, by [@ccordoba12](https://github.com/ccordoba12) ([365](https://github.com/spyder-ide/spyder-kernels/issues/365))
+* [PR 364](https://github.com/spyder-ide/spyder-kernels/pull/364) - PR: Catch error when validating if an object is defined in the namespace, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 363](https://github.com/spyder-ide/spyder-kernels/pull/363) - PR: Fix error when running multiprocessing code that contains classes, by [@impact27](https://github.com/impact27)
+* [PR 362](https://github.com/spyder-ide/spyder-kernels/pull/362) - PR: Catch KeyError when closing comm, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 361](https://github.com/spyder-ide/spyder-kernels/pull/361) - PR: Increase minimal required version of pyzmq for Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 360](https://github.com/spyder-ide/spyder-kernels/pull/360) - PR: Increase minimal required version of ipykernel to 6.6.1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 357](https://github.com/spyder-ide/spyder-kernels/pull/357) - PR: Require jupyter-client 7.1.0 to fix issues on Windows, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 356](https://github.com/spyder-ide/spyder-kernels/pull/356) - PR: Increase minimal required version of jupyter-client to 7.0+ for Python 3, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 354](https://github.com/spyder-ide/spyder-kernels/pull/354) - PR: Constraint IPython version to avoid issues when its next major version is released, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 353](https://github.com/spyder-ide/spyder-kernels/pull/353) - PR: Implement a less hacky solution to fix namespace issues, by [@impact27](https://github.com/impact27)
+* [PR 351](https://github.com/spyder-ide/spyder-kernels/pull/351) - PR: More namespace fixes, by [@impact27](https://github.com/impact27)
+* [PR 350](https://github.com/spyder-ide/spyder-kernels/pull/350) - PR: Don't print DeprecationWarning's that come from comm handlers, by [@ccordoba12](https://github.com/ccordoba12) ([343](https://github.com/spyder-ide/spyder-kernels/issues/343))
+* [PR 349](https://github.com/spyder-ide/spyder-kernels/pull/349) - PR: Update Quansight logo in Readme, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 346](https://github.com/spyder-ide/spyder-kernels/pull/346) - PR: Fix some namespace issues, by [@impact27](https://github.com/impact27) ([345](https://github.com/spyder-ide/spyder-kernels/issues/345))
+* [PR 338](https://github.com/spyder-ide/spyder-kernels/pull/338) - PR: Fix misplaced section in changelog, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 16 pull requests were closed.
+
+
+----
+
+
+## Version 2.2.0 (2021-11-22)
+
+### New features
+
+* Add the ability to capture segfaults and flush standard streams from
+  Spyder.
+* Add support for jupyter_client 7.
+
+### Issues Closed
+
+* [Issue 326](https://github.com/spyder-ide/spyder-kernels/issues/326) - Setting variables in recursive debugging namespaces is broken ([PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) by [@impact27](https://github.com/impact27))
+* [Issue 325](https://github.com/spyder-ide/spyder-kernels/issues/325) - %timeit has issues with the namespace ([PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) by [@impact27](https://github.com/impact27))
+* [Issue 316](https://github.com/spyder-ide/spyder-kernels/issues/316) - Disable capture_fd_output in IPykernel 6+ in favor of Wurlitzer ([PR 337](https://github.com/spyder-ide/spyder-kernels/pull/337) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 337](https://github.com/spyder-ide/spyder-kernels/pull/337) - PR: Disable the new mechanism to forward low-level output in IPykernel 6, by [@ccordoba12](https://github.com/ccordoba12) ([316](https://github.com/spyder-ide/spyder-kernels/issues/316))
+* [PR 336](https://github.com/spyder-ide/spyder-kernels/pull/336) - PR: Don't show traceback when exiting debugger after breakpoint call, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 335](https://github.com/spyder-ide/spyder-kernels/pull/335) - PR: Remove locals from exec in comprehensions (debugger), by [@impact27](https://github.com/impact27)
+* [PR 334](https://github.com/spyder-ide/spyder-kernels/pull/334) - PR: Fix missing stderr when the kernel crashes, by [@impact27](https://github.com/impact27)
+* [PR 333](https://github.com/spyder-ide/spyder-kernels/pull/333) - PR: Add cast for shape tuple subclass instances when getting values size, by [@dalthviz](https://github.com/dalthviz)
+* [PR 332](https://github.com/spyder-ide/spyder-kernels/pull/332) - PR: Remove usage of f_locals.get, by [@impact27](https://github.com/impact27)
+* [PR 328](https://github.com/spyder-ide/spyder-kernels/pull/328) - PR: Remove upper constraint on jupyter_client, by [@bnavigator](https://github.com/bnavigator)
+* [PR 327](https://github.com/spyder-ide/spyder-kernels/pull/327) - PR: Fix timeit in Pdb and other namespace issues, by [@impact27](https://github.com/impact27) ([326](https://github.com/spyder-ide/spyder-kernels/issues/326), [325](https://github.com/spyder-ide/spyder-kernels/issues/325))
+* [PR 317](https://github.com/spyder-ide/spyder-kernels/pull/317) - PR: Run asyncio and normal handlers, by [@impact27](https://github.com/impact27) ([16183](https://github.com/spyder-ide/spyder/issues/16183))
+* [PR 254](https://github.com/spyder-ide/spyder-kernels/pull/254) - PR: Enable faulthandler from the frontend, by [@impact27](https://github.com/impact27)
+
+In this release 10 pull requests were closed.
+
+
+----
+
+
+## Version 2.1.3 (2021-10-02)
+
+### Pull Requests Merged
+
+* [PR 319](https://github.com/spyder-ide/spyder-kernels/pull/319) - PR: Fix errors when setting or getting the Matplotlib backend, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 2.1.2 (2021-09-28)
+
+### Pull Requests Merged
+
+* [PR 323](https://github.com/spyder-ide/spyder-kernels/pull/323) - PR: Add `ipython_genutils` dependency for testing, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 322](https://github.com/spyder-ide/spyder-kernels/pull/322) - PR: Prevent other libraries to change the breakpoint builtin, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 2.1.1 (2021-09-01)
+
+### Pull Requests Merged
+
+* [PR 318](https://github.com/spyder-ide/spyder-kernels/pull/318) - PR: Avoid runfile to be shadowed by other packages, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 314](https://github.com/spyder-ide/spyder-kernels/pull/314) - PR: Remove dependency on ipython_genutils, by [@Carreau](https://github.com/Carreau)
+* [PR 313](https://github.com/spyder-ide/spyder-kernels/pull/313) - PR: Memoize results of is_module_installed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 309](https://github.com/spyder-ide/spyder-kernels/pull/309) - PR: Restrict jupyter-client to be less than version 7, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 4 pull requests were closed.
+
+
+----
+
+
+## Version 2.1.0 (2021-07-31)
+
+### New features
+
+* Add support for the Rich and Colorama libraries.
+* Load big modules (e.g. Numpy, Pandas and Scipy) only until it's really
+  necessary.
+
+### Issues Closed
+
+* [Issue 302](https://github.com/spyder-ide/spyder-kernels/issues/302) - Add option to use custom Outstream in kernel app ([PR 305](https://github.com/spyder-ide/spyder-kernels/pull/305) by [@eendebakpt](https://github.com/eendebakpt))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 306](https://github.com/spyder-ide/spyder-kernels/pull/306) - PR: Patch os.get_terminal_size to return a terminal size, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 305](https://github.com/spyder-ide/spyder-kernels/pull/305) - PR: Use an outstream with isatty() equal to True, by [@eendebakpt](https://github.com/eendebakpt) ([302](https://github.com/spyder-ide/spyder-kernels/issues/302))
+* [PR 303](https://github.com/spyder-ide/spyder-kernels/pull/303) - PR: Remove an unnecessary check when getting values in Pdb, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 300](https://github.com/spyder-ide/spyder-kernels/pull/300) - PR: Fix %debug magic, by [@impact27](https://github.com/impact27)
+* [PR 259](https://github.com/spyder-ide/spyder-kernels/pull/259) - PR: Don't import big modules (Numpy, Pandas) until it's really necessary, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 5 pull requests were closed.
+
+
+----
+
+
+## Version 2.0.5 (2021-07-03)
+
+### Pull Requests Merged
+
+* [PR 292](https://github.com/spyder-ide/spyder-kernels/pull/292) - PR: Add support for ipykernel 6, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 2.0.4 (2021-06-10)
+
+### Issues Closed
+
+* [Issue 288](https://github.com/spyder-ide/spyder-kernels/issues/288) - Support decorator >= 5 ([PR 301](https://github.com/spyder-ide/spyder-kernels/pull/301) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 301](https://github.com/spyder-ide/spyder-kernels/pull/301) - PR: Remove pin on decorator because the Cython magic is working fine again, by [@ccordoba12](https://github.com/ccordoba12) ([288](https://github.com/spyder-ide/spyder-kernels/issues/288))
+* [PR 299](https://github.com/spyder-ide/spyder-kernels/pull/299) - PR: Clear argv before adding the exec lines that come from Spyder, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 298](https://github.com/spyder-ide/spyder-kernels/pull/298) - PR: Use backslash instead of slash for UMR path regex detection, by [@dalthviz](https://github.com/dalthviz)
+* [PR 297](https://github.com/spyder-ide/spyder-kernels/pull/297) - PR: Don't report skipped frames for IPython 7.24+ (Debugger), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 296](https://github.com/spyder-ide/spyder-kernels/pull/296) - PR: Redefine comm_manager method to avoid showing warning, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 295](https://github.com/spyder-ide/spyder-kernels/pull/295) - PR: Fix recursive debugger, by [@impact27](https://github.com/impact27)
+* [PR 293](https://github.com/spyder-ide/spyder-kernels/pull/293) - PR: Install click 7 to run our tests in Python 2, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 7 pull requests were closed.
+
+
+----
+
+
+## Version 2.0.3 (2021-05-15)
+
+### Pull Requests Merged
+
+* [PR 291](https://github.com/spyder-ide/spyder-kernels/pull/291) - PR: Pass adding breakpoint on ValueError, by [@impact27](https://github.com/impact27)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 2.0.2 (2021-05-02)
+
+### Pull Requests Merged
+
+* [PR 289](https://github.com/spyder-ide/spyder-kernels/pull/289) - PR: Fix setting tight layout in inline figures, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 287](https://github.com/spyder-ide/spyder-kernels/pull/287) - PR: Close comm on shutdown, by [@impact27](https://github.com/impact27)
+* [PR 282](https://github.com/spyder-ide/spyder-kernels/pull/282) - PR: Fix numpy.complex deprecation warning in tests, by [@ArchangeGabriel](https://github.com/ArchangeGabriel)
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
+## Version 2.0.1 (2021-04-02)
+
+* This release also contains all fixes present in version 1.10.3
+
+
+----
+
+
+## Version 2.0.0 (2021-04-01)
+
+### New features
+
+* Color handling in namespace view was moved to Spyder.
+
+### Pull Requests Merged
+
+* [PR 284](https://github.com/spyder-ide/spyder-kernels/pull/284) - PR: Remove handling of colors for object types, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 279](https://github.com/spyder-ide/spyder-kernels/pull/279) - PR: Add Python types to namespace view, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+
+----
+
+
+## Version 1.10.3 (2021-04-02)
+
+### Pull Requests Merged
+
+* [PR 285](https://github.com/spyder-ide/spyder-kernels/pull/285) - PR: Add a new dependency on decorator to fix the Cython magic, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 1.10.2 (2021-02-21)
+
+### Pull Requests Merged
+
+* [PR 278](https://github.com/spyder-ide/spyder-kernels/pull/278) - PR: Warn when comm call creates text output, by [@impact27](https://github.com/impact27)
+* [PR 277](https://github.com/spyder-ide/spyder-kernels/pull/277) - PR: Increase minimal required version of ipykernel, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 275](https://github.com/spyder-ide/spyder-kernels/pull/275) - PR: Better test for non-interactive context, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 272](https://github.com/spyder-ide/spyder-kernels/pull/272) - PR: Fix assignment detection in exclamation mark mode (Pdb), by [@impact27](https://github.com/impact27)
+* [PR 271](https://github.com/spyder-ide/spyder-kernels/pull/271) - PR: Fix recursive debugger, by [@impact27](https://github.com/impact27)
+
+In this release 5 pull requests were closed.
+
+
+----
+
+
+## Version 1.10.1 (2020-12-18)
+
+### Issues Closed
+
+* [Issue 269](https://github.com/spyder-ide/spyder-kernels/issues/269) - Mark Windows intaller pkgs path as a library to prevent reloading modules  ([PR 270](https://github.com/spyder-ide/spyder-kernels/pull/270) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 256](https://github.com/spyder-ide/spyder-kernels/issues/256) - ImportError: cannot import name 'leading_empty_lines' ([PR 264](https://github.com/spyder-ide/spyder-kernels/pull/264) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 270](https://github.com/spyder-ide/spyder-kernels/pull/270) - PR: Treat 'pkgs' path as a library, by [@dalthviz](https://github.com/dalthviz) ([269](https://github.com/spyder-ide/spyder-kernels/issues/269))
+* [PR 267](https://github.com/spyder-ide/spyder-kernels/pull/267) - PR: Remove handlers that require direct code execution, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 266](https://github.com/spyder-ide/spyder-kernels/pull/266) - PR: Add exception for quit and exit in SpyderPdb, by [@impact27](https://github.com/impact27)
+* [PR 265](https://github.com/spyder-ide/spyder-kernels/pull/265) - PR: Add space after dot in a message, by [@impact27](https://github.com/impact27)
+* [PR 264](https://github.com/spyder-ide/spyder-kernels/pull/264) - PR: Add explicit requirement on IPython and require version 7.6.0+, by [@ccordoba12](https://github.com/ccordoba12) ([256](https://github.com/spyder-ide/spyder-kernels/issues/256))
+* [PR 263](https://github.com/spyder-ide/spyder-kernels/pull/263) - PR: Add extra validation to is_module_installed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 262](https://github.com/spyder-ide/spyder-kernels/pull/262) - PR: Avoid infinite hang when quitting external kernels, by [@impact27](https://github.com/impact27)
+* [PR 261](https://github.com/spyder-ide/spyder-kernels/pull/261) - PR: Fix get_cwd permission errors, by [@steff456](https://github.com/steff456)
+* [PR 260](https://github.com/spyder-ide/spyder-kernels/pull/260) - PR: Fix Github actions, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 9 pull requests were closed.
+
+
+----
+
+
+## Version 1.10.0 (2020-11-08)
+
+### New features
+
+* Use '!' to prefix Pdb commands.
+* Show length of all iterables.
+
+### Issues Closed
+
+* [Issue 247](https://github.com/spyder-ide/spyder-kernels/issues/247) - Remove from warning that future versions of Spyder will give an error when using non-Python syntax ([PR 243](https://github.com/spyder-ide/spyder-kernels/pull/243) by [@impact27](https://github.com/impact27))
+* [Issue 245](https://github.com/spyder-ide/spyder-kernels/issues/245) - Display size of string in variable editor
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 255](https://github.com/spyder-ide/spyder-kernels/pull/255) - PR: Fix warning for '!' Pdb option, by [@impact27](https://github.com/impact27)
+* [PR 253](https://github.com/spyder-ide/spyder-kernels/pull/253) - PR: Extend sys.path with paths that come from Spyder, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 252](https://github.com/spyder-ide/spyder-kernels/pull/252) - PR: Use frame locals when evaluating code in Pdb, by [@impact27](https://github.com/impact27)
+* [PR 251](https://github.com/spyder-ide/spyder-kernels/pull/251) - PR: Catch errors when trying to get the len of an object, by [@impact27](https://github.com/impact27)
+* [PR 250](https://github.com/spyder-ide/spyder-kernels/pull/250) - PR: Show size of objects correctly, if they implement len(), by [@skjerns](https://github.com/skjerns)
+* [PR 246](https://github.com/spyder-ide/spyder-kernels/pull/246) - PR: Allow sorting with custom sorting key, by [@skjerns](https://github.com/skjerns)
+* [PR 244](https://github.com/spyder-ide/spyder-kernels/pull/244) - PR: Set multiprocessing ORIGINAL_DIR at startup, by [@impact27](https://github.com/impact27) ([13632](https://github.com/spyder-ide/spyder/issues/13632))
+* [PR 243](https://github.com/spyder-ide/spyder-kernels/pull/243) - PR: Allow leading indents in cells, by [@impact27](https://github.com/impact27) ([247](https://github.com/spyder-ide/spyder-kernels/issues/247))
+* [PR 242](https://github.com/spyder-ide/spyder-kernels/pull/242) - PR: Display error if required, by [@impact27](https://github.com/impact27)
+* [PR 240](https://github.com/spyder-ide/spyder-kernels/pull/240) - PR: Hide runcell and runfile frames using a new IPython feature, by [@impact27](https://github.com/impact27)
+* [PR 239](https://github.com/spyder-ide/spyder-kernels/pull/239) - PR: Improve Pdb input handling, by [@impact27](https://github.com/impact27)
+* [PR 232](https://github.com/spyder-ide/spyder-kernels/pull/232) - PR: Make do_where go to the current file, by [@impact27](https://github.com/impact27)
+* [PR 223](https://github.com/spyder-ide/spyder-kernels/pull/223) - PR: Add methods to handle IPython console config on the fly, by [@dalthviz](https://github.com/dalthviz)
+* [PR 214](https://github.com/spyder-ide/spyder-kernels/pull/214) - PR: Use '!' for Pdb commands, by [@impact27](https://github.com/impact27)
+
+In this release 14 pull requests were closed.
+
+----
+
+## Version 1.9.4 (2020-09-01)
+
+### Pull Requests Merged
+
+* [PR 238](https://github.com/spyder-ide/spyder-kernels/pull/238) - PR: Set get_local_scope correctly while debugging, by [@impact27](https://github.com/impact27)
+* [PR 235](https://github.com/spyder-ide/spyder-kernels/pull/235) - PR: Set debug state correctly on exception, by [@impact27](https://github.com/impact27)
+* [PR 233](https://github.com/spyder-ide/spyder-kernels/pull/233) - PR: Don't save file in runcell, by [@impact27](https://github.com/impact27)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 1.9.3 (2020-07-24)
+
+### Issues Closed
+
+* [Issue 236](https://github.com/spyder-ide/spyder-kernels/issues/236) - test_dask_multiprocessing fails with pip packages ([PR 237](https://github.com/spyder-ide/spyder-kernels/pull/237) by [@bnavigator](https://github.com/bnavigator))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 237](https://github.com/spyder-ide/spyder-kernels/pull/237) - PR: Require dask[distributed] for tests, by [@bnavigator](https://github.com/bnavigator) ([236](https://github.com/spyder-ide/spyder-kernels/issues/236))
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 1.9.2 (2020-07-10)
+
+### Pull Requests Merged
+
+* [PR 234](https://github.com/spyder-ide/spyder-kernels/pull/234) - PR: Fix a problem caused by ipykernel 5.3.1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 231](https://github.com/spyder-ide/spyder-kernels/pull/231) - PR: Send comm config on every message, by [@impact27](https://github.com/impact27)
+* [PR 230](https://github.com/spyder-ide/spyder-kernels/pull/230) - PR: Send comm config before any wait just to be sure, by [@impact27](https://github.com/impact27)
+* [PR 229](https://github.com/spyder-ide/spyder-kernels/pull/229) - PR: Add warning on console if file is not saved, by [@impact27](https://github.com/impact27)
+* [PR 228](https://github.com/spyder-ide/spyder-kernels/pull/228) - PR: Fix post_mortem interaction, by [@dalthviz](https://github.com/dalthviz)
+* [PR 227](https://github.com/spyder-ide/spyder-kernels/pull/227) - PR: Create a constant for numeric Numpy types, by [@dalthviz](https://github.com/dalthviz)
+* [PR 226](https://github.com/spyder-ide/spyder-kernels/pull/226) - PR: Backport PR 225, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 222](https://github.com/spyder-ide/spyder-kernels/pull/222) - PR: Remove the current working directory from sys.path for Python 3.7+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 220](https://github.com/spyder-ide/spyder-kernels/pull/220) - PR: Make multithreading patch work for all OSes in Python 3, by [@steff456](https://github.com/steff456) ([12465](https://github.com/spyder-ide/spyder/issues/12465))
+
+In this release 9 pull requests were closed.
+
+----
+
+## Version 1.9.1 (2020-05-06)
+
+### Issues Closed
+
+* [Issue 217](https://github.com/spyder-ide/spyder-kernels/issues/217) - Maximum recursion depth exceeded ([PR 218](https://github.com/spyder-ide/spyder-kernels/pull/218) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 219](https://github.com/spyder-ide/spyder-kernels/pull/219) - PR: Check that startup file exists, by [@impact27](https://github.com/impact27) ([12442](https://github.com/spyder-ide/spyder/issues/12442))
+* [PR 218](https://github.com/spyder-ide/spyder-kernels/pull/218) - PR: Avoid an error when computing the shape of Pandas objects, by [@ccordoba12](https://github.com/ccordoba12) ([217](https://github.com/spyder-ide/spyder-kernels/issues/217))
+* [PR 215](https://github.com/spyder-ide/spyder-kernels/pull/215) - PR: Fix post mortem functionality, by [@impact27](https://github.com/impact27)
+* [PR 212](https://github.com/spyder-ide/spyder-kernels/pull/212) - PR: Set namespace correctly when running in new namespace, by [@impact27](https://github.com/impact27)
+* [PR 211](https://github.com/spyder-ide/spyder-kernels/pull/211) - PR: Use Exception instead of ImportError in is_special_kernel_valid, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 5 pull requests were closed.
+
+----
+
+## Version 1.9.0 (2020-03-14)
+
+### New features
+
+* Allow IPython magics in code again.
+* Allow PyQt applications to be run multiple times.
+* Remove `__file__` after running a file.
+
+### Pull Requests Merged
+
+* [PR 209](https://github.com/spyder-ide/spyder-kernels/pull/209) - PR: Improve message about using invalid syntax in cells and files, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 208](https://github.com/spyder-ide/spyder-kernels/pull/208) - PR: Add flag to override data and handle NpzFile instances, by [@dalthviz](https://github.com/dalthviz)
+* [PR 206](https://github.com/spyder-ide/spyder-kernels/pull/206) - PR: Move CI to github actions on branch 1.x, by [@goanpeca](https://github.com/goanpeca)
+* [PR 204](https://github.com/spyder-ide/spyder-kernels/pull/204) - PR: Remove load_exception in CommBase, by [@impact27](https://github.com/impact27)
+* [PR 200](https://github.com/spyder-ide/spyder-kernels/pull/200) - PR: Fix %varexp namespace, by [@impact27](https://github.com/impact27) ([6695](https://github.com/spyder-ide/spyder/issues/6695))
+* [PR 199](https://github.com/spyder-ide/spyder-kernels/pull/199) - PR: Prevent completion from changing local objects while debugging, by [@impact27](https://github.com/impact27)
+* [PR 198](https://github.com/spyder-ide/spyder-kernels/pull/198) - PR: Add method to check dependencies for special consoles, by [@dalthviz](https://github.com/dalthviz)
+* [PR 195](https://github.com/spyder-ide/spyder-kernels/pull/195) - PR: Give access to the running namespace when refreshing variables, by [@impact27](https://github.com/impact27)
+* [PR 193](https://github.com/spyder-ide/spyder-kernels/pull/193) - PR: Update test to work with IPython 7.10+, by [@impact27](https://github.com/impact27)
+* [PR 192](https://github.com/spyder-ide/spyder-kernels/pull/192) - PR: Resend comm configuration on timeout, by [@impact27](https://github.com/impact27)
+* [PR 190](https://github.com/spyder-ide/spyder-kernels/pull/190) - PR: Allow IPython magics in code again, by [@impact27](https://github.com/impact27) ([11023](https://github.com/spyder-ide/spyder/issues/11023))
+* [PR 189](https://github.com/spyder-ide/spyder-kernels/pull/189) - PR: Patch PyQt to save created QApplication instances, by [@impact27](https://github.com/impact27) ([2970](https://github.com/spyder-ide/spyder/issues/2970))
+* [PR 187](https://github.com/spyder-ide/spyder-kernels/pull/187) - PR: Remove `__file__` after running script, by [@impact27](https://github.com/impact27) ([1918](https://github.com/spyder-ide/spyder/issues/1918))
+
+In this release 13 pull requests were closed.
+
+----
+
 ## Version 1.8.1 (2019-12-05)
 
 

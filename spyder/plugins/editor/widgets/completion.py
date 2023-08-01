@@ -12,15 +12,15 @@ import sys
 
 # Third psrty imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QToolTip)
+from qtpy.QtGui import QFontMetrics, QFocusEvent
+from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
-from spyder.utils import icon_manager as ima
-from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
-from spyder.plugins.completion.languageserver import CompletionItemKind
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.utils.icon_manager import ima
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.py3compat import to_text_string
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
@@ -28,7 +28,7 @@ DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
-class CompletionWidget(QListWidget):
+class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
     ITEM_TYPE_MAP = {
         CompletionItemKind.TEXT: 'text',
@@ -47,9 +47,9 @@ class CompletionWidget(QListWidget):
         CompletionItemKind.KEYWORD: 'keyword',
         CompletionItemKind.SNIPPET: 'snippet',
         CompletionItemKind.COLOR: 'color',
-        CompletionItemKind.FILE: 'filenew',
+        CompletionItemKind.FILE: 'file',
         CompletionItemKind.REFERENCE: 'reference',
-        }
+    }
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)
@@ -72,6 +72,8 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
         self.display_index = []
 
         # Setup item rendering
@@ -96,6 +98,9 @@ class CompletionWidget(QListWidget):
 
     def show_list(self, completion_list, position, automatic):
         """Show list corresponding to position."""
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
+
         if not completion_list:
             self.hide()
             return
@@ -213,7 +218,6 @@ class CompletionWidget(QListWidget):
 
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
-        item_provider = item_info['provider']
         item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
         item_label = item_info['label']
         icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
@@ -221,12 +225,13 @@ class CompletionWidget(QListWidget):
         img_height = height - 2
         img_width = img_height * 0.8
 
-        if item_provider == KITE_COMPLETION:
-            kite_height = img_height
-            kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
+        icon_provider, icon_scale = item_info.get('icon', (None, 1))
+        if icon_provider is not None:
+            icon_height = img_height
+            icon_width = icon_scale * icon_height
+            icon_provider = ima.icon(icon_provider)
             icon_provider = ima.base64_from_icon_obj(
-                icon_provider, kite_width, kite_height)
+                icon_provider, icon_width, icon_height)
 
         item_text = self.get_html_item_representation(
             item_label, item_type, icon_provider=icon_provider,
@@ -235,6 +240,11 @@ class CompletionWidget(QListWidget):
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
+
+        # Set data for accessible readers using item label and type
+        # See spyder-ide/spyder#17047 and
+        # https://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+        item_widget.setData(Qt.AccessibleTextRole, f"{item_label} {item_type}")
 
     def get_html_item_representation(self, item_completion, item_type,
                                      icon_provider=None,
@@ -281,12 +291,18 @@ class CompletionWidget(QListWidget):
 
         return ''.join(parts)
 
-    def hide(self):
+    def hide(self, focus_to_parent=True):
         """Override Qt method."""
         self.completion_position = None
         self.completion_list = None
         self.clear()
-        self.textedit.setFocus()
+
+        # Used to control when to give focus to its parent.
+        # This is necessary to have a better fix than the initially
+        # proposed for issue spyder-ide/spyder#11502.
+        if focus_to_parent:
+            self.textedit.setFocus()
+
         tooltip = getattr(self.textedit, 'tooltip_widget', None)
         if tooltip:
             tooltip.hide()
@@ -301,10 +317,12 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         altgr = event.modifiers() and (key == Qt.Key_AltGr)
+
         # Needed to properly handle Neo2 and other keyboard layouts
         # See spyder-ide/spyder#11293
         neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
         modifier = shift or ctrl or alt or altgr or neo2_level4
+
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
@@ -322,8 +340,10 @@ class CompletionWidget(QListWidget):
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End) and not modifier:
+        elif (
+            key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
+            and not modifier
+        ):
             self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
@@ -331,7 +351,35 @@ class CompletionWidget(QListWidget):
                 self.setCurrentRow(0)
             else:
                 QListWidget.keyPressEvent(self, event)
-        elif len(text) or key == Qt.Key_Backspace:
+        elif key in (Qt.Key_Home, Qt.Key_End):
+            # This allows users to easily move to the beginning/end of the
+            # current line when this widget is visible.
+            # Fixes spyder-ide/spyder#19989
+            self.hide()
+            self.textedit.keyPressEvent(event)
+        elif key == Qt.Key_Backspace:
+            self.textedit.keyPressEvent(event)
+            self.update_current(new=False)
+        elif len(text):
+            # Determine the key sequence introduced by the user to check if
+            # we need to call the action associated to it in textedit. This
+            # way is not necessary to hide this widget for the sequence to
+            # take effect in textedit.
+            # Fixes spyder-ide/spyder#19372
+            if modifier:
+                key_sequence = keyevent_to_keysequence_str(event)
+
+                # Ask to save file if the user pressed the sequence for that.
+                # Fixes spyder-ide/spyder#14806
+                save_shortcut = self.get_conf(
+                    'editor/save file', section='shortcuts')
+                if key_sequence == save_shortcut:
+                    self.textedit.sig_save_requested.emit()
+
+                    # Hiding the widget reassures users that the save operation
+                    # took place.
+                    self.hide()
+
             self.textedit.keyPressEvent(event)
             self.update_current(new=False)
         elif modifier:
@@ -414,6 +462,12 @@ class CompletionWidget(QListWidget):
 
     def focusOutEvent(self, event):
         """Override Qt method."""
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if type(event) is not QFocusEvent:
+            return
+
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
         # keyboard input is lost.
@@ -439,18 +493,7 @@ class CompletionWidget(QListWidget):
                                             self.completion_position)
         self.hide()
 
-    def trigger_completion_hint(self, row=None):
-        if not self.completion_list:
-            return
-        if row is None:
-            row = self.currentRow()
-        if row < 0 or len(self.completion_list) <= row:
-            return
-
-        item = self.completion_list[row]
-        if 'point' not in item:
-            return
-
+    def _get_insert_text(self, item):
         if 'textEdit' in item:
             insert_text = item['textEdit']['newText']
         else:
@@ -463,11 +506,54 @@ class CompletionWidget(QListWidget):
 
             for ch in chars:
                 insert_text = insert_text.split(ch)[0]
+        return insert_text
+
+    def trigger_completion_hint(self, row=None):
+        self.current_selected_item_label = None
+        self.current_selected_item_point = None
+
+        if not self.completion_list:
+            return
+        if row is None:
+            row = self.currentRow()
+        if row < 0 or len(self.completion_list) <= row:
+            return
+
+        item = self.completion_list[row]
+        if 'point' not in item:
+            return
+
+        self.current_selected_item_label = item['label']
+        self.current_selected_item_point = item['point']
+
+        insert_text = self._get_insert_text(item)
+
+        if hasattr(self.textedit, 'resolve_completion_item'):
+            if item.get('resolve', False):
+                to_resolve = item.copy()
+                to_resolve.pop('point')
+                to_resolve.pop('resolve')
+                self.textedit.resolve_completion_item(to_resolve)
+
+        if isinstance(item['documentation'], dict):
+            item['documentation'] = item['documentation']['value']
 
         self.sig_completion_hint.emit(
             insert_text,
             item['documentation'],
             item['point'])
+
+    def augment_completion_info(self, item):
+        if self.current_selected_item_label == item['label']:
+            insert_text = self._get_insert_text(item)
+
+            if isinstance(item['documentation'], dict):
+                item['documentation'] = item['documentation']['value']
+
+            self.sig_completion_hint.emit(
+                insert_text,
+                item['documentation'],
+                self.current_selected_item_point)
 
     @Slot(int)
     def row_changed(self, row):

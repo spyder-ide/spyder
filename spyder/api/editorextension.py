@@ -54,10 +54,7 @@ class EditorExtension(object):
 
         :rtype: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
-        if self._editor is not None:
-            return self._editor
-        else:
-            return None
+        return self._editor
 
     @property
     def enabled(self):

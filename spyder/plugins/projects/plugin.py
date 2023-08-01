@@ -7,659 +7,560 @@
 """
 Projects Plugin
 
-It handles closing, opening and switching among projetcs and also
-updating the file tree explorer associated with a project
+It handles closing, opening and switching among projects and also
+updating the file tree explorer associated with a project.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
-import shutil
-import functools
 
 # Third party imports
-from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QMenu, QMessageBox, QVBoxLayout
+from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.config.base import _, get_home_dir
-from spyder.config.manager import CONF
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_text_string, to_text_string
-from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.translations import _
+from spyder.plugins.completion.api import WorkspaceUpdateKind
+from spyder.plugins.mainmenu.api import ApplicationMenus, ProjectsMenuSections
+from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.projects.widgets.main_widget import (
+    ProjectsActions, ProjectExplorerWidget)
 from spyder.utils.misc import getcwd_or_home
-from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
-from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
-from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.plugins.projects.projecttypes import EmptyProject
-from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, FileChangeType)
-from spyder.plugins.completion.decorators import (
-    request, handles, class_register)
 
 
-@class_register
-class Projects(SpyderPluginWidget):
+# Logging
+logger = logging.getLogger(__name__)
+
+
+class Projects(SpyderDockablePlugin):
     """Projects plugin."""
 
-    CONF_SECTION = 'project_explorer'
+    NAME = 'project_explorer'
+    CONF_SECTION = NAME
     CONF_FILE = False
-    sig_pythonpath_changed = Signal()
-    sig_project_created = Signal(object, object, object)
-    sig_project_loaded = Signal(object)
-    sig_project_closed = Signal(object)
+    REQUIRES = []
+    OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
+                Plugins.MainMenu, Plugins.Switcher]
+    WIDGET_CLASS = ProjectExplorerWidget
 
-    def __init__(self, parent=None):
-        """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+    # Signals
+    sig_project_created = Signal(str, str)
+    """
+    This signal is emitted to request the Projects plugin the creation of a
+    project.
 
-        self.explorer = ProjectExplorerWidget(
-            self,
-            name_filters=self.get_option('name_filters'),
-            show_all=self.get_option('show_all'),
-            show_hscrollbar=self.get_option('show_hscrollbar'),
-            options_button=self.options_button,
-            single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
-        )
+    Parameters
+    ----------
+    project_path: str
+        Location of project.
+    project_type: str
+        Type of project as defined by project types.
+    """
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.explorer)
-        self.setLayout(layout)
+    sig_project_loaded = Signal(str)
+    """
+    This signal is emitted when a project is loaded.
 
-        self.recent_projects = self.get_option('recent_projects', default=[])
-        self.current_active_project = None
-        self.latest_project = None
-        self.watcher = WorkspaceWatcher(self)
-        self.completions_available = False
-        self.explorer.setup_project(self.get_active_project_path())
-        self.watcher.connect_signals(self)
+    Parameters
+    ----------
+    project_path: str
+        Loaded project path.
+    """
 
-    #------ SpyderPluginWidget API ---------------------------------------------
-    def get_plugin_title(self):
-        """Return widget title"""
-        return _("Project")
+    sig_project_closed = Signal((str,), (bool,))
+    """
+    This signal is emitted when a project is closed.
 
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.explorer.treewidget
+    Parameters
+    ----------
+    project_path: str
+        Closed project path (signature 1).
+    close_project: bool
+        This is emitted only when closing a project but not when switching
+        between projects (signature 2).
+    """
 
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        self.new_project_action = create_action(self,
-                                    _("New Project..."),
-                                    triggered=self.create_new_project)
-        self.open_project_action = create_action(self,
-                                    _("Open Project..."),
-                                    triggered=lambda v: self.open_project())
-        self.close_project_action = create_action(self,
-                                    _("Close Project"),
-                                    triggered=self.close_project)
-        self.delete_project_action = create_action(self,
-                                    _("Delete Project"),
-                                    triggered=self.delete_project)
-        self.clear_recent_projects_action = create_action(
-            self,
-            _("Clear this list"),
-            triggered=self.clear_recent_projects)
-        self.recent_project_menu = QMenu(_("Recent Projects"), self)
+    # ---- SpyderDockablePlugin API
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def get_name():
+        return _("Projects")
 
-        self.max_recent_action = create_action(
-            self,
-            _("Maximum number of recent projects..."),
-            triggered=self.change_max_recent_projects)
+    @staticmethod
+    def get_description():
+        return _("Create Spyder projects and manage their files.")
 
-        if self.main is not None:
-            self.main.projects_menu_actions += [self.new_project_action,
-                                                MENU_SEPARATOR,
-                                                self.open_project_action,
-                                                self.close_project_action,
-                                                self.delete_project_action,
-                                                MENU_SEPARATOR,
-                                                self.recent_project_menu,
-                                                self._toggle_view_action]
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('project')
 
-        self.setup_menu_actions()
-        return []
-
-    def register_plugin(self):
+    def on_initialize(self):
         """Register plugin in Spyder's main window"""
-        ipyconsole = self.main.ipyconsole
-        treewidget = self.explorer.treewidget
-        lspmgr = self.main.completions
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+        self._completions = None
+        self._switcher = None
 
-        self.add_dockwidget()
-        self.explorer.sig_open_file.connect(self.main.open_file)
-        self.register_widget_shortcuts(treewidget)
+        # Emit public signals so that other plugins can connect to them
+        widget.sig_project_created.connect(self.sig_project_created)
+        widget.sig_project_closed.connect(self.sig_project_closed)
+        widget.sig_project_loaded.connect(self.sig_project_loaded)
 
         treewidget.sig_delete_project.connect(self.delete_project)
-        treewidget.sig_edit.connect(self.main.editor.load)
-        treewidget.sig_removed.connect(self.main.editor.removed)
-        treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
-        treewidget.sig_renamed.connect(self.main.editor.renamed)
-        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
-        treewidget.sig_create_module.connect(self.main.editor.new)
-        treewidget.sig_new_file.connect(
-            lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_interpreter.connect(
+        treewidget.sig_redirect_stdio_requested.connect(
+            self.sig_redirect_stdio_requested)
+        self.sig_switch_to_plugin_requested.connect(
+            lambda plugin, check: self._show_main_widget())
+
+        if self.main:
+            widget.sig_open_file_requested.connect(self.main.open_file)
+            widget.sig_project_loaded.connect(
+                lambda v: self.main.set_window_title())
+            widget.sig_project_closed.connect(
+                lambda v: self.main.set_window_title())
+            self.main.restore_scrollbar_position.connect(
+                self.get_widget().restore_scrollbar_position)
+
+        self.register_project_type(self, EmptyProject)
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+
+        editor.set_projects(self)
+
+        treewidget.sig_open_file_requested.connect(editor.load)
+        treewidget.sig_removed.connect(editor.removed)
+        treewidget.sig_tree_removed.connect(editor.removed_tree)
+        treewidget.sig_renamed.connect(editor.renamed)
+        treewidget.sig_tree_renamed.connect(editor.renamed_tree)
+        treewidget.sig_module_created.connect(editor.new)
+        treewidget.sig_file_created.connect(self._new_editor)
+
+        widget.sig_save_open_files_requested.connect(editor.save_open_files)
+        widget.sig_project_loaded.connect(self._setup_editor_files)
+        widget.sig_project_closed[bool].connect(self._setup_editor_files)
+        widget.sig_project_loaded.connect(self._set_path_in_editor)
+        widget.sig_project_closed.connect(self._unset_path_in_editor)
+
+        if self._switcher:
+            widget.sig_open_file_requested.connect(editor.load)
+
+    @on_plugin_available(plugin=Plugins.Completions)
+    def on_completions_available(self):
+        self._completions = self.get_plugin(Plugins.Completions)
+        widget = self.get_widget()
+
+        # TODO: This is not necessary anymore due to us starting workspace
+        # services in the editor. However, we could restore it in the future.
+        # completions.sig_language_completions_available.connect(
+        #     lambda settings, language:
+        #         self.start_workspace_services())
+        self._completions.sig_stop_completions.connect(
+            self.stop_workspace_services)
+        widget.sig_project_loaded.connect(self._add_path_to_completions)
+        widget.sig_project_closed.connect(self._remove_path_from_completions)
+        widget.sig_broadcast_notification_requested.connect(
+            self._broadcast_notification)
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+
+        widget.sig_restart_console_requested.connect(ipyconsole.restart)
+        treewidget.sig_open_interpreter_requested.connect(
             ipyconsole.create_client_from_path)
-        treewidget.redirect_stdio.connect(
-            self.main.redirect_internalshell_stdio)
-        treewidget.sig_run.connect(
-            lambda fname:
-            ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
-                                  False, True, False))
+        treewidget.sig_run_requested.connect(self._run_file_in_ipyconsole)
 
-        # New project connections. Order matters!
-        self.sig_project_loaded.connect(
-            lambda v: self.main.workingdirectory.chdir(v))
-        self.sig_project_loaded.connect(
-            lambda v: self.main.set_window_title())
-        self.sig_project_loaded.connect(
-            functools.partial(lspmgr.project_path_update,
-                              update_kind='addition'))
-        self.sig_project_loaded.connect(
-            lambda v: self.main.editor.setup_open_files())
-        self.sig_project_loaded.connect(self.update_explorer)
-        self.sig_project_closed[object].connect(
-            lambda v: self.main.workingdirectory.chdir(
-                self.get_last_working_dir()))
-        self.sig_project_closed.connect(
-            lambda v: self.main.set_window_title())
-        self.sig_project_closed.connect(
-            functools.partial(lspmgr.project_path_update,
-                              update_kind='deletion'))
-        self.sig_project_closed.connect(
-            lambda v: self.main.editor.setup_open_files())
-        self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_main_menu_available(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        new_project_action = self.get_action(ProjectsActions.NewProject)
+        open_project_action = self.get_action(ProjectsActions.OpenProject)
+        close_project_action = self.get_action(ProjectsActions.CloseProject)
+        delete_project_action = self.get_action(ProjectsActions.DeleteProject)
 
-        self.main.pythonpath_changed()
-        self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
-        self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.main.editor.set_projects(self)
+        projects_menu = main_menu.get_application_menu(
+            ApplicationMenus.Projects)
+        projects_menu.aboutToShow.connect(self._is_invalid_active_project)
 
-        # Connect to file explorer to keep single click to open files in sync
-        self.main.explorer.fileexplorer.sig_option_changed.connect(
-            self.set_single_click_to_open
-        )
+        main_menu.add_item_to_application_menu(
+            new_project_action,
+            menu_id=ApplicationMenus.Projects,
+            section=ProjectsMenuSections.New)
 
-    def set_single_click_to_open(self, option, value):
-        """Set single click to open files and directories."""
-        if option == 'single_click_to_open':
-            self.explorer.treewidget.set_single_click_to_open(value)
+        for item in [open_project_action, close_project_action,
+                     delete_project_action]:
+            main_menu.add_item_to_application_menu(
+                item,
+                menu_id=ApplicationMenus.Projects,
+                section=ProjectsMenuSections.Open)
 
-    def closing_plugin(self, cancelable=False):
+        main_menu.add_item_to_application_menu(
+            self.get_widget().recent_project_menu,
+            menu_id=ApplicationMenus.Projects,
+            section=ProjectsMenuSections.Extras)
+
+    @on_plugin_available(plugin=Plugins.Switcher)
+    def on_switcher_available(self):
+        # Connect to switcher
+        self._switcher = self.get_plugin(Plugins.Switcher)
+        self._switcher.sig_mode_selected.connect(self._handle_switcher_modes)
+        self._switcher.sig_item_selected.connect(
+            self._handle_switcher_selection)
+        self._switcher.sig_search_text_available.connect(
+            self._handle_switcher_results)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+
+        editor.set_projects(None)
+
+        treewidget.sig_open_file_requested.disconnect(editor.load)
+        treewidget.sig_removed.disconnect(editor.removed)
+        treewidget.sig_tree_removed.disconnect(editor.removed_tree)
+        treewidget.sig_renamed.disconnect(editor.renamed)
+        treewidget.sig_tree_renamed.disconnect(editor.renamed_tree)
+        treewidget.sig_module_created.disconnect(editor.new)
+        treewidget.sig_file_created.disconnect(self._new_editor)
+
+        widget.sig_save_open_files_requested.disconnect(editor.save_open_files)
+        widget.sig_project_loaded.disconnect(self._setup_editor_files)
+        widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
+        widget.sig_project_loaded.disconnect(self._set_path_in_editor)
+        widget.sig_project_closed.disconnect(self._unset_path_in_editor)
+        widget.sig_open_file_requested.disconnect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Completions)
+    def on_completions_teardown(self):
+        self._completions = self.get_plugin(Plugins.Completions)
+        widget = self.get_widget()
+
+        self._completions.sig_stop_completions.disconnect(
+            self.stop_workspace_services)
+
+        widget.sig_project_loaded.disconnect(self._add_path_to_completions)
+        widget.sig_project_closed.disconnect(
+            self._remove_path_from_completions)
+        widget.sig_broadcast_notification_requested.disconnect(
+            self._broadcast_notification)
+
+        self._completions = None
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardown(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        widget = self.get_widget()
+        treewidget = widget.treewidget
+
+        widget.sig_restart_console_requested.disconnect(ipyconsole.restart)
+        treewidget.sig_open_interpreter_requested.disconnect(
+            ipyconsole.create_client_from_path)
+        treewidget.sig_run_requested.disconnect(self._run_file_in_ipyconsole)
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_main_menu_teardown(self):
+        main_menu = self.get_plugin(Plugins.MainMenu)
+        main_menu.remove_application_menu(ApplicationMenus.Projects)
+
+    @on_plugin_teardown(plugin=Plugins.Switcher)
+    def on_switcher_teardown(self):
+        # Disconnect from switcher
+        self._switcher.sig_mode_selected.disconnect(
+            self._handle_switcher_modes)
+        self._switcher.sig_item_selected.disconnect(
+            self._handle_switcher_selection)
+        self._switcher.sig_search_text_available.disconnect(
+            self._handle_switcher_results)
+        self._switcher = None
+
+    def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.save_config()
-        self.explorer.closing_widget()
+        self.get_widget().save_config()
+        self.get_widget().watcher.stop()
         return True
 
-    def switch_to_plugin(self):
-        """Switch to plugin."""
-        # Unmaxizime currently maximized plugin
-        if (self.main.last_plugin is not None and
-                self.main.last_plugin._ismaximized and
-                self.main.last_plugin is not self):
-            self.main.maximize_dockwidget()
+    def on_mainwindow_visible(self):
+        # Open project passed on the command line or reopen last one.
+        cli_options = self.get_command_line_options()
+        initial_cwd = self._main.get_initial_working_directory()
 
-        # Show plugin only if it was already visible
-        if self.get_option('visible_if_project_open'):
-            if not self._toggle_view_action.isChecked():
-                self._toggle_view_action.setChecked(True)
-            self._visibility_changed(True)
-
-    def build_opener(self, project):
-        """Build function opening passed project"""
-        def opener(*args, **kwargs):
-            self.open_project(path=project)
-        return opener
-
-    # ------ Public API -------------------------------------------------------
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        # TODO: Uncomment for Spyder 5
-        # self.tabify(self.main.explorer)
-
-    def setup_menu_actions(self):
-        """Setup and update the menu actions."""
-        self.recent_project_menu.clear()
-        self.recent_projects_actions = []
-        if self.recent_projects:
-            for project in self.recent_projects:
-                if self.is_valid_project(project):
-                    name = project.replace(get_home_dir(), '~')
-                    action = create_action(
-                        self,
-                        name,
-                        icon=ima.icon('project'),
-                        triggered=self.build_opener(project),
-                    )
-                    self.recent_projects_actions.append(action)
-                else:
-                    self.recent_projects.remove(project)
-            self.recent_projects_actions += [
-                None,
-                self.clear_recent_projects_action,
-                self.max_recent_action
-            ]
+        if cli_options.project is not None:
+            logger.debug('Opening project from the command line')
+            project = osp.normpath(
+                osp.join(initial_cwd, cli_options.project)
+            )
+            self.open_project(
+                project,
+                workdir=cli_options.working_directory
+            )
         else:
-            self.recent_projects_actions = [self.clear_recent_projects_action,
-                                            self.max_recent_action]
-        add_actions(self.recent_project_menu, self.recent_projects_actions)
-        self.update_project_actions()
+            self.get_widget().set_pane_empty()
+            logger.debug('Reopening project from last session')
+            self.get_widget().reopen_last_project()
 
-    def update_project_actions(self):
-        """Update actions of the Projects menu"""
-        if self.recent_projects:
-            self.clear_recent_projects_action.setEnabled(True)
-        else:
-            self.clear_recent_projects_action.setEnabled(False)
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def create_project(self, path, project_type_id=EmptyProject.ID):
+        """
+        Create a new project.
 
-        active = bool(self.get_active_project_path())
-        self.close_project_action.setEnabled(active)
-        self.delete_project_action.setEnabled(active)
+        Parameters
+        ----------
+        path: str
+            Filesystem path where the project will be created.
+        project_type_id: str, optional
+            Id for the project type. The default is 'empty-project-type'.
+        packages: list, optional
+            Package to install. Currently not in use.
+        """
+        self.get_widget().create_project(path, project_type_id)
 
-    @Slot()
-    def create_new_project(self):
-        """Create new project"""
-        self.switch_to_plugin()
-        active_project = self.current_active_project
-        dlg = ProjectDialog(self)
-        dlg.sig_project_creation_requested.connect(self._create_project)
-        dlg.sig_project_creation_requested.connect(self.sig_project_created)
-        if dlg.exec_():
-            if (active_project is None
-                    and self.get_option('visible_if_project_open')):
-                self.show_explorer()
-            self.sig_pythonpath_changed.emit()
-            self.restart_consoles()
+    def open_project(self, path=None, project_type=None, restart_console=True,
+                     save_previous_files=True, workdir=None):
+        """
+        Open the project located in a given path.
 
-    def _create_project(self, path):
-        """Create a new project."""
-        self.open_project(path=path)
-
-    def open_project(self, path=None, restart_consoles=True,
-                     save_previous_files=True):
-        """Open the project located in `path`"""
-        self.notify_project_open(path)
-        self.switch_to_plugin()
-        if path is None:
-            basedir = get_home_dir()
-            path = getexistingdirectory(parent=self,
-                                        caption=_("Open project"),
-                                        basedir=basedir)
-            path = encoding.to_unicode_from_fs(path)
-            if not self.is_valid_project(path):
-                if path:
-                    QMessageBox.critical(self, _('Error'),
-                                _("<b>%s</b> is not a Spyder project!") % path)
-                return
-        else:
-            path = encoding.to_unicode_from_fs(path)
-
-        self.add_to_recent(path)
-
-        # A project was not open before
-        if self.current_active_project is None:
-            if save_previous_files and self.main.editor is not None:
-                self.main.editor.save_open_files()
-            if self.main.editor is not None:
-                self.main.editor.set_option('last_working_dir',
-                                            getcwd_or_home())
-            if self.get_option('visible_if_project_open'):
-                self.show_explorer()
-        else:
-            # We are switching projects
-            if self.main.editor is not None:
-                self.set_project_filenames(
-                    self.main.editor.get_open_filenames())
-
-        project = EmptyProject(path)
-        self.current_active_project = project
-        self.latest_project = project
-        self.set_option('current_project_path', self.get_active_project_path())
-
-        self.setup_menu_actions()
-        self.sig_project_loaded.emit(path)
-        self.sig_pythonpath_changed.emit()
-        self.watcher.start(path)
-
-        if restart_consoles:
-            self.restart_consoles()
+        Parameters
+        ----------
+        path: str
+            Filesystem path where the project is located.
+        project_type: spyder.plugins.projects.api.BaseProjectType, optional
+            Project type class.
+        restart_console: bool, optional
+            Whether to restart the IPython console (i.e. close all consoles and
+            reopen a single one) after opening the project. The default is
+            True.
+        save_previous_files: bool, optional
+            Whether to save the list of previous open files in the editor
+            before opening the project. The default is True.
+        workdir: str, optional
+            Working directory to set after opening the project. The default is
+            None.
+        """
+        self.get_widget().open_project(
+            path, project_type, restart_console, save_previous_files, workdir
+        )
 
     def close_project(self):
         """
-        Close current project and return to a window without an active
-        project
+        Close current project and return to a window without an active project.
         """
-        if self.current_active_project:
-            self.switch_to_plugin()
-            if self.main.editor is not None:
-                self.set_project_filenames(
-                    self.main.editor.get_open_filenames())
-            path = self.current_active_project.root_path
-            self.current_active_project = None
-            self.set_option('current_project_path', None)
-            self.setup_menu_actions()
-
-            self.sig_project_closed.emit(path)
-            self.sig_pythonpath_changed.emit()
-
-            if self.dockwidget is not None:
-                self.set_option('visible_if_project_open',
-                                self.dockwidget.isVisible())
-                self.dockwidget.close()
-
-            self.explorer.clear()
-            self.restart_consoles()
-            self.watcher.stop()
-            self.notify_project_close(path)
+        self.get_widget().close_project()
 
     def delete_project(self):
         """
         Delete the current project without deleting the files in the directory.
         """
-        if self.current_active_project:
-            self.switch_to_plugin()
-            path = self.current_active_project.root_path
-            buttons = QMessageBox.Yes | QMessageBox.No
-            answer = QMessageBox.warning(
-                self,
-                _("Delete"),
-                _("Do you really want to delete <b>{filename}</b>?<br><br>"
-                  "<b>Note:</b> This action will only delete the project. "
-                  "Its files are going to be preserved on disk."
-                  ).format(filename=osp.basename(path)),
-                buttons)
-            if answer == QMessageBox.Yes:
-                try:
-                    self.close_project()
-                    shutil.rmtree(osp.join(path, '.spyproject'))
-                except EnvironmentError as error:
-                    QMessageBox.critical(
-                        self,
-                        _("Project Explorer"),
-                        _("<b>Unable to delete <i>{varpath}</i></b>"
-                          "<br><br>The error message was:<br>{error}"
-                          ).format(varpath=path, error=to_text_string(error)))
-
-    def clear_recent_projects(self):
-        """Clear the list of recent projects"""
-        self.recent_projects = []
-        self.setup_menu_actions()
-
-    def change_max_recent_projects(self):
-        """Change max recent projects entries."""
-
-        mrf, valid = QInputDialog.getInt(
-            self,
-            _('Projects'),
-            _('Maximum number of recent projects'),
-            self.get_option('max_recent_projects'),
-            1,
-            35)
-
-        if valid:
-            self.set_option('max_recent_projects', mrf)
+        self.get_widget().delete_project()
 
     def get_active_project(self):
-        """Get the active project"""
-        return self.current_active_project
-
-    def reopen_last_project(self):
-        """
-        Reopen the active project when Spyder was closed last time, if any
-        """
-        current_project_path = self.get_option('current_project_path',
-                                               default=None)
-
-        # Needs a safer test of project existence!
-        if current_project_path and \
-          self.is_valid_project(current_project_path):
-            self.open_project(path=current_project_path,
-                              restart_consoles=False,
-                              save_previous_files=False)
-            self.load_config()
+        """Get the active project."""
+        return self.get_widget().current_active_project
 
     def get_project_filenames(self):
-        """Get the list of recent filenames of a project"""
-        recent_files = []
-        if self.current_active_project:
-            recent_files = self.current_active_project.get_recent_files()
-        elif self.latest_project:
-            recent_files = self.latest_project.get_recent_files()
-        return recent_files
+        """Get the list of recent filenames of a project."""
+        return self.get_widget().get_project_filenames()
 
-    def set_project_filenames(self, recent_files):
-        """Set the list of open file names in a project"""
-        if (self.current_active_project
-                and self.is_valid_project(
-                        self.current_active_project.root_path)):
-            self.current_active_project.set_recent_files(recent_files)
+    def set_project_filenames(self, filenames):
+        """
+        Set the list of open file names in a project.
+
+        Parameters
+        ----------
+        filenames: list of strings
+            File names to save in the project config options.
+        """
+        self.get_widget().set_project_filenames(filenames)
 
     def get_active_project_path(self):
-        """Get path of the active project"""
-        active_project_path = None
-        if self.current_active_project:
-            active_project_path = self.current_active_project.root_path
-        return active_project_path
-
-    def get_pythonpath(self, at_start=False):
-        """Get project path as a list to be added to PYTHONPATH"""
-        if at_start:
-            current_path = self.get_option('current_project_path',
-                                           default=None)
-        else:
-            current_path = self.get_active_project_path()
-        if current_path is None:
-            return []
-        else:
-            return [current_path]
+        """Get path of the active project."""
+        return self.get_widget().get_active_project_path()
 
     def get_last_working_dir(self):
-        """Get the path of the last working directory"""
-        return self.main.editor.get_option('last_working_dir',
-                                           default=getcwd_or_home())
-
-    def save_config(self):
-        """
-        Save configuration: opened projects & tree widget state.
-
-        Also save whether dock widget is visible if a project is open.
-        """
-        self.set_option('recent_projects', self.recent_projects)
-        self.set_option('expanded_state',
-                        self.explorer.treewidget.get_expanded_state())
-        self.set_option('scrollbar_position',
-                        self.explorer.treewidget.get_scrollbar_position())
-        if self.current_active_project and self.dockwidget:
-            self.set_option('visible_if_project_open',
-                            self.dockwidget.isVisible())
-
-    def load_config(self):
-        """Load configuration: opened projects & tree widget state"""
-        expanded_state = self.get_option('expanded_state', None)
-        # Sometimes the expanded state option may be truncated in .ini file
-        # (for an unknown reason), in this case it would be converted to a
-        # string by 'userconfig':
-        if is_text_string(expanded_state):
-            expanded_state = None
-        if expanded_state is not None:
-            self.explorer.treewidget.set_expanded_state(expanded_state)
-
-    def restore_scrollbar_position(self):
-        """Restoring scrollbar position after main window is visible"""
-        scrollbar_pos = self.get_option('scrollbar_position', None)
-        if scrollbar_pos is not None:
-            self.explorer.treewidget.set_scrollbar_position(scrollbar_pos)
-
-    def update_explorer(self):
-        """Update explorer tree"""
-        self.explorer.setup_project(self.get_active_project_path())
-
-    def show_explorer(self):
-        """Show the explorer"""
-        if self.dockwidget is not None:
-            if self.dockwidget.isHidden():
-                self.dockwidget.show()
-            self.dockwidget.raise_()
-            self.dockwidget.update()
-
-    def restart_consoles(self):
-        """Restart consoles when closing, opening and switching projects"""
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.restart()
+        """Get the path of the last working directory."""
+        return self.get_conf(
+            'last_working_dir', section='editor', default=getcwd_or_home()
+        )
 
     def is_valid_project(self, path):
-        """Check if a directory is a valid Spyder project"""
-        spy_project_dir = osp.join(path, '.spyproject')
-        return osp.isdir(path) and osp.isdir(spy_project_dir)
-
-    def add_to_recent(self, project):
         """
-        Add an entry to recent projetcs
+        Check if a directory is a valid Spyder project.
 
-        We only maintain the list of the 10 most recent projects
+        Parameters
+        ----------
+        path: str
+            Filesystem path to the project.
         """
-        if project not in self.recent_projects:
-            self.recent_projects.insert(0, project)
-        if len(self.recent_projects) > self.get_option('max_recent_projects'):
-            self.recent_projects.pop(-1)
+        return self.get_widget().is_valid_project(path)
 
-    def register_lsp_server_settings(self, settings):
-        """Enable LSP workspace functions."""
-        self.completions_available = True
-        if self.current_active_project:
-            path = self.get_active_project_path()
-            self.notify_project_open(path)
+    def start_workspace_services(self):
+        """Enable LSP workspace functionality."""
+        self.get_widget().start_workspace_services()
 
-    def stop_lsp_services(self):
-        """Disable LSP workspace functions."""
-        self.completions_available = False
+    def stop_workspace_services(self, _language):
+        """Disable LSP workspace functionality."""
+        self.get_widget().stop_workspace_services()
 
-    def emit_request(self, method, params, requires_response):
-        """Send request/notification/response to all LSP servers."""
-        params['requires_response'] = requires_response
-        params['response_instance'] = self
-        self.main.completions.broadcast_notification(method, params)
+    def register_project_type(self, parent_plugin, project_type):
+        """
+        Register a new project type.
 
-    @Slot(str, dict)
-    def handle_response(self, method, params):
-        """Method dispatcher for LSP requests."""
-        if method in self.handler_registry:
-            handler_name = self.handler_registry[method]
-            handler = getattr(self, handler_name)
-            handler(params)
+        Parameters
+        ----------
+        parent_plugin: spyder.plugins.api.plugins.SpyderPluginV2
+            The parent plugin instance making the project type registration.
+        project_type: spyder.plugins.projects.api.BaseProjectType
+            Project type to register.
+        """
+        self.get_widget().register_project_type(parent_plugin, project_type)
 
-    @Slot(str, str, bool)
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
-    def file_moved(self, src_file, dest_file, is_dir):
-        """Notify LSP server about a file that is moved."""
-        # LSP specification only considers file updates
-        if is_dir:
-            return
+    def get_project_types(self):
+        """
+        Return available registered project types.
 
-        deletion_entry = {
-            'file': src_file,
-            'kind': FileChangeType.DELETED
-        }
+        Returns
+        -------
+        dict
+            Project types dictionary. Keys are project type IDs and values
+            are project type classes.
+        """
+        return self.get_widget().get_project_types()
 
-        addition_entry = {
-            'file': dest_file,
-            'kind': FileChangeType.CREATED
-        }
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _new_editor(self, text):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.new(text=text)
 
-        entries = [addition_entry, deletion_entry]
-        params = {
-            'params': entries
-        }
-        return params
+    def _setup_editor_files(self, __unused):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.setup_open_files()
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
-    @Slot(str, bool)
-    def file_created(self, src_file, is_dir):
-        """Notify LSP server about file creation."""
-        if is_dir:
-            return
+    def _set_path_in_editor(self, path):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.set_current_project_path(path)
 
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': FileChangeType.CREATED
-            }]
-        }
-        return params
+    def _unset_path_in_editor(self, __unused):
+        editor = self.get_plugin(Plugins.Editor)
+        editor.set_current_project_path()
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
-    @Slot(str, bool)
-    def file_deleted(self, src_file, is_dir):
-        """Notify LSP server about file deletion."""
-        if is_dir:
-            return
+    def _add_path_to_completions(self, path):
+        self._completions.project_path_update(
+            path,
+            update_kind=WorkspaceUpdateKind.ADDITION,
+            instance=self.get_widget()
+        )
 
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': FileChangeType.DELETED
-            }]
-        }
-        return params
+    def _remove_path_from_completions(self, path):
+        self._completions.project_path_update(
+            path,
+            update_kind=WorkspaceUpdateKind.DELETION,
+            instance=self.get_widget()
+        )
 
-    @request(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
-    @Slot(str, bool)
-    def file_modified(self, src_file, is_dir):
-        """Notify LSP server about file modification."""
-        if is_dir:
-            return
+    def _run_file_in_ipyconsole(self, fname):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.run_script(
+            filename=fname,
+            wdir=osp.dirname(fname),
+            current_client=False,
+            clear_variables=True
+        )
 
-        params = {
-            'params': [{
-                'file': src_file,
-                'kind': FileChangeType.CHANGED
-            }]
-        }
-        return params
+    def _show_main_widget(self):
+        """Show the main widget."""
+        if self.get_widget() is not None:
+            self.get_widget().show_widget()
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
-             requires_response=False)
-    def notify_project_open(self, path):
-        """Notify LSP server about project path availability."""
-        params = {
-            'folder': path,
-            'instance': self,
-            'kind': 'addition'
-        }
-        return params
+    def _get_open_filenames(self):
+        editor = self.get_plugin(Plugins.Editor)
+        if editor is not None:
+            return editor.get_open_filenames()
 
-    @request(method=LSPRequestTypes.WORKSPACE_FOLDERS_CHANGE,
-             requires_response=False)
-    def notify_project_close(self, path):
-        """Notify LSP server to unregister project path."""
-        params = {
-            'folder': path,
-            'instance': self,
-            'kind': 'deletion'
-        }
-        return params
+    def _is_invalid_active_project(self):
+        """Handle an invalid active project."""
+        self.get_widget().is_invalid_active_project()
 
-    @handles(LSPRequestTypes.WORKSPACE_APPLY_EDIT)
-    @request(method=LSPRequestTypes.WORKSPACE_APPLY_EDIT,
-             requires_response=False)
-    def handle_workspace_edit(self, params):
-        """Apply edits to multiple files and notify server about success."""
-        edits = params['params']
-        response = {
-            'applied': False,
-            'error': 'Not implemented',
-            'language': edits['language']
-        }
-        return response
+    def _broadcast_notification(self, method, params):
+        self._completions.broadcast_notification(method, params)
+
+    def _handle_switcher_modes(self, mode):
+        """
+        Populate switcher with files in active project.
+
+        List the file names of the current active project with their
+        directories in the switcher. It only handles the files mode, i.e.
+        an empty string.
+
+        Parameters
+        ----------
+        mode: str
+            The selected mode (open files "", symbol "@" or line ":").
+        """
+        items = self.get_widget().handle_switcher_modes()
+        for (title, description, icon, section, path, is_last_item) in items:
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item
+            )
+        self._switcher.set_current_row(0)
+
+    def _handle_switcher_selection(self, item, mode, search_text):
+        """
+        Handle user selecting item in switcher.
+
+        If the selected item is not in the section of the switcher that
+        corresponds to this plugin, then ignore it. Otherwise, switch to
+        selected project file and hide the switcher.
+
+        Parameters
+        ----------
+        item: object
+            The current selected item from the switcher list (QStandardItem).
+        mode: str
+            The current selected mode (open files "", symbol "@" or line ":").
+        search_text: str
+            Cleaned search/filter text.
+        """
+        self.get_widget().handle_switcher_selection(item, mode, search_text)
+        self._switcher.hide()
+
+    def _handle_switcher_results(self, search_text, items_data):
+        """
+        Handle user typing in switcher to filter results.
+
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        items_data: list
+            List of items shown in the switcher.
+        """
+        items = self.get_widget().handle_switcher_results(search_text,
+                                                          items_data)
+        for (title, description, icon, section, path, is_last_item) in items:
+            self._switcher.add_item(
+                title=title,
+                description=description,
+                icon=icon,
+                section=section,
+                data=path,
+                last_item=is_last_item,
+                score=100
+            )

@@ -11,7 +11,6 @@ Tests for explorer plugin utilities.
 
 # Standard imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
@@ -20,9 +19,10 @@ import pytest
 
 # Local imports
 from spyder.plugins.explorer.widgets.fileassociations import (
-    ApplicationsDialog, FileAssociationsWidget, InputTextDialog)
+    ApplicationsDialog, InputTextDialog)
 
 
+@pytest.mark.order(1)
 def test_input_text_dialog(qtbot):
     widget = InputTextDialog()
     qtbot.addWidget(widget)
@@ -53,6 +53,7 @@ def test_input_text_dialog(qtbot):
     widget.validate()
 
 
+@pytest.mark.order(1)
 def test_apps_dialog(qtbot, tmp_path):
     widget = ApplicationsDialog()
     qtbot.addWidget(widget)
@@ -140,6 +141,7 @@ def create_timer(func, interval=500):
     return timer
 
 
+@pytest.mark.order(1)
 def test_file_assoc_widget(file_assoc_widget):
     qtbot, widget = file_assoc_widget
 

@@ -15,7 +15,6 @@ import sys
 import stat
 import socket
 
-from spyder.py3compat import is_text_string, getcwd
 from spyder.config.base import get_home_dir
 
 
@@ -26,8 +25,8 @@ def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
     if osp.splitext(fname)[1] == '.py':
         for ending in ('c', 'o'):
-            if osp.exists(fname+ending):
-                os.remove(fname+ending)
+            if osp.exists(fname + ending):
+                os.remove(fname + ending)
 
 
 def rename_file(source, dest):
@@ -83,7 +82,7 @@ def select_port(default_port=20128):
                                  socket.SOCK_STREAM,
                                  socket.IPPROTO_TCP)
 #            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind( ("127.0.0.1", default_port) )
+            sock.bind(("127.0.0.1", default_port))
         except socket.error as _msg:  # analysis:ignore
             default_port += 1
         else:
@@ -105,6 +104,7 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
                       '.f03', '.f08']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
+
     def get_filelines(path):
         dfiles, dlines = 0, 0
         if osp.splitext(path)[1] in extensions:
@@ -153,13 +153,23 @@ def remove_backslashes(path):
 
 
 def get_error_match(text):
-    """Return error match"""
-    import re
-    return re.match(r'  File "(.*)", line (\d*)', text)
+    """Check if text contains a Python error."""
+    # For regular Python tracebacks and IPython 7 or less.
+    match_python = re.match(r'  File "(.*)", line (\d*)', text)
+    if match_python is not None:
+        return match_python
+
+    # For IPython 8+ tracebacks.
+    # Fixes spyder-ide/spyder#20407
+    ipython8_match = re.match(r'  File (.*):(\d*)', text)
+    if ipython8_match is not None:
+        return ipython8_match
+
+    return False
 
 
 def get_python_executable():
-    """Return path to Python executable"""
+    """Return path to Spyder Python executable"""
     executable = sys.executable.replace("pythonw.exe", "python.exe")
     if executable.endswith("spyder.exe"):
         # py2exe distribution
@@ -216,38 +226,11 @@ def get_common_path(pathlist):
             return abspardir(common)
         else:
             for path in pathlist:
-                if not osp.isdir(osp.join(common, path[len(common)+1:])):
+                if not osp.isdir(osp.join(common, path[len(common) + 1:])):
                     # `common` is not the real common prefix
                     return abspardir(common)
             else:
                 return osp.abspath(common)
-
-
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False,
-                               ipyconsole=False):
-    # PyQt API 1/2 compatibility-related tests:
-    assert isinstance(env, list)
-    assert all([is_text_string(path) for path in env])
-
-    pypath = "PYTHONPATH"
-    pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) is not None and not drop_env:
-        old_pypath = os.environ[pypath]
-        if not ipyconsole:
-            for index, var in enumerate(env[:]):
-                if var.startswith(pypath+'='):
-                    env[index] = var.replace(pypath+'=',
-                                             pypath+'='+pathstr+os.pathsep)
-            env.append('OLD_PYTHONPATH='+old_pypath)
-        else:
-            pypath =  {'PYTHONPATH': pathstr + os.pathsep + old_pypath,
-                       'OLD_PYTHONPATH': old_pypath}
-            return pypath
-    else:
-        if not ipyconsole:
-            env.append(pypath+'='+pathstr)
-        else:
-            return {'PYTHONPATH': pathstr}
 
 
 def memoize(obj):
@@ -280,7 +263,7 @@ def getcwd_or_home():
     was removed for an external program.
     """
     try:
-        return getcwd()
+        return os.getcwd()
     except OSError:
         logger.debug("WARNING: Current working directory was deleted, "
                      "falling back to home dirertory")

@@ -64,8 +64,8 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
     sig_file_modified = Signal(str, bool)
 
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        super(FileSystemEventHandler, self).__init__()
+        QObject.__init__(self, parent)
+        FileSystemEventHandler.__init__(self)
 
     def fmt_is_dir(self, is_dir):
         return 'directory' if is_dir else 'file'
@@ -107,9 +107,10 @@ class WorkspaceWatcher(QObject):
     It provides methods to start and stop watching folders.
     """
 
+    observer = None
+
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        self.observer = None
+        super().__init__(parent)
         self.event_handler = WorkspaceEventHandler(self)
 
     def connect_signals(self, project):
@@ -125,8 +126,13 @@ class WorkspaceWatcher(QObject):
             self.observer = Observer()
             self.observer.schedule(
                 self.event_handler, workspace_folder, recursive=True)
-            self.observer.start()
+            try:
+                self.observer.start()
+            except OSError:
+                # This error happens frequently on Linux
+                logger.debug("Watcher could not be started.")
         except OSError as e:
+            self.observer = None
             if u'inotify' in to_text_string(e):
                 QMessageBox.warning(
                     self.parent(),
@@ -148,12 +154,18 @@ class WorkspaceWatcher(QObject):
                       "<br><br>"
                       "After doing that, you need to close and start Spyder "
                       "again so those changes can take effect."))
-                self.observer = None
             else:
                 raise e
 
     def stop(self):
         if self.observer is not None:
-            self.observer.stop()
-            self.observer.join()
-            del self.observer
+            # This is required to avoid showing an error when closing
+            # projects.
+            # Fixes spyder-ide/spyder#14107
+            try:
+                self.observer.stop()
+                self.observer.join()
+                del self.observer
+                self.observer = None
+            except RuntimeError:
+                pass

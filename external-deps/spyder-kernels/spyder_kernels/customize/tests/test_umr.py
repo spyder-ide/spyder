@@ -16,15 +16,14 @@ import sys
 import pytest
 
 # Local imports
-from spyder_kernels.py3compat import to_text_string
 from spyder_kernels.customize.umr import UserModuleReloader
 
 
 @pytest.fixture
 def user_module(tmpdir):
     """Create a simple module in tmpdir as an example of a user module."""
-    if to_text_string(tmpdir) not in sys.path:
-        sys.path.append(to_text_string(tmpdir))
+    if str(tmpdir) not in sys.path:
+        sys.path.append(str(tmpdir))
 
     def create_module(modname):
         modfile = tmpdir.mkdir(modname).join('bar.py')

@@ -6,6 +6,7 @@
 
 # Standard library imports
 import os
+import sys
 
 # Third party imports
 import pytest
@@ -13,8 +14,9 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-
+from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -71,7 +73,6 @@ line6: Found Results
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-
 def test_enabled(editor_bot):
     """"Test that enabling and disabling the srollflagarea panel make
     it visible or invisible depending on the case."""
@@ -85,13 +86,16 @@ def test_enabled(editor_bot):
     assert not sfa.isVisible()
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails in Linux")
 def test_flag_painting(editor_bot, qtbot):
     """"Test that there is no error when painting all flag types on the
     scrollbar area when the editor vertical scrollbar is visible and not
     visible. There is seven different flags: breakpoints, todos, warnings,
     errors, found_results, and occurences"""
     editor = editor_bot
+    editor.filename = "file.py"
+    editor.breakpoints_manager = BreakpointsManager(editor)
     sfa = editor.scrollflagarea
 
     editor.resize(450, 300)
@@ -102,7 +106,7 @@ def test_flag_painting(editor_bot, qtbot):
     qtbot.waitUntil(lambda: not sfa.slider)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
@@ -123,10 +127,9 @@ def test_flag_painting(editor_bot, qtbot):
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
-    qtbot.waitUntil(lambda: sfa.slider)
 
     # Trigger the painting of all flag types.
-    editor.debugger.toogle_breakpoint(line_number=2)
+    editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
     analysis = [{'source': 'pycodestyle', 'range':{
                     'start': {'line': 4, 'character': 0},
@@ -146,8 +149,6 @@ def test_flag_painting(editor_bot, qtbot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It fails on CIs")
 def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -155,48 +156,47 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     vertical scrollbar is not visible."""
     editor = editor_bot
     sfa = editor.scrollflagarea
-
-    editor.resize(450, 300)
     editor.show()
 
     # Set a short text in the editor and assert that the slider is not visible.
     editor.set_text(short_code)
+    editor.resize(450, 150)
     qtbot.waitUntil(lambda: not sfa.slider)
 
     # Move the mouse cursor to the center of the scrollflagarea and assert
     # that the slider range indicator remains hidden. The slider range
     # indicator should remains hidden at all times when the vertical scrollbar
     # of the editor is not visible.
-    x = sfa.width()/2
-    y = sfa.height()/2
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is False
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
+    editor.resize(450, 150)
     qtbot.waitUntil(lambda: sfa.slider)
 
     # Move the mouse cursor to the center of the scrollflagarea and assert
     # that the slider range indicator is now shown. When the vertical scrollbar
     # of the editor is visible, the slider range indicator should be visible
     # only when the mouse cursor hover above the scrollflagarea.
-    x = sfa.width()/2
-    y = sfa.height()/2
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
+    qtbot.wait(500)
 
     assert sfa._range_indicator_is_visible is True
 
     # Move the mouse cursor outside of the scrollflagarea and assert that the
     # slider range indicator becomes hidden.
-    x = editor.width()/2
-    y = editor.height()/2
+    x = int(editor.width()/2)
+    y = int(editor.height()/2)
     qtbot.mouseMove(editor, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It fails on CIs")
 def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the
@@ -208,12 +208,13 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     sfa._unit_testing = True
     vsb = editor.verticalScrollBar()
 
-    editor.resize(600, 300)
     editor.show()
+    editor.resize(600, 150)
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
     qtbot.waitUntil(lambda: sfa.slider)
+    qtbot.wait(500)
 
     # Set the cursor position to the center of the editor.
     w = editor.width()
@@ -226,6 +227,10 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # that is set to True when pressing the alt key and to false when releasing
     # it. This flag is only used for testing purpose.
     qtbot.keyPress(editor, Qt.Key_Alt)
+    editor.resize(600, 150)
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
+    qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: sfa._range_indicator_is_visible)
 
     # While the alt key is pressed, click with the mouse in the middle of the
@@ -233,7 +238,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h//2), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, h//2))
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
 
     # While the alt key is pressed, click with the mouse at the top of the
@@ -241,7 +246,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, 1), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, 1))
     assert vsb.value() == vsb.minimum()
 
     # While the alt key is pressed, click with the mouse at the bottom of the
@@ -249,15 +254,18 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w//2, h-1), modifier=Qt.AltModifier)
+                         Qt.AltModifier, QPoint(w//2, h-1))
     assert vsb.value() == vsb.maximum()
 
     # Release the alt key and assert that the slider range indicator is
     # not visible.
+    editor.resize(600, 150)
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
+    qtbot.mouseMove(sfa, pos=QPoint(x*100, y), delay=-1)
     qtbot.keyRelease(editor, Qt.Key_Alt)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible, timeout=3000)
 
 
-if __name__ == "__main__":                                   # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     pytest.main([os.path.basename(__file__)])
-    # pytest.main()

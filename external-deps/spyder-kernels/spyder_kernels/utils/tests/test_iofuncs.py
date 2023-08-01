@@ -16,17 +16,18 @@ import os
 import copy
 
 # Third party imports
+from PIL import ImageFile
 import pytest
 import numpy as np
 
 # Local imports
 import spyder_kernels.utils.iofuncs as iofuncs
-from spyder_kernels.py3compat import is_text_string
 
 
 # Full path to this file's parent directory for loading data
-LOCATION = os.path.realpath(os.path.join(os.getcwd(),
-                                         os.path.dirname(__file__)))
+LOCATION = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__))
+)
 
 
 # =============================================================================
@@ -48,7 +49,7 @@ def are_namespaces_equal(actual, expected):
     return are_equal
 
 
-class CustomObj(object):
+class CustomObj:
     """A custom class of objects for testing."""
     def __init__(self, data):
         self.data = None
@@ -87,8 +88,8 @@ def spydata_values():
     A = 1
     B = 'ham'
     C = np.eye(3)
-    D = {'a': True, 'b': np.eye(4, dtype=np.complex)}
-    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_)]
+    D = {'a': True, 'b': np.eye(4, dtype=np.complex128)}
+    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_), np.eye(4, dtype=object)]
     return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
 
 
@@ -254,7 +255,7 @@ def test_spydata_import_witherror():
     original_cwd = os.getcwd()
     path = os.path.join(LOCATION, 'export_data_withfunction.spydata')
     data, error = iofuncs.load_dictionary(path)
-    assert error and is_text_string(error)
+    assert error and isinstance(error, str)
     assert data is None
     assert os.getcwd() == original_cwd
 
@@ -337,6 +338,26 @@ def test_spydata_export(input_namespace, expected_namespace,
                 os.remove(path)
             except (IOError, OSError, PermissionError):
                 pass
+
+
+def test_save_load_hdf5_files():
+    """Simple test to check that we can save and load HDF5 files."""
+    data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
+    iofuncs.save_hdf5(data, "test.h5")
+
+    expected = ({'a': np.array([1, 2, 3, 4]), 'b': np.array(4.5)}, None)
+    assert repr(iofuncs.load_hdf5("test.h5")) == repr(expected)
+
+
+def test_load_dicom_files():
+    """Check that we can load DICOM files."""
+    # This test pass locally but we need to set the variable below for it to
+    # pass on CIs.
+    # See https://stackoverflow.com/a/47958486/438386 for context.
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+    data = iofuncs.load_dicom(os.path.join(LOCATION, 'data.dcm'))
+    assert data[0]['data'].shape == (512, 512)
 
 
 if __name__ == "__main__":

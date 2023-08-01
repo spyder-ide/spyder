@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
 # Copyright (c) 2009- Spyder Project Contributors
 #
 # Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# -----------------------------------------------------------------------------
 
 """Script and functions to automatically remove trailing spaces from files."""
 
@@ -230,7 +228,7 @@ def handle_whitespace(file_paths, whitespace_type="all", warn_only=False,
 def handle_whitespace_files(file_types, whitespace_type="all",
                             warn_only=False, verbose=False,
                             check_prs=False):
-    """Remove trailing whitespace in all or selected files in the projct."""
+    """Remove trailing whitespace in all or selected files in the project."""
     files_toprocess = git_files(file_types)
     files_toprocess = filter_files(files_toprocess)
 

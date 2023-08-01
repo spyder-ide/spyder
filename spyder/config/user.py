@@ -10,10 +10,9 @@ This module provides user configuration file management features for Spyder.
 It is based on the ConfigParser module present in the standard library.
 """
 
-from __future__ import print_function, unicode_literals
-
 # Standard library imports
 import ast
+import configparser as cp
 import copy
 import io
 import os
@@ -24,8 +23,7 @@ import time
 
 # Local imports
 from spyder.config.base import get_conf_path, get_module_source_path
-from spyder.py3compat import configparser as cp
-from spyder.py3compat import is_text_string, PY2, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.programs import check_version
 
 
@@ -48,10 +46,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         """
         Class used to save defaults to a file and as UserConfig base class.
         """
-        if PY2:
-            super(DefaultsConfig, self).__init__()
-        else:
-            super(DefaultsConfig, self).__init__(interpolation=None)
+        super(DefaultsConfig, self).__init__(interpolation=None)
 
         self._name = name
         self._path = path
@@ -69,7 +64,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             fp.write('[{}]\n'.format(cp.DEFAULTSECT))
             for (key, value) in self._defaults.items():
                 value_plus_end_of_line = str(value).replace('\n', '\n\t')
-                fp.write('{} = {}\n'.format((key, value_plus_end_of_line)))
+                fp.write('{} = {}\n'.format(key, value_plus_end_of_line))
 
             fp.write('\n')
 
@@ -108,10 +103,7 @@ class DefaultsConfig(cp.ConfigParser, object):
 
         def _write_file(fpath):
             with io.open(fpath, 'w', encoding='utf-8') as configfile:
-                if PY2:
-                    self._write(configfile)
-                else:
-                    self.write(configfile)
+                self.write(configfile)
 
         # See spyder-ide/spyder#1086 and spyder-ide/spyder#1242 for background
         # on why this method contains all the exception handling.
@@ -319,18 +311,7 @@ class UserConfig(DefaultsConfig):
     def _load_from_ini(self, fpath):
         """Load config from the associated .ini file found at `fpath`."""
         try:
-            if PY2:
-                # Python 2
-                if osp.isfile(fpath):
-                    try:
-                        with io.open(fpath, encoding='utf-8') as configfile:
-                            self.readfp(configfile)
-                    except IOError:
-                        error_text = "Failed reading file", fpath
-                        print(error_text)  # spyder: test-skip
-            else:
-                # Python 3
-                self.read(fpath, encoding='utf-8')
+            self.read(fpath, encoding='utf-8')
         except cp.MissingSectionHeaderError:
             error_text = 'Warning: File contains no section headers.'
             print(error_text)  # spyder: test-skip
@@ -400,7 +381,7 @@ class UserConfig(DefaultsConfig):
         `old_version` can be used for checking compatibility whereas `version`
         relates to adding the version to the file name.
 
-        To be overriden if versions changed backup location.
+        To be overridden if versions changed backup location.
         """
         fpath = self.get_config_fpath()
         path = osp.join(osp.dirname(fpath), self._backup_folder)
@@ -416,7 +397,7 @@ class UserConfig(DefaultsConfig):
         """
         Get defaults location based on version.
 
-        To be overriden if versions changed defaults location.
+        To be overridden if versions changed defaults location.
         """
         version = old_version if old_version else self._version
         defaults_path = osp.join(osp.dirname(self.get_config_fpath()),
@@ -435,7 +416,7 @@ class UserConfig(DefaultsConfig):
         """
         Apply any patch to configuration values on version changes.
 
-        To be overriden if patches to configuration values are needed.
+        To be overridden if patches to configuration values are needed.
         """
         pass
 
@@ -466,6 +447,10 @@ class UserConfig(DefaultsConfig):
         for section in self.sections():
             secdict = {}
             for option, value in self.items(section, raw=self._raw):
+                try:
+                    value = ast.literal_eval(value)
+                except (SyntaxError, ValueError):
+                    pass
                 secdict[option] = value
             self.defaults.append((section, secdict))
 
@@ -525,19 +510,7 @@ class UserConfig(DefaultsConfig):
         elif isinstance(default_value, int):
             value = int(value)
         elif is_text_string(default_value):
-            if PY2:
-                try:
-                    value = value.decode('utf-8')
-                    try:
-                        # Some str config values expect to be eval after
-                        # decoding
-                        new_value = ast.literal_eval(value)
-                        if is_text_string(new_value):
-                            value = new_value
-                    except (SyntaxError, ValueError):
-                        pass
-                except (UnicodeEncodeError, UnicodeDecodeError):
-                    pass
+            pass
         else:
             try:
                 # Lists, tuples, ...
@@ -570,12 +543,6 @@ class UserConfig(DefaultsConfig):
         default_value = self.get_default(section, option)
 
         if default_value is NoDefault:
-            # This let us save correctly string value options with
-            # no config default that contain non-ascii chars in
-            # Python 2
-            if PY2 and is_text_string(value):
-                value = repr(value)
-
             default_value = value
             self.set_default(section, option, default_value)
 

@@ -15,16 +15,11 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout)
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
-from spyder.py3compat import PY2
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
-
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("IPython console")
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -35,13 +30,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            tip=_("This option lets you hide the message "
                                  "shown at\nthe top of the console when "
                                  "it's opened."))
-        pager_box = newcb(_("Use a pager to display additional text inside "
-                            "the console"), 'use_pager',
-                          tip=_("Useful if you don't want to fill the "
-                                "console with long help or completion "
-                                "texts.\n"
-                                "Note: Use the Q key to get out of the "
-                                "pager."))
         calltips_box = newcb(_("Show calltips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
@@ -60,7 +48,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
-        interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_layout.addWidget(reset_namespace_box)
@@ -81,9 +68,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
+
+        # Note: The maximum here is set to a relatively small value because
+        # larger ones make Spyder sluggish.
+        # Fixes spyder-ide/spyder#19091
         buffer_spin = self.create_spinbox(
                 _("Buffer:  "), _(" lines"),
-                'buffer_size', min_=-1, max_=1000000, step=100,
+                'buffer_size', min_=-1, max_=5000, step=100,
                 tip=_("Set the maximum number of lines of text shown in the\n"
                       "console before truncation. Specifying -1 disables it\n"
                       "(not recommended!)"))
@@ -103,7 +94,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                   "plotting libraries different to Matplotlib or to develop\n"
                   "GUIs with Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
+        pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -122,16 +113,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Qt4", 3)]
+        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Tkinter", 3)]
 
         if sys.platform == 'darwin':
-            backends.append(("OS X", 4))
-        if sys.platform.startswith('linux'):
-            backends.append(("Gtk3", 5))
-            backends.append(("Gtk", 6))
-        if PY2:
-            backends.append(("Wx", 7))
-        backends.append(("Tkinter", 8))
+            backends.append(("macOS", 4))
         backends = tuple(backends)
 
         backend_box = self.create_combobox(
@@ -146,7 +131,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(backend_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(backend_group.setEnabled)
 
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
@@ -201,7 +186,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_v_layout.addLayout(inline_h_layout)
         inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(inline_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -230,7 +215,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
-        file_radio.toggled.connect(run_file_browser.setEnabled)
+        file_radio.checkbox.toggled.connect(run_file_browser.setEnabled)
 
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
@@ -353,8 +338,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
+        prompts_g_layout.addWidget(in_prompt_edit.help_label, 0, 2)
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
         prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
+        prompts_g_layout.addWidget(out_prompt_edit.help_label, 1, 2)
         prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 
@@ -369,18 +356,18 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group.setLayout(windows_layout)
 
         # --- Tabs organization ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    source_code_group), _("Display"))
-        tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
-                    _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                    _("Startup"))
-        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
-                                    sympy_group, prompts_group,
-                                    windows_group),
-                    _("Advanced settings"))
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(interface_group, comp_group,
+                                         source_code_group), _("Display"))
+        self.tabs.addTab(self.create_tab(
+            pylab_group, backend_group, inline_group), _("Graphics"))
+        self.tabs.addTab(self.create_tab(
+            run_lines_group, run_file_group), _("Startup"))
+        self.tabs.addTab(self.create_tab(
+            jedi_group, greedy_group, autocall_group,
+            sympy_group, prompts_group,
+            windows_group), _("Advanced settings"))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)

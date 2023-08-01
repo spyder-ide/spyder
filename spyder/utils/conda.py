@@ -7,8 +7,16 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+import json
 import os
+import os.path as osp
 import sys
+
+from spyder.utils.programs import find_program, run_program, run_shell_command
+from spyder.config.base import is_conda_based_app
+
+WINDOWS = os.name == 'nt'
+CONDA_ENV_LIST_CACHE = {}
 
 
 def add_quotes(path):
@@ -56,26 +64,6 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(pyexec=None, quote=False):
-    """
-    Return full path to conda activation script.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    if os.name == 'nt':
-        activate = 'Scripts/activate'
-    else:
-        activate = 'bin/activate'
-
-    script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
-                               activate).replace('\\', '/')
-
-    if quote:
-        script_path = add_quotes(script_path)
-
-    return script_path
-
-
 def get_conda_env_path(pyexec, quote=False):
     """
     Return the full path to the conda environment from give python executable.
@@ -92,3 +80,66 @@ def get_conda_env_path(pyexec, quote=False):
         conda_env = add_quotes(conda_env)
 
     return conda_env
+
+
+def find_conda():
+    """Find conda executable."""
+    conda = None
+
+    # First try Spyder's conda executable
+    if is_conda_based_app():
+        root = osp.dirname(os.environ['CONDA_EXE'])
+        conda = osp.join(root, 'mamba.exe' if WINDOWS else 'mamba')
+
+    # Next try the environment variables
+    if conda is None:
+        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+
+    # Next try searching for the executable
+    if conda is None:
+        conda_exec = 'conda.bat' if WINDOWS else 'conda'
+        conda = find_program(conda_exec)
+
+    return conda
+
+
+def get_list_conda_envs():
+    """Return the list of all conda envs found in the system."""
+    global CONDA_ENV_LIST_CACHE
+
+    env_list = {}
+    conda = find_conda()
+    if conda is None:
+        return env_list
+
+    cmdstr = ' '.join([conda, 'env', 'list', '--json'])
+    try:
+        out, __ = run_shell_command(cmdstr, env={}).communicate()
+        out = out.decode()
+        out = json.loads(out)
+    except Exception:
+        out = {'envs': []}
+
+    for env in out['envs']:
+        name = env.split(osp.sep)[-1]
+        path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
+            env, 'bin', 'python')
+
+        try:
+            version, __ = run_program(path, ['--version']).communicate()
+            version = version.decode()
+        except Exception:
+            version = ''
+
+        name = ('base' if name.lower().startswith('anaconda') or
+                name.lower().startswith('miniconda') else name)
+        name = 'conda: {}'.format(name)
+        env_list[name] = (path, version.strip())
+
+    CONDA_ENV_LIST_CACHE = env_list
+    return env_list
+
+
+def get_list_conda_envs_cache():
+    """Return a cache of envs to avoid computing them again."""
+    return CONDA_ENV_LIST_CACHE

@@ -8,7 +8,7 @@ This module contains the Scroll Flag panel
 """
 
 # Standard library imports
-from __future__ import division
+import sys
 from math import ceil
 
 # Third party imports
@@ -18,20 +18,24 @@ from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.plugins.completion.languageserver import DiagnosticSeverity
+from spyder.plugins.completion.api import DiagnosticSeverity
+from spyder.plugins.editor.utils.editor import is_block_safe
 
 
 REFRESH_RATE = 1000
 
+# Maximum number of flags to print in a file
+MAX_FLAGS = 1000
+
 
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
-    WIDTH = 12
+    WIDTH = 24 if sys.platform == 'darwin' else 12
     FLAGS_DX = 4
     FLAGS_DY = 2
 
-    def __init__(self, editor):
-        Panel.__init__(self, editor)
+    def __init__(self):
+        Panel.__init__(self)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.scrollable = True
         self.setMouseTracking(True)
@@ -41,6 +45,21 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
+        self._slider_range_color = QColor(Qt.gray)
+        self._slider_range_color.setAlphaF(.85)
+        self._slider_range_brush = QColor(Qt.gray)
+        self._slider_range_brush.setAlphaF(.5)
+
+        self._update_list_timer = QTimer(self)
+        self._update_list_timer.setSingleShot(True)
+        self._update_list_timer.timeout.connect(self.update_flags)
+
+        # Dictionary with flag lists
+        self._dict_flag_list = {}
+
+    def on_install(self, editor):
+        """Manages install setup of the pane."""
+        super().on_install(editor)
         # Define permanent Qt colors that are needed for painting the flags
         # and the slider range.
         self._facecolors = {
@@ -53,11 +72,8 @@ class ScrollFlagArea(Panel):
             }
         self._edgecolors = {key: color.darker(120) for
                             key, color in self._facecolors.items()}
-        self._slider_range_color = QColor(Qt.gray)
-        self._slider_range_color.setAlphaF(.85)
-        self._slider_range_brush = QColor(Qt.gray)
-        self._slider_range_brush.setAlphaF(.5)
 
+        # Signals
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
         editor.sig_key_released.connect(self.keyReleaseEvent)
@@ -67,17 +83,14 @@ class ScrollFlagArea(Panel):
         editor.sig_flags_changed.connect(self.delayed_update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
 
-        self._update_list_timer = QTimer(self)
-        self._update_list_timer.setSingleShot(True)
-        self._update_list_timer.timeout.connect(self.update_flags)
-        self._todo_list = []
-        self._code_analysis_list = []
-        self._breakpoint_list = []
-
     @property
     def slider(self):
         """This property holds whether the vertical scrollbar is visible."""
         return self.editor.verticalScrollBar().isVisible()
+
+    def closeEvent(self, event):
+        self._update_list_timer.stop()
+        super().closeEvent(event)
 
     def sizeHint(self):
         """Override Qt method"""
@@ -111,9 +124,13 @@ class ScrollFlagArea(Panel):
         large files. Save all the flags in lists for painting during
         paint events.
         """
-        self._todo_list = []
-        self._code_analysis_list = []
-        self._breakpoint_list = []
+        self._dict_flag_list = {
+            'error': [],
+            'warning': [],
+            'todo': [],
+            'breakpoint': [],
+        }
+
         editor = self.editor
         block = editor.document().firstBlock()
         while block.isValid():
@@ -121,13 +138,22 @@ class ScrollFlagArea(Panel):
             data = block.userData()
             if data:
                 if data.code_analysis:
-                    self._code_analysis_list.append((block, data))
+                    # Paint the errors and warnings
+                    for _, _, severity, _ in data.code_analysis:
+                        if severity == DiagnosticSeverity.ERROR:
+                            flag_type = 'error'
+                            break
+                    else:
+                        flag_type = 'warning'
+                elif data.todo:
+                    flag_type = 'todo'
+                elif data.breakpoint:
+                    flag_type = 'breakpoint'
+                else:
+                    flag_type = None
 
-                if data.todo:
-                    self._todo_list.append((block, data))
-
-                if data.breakpoint:
-                    self._breakpoint_list.append((block, data))
+                if flag_type is not None:
+                    self._dict_flag_list[flag_type].append(block)
 
             block = block.next()
 
@@ -155,7 +181,6 @@ class ScrollFlagArea(Panel):
         # Note that we calculate the pixel metrics required to draw the flags
         # here instead of using the convenience methods of the ScrollFlagArea
         # for performance reason.
-
         rect_x = ceil(self.FLAGS_DX / 2)
         rect_w = self.WIDTH - self.FLAGS_DX
         rect_h = self.FLAGS_DY
@@ -165,111 +190,70 @@ class ScrollFlagArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
         editor = self.editor
-        # Check if the slider is visible
-        paint_local = not bool(self.slider)
 
         # Define compute_flag_ypos to position the flags:
-        if not paint_local:
-            # Paint flags for the entire document
-            last_line = editor.document().lastBlock().firstLineNumber()
-            # The 0.5 offset is used to align the flags with the center of
-            # their corresponding text edit block before scaling.
-            first_y_pos = self.value_to_position(
-                0.5, scale_factor, offset) - self.FLAGS_DY / 2
-            last_y_pos = self.value_to_position(
-                last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        # Paint flags for the entire document
+        last_line = editor.document().lastBlock().firstLineNumber()
+        # The 0.5 offset is used to align the flags with the center of
+        # their corresponding text edit block before scaling.
+        first_y_pos = self.value_to_position(
+            0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        last_y_pos = self.value_to_position(
+            last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
 
-            def compute_flag_ypos(block):
-                line_number = block.firstLineNumber()
-                frac = line_number / last_line
-                pos = first_y_pos + frac * (last_y_pos - first_y_pos)
-                return ceil(pos)
-
+        # Compute the height of a line and of a flag in lines.
+        line_height = last_y_pos - first_y_pos
+        if line_height > 0:
+            flag_height_lines = rect_h * last_line / line_height
         else:
-            # Only paint flags for visible lines
-            visible_lines = [val[1] for val in editor.visible_blocks]
-            if not visible_lines:
-                # Nothing to do
-                return
-            min_line = min(visible_lines)
-            max_line = max(visible_lines)
+            flag_height_lines = 0
 
-            def compute_flag_ypos(block):
-                # When the vertical scrollbar is not visible, the flags are
-                # vertically aligned with the center of their corresponding
-                # text block with no scaling.
-                top = editor.blockBoundingGeometry(block).translated(
-                    editor.contentOffset()).top()
-                bottom = top + editor.blockBoundingRect(block).height()
-                middle = (top + bottom)/2
+        # All the lists of block numbers for flags
+        dict_flag_lists = {
+            "occurrence": editor.occurrences,
+            "found_results": editor.found_results
+        }
+        dict_flag_lists.update(self._dict_flag_list)
 
-                return ceil(middle-self.FLAGS_DY/2)
-
-        # Paint all the code analysis flags
-        for block, data in self._code_analysis_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                # No need to paint flags outside of the window
-                continue
-            # Paint the warnings
-            for source, code, severity, message in data.code_analysis:
-                error = severity == DiagnosticSeverity.ERROR
-                if error:
-                    painter.setBrush(self._facecolors['error'])
-                    painter.setPen(self._edgecolors['error'])
-                    break
+        for flag_type in reversed(dict_flag_lists):
+            painter.setBrush(self._facecolors[flag_type])
+            painter.setPen(self._edgecolors[flag_type])
+            if editor.verticalScrollBar().maximum() == 0:
+                # No scroll
+                for block in dict_flag_lists[flag_type]:
+                    if not is_block_safe(block):
+                        continue
+                    geometry = editor.blockBoundingGeometry(block)
+                    rect_y = ceil(
+                        geometry.y() +
+                        geometry.height() / 2 +
+                        rect_h / 2
+                    )
+                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+            elif last_line == 0:
+                # Only one line
+                for block in dict_flag_lists[flag_type]:
+                    if not is_block_safe(block):
+                        continue
+                    rect_y = ceil(first_y_pos)
+                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             else:
-                painter.setBrush(self._facecolors['warning'])
-                painter.setPen(self._edgecolors['warning'])
-
-            rect_y = compute_flag_ypos(block)
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint all the todo flags
-        for block, data in self._todo_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                continue
-            # Paint the todos
-            rect_y = compute_flag_ypos(block)
-            painter.setBrush(self._facecolors['todo'])
-            painter.setPen(self._edgecolors['todo'])
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint all the breakpoints flags
-        for block, data in self._breakpoint_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                continue
-            # Paint the breakpoints
-            rect_y = compute_flag_ypos(block)
-            painter.setBrush(self._facecolors['breakpoint'])
-            painter.setPen(self._edgecolors['breakpoint'])
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint the occurrences of selected word flags
-        if editor.occurrences:
-            painter.setBrush(self._facecolors['occurrence'])
-            painter.setPen(self._edgecolors['occurrence'])
-            for line_number in editor.occurrences:
-                if paint_local and not (
-                        min_line <= line_number + 1 <= max_line):
-                    continue
-                block = editor.document().findBlockByNumber(line_number)
-                rect_y = compute_flag_ypos(block)
-                painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint the found results flags
-        if editor.found_results:
-            painter.setBrush(self._facecolors['found_results'])
-            painter.setPen(self._edgecolors['found_results'])
-            for line_number in editor.found_results:
-                if paint_local and not (
-                        min_line <= line_number + 1 <= max_line):
-                    continue
-                block = editor.document().findBlockByNumber(line_number)
-                rect_y = compute_flag_ypos(block)
-                painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+                # Many lines
+                if len(dict_flag_lists[flag_type]) < MAX_FLAGS:
+                    # If the file is too long, do not freeze the editor
+                    next_line = 0
+                    for block in dict_flag_lists[flag_type]:
+                        if not is_block_safe(block):
+                            continue
+                        block_line = block.firstLineNumber()
+                        # block_line = -1 if invalid
+                        if block_line < next_line:
+                            # Don't print flags on top of flags
+                            continue
+                        next_line = block_line + flag_height_lines / 2
+                        frac = block_line / last_line
+                        rect_y = ceil(first_y_pos + frac * line_height)
+                        painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the slider range
         if not self._unit_testing:
@@ -313,7 +297,7 @@ class ScrollFlagArea(Panel):
         if self.slider and event.button() == Qt.LeftButton:
             vsb = self.editor.verticalScrollBar()
             value = self.position_to_value(event.pos().y())
-            vsb.setValue(value-vsb.pageStep()/2)
+            vsb.setValue(int(value-vsb.pageStep()/2))
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
@@ -376,7 +360,7 @@ class ScrollFlagArea(Panel):
     def value_to_position(self, y, scale_factor, offset):
         """Convert value to position in pixels"""
         vsb = self.editor.verticalScrollBar()
-        return (y - vsb.minimum()) * scale_factor + offset
+        return int((y - vsb.minimum()) * scale_factor + offset)
 
     def position_to_value(self, y):
         """Convert position in pixels to value"""
@@ -397,7 +381,7 @@ class ScrollFlagArea(Panel):
             vsb.pageStep(), scale_factor, offset) - offset
         slider_height = max(slider_height, self.get_slider_min_height())
 
-        # Calcul the minimum and maximum y-value to constraint the slider
+        # Calculate the minimum and maximum y-value to constraint the slider
         # range indicator position to the height span of the scrollbar area
         # where the slider may move.
         min_ypos = offset

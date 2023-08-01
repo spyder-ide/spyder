@@ -15,8 +15,8 @@ from qtpy.QtWidgets import QComboBox, QHBoxLayout
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _
-from spyder.plugins.completion.languageserver import SymbolKind
-from spyder.utils import icon_manager as ima
+from spyder.plugins.completion.api import SymbolKind
+from spyder.utils.icon_manager import ima
 
 
 class ClassFunctionDropdown(Panel):
@@ -29,8 +29,8 @@ class ClassFunctionDropdown(Panel):
         The editor to act on.
     """
 
-    def __init__(self, editor):
-        super(ClassFunctionDropdown, self).__init__(editor)
+    def __init__(self):
+        super().__init__()
 
         # Internal data
         self._tree = IntervalTree()
@@ -39,7 +39,6 @@ class ClassFunctionDropdown(Panel):
         self.funcs = []
 
         # Widgets
-        self._editor = editor
         self.class_cb = QComboBox()
         self.method_cb = QComboBox()
 
@@ -56,11 +55,19 @@ class ClassFunctionDropdown(Panel):
         self.setLayout(hbox)
 
         # Signals
+        self.class_cb.activated.connect(self.combobox_activated)
+        self.method_cb.activated.connect(self.combobox_activated)
+
+    def on_install(self, editor):
+        """Manages install setup of the pane."""
+        super().on_install(editor)
+        # Define the editor
+        self._editor = editor
+
+        # Connect signals to the editor
         self._editor.sig_cursor_position_changed.connect(
             self._handle_cursor_position_change_event
         )
-        self.class_cb.activated.connect(self.combobox_activated)
-        self.method_cb.activated.connect(self.combobox_activated)
 
     def _getVerticalSize(self):
         """Get the default height of a QComboBox."""
@@ -73,6 +80,15 @@ class ClassFunctionDropdown(Panel):
     def sizeHint(self):
         """Override Qt method."""
         return QSize(0, self._getVerticalSize())
+
+    def showEvent(self, event):
+        """
+        Update contents in case there is available data and the widget hasn't
+        been updated.
+        """
+        if self._data is not None and self.classes == [] and self.funcs == []:
+            self.update_data(self._data, force=True)
+        super().showEvent(event)
 
     def combobox_activated(self):
         """Move the cursor to the selected definition."""
@@ -126,7 +142,7 @@ class ClassFunctionDropdown(Panel):
             The combobox to populate
         data : list of :class:`dict`
             The data to populate with. There should be one list element per
-            class or function defintion in the file.
+            class or function definition in the file.
         add_parents : bool
             Add parents to name to create a fully qualified name.
 
@@ -183,12 +199,16 @@ class ClassFunctionDropdown(Panel):
             else:
                 combobox.addItem(fqn, item)
 
-        line, column = self._editor.get_cursor_line_column()
+        line, __ = self._editor.get_cursor_line_column()
         self.update_selected(line)
 
-    def update_data(self, data):
+    def set_data(self, data):
+        """Set data in internal attribute to use it when necessary."""
+        self._data = data
+
+    def update_data(self, data, force=False):
         """Update and process symbol data."""
-        if data == self._data:
+        if not force and data == self._data:
             return
 
         self._data = data

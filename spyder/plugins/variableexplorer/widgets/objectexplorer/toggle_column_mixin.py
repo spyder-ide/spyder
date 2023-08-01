@@ -154,12 +154,10 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.
     """
-    sig_option_changed = Signal(str, object)
 
-    def __init__(self, dataframe_format=None, readonly=False):
+    def __init__(self, readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
-        self.dataframe_format = dataframe_format
         from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
             import ToggleColumnDelegate
         self.setItemDelegate(ToggleColumnDelegate(self))
@@ -171,17 +169,6 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     def resize_columns_to_contents(self):
         """Resize all the columns to its contents."""
         self._horizontal_header().resizeSections(QHeaderView.ResizeToContents)
-
-    @Slot(str)
-    def set_dataframe_format(self, new_format):
-        """
-        Set format to use in DataframeEditor.
-
-        Args:
-            new_format (string): e.g. "%.3f"
-        """
-        self.sig_option_changed.emit('dataframe_format', new_format)
-        self.model().dataframe_format = new_format
 
     def _horizontal_header(self):
         """

@@ -125,7 +125,8 @@ class OutlineExplorerProxy(QObject):
     """
 
     sig_cursor_position_changed = Signal(int, int)
-    sig_outline_explorer_data_changed = Signal()
+    sig_outline_explorer_data_changed = Signal(list)
+    sig_start_outline_spinner = Signal()
 
     def __init__(self):
         super(OutlineExplorerProxy, self).__init__()
@@ -159,6 +160,15 @@ class OutlineExplorerProxy(QObject):
     def outlineexplorer_data_list(self):
         """Returns a list of outline explorer data."""
         raise NotImplementedError
+
+    def request_symbols(self):
+        """Request current editor symbols."""
+        raise NotImplementedError
+
+    @property
+    def is_cloned(self):
+        """Check if the associated editor is cloned."""
+        return False
 
 
 class OutlineExplorerData(QObject):
@@ -297,12 +307,12 @@ class OutlineExplorerData(QObject):
     def is_valid(self):
         """Check if the oedata has a valid block attached."""
         block = self.block
-        return (block
-                and block.isValid()
-                and block.userData()
-                and hasattr(block.userData(), 'oedata')
-                and block.userData().oedata == self
-                )
+        if not block or not block.isValid():
+            return False
+        user_data = block.userData()
+        if not user_data or not hasattr(user_data, 'oedata'):
+            return False
+        return user_data.oedata == self
 
     def has_name(self):
         """Check if cell has a name."""

@@ -9,7 +9,8 @@ Language utilities
 """
 
 ALL_LANGUAGES = {
-    'Python': ('py', 'pyw', 'python', 'ipy'),
+    'Python': ('py', 'pyw', 'python', 'pyt', 'pyi'),
+    'IPython': ('ipy', 'ipython'),
     'Cython': ('pyx', 'pxi', 'pxd'),
     'Enaml': ('enaml',),
     'Fortran77': ('f', 'for', 'f77'),
@@ -22,11 +23,10 @@ ALL_LANGUAGES = {
     'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
     'OpenCL': ('cl',),
     'Yaml': ('yaml', 'yml'),
-    'Markdown': ('md', 'mdw'),
+    'Markdown': ('md', 'mdw', 'pyz'),
     # Every other language
     'None': ('', ),
 }
 
-PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
-
-CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In[')}
+CELL_LANGUAGES = {'Python': ('#%%', '# %%', '# <codecell>', '# In['),
+                  'IPython': ('#%%', '# %%', '# <codecell>', '# In[')}

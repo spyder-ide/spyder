@@ -9,52 +9,59 @@ Tests for pydocgui.py
 """
 # Standard library imports
 import os
+import sys
+from unittest.mock import MagicMock
 
 # Test library imports
+import numpy as np
+from numpy.lib import NumpyVersion
 import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
 @pytest.fixture
 def pydocbrowser(qtbot):
     """Set up pydocbrowser."""
-    widget = PydocBrowser(None)
-    qtbot.addWidget(widget)
-    return qtbot, widget
-
-
-def test_pydocbrowser(pydocbrowser):
-    """Run Pydoc Browser."""
-    qtbot, browser = pydocbrowser
-    assert browser
+    plugin_mock = MagicMock()
+    plugin_mock.CONF_SECTION = 'onlinehelp'
+    widget = PydocBrowser(parent=None, plugin=plugin_mock, name='pydoc')
+    with qtbot.waitSignal(widget.webview.loadFinished, timeout=20000):
+        widget._setup()
+        widget.setup()
+        widget.resize(640, 480)
+        widget.show()
+        widget.initialize(force=True)
+    yield widget
+    widget.close()
 
 
 @flaky(max_runs=5)
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
-    "lib", [('str', 'class str', 1),
-            ('numpy.compat', 'numpy.compat', 2)
-            ])
-@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
-def test_get_pydoc(pydocbrowser, lib):
+    "lib",
+    [('str', 'class str', [1, 2]),
+     ('numpy.testing', 'numpy.testing', [5, 10]),
+     ('numpy.finfo', 'numpy.finfo', [1, 5])]
+)
+def test_get_pydoc(pydocbrowser, qtbot, lib):
     """
     Go to the documentation by url.
     Regression test for spyder-ide/spyder#10740
     """
-    qtbot, browser = pydocbrowser
+    browser = pydocbrowser
     element, doc, matches = lib
+
     webview = browser.webview
-    with qtbot.waitSignal(webview.loadFinished, timeout=6000):
-        browser.initialize()
     element_url = browser.text_to_url(element)
     with qtbot.waitSignal(webview.loadFinished):
         browser.set_url(element_url)
-    # Check number of matches. In Python 2 are 3 matches instead
-    # of 2 for numpy.compat
-    qtbot.waitUntil(
-        lambda: webview.get_number_matches(doc) in [matches, matches + 1])
+
+    expected_range = list(range(matches[0], matches[1]))
+    qtbot.waitUntil(lambda: webview.get_number_matches(doc) in expected_range)
 
 
 if __name__ == "__main__":

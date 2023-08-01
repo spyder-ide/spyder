@@ -11,7 +11,7 @@ Tests for status.py
 # Test library imports
 import pytest
 
-# Thrid party imports
+# Third party imports
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
@@ -37,7 +37,7 @@ def test_status_bar(status_bar, qtbot):
     swidgets = []
     for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
                   CursorPositionStatus, VCSStatus):
-        swidget = klass(win, statusbar)
+        swidget = klass(win)
         swidgets.append(swidget)
     assert win
     assert len(swidgets) == 5

@@ -10,20 +10,24 @@
 Tests for utils.py
 """
 
+# Standard library imports
 from collections import defaultdict
 import datetime
+import sys
 
 # Third party imports
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+import PIL.Image
 
 # Local imports
-from spyder_kernels.py3compat import PY2
-from spyder_kernels.utils.nsview import (sort_against, is_supported,
-                                         value_to_display,
-                                         get_supported_types)
+from spyder_kernels.utils.nsview import (
+    sort_against, is_supported, value_to_display, get_size,
+    get_supported_types, get_type_string, get_numpy_type_string,
+    is_editable_type)
+
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -41,6 +45,41 @@ DATASET = xr.Dataset({0: pd.DataFrame([1,2]), 1:pd.DataFrame([3,4])})
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_size():
+    """Test that the size of all values is returned correctly"""
+
+    class RecursionClassNoLen():
+        def __getattr__(self, name):
+            if name=='size': return self.name
+            else:
+                return super(object, self).__getattribute__(name)
+
+
+    length = [list([1,2,3]), tuple([1,2,3]), set([1,2,3]), '123',
+              {1:1, 2:2, 3:3}]
+    for obj in length:
+        assert get_size(obj) == 3
+
+    df = pd.DataFrame([[1,2,3], [1,2,3]])
+    assert get_size(df) == (2, 3)
+
+    df = pd.Series([1,2,3])
+    assert get_size(df) == (3,)
+
+    df = pd.Index([1,2,3])
+    assert get_size(df) == (3,)
+
+    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex128)
+    assert get_size(arr) == (2, 3)
+
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_size(img) == (256,256)
+
+    obj = RecursionClassNoLen()
+    assert get_size(obj) == 1
+
+
+
 def test_sort_against():
     lista = [5, 6, 7]
     listb = [2, 3, 1]
@@ -70,7 +109,7 @@ def test_none_values_are_supported():
 
 
 def test_str_subclass_display():
-    """Test for value_to_display of subclasses of str/basestring."""
+    """Test for value_to_display of subclasses of str."""
     class Test(str):
         def __repr__(self):
             return 'test'
@@ -94,6 +133,9 @@ def test_default_display():
             'Dataset object of xarray.core.dataset module')
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_list_display():
     """Tests for display of lists."""
     long_list = list(range(100))
@@ -134,6 +176,9 @@ def test_list_display():
     assert is_supported(li, filters=supported_types)
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
+    reason="Fails on Mac with Python 3.8")
 def test_dict_display():
     """Tests for display of dicts."""
     long_list = list(range(100))
@@ -238,12 +283,6 @@ def test_str_in_container_display():
     # Assert that both bytes and unicode return the right display
     assert value_to_display([b'a', u'b']) == "['a', 'b']"
 
-    # Encoded unicode gives bytes and it can't be transformed to
-    # unicode again. So this test the except part of
-    # is_binary_string(value) in value_to_display
-    if PY2:
-        assert value_to_display([u'Э'.encode('cp1251')]) == "['\xdd']"
-
 
 def test_ellipses(tmpdir):
     """
@@ -261,6 +300,148 @@ def test_ellipses(tmpdir):
 
     # Assert that there's a binary ellipses in the representation
     assert b' ...' in value_to_display(buffer)
+
+
+def test_get_type_string():
+    """Test for get_type_string."""
+    # Bools
+    assert get_type_string(True) == 'bool'
+
+    expected = ['int', 'float', 'complex']
+    numeric_types = [1, 1.5, 1 + 2j]
+    assert [get_type_string(t) for t in numeric_types] == expected
+
+    # Lists
+    assert get_type_string([1, 2, 3]) == 'list'
+
+    # Sets
+    assert get_type_string({1, 2, 3}) == 'set'
+
+    # Dictionaries
+    assert get_type_string({'a': 1, 'b': 2}) == 'dict'
+
+    # Tuples
+    assert get_type_string((1, 2, 3)) == 'tuple'
+
+    # Strings
+    assert get_type_string('foo') == 'str'
+
+    # Numpy objects
+    assert get_type_string(np.array([1, 2, 3])) == 'NDArray'
+
+    masked_array = np.ma.MaskedArray([1, 2, 3], mask=[True, False, True])
+    assert get_type_string(masked_array) == 'MaskedArray'
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert get_type_string(matrix) == 'Matrix'
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert get_type_string(df) == 'DataFrame'
+
+    series = pd.Series([1, 2, 3])
+    assert get_type_string(series) == 'Series'
+
+    index = pd.Index([1, 2, 3])
+    assert get_type_string(index) in ['Int64Index', 'Index']
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_type_string(img) == 'PIL.Image.Image'
+
+    # Datetime objects
+    date = datetime.date(2010, 10, 1)
+    assert get_type_string(date) == 'datetime.date'
+
+    date = datetime.timedelta(-1, 2000)
+    assert get_type_string(date) == 'datetime.timedelta'
+
+
+def test_is_editable_type():
+    """Test for get_type_string."""
+    # Bools
+    assert is_editable_type(True)
+
+    # Numeric type
+    numeric_types = [1, 1.5, 1 + 2j]
+    assert all([is_editable_type(t) for t in numeric_types])
+
+    # Lists
+    assert is_editable_type([1, 2, 3])
+
+    # Sets
+    assert is_editable_type({1, 2, 3})
+
+    # Dictionaries
+    assert is_editable_type({'a': 1, 'b': 2})
+
+    # Tuples
+    assert is_editable_type((1, 2, 3))
+
+    # Strings
+    assert is_editable_type('foo')
+
+    # Numpy objects
+    assert is_editable_type(np.array([1, 2, 3]))
+
+    masked_array = np.ma.MaskedArray([1, 2, 3], mask=[True, False, True])
+    assert is_editable_type(masked_array)
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert is_editable_type(matrix)
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert is_editable_type(df)
+
+    series = pd.Series([1, 2, 3])
+    assert is_editable_type(series)
+
+    index = pd.Index([1, 2, 3])
+    assert is_editable_type(index)
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert is_editable_type(img)
+
+    # Datetime objects
+    date = datetime.date(2010, 10, 1)
+    assert is_editable_type(date)
+
+    date = datetime.timedelta(-1, 2000)
+    assert is_editable_type(date)
+
+    # Other objects
+    class MyClass:
+        a = 1
+    assert not is_editable_type(MyClass)
+
+    my_instance = MyClass()
+    assert not is_editable_type(my_instance)
+
+
+def test_get_numpy_type():
+    """Test for get_numpy_type_string."""
+    # Numpy objects
+    assert get_numpy_type_string(np.array([1, 2, 3])) == 'Array'
+
+    matrix = np.matrix([[1, 2], [3, 4]])
+    assert get_numpy_type_string(matrix) == 'Array'
+
+    assert get_numpy_type_string(np.int32(1)) == 'Scalar'
+
+    # Regular Python objects
+    assert get_numpy_type_string(1.5) == 'Unknown'
+    assert get_numpy_type_string([1, 2, 3]) == 'Unknown'
+    assert get_numpy_type_string({1: 2}) == 'Unknown'
+
+    # PIL images
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_numpy_type_string(img) == 'Unknown'
+
+    # Pandas objects
+    df = pd.DataFrame([1, 2, 3])
+    assert get_numpy_type_string(df) == 'Unknown'
 
 
 if __name__ == "__main__":

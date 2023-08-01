@@ -4,170 +4,251 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-
-"""Pylint Code Analysis Plugin."""
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
+"""
+Pylint Code Analysis Plugin.
+"""
 
 # Standard library imports
-import os.path as osp
+from typing import List
 
 # Third party imports
-from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QInputDialog, QVBoxLayout
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.gui import is_dark_interface
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.utils import icon_manager as ima
-from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available, on_plugin_teardown)
+from spyder.api.translations import _
+from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.mainmenu.api import ApplicationMenus, SourceMenuSections
 from spyder.plugins.pylint.confpage import PylintConfigPage
-from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
+from spyder.plugins.pylint.main_widget import PylintWidget
+from spyder.plugins.run.api import (
+    RunContext, RunConfiguration, PossibleRunResult, run_execute,
+    ExtendedRunExecutionParameters, RunExecutor)
 
 
-if is_dark_interface():
-    MAIN_TEXT_COLOR = 'white'
-    MAIN_PREVRATE_COLOR = 'white'
-else:
-    MAIN_TEXT_COLOR = '#444444'
-    MAIN_PREVRATE_COLOR = '#666666'
+class PylintActions:
+    AnalyzeCurrentFile = 'run analysis'
 
 
-class Pylint(SpyderPluginWidget):
-    """Python source code analysis based on pylint."""
+class Pylint(SpyderDockablePlugin, RunExecutor):
 
-    CONF_SECTION = 'pylint'
-    CONFIGWIDGET_CLASS = PylintConfigPage
+    NAME = "pylint"
+    WIDGET_CLASS = PylintWidget
+    CONF_SECTION = NAME
+    CONF_WIDGET_CLASS = PylintConfigPage
+    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    TABIFY = [Plugins.Help]
     CONF_FILE = False
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
-    def __init__(self, parent=None):
-        SpyderPluginWidget.__init__(self, parent)
+    # --- Signals
+    sig_edit_goto_requested = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
 
-        max_entries = self.get_option('max_entries', 50)
-        self.pylint = PylintWidget(self, max_entries=max_entries,
-                                   options_button=self.options_button,
-                                   text_color=MAIN_TEXT_COLOR,
-                                   prevrate_color=MAIN_PREVRATE_COLOR)
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.pylint)
-        self.setLayout(layout)
-
-        # Add history_action to treewidget context menu
-        history_action = create_action(self, _("History..."),
-                                       None, ima.icon('history'),
-                                       _("Set history maximum entries"),
-                                       triggered=self.change_history_depth)
-        self.pylint.treewidget.common_actions += (None, history_action)
-
-        # Follow editorstacks tab change
-        self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
-
-        # Used by Analyze button to check if file should be saved and start
-        # analysis
-        self.pylint.start_analysis.connect(self.run_pylint_from_analyze_button)
-
-    #------ SpyderPluginWidget API --------------------------------------------
-    def get_plugin_title(self):
-        """Return widget title"""
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def get_name():
         return _("Code Analysis")
 
-    def get_plugin_icon(self):
-        """Return widget icon"""
-        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
-        return ima.icon('pylint', icon_path=path)
+    @staticmethod
+    def get_description():
+        return _("Analyze code and view the results from both static and "
+                 "real-time analysis.")
 
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.pylint.treewidget
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon("pylint")
 
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return self.pylint.treewidget.get_menu_actions()
+    def on_initialize(self):
+        widget = self.get_widget()
 
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.tabify(self.main.help)
-        self.dockwidget.hide()
+        # Expose widget signals at the plugin level
+        widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
+        widget.sig_start_analysis_requested.connect(self.start_code_analysis)
 
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.pylint.treewidget.sig_edit_goto.connect(self.main.editor.load)
-        self.pylint.redirect_stdio.connect(
-            self.main.redirect_internalshell_stdio)
-        self.add_dockwidget()
+        # To have a reference to the run action of this plugin
+        self.run_action = None
 
-        pylint_act = create_action(self, _("Run static code analysis"),
-                                   triggered=self.run_pylint)
-        pylint_act.setEnabled(is_module_installed('pylint'))
-        self.register_shortcut(pylint_act, context="Pylint",
-                               name="Run analysis")
+        # Run configuration
+        self.executor_configuration = [
+            {
+                'input_extension': ['py'],
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': False,
+                'priority': 4
+            },
+        ]
 
-        self.main.source_menu_actions += [MENU_SEPARATOR, pylint_act]
-        self.main.editor.pythonfile_dependent_actions += [pylint_act]
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
 
-    def refresh_plugin(self):
-        """Refresh pylint widget"""
-        self.pylint.remove_obsolete_items()
+        # Connect to Editor
+        widget.sig_edit_goto_requested.connect(editor.load)
+        editor.sig_editor_focus_changed.connect(self._set_filename)
 
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        # The history depth option will be applied at
-        # next Spyder startup, which is soon enough
-        pass
+    @on_plugin_available(plugin=Plugins.Preferences)
+    def on_preferences_available(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.register_plugin_preferences(self)
 
-    #------ Public API --------------------------------------------------------
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        # Connect to projects
+        projects = self.get_plugin(Plugins.Projects)
+
+        projects.sig_project_loaded.connect(self._set_project_dir)
+        projects.sig_project_closed.connect(self._unset_project_dir)
+
+    @on_plugin_available(plugin=Plugins.Run)
+    def on_run_available(self):
+        run = self.get_plugin(Plugins.Run)
+        run.register_executor_configuration(self, self.executor_configuration)
+
+        self.run_action = run.create_run_in_executor_button(
+            RunContext.File,
+            self.NAME,
+            text=_("Run code analysis"),
+            tip=_("Run code analysis"),
+            icon=self.create_icon("pylint"),
+            shortcut_context='pylint',
+            register_shortcut=True,
+            add_to_menu={
+                "menu": ApplicationMenus.Source,
+                "section": SourceMenuSections.CodeAnalysis
+            }
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        widget = self.get_widget()
+        editor = self.get_plugin(Plugins.Editor)
+
+        # Connect to Editor
+        widget.sig_edit_goto_requested.disconnect(editor.load)
+        editor.sig_editor_focus_changed.disconnect(self._set_filename)
+
+    @on_plugin_teardown(plugin=Plugins.Preferences)
+    def on_preferences_teardown(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        # Disconnect from projects
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._set_project_dir)
+        projects.sig_project_closed.disconnect(self._unset_project_dir)
+
+    @on_plugin_teardown(plugin=Plugins.Run)
+    def on_run_teardown(self):
+        run = self.get_plugin(Plugins.Run)
+        run.deregister_executor_configuration(
+            self, self.executor_configuration)
+        run.destroy_run_in_executor_button(
+            RunContext.File,
+            self.NAME)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
     @Slot()
-    def change_history_depth(self):
-        "Change history max entries"""
-        depth, valid = QInputDialog.getInt(self, _('History'),
-                                       _('Maximum entries'),
-                                       self.get_option('max_entries'),
-                                       10, 10000)
-        if valid:
-            self.set_option('max_entries', depth)
+    def _set_filename(self):
+        """
+        Set filename without code analysis.
+        """
+        try:
+            editor = self.get_plugin(Plugins.Editor)
+            if editor:
+                self.get_widget().set_filename(editor.get_current_filename())
+        except SpyderAPIError:
+            # Editor was deleted
+            pass
+
+    def _set_project_dir(self, value):
+        widget = self.get_widget()
+        widget.set_conf("project_dir", value)
+
+    def _unset_project_dir(self, _unused):
+        widget = self.get_widget()
+        widget.set_conf("project_dir", None)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def change_history_depth(self, value=None):
+        """
+        Change history maximum number of entries.
+
+        Parameters
+        ----------
+        value: int or None, optional
+            The valur to set  the maximum history depth. If no value is
+            provided, an input dialog will be launched. Default is None.
+        """
+        self.get_widget().change_history_depth(value=value)
 
     def get_filename(self):
-        """Get current filename in combobox."""
-        return self.pylint.get_filename()
+        """
+        Get current filename in combobox.
+        """
+        return self.get_widget().get_filename()
 
-    @Slot()
-    def set_filename(self):
-        """Set filename without code analysis."""
-        self.pylint.set_filename(self.main.editor.get_current_filename())
+    @run_execute(context=RunContext.File)
+    def run_file(
+        self,
+        input: RunConfiguration,
+        conf: ExtendedRunExecutionParameters
+    ) -> List[PossibleRunResult]:
 
-    @Slot()
-    def run_pylint(self):
-        """Run pylint code analysis"""
-        if (self.get_option('save_before', True)
-                and not self.main.editor.save()):
-            return
         self.switch_to_plugin()
-        self.analyze(self.main.editor.get_current_filename())
-
-    def analyze(self, filename):
-        """Reimplement analyze method"""
-        if self.dockwidget:
-            self.switch_to_plugin()
-        self.pylint.analyze(filename)
+        run_input: FileRun = input['run_input']
+        filename = run_input['path']
+        self.start_code_analysis(filename)
 
     @Slot()
-    def run_pylint_from_analyze_button(self):
+    def start_code_analysis(self, filename=None):
         """
-        See if file should and can be saved and run pylint code analysis.
+        Perform code analysis for given `filename`.
 
-        Does not check that file name is valid etc, so should only be used for
-        Analyze button.
+        If `filename` is None default to current filename in combobox.
+
+        If this method is called while still running it will stop the code
+        analysis.
         """
-        if (self.get_option('save_before', True)
-                and not self.main.editor.save()):
-            return
-        self.pylint.start()
+        editor = self.get_plugin(Plugins.Editor)
+        if editor:
+            if self.get_conf("save_before", True) and not editor.save():
+                return
+
+        if filename is None or isinstance(filename, bool):
+            filename = self.get_widget().get_filename()
+
+        self.switch_to_plugin(force_focus=True)
+        self.get_widget().start_code_analysis(filename)
+
+    def stop_code_analysis(self):
+        """
+        Stop the code analysis process.
+        """
+        self.get_widget().stop_code_analysis()

@@ -8,34 +8,31 @@
 # see NOTICE.txt in the Spyder root directory for details
 # -----------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 # Standard library imports
 import logging
 import traceback
 
 # Third-party imports
-from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
-                            QDialog, QGroupBox, QHBoxLayout, QHeaderView,
+                            QGroupBox, QHBoxLayout, QHeaderView,
                             QMenu, QPushButton, QRadioButton, QSplitter,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
-from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
-                                    create_toolbutton, qapplication)
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import add_actions, create_toolbutton, qapplication
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 logger = logging.getLogger(__name__)
@@ -45,10 +42,9 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog):
+class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
     """Object explorer main widget window."""
-    # TODO: Use signal to trigger update of configs
-    sig_option_changed = Signal(str, object)
+    CONF_SECTION = 'variable_explorer'
 
     def __init__(self,
                  obj,
@@ -58,9 +54,6 @@ class ObjectExplorer(BaseDialog):
                  parent=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
-                 show_callable_attributes=False,
-                 show_special_attributes=False,
-                 dataframe_format=None,
                  readonly=None,
                  reset=False):
         """
@@ -75,23 +68,19 @@ class ObjectExplorer(BaseDialog):
             define which columns are present in the table and their defaults
         :param attribute_details: list of AttributeDetails objects that define
             which attributes can be selected in the details pane.
-        :param show_callable_attributes: if True rows where the 'is attribute'
-            and 'is callable' columns are both True, are displayed.
-            Otherwise they are hidden.
-        :param show_special_attributes: if True rows where the 'is attribute'
-            is True and the object name starts and ends with two underscores,
-            are displayed. Otherwise they are hidden.
-        :param dataframe_format: Format for the values in the Dataframe Editor.
         :param reset: If true the persistent settings, such as column widths,
             are reset.
         """
-        QDialog.__init__(self, parent=parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
+
+        # Options
+        show_callable_attributes = self.get_conf('show_callable_attributes')
+        show_special_attributes = self.get_conf('show_special_attributes')
 
         # Model
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
-        self._dataframe_format = dataframe_format
         self.readonly = readonly
 
         self.btn_save_and_close = None
@@ -102,8 +91,8 @@ class ObjectExplorer(BaseDialog):
 
         self._proxy_tree_model = TreeProxyModel(
             show_callable_attributes=show_callable_attributes,
-            show_special_attributes=show_special_attributes,
-            dataframe_format=dataframe_format)
+            show_special_attributes=show_special_attributes
+        )
 
         self._proxy_tree_model.setSourceModel(self._tree_model)
         # self._proxy_tree_model.setSortRole(RegistryTableModel.SORT_ROLE)
@@ -111,14 +100,12 @@ class ObjectExplorer(BaseDialog):
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView(
-                dataframe_format=self._dataframe_format)
+        self.obj_tree = ToggleColumnTreeView()
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.add_header_context_menu()
-        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
 
         # Views
         self._setup_actions()
@@ -157,21 +144,27 @@ class ObjectExplorer(BaseDialog):
     def _setup_actions(self):
         """Creates the main window actions."""
         # Show/hide callable objects
-        self.toggle_show_callable_action = \
-            QAction(_("Show callable attributes"), self, checkable=True,
-                    shortcut=QKeySequence("Alt+C"),
-                    statusTip=_("Shows/hides attributes "
-                                "that are callable (functions, methods, etc)"))
+        self.toggle_show_callable_action = QAction(
+            _("Show callable attributes"),
+            self,
+            checkable=True,
+            shortcut=QKeySequence("Alt+C"),
+            statusTip=_("Shows/hides attributes that are callable "
+                        "(functions, methods, etc)")
+        )
         self.toggle_show_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
         self.toggle_show_callable_action.toggled.connect(
             self.obj_tree.resize_columns_to_contents)
 
         # Show/hide special attributes
-        self.toggle_show_special_attribute_action = \
-            QAction(_("Show __special__ attributes"), self, checkable=True,
-                    shortcut=QKeySequence("Alt+S"),
-                    statusTip=_("Shows or hides __special__ attributes"))
+        self.toggle_show_special_attribute_action = QAction(
+            _("Show __special__ attributes"),
+            self,
+            checkable=True,
+            shortcut=QKeySequence("Alt+S"),
+            statusTip=_("Shows or hides __special__ attributes")
+        )
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
         self.toggle_show_special_attribute_action.toggled.connect(
@@ -188,6 +181,7 @@ class ObjectExplorer(BaseDialog):
             toggled=self._toggle_show_callable_attributes_action)
         callable_attributes.setCheckable(True)
         callable_attributes.setChecked(show_callable_attributes)
+        callable_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(callable_attributes)
 
         special_attributes = create_toolbutton(
@@ -196,24 +190,21 @@ class ObjectExplorer(BaseDialog):
             toggled=self._toggle_show_special_attributes_action)
         special_attributes.setCheckable(True)
         special_attributes.setChecked(show_special_attributes)
+        special_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.tools_layout.addSpacing(5)
         self.tools_layout.addWidget(special_attributes)
 
         self.tools_layout.addStretch()
 
         self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
+        self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         self.show_cols_submenu = QMenu(self)
+        self.show_cols_submenu.setObjectName('checkbox-padding')
         self.options_button.setMenu(self.show_cols_submenu)
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            self.options_button.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{padding: 3px;}"))
-        else:
-            self.options_button.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)
 
     @Slot()
@@ -221,8 +212,7 @@ class ObjectExplorer(BaseDialog):
         """Toggle show callable atributes action."""
         action_checked = not self.toggle_show_callable_action.isChecked()
         self.toggle_show_callable_action.setChecked(action_checked)
-        self.sig_option_changed.emit('show_callable_attributes',
-                                     action_checked)
+        self.set_conf('show_callable_attributes', action_checked)
 
     @Slot()
     def _toggle_show_special_attributes_action(self):
@@ -230,24 +220,17 @@ class ObjectExplorer(BaseDialog):
         action_checked = (
             not self.toggle_show_special_attribute_action.isChecked())
         self.toggle_show_special_attribute_action.setChecked(action_checked)
-        self.sig_option_changed.emit('show_special_attributes', action_checked)
-
-    @Slot(str)
-    def _set_dataframe_format(self, new_format):
-        """
-        Set format to use in DataframeEditor.
-
-        Args:
-            new_format (string): e.g. "%.3f"
-        """
-        self.sig_option_changed.emit('dataframe_format', new_format)
-        self._tree_model.dataframe_format = new_format
+        self.set_conf('show_special_attributes', action_checked)
 
     def _setup_views(self):
         """Creates the UI widgets."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        layout.addLayout(self.tools_layout)
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
-        layout = create_plugin_layout(self.tools_layout,
-                                      self.central_splitter)
+        layout.addWidget(self.central_splitter)
         self.setLayout(layout)
 
         # Stretch last column?
@@ -297,12 +280,14 @@ class ObjectExplorer(BaseDialog):
         h_group_layout.addWidget(radio_widget)
 
         # Editor widget
-        self.editor = CodeEditor(self)
+        self.editor = SimpleCodeEditor(self)
         self.editor.setReadOnly(True)
         h_group_layout.addWidget(self.editor)
 
         # Save and close buttons
         btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(4, 8, 8, 16)
+        btn_layout.setSpacing(5)
         btn_layout.addStretch()
 
         if not self.readonly:
@@ -316,14 +301,12 @@ class ObjectExplorer(BaseDialog):
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
-        v_group_layout.addLayout(btn_layout)
+        layout.addLayout(btn_layout)
 
         # Splitter parameters
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
         self.central_splitter.setSizes([500, 320])
-        self.central_splitter.setStretchFactor(0, 10)
-        self.central_splitter.setStretchFactor(1, 0)
 
         # Connect signals
         # Keep a temporary reference of the selection_model to prevent
@@ -422,20 +405,19 @@ class ObjectExplorer(BaseDialog):
             data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
-            show_blanks = CONF.get('editor', 'blank_spaces')
-            update_scrollbar = CONF.get('editor', 'scroll_past_end')
-            scheme_name = CONF.get('appearance', 'selected')
             self.editor.setup_editor(
-                tab_mode=False,
-                font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
-                show_blanks=show_blanks,
-                color_scheme=scheme_name,
-                scroll_past_end=update_scrollbar)
+                font=self.get_font(SpyderFontType.MonospaceInterface),
+                show_blanks=False,
+                color_scheme=CONF.get('appearance', 'selected'),
+                scroll_past_end=False,
+            )
             self.editor.set_text(data)
+
             if attr_details.name == 'Source code':
                 self.editor.set_language('Python')
             else:
                 self.editor.set_language('Rst')
+
         except Exception as ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()
@@ -489,9 +471,7 @@ def test():
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                'foobar': foobar}
-    ObjectExplorer.create_explorer(example, 'Example',
-                                   show_callable_attributes=True,
-                                   show_special_attributes=True)
+    ObjectExplorer.create_explorer(example, 'Example')
 
 
 if __name__ == "__main__":

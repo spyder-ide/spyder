@@ -1,0 +1,14 @@
+# If you want jupyter qtconsole to appear in a linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install ipython-qtconsole.desktop
+
+[Desktop Entry]
+Comment=Jupyter qtconsole
+Exec=jupyter qtconsole
+GenericName[en_US]=Jupyter shell
+GenericName=Jupyter shell
+Icon=network-idle
+Name[en_US]=Jupyter Qt console
+Name=Jupyter Qt console
+Categories=Development;Utility;
+Terminal=false
+Type=Application

@@ -67,6 +67,8 @@ class ASTNode:
         self.index_in_parent = -1
         self.to_delete = False
         self.depth = 0
+        self.name = ''
+        self.value = ''
 
     def update_position(self, position):
         """Updates node text position."""
@@ -237,7 +239,7 @@ class FormatNode(ASTNode):
     """
     Base regex formatting node.
 
-    All regex formatting nodes shoudld extend this class.
+    All regex formatting nodes should extend this class.
     """
 
     def transform_regex(self, regex_result):

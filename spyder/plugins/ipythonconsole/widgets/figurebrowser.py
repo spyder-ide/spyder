@@ -8,13 +8,14 @@
 Widget that handles communications between the IPython Console and
 the Plots plugin
 """
+# Standard library imports
+from base64 import decodebytes
 
 # ---- Third party library imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 # ---- Local library imports
 from spyder.config.base import _
-from spyder.py3compat import decodebytes
 
 
 class FigureBrowserWidget(RichJupyterWidget):
@@ -24,15 +25,12 @@ class FigureBrowserWidget(RichJupyterWidget):
     This widget can also block the plotting of inline figures in the IPython
     Console so that figures are only plotted in the plots plugin.
     """
+    _mute_inline_plotting = None
+    sended_render_message = False
 
-    # Reference to the figurebrowser widget connected to this client
-    figurebrowser = None
-
-    # ---- Public API
-    def set_figurebrowser(self, figurebrowser):
-        """Set the namespace for the figurebrowser widget."""
-        self.figurebrowser = figurebrowser
-        self.sended_render_message = False
+    def set_mute_inline_plotting(self, mute_inline_plotting):
+        """Set mute_inline_plotting"""
+        self._mute_inline_plotting = mute_inline_plotting
 
     # ---- Private API (overrode by us)
     def _handle_display_data(self, msg):
@@ -56,16 +54,16 @@ class FigureBrowserWidget(RichJupyterWidget):
 
         if img is not None:
             self.sig_new_inline_figure.emit(img, fmt)
-            if (self.figurebrowser is not None and
-                    self.figurebrowser.mute_inline_plotting):
+            if self._mute_inline_plotting:
                 if not self.sended_render_message:
-                    self._append_html(
-                        _('<br><hr>'
-                          '\nFigures now render in the Plots pane by default. '
-                          'To make them also appear inline in the Console, '
-                          'uncheck "Mute Inline Plotting" under the Plots '
-                          'pane options menu. \n'
-                          '<hr><br>'), before_prompt=True)
+                    self._append_html("<br>", before_prompt=True)
+                    self.append_html_message(
+                        _('Figures are displayed in the Plots pane by '
+                          'default. To make them also appear inline in the '
+                          'console, you need to uncheck "Mute inline '
+                          'plotting" under the options menu of Plots.'),
+                        before_prompt=True
+                    )
                     self.sended_render_message = True
                 return
         return super(FigureBrowserWidget, self)._handle_display_data(msg)

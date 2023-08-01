@@ -8,8 +8,6 @@
 File associations widget for use in global and project preferences.
 """
 
-from __future__ import print_function
-
 # Standard library imports
 import os
 import re
@@ -17,7 +15,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QRegExp, QSize, Qt, Signal
+from qtpy.QtCore import QRegExp, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QCursor, QRegExpValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QLabel, QLineEdit,
@@ -149,7 +147,13 @@ class ApplicationsDialog(QDialog):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.list.clear()
         if applications is None:
-            apps = get_installed_applications()
+            # This is necessary to avoid an error on Windows for non-admin
+            # accounts.
+            # Fixes spyder-ide/spyder#20907
+            try:
+                apps = get_installed_applications()
+            except PermissionError:
+                apps = []
         else:
             apps = applications
 
@@ -337,7 +341,7 @@ class FileAssociationsWidget(QWidget):
         self.setLayout(layout)
 
         # Signals
-        self.button_add.clicked.connect(lambda: self.add_association())
+        self.button_add.clicked.connect(self.add_association)
         self.button_remove.clicked.connect(self.remove_association)
         self.button_edit.clicked.connect(self.edit_association)
         self.button_add_application.clicked.connect(self.add_application)
@@ -424,7 +428,7 @@ class FileAssociationsWidget(QWidget):
                 _('Enter new file extension. You can add several values '
                   'separated by commas.<br>Examples include:')
                 + '<ul><li><code>*.txt</code></li>'
-                + '<li><code>*.json,*,csv</code></li>'
+                + '<li><code>*.json,*.csv</code></li>'
                 + '<li><code>*.json,README.md</code></li></ul>'
             ),
         )
@@ -442,9 +446,10 @@ class FileAssociationsWidget(QWidget):
         self._data = {} if data is None else data
         self._update_extensions()
 
+    @Slot()
     def add_association(self, value=None):
         """Add extension file association."""
-        if value is None:
+        if value is None or isinstance(value, bool):
             text, ok_pressed = '', False
             self._dlg_input.set_text('')
 

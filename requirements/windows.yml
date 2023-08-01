@@ -1,0 +1,5 @@
+# Windows specific dependencies
+channels:
+  - conda-forge
+dependencies:
+  - paramiko >=2.4.0

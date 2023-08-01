@@ -8,29 +8,36 @@
 Dock widgets for plugins
 """
 
+import qstylizer.style
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
-from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
-                            QSizePolicy, QStyle, QTabBar, QToolButton,
-                            QWidget)
+from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
+                            QToolButton, QWidget)
 
-from spyder.config.gui import is_dark_interface
-from spyder.utils import icon_manager as ima
+from spyder.api.translations import _
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import (
+    PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
+    VERTICAL_DOCK_TABBAR_STYLESHEET)
 
 
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject):
+class TabFilter(QObject, SpyderConfigurationAccessor):
     """Filter event attached to each DockWidget QTabBar."""
+
+    CONF_SECTION = 'main'
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
-        self.dock_tabbar = dock_tabbar
+        self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None
 
-        # Center dockwidget tabs to differentiate them from plugin tabs.
-        # See spyder-ide/spyder#9763
-        self.dock_tabbar.setStyleSheet("QTabBar {alignment: center;}")
+        self._set_tabbar_stylesheet()
+        self.dock_tabbar.setElideMode(Qt.ElideNone)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -70,6 +77,14 @@ class TabFilter(QObject):
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
+    def _set_tabbar_stylesheet(self):
+        if self.get_conf('vertical_tabs'):
+            self.dock_tabbar.setStyleSheet(
+                str(VERTICAL_DOCK_TABBAR_STYLESHEET))
+        else:
+            self.dock_tabbar.setStyleSheet(
+                str(HORIZONTAL_DOCK_TABBAR_STYLESHEET))
+
 
 # =============================================================================
 # Title bar
@@ -82,21 +97,15 @@ class DragButton(QToolButton):
     """
 
     def __init__(self, parent, button_size):
-        super(QToolButton, self).__init__(parent)
+        super().__init__(parent)
         self.parent = parent
 
         # Style
-        self.setMaximumSize(button_size)
+        self.setIconSize(button_size)
         self.setAutoRaise(True)
-        self.setIcon(ima.icon('drag-horizontal'))
-        if is_dark_interface():
-            self.setStyleSheet(
-                "QToolButton {"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "background-color: #32414B;}")
-        else:
-            self.setStyleSheet("QToolButton {border: 0px;}")
+        self.setIcon(ima.icon('drag_dock_widget'))
+        self.setToolTip(_("Drag and drop pane to a different position"))
+        self.setStyleSheet(self._stylesheet)
 
     def mouseReleaseEvent(self, event):
         self.parent.mouseReleaseEvent(event)
@@ -104,32 +113,57 @@ class DragButton(QToolButton):
     def mousePressEvent(self, event):
         self.parent.mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        self.parent.mouseMoveEvent(event)
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+        css.QToolButton.setValues(
+            borderRadius='0px',
+            border='0px'
+        )
+        return css.toString()
 
 
 class CloseButton(QToolButton):
     """Close button for the title bar."""
 
     def __init__(self, parent, button_size):
-        super(QToolButton, self).__init__(parent)
+        super().__init__(parent)
+        self.parent = parent
 
         # Style
-        self.setMaximumSize(button_size)
+        self.setIconSize(button_size)
         self.setAutoRaise(True)
+        self.setIcon(ima.icon('lock_open'))
+        self.setToolTip(_("Lock pane"))
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
+
+    def _apply_stylesheet(self, bgcolor, bradius):
+        css = qstylizer.style.StyleSheet()
+        css.QToolButton.setValues(
+            width=PanesToolbarStyleSheet.BUTTON_WIDTH,
+            borderRadius=f'{bradius}px',
+            border='0px',
+            backgroundColor=bgcolor,
+        )
+
+        self.setStyleSheet(css.toString())
+
+    def enterEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
-        if is_dark_interface():
-            self.setStyleSheet(
-                "QToolButton {"
-                "border-radius: 0px;"
-                "border: 0px;"
-                "image: url(:/qss_icons/rc/close.png);"
-                "background-color: #32414B;}"
-                "QToolButton:hover {"
-                "image: url(:/qss_icons/rc/close-hover.png);}")
-        else:
-            self.setIcon(QApplication.style().standardIcon(
-                QStyle.SP_DockWidgetCloseButton))
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
+        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self.setIcon(ima.icon('lock'))
+        super().enterEvent(event)
+
+    def mousePressEvent(self, event):
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6, 3)
+        super().mousePressEvent(event)
+
+    def leaveEvent(self, event):
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
+        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self.setIcon(ima.icon('lock_open'))
+        super().leaveEvent(event)
 
 
 class DockTitleBar(QWidget):
@@ -143,24 +177,20 @@ class DockTitleBar(QWidget):
     def __init__(self, parent):
         super(DockTitleBar, self).__init__(parent)
 
-        icon_size = QApplication.style().standardIcon(
-            QStyle.SP_TitleBarNormalButton).actualSize(QSize(100, 100))
-        button_size = icon_size + QSize(8, 8)
-
-        left_spacer = QWidget(self)
-        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        if is_dark_interface():
-            left_spacer.setStyleSheet("background-color: #32414B")
+        button_size = QSize(20, 20)
 
         drag_button = DragButton(self, button_size)
 
+        left_spacer = QWidget(self)
+        left_spacer.setToolTip(drag_button.toolTip())
+        left_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
         right_spacer = QWidget(self)
+        right_spacer.setToolTip(drag_button.toolTip())
         right_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        if is_dark_interface():
-            right_spacer.setStyleSheet("background-color: #32414B")
 
         close_button = CloseButton(self, button_size)
-        close_button.clicked.connect(parent.sig_plugin_closed.emit)
+        close_button.clicked.connect(parent.remove_title_bar)
 
         hlayout = QHBoxLayout(self)
         hlayout.setSpacing(0)
@@ -170,38 +200,78 @@ class DockTitleBar(QWidget):
         hlayout.addWidget(right_spacer)
         hlayout.addWidget(close_button)
 
-        # To signal that dock widgets can be dragged from here
-        self.setCursor(Qt.SizeAllCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
 
     def mouseReleaseEvent(self, event):
-        self.setCursor(Qt.SizeAllCursor)
+        self.setCursor(Qt.OpenHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
         QWidget.mousePressEvent(self, event)
 
-    def mouseMoveEvent(self, event):
-        QWidget.mouseMoveEvent(self, event)
-        self.setCursor(Qt.SizeAllCursor)
+    def enterEvent(self, event):
+        # To signal that dock widgets can be dragged from here
+        self.setCursor(Qt.OpenHandCursor)
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Remove customizations when leaving widget."""
+        self.unsetCursor()
+        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        super().leaveEvent(event)
+
+    def _apply_stylesheet(self, bgcolor):
+        css = qstylizer.style.StyleSheet()
+        css.QWidget.setValues(
+            height=PanesToolbarStyleSheet.BUTTON_HEIGHT,
+            backgroundColor=bgcolor
+        )
+        self.setStyleSheet(css.toString())
 
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+
+    # Attributes
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+
+    # Signals
     sig_plugin_closed = Signal()
+    sig_title_bar_shown = Signal(bool)
 
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
-
-        # Set our custom title bar
-        self.titlebar = DockTitleBar(self)
-        self.set_title_bar()
-
-        # Needed for the installation of the event filter
         self.title = title
-        self.main = parent
-        self.dock_tabbar = None
 
+        self.setFeatures(self.FEATURES)
+
+        # Widgets
+        self.main = parent
+        self.empty_titlebar = QWidget(self)
+        self.titlebar = DockTitleBar(self)
+        self.dock_tabbar = None  # Needed for event filter
+
+        # Layout
+        # Prevent message on internal console
+        # See: https://bugreports.qt.io/browse/QTBUG-42986
+        layout = QHBoxLayout(self.empty_titlebar)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.empty_titlebar.setLayout(layout)
+        self.empty_titlebar.setMinimumSize(0, 0)
+        self.empty_titlebar.setMaximumSize(0, 0)
+
+        # Setup
+        self.set_title_bar()
+        self.remove_title_bar()
+
+        # Signals
         # To track dockwidget changes the filter is installed when dockwidget
         # visibility changes. This installs the filter on startup and also
         # on dockwidgets that are undocked and then docked to a new location.
@@ -220,7 +290,14 @@ class SpyderDockWidget(QDockWidget):
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
-        tabbars = self.main.findChildren(QTabBar)
+
+        # This is necessary to catch an error when closing the app
+        # in macOS with PyQt 5.15
+        try:
+            tabbars = self.main.findChildren(QTabBar)
+        except RuntimeError:
+            tabbars = []
+
         for tabbar in tabbars:
             for tab in range(tabbar.count()):
                 title = tabbar.tabText(tab)
@@ -236,6 +313,12 @@ class SpyderDockWidget(QDockWidget):
                                                     self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
 
+    def remove_title_bar(self):
+        """Set empty qwidget on title bar."""
+        self.sig_title_bar_shown.emit(False)
+        self.setTitleBarWidget(self.empty_titlebar)
+
     def set_title_bar(self):
         """Set custom title bar."""
+        self.sig_title_bar_shown.emit(True)
         self.setTitleBarWidget(self.titlebar)

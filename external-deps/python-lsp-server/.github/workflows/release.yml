@@ -1,0 +1,44 @@
+name: PyLS Release
+
+on:
+  release:
+    types:
+      - created
+
+
+jobs:
+  build:
+    name: Linux Py${{ matrix.PYTHON_VERSION }}
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.8']
+    timeout-minutes: 10
+    steps:
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('setup.py') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.PYTHON_VERSION }}
+          architecture: 'x64'
+      - run: python -m pip install --upgrade pip setuptools wheel twine
+      - name: Build and publish python-language-server
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PYLS_TOKEN }}
+        run: |
+          python setup.py bdist_wheel --universal
+          python setup.py sdist
+          python -m twine check dist/*
+          python -m twine upload dist/*

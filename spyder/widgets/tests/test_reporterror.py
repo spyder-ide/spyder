@@ -8,14 +8,16 @@
 
 """Tests for the report error dialog."""
 
+from unittest.mock import Mock, MagicMock
+
 # Third party imports
 import pytest
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QUrl
 
 # Local imports
+from spyder import __project_url__
 from spyder.widgets.reporterror import (DESC_MIN_CHARS, TITLE_MIN_CHARS,
                                         SpyderErrorDialog)
-
 
 # =============================================================================
 # Fixtures
@@ -84,6 +86,50 @@ def test_dialog(error_dialog, qtbot):
     assert dlg.desc_chars_label.text() == '{} more characters to go...'.format(DESC_MIN_CHARS)
     qtbot.keyClicks(dlg.input_description, desc_text)
     assert dlg.desc_chars_label.text() == 'Description complete; thanks!'
+
+
+def test_report_issue_url(monkeypatch):
+    """Test that report_issue sends the data, and to correct url."""
+    body = 'This is an example error report body text.'
+    title = 'Uncreative issue title here'
+    target_url_base = __project_url__ + '/issues/new'
+
+    MockQDesktopServices = MagicMock()
+    mockQDesktopServices_instance = MockQDesktopServices()
+    attr_to_patch = ('spyder.widgets.reporterror.QDesktopServices')
+    monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
+
+    # Test when body != None, i.e. when auto-submitting error to Github
+    target_url = QUrl(target_url_base + '?body=' + body)
+    SpyderErrorDialog.open_web_report(body=body, title=None)
+    assert MockQDesktopServices.openUrl.call_count == 1
+    mockQDesktopServices_instance.openUrl.called_with(target_url)
+
+    # Test when body != None and title != None
+    target_url = QUrl(target_url_base + '?body=' + body
+                      + "&title=" + title)
+    SpyderErrorDialog.open_web_report(body=body, title=None)
+    assert MockQDesktopServices.openUrl.call_count == 2
+    mockQDesktopServices_instance.openUrl.called_with(target_url)
+
+
+def test_render_issue():
+    """Test that render issue works without errors and returns text."""
+    test_description = "This is a test description"
+    test_traceback = "An error occurred. Oh no!"
+
+    # Test when description and traceback are not provided
+    test_issue_1 = SpyderErrorDialog.render_issue()
+    assert type(test_issue_1) == str
+    assert len(test_issue_1) > 100
+
+    # Test when description and traceback are provided
+    test_issue_2 = SpyderErrorDialog.render_issue(
+        test_description, test_traceback)
+    assert type(test_issue_2) == str
+    assert len(test_issue_2) > 100
+    assert test_description in test_issue_2
+    assert test_traceback in test_issue_2
 
 
 if __name__ == "__main__":

@@ -1,16 +1,14 @@
 To release a new version of spyder-kernels on PyPI:
 
-* Create an issue announcing the incoming release
+* Close the respective milestone on Github
 
-* Close the respective milestone in GitHub
+* git checkout 2.x
 
-* git checkout master
-
-* git fetch upstream && get merge upstream/master
+* git fetch upstream && get merge upstream/2.x
 
 * git clean -xfdi
 
-* Update CHANGELOG.md with loghub
+* Update CHANGELOG.md with `loghub spyder-ide/spyder-kernels -m vX.X.X`
 
 * Update `_version.py` (set release version, remove 'dev0')
 
@@ -19,6 +17,8 @@ To release a new version of spyder-kernels on PyPI:
 * python setup.py sdist
 
 * python setup.py bdist_wheel
+
+* twine check dist/*
 
 * twine upload dist/*
 
@@ -30,10 +30,10 @@ To release a new version of spyder-kernels on PyPI:
 
 * git checkout master
 
-* git merge 0.x
+* git merge 2.x
 
 * git push upstream master
 
-* git push upstream 0.x
+* git push upstream 2.x
 
 * git push upstream --tags

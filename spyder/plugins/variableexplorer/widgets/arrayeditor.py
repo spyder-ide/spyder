@@ -14,10 +14,9 @@ NumPy Array Editor Dialog based on Qt
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
+import io
 
 # Third party imports
-import numpy as np
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
@@ -29,62 +28,61 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
 from spyder_kernels.utils.nsview import value_to_display
+from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.config.manager import CONF
-from spyder.py3compat import (io, is_binary_string, is_string,
-                              is_text_string, PY3, to_binary_string,
-                              to_text_string)
-from spyder.utils import icon_manager as ima
+from spyder.py3compat import (is_binary_string, is_string, is_text_string,
+                              to_binary_string, to_text_string)
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
-# Note: string and unicode data types will be formatted with '%s' (see below)
+# Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
-                     'single': '%.6g',
-                     'double': '%.6g',
-                     'float_': '%.6g',
-                     'longfloat': '%.6g',
-                     'float16': '%.6g',
-                     'float32': '%.6g',
-                     'float64': '%.6g',
-                     'float96': '%.6g',
-                     'float128': '%.6g',
-                     'csingle': '%r',
-                     'complex_': '%r',
-                     'clongfloat': '%r',
-                     'complex64': '%r',
-                     'complex128': '%r',
-                     'complex192': '%r',
-                     'complex256': '%r',
-                     'byte': '%d',
-                     'bytes8': '%s',
-                     'short': '%d',
-                     'intc': '%d',
-                     'int_': '%d',
-                     'longlong': '%d',
-                     'intp': '%d',
-                     'int8': '%d',
-                     'int16': '%d',
-                     'int32': '%d',
-                     'int64': '%d',
-                     'ubyte': '%d',
-                     'ushort': '%d',
-                     'uintc': '%d',
-                     'uint': '%d',
-                     'ulonglong': '%d',
-                     'uintp': '%d',
-                     'uint8': '%d',
-                     'uint16': '%d',
-                     'uint32': '%d',
-                     'uint64': '%d',
-                     'bool_': '%r',
-                     'bool8': '%r',
-                     'bool': '%r',
-                     }
+    'single': '.6g',
+    'double': '.6g',
+    'float_': '.6g',
+    'longfloat': '.6g',
+    'float16': '.6g',
+    'float32': '.6g',
+    'float64': '.6g',
+    'float96': '.6g',
+    'float128': '.6g',
+    'csingle': '.6g',
+    'complex_': '.6g',
+    'clongfloat': '.6g',
+    'complex64': '.6g',
+    'complex128': '.6g',
+    'complex192': '.6g',
+    'complex256': '.6g',
+    'byte': 'd',
+    'bytes8': 's',
+    'short': 'd',
+    'intc': 'd',
+    'int_': 'd',
+    'longlong': 'd',
+    'intp': 'd',
+    'int8': 'd',
+    'int16': 'd',
+    'int32': 'd',
+    'int64': 'd',
+    'ubyte': 'd',
+    'ushort': 'd',
+    'uintc': 'd',
+    'uint': 'd',
+    'ulonglong': 'd',
+    'uintp': 'd',
+    'uint8': 'd',
+    'uint16': 'd',
+    'uint32': 'd',
+    'uint64': 'd',
+    'bool_': '',
+    'bool8': '',
+    'bool': '',
+}
 
 
 LARGE_SIZE = 5e5
@@ -115,13 +113,13 @@ def get_idx_rect(index_list):
 #==============================================================================
 # Main classes
 #==============================================================================
-class ArrayModel(QAbstractTableModel):
+class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     """Array Editor Table Model"""
 
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format="%.6g", xlabels=None, ylabels=None,
+    def __init__(self, data, format_spec=".6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -146,30 +144,33 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
-        self._format = format
+        self._format_spec = format_spec
 
         self.total_rows = self._data.shape[0]
         self.total_cols = self._data.shape[1]
         size = self.total_rows * self.total_cols
 
-        try:
-            self.vmin = np.nanmin(self.color_func(data))
-            self.vmax = np.nanmax(self.color_func(data))
-            if self.vmax == self.vmin:
-                self.vmin -= 1
-            self.hue0 = huerange[0]
-            self.dhue = huerange[1]-huerange[0]
-            self.bgcolor_enabled = True
-        except (AttributeError, TypeError, ValueError):
-            self.vmin = None
-            self.vmax = None
-            self.hue0 = None
-            self.dhue = None
-            self.bgcolor_enabled = False
+        if not self._data.dtype.name == 'object':
+            try:
+                self.vmin = np.nanmin(self.color_func(data))
+                self.vmax = np.nanmax(self.color_func(data))
+                if self.vmax == self.vmin:
+                    self.vmin -= 1
+                self.hue0 = huerange[0]
+                self.dhue = huerange[1]-huerange[0]
+                self.bgcolor_enabled = True
+            except (AttributeError, TypeError, ValueError):
+                self.vmin = None
+                self.vmax = None
+                self.hue0 = None
+                self.dhue = None
+                self.bgcolor_enabled = False
 
         # Array with infinite values cannot display background colors and
         # crashes. See: spyder-ide/spyder#8093
-        self.has_inf = np.inf in data
+        self.has_inf = False
+        if data.dtype.kind in ['f', 'c']:
+            self.has_inf = np.any(np.isinf(data))
 
         # Deactivate coloring for object arrays or arrays with inf values
         if self._data.dtype.name == 'object' or self.has_inf:
@@ -190,18 +191,18 @@ class ArrayModel(QAbstractTableModel):
             else:
                 self.cols_loaded = self.total_cols
 
-    def get_format(self):
+    def get_format_spec(self):
         """Return current format"""
-        # Avoid accessing the private attribute _format from outside
-        return self._format
+        # Avoid accessing the private attribute _format_spec from outside
+        return self._format_spec
 
     def get_data(self):
         """Return data"""
         return self._data
 
-    def set_format(self, format):
+    def set_format_spec(self, format_spec):
         """Change display format"""
-        self._format = format
+        self._format_spec = format_spec
         self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
@@ -286,7 +287,8 @@ class ArrayModel(QAbstractTableModel):
                     return value_to_display(value)
                 else:
                     try:
-                        return to_qvariant(self._format % value)
+                        format_spec = self._format_spec
+                        return to_qvariant(format(value, format_spec))
                     except TypeError:
                         self.readonly = True
                         return repr(value)
@@ -304,7 +306,7 @@ class ArrayModel(QAbstractTableModel):
             except (TypeError, ValueError):
                 return to_qvariant()
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return self.get_font(SpyderFontType.MonospaceInterface)
         return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -344,7 +346,8 @@ class ArrayModel(QAbstractTableModel):
             return False
 
         # Add change to self.changes
-        self.changes[(i, j)] = val
+        # Use self.test_array to convert to correct dtype
+        self.changes[(i, j)] = self.test_array[0]
         self.dataChanged.emit(index, index)
 
         if not is_string(val):
@@ -380,7 +383,7 @@ class ArrayModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class ArrayDelegate(QItemDelegate):
+class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -390,13 +393,18 @@ class ArrayDelegate(QItemDelegate):
         """Create editor widget"""
         model = index.model()
         value = model.get_value(index)
-        if model._data.dtype.name == "bool":
+        if type(value) == np.ndarray or model.readonly:
+            # The editor currently cannot properly handle this case
+            return
+        elif model._data.dtype.name == "bool":
             value = not value
             model.setData(index, to_qvariant(value))
             return
         elif value is not np.ma.masked:
             editor = QLineEdit(parent)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            editor.setFont(
+                self.get_font(SpyderFontType.MonospaceInterface)
+            )
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
                 validator = QDoubleValidator(editor)
@@ -442,9 +450,26 @@ class ArrayView(QTableView):
             name='copy',
             parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                            lambda val: self.load_more_data(val, columns=True))
-        self.verticalScrollBar().valueChanged.connect(
-                               lambda val: self.load_more_data(val, rows=True))
+            self._load_more_columns)
+        self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def _load_more_columns(self, value):
+        """Load more columns to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
+
+    def _load_more_rows(self, value):
+        """Load more rows to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
 
@@ -482,13 +507,14 @@ class ArrayView(QTableView):
                     bottom_right = self.model().index(bottom, right)
                     part = QItemSelectionRange(top_left, bottom_right)
                     new_selection.append(part)
-                self.selectionModel().select
-                (new_selection, self.selectionModel().ClearAndSelect)
+                self.selectionModel().select(
+                    new_selection, self.selectionModel().ClearAndSelect)
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
             pass
 
+    @Slot()
     def resize_to_contents(self):
         """Resize cells to contents"""
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -534,13 +560,11 @@ class ArrayView(QTableView):
             row_max = self.model().total_rows-1
 
         _data = self.model().get_data()
-        if PY3:
-            output = io.BytesIO()
-        else:
-            output = io.StringIO()
+        output = io.BytesIO()
         try:
+            fmt = '%' + self.model().get_format_spec()
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=self.model().get_format())
+                       delimiter='\t', fmt=fmt)
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
@@ -572,30 +596,13 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
-        self.model = ArrayModel(self.data, format=format, xlabels=xlabels,
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
+        self.model = ArrayModel(self.data, format_spec=format_spec, xlabels=xlabels,
                                 ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
 
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
-        btn = QPushButton(_( "Format"))
-        # disable format button for int type
-        btn.setEnabled(is_float(data.dtype))
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.change_format)
-        btn = QPushButton(_( "Resize"))
-        btn_layout.addWidget(btn)
-        btn.clicked.connect(self.view.resize_to_contents)
-        bgcolor = QCheckBox(_( 'Background color'))
-        bgcolor.setChecked(self.model.bgcolor_enabled)
-        bgcolor.setEnabled(self.model.bgcolor_enabled)
-        bgcolor.stateChanged.connect(self.model.bgcolor)
-        btn_layout.addWidget(bgcolor)
-
         layout = QVBoxLayout()
         layout.addWidget(self.view)
-        layout.addLayout(btn_layout)
         self.setLayout(layout)
 
     def accept_changes(self):
@@ -610,26 +617,27 @@ class ArrayEditorWidget(QWidget):
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
 
+    @Slot()
     def change_format(self):
         """Change display format"""
-        format, valid = QInputDialog.getText(self, _( 'Format'),
+        format_spec, valid = QInputDialog.getText(self, _( 'Format'),
                                  _( "Float formatting"),
-                                 QLineEdit.Normal, self.model.get_format())
+                                 QLineEdit.Normal, self.model.get_format_spec())
         if valid:
-            format = str(format)
+            format_spec = str(format_spec)
             try:
-                format % 1.1
+                format(1.1, format_spec)
             except:
                 QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                                     _("Format (%s) is incorrect") % format_spec)
                 return
-            self.model.set_format(format)
+            self.model.set_format_spec(format_spec)
 
 
 class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -655,8 +663,15 @@ class ArrayEditor(BaseDialog):
         """
         self.data = data
         readonly = readonly or not self.data.flags.writeable
-        is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
+
+        # This is necessary in case users subclass ndarray and set the dtype
+        # to an object that is not an actual dtype.
+        # Fixes spyder-ide/spyder#20462
+        if hasattr(data.dtype, 'names'):
+            is_record_array = data.dtype.names is not None
+        else:
+            is_record_array = False
 
         if data.ndim > 3:
             self.error(_("Arrays with more than 3 dimensions are not "
@@ -671,7 +686,14 @@ class ArrayEditor(BaseDialog):
                          "number"))
             return False
         if not is_record_array:
-            dtn = data.dtype.name
+            # This is necessary in case users subclass ndarray and set the
+            # dtype to an object that is not an actual dtype.
+            # Fixes spyder-ide/spyder#20462
+            if hasattr(data.dtype, 'name'):
+                dtn = data.dtype.name
+            else:
+                dtn = 'Unknown'
+
             if dtn == 'object':
                 # If the array doesn't have shape, we can't display it
                 if data.shape == ():
@@ -683,13 +705,12 @@ class ArrayEditor(BaseDialog):
                 self.readonly = readonly = True
             elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
                     and not dtn.startswith('unicode')):
-                arr = _("%s arrays") % data.dtype.name
+                arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(ima.icon('arredit'))
         if title:
             title = to_text_string(title) + " - " + _("NumPy object array")
         else:
@@ -698,7 +719,7 @@ class ArrayEditor(BaseDialog):
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
 
-        # Stack widget
+        # ---- Stack widget
         self.stack = QStackedWidget(self)
         if is_record_array:
             for name in data.dtype.names:
@@ -713,22 +734,34 @@ class ArrayEditor(BaseDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
                                                    xlabels, ylabels))
         elif data.ndim == 3:
-            pass
+            # We create here the necessary widgets for current_dim_changed to
+            # work. The rest are created below.
+            # QSpinBox
+            self.index_spin = QSpinBox(self, keyboardTracking=False)
+            self.index_spin.valueChanged.connect(self.change_active_widget)
+
+            # Labels
+            self.shape_label = QLabel()
+            self.slicing_label = QLabel()
+
+            # Set the widget to display when launched
+            self.current_dim_changed(self.last_dim)
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
+
         self.arraywidget = self.stack.currentWidget()
-        if self.arraywidget:
-            self.arraywidget.model.dataChanged.connect(
-                self.save_and_close_enable)
+        self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
-        # Buttons configuration
-        btn_layout = QHBoxLayout()
+        # ---- Top row of buttons
+        btn_layout_top = None
         if is_record_array or is_masked_array or data.ndim == 3:
+            btn_layout_top = QHBoxLayout()
+
             if is_record_array:
-                btn_layout.addWidget(QLabel(_("Record array fields:")))
+                btn_layout_top.addWidget(QLabel(_("Record array fields:")))
                 names = []
                 for name in data.dtype.names:
                     field = data.dtype.fields[name]
@@ -741,56 +774,87 @@ class ArrayEditor(BaseDialog):
                     names.append(text)
             else:
                 names = [_('Masked data'), _('Data'), _('Mask')]
+
             if data.ndim == 3:
-                # QSpinBox
-                self.index_spin = QSpinBox(self, keyboardTracking=False)
-                self.index_spin.valueChanged.connect(self.change_active_widget)
                 # QComboBox
                 names = [str(i) for i in range(3)]
                 ra_combo = QComboBox(self)
                 ra_combo.addItems(names)
                 ra_combo.currentIndexChanged.connect(self.current_dim_changed)
+
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
-                btn_layout.addWidget(label)
-                btn_layout.addWidget(ra_combo)
-                self.shape_label = QLabel()
-                btn_layout.addWidget(self.shape_label)
+                btn_layout_top.addWidget(label)
+                btn_layout_top.addWidget(ra_combo)
+                btn_layout_top.addWidget(self.shape_label)
+
                 label = QLabel(_("Index:"))
-                btn_layout.addWidget(label)
-                btn_layout.addWidget(self.index_spin)
-                self.slicing_label = QLabel()
-                btn_layout.addWidget(self.slicing_label)
-                # set the widget to display when launched
-                self.current_dim_changed(self.last_dim)
+                btn_layout_top.addWidget(label)
+                btn_layout_top.addWidget(self.index_spin)
+
+                btn_layout_top.addWidget(self.slicing_label)
             else:
                 ra_combo = QComboBox(self)
                 ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
-                btn_layout.addWidget(ra_combo)
-            if is_masked_array:
-                label = QLabel(_("<u>Warning</u>: changes are applied separately"))
-                label.setToolTip(_("For performance reasons, changes applied "\
-                                   "to masked array won't be reflected in "\
-                                   "array's data (and vice-versa)."))
-                btn_layout.addWidget(label)
+                btn_layout_top.addWidget(ra_combo)
 
-        btn_layout.addStretch()
+            if is_masked_array:
+                label = QLabel(
+                    _("<u>Warning</u>: Changes are applied separately")
+                )
+                label.setToolTip(_("For performance reasons, changes applied "
+                                   "to masked arrays won't be reflected in "
+                                   "array's data (and vice-versa)."))
+                btn_layout_top.addWidget(label)
+
+            btn_layout_top.addStretch()
+
+        # ---- Bottom row of buttons
+        btn_layout_bottom = QHBoxLayout()
+
+        btn_format = QPushButton(_("Format"))
+        # disable format button for int type
+        btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
+        btn_layout_bottom.addWidget(btn_format)
+        btn_format.clicked.connect(self.arraywidget.change_format)
+
+        btn_resize = QPushButton(_("Resize"))
+        btn_layout_bottom.addWidget(btn_resize)
+        btn_resize.clicked.connect(self.arraywidget.view.resize_to_contents)
+
+        self.bgcolor = QCheckBox(_('Background color'))
+        self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
+        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
+        self.bgcolor.stateChanged.connect(
+            lambda state: self.arraywidget.model.bgcolor(state))
+        btn_layout_bottom.addWidget(self.bgcolor)
+
+        btn_layout_bottom.addStretch()
 
         if not readonly:
             self.btn_save_and_close = QPushButton(_('Save and Close'))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
-            btn_layout.addWidget(self.btn_save_and_close)
+            btn_layout_bottom.addWidget(self.btn_save_and_close)
 
         self.btn_close = QPushButton(_('Close'))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
-        btn_layout.addWidget(self.btn_close)
-        self.layout.addLayout(btn_layout, 2, 0)
+        btn_layout_bottom.addWidget(self.btn_close)
 
-        self.setMinimumSize(400, 300)
+        # ---- Final layout
+        btn_layout_bottom.setContentsMargins(4, 4, 4, 4)
+        if btn_layout_top is not None:
+            btn_layout_top.setContentsMargins(4, 4, 4, 4)
+            self.layout.addLayout(btn_layout_top, 2, 0)
+            self.layout.addLayout(btn_layout_bottom, 3, 0)
+        else:
+            self.layout.addLayout(btn_layout_bottom, 2, 0)
+
+        # Set minimum size
+        self.setMinimumSize(500, 300)
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
@@ -808,6 +872,7 @@ class ArrayEditor(BaseDialog):
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
+        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
 
     def change_active_widget(self, index):
         """

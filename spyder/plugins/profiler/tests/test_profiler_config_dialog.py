@@ -11,12 +11,11 @@ import pytest
 
 # Local imports
 from spyder.plugins.profiler.plugin import Profiler
-from spyder.preferences.tests.conftest import config_dialog
+from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(
     'config_dialog',
-    # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
     [[None, [], [Profiler]]],
     indirect=True)
 def test_config_dialog(config_dialog):

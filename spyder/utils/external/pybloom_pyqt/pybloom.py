@@ -4,14 +4,13 @@ without increasing the false positive error_rate.
 
 Requires the bitarray library: http://pypi.python.org/pypi/bitarray/
 """
-from __future__ import absolute_import
 import math
 import hashlib
 from .utils import range_fn, is_string_io, running_python_3
 from struct import unpack, pack, calcsize
 
 try:
-    from PyQt5.QtCore import QBitArray, QFile, QDataStream, QIODevice
+    from qtpy.QtCore import QBitArray, QFile, QDataStream, QIODevice
 except ImportError:
     raise ImportError('pybloom_pyqt requires QtCore.QBitArray')
 

@@ -46,4 +46,5 @@ class Manager(object):
 
     def __init__(self, editor):
         """:param editor: CodeEditor instance to control."""
+        super().__init__()
         self._editor = weakref.ref(editor)

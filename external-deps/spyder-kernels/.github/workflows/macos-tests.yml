@@ -1,0 +1,68 @@
+name: Macos tests
+
+on:
+  push:
+    branches:
+    - master
+    - 2.*
+  pull_request:
+    branches:
+    - master
+    - 2.*
+
+concurrency:
+  group: macos-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: Py${{ matrix.PYTHON_VERSION }}
+    runs-on: macos-latest
+    env:
+      CI: True
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: 'macos'
+      USE_CONDA: 'true'
+    strategy:
+      fail-fast: false 
+      matrix:
+        PYTHON_VERSION: ['3.8', '3.9', '3.10']
+    timeout-minutes: 25
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+           activate-environment: test
+           auto-update-conda: true
+           auto-activate-base: false
+           channels: conda-forge
+           miniforge-variant: Mambaforge
+           python-version: ${{ matrix.PYTHON_VERSION }} 
+      - name: Install package dependencies
+        shell: bash -l {0}
+        run: |
+          mamba install --file requirements/posix.txt -y -q
+      - name: Install test dependencies
+        shell: bash -l {0}
+        run: mamba install --file requirements/tests.txt -y -q
+      - name: Install Package
+        shell: bash -l {0}
+        run: pip install -e .
+      - name: Show environment information
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
+          pytest spyder_kernels --color=yes --cov=spyder_kernels -vv
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
+          verbose: true

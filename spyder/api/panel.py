@@ -18,15 +18,16 @@ Original file:
 
 # Standard library imports
 from math import ceil
+import logging
 
 # Third party imports
-import logging
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QRect
 
 # Local imports
 from spyder.api.editorextension import EditorExtension
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ class Panel(QWidget, EditorExtension):
         self.order_in_zone = -1
         self._scrollable = False
         self._background_brush = None
+        self.linecell_color = QColor(Qt.darkGray)
         self._foreground_pen = None
         # Position in the editor (top, left, right, bottom)
         self.position = -1
@@ -116,7 +118,14 @@ class Panel(QWidget, EditorExtension):
             self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
-        """Fills the panel background using QPalette."""
+        """
+        Fill the panel background using QPalette.
+
+        Notes
+        -----
+        Please remember to extend this method in the child class to
+        paint the panel's desired information.
+        """
         if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
             self._background_brush = QBrush(QColor(
@@ -125,6 +134,43 @@ class Panel(QWidget, EditorExtension):
                 self.palette().windowText().color()))
             painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
+        else:
+            logger.debug(f'paintEvent method must be defined in {self}')
+
+    def paint_cell(self, painter):
+        """Paint cell dividers in the visible region if needed."""
+        for top_position, line_number, block in self.editor.visible_blocks:
+            if (
+                is_cell_header(block)
+                and (self.position in [self.Position.LEFT, self.Position.RIGHT])
+            ):
+                pen = painter.pen()
+                pen.setStyle(Qt.SolidLine)
+                pen.setBrush(self.linecell_color)
+                painter.setPen(pen)
+                painter.drawLine(0, top_position, self.width(),
+                                 top_position)
+
+
+    def sizeHint(self):
+        """
+        Return the widget size hint, overriding the Qt method.
+
+        Notes
+        -----
+        * This size hint will define the QSize of the panel, i.e. it is
+          where its width and height are defined.
+        * If the size of your panel depends on displayed text, please
+          use the LineNumberArea one as reference on how to implement
+          this method.
+        * If the size is not dependent on displayed text, please use
+          the debugger panel as reference.
+        * If your panel is in a floating position, please use the
+          IndentationGuide one as reference.
+        """
+        if self.position != self.Position.FLOATING:
+            raise NotImplementedError(
+                f'sizeHint method must be implemented in {self}')
 
     def setVisible(self, visible):
         """
@@ -140,9 +186,9 @@ class Panel(QWidget, EditorExtension):
             self.editor.panels.refresh()
 
     def geometry(self):
-        """Return geometry dimentions for floating Panels.
+        """Return geometry dimensions for floating Panels.
 
-        Note: If None is returned It'll use editor contentsRect dimentions.
+        Note: If None is returned It'll use editor contentsRect dimensions.
 
         returns: x0, y0, height width.
         """

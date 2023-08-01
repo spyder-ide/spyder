@@ -5,8 +5,10 @@
 
 """Utility functions."""
 
+import ast
 import os
 import re
+import sys
 import sysconfig
 
 
@@ -67,6 +69,11 @@ def path_is_library(path, initial_pathlist=None):
         # We don't want to consider paths that belong to the standard
         # library or installed to site-packages.
         return True
+    elif os.name == 'nt':
+        if re.search(r'.*\\pkgs\\.*', path):
+            return True
+        else:
+            return False
     elif not os.name == 'nt':
         # Paths containing the strings below can be part of the default
         # Linux installation, Homebrew or the user site-packages in a
@@ -87,3 +94,52 @@ def path_is_library(path, initial_pathlist=None):
             return False
     else:
         return False
+
+
+def capture_last_Expr(code_ast, out_varname):
+    """
+    Parse line and modify code to capture in globals the last expression.
+
+    The namespace must contain __spyder_builtins__, which is the builtins module.
+    """
+    # Modify ast code to capture the last expression
+    capture_last_expression = False
+    if (
+        len(code_ast.body)
+        and isinstance(code_ast.body[-1], ast.Expr)
+    ):
+        capture_last_expression = True
+        expr_node = code_ast.body[-1]
+        # Create new assign node
+        assign_node = ast.parse(
+            '__spyder_builtins__.globals()[{}] = None'.format(
+                repr(out_varname))).body[0]
+        # Replace None by the value
+        assign_node.value = expr_node.value
+        # Fix line number and column offset
+        assign_node.lineno = expr_node.lineno
+        assign_node.col_offset = expr_node.col_offset
+        if sys.version_info[:2] >= (3, 8):
+            # Exists from 3.8, necessary from 3.11
+            assign_node.end_lineno = expr_node.end_lineno
+            if assign_node.lineno == assign_node.end_lineno:
+                # Add '__spyder_builtins__.globals()[{}] = ' and remove 'None'
+                assign_node.end_col_offset += expr_node.end_col_offset - 4
+            else:
+                assign_node.end_col_offset = expr_node.end_col_offset
+        code_ast.body[-1] = assign_node
+    return code_ast, capture_last_expression
+
+
+def canonic(filename):
+    """
+    Return canonical form of filename.
+
+    This is a copy of bdb.canonic, so that the debugger will process 
+    filenames in the same way
+    """
+    if filename == "<" + filename[1:-1] + ">":
+        return filename
+    canonic = os.path.abspath(filename)
+    canonic = os.path.normcase(canonic)
+    return canonic

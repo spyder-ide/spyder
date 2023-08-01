@@ -35,23 +35,33 @@ def get_version(module='spyder_kernels'):
     return version
 
 
-REQUIREMENTS = ['ipykernel',
-                'ipykernel>=5.1.3; python_version>"2"',
-                'pyzmq>=17',
-                'jupyter-client>=5.3.4',
-                'cloudpickle',
-                'wurlitzer>=1.0.3;platform_system!="Windows"']
+REQUIREMENTS = [
+    'cloudpickle',
+    'ipykernel>=6.23.2,<7',
+    'ipython>=7.31.1,<9,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1',
+    'jupyter-client>=7.4.9,<9',
+    'pyzmq>=22.1.0',
+    'wurlitzer>=1.0.3;platform_system!="Windows"',
+    'pyxdg>=0.26;platform_system=="Linux"',
+]
 
-TEST_REQUIREMENTS = ['numpy',
-                     'pandas',
-                     'scipy',
-                     'pytest',
-                     'pytest-cov',
-                     'flaky',
-                     'mock',
-                     'cython',
-                     'matplotlib',
-                     'xarray']
+TEST_REQUIREMENTS = [
+    'cython',
+    'dask[distributed]',
+    'flaky',
+    'matplotlib',
+    'mock',
+    'numpy',
+    'pandas',
+    'pytest',
+    'pytest-cov',
+    'scipy',
+    'xarray',
+    'pillow',
+    'django',
+    'h5py',
+    'pydicom'
+]
 
 setup(
     name='spyder-kernels',
@@ -69,13 +79,19 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={'test': TEST_REQUIREMENTS},
     include_package_data=True,
-    classifiers=['Development Status :: 5 - Production/Stable',
-                 'Framework :: Jupyter',
-                 'Framework :: IPython',
-                 'Intended Audience :: Developers',
-                 'License :: OSI Approved :: MIT License',
-                 'Operating System :: OS Independent',
-                 'Programming Language :: Python :: 2.7',
-                 'Programming Language :: Python :: 3',
-                 'Topic :: Software Development :: Interpreters']
+    python_requires='>=3.7',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Framework :: Jupyter',
+        'Framework :: IPython',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Topic :: Software Development :: Interpreters',
+    ]
 )

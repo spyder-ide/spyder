@@ -9,8 +9,10 @@ Text data Importing Wizard based on Qt
 """
 
 # Standard library imports
-from __future__ import print_function
+import datetime
 from functools import partial as ft_partial
+import io
+from itertools import zip_longest
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -21,22 +23,17 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
                             QPushButton, QMenu, QMessageBox, QRadioButton,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
-
-# If pandas fails to import here (for any reason), Spyder
-# will crash at startup.
-try:
-    import pandas as pd
-except:
-    pd = None
+from spyder_kernels.utils.lazymodules import (
+    FakeObject, numpy as np, pandas as pd)
 
 # Local import
 from spyder.config.base import _
-from spyder.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
-                              zip_longest)
+from spyder.py3compat import INT_TYPES, TEXT_TYPES, to_text_string
 from spyder.utils import programs
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.palette import SpyderPalette
 
 
 def try_to_parse(value):
@@ -49,25 +46,15 @@ def try_to_parse(value):
             pass
     return value
 
+
 def try_to_eval(value):
     try:
         return eval(value)
     except (NameError, SyntaxError, ImportError):
         return value
 
-#----Numpy arrays support
-class FakeObject(object):
-    """Fake class used in replacement of missing modules"""
-    pass
-try:
-    from numpy import ndarray, array
-except:
-    class ndarray(FakeObject):  # analysis:ignore
-        """Fake ndarray"""
-        pass
 
 #----date and datetime objects support
-import datetime
 try:
     from dateutil.parser import parse as dateparse
 except:
@@ -82,24 +69,24 @@ def datestr_to_datetime(value, dayfirst=True):
     return dateparse(value, dayfirst=dayfirst)
 
 #----Background colors for supported types
-COLORS = {
-          bool: Qt.magenta,
-          tuple([float] + list(INT_TYPES)): Qt.blue,
-          list: Qt.yellow,
-          set: Qt.darkGreen,
-          dict: Qt.cyan,
-          tuple: Qt.lightGray,
-          TEXT_TYPES: Qt.darkRed,
-          ndarray: Qt.green,
-          datetime.date: Qt.darkYellow,
-          }
-
 def get_color(value, alpha):
     """Return color depending on value type"""
+    colors = {
+        bool: SpyderPalette.GROUP_1,
+        tuple([float] + list(INT_TYPES)): SpyderPalette.GROUP_2,
+        TEXT_TYPES: SpyderPalette.GROUP_3,
+        datetime.date: SpyderPalette.GROUP_4,
+        list: SpyderPalette.GROUP_5,
+        set: SpyderPalette.GROUP_6,
+        tuple: SpyderPalette.GROUP_7,
+        dict: SpyderPalette.GROUP_8,
+        np.ndarray: SpyderPalette.GROUP_9,
+    }
+
     color = QColor()
-    for typ in COLORS:
+    for typ in colors:
         if isinstance(value, typ):
-            color = QColor(COLORS[typ])
+            color = QColor(colors[typ])
     color.setAlphaF(alpha)
     return color
 
@@ -190,6 +177,8 @@ class ContentsWidget(QWidget):
         intvalid = QIntValidator(0, len(to_text_string(text).splitlines()),
                                  self.skiprows_edt)
         self.skiprows_edt.setValidator(intvalid)
+        self.skiprows_edt.textChanged.connect(
+                     lambda text: self.get_skiprows())
         other_layout.addWidget(self.skiprows_edt, 0, 1)
 
         other_layout.setColumnMinimumWidth(2, 5)
@@ -250,7 +239,14 @@ class ContentsWidget(QWidget):
 
     def get_skiprows(self):
         """Return number of lines to be skipped"""
-        return int(to_text_string(self.skiprows_edt.text()))
+        skip_rows = to_text_string(self.skiprows_edt.text())
+        # QIntValidator does not handle '+' sign
+        # See spyder-ide/spyder#20070
+        if skip_rows and skip_rows != '+':
+            return int(skip_rows)
+        else:
+            self.skiprows_edt.clear()
+            return 0
 
     def get_comments(self):
         """Return comment string"""
@@ -293,7 +289,8 @@ class PreviewTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self._display_data(index)
         elif role == Qt.BackgroundColorRole:
-            return to_qvariant(get_color(self._data[index.row()][index.column()], .2))
+            return to_qvariant(get_color(
+                self._data[index.row()][index.column()], 0.5))
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
         return to_qvariant()
@@ -377,12 +374,15 @@ class PreviewTable(QTableView):
     def _shape_text(self, text, colsep=u"\t", rowsep=u"\n",
                     transpose=False, skiprows=0, comments='#'):
         """Decode the shape of the given text"""
-        assert colsep != rowsep
+        assert colsep != rowsep, 'Column sep should not equal Row sep'
         out = []
-        text_rows = text.split(rowsep)[skiprows:]
+        text_rows = text.split(rowsep)
+        assert skiprows < len(text_rows), 'Skip Rows > Line Count'
+        text_rows = text_rows[skiprows:]
         for row in text_rows:
             stripped = to_text_string(row).strip()
-            if len(stripped) == 0 or stripped.startswith(comments):
+            if len(stripped) == 0 or (comments and
+                                      stripped.startswith(comments)):
                 continue
             line = to_text_string(row).split(colsep)
             line = [try_to_parse(to_text_string(x)) for x in line]
@@ -441,8 +441,9 @@ class PreviewWidget(QWidget):
         type_layout.addWidget(type_label)
 
         self.array_btn = array_btn = QRadioButton(_("array"))
-        array_btn.setEnabled(ndarray is not FakeObject)
-        array_btn.setChecked(ndarray is not FakeObject)
+        available_array = np.ndarray is not FakeObject
+        array_btn.setEnabled(available_array)
+        array_btn.setChecked(available_array)
         type_layout.addWidget(array_btn)
 
         list_btn = QRadioButton(_("list"))
@@ -487,7 +488,7 @@ class ImportWizard(BaseDialog):
     """Text data import wizard"""
     def __init__(self, parent, text,
                  title=None, icon=None, contents_title=None, varname=None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -612,8 +613,9 @@ class ImportWizard(BaseDialog):
         data = self._simplify_shape(
                 self.table_widget.get_data())
         if self.table_widget.array_btn.isChecked():
-            return array(data)
-        elif pd and self.table_widget.df_btn.isChecked():
+            return np.array(data)
+        elif (pd.read_csv is not FakeObject and
+                self.table_widget.df_btn.isChecked()):
             info = self.table_widget.pd_info
             buf = io.StringIO(self.table_widget.pd_text)
             return pd.read_csv(buf, **info)

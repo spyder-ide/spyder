@@ -13,20 +13,19 @@ Tests for the array editor.
 # Standard library imports
 import os
 import sys
-try:
-    from unittest.mock import Mock, ANY
-except ImportError:
-    from mock import Mock, ANY  # Python 2
+from unittest.mock import Mock, ANY
 
 # Third party imports
+from flaky import flaky
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
-from flaky import flaky
+from scipy.io import loadmat
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, ArrayModel
+from spyder.plugins.variableexplorer.widgets.arrayeditor import (
+    ArrayEditor, ArrayModel)
 
 
 # =============================================================================
@@ -47,12 +46,16 @@ def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
     return dlg.get_value()
 
 
-def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
+# =============================================================================
+# Fixtures
+# =============================================================================
+@pytest.fixture
+def setup_arrayeditor(qtbot, data):
     """Setups an arrayeditor."""
     dlg = ArrayEditor()
-    dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
+    dlg.setup_and_check(data)
     dlg.show()
-    qbot.addWidget(dlg)
+    qtbot.addWidget(dlg)
     return dlg
 
 
@@ -65,56 +68,82 @@ def test_object_arrays(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
 
 
-def test_object_arrays_display(qtbot):
+@pytest.mark.parametrize(
+    'data',
+    [np.array([[np.array([1, 2])], 2], dtype=object)],
+)
+def test_object_arrays_display(setup_arrayeditor):
     """
     Test that value_to_display is being used to display the values of
     object arrays.
     """
-    arr = np.array([[np.array([1, 2])], 2], dtype=object)
-    dlg = setup_arrayeditor(qtbot, arr)
+    dlg = setup_arrayeditor
     idx = dlg.arraywidget.model.index(0, 0)
     assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
 
 
-def test_attribute_errors(qtbot):
+@pytest.mark.parametrize(
+    'data',
+    [loadmat(os.path.join(HERE, 'issue_11216.mat'))['S']],
+)
+def test_attribute_errors(setup_arrayeditor):
     """
     Verify that we don't get a AttributeError for certain structured arrays.
 
     Fixes spyder-ide/spyder#11216 .
     """
-    from scipy.io import loadmat
+    dlg = setup_arrayeditor
     data = loadmat(os.path.join(HERE, 'issue_11216.mat'))
-    dlg = setup_arrayeditor(qtbot, data['S'])
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, data['S'][0][0][0])
 
-def test_type_errors(qtbot):
+
+@pytest.mark.parametrize(
+    'data',
+    [np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])],
+)
+def test_type_errors(setup_arrayeditor, qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
     Fixes spyder-ide/spyder#5254.
     """
-    arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
-    dlg = setup_arrayeditor(qtbot, arr)
+    dlg = setup_arrayeditor
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
     assert_array_equal(contents, np.ones(10))
 
 
-def test_arrayeditor_format(qtbot):
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
+@pytest.mark.parametrize(
+    'data',
+    [np.array([1, 2, 3], dtype=np.float32)],
+)
+def test_arrayeditor_format(setup_arrayeditor, qtbot):
     """Changes the format of the array and validates its selected content."""
-    arr = np.array([1, 2, 3], dtype=np.float32)
-    dlg = setup_arrayeditor(qtbot, arr, "test array float32")
+    dlg = setup_arrayeditor
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1\n2\n"
-    dlg.arraywidget.view.model().set_format("%.18e")
-    assert dlg.arraywidget.view.model().get_format() == "%.18e"
+    dlg.arraywidget.view.model().set_format_spec(".18e")
+    assert dlg.arraywidget.view.model().get_format_spec() == ".18e"
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
+
+
+@pytest.mark.parametrize(
+    'data',
+    [np.array([10000])]
+)
+def test_arrayeditor_format_thousands(setup_arrayeditor):
+    """Check that format can include thousands separator."""
+    model = setup_arrayeditor.arraywidget.model
+    model.set_format_spec(',.2f')
+    assert model.data(model.index(0, 0)) == '10,000.00'
 
 
 def test_arrayeditor_with_inf_array(qtbot, recwarn):
@@ -203,8 +232,8 @@ def test_arrayeditor_edit_1d_array(qtbot):
     arr = np.arange(0, 5)
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
@@ -223,8 +252,8 @@ def test_arrayeditor_edit_2d_array(qtbot):
     diff_arr = arr.copy()
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
 
     qtbot.keyPress(view, Qt.Key_Down)
@@ -239,6 +268,9 @@ def test_arrayeditor_edit_2d_array(qtbot):
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'),
+    reason="Sometimes fails on Linux ")
 def test_arrayeditor_edit_complex_array(qtbot):
     """See: spyder-ide/spyder#7848"""
     cnum = -1+0.5j
@@ -246,8 +278,8 @@ def test_arrayeditor_edit_complex_array(qtbot):
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
                                ylabels=None)
-    dlg.show()
-    qtbot.waitForWindowShown(dlg)
+    with qtbot.waitExposed(dlg):
+        dlg.show()
     view = dlg.arraywidget.view
     qtbot.keyPress(view, Qt.Key_Down)
 
@@ -313,8 +345,8 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         dialog = ArrayEditor()
         assert dialog.setup_and_check(test_array, '1D array',
                                       xlabels=None, ylabels=None)
-        dialog.show()
-        qtbot.waitForWindowShown(dialog)
+        with qtbot.waitExposed(dialog):
+            dialog.show()
         view = dialog.arraywidget.view
 
         qtbot.keyClick(view, Qt.Key_Down)

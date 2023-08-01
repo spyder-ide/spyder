@@ -10,8 +10,6 @@ the Help plugin
 """
 
 # Standard library imports
-from __future__ import absolute_import
-
 import re
 
 # Third party imports
@@ -21,9 +19,9 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEventLoop
 
 # Local imports
-from spyder.py3compat import TimeoutError
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
                                              getsignaturefromtext)
+from spyder_kernels.comms.commbase import CommError
 
 
 class HelpWidget(RichJupyterWidget):
@@ -129,27 +127,28 @@ class HelpWidget(RichJupyterWidget):
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
+        if not self.spyder_kernel_ready:
+            # No way of checking
+            return False
         try:
             return self.call_kernel(
-                interrupt=True, blocking=True
+                blocking=True
                 ).is_defined(objtxt, force_import=force_import)
-        except (TimeoutError, UnpicklingError):
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).get_doc(objtxt)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(blocking=True).get_doc(objtxt)
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     def get_source(self, objtxt):
         """Get object source"""
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).get_source(objtxt)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(blocking=True).get_source(objtxt)
+        except (TimeoutError, UnpicklingError, RuntimeError, CommError):
             return None
 
     #---- Private methods (overrode by us) ---------------------------------

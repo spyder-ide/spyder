@@ -18,6 +18,7 @@ from spyder.utils import programs
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
                               get_git_remotes, get_git_revision, get_vcs_root,
                               remote_to_url, run_vcs_tool)
@@ -30,8 +31,7 @@ skipnogit = pytest.mark.skipif(not(get_vcs_root(HERE)),
 
 
 @skipnogit
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="Not to be run outside of CIs")
+@pytest.mark.skipif(running_in_ci(), reason="Not to be run outside of CIs")
 def test_vcs_tool():
     if not os.name == 'nt':
         with pytest.raises(ActionToolNotFound):
@@ -49,8 +49,6 @@ def test_vcs_root(tmpdir):
 
 
 @skipnogit
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
-                    reason="Fails on Windows/Azure")
 def test_git_revision():
     root = get_vcs_root(osp.dirname(__file__))
     assert get_git_revision(osp.dirname(__file__)) == (None, None)
@@ -74,11 +72,7 @@ def test_get_git_refs():
     branch_tags, branch, files_modified = get_git_refs(__file__)
     assert bool(branch)  # This must always return a branch_name
     assert len(files_modified) >= 0
-
-    # It seems when Travis run tests on tags, master doesn't
-    # appear among the list of git branches.
-    if not os.environ.get('TRAVIS_TAG'):
-        assert any(['master' in b for b in branch_tags])
+    assert any([('master' in b or '4.x' in b) for b in branch_tags])
 
 
 @skipnogit

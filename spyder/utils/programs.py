@@ -6,15 +6,12 @@
 
 """Running programs utilities."""
 
-from __future__ import print_function
-
 # Standard library imports
 from ast import literal_eval
-from distutils.version import LooseVersion
 from getpass import getuser
+from textwrap import dedent
 import glob
-import imp
-import inspect
+import importlib
 import itertools
 import os
 import os.path as osp
@@ -24,16 +21,21 @@ import sys
 import tempfile
 import threading
 import time
+import logging
 
 # Third party imports
+from packaging.version import parse
+import pkg_resources
 import psutil
 
 # Local imports
-from spyder.config.base import is_stable_version, running_under_pytest
-from spyder.config.utils import is_anaconda
-from spyder.py3compat import PY2, is_text_string, to_text_string
+from spyder.config.base import _, running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
+
+
+logger = logging.getLogger(__name__)
+HERE = osp.abspath(osp.dirname(__file__))
 
 
 class ProgramError(Exception):
@@ -52,6 +54,11 @@ def get_temp_dir(suffix=None):
         username = encoding.to_unicode_from_fs(getuser())
         to_join.append('spyder-' + username)
 
+    tempdir = osp.join(*to_join)
+
+    if not osp.isdir(tempdir):
+        os.mkdir(tempdir)
+
     if suffix is not None:
         to_join.append(suffix)
 
@@ -66,17 +73,45 @@ def get_temp_dir(suffix=None):
 def is_program_installed(basename):
     """
     Return program absolute path if installed in PATH.
+    Otherwise, return None.
 
-    Otherwise, return None
+    Also searches specific platform dependent paths that are not already in
+    PATH. This permits general use without assuming user profiles are
+    sourced (e.g. .bash_Profile), such as when login shells are not used to
+    launch Spyder.
 
-    On macOS systems, a .app is considered installed if
-    it exists.
+    On macOS systems, a .app is considered installed if it exists.
     """
-    if (sys.platform == 'darwin' and basename.endswith('.app') and
-            osp.exists(basename)):
+    home = get_home_dir()
+    req_paths = []
+    if (
+        sys.platform == 'darwin'
+        and basename.endswith('.app')
+        and osp.exists(basename)
+    ):
         return basename
 
-    for path in os.environ["PATH"].split(os.pathsep):
+    if os.name == 'posix':
+        pyenv = [
+            osp.join(home, '.pyenv', 'bin'),
+            osp.join('/usr', 'local', 'bin'),
+        ]
+
+        a = [home, osp.join(home, 'opt'), '/opt']
+        b = ['mambaforge', 'miniforge3', 'miniforge',
+             'miniconda3', 'anaconda3', 'miniconda', 'anaconda']
+    else:
+        pyenv = [osp.join(home, '.pyenv', 'pyenv-win', 'bin')]
+
+        a = [home, osp.join(home, 'AppData', 'Local'),
+             'C:\\', osp.join('C:\\', 'ProgramData')]
+        b = ['Mambaforge', 'Miniforge3', 'Miniforge',
+             'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
+
+    conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
+    req_paths.extend(pyenv + conda)
+
+    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
@@ -94,7 +129,7 @@ def find_program(basename):
         # Windows platforms
         extensions = ('.exe', '.bat', '.cmd')
         if not basename.endswith(extensions):
-            names = [basename+ext for ext in extensions]+[basename]
+            names = [basename + ext for ext in extensions] + [basename]
     for name in names:
         path = is_program_installed(name)
         if path:
@@ -138,6 +173,23 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         # We "or" them together
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
+
+        # ensure Windows subprocess environment has SYSTEMROOT
+        if kwargs.get('env') is not None:
+            # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
+            for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
+                if env_var not in map(str.upper, kwargs['env'].keys()):
+                    # Add from os.environ
+                    for k, v in os.environ.items():
+                        if env_var == k.upper():
+                            kwargs['env'].update({k: v})
+                            break  # don't risk multiple values
+    else:
+        # linux and macOS
+        if kwargs.get('env') is not None:
+            if 'HOME' not in kwargs['env']:
+                kwargs['env'].update({'HOME': get_home_dir()})
+
     return kwargs
 
 
@@ -160,19 +212,22 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     :subprocess_kwargs: These will be passed to subprocess.Popen.
     """
     if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
-        raise ProgramError(
-                'The "shell" kwarg may be omitted, but if '
-                'provided it must be True.')
+        raise ProgramError('The "shell" kwarg may be omitted, but if '
+                           'provided it must be True.')
     else:
         subprocess_kwargs['shell'] = True
 
-    if 'executable' not in subprocess_kwargs:
-        subprocess_kwargs['executable'] = os.getenv('SHELL')
+    # Don't pass SHELL to subprocess on Windows because it makes this
+    # fumction fail in Git Bash (where SHELL is declared; other Windows
+    # shells don't set it).
+    if not os.name == 'nt':
+        if 'executable' not in subprocess_kwargs:
+            subprocess_kwargs['executable'] = os.getenv('SHELL')
 
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
-            **subprocess_kwargs)
+        **subprocess_kwargs)
     return subprocess.Popen(cmdstr, **subprocess_kwargs)
 
 
@@ -199,9 +254,8 @@ def run_program(program, args=None, **subprocess_kwargs):
     :subprocess_kwargs: These will be passed to subprocess.Popen.
     """
     if 'shell' in subprocess_kwargs and subprocess_kwargs['shell']:
-        raise ProgramError(
-                "This function is only for non-shell programs, "
-                "use run_shell_command() instead.")
+        raise ProgramError("This function is only for non-shell programs, "
+                           "use run_shell_command() instead.")
     fullcmd = find_program(program)
     if not fullcmd:
         raise ProgramError("Program %s was not found" % program)
@@ -210,28 +264,8 @@ def run_program(program, args=None, **subprocess_kwargs):
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
-            **subprocess_kwargs)
+        **subprocess_kwargs)
     return subprocess.Popen(fullcmd, **subprocess_kwargs)
-
-
-def start_file(filename):
-    """
-    Generalized os.startfile for all platforms supported by Qt
-
-    This function is simply wrapping QDesktopServices.openUrl
-
-    Returns True if successful, otherwise returns False.
-    """
-    from qtpy.QtCore import QUrl
-    from qtpy.QtGui import QDesktopServices
-
-    # We need to use setUrl instead of setPath because this is the only
-    # cross-platform way to open external files. setPath fails completely on
-    # Mac and doesn't open non-ascii files on Linux.
-    # Fixes spyder-ide/spyder#740.
-    url = QUrl()
-    url.setUrl(filename)
-    return QDesktopServices.openUrl(url)
 
 
 def parse_linux_desktop_entry(fpath):
@@ -463,7 +497,7 @@ def _get_mac_applications():
 def get_application_icon(fpath):
     """Return application icon or default icon if not found."""
     from qtpy.QtGui import QIcon
-    from spyder.utils import icon_manager as ima
+    from spyder.utils.icon_manager import ima
 
     if os.path.isfile(fpath) or os.path.isdir(fpath):
         icon = ima.icon('no_match')
@@ -533,7 +567,7 @@ def open_files_with_application(app_path, fnames):
             return_code = 1
         return_codes[' '.join(cmd)] = return_code
     elif os.name == 'nt':
-        if not (app_path.endswith(('.exe', '.bar', '.com'))
+        if not (app_path.endswith(('.exe', '.bat', '.com', '.cmd'))
                 and os.path.isfile(app_path)):
             raise ValueError('`app_path`  must point to a valid Windows '
                              'executable!')
@@ -603,17 +637,23 @@ def python_script_exists(package=None, module=None):
     package=None -> module is in sys.path (standard library modules)
     """
     assert module is not None
-    try:
-        if package is None:
-            path = imp.find_module(module)[1]
+    if package is None:
+        spec = importlib.util.find_spec(module)
+        if spec:
+            path = spec.origin
         else:
-            path = osp.join(imp.find_module(package)[1], module)+'.py'
-    except ImportError:
-        return
-    if not osp.isfile(path):
-        path += 'w'
-    if osp.isfile(path):
-        return path
+            path = None
+    else:
+        spec = importlib.util.find_spec(package)
+        if spec:
+            path = osp.join(spec.origin, module) + '.py'
+        else:
+            path = None
+    if path:
+        if not osp.isfile(path):
+            path += 'w'
+        if osp.isfile(path):
+            return path
 
 
 def run_python_script(package=None, module=None, args=[], p_args=[]):
@@ -636,7 +676,7 @@ def shell_split(text):
     function (see standard library `shlex`) except that it is supporting
     unicode strings (shlex does not support unicode until Python 2.7.3).
     """
-    assert is_text_string(text)  # in case a QString is passed...
+    assert isinstance(text, str)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
     out = []
     for token in re.split(pattern, text):
@@ -667,89 +707,111 @@ def get_python_args(fname, python_args, interact, debug, end_args):
     return p_args
 
 
-def run_python_script_in_terminal(fname, wdir, args, interact,
-                                  debug, python_args, executable=None):
+def run_general_file_in_terminal(
+    executable: str,
+    args: str,
+    fname: str,
+    script_args: str,
+    wdir: str,
+    close_after_exec: bool = False,
+    windows_shell: str = "cmd.exe /K"
+):
     """
-    Run Python script in an external system terminal.
+    Run a file on a given CLI executable.
 
-    :str wdir: working directory, may be empty.
+    Arguments
+    ---------
+    executable: str
+        Name or path to the executable.
+    args: str
+        Arguments to pass to the executable.
+    fname: str
+        Path to the file to execute in the shell interpreter/executable.
+    script_args: str
+        File arguments
+    wdir: str
+        Working directory path from which the file will be executed.
+    windows_shell: str
+        Name of the executable to use as shell (Windows only).
     """
-    if executable is None:
-        executable = get_python_executable()
 
-    # If fname or python_exe contains spaces, it can't be ran on Windows, so we
-    # have to enclose them in quotes. Also wdir can come with / as os.sep, so
-    # we need to take care of it.
-    if os.name == 'nt':
-        fname = '"' + fname + '"'
-        wdir = wdir.replace('/', '\\')
-        executable = '"' + executable + '"'
-
-    p_args = [executable]
-    p_args += get_python_args(fname, python_args, interact, debug, args)
+    # Quote fname in case it has spaces (all platforms)
+    # fname = f'"{fname}"'
+    wdir = None if not wdir else wdir  # Cannot be empty string
+    args = shell_split(args)
+    script_args = shell_split(script_args)
+    p_args = args + [fname] + script_args
+    p_args = [f'"{x}"' for x in p_args]
 
     if os.name == 'nt':
-        cmd = 'start cmd.exe /K "'
-        if wdir:
-            cmd += 'cd ' + wdir + ' && '
-        cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
-        # Command line and cwd have to be converted to the filesystem
-        # encoding before passing them to subprocess, but only for
-        # Python 2.
-        # See https://bugs.python.org/issue1759845#msg74142 and
-        # spyder-ide/spyder#1856.
-        if PY2:
-            cmd = encoding.to_fs_from_unicode(cmd)
-            wdir = encoding.to_fs_from_unicode(wdir)
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start {windows_shell} ""{executable}" '
+        cmd += ' '.join(p_args)  # + '"'
+        logger.info('Executing on external console: %s', cmd)
+
         try:
-            if wdir:
-                run_shell_command(cmd, cwd=wdir)
-            else:
-                run_shell_command(cmd)
+            run_shell_command(cmd, cwd=wdir)
         except WindowsError:
             from qtpy.QtWidgets import QMessageBox
-            from spyder.config.base import _
-            QMessageBox.critical(None, _('Run'),
-                                 _("It was not possible to run this file in "
-                                   "an external terminal"),
-                                 QMessageBox.Ok)
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
     elif sys.platform.startswith('linux'):
-        programs = [{'cmd': 'gnome-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'konsole',
-                     'wdir-option': '--workdir',
-                     'execute-option': '-e'},
-                    {'cmd': 'xfce4-terminal',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'xterm',
-                     'wdir-option': None,
-                     'execute-option': '-e'},]
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
         for program in programs:
             if is_program_installed(program['cmd']):
-                arglist = []
-                if program['wdir-option'] and wdir:
-                    arglist += [program['wdir-option'], wdir]
-                arglist.append(program['execute-option'])
-                arglist += p_args
-                if wdir:
-                    run_program(program['cmd'], arglist, cwd=wdir)
-                else:
-                    run_program(program['cmd'], arglist)
+                f = None
+                if not close_after_exec:
+                    f = tempfile.NamedTemporaryFile(
+                        'wt',
+                        prefix='run_spyder_',
+                        suffix='.sh',
+                        dir=get_temp_dir(),
+                        delete=False
+                    )
+
+                    logger.info('Executing on external console: %s',
+                                ' '.join([executable] + p_args))
+                    f.write(' '.join([executable] + p_args) + '\n')
+                    f.write(f'read -p "{_("Press enter to continue...")}"\n')
+                    executable = '/usr/bin/bash'
+                    p_args = [f.name]
+
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir)
+                if f:
+                    f.close()
                 return
     elif sys.platform == 'darwin':
-        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
-                                        suffix='.sh', dir=get_temp_dir(),
-                                        delete=False)
+        f = tempfile.NamedTemporaryFile(
+            'wt',
+            prefix='run_spyder_',
+            suffix='.sh',
+            dir=get_temp_dir(),
+            delete=False
+        )
         if wdir:
-            f.write('cd {}\n'.format(wdir))
-        f.write(' '.join(p_args))
+            f.write('cd "{}"\n'.format(wdir))
+        f.write(' '.join([executable] + p_args) + '\n')
+        if not close_after_exec:
+            f.write(f'read -p "{_("Press enter to continue...")}"\n')
         f.close()
         os.chmod(f.name, 0o777)
 
         def run_terminal_thread():
-            proc = run_shell_command('open -a Terminal.app ' + f.name)
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
             # Prevent race condition
             time.sleep(3)
             proc.wait()
@@ -759,6 +821,122 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         thread.start()
     else:
         raise NotImplementedError
+
+
+def run_python_script_in_terminal(fname, wdir, args, interact, debug,
+                                  python_args, executable=None, pypath=None):
+    """
+    Run Python script in an external system terminal.
+
+    :str wdir: working directory, may be empty.
+    """
+    if executable is None:
+        executable = get_python_executable()
+
+    env = {**os.environ}
+    env.pop('PYTHONPATH', None)
+    if pypath is not None:
+        pypath = os.pathsep.join(pypath)
+        env['PYTHONPATH'] = pypath
+
+    # Quote fname in case it has spaces (all platforms)
+    fname = f'"{fname}"'
+
+    wdir = None if not wdir else wdir  # Cannot be empty string
+
+    p_args = get_python_args(fname, python_args, interact, debug, args)
+
+    if os.name == 'nt':
+        if wdir is not None:
+            # wdir can come with / as os.sep, so we need to take care of it.
+            wdir = wdir.replace('/', '\\')
+
+            # UNC paths start with \\
+            if osp.splitdrive(wdir)[0].startswith("\\\\"):
+                from qtpy.QtWidgets import QMessageBox
+                QMessageBox.critical(
+                    None,
+                    _('Run'),
+                    _("External terminals does not support a UNC file path as "
+                      "the working directory."),
+                    QMessageBox.Ok
+                )
+                return
+
+        # python_exe must be quoted in case it has spaces
+        cmd = f'start cmd.exe /K ""{executable}" '
+        cmd += ' '.join(p_args) + '"' + ' ^&^& exit'
+        try:
+            run_shell_command(cmd, cwd=wdir, env=env)
+        except WindowsError:
+            from qtpy.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                None,
+                _('Run'),
+                _("It was not possible to run this file in an external "
+                  "terminal"),
+                QMessageBox.Ok
+            )
+    elif sys.platform.startswith('linux'):
+        programs = [{'cmd': 'gnome-terminal', 'execute-option': '--'},
+                    {'cmd': 'konsole', 'execute-option': '-e'},
+                    {'cmd': 'xfce4-terminal', 'execute-option': '-x'},
+                    {'cmd': 'xterm', 'execute-option': '-e'}]
+        for program in programs:
+            if is_program_installed(program['cmd']):
+                cmd = [program['cmd'], program['execute-option'], executable]
+                cmd.extend(p_args)
+                run_shell_command(' '.join(cmd), cwd=wdir, env=env)
+                return
+    elif sys.platform == 'darwin':
+        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
+        if wdir:
+            f.write('cd "{}"\n'.format(wdir))
+        if pypath is not None:
+            f.write(f'export PYTHONPATH={pypath}\n')
+        f.write(' '.join([executable] + p_args))
+        f.close()
+        os.chmod(f.name, 0o777)
+
+        def run_terminal_thread():
+            proc = run_shell_command(f'open -a Terminal.app {f.name}')
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
+    else:
+        raise NotImplementedError
+
+
+def check_version_range(module_version, version_range):
+    """
+    Check if a module's version lies in `version_range`.
+    """
+    if ',' in version_range:
+        versions = version_range.split(',')
+    else:
+        versions = [version_range]
+
+    output = True
+    for _ver in versions:
+        match = re.search(r'[0-9]', _ver)
+        assert match is not None, "Invalid version number"
+        symb = _ver[:match.start()]
+        if not symb:
+            symb = '='
+
+        if symb not in ['>=', '>', '=', '<', '<=', '!=']:
+            raise RuntimeError(f"Invalid version condition '{symb}'")
+
+        ver = _ver[match.start():]
+        output = output and check_version(module_version, ver, symb)
+
+    return output
 
 
 def check_version(actver, version, cmp_op):
@@ -777,26 +955,19 @@ def check_version(actver, version, cmp_op):
     if isinstance(actver, tuple):
         actver = '.'.join([str(i) for i in actver])
 
-    # Hacks needed so that LooseVersion understands that (for example)
-    # version = '3.0.0' is in fact bigger than actver = '3.0.0rc1'
-    if is_stable_version(version) and not is_stable_version(actver) and \
-      actver.startswith(version) and version != actver:
-        version = version + 'zz'
-    elif is_stable_version(actver) and not is_stable_version(version) and \
-      version.startswith(actver) and version != actver:
-        actver = actver + 'zz'
-
     try:
         if cmp_op == '>':
-            return LooseVersion(actver) > LooseVersion(version)
+            return parse(actver) > parse(version)
         elif cmp_op == '>=':
-            return LooseVersion(actver) >= LooseVersion(version)
+            return parse(actver) >= parse(version)
         elif cmp_op == '=':
-            return LooseVersion(actver) == LooseVersion(version)
+            return parse(actver) == parse(version)
         elif cmp_op == '<':
-            return LooseVersion(actver) < LooseVersion(version)
+            return parse(actver) < parse(version)
         elif cmp_op == '<=':
-            return LooseVersion(actver) <= LooseVersion(version)
+            return parse(actver) <= parse(version)
+        elif cmp_op == '!=':
+            return parse(actver) != parse(version)
         else:
             return False
     except TypeError:
@@ -806,95 +977,97 @@ def check_version(actver, version, cmp_op):
 def get_module_version(module_name):
     """Return module version or None if version can't be retrieved."""
     mod = __import__(module_name)
-    return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    if not ver:
+        ver = get_package_version(module_name)
+    return ver
 
 
-def is_module_installed(module_name, version=None, installed_version=None,
-                        interpreter=None):
+def get_package_version(package_name):
+    """Return package version or None if version can't be retrieved."""
+
+    # When support for Python 3.7 and below is dropped, this can be replaced
+    # with the built-in importlib.metadata.version
+    try:
+        ver = pkg_resources.get_distribution(package_name).version
+        return ver
+    except pkg_resources.DistributionNotFound:
+        return None
+
+
+def is_module_installed(module_name, version=None, interpreter=None,
+                        distribution_name=None):
     """
-    Return True if module *module_name* is installed
+    Return True if module ``module_name`` is installed
 
-    If version is not None, checking module version
-    (module must have an attribute named '__version__')
+    If ``version`` is not None, checks that the module's installed version is
+    consistent with ``version``. The module must have an attribute named
+    '__version__' or 'VERSION'.
 
-    version may starts with =, >=, > or < to specify the exact requirement ;
-    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
+    ``version`` may start with =, >=, > or < to specify the exact requirement;
+    multiple conditions may be separated by ',' (e.g. '>=0.13,<1.0')
 
-    interpreter: check if a module is installed with a given version
-    in a determined interpreter
+    If ``interpreter`` is not None, checks if a module is installed with a
+    given ``version`` in the ``interpreter``'s environment. Otherwise checks
+    in Spyder's environment.
+
+    ``distribution_name`` is the distribution name of a package. For instance,
+    for pylsp_black that name is python_lsp_black.
     """
-    if interpreter:
+    if interpreter is not None:
         if is_python_interpreter(interpreter):
-            checkver = inspect.getsource(check_version)
-            get_modver = inspect.getsource(get_module_version)
-            stable_ver = inspect.getsource(is_stable_version)
-            ismod_inst = inspect.getsource(is_module_installed)
-
-            f = tempfile.NamedTemporaryFile('wt', suffix='.py',
-                                            dir=get_temp_dir(), delete=False)
-            try:
-                script = f.name
-                f.write("# -*- coding: utf-8 -*-" + "\n\n")
-                f.write("from distutils.version import LooseVersion" + "\n")
-                f.write("import re" + "\n\n")
-                f.write(stable_ver + "\n")
-                f.write(checkver + "\n")
-                f.write(get_modver + "\n")
-                f.write(ismod_inst + "\n")
-                if version:
-                    f.write("print(is_module_installed('%s','%s'))"\
-                            % (module_name, version))
-                else:
-                    f.write("print(is_module_installed('%s'))" % module_name)
-
-                # We need to flush and sync changes to ensure that the content
-                # of the file is in disk before running the script
-                f.flush()
-                os.fsync(f)
-                f.close()
+            cmd = dedent("""
                 try:
-                    proc = run_program(interpreter, [script])
-                    output, _err = proc.communicate()
-                except subprocess.CalledProcessError:
-                    return True
-                return eval(output.decode())
-            finally:
-                if not f.closed:
-                    f.close()
-                os.remove(script)
+                    import {} as mod
+                except Exception:
+                    print('No Module')  # spyder: test-skip
+                print(getattr(mod, '__version__', getattr(mod, 'VERSION', None)))  # spyder: test-skip
+                """).format(module_name)
+            try:
+                # use clean environment
+                proc = run_program(interpreter, ['-c', cmd], env={})
+                stdout, stderr = proc.communicate()
+                stdout = stdout.decode().strip()
+            except Exception:
+                return False
+
+            if 'No Module' in stdout:
+                return False
+            elif stdout != 'None':
+                # the module is installed and it has a version attribute
+                module_version = stdout
+            else:
+                module_version = None
         else:
-            # Try to not take a wrong decision if interpreter check
-            # fails
+            # Try to not take a wrong decision if interpreter check fails
             return True
     else:
-        if installed_version is None:
-            try:
-                actver = get_module_version(module_name)
-            except:
-                # Module is not installed
-                return False
-        else:
-            actver = installed_version
-        if actver is None and version is not None:
+        # interpreter is None, just get module version in Spyder environment
+        try:
+            module_version = get_module_version(module_name)
+        except Exception:
+            # Module is not installed
             return False
-        elif version is None:
-            return True
-        else:
-            if ';' in version:
-                output = True
-                for ver in version.split(';'):
-                    output = output and is_module_installed(module_name, ver)
-                return output
-            match = re.search(r'[0-9]', version)
-            assert match is not None, "Invalid version number"
-            symb = version[:match.start()]
-            if not symb:
-                symb = '='
-            assert symb in ('>=', '>', '=', '<', '<='),\
-                    "Invalid version condition '%s'" % symb
-            version = version[match.start():]
 
-            return check_version(actver, version, symb)
+        # This can happen if a package was not uninstalled correctly. For
+        # instance, if it's __pycache__ main directory is left behind.
+        try:
+            mod = __import__(module_name)
+            if not getattr(mod, '__file__', None):
+                return False
+        except Exception:
+            pass
+
+        # Try to get the module version from its distribution name. For
+        # instance, pylsp_black doesn't have a version but that can be
+        # obtained from its distribution, called python_lsp_black.
+        if not module_version and distribution_name:
+            module_version = get_package_version(distribution_name)
+
+    if version is None:
+        return True
+    else:
+        return check_version_range(module_version, version)
 
 
 def is_python_interpreter_valid_name(filename):
@@ -908,34 +1081,42 @@ def is_python_interpreter_valid_name(filename):
 
 def is_python_interpreter(filename):
     """Evaluate whether a file is a python interpreter or not."""
+    # Must be imported here to avoid circular import
+    from spyder.utils.conda import is_conda_env
+
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
+
     if (not osp.isfile(real_filename) or
-        not is_python_interpreter_valid_name(filename)):
+            not is_python_interpreter_valid_name(real_filename)):
         return False
-    elif is_pythonw(filename):
+
+    # File exists and has valid name
+    is_text_file = encoding.is_text_file(real_filename)
+
+    if is_pythonw(real_filename):
         if os.name == 'nt':
             # pythonw is a binary on Windows
-            if not encoding.is_text_file(real_filename):
+            if not is_text_file:
                 return True
             else:
                 return False
         elif sys.platform == 'darwin':
             # pythonw is a text file in Anaconda but a binary in
             # the system
-            if is_anaconda() and encoding.is_text_file(real_filename):
+            if is_conda_env(pyexec=real_filename) and is_text_file:
                 return True
-            elif not encoding.is_text_file(real_filename):
+            elif not is_text_file:
                 return True
             else:
                 return False
         else:
             # There's no pythonw in other systems
             return False
-    elif encoding.is_text_file(real_filename):
+    elif is_text_file:
         # At this point we can't have a text file
         return False
     else:
-        return check_python_help(filename)
+        return check_python_help(real_filename)
 
 
 def is_pythonw(filename):
@@ -950,9 +1131,9 @@ def is_pythonw(filename):
 def check_python_help(filename):
     """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ['-c', 'import this'])
+        proc = run_program(filename, ['-c', 'import this'], env={})
         stdout, _ = proc.communicate()
-        stdout = to_text_string(stdout)
+        stdout = str(stdout)
         valid_lines = [
             'Beautiful is better than ugly.',
             'Explicit is better than implicit.',
@@ -981,7 +1162,7 @@ def is_spyder_process(pid):
 
         # Valid names for main script
         names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
-                     'bootstrap.py', 'spyder-script.py'])
+                     'bootstrap.py', 'spyder-script.py', 'Spyder.launch.pyw'])
         if running_under_pytest():
             names.add('runtests.py')
 
@@ -991,3 +1172,30 @@ def is_spyder_process(pid):
         return any(conditions)
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False
+
+
+def get_interpreter_info(path):
+    """Return version information of the selected Python interpreter."""
+    try:
+        out, __ = run_program(path, ['-V']).communicate()
+        out = out.decode().strip()
+
+        # This is necessary to prevent showing unexpected output.
+        # See spyder-ide/spyder#19000
+        if not re.search(r'^Python \d+\.\d+\.\d+$', out):
+            out = ''
+    except Exception:
+        out = ''
+    return out.strip()
+
+
+def find_git():
+    """Find git executable in the system."""
+    if sys.platform == 'darwin':
+        proc = subprocess.run(
+            osp.join(HERE, "check-git.sh"), capture_output=True)
+        if proc.returncode != 0:
+            return None
+        return find_program('git')
+    else:
+        return find_program('git')

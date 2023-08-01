@@ -23,21 +23,25 @@ from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
-from spyder.config.gui import get_font
-from spyder.config.manager import CONF
-from spyder.py3compat import PY3, to_text_string
-from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
-from spyder.widgets.mixins import BaseEditMixin
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
+from spyder.py3compat import to_text_string
+from spyder.utils.palette import SpyderPalette
+from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
+from spyder.widgets.mixins import BaseEditMixin
 
 
-class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
+class TextEditBaseWidget(
+    QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor,
+    SpyderFontsMixin
+):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    has_cell_separators = False
     focus_in = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
@@ -45,19 +49,28 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     focus_changed = Signal()
     sig_insert_completion = Signal(str)
     sig_eol_chars_changed = Signal(str)
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
+
+        self.has_cell_separators = False
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.extra_selections_dict = {}
         self._restore_selection_pos = None
+
+        # Trailing newlines/spaces trimming
+        self.remove_trailing_spaces = False
+        self.remove_trailing_newlines = False
+
+        # Add a new line when saving
+        self.add_newline = False
 
         # Code snippets
         self.code_snippets = True
 
-        self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
 
         self.indent_chars = " "*4
@@ -78,20 +91,21 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.calltip_position = None
         self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
 
         self.highlight_current_cell_enabled = False
 
         # The color values may be overridden by the syntax highlighter
         # Highlight current line color
-        self.currentline_color = QColor(Qt.red).lighter(190)
-        self.currentcell_color = QColor(Qt.red).lighter(194)
+        self.currentline_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(190)
+        self.currentcell_color = QColor(
+            SpyderPalette.COLOR_ERROR_2).lighter(194)
 
         # Brace matching
         self.bracepos = None
-        self.matched_p_color = QColor(Qt.green)
-        self.unmatched_p_color = QColor(Qt.red)
+        self.matched_p_color = QColor(SpyderPalette.COLOR_SUCCESS_1)
+        self.unmatched_p_color = QColor(SpyderPalette.COLOR_ERROR_2)
 
         self.decorations = TextDecorationsManager(self)
 
@@ -99,16 +113,19 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Useful to avoid recomputing while scrolling.
         self.current_cell = None
 
-        self._cell_list = []
-
         def reset_current_cell():
             self.current_cell = None
+            self.highlight_current_cell()
 
         self.textChanged.connect(reset_current_cell)
 
+        # Cache
+        self._current_cell_cursor = None
+        self._current_line_block = None
+
     def setup_completion(self):
-        size = CONF.get('main', 'completion/size')
-        font = get_font()
+        size = self.get_conf('completion/size', section='main')
+        font = self.get_font(SpyderFontType.Monospace)
         self.completion_widget.setup_appearance(size, font)
 
     def set_indent_chars(self, indent_chars):
@@ -117,6 +134,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         self.update_tab_stop_width_spaces()
+
+    def set_remove_trailing_spaces(self, flag):
+        self.remove_trailing_spaces = flag
+
+    def set_add_newline(self, add_newline):
+        self.add_newline = add_newline
+
+    def set_remove_trailing_newlines(self, flag):
+        self.remove_trailing_newlines = flag
 
     def update_tab_stop_width_spaces(self):
         self.setTabStopWidth(self.fontMetrics().width(
@@ -149,15 +175,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Returns:
             list of sourcecode.api.TextDecoration.
         """
-        return self.extra_selections_dict.get(key, [])
+        return self.decorations.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         """Set extra selections for a key.
 
         Also assign draw orders to leave current_cell and current_line
-        in the backgrund (and avoid them to cover other decorations)
+        in the background (and avoid them to cover other decorations)
 
-        NOTE: This will remove previous decorations added to  the same key.
+        NOTE: This will remove previous decorations added to the same key.
 
         Args:
             key (str) name of the extra selections group.
@@ -170,21 +196,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         for selection in extra_selections:
             selection.draw_order = draw_order
+            selection.kind = key
 
-        self.clear_extra_selections(key)
-        self.extra_selections_dict[key] = extra_selections
-
-    def update_extra_selections(self):
-        """Add extra selections to DecorationsManager.
-
-        TODO: This method could be remove it and decorations could be
-        added/removed in set_extra_selections/clear_extra_selections.
-        """
-        extra_selections = []
-
-        for key, extra in list(self.extra_selections_dict.items()):
-            extra_selections.extend(extra)
-        self.decorations.add(extra_selections)
+        self.decorations.add_key(key, extra_selections)
+        self.update()
 
     def clear_extra_selections(self, key):
         """Remove decorations added through set_extra_selections.
@@ -192,38 +207,75 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Args:
             key (str) name of the extra selections group.
         """
-        for decoration in self.extra_selections_dict.get(key, []):
-            self.decorations.remove(decoration, update=False)
-        self.extra_selections_dict[key] = []
+        self.decorations.remove_key(key)
         self.update()
 
-    def changed(self):
-        """Emit changed signal"""
-        self.modificationChanged.emit(self.document().isModified())
+    def get_visible_block_numbers(self):
+        """Get the first and last visible block numbers."""
+        first = self.firstVisibleBlock().blockNumber()
+        bottom_right = QPoint(self.viewport().width() - 1,
+                              self.viewport().height() - 1)
+        last = self.cursorForPosition(bottom_right).blockNumber()
+        return (first, last)
 
-    #------Highlight current line
+    def get_buffer_block_numbers(self):
+        """
+        Get the first and last block numbers of a region that covers
+        the visible one plus a buffer of half that region above and
+        below to make more fluid certain operations.
+        """
+        first_visible, last_visible = self.get_visible_block_numbers()
+        buffer_height = round((last_visible - first_visible) / 2)
+
+        first = first_visible - buffer_height
+        first = 0 if first < 0 else first
+
+        last = last_visible + buffer_height
+        last = self.blockCount() if last > self.blockCount() else last
+
+        return (first, last)
+
+    # ------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        selection = TextDecoration(self.textCursor())
+        cursor = self.textCursor()
+        block = cursor.block()
+        if self._current_line_block == block:
+            return
+        self._current_line_block = block
+        selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentline_color)
         selection.cursor.clearSelection()
         self.set_extra_selections('current_line', [selection])
-        self.update_extra_selections()
 
     def unhighlight_current_line(self):
         """Unhighlight current line"""
+        self._current_line_block = None
         self.clear_extra_selections('current_line')
 
-    #------Highlight current cell
+    # ------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
-        if not self.has_cell_separators or \
-          not self.highlight_current_cell_enabled:
+        if (not self.has_cell_separators or
+                not self.highlight_current_cell_enabled):
+            self._current_cell_cursor = None
             return
-        cursor, whole_file_selected =\
-            self.select_current_cell()
+        cursor, whole_file_selected = self.select_current_cell()
+
+        def same_selection(c1, c2):
+            if c1 is None or c2 is None:
+                return False
+            return (
+                c1.selectionStart() == c2.selectionStart() and
+                c1.selectionEnd() == c2.selectionEnd()
+            )
+
+        if same_selection(self._current_cell_cursor, cursor):
+            # Already correct
+            return
+        self._current_cell_cursor = cursor
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
@@ -233,52 +285,123 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.clear_extra_selections('current_cell')
         else:
             self.set_extra_selections('current_cell', [selection])
-            self.update_extra_selections()
 
     def unhighlight_current_cell(self):
         """Unhighlight current cell"""
+        self._current_cell_cursor = None
         self.clear_extra_selections('current_cell')
 
-    #------Brace matching
-    def find_brace_match(self, position, brace, forward):
+    def in_comment(self, cursor=None, position=None):
+        """Returns True if the given position is inside a comment.
+
+        Trivial default implementation. To be overridden by subclass.
+        This function is used to define the default behaviour of
+        self.find_brace_match.
+        """
+        return False
+
+    def in_string(self, cursor=None, position=None):
+        """Returns True if the given position is inside a string.
+
+        Trivial default implementation. To be overridden by subclass.
+        This function is used to define the default behaviour of
+        self.find_brace_match.
+        """
+        return False
+
+    def find_brace_match(self, position, brace, forward,
+                         ignore_brace=None, stop=None):
+        """Returns position of matching brace.
+
+        Parameters
+        ----------
+        position : int
+            The position of the brace to be matched.
+        brace : {'[', ']', '(', ')', '{', '}'}
+            The brace character to be matched.
+            [ <-> ], ( <-> ), { <-> }
+        forward : boolean
+            Whether to search forwards or backwards for a match.
+        ignore_brace : callable taking int returning boolean, optional
+            Whether to ignore a brace (as function of position).
+        stop : callable taking int returning boolean, optional
+            Whether to stop the search early (as function of position).
+
+        If both *ignore_brace* and *stop* are None, then brace matching
+        is handled differently depending on whether *position* is
+        inside a string, comment or regular code. If in regular code,
+        then any braces inside strings and comments are ignored. If in a
+        string/comment, then only braces in the same string/comment are
+        considered potential matches. The functions self.in_comment and
+        self.in_string are used to determine string/comment/code status
+        of characters in this case.
+
+        If exactly one of *ignore_brace* and *stop* is None, then it is
+        replaced by a function returning False for every position. I.e.:
+            lambda pos: False
+
+        Returns
+        -------
+        The position of the matching brace. If no matching brace
+        exists, then None is returned.
+        """
+
+        if ignore_brace is None and stop is None:
+            if self.in_string(position=position):
+                # Only search inside the current string
+                def stop(pos):
+                    return not self.in_string(position=pos)
+            elif self.in_comment(position=position):
+                # Only search inside the current comment
+                def stop(pos):
+                    return not self.in_comment(position=pos)
+            else:
+                # Ignore braces inside strings and comments
+                def ignore_brace(pos):
+                    return (self.in_string(position=pos) or
+                            self.in_comment(position=pos))
+
+        # Deal with search range and direction
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
-            bracemap = {'(': ')', '[': ']', '{': '}'}
-            text = self.get_text(position, end_pos)
-            i_start_open = 1
-            i_start_close = 1
+            closing_brace = {'(': ')', '[': ']', '{': '}'}[brace]
+            text = self.get_text(position, end_pos, remove_newlines=False)
         else:
-            bracemap = {')': '(', ']': '[', '}': '{'}
-            text = self.get_text(start_pos, position)
-            i_start_open = len(text)-1
-            i_start_close = len(text)-1
+            # Handle backwards search with the same code as forwards
+            # by reversing the string to be searched.
+            closing_brace = {')': '(', ']': '[', '}': '{'}[brace]
+            text = self.get_text(start_pos, position+1, remove_newlines=False)
+            text = text[-1::-1]  # reverse
 
+        def ind2pos(index):
+            """Computes editor position from search index."""
+            return (position + index) if forward else (position - index)
+
+        # Search starts at the first position after the given one
+        # (which is assumed to contain a brace).
+        i_start_close = 1
+        i_start_open = 1
         while True:
-            if forward:
-                i_close = text.find(bracemap[brace], i_start_close)
-            else:
-                i_close = text.rfind(bracemap[brace], 0, i_start_close+1)
-            if i_close > -1:
-                if forward:
-                    i_start_close = i_close+1
+            i_close = text.find(closing_brace, i_start_close)
+            i_start_close = i_close+1  # next potential start
+            if i_close == -1:
+                return  # no matching brace exists
+            elif ignore_brace is None or not ignore_brace(ind2pos(i_close)):
+                while True:
                     i_open = text.find(brace, i_start_open, i_close)
-                else:
-                    i_start_close = i_close-1
-                    i_open = text.rfind(brace, i_close, i_start_open+1)
-                if i_open > -1:
-                    if forward:
-                        i_start_open = i_open+1
-                    else:
-                        i_start_open = i_open-1
-                else:
-                    # found matching brace
-                    if forward:
-                        return position+i_close
-                    else:
-                        return position-(len(text)-i_close)
-            else:
-                # no matching brace
-                return
+                    i_start_open = i_open+1  # next potential start
+                    if i_open == -1:
+                        # found matching brace, but should we have
+                        # stopped before this point?
+                        if stop is not None:
+                            # There's room for optimization here...
+                            for i in range(1, i_close+1):
+                                if stop(ind2pos(i)):
+                                    return
+                        return ind2pos(i_close)
+                    elif (ignore_brace is None or
+                          not ignore_brace(ind2pos(i_open))):
+                        break  # must find new closing brace
 
     def __highlight(self, positions, color=None, cancel=False):
         if cancel:
@@ -296,26 +419,34 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                           QTextCursor.KeepAnchor)
             extra_selections.append(selection)
         self.set_extra_selections('brace_matching', extra_selections)
-        self.update_extra_selections()
 
     def cursor_position_changed(self):
-        """Brace matching"""
+        """Handle brace matching."""
+        # Clear last brace highlight (if any)
         if self.bracepos is not None:
             self.__highlight(self.bracepos, cancel=True)
             self.bracepos = None
+
+        # Get the current cursor position, check if it is at a brace,
+        # and, if so, determine the direction in which to search for able
+        # matching brace.
         cursor = self.textCursor()
         if cursor.position() == 0:
             return
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
         text = to_text_string(cursor.selectedText())
-        pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos2 = self.find_brace_match(pos1, text, forward=False)
+            forward = False
         elif text in ('(', '[', '{'):
-            pos2 = self.find_brace_match(pos1, text, forward=True)
+            forward = True
         else:
             return
+
+        pos1 = cursor.position()
+        pos2 = self.find_brace_match(pos1, text, forward=forward)
+
+        # Set a new brace highlight
         if pos2 is not None:
             self.bracepos = (pos1, pos2)
             self.__highlight(self.bracepos, color=self.matched_p_color)
@@ -323,11 +454,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.bracepos = (pos1,)
             self.__highlight(self.bracepos, color=self.unmatched_p_color)
 
-    #-----Widget setup and options
-    def set_codecompletion_auto(self, state):
-        """Set code completion state"""
-        self.codecompletion_auto = state
-
+    # -----Widget setup and options
     def set_wrap_mode(self, mode=None):
         """
         Set wrap mode
@@ -341,7 +468,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             wrap_mode = QTextOption.NoWrap
         self.setWordWrapMode(wrap_mode)
 
-    #------Reimplementing Qt methods
+    # ------Reimplementing Qt methods
     @Slot()
     def copy(self):
         """
@@ -361,15 +488,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
         # spyder-ide/spyder#1546).
-        if os.name == 'nt' and PY3:
+        if os.name == 'nt':
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')
-        else:
-            return super(TextEditBaseWidget, self).toPlainText()
+        return super(TextEditBaseWidget, self).toPlainText()
 
     def keyPressEvent(self, event):
-        text, key = event.text(), event.key()
+        key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
@@ -379,33 +505,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
-    #------Text: get, set, ...
-    def add_to_cell_list(self, oedata):
-        """Add new cell to cell list."""
-        self._cell_list.append(oedata)
-
+    # ------Text: get, set, ...
     def get_cell_list(self):
         """Get all cells."""
-        # Filter out old cells
-
-        def good(oedata):
-            return oedata.is_valid() and oedata.def_type == oedata.CELL
-
-        self._cell_list = [
-            oedata for oedata in self._cell_list if good(oedata)]
-
-        return sorted(
-            {oedata.get_block_number(): oedata
-             for oedata in self._cell_list}.items())
+        # Reimplemented in childrens
+        return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Return selected text as a processed text,
-        to be executable in a Python/IPython interpreter"""
+        """Get selected text in a way that allows other plugins executed it."""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
         line_from, line_to = self.get_selection_bounds(cursor)
+        line_col_from, line_col_to = self.get_selection_start_end(cursor)
+        line_from_off, line_to_off = self.get_selection_offsets(cursor)
+
         text = self.get_selected_text(cursor)
         if not text:
             return
@@ -452,25 +567,29 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
 
-        return leading_lines_str + ls.join(lines)
+        return (
+            leading_lines_str + ls.join(lines),
+            (line_from_off, line_to_off),
+            (line_col_from, line_col_to)
+        )
 
     def get_cell_as_executable_code(self, cursor=None):
         """Return cell contents as executable code."""
         if cursor is None:
             cursor = self.textCursor()
         ls = self.get_line_separator()
-        cursor, whole_file_selected = self.select_current_cell(cursor)
-        line_from, line_to = self.get_selection_bounds(cursor)
+        cursor, __ = self.select_current_cell(cursor)
+        line_from, __ = self.get_selection_bounds(cursor)
         # Get the block for the first cell line
         start = cursor.selectionStart()
         block = self.document().findBlock(start)
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
         # Get text
-        text = self.get_selection_as_executable_code(cursor)
+        text, off_pos, col_pos = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
-        return text, block
+        return text, block, off_pos, col_pos
 
     def select_current_cell(self, cursor=None):
         """
@@ -637,14 +756,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Copy current line or selected text and paste the duplicated text
         *after* the current line or selected text.
         """
-        self.__duplicate_line_or_selection(after_current_line=True)
+        self.__duplicate_line_or_selection(after_current_line=False)
 
     def duplicate_line_up(self):
         """
         Copy current line or selected text and paste the duplicated text
         *before* the current line or selected text.
         """
-        self.__duplicate_line_or_selection(after_current_line=False)
+        self.__duplicate_line_or_selection(after_current_line=True)
 
     def __move_line_or_selection(self, after_current_line=True):
         """Move current line or selected text"""
@@ -654,7 +773,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         last_line = False
 
         # ------ Select text
-
         # Get selection start location
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
@@ -673,7 +791,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 last_line = True
 
         # ------ Stop if at document boundary
-
         cursor.setPosition(start_pos)
         if cursor.atStart() and not after_current_line:
             # Stop if selection is already at top of the file while moving up
@@ -691,10 +808,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return
 
         # ------ Move text
-
         sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
-
 
         if after_current_line:
             # Shift selection down
@@ -751,9 +866,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-    def delete_line(self):
+    def delete_line(self, cursor=None):
         """Delete current line."""
-        cursor = self.textCursor()
+        if cursor is None:
+            cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
@@ -771,7 +887,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
-        self.document_did_change()
 
     def set_selection(self, start, end):
         cursor = self.textCursor()
@@ -799,25 +914,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if cursor_position < position_from or cursor_position > position_to:
             self.set_cursor_position(position_to)
 
-    #------Code completion / Calltips
-    def hide_tooltip_if_necessary(self, key):
-        """Hide calltip when necessary"""
-        try:
-            calltip_char = self.get_character(self.calltip_position)
-            before = self.is_cursor_before(self.calltip_position,
-                                           char_offset=1)
-            other = key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab)
-            if calltip_char not in ('?', '(') or before or other:
-                QToolTip.hideText()
-        except (IndexError, TypeError):
-            QToolTip.hideText()
-
+    # ------Code completion / Calltips
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
     def insert_completion(self, completion, completion_position):
-        """Insert a completion into the editor.
+        """
+        Insert a completion into the editor.
 
         completion_position is where the completion was generated.
 
@@ -845,25 +949,86 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 end = self.get_position_line_number(end_line, end_col)
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.KeepAnchor)
-            text = to_text_string(completion['textEdit']['newText'])
+            text = str(completion['textEdit']['newText'])
         else:
             text = completion
+            kind = None
             if isinstance(completion, dict):
                 text = completion['insertText']
-            text = to_text_string(text)
+                kind = completion['kind']
+            text = str(text)
 
-            # Get word on the left of the cursor.
-            result = self.get_current_word_and_position(completion=True)
+            # Get word to the left of the cursor.
+            result = self.get_current_word_and_position(
+                completion=True, valid_python_variable=False)
             if result is not None:
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
-                # Check if the completion position is in the expected range
-                if not start_position <= completion_position <= end_position:
-                    return
-                cursor.setPosition(start_position)
-                # Remove the word under the cursor
-                cursor.setPosition(end_position,
-                                   QTextCursor.KeepAnchor)
+
+                # Remove text under cursor only if it's not an autocompletion
+                # character
+                is_auto_completion_character = False
+                if self.objectName() == 'console':
+                    if current_text == '.':
+                        is_auto_completion_character = True
+                else:
+                    if (
+                        kind != CompletionItemKind.FILE and
+                        current_text in self.auto_completion_characters
+                    ):
+                        is_auto_completion_character = True
+
+                # Adjustments for file completions
+                if kind == CompletionItemKind.FILE:
+                    special_chars = ['"', "'", '/', '\\']
+
+                    if any(
+                        [current_text.endswith(c) for c in special_chars]
+                    ):
+                        # This is necessary when completions are requested next
+                        # to special characters.
+                        start_position = end_position
+                    elif current_text.endswith('.') and len(current_text) > 1:
+                        # This inserts completions for files or directories
+                        # that start with a dot
+                        start_position = end_position - 1
+                    elif current_text == '.':
+                        # This is needed if users are asking for file
+                        # completions to the right of a dot when some of its
+                        # name is part of the completed text
+                        cursor_1 = self.textCursor()
+                        found_start = False
+
+                        # Select text backwards until we find where the file
+                        # name starts
+                        while not found_start:
+                            cursor_1.movePosition(
+                                QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor,
+                            )
+
+                            selection = str(cursor_1.selectedText())
+                            if text.startswith(selection):
+                                found_start = True
+
+                        current_text = str(cursor_1.selectedText())
+                        start_position = cursor_1.selectionStart()
+                        end_position = cursor_1.selectionEnd()
+
+                if not is_auto_completion_character:
+                    # Check if the completion position is in the expected range
+                    if not (
+                        start_position <= completion_position <= end_position
+                    ):
+                        return
+                    cursor.setPosition(start_position)
+
+                    # Remove the word under the cursor
+                    cursor.setPosition(end_position, QTextCursor.KeepAnchor)
+                else:
+                    # Check if we are in the correct position
+                    if cursor.position() != completion_position:
+                        return
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
@@ -880,22 +1045,28 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # Handle completions for the internal console
             self.insert_text(text)
         else:
-            if self.code_snippets:
-                self.sig_insert_completion.emit(text)
-            else:
-                self.insert_text(text)
-            self.document_did_change()
+            self.sig_insert_completion.emit(text)
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
-        return self.completion_widget.isVisible()
+        try:
+            return self.completion_widget.isVisible()
+        except RuntimeError:
+            # This is to avoid a RuntimeError exception when the widget is
+            # already been deleted. See spyder-ide/spyder#13248.
+            return False
 
-    def hide_completion_widget(self):
+    def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget and tooltip."""
-        self.completion_widget.hide()
+        # This is necessary to catch an error when creating new editor windows.
+        # Fixes spyder-ide/spyder#19109
+        try:
+            self.completion_widget.hide(focus_to_parent=focus_to_parent)
+        except RuntimeError:
+            pass
         QToolTip.hideText()
 
-    #------Standard keys
+    # ------Standard keys
     def stdkey_clear(self):
         if not self.has_selected_text():
             self.moveCursor(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
@@ -946,19 +1117,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             self.moveCursor(QTextCursor.EndOfBlock, move_mode)
 
-    def stdkey_pageup(self):
-        pass
-
-    def stdkey_pagedown(self):
-        pass
-
-    def stdkey_escape(self):
-        pass
-
-
-    #----Qt Events
+    # ----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
+
+        # mouse buttons for forward and backward navigation
+        if event.button() == Qt.XButton1:
+            self.sig_prev_cursor.emit()
+        elif event.button() == Qt.XButton2:
+            self.sig_next_cursor.emit()
+
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()
@@ -985,7 +1153,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.focus_changed.emit()
         self.focus_in.emit()
-        self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
@@ -1009,14 +1176,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     elif event.delta() > 0:
                         self.zoom_in.emit()
                 return
+
         QPlainTextEdit.wheelEvent(self, event)
-        # Needed to prevent stealing focus to the find widget when scrolling
+
+        # Needed to prevent stealing focus when scrolling.
+        # If the current widget with focus is the CompletionWidget, it means
+        # it's being displayed in the editor, so we need to hide it and give
+        # focus back to the editor. If not, we need to leave the focus in
+        # the widget that currently has it.
         # See spyder-ide/spyder#11502
         current_widget = QApplication.focusWidget()
-        self.hide_completion_widget()
-        self.highlight_current_cell()
-        if current_widget is not None:
-            current_widget.setFocus()
+        if isinstance(current_widget, CompletionWidget):
+            self.hide_completion_widget(focus_to_parent=True)
+        else:
+            self.hide_completion_widget(focus_to_parent=False)
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height

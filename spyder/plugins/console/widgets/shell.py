@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import builtins
 import keyword
 import locale
 import os
@@ -22,22 +23,25 @@ import time
 
 # Third party imports
 from qtpy.compat import getsavefilename
-from qtpy.QtCore import Property, QCoreApplication, Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Property, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
-from qtpy.QtWidgets import QApplication, QMenu, QToolTip
+from qtpy.QtWidgets import QApplication, QMenu
 
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
-from spyder.py3compat import (builtins, is_string, is_text_string,
-                              PY3, str_lower, to_text_string)
+from spyder.py3compat import is_string, is_text_string, to_text_string
 from spyder.utils import encoding
-from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin, BrowseHistoryMixin)
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
+
+
+# Maximum number of lines to load
+MAX_LINES = 1000
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
@@ -46,10 +50,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     Shell base widget
     """
 
-    redirect_stdio = Signal(bool)
+    sig_redirect_stdio_requested = Signal(bool)
     sig_keyboard_interrupt = Signal()
     execute = Signal(str)
-    append_to_history = Signal(str, str)
+    sig_append_to_history_requested = Signal(str, str)
 
     def __init__(self, parent, history_filename, profile=False,
                  initial_message=None, default_foreground_color=None,
@@ -255,10 +259,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
-        self.redirect_stdio.emit(False)
+        self.sig_redirect_stdio_requested.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                     self.historylog_filename, "%s (*.log)" % _("History logs"))
-        self.redirect_stdio.emit(True)
+        self.sig_redirect_stdio_requested.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:
@@ -494,17 +498,23 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.history_filename):
-            rawhistory, _ = encoding.readlines(self.history_filename)
-            rawhistory = [line.replace('\n', '') for line in rawhistory]
-            if rawhistory[1] != self.INITHISTORY[1]:
-                rawhistory[1] = self.INITHISTORY[1]
+            # This is necessary to catch any error while reading or processing
+            # history_filename, which causes a crash at startup.
+            # Fixes spyder-ide/spyder#19850
+            try:
+                rawhistory, _ = encoding.readlines(self.history_filename)
+                rawhistory = [line.replace('\n', '') for line in rawhistory]
+                if rawhistory[1] != self.INITHISTORY[1]:
+                    rawhistory[1] = self.INITHISTORY[1]
+            except Exception:
+                rawhistory = self.INITHISTORY
         else:
             rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \
                    if line and not line.startswith('#')]
 
         # Truncating history to X entries:
-        while len(history) >= CONF.get('historylog', 'max_entries'):
+        while len(history) >= MAX_LINES:
             del history[0]
             while rawhistory[0].startswith('#'):
                 del rawhistory[0]
@@ -546,17 +556,14 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
         # Fix for spyder-ide/spyder#2452
-        if PY3:
-            try:
-                text = "".join(self.__buffer)
-            except TypeError:
-                text = b"".join(self.__buffer)
-                try:
-                    text = text.decode( locale.getdefaultlocale()[1] )
-                except:
-                    pass
-        else:
+        try:
             text = "".join(self.__buffer)
+        except TypeError:
+            text = b"".join(self.__buffer)
+            try:
+                text = text.decode(locale.getdefaultlocale()[1])
+            except:
+                pass
 
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)
@@ -640,7 +647,22 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
-    go_to_error = Signal(str)
+
+    # --- Signals
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = Signal(str)
+
+    # Signal
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
 
     def __init__(self, parent, history_filename, profile=False, initial_message=None):
         ShellBaseWidget.__init__(self, parent, history_filename,
@@ -654,12 +676,12 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
     def create_shortcuts(self):
         array_inline = CONF.config_shortcut(
-            lambda: self.enter_array_inline(),
+            self.enter_array_inline,
             context='array_builder',
             name='enter array inline',
             parent=self)
         array_table = CONF.config_shortcut(
-            lambda: self.enter_array_table(),
+            self.enter_array_table,
             context='array_builder',
             name='enter array table',
             parent=self)
@@ -668,8 +690,21 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             context='Console',
             name='Inspect current object',
             parent=self)
+        clear_line_sc = CONF.config_shortcut(
+            self.clear_line,
+            context='Console',
+            name="Clear line",
+            parent=self,
+        )
+        clear_shell_sc = CONF.config_shortcut(
+            self.clear_terminal,
+            context='Console',
+            name="Clear shell",
+            parent=self,
+        )
 
-        return [inspectsc, array_inline, array_table]
+        return [inspectsc, array_inline, array_table, clear_line_sc,
+                clear_shell_sc]
 
     def get_shortcut_data(self):
         """
@@ -731,9 +766,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def postprocess_keyevent(self, event):
         """Process keypress event"""
         ShellBaseWidget.postprocess_keyevent(self, event)
-        if QToolTip.isVisible():
-            _event, _text, key, _ctrl, _shift = restore_keyevent(event)
-            self.hide_tooltip_if_necessary(key)
 
     def _key_other(self, text):
         """1 character key"""
@@ -838,27 +870,35 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
+
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
+
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         raise NotImplementedError
+
     def iscallable(self, objtxt):
         """Is object callable?"""
         raise NotImplementedError
+
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         raise NotImplementedError
+
     def get__doc__(self, objtxt):
         """Get object __doc__"""
         raise NotImplementedError
+
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         raise NotImplementedError
+
     def get_source(self, objtxt):
         """Get object source"""
         raise NotImplementedError
+
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         raise NotImplementedError
@@ -868,9 +908,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.completion_widget.show_list(
             textlist, automatic=False, position=None)
 
-    def hide_completion_widget(self):
+    def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget"""
-        self.completion_widget.hide()
+        self.completion_widget.hide(focus_to_parent=focus_to_parent)
 
     def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
@@ -887,8 +927,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                           if comp.startswith('_')])
 
         completions = sorted(set(completions) - underscore,
-                             key=lambda x: str_lower(x[0]))
-        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
+                             key=lambda x: str.lower(x[0]))
+        completions += sorted(underscore, key=lambda x: str.lower(x[0]))
         self.show_completion_widget(completions)
 
     def show_code_completion(self):
@@ -940,13 +980,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                           completion_text=text[q_pos+1:])
             return
 
-    def document_did_change(self, text=None):
-        """
-        This is here to be compatible with CodeEditor and be able to use
-        code completion.
-        """
-        pass
-
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):
         """Drop path list"""
@@ -969,7 +1002,10 @@ class TerminalWidget(ShellBaseWidget):
     COM = 'rem' if os.name == 'nt' else '#'
     INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
-    go_to_error = Signal(str)
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = Signal(str)
 
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)

@@ -1,22 +1,22 @@
 # Jupyter kernels for the Spyder console
 
-[![CircleCI](https://circleci.com/gh/spyder-ide/spyder-kernels.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder-kernels)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/pd0etf64xyiyd3qb/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder-kernels/branch/master)
-[![Travis status](https://travis-ci.org/spyder-ide/spyder-kernels.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder-kernels)
-[![codecov](https://codecov.io/gh/spyder-ide/spyder-kernels/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder-kernels)
+[![Windows status](https://github.com/spyder-ide/spyder-kernels/workflows/Windows%20tests/badge.svg)](https://github.com/spyder-ide/spyder-kernels/actions?query=workflow%3A%22Windows+tests%22)
+[![Linux status](https://github.com/spyder-ide/spyder-kernels/workflows/Linux%20tests/badge.svg)](https://github.com/spyder-ide/spyder-kernels/actions?query=workflow%3A%22Linux+tests%22)
+[![Macos status](https://github.com/spyder-ide/spyder-kernels/workflows/Macos%20tests/badge.svg)](https://github.com/spyder-ide/spyder-kernels/actions?query=workflow%3A%22Macos+tests%22)
+[![codecov](https://codecov.io/gh/spyder-ide/spyder-kernels/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder-kernels/branch/master)
 
 Package that provides Jupyter kernels for use with the consoles of Spyder, the
 Scientific Python Development Environment.
 
-These kernels can launched either through Spyder itself or in an independent
+These kernels can be launched either through Spyder itself or in an independent
 Python session, and allow for interactive or file-based execution of Python
 code inside Spyder.
 
 To learn about creating, connecting to and using these kernels with the Spyder
-console, please read our [documentation](https://docs.spyder-ide.org/ipythonconsole.html).
+console, please read our [documentation](https://docs.spyder-ide.org/current/panes/ipythonconsole.html).
 
-For advice on managing packages and environments with `spyder-kernels`, please visit
-our [wiki](https://github.com/spyder-ide/spyder/wiki/Working-with-packages-and-environments-in-Spyder).
+For advice on managing packages and environments with `spyder-kernels`, please read this
+[FAQ](http://docs.spyder-ide.org/current/faq.html#using-existing-environment) in our docs.
 
 
 ## Installation
@@ -44,7 +44,6 @@ This project depends on:
 * [cloudpickle](https://github.com/cloudpipe/cloudpickle)
 * [wurlitzer](https://github.com/minrk/wurlitzer) (only on Linux and macOS).
 
-
 ## Changelog
 
 Visit our [CHANGELOG](CHANGELOG.md) file to know more about our new features
@@ -60,3 +59,13 @@ pip install -e .
 
 in your git clone and then test your changes in Spyder. We follow PEP8 and
 PEP257 style guidelines.
+
+## Sponsors
+
+Spyder and its subprojects are funded thanks to the generous support of
+
+[![Quansight](https://user-images.githubusercontent.com/16781833/142477716-53152d43-99a0-470c-a70b-c04bbfa97dd4.png)](https://www.quansight.com/)[![Numfocus](https://i2.wp.com/numfocus.org/wp-content/uploads/2017/07/NumFocus_LRG.png?fit=320%2C148&ssl=1)](https://numfocus.org/)
+
+and the donations we have received from our users around the world through [Open Collective](https://opencollective.com/spyder/):
+
+[![Sponsors](https://opencollective.com/spyder/sponsors.svg)](https://opencollective.com/spyder#support)

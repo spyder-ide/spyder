@@ -19,8 +19,8 @@ import sys
 
 import pytest
 
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
 from spyder.widgets.github import backend
 
 
@@ -100,11 +100,7 @@ def test_get_credentials_from_settings():
     assert remember_token is True
 
 
-@pytest.mark.skipif((os.environ.get('CI', None) is not None and
-                     sys.platform.startswith('linux') or
-                     sys.platform.startswith('linux') and PY2),
-                    reason=("Not possible to make it work on Linux and our "
-                            "CIs and skip it locally on Linux and Python 2"))
+@pytest.mark.skipif(running_in_ci(), reason="Only works locally")
 def test_store_user_credentials():
     b = get_backend()
     b._store_token('token', True)
