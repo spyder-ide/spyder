@@ -130,6 +130,11 @@ def kernel_config():
         'figure.edgecolor': 'white'
     }
 
+    if is_module_installed('matplotlib'):
+        spy_cfg.IPKernelApp.exec_lines.append(
+            "get_ipython().kernel._set_mpl_backend('inline')"
+        )
+
     # Run a file at startup
     use_file_o = os.environ.get('SPY_USE_FILE_O')
     run_file_o = os.environ.get('SPY_RUN_FILE_O')

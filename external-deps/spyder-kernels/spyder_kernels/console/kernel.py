@@ -816,7 +816,7 @@ class SpyderKernel(IPythonKernel):
         )
 
         magic = 'pylab' if pylab else 'matplotlib'
-        
+
         if backend == "auto":
             backend = automatic_backend()
 
