@@ -112,7 +112,14 @@ class KernelHandler(QObject):
     """
     
     sig_remote_close = Signal(str)
+    """
+    Signal to request the kernel to be shut down
+    """
+
     sig_kernel_restarted = Signal()
+    """
+    The kernel has restarted
+    """
 
     def __init__(
         self,
@@ -155,27 +162,18 @@ class KernelHandler(QObject):
             # Start kernel
             self.kernel_client.start_channels()
             self.check_kernel_info()
-    
-    @Slot(str)
-    def kernel_restarted(self, connection_file):
-        if connection_file == self.connection_file:
-            self.sig_kernel_restarted.emit()
 
     @Slot(str, str)
-    def handle_stderr(self, err, connection_file=None):
+    def handle_stderr(self, err):
         """Handle stderr"""
-        if connection_file is not None and connection_file != self.connection_file:
-            return
         if self._shellwidget_connected:
             self.sig_stderr.emit(err)
         else:
             self._init_stderr += err
     
     @Slot(str, str)
-    def handle_stdout(self, out, connection_file=None):
+    def handle_stdout(self, out):
         """Handle stdout"""
-        if connection_file is not None and connection_file != self.connection_file:
-            return
         if self._shellwidget_connected:
             self.sig_stdout.emit(out)
         else:

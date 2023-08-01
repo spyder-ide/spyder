@@ -49,9 +49,9 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         self.options = None
         self.server = None
         self.kernel_handler_waitlist = []
+        self._alive_kernel_handlers = {}
         self.request_queue = queue.Queue()
         self.context = zmq.Context()
-
         self.on_kernel_server_conf_changed()
 
     @on_conf_change(option=KERNEL_SERVER_OPTIONS, section="main_interpreter")
@@ -196,9 +196,6 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         )
 
         kernel_handler.sig_remote_close.connect(self.request_close)
-        self.sig_kernel_restarted.connect(kernel_handler.kernel_restarted)
-        self.sig_kernel_stderr.connect(kernel_handler.handle_stderr)
-        self.sig_kernel_stdout.connect(kernel_handler.handle_stdout)
         self.kernel_handler_waitlist.append(kernel_handler)
 
         self.send_request(["open_kernel", kernel_spec_dict])
@@ -207,6 +204,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
     def request_close(self, connection_file):
         self.send_request(["close_kernel", connection_file])
+        # Remove kernel from active kernels
+        self._alive_kernel_handlers.pop(connection_file, None)
 
     def send_request(self, request):
         # Check socket state
@@ -250,6 +249,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
                     self.ssh_key,
                     self.ssh_password,
                 )
+                # keep ref to signal kernel handler
+                self._alive_kernel_handlers[connection_file] = kernel_handler
 
         elif cmd == "set_port_pub":
             port_pub = message[1]
@@ -285,11 +286,28 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
         message = self.socket_sub.recv_pyobj()
         cmd = message[0]
         if cmd == "kernel_restarted":
-            self.sig_kernel_restarted.emit(message[1])
+            connection_file = message[1]
+            kernel_handler = self._alive_kernel_handlers.get(
+                connection_file, None
+            )
+            if kernel_handler is not None:
+                kernel_handler.sig_kernel_restarted.emit()
+
         elif cmd == "stderr":
-            self.sig_kernel_stderr.emit(message[2], message[1])
+            err, connection_file = message
+            kernel_handler = self._alive_kernel_handlers.get(
+                connection_file, None
+            )
+            if kernel_handler is not None:
+                kernel_handler.handle_stderr(err)
+
         elif cmd == "stdout":
-            self.sig_kernel_stdout.emit(message[2], message[1])
+            out, connection_file = message
+            kernel_handler = self._alive_kernel_handlers.get(
+                connection_file, None
+            )
+            if kernel_handler is not None:
+                kernel_handler.handle_stdout(out)
 
         self._notifier_sub.setEnabled(True)
         # This is necessary for some reason.

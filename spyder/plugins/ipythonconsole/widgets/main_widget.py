@@ -128,11 +128,6 @@ class IPythonConsoleWidget(
     This is a widget with tabs where each one is a ClientWidget.
     """
 
-    # Signals
-    sig_kernel_restarted = Signal(str)
-    sig_kernel_stderr = Signal(str, str)
-    sig_kernel_stdout = Signal(str, str)
-    
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a
@@ -927,7 +922,7 @@ class IPythonConsoleWidget(
                 interactive_backend = None
                 sw = client.shellwidget
                 if (
-                    interactive_backend is None 
+                    interactive_backend is None
                     and sw._shellwidget_state != "started"
                 ):
                     # If the kernel didn't start and no backend was requested,
@@ -1765,7 +1760,7 @@ class IPythonConsoleWidget(
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
-        
+
         # Close local server
         self.stop_local_server(wait=True)
         return True
@@ -2027,7 +2022,7 @@ class IPythonConsoleWidget(
                 method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                
+
                 magic_arguments = [norm(filename)]
                 if args:
                     magic_arguments.append("--args")
@@ -2045,13 +2040,13 @@ class IPythonConsoleWidget(
                     magic_arguments.append("--post-mortem")
                 if console_namespace:
                     magic_arguments.append("--current-namespace")
-                
+
                 line = "%{} {}".format(method, shlex.join(magic_arguments))
 
             elif method in ["runfile", "debugfile"]:
                 # External, non spyder-kernels, use %run
                 magic_arguments = []
-                
+
                 if method == "debugfile":
                     magic_arguments.append("-d")
                 magic_arguments.append(filename)
