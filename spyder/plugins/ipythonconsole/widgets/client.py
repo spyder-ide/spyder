@@ -22,7 +22,7 @@ import time
 import traceback
 
 # Third party imports (qtpy)
-from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
+from qtpy.QtCore import QUrl, QTimer, Signal, Slot
 from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
@@ -478,6 +478,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.set_info_page()
             self.shellwidget.hide()
             self.infowidget.show()
+
+        # Inform other plugins that the shell failed to start
+        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
 
         # Stop shellwidget
         self.shellwidget.shutdown()

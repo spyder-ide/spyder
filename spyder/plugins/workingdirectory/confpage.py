@@ -57,8 +57,8 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
             'startup/fixed_directory',
             getcwd_or_home()
         )
-        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
-        lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
+        thisdir_radio.radiobutton.toggled.connect(thisdir_bd.setEnabled)
+        lastdir_radio.radiobutton.toggled.connect(thisdir_bd.setDisabled)
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
@@ -100,9 +100,9 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
             'console/fixed_directory',
             getcwd_or_home()
         )
-        console_dir_radio.toggled.connect(console_dir_bd.setEnabled)
-        console_project_radio.toggled.connect(console_dir_bd.setDisabled)
-        console_cwd_radio.toggled.connect(console_dir_bd.setDisabled)
+        console_dir_radio.radiobutton.toggled.connect(console_dir_bd.setEnabled)
+        console_project_radio.radiobutton.toggled.connect(console_dir_bd.setDisabled)
+        console_cwd_radio.radiobutton.toggled.connect(console_dir_bd.setDisabled)
         console_dir_layout = QHBoxLayout()
         console_dir_layout.addWidget(console_dir_radio)
         console_dir_layout.addWidget(console_dir_bd)

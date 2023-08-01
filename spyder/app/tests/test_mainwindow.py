@@ -3031,7 +3031,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         check_name = tab_widgets[tabname]
         check = getattr(tab, check_name)
         page.tabs.setCurrentIndex(idx)
-        check.animateClick()
+        check.checkbox.animateClick()
         qtbot.wait(500)
     dlg.ok_btn.animateClick()
 
@@ -3220,7 +3220,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'main_interpreter')
-    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_radio.radiobutton.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
 
     mi_container = main_window.main_interpreter.get_container()
@@ -6267,9 +6267,9 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     assert str(new_dir) in shell.get_value("sys_path")
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
-def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
+def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     """
     Test that file names in IPython console tracebacks are clickable.
 
@@ -6280,8 +6280,11 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Open test file
-    test_file = osp.join(LOCATION, 'script.py')
+    # Copy test file to a temporary location to avoid modifying it.
+    # See spyder-ide/spyder#21186 for the details
+    test_file_orig = osp.join(LOCATION, 'script.py')
+    test_file = str(tmp_path / 'script.py')
+    shutil.copyfile(test_file_orig, test_file)
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
@@ -6325,11 +6328,6 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmpdir):
     # Check we are in the right line
     cursor = code_editor.textCursor()
     assert cursor.blockNumber() == code_editor.blockCount() - 1
-
-    # Remove error and save file
-    code_editor.delete_line()
-    code_editor.sig_save_requested.emit()
-    qtbot.wait(500)
 
 
 def test_recursive_debug_exception(main_window, qtbot):
@@ -6518,7 +6516,6 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()
         main_window.editor.close_file()
-    
 
 
 if __name__ == "__main__":

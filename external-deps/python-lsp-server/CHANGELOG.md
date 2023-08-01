@@ -1,5 +1,41 @@
 # History of changes
 
+## Version 1.7.4 (2023/06/29)
+
+### Issues Closed
+
+* [Issue 393](https://github.com/python-lsp/python-lsp-server/issues/393) - Environment path doesn't expand user directory
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 394](https://github.com/python-lsp/python-lsp-server/pull/394) - Resolve homedir references in Jedi environment path, by [@odiroot](https://github.com/odiroot)
+* [PR 381](https://github.com/python-lsp/python-lsp-server/pull/381) - Report progress even when initialization fails, by [@syphar](https://github.com/syphar)
+* [PR 380](https://github.com/python-lsp/python-lsp-server/pull/380) - Fix pylint hang on file with many errors, by [@hetmankp](https://github.com/hetmankp)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 1.7.3 (2023/05/15)
+
+### Issues Closed
+
+* [Issue 369](https://github.com/python-lsp/python-lsp-server/issues/369) - Failed to load hook pylsp_lint: [Errno 2] No such file or directory: '' ([PR 371](https://github.com/python-lsp/python-lsp-server/pull/371) by [@Ultimator14](https://github.com/Ultimator14))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 377](https://github.com/python-lsp/python-lsp-server/pull/377) - Update yapf requirement to 0.33+, by [@bnavigator](https://github.com/bnavigator)
+* [PR 371](https://github.com/python-lsp/python-lsp-server/pull/371) - Fix empty cwd value for pylint, by [@Ultimator14](https://github.com/Ultimator14) ([369](https://github.com/python-lsp/python-lsp-server/issues/369))
+* [PR 364](https://github.com/python-lsp/python-lsp-server/pull/364) - Add Arch Linux installation command to Readme, by [@GNVageesh](https://github.com/GNVageesh)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 1.7.2 (2023/04/02)
 
 ### Issues Closed

@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import get_conf_path, running_in_ci
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
 
@@ -233,7 +233,7 @@ def test_copy_lines_down_up(editor_bot, mocker, qtbot):
 
     # We need to patch osp.isfile to avoid the 'this file does not exist'
     # message box.
-    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.osp.isfile',
                  returned_value=True)
 
     # Assert initial state.
@@ -758,7 +758,7 @@ def test_maybe_autosave_does_not_save_new_files(editor_bot, mocker):
 def test_opening_sets_file_hash(base_editor_bot, mocker):
     """Test that opening a file sets the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('my text', 42))
     filename = osp.realpath('/mock-filename')
     editor_stack.load(filename)
@@ -769,7 +769,7 @@ def test_opening_sets_file_hash(base_editor_bot, mocker):
 def test_reloading_updates_file_hash(base_editor_bot, mocker):
     """Test that reloading a file updates the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  side_effect=[('my text', 42), ('new text', 42)])
     filename = osp.realpath('/mock-filename')
     finfo = editor_stack.load(filename)
@@ -782,7 +782,7 @@ def test_reloading_updates_file_hash(base_editor_bot, mocker):
 def test_closing_removes_file_hash(base_editor_bot, mocker):
     """Test that closing a file removes the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('my text', 42))
     filename = osp.realpath('/mock-filename')
     finfo = editor_stack.load(filename)
@@ -802,7 +802,7 @@ def test_maybe_autosave_does_not_save_after_open(base_editor_bot, mocker,
     both Python and text files. The latter covers spyder-ide/spyder#8654.
     """
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('spam\n', 42))
     editor_stack.load(filename)
     mocker.patch.object(editor_stack, '_write_to_file')
@@ -823,7 +823,7 @@ def test_maybe_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     txt = 'spam\n'
     editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
     mocker.patch.object(editor_stack, '_write_to_file')
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=(txt, 'ascii'))
     editor_stack.reload(0)
     editor_stack.autosave.maybe_autosave(0)

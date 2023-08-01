@@ -234,8 +234,7 @@ class SpyderKernel(IPythonKernel):
         return stack
 
     @comm_handler
-    def get_current_frames(self, ignore_internal_threads=True,
-                           capture_locals=False):
+    def get_current_frames(self, ignore_internal_threads=True):
         """Get the current frames."""
         ignore_list = self.get_system_threads_id()
         main_id = threading.main_thread().ident
@@ -246,9 +245,6 @@ class SpyderKernel(IPythonKernel):
         for thread_id, frame in sys._current_frames().items():
             stack = traceback.StackSummary.extract(
                 traceback.walk_stack(frame))
-            if capture_locals:
-                for f_summary, f in zip(stack, traceback.walk_stack(frame)):
-                    f_summary.locals = self.get_namespace_view(frame=f[0])
             stack.reverse()
             if ignore_internal_threads:
                 if thread_id in ignore_list:

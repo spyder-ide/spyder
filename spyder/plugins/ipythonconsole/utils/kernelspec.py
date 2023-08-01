@@ -63,26 +63,6 @@ def is_different_interpreter(pyexec):
     return directory_validation and executable_validation
 
 
-def get_activation_script(quote=False):
-    """
-    Return path for bash/batch conda activation script to run spyder-kernels.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
-    if os.name == 'nt':
-        script = 'conda-activate.bat'
-    else:
-        script = 'conda-activate.sh'
-
-    script_path = os.path.join(scripts_folder_path, script)
-
-    if quote:
-        script_path = add_quotes(script_path)
-
-    return script_path
-
-
 def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
     return is_module_installed(

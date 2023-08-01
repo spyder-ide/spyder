@@ -52,9 +52,10 @@ PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=2.5.0,<3.0'
 PYLINT_VENV_REQVER = '>=3.0.2'
-PYLSP_REQVER = '>=1.7.2,<1.8.0'
+PYLSP_REQVER = '>=1.7.4,<1.8.0'
 PYLSP_BLACK_REQVER = '>=1.2.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
+PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=22.1.0'
 QDARKSTYLE_REQVER = '>=3.0.2,<3.2.0'
@@ -194,6 +195,10 @@ DESCRIPTIONS = [
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python LSP Server'),
      'required_version': PYLS_SPYDER_REQVER},
+    {'modname': 'pyuca',
+     'package_name': 'pyuca',
+     'features': _('Properly sort lists of non-English strings'),
+     'required_version': PYUCA_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
      'features': _("Parse desktop files on Linux"),

@@ -22,7 +22,10 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
-from spyder.plugins.editor.widgets import editor
+from spyder.plugins.editor.widgets.editorstack import editorstack as editor
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
+
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
@@ -47,7 +50,7 @@ def add_files(editorstack):
 # ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
-    editor_stack = editor.EditorStack(None, [], False)
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
@@ -73,7 +76,7 @@ def editor_bot(base_editor_bot, request):
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    es = editor.EditorSplitter(None, Mock(), [], first=True)
+    es = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
     es.show()
     yield es

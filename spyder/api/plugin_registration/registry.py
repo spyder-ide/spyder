@@ -8,7 +8,7 @@
 
 # Standard library imports
 import logging
-from typing import Dict, List, Union, Type, Any, Set, Optional, Tuple
+from typing import Dict, List, Union, Type, Any, Set, Optional
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -123,6 +123,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         # Dictionary that contains all the external plugins (enabled or not)
         self.all_external_plugins = {}  # type: Dict[str, Tuple[str, Type[SpyderPluginClass]]]
+
+        # This is used to allow disabling external plugins through Preferences
+        self._external_plugins_conf_section = "external_plugins"
 
     # ------------------------- PRIVATE API -----------------------------------
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):

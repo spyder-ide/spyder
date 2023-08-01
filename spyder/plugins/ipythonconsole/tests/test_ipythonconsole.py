@@ -1832,7 +1832,8 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
      'excluded_names': [],
      'minmax': False,
      'show_callable_attributes': True,
-     'show_special_attributes': False}
+     'show_special_attributes': False,
+     'filter_on': True}
 
     shell.call_kernel(
             interrupt=True

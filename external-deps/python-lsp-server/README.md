@@ -65,6 +65,12 @@ or Fedora Linux
 sudo dnf install python-lsp-server
 ```
 
+or Arch Linux
+
+```
+sudo pacman -S python-lsp-server
+````
+
 Only on Alpine Linux the package is named differently. You can install it there by typing this command in your terminal:
 
 ```
