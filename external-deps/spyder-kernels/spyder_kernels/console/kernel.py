@@ -528,7 +528,7 @@ class SpyderKernel(IPythonKernel):
         if framework is None:
             # Since no interactive backend has been set yet, this is
             # equivalent to having the inline one.
-            return 0
+            return 'inline'
         elif framework in mapping:
             return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
         else:

@@ -1168,6 +1168,9 @@ def test_get_interactive_backend(backend):
         user_expressions = reply['content']['user_expressions']
         value = user_expressions['output']['data']['text/plain']
 
+        # remove quotes
+        value = value[1:-1]
+
         # Assert we got the right interactive backend
         if backend is not None:
             assert value == backend
