@@ -17,8 +17,8 @@ from qtpy.QtGui import QPainter, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
-from spyder.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
 
