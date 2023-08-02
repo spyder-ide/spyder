@@ -476,8 +476,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   "kernel I did not start.<br>")
             )
 
-    def execute(
-            self, source=None, hidden=False, interactive=False, queue=True):
+    def execute(self, source=None, hidden=False, interactive=False):
         """
         Executes source or the input buffer, possibly prompting for more
         input.
@@ -539,7 +538,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def send_mpl_backend(self, option=None):
         """
         Send matplotlib backend.
-        
+
         If option is not None only send the related options
         """
         if not self.spyder_kernel_ready:
@@ -549,12 +548,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         pylab_n = 'pylab'
         pylab_o = self.get_conf(pylab_n)
-        
+
         if option is not None and not pylab_o:
             # The options are only related to pylab_o
             # So no need to change the backend
             return
-        
+
         pylab_autoload_n = 'pylab/autoload'
         pylab_backend_n = 'pylab/backend'
         figure_format_n = 'pylab/inline/figure_format'
@@ -565,21 +564,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         backend_o = self.get_conf(pylab_backend_n)
 
         inline_backend = 'inline'
-        
+
         matplotlib_conf = {}
-        
+
         if pylab_o:
             # Figure format
             format_o = self.get_conf(figure_format_n)
             if format_o and (option is None or figure_format_n in option):
                 matplotlib_conf[figure_format_n] = format_o
-    
+
             # Resolution
             resolution_o = self.get_conf(resolution_n)
             if resolution_o is not None and (
                     option is None or resolution_n in option):
                 matplotlib_conf[resolution_n] = resolution_o
-    
+
             # Figure size
             width_o = float(self.get_conf(width_n))
             height_o = float(self.get_conf(height_n))
@@ -588,7 +587,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     matplotlib_conf[width_n] = width_o
                 if height_o is not None:
                     matplotlib_conf[height_n] = height_o
-    
+
             # Print figure kwargs
             bbox_inches_o = self.get_conf(bbox_inches_n)
             if option is None or bbox_inches_n in option:
@@ -608,7 +607,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             matplotlib_conf[pylab_backend_n] = mpl_backend
         if option is None or pylab_autoload_n in option:
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
-        
+
         if matplotlib_conf:
             self.call_kernel().set_matplotlib_conf(
                 matplotlib_conf)

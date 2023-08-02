@@ -90,7 +90,7 @@ class KernelHandler(QObject):
     """
     A stdout message was received on the process stdout.
     """
-    
+
     sig_stderr = Signal(str)
     """
     A stderr message was received on the process stderr.
@@ -110,7 +110,7 @@ class KernelHandler(QObject):
     """
     The kernel raised an error while connecting.
     """
-    
+
     sig_remote_close = Signal(str)
     """
     Signal to request the kernel to be shut down
@@ -154,10 +154,10 @@ class KernelHandler(QObject):
         self._shellwidget_connected = False
         self._init_stderr = ""
         self._init_stdout = ""
-        
+
         # Special kernel
         self.special = None
-        
+
         if self.kernel_client:
             # Start kernel
             self.kernel_client.start_channels()
@@ -170,7 +170,7 @@ class KernelHandler(QObject):
             self.sig_stderr.emit(err)
         else:
             self._init_stderr += err
-    
+
     @Slot(str, str)
     def handle_stdout(self, out):
         """Handle stdout"""
@@ -197,7 +197,6 @@ class KernelHandler(QObject):
         if self._init_stdout:
             self.sig_stdout.emit(self._init_stdout)
         self._init_stdout = None
-        
 
     def check_kernel_info(self):
         """Send request to check kernel info."""
@@ -466,7 +465,7 @@ class KernelHandler(QObject):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
-        
+
         self.kernel_client = SpyderKernelClient()
         self.kernel_client.load_connection_info(self.connection_info)
         self.kernel_client = self.tunnel_kernel_client(
@@ -475,11 +474,11 @@ class KernelHandler(QObject):
             self.sshkey,
             self.password
             )
-    
+
         # Increase time (in seconds) to detect if a kernel is alive.
         # See spyder-ide/spyder#3444.
         self.kernel_client.hb_channel.time_to_dead = 25.0
-        
+
         # Start kernel
         self.kernel_client.start_channels()
         self.check_kernel_info()
