@@ -13,6 +13,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -27,7 +28,7 @@ class PageScrollArea(QScrollArea):
         return super().widget().page
 
 
-class ConfigDialog(QDialog):
+class ConfigDialog(QDialog, SpyderFontsMixin):
     """Preferences dialog."""
 
     # Signals
@@ -62,9 +63,9 @@ class ConfigDialog(QDialog):
         self.pages_widget.setMinimumWidth(600)
 
         self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setSpacing(1)
+        self.contents_widget.setSpacing(3)
         self.contents_widget.setCurrentRow(0)
-        self.contents_widget.setMinimumWidth(220)
+        self.contents_widget.setMinimumWidth(300)
         self.contents_widget.setObjectName('configdialog-contents')
 
         # Layout
@@ -83,6 +84,7 @@ class ConfigDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(contents_and_pages_layout)
+        layout.addSpacing(3)
         layout.addLayout(btnlayout)
 
         self.setLayout(layout)
@@ -167,10 +169,15 @@ class ConfigDialog(QDialog):
         page.apply_button_enabled.connect(self.apply_btn.setEnabled)
 
         # Container widget so that we can center the page
-        container = QWidget(self)
         layout = QHBoxLayout()
         layout.addWidget(page)
         layout.setAlignment(Qt.AlignHCenter)
+
+        # The smaller margin to the right is necessary to compensate for the
+        # space added by the vertical scrollbar
+        layout.setContentsMargins(27, 27, 15, 27)
+
+        container = QWidget(self)
         container.setLayout(layout)
         container.page = page
 
@@ -182,15 +189,23 @@ class ConfigDialog(QDialog):
         scrollarea.setWidget(container)
         self.pages_widget.addWidget(scrollarea)
 
-        # Add entry to the list widget on the left
+        # Add plugin entry item to contents widget
         item = QListWidgetItem(self.contents_widget)
+        item.setText(page.get_name())
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
+        # In case a plugin doesn't have an icon
         try:
             item.setIcon(page.get_icon())
         except TypeError:
             pass
-        item.setText(page.get_name())
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-        item.setSizeHint(QSize(0, 25))
+
+        # Increase font size of items
+        font_size = self.get_font(
+            SpyderFontType.Interface, font_size_delta=1).pointSize()
+        font = item.font()
+        font.setPointSize(font_size)
+        item.setFont(font)
 
     def check_all_settings(self):
         """This method is called to check all configuration page settings
@@ -214,22 +229,39 @@ class ConfigDialog(QDialog):
             alignment='left'
         )
 
-        # Remove right border radius of contents area
+        # Set style of contents area
         css['QListView#configdialog-contents'].setValues(
-            borderTopRightRadius='0px',
-            borderBottomRightRadius='0px',
+            padding='9px 0px',
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_2,
+            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
         )
 
         # Remove border color on focus of contents area
         css['QListView#configdialog-contents:focus'].setValues(
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
+            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
         )
 
-        # Remove left border and border radius of all page scroll areas
+        # Add margin and padding for items in contents area
+        css['QListView#configdialog-contents::item'].setValues(
+            padding='6px',
+            margin='0px 9px'
+        )
+
+        # Set border radius and background color for hover, active and inactive
+        # states of items
+        css['QListView#configdialog-contents::item:hover'].setValues(
+            borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+        )
+
+        for state in ['item:selected:active', 'item:selected:!active']:
+            css[f'QListView#configdialog-contents::{state}'].setValues(
+                borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+            )
+
+        # Remove border of all scroll areas for pages
         css['QScrollArea#configdialog-scrollarea'].setValues(
-            borderLeft='0px',
-            borderTopLeftRadius='0px',
-            borderBottomLeftRadius='0px',
+            border='0px',
         )
 
         return css.toString()

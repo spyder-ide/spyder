@@ -294,7 +294,7 @@ DEFAULTS = [
             ('preferences',
              {
               'enable': True,
-              'dialog_size': (980, 715),
+              'dialog_size': (990, 715),
               }),
             ('project_explorer',
              {
