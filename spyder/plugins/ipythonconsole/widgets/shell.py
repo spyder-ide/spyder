@@ -222,7 +222,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
-        kernel_handler.connect()
+        kernel_handler.connect_()
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """

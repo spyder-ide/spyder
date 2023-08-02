@@ -183,7 +183,7 @@ class KernelHandler(QObject):
         self.kernel_client.start_channels()
         self.check_kernel_info()
 
-    def connect(self):
+    def connect_(self):
         """Connect to shellwidget."""
         self._shellwidget_connected = True
         # Emit signal in case the connection is already made
