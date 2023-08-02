@@ -73,10 +73,10 @@ class OtherLanguagesConfigTab(SpyderPreferencesTab):
 
         # Combined layout
         servers_layout = QVBoxLayout()
-        servers_layout.addSpacing(-10)
         servers_layout.addWidget(servers_label)
+        servers_layout.addSpacing(9)
         servers_layout.addWidget(table_group)
-        servers_layout.addSpacing(10)
+        servers_layout.addSpacing(9)
         servers_layout.addLayout(buttons_layout)
 
         self.setLayout(servers_layout)

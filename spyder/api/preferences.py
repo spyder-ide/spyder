@@ -65,6 +65,11 @@ class SpyderPreferencesTab(BaseConfigTab):
         else:
             return super().__getattr__(attr)
 
+    def setLayout(self, layout):
+        """Remove default margins by default."""
+        layout.setContentsMargins(0, 0, 0, 0)
+        super().setLayout(layout)
+
 
 class PluginConfigPage(SpyderConfigPage):
     """

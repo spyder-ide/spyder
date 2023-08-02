@@ -14,10 +14,9 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import getsavefilename, getopenfilename
-from qtpy.QtCore import Qt, Slot
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QComboBox, QGroupBox, QGridLayout, QLabel,
-                            QMessageBox, QPushButton, QTabWidget, QVBoxLayout,
-                            QWidget, QFileDialog)
+                            QMessageBox, QPushButton, QVBoxLayout, QFileDialog)
 
 # Local imports
 from spyder.config.base import _
@@ -103,6 +102,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         # Snippets layout
         snippets_layout = QVBoxLayout()
         snippets_layout.addWidget(snippets_info_label)
+        snippets_layout.addSpacing(9)
         snippets_layout.addWidget(snippet_lang_group)
         snippets_layout.addWidget(snippet_table_group)
         snippets_layout.addLayout(sn_buttons_layout)
