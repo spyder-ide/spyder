@@ -352,13 +352,29 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                                         QMessageBox.Ok)
 
     def copy_absolute_path(self):
+        """
+        Copy current filename absolute path to the clipboard.
+
+        Returns
+        -------
+        None.
+
+        """
         QApplication.clipboard().setText(
             self.get_current_filename())
 
     def copy_relative_path(self):
-        file_path = os.path.splitdrive(self.get_current_filename())[0]
+        """
+        Copy current filename relative path to the clipboard.
+
+        Returns
+        -------
+        None.
+
+        """
+        file_drive = osp.splitdrive(self.get_current_filename())[0]
         if (os.name == 'nt'
-                and os.path.splitdrive(getcwd_or_home())[0] != file_path):
+                and osp.splitdrive(getcwd_or_home())[0] != file_drive):
             QMessageBox.warning(
                self,
                _("No available relative path"),
@@ -369,8 +385,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             )
         else:
             QApplication.clipboard().setText(
-                    (osp.relpath(self.get_current_filename(),
-                                 getcwd_or_home()).replace(os.sep, "/")))
+                (osp.relpath(self.get_current_filename(),
+                             getcwd_or_home()).replace(os.sep, "/")))
 
     def create_shortcuts(self):
         """Create local shortcuts"""
