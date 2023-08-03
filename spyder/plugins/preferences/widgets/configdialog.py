@@ -5,7 +5,6 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (
     QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QListView,
@@ -18,6 +17,7 @@ from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import SPECIAL_TABBAR_STYLESHEET
 
 
 class PageScrollArea(QScrollArea):
@@ -222,11 +222,14 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
     @property
     def _stylesheet(self):
-        css = qstylizer.style.StyleSheet()
+        # Use special tabbar stylesheet for as the base one and then extend it.
+        tabs_stylesheet = SPECIAL_TABBAR_STYLESHEET.get_copy()
+        css = tabs_stylesheet.get_stylesheet()
 
-        # Show tabs aligned to the left
-        css['QTabWidget::tab-bar'].setValues(
-            alignment='left'
+        # Remove border and add padding for content inside tabs
+        css['QTabWidget::pane'].setValues(
+            border='0px',
+            padding='6px'
         )
 
         # Set style of contents area
