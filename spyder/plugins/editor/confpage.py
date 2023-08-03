@@ -209,8 +209,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # --- Advanced tab ---
         # -- Templates
+        templates_group = QGroupBox(_('Templates'))
         template_btn = self.create_button(_("Edit template for new files"),
                                           self.plugin.edit_template)
+
+        templates_layout = QVBoxLayout()
+        templates_layout.addSpacing(3)
+        templates_layout.addWidget(template_btn)
+        templates_group.setLayout(templates_layout)
 
         # -- Autosave
         autosave_group = QGroupBox(_('Autosave'))
@@ -279,7 +285,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                              "mixed end-of-line characters (this may "
                              "raise syntax errors in the consoles "
                              "on Windows platforms), Spyder may fix the "
-                             "file automatically."))
+                             "file automatically.<br>"))
         eol_label.setWordWrap(True)
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
@@ -318,10 +324,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(display_widget), _("Display"))
         self.tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        self.tabs.addTab(self.create_tab(template_btn, autosave_group,
-                                         docstring_group, annotations_group,
-                                         eol_group),
-                         _("Advanced settings"))
+        self.tabs.addTab(
+            self.create_tab(templates_group, autosave_group, docstring_group,
+                            annotations_group, eol_group),
+            _("Advanced settings")
+        )
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.tabs)

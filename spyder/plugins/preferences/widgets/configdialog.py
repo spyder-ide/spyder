@@ -229,7 +229,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='6px'
+            padding='9px',
         )
 
         # Set style of contents area

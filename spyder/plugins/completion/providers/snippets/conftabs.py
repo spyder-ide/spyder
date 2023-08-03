@@ -56,6 +56,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
             self.change_language_snippets)
 
         snippet_lang_group = QGroupBox(_('Language'))
+        snippet_lang_group.setStyleSheet('margin-bottom: 3px')
         snippet_lang_layout = QVBoxLayout()
         snippet_lang_layout.addWidget(self.snippets_language_cb)
         snippet_lang_group.setLayout(snippet_lang_layout)

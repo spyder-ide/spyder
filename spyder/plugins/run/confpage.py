@@ -230,8 +230,9 @@ class RunConfigPage(PluginConfigPage):
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
-        vlayout.addSpacing(10)
+        vlayout.addSpacing(9)
         vlayout.addWidget(self.executor_combo)
+        vlayout.addSpacing(9)
         vlayout.addWidget(params_group)
         vlayout.addLayout(sn_buttons_layout)
         vlayout.addStretch(1)

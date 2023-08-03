@@ -891,8 +891,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_tab(self, *widgets):
         """Create simple tab widget page: widgets added in a vertical layout"""
-        widget = QWidget()
+        widget = QWidget(self)
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         for widg in widgets:
             layout.addWidget(widg)
         layout.addStretch(1)
