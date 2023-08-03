@@ -209,14 +209,15 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             self,
             _("Copy abosolute path"),
             icon=ima.icon('editcopy'),
-            triggered=lambda:
+            triggered=lambda: self.copy_absolute_path()
             self.copy_absolute_path())
         copy_relative_path_action = create_action(
             self,
             _("Copy relative path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-            self.copy_relative_path())
+            self.copy_relative_path()
+        )
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
@@ -352,29 +353,17 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                                         QMessageBox.Ok)
 
     def copy_absolute_path(self):
-        """
-        Copy current filename absolute path to the clipboard.
-
-        Returns
-        -------
-        None.
-
-        """
+        """Copy current filename absolute path to the clipboard."""
         QApplication.clipboard().setText(
             self.get_current_filename())
 
     def copy_relative_path(self):
-        """
-        Copy current filename relative path to the clipboard.
-
-        Returns
-        -------
-        None.
-
-        """
+        """Copy current filename relative path to the clipboard."""
         file_drive = osp.splitdrive(self.get_current_filename())[0]
-        if (os.name == 'nt'
-                and osp.splitdrive(getcwd_or_home())[0] != file_drive):
+        if (
+            os.name == 'nt'
+            and osp.splitdrive(getcwd_or_home())[0] != file_drive
+        ):
             QMessageBox.warning(
                self,
                _("No available relative path"),
@@ -384,9 +373,10 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                  "directory. Please copy its absolute path.")
             )
         else:
-            QApplication.clipboard().setText(
-                (osp.relpath(self.get_current_filename(),
-                             getcwd_or_home()).replace(os.sep, "/")))
+            rel_path = osp.relpath(
+                self.get_current_filename(), getcwd_or_home()
+            ).replace(os.sep, "/")
+            QApplication.clipboard().setText(rel_path)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
