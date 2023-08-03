@@ -6,6 +6,7 @@
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
     QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QListView,
     QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
@@ -36,10 +37,19 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     sig_size_changed = Signal(QSize)
     sig_reset_preferences_requested = Signal()
 
+    # Constants
+    ITEMS_MARGIN = 9
+    ITEMS_PADDING = 6
+    CONTENTS_MIN_WIDTH = 300
+    ICON_SIZE = 24
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
+        # Attributes
         self.main = parent
+        self.items_font = self.get_font(
+            SpyderFontType.Interface, font_size_delta=1)
 
         # Widgets
         self.pages_widget = QStackedWidget(self)
@@ -65,8 +75,14 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(3)
         self.contents_widget.setCurrentRow(0)
-        self.contents_widget.setMinimumWidth(300)
+        self.contents_widget.setMinimumWidth(self.CONTENTS_MIN_WIDTH)
         self.contents_widget.setObjectName('configdialog-contents')
+        self.contents_widget.setIconSize(QSize(self.ICON_SIZE, self.ICON_SIZE))
+
+        # Don't show horizontal scrollbar because it doesn't look good. Instead
+        # we show tooltips if the text doesn't fit in contents_widget width.
+        self.contents_widget.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarAlwaysOff)
 
         # Layout
         contents_and_pages_layout = QGridLayout()
@@ -200,12 +216,26 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         except TypeError:
             pass
 
-        # Increase font size of items
-        font_size = self.get_font(
-            SpyderFontType.Interface, font_size_delta=1).pointSize()
-        font = item.font()
-        font.setPointSize(font_size)
-        item.setFont(font)
+        # Set font for items
+        item.setFont(self.items_font)
+
+        # Check if it's necessary to add a tooltip to the item
+        text_width = QFontMetrics(self.items_font).size(
+            Qt.TextSingleLine, page.get_name()
+        ).width()
+
+        actual_width = (
+            text_width + 2 * self.ITEMS_MARGIN + self.ICON_SIZE +
+            self.ITEMS_PADDING
+        )
+
+        available_width = (
+            self.CONTENTS_MIN_WIDTH -
+            (2 * self.ITEMS_MARGIN + self.ICON_SIZE + self.ITEMS_PADDING)
+        )
+
+        if actual_width > available_width:
+            item.setToolTip(page.get_name())
 
     def check_all_settings(self):
         """This method is called to check all configuration page settings
@@ -234,7 +264,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
         # Set style of contents area
         css['QListView#configdialog-contents'].setValues(
-            padding='9px 0px',
+            padding=f'{self.ITEMS_MARGIN}px 0px',
             backgroundColor=QStylePalette.COLOR_BACKGROUND_2,
             border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
         )
@@ -246,8 +276,8 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
         # Add margin and padding for items in contents area
         css['QListView#configdialog-contents::item'].setValues(
-            padding='6px',
-            margin='0px 9px'
+            padding=f'{self.ITEMS_PADDING}px',
+            margin=f'0px {self.ITEMS_MARGIN}px'
         )
 
         # Set border radius and background color for hover, active and inactive
