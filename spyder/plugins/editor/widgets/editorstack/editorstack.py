@@ -207,7 +207,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         copy_absolute_path_action = create_action(
             self,
-            _("Copy abosolute path"),
+            _("Copy absolute path"),
             icon=ima.icon('editcopy'),
             triggered=lambda: self.copy_absolute_path()
         )
@@ -373,8 +373,11 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                  "directory. Please copy its absolute path.")
             )
         else:
+            base_path = getcwd_or_home()
+            if self.get_current_project_path():
+                base_path = self.get_current_project_path()
             rel_path = osp.relpath(
-                self.get_current_filename(), getcwd_or_home()
+                self.get_current_filename(), base_path
             ).replace(os.sep, "/")
             QApplication.clipboard().setText(rel_path)
 
@@ -1329,6 +1332,10 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     def get_current_language(self):
         if self.data:
             return self.data[self.get_stack_index()].editor.language
+
+    def get_current_project_path(self):
+        if self.data:
+            return self.data[self.get_stack_index()].editor.current_project_path
 
     def get_filenames(self):
         """
