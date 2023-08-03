@@ -210,7 +210,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             _("Copy abosolute path"),
             icon=ima.icon('editcopy'),
             triggered=lambda: self.copy_absolute_path()
-            self.copy_absolute_path())
+        )
         copy_relative_path_action = create_action(
             self,
             _("Copy relative path"),
