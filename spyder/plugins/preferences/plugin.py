@@ -257,9 +257,11 @@ class Preferences(SpyderPluginV2):
 
     def open_dialog(self):
         container = self.get_container()
+        self.before_long_process('')
         container.create_dialog(
             self.config_pages, self.config_tabs, self.get_main()
         )
+        self.after_long_process()
 
     # ---------------- Public Spyder API required methods ---------------------
     @staticmethod
