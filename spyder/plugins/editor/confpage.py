@@ -297,7 +297,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                              "mixed end-of-line characters (this may "
                              "raise syntax errors in the consoles "
                              "on Windows platforms), Spyder may fix the "
-                             "file automatically.<br>"))
+                             "file automatically.<br><br>"))
         eol_label.setWordWrap(True)
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),

@@ -256,10 +256,20 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         tabs_stylesheet = SPECIAL_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
 
+        # Set tabs font size to be the same as the one for items
+        css.QTabBar.setValues(
+            fontSize=f'{self.items_font.pointSize()}pt',
+        )
+
+        # Increase padding around text a bit because we're using an larger font
+        css['QTabBar::tab'].setValues(
+            padding='6px 10px',
+        )
+
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='9px',
+            padding='15px',
         )
 
         # Set style of contents area
