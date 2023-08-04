@@ -565,6 +565,7 @@ class ShortcutsModel(QAbstractTableModel):
                 return to_qvariant(text)
             elif column == SEQUENCE:
                 text = QKeySequence(key).toString(QKeySequence.NativeText)
+                text = '<p style="color:{0}">{1}</p>'.format(color, text)
                 return to_qvariant(text)
             elif column == SEARCH_SCORE:
                 # Treating search scores as a table column simplifies the
