@@ -579,7 +579,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
              self.writer_docstring.write_docstring_for_shortcut),
             ('editor', 'autoformatting', self.format_document_or_range),
             ('array_builder', 'enter array inline', self.enter_array_inline),
-            ('array_builder', 'enter array table', self.enter_array_table)
+            ('array_builder', 'enter array table', self.enter_array_table),
+            ('editor', 'scroll line down', self.scroll_line_down),
+            ('editor', 'scroll line up', self.scroll_line_up)
             )
 
         shortcuts = []
@@ -1268,6 +1270,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     self.next_cursor_position(), QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
+
+    # ---- Scrolling
+    # -------------------------------------------------------------------------
+    def scroll_line_down(self):
+        """Scroll the editor down by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() + vsb.singleStep())
+
+    def scroll_line_up(self):
+        """Scroll the editor up by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() - vsb.singleStep())
 
     # ---- Find occurrences
     # -------------------------------------------------------------------------

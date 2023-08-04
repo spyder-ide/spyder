@@ -63,6 +63,24 @@ def editor_bot(base_editor_bot, mocker, qtbot):
 
 
 @pytest.fixture
+def visible_editor_bot(editor_bot, mocker):
+    """
+    Set up an EditorStack to test functionalities that require a
+    visible editor.
+    """
+    editorstack, editor = editor_bot
+
+    # We need to patch osp.isfile to avoid the 'this file does not exist'
+    # message box.
+    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
+                 returned_value=True)
+
+    editorstack.show()
+
+    return editorstack, editor
+
+
+@pytest.fixture
 def editor_find_replace_bot(base_editor_bot, qtbot):
     # Widget to show together the editor stack and findreplace ones together
     widget = QWidget()
@@ -116,6 +134,36 @@ def editor_cells_bot(base_editor_bot, qtbot):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+def test_scroll_line_up_and_down(visible_editor_bot, mocker, qtbot):
+    """
+    Test that the scroll line up and down functionalities are working
+    as expected.
+    """
+    editorstack, editor = visible_editor_bot
+
+    # Define text in the editor long enough to require a vertical scrollbar.
+    editor.setPlainText('new_line\n' * 1000)
+    editorstack.go_to_line(1)
+    vsb = editor.verticalScrollBar()
+
+    # Assert initial state.
+    assert vsb.value() == 0
+    assert vsb.maximum() > 0
+
+    # Scroll line down five times.
+    expected_vsb_value = 0
+    for _ in range(5):
+        expected_vsb_value += vsb.singleStep()
+        editor.scroll_line_down()
+        assert vsb.value() == expected_vsb_value
+
+    # Scroll line up three times.
+    for _ in range(3):
+        expected_vsb_value += -vsb.singleStep()
+        editor.scroll_line_up()
+        assert vsb.value() == expected_vsb_value
+
+
 def test_find_number_matches(editor_find_replace_bot):
     """Test for number matches in find/replace."""
     editor = editor_find_replace_bot.editor
@@ -219,22 +267,17 @@ def test_move_multiple_lines_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
 
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Works only on Linux")
-def test_copy_lines_down_up(editor_bot, mocker, qtbot):
+@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
+                    reason="It fails on Windows CI")
+def test_copy_lines_down_up(visible_editor_bot, qtbot):
     """
     Test that copy lines down and copy lines up are working as expected.
     """
-    editorstack, editor = editor_bot
+    # Note that we need a visible editor because the copy lines down and copy
+    # lines up functionalities both rely on a paint event override to work
+    # as expected.
 
-    # We need to show the editor because the copy lines down and copy lines up
-    # functionalities both rely on a paint event override to work as expected.
-    editorstack.show()
-
-    # We need to patch osp.isfile to avoid the 'this file does not exist'
-    # message box.
-    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.osp.isfile',
-                 returned_value=True)
+    editorstack, editor = visible_editor_bot
 
     # Assert initial state.
     editorstack.go_to_line(1)
@@ -944,4 +987,4 @@ def test_ipython_files(base_editor_bot, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main(['test_editor.py'])
+    pytest.main(['test_editor.py', '-vv', '-rw'])
