@@ -3,6 +3,7 @@ on:
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
+      - '.github/workflows/build-subrepos.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
