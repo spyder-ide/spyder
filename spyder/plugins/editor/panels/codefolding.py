@@ -31,7 +31,7 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
 # Local imports
 from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima

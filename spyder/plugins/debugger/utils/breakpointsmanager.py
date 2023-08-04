@@ -14,10 +14,10 @@ from qtpy.QtCore import Signal, QObject
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
-from spyder.api.manager import Manager
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
+from spyder.plugins.editor.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 

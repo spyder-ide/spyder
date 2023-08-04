@@ -13,7 +13,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
 
 # Local imports
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 
 
 class IndentationGuide(Panel):
