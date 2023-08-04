@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
