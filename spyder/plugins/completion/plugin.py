@@ -22,7 +22,7 @@ import weakref
 # Third-party imports
 from packaging.version import parse
 from pkg_resources import iter_entry_points
-from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
+from qtpy.QtCore import QRecursiveMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
 from spyder.config.manager import CONF
@@ -214,7 +214,7 @@ class CompletionPlugin(SpyderPluginV2):
         self.req_id = 0
 
         # Lock to prevent concurrent access to requests mapping
-        self.collection_mutex = QMutex(QMutex.Recursive)
+        self.collection_mutex = QRecursiveMutex()
 
         # Completion request priority
         self.source_priority = {}

@@ -159,8 +159,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
-        # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        # Enabling scaling for high dpi (not required with Qt 6 where it is
+        # always enabled, see https://doc.qt.io/qt-6/portingguide.html#high-dpi)
+        if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+            qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
@@ -378,7 +380,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         messageBox.show()
 
         # Center message
-        screen_geometry = QApplication.desktop().screenGeometry()
+        screen_geometry = self.screen().geometry()
         x = (screen_geometry.width() - messageBox.width()) / 2
         y = (screen_geometry.height() - messageBox.height()) / 2
         messageBox.move(x, y)

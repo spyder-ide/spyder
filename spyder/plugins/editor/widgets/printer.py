@@ -18,7 +18,7 @@ from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 # TODO: Implement header and footer support
 class SpyderPrinter(QPrinter):
-    def __init__(self, mode=QPrinter.ScreenResolution, header_font=None):
+    def __init__(self, mode=QPrinter.PrinterMode.ScreenResolution, header_font=None):
         QPrinter.__init__(self, mode)
         self.setColorMode(QPrinter.Color)
         self.setPageOrder(QPrinter.FirstPageFirst)

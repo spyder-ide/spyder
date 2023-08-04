@@ -92,18 +92,22 @@ def set_opengl_implementation(option):
 
     See spyder-ide/spyder#7447 for the details.
     """
+    if hasattr(QQuickWindow, "setGraphicsApi"):
+        set_api = QQuickWindow.setGraphicsApi  # Qt 6
+    else:
+        set_api = QQuickWindow.setSceneGraphBackend  # Qt 5
     if option == 'software':
         QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
         if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
+            set_api(QSGRendererInterface.GraphicsApi.Software)
     elif option == 'desktop':
         QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
         if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
+            set_api(QSGRendererInterface.GraphicsApi.OpenGL)
     elif option == 'gles':
         QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
         if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
+            set_api(QSGRendererInterface.GraphicsApi.OpenGL)
 
 
 def setup_logging(cli_options):

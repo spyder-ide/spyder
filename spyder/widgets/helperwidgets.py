@@ -15,9 +15,9 @@ import re
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
+    QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QImage, QPainter, QRegExpValidator, QTextDocument,
+                        QImage, QPainter, QRegularExpressionValidator, QTextDocument,
                         QPixmap)
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
@@ -382,8 +382,8 @@ class FinderLineEdit(QLineEdit):
 
         if regex_base is not None:
             # Widget setup
-            regex = QRegExp(regex_base + "{100}")
-            self.setValidator(QRegExpValidator(regex))
+            regex = QRegularExpression(regex_base + "{100}")
+            self.setValidator(QRegularExpressionValidator(regex))
 
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
