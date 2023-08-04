@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
 from spyder.widgets.helperwidgets import (
@@ -500,7 +501,7 @@ CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
 
 
 class ShortcutsModel(QAbstractTableModel):
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -514,17 +515,8 @@ class ShortcutsModel(QAbstractTableModel):
         self.widths = []
 
         # Needed to compensate for the HTMLDelegate color selection unawarness
-        palette = parent.palette()
-        if text_color is None:
-            self.text_color = palette.text().color().name()
-        else:
-            self.text_color = text_color
-
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
+        self.text_color = QStylePalette.COLOR_TEXT_1
+        self.text_color_highlight = QStylePalette.COLOR_TEXT_1
 
     def current_index(self):
         """Get the currently selected index in the parent table view."""
@@ -652,16 +644,12 @@ class ShortcutsModel(QAbstractTableModel):
 
 
 class ShortcutsTable(HoverRowsTableView):
-    def __init__(self, parent=None, text_color=None,
-                 text_color_highlight=None):
+    def __init__(self, parent=None):
         HoverRowsTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
         self.shortcut_data = None
-        self.source_model = ShortcutsModel(
-                                    self,
-                                    text_color=text_color,
-                                    text_color_highlight=text_color_highlight)
+        self.source_model = ShortcutsModel(self)
         self.proxy_model = ShortcutsSortFilterProxy(self)
         self.last_regex = ''
 

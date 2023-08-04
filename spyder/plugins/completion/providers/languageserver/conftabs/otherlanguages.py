@@ -19,7 +19,7 @@ from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.plugins.completion.providers.languageserver.widgets import (
     LSPServerTable)
-from spyder.utils.icon_manager import ima
+
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
@@ -45,7 +45,7 @@ class OtherLanguagesConfigTab(SpyderPreferencesTab):
 
         # Servers table
         table_group = QGroupBox(_('Available servers:'))
-        self.table = LSPServerTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table = LSPServerTable(self)
         self.table.setMaximumHeight(150)
         table_layout = QVBoxLayout()
         table_layout.addWidget(self.table)
