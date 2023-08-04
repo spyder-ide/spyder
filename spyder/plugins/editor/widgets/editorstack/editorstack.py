@@ -354,8 +354,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     def copy_absolute_path(self):
         """Copy current filename absolute path to the clipboard."""
-        QApplication.clipboard().setText(
-            self.get_current_filename())
+        QApplication.clipboard().setText(self.get_current_filename())
 
     def copy_relative_path(self):
         """Copy current filename relative path to the clipboard."""
@@ -376,9 +375,11 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             base_path = getcwd_or_home()
             if self.get_current_project_path():
                 base_path = self.get_current_project_path()
+
             rel_path = osp.relpath(
                 self.get_current_filename(), base_path
             ).replace(os.sep, "/")
+
             QApplication.clipboard().setText(rel_path)
 
     def create_shortcuts(self):
@@ -1335,7 +1336,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     def get_current_project_path(self):
         if self.data:
-            return self.data[self.get_stack_index()].editor.current_project_path
+            finfo = self.get_current_finfo()
+            if finfo:
+                return finfo.editor.current_project_path
 
     def get_filenames(self):
         """
