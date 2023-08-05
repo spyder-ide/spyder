@@ -15,11 +15,11 @@ from typing import List
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
-from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.run.api import (
@@ -33,7 +33,7 @@ from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 # --- Plugin
 # ----------------------------------------------------------------------------
-class Profiler(SpyderDockablePlugin, ShellConnectMixin, RunExecutor):
+class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     """
     Profiler (after python's profile and pstats).
     """

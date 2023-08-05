@@ -74,6 +74,7 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
         else:
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         # Finder
         self.data_tree = None
         self.finder = None
@@ -123,12 +124,14 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
         """Show profile file."""
         if not prof_buffer:
             return
+
         with tempfile.TemporaryDirectory() as dir:
             filename = os.path.join(dir, "tem.prof")
             with open(filename, "bw") as f:
                 f.write(prof_buffer)
             self.data_tree.lib_pathlist = lib_pathlist
             self.data_tree.load_data(filename)
+
         # Show
         self.data_tree._show_tree()
         self.sig_display_requested.emit(self)
@@ -142,12 +145,15 @@ class TreeWidgetItem(QTreeWidgetItem):
     def __init__(self, parent, item_key, profile_data, compare_data, icon_list,
                  index_dict):
         QTreeWidgetItem.__init__(self, parent)
+
         self.item_key = item_key
         self.index_dict = index_dict
+
         # Order is from profile data
         self.total_calls, self.local_time, self.total_time = profile_data[1:4]
         (filename, line_number, function_name, file_and_line, node_type
          ) = self.function_info(item_key)
+
         self.function_name = function_name
         self.filename = filename
         self.line_number = line_number
@@ -168,7 +174,7 @@ class TreeWidgetItem(QTreeWidgetItem):
             "total_time": Qt.AlignRight,
             "local_time": Qt.AlignRight,
             "number_calls": Qt.AlignRight,
-            }
+        }
         self.set_alignment(alignment)
 
         if self.is_recursive():
@@ -187,7 +193,7 @@ class TreeWidgetItem(QTreeWidgetItem):
             "number_calls_diff",
             "local_time_diff",
             "total_time_diff"
-            ]
+        ]
         for i in range(1, 4):
             diff_str, color = self.color_diff(
                 profile_data[i] - compare_data[i])
@@ -200,7 +206,7 @@ class TreeWidgetItem(QTreeWidgetItem):
             "total_time_diff": Qt.AlignLeft,
             "local_time_diff": Qt.AlignLeft,
             "number_calls_diff": Qt.AlignLeft
-            }
+        }
         self.set_alignment(diff_alignment)
 
     def set_tooltips(self):
@@ -210,7 +216,8 @@ class TreeWidgetItem(QTreeWidgetItem):
             "total_time": _('Time in function (including sub-functions)'),
             "local_time": _('Local time in function (not in sub-functions)'),
             "number_calls": _('Total number of calls (including recursion)'),
-            "file:line": _('File:line where function is defined')}
+            "file:line": _('File:line where function is defined')
+        }
         for k, v in tooltips.items():
             self.setToolTip(self.index_dict[k], v)
 
@@ -239,7 +246,7 @@ class TreeWidgetItem(QTreeWidgetItem):
                 (SpyderPalette.COLOR_SUCCESS_1, '-')
                 if difference < 0
                 else (SpyderPalette.COLOR_ERROR_1, '+')
-                )
+            )
             diff_str = '{}{}'.format(
                 sign, TreeWidgetItem.format_measure(difference))
         return diff_str, color
@@ -299,12 +306,14 @@ class TreeWidgetItem(QTreeWidgetItem):
         """Returns processed information about the function's name and file."""
         node_type = 'function'
         filename, line_number, function_name = functionKey
+
         if function_name == '<module>':
             modulePath, moduleName = osp.split(filename)
             node_type = 'module'
             if moduleName == '__init__.py':
                 modulePath, moduleName = osp.split(modulePath)
             function_name = '<' + moduleName + '>'
+
         if not filename or filename == '~':
             file_and_line = '(built-in)'
             node_type = 'builtin'
@@ -312,6 +321,7 @@ class TreeWidgetItem(QTreeWidgetItem):
             if function_name == '__init__':
                 node_type = 'constructor'
             file_and_line = '%s : %d' % (filename, line_number)
+
         return filename, line_number, function_name, file_and_line, node_type
 
     def is_recursive(self):
@@ -357,6 +367,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             super().__init__(parent)
         else:
             QTreeWidget.__init__(self, parent)
+
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
@@ -407,8 +418,10 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.clear()
         self.items_to_be_shown = {}
         self.current_view_depth = 0
-        if (self.compare_data is not None
-                and self.compare_data is not self.profdata):
+        if (
+            self.compare_data is not None
+            and self.compare_data is not self.profdata
+        ):
             self.hide_diff_cols(False)
         else:
             self.hide_diff_cols(True)
@@ -421,6 +434,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             self.profdata = None
             return
         import pstats
+
         # Fixes spyder-ide/spyder#6220.
         try:
             self.profdata = pstats.Stats(profdatafile)
@@ -436,6 +450,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             self.compare_data = None
             return
         import pstats
+
         # Fixes spyder-ide/spyder#5587.
         try:
             self.compare_data = pstats.Stats(filename)
@@ -446,10 +461,12 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 self.root_key = self.find_root()
         except (OSError, IOError) as e:
             QMessageBox.critical(
-                self, _("Error"),
+                self,
+                _("Error"),
                 _("Error when trying to load profiler results. "
                   "The error was<br><br>"
-                  "<tt>{0}</tt>").format(e))
+                  "<tt>{0}</tt>").format(e)
+            )
             self.compare_data = None
 
     def hide_diff_cols(self, hide):
@@ -464,15 +481,17 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.profdata.dump_stats(filename)
 
     def find_root(self):
-        """Find a function without a caller"""
+        """Find a function without a caller."""
         # Fixes spyder-ide/spyder#8336.
         if self.profdata is not None:
             self.profdata.sort_stats("cumulative")
         else:
             return
         for func in self.profdata.fcn_list:
-            if ('~', 0) != func[0:2] and not func[2].startswith(
-                    '<built-in method exec>'):
+            if (
+                ('~', 0) != func[0:2]
+                and not func[2].startswith('<built-in method exec>')
+            ):
                 # This skips the profiler function at the top of the list
                 # it does only occur in Python 3
                 return func
@@ -486,6 +505,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             return True
         if path.startswith("<"):
             return True
+
         path = os.path.normcase(os.path.normpath(path))
         if self.lib_pathlist is not None:
             for libpath in self.lib_pathlist:
@@ -493,6 +513,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 commonpath = os.path.commonpath([libpath, path])
                 if libpath == commonpath:
                     return True
+
         return False
 
     def find_children(self, parent):
@@ -522,14 +543,18 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         if self.profdata is None:
             # Nothing to show
             return
+
         # Show items with large local time
         children = self.profdata.fcn_list
+
         # Only keep top n_slow_children
         N_children = self.get_conf('n_slow_children')
-        children = sorted(children,
-                          key=lambda item: self.profdata.stats[item][
-                              ProfilerKey.LocalTime],
-                          reverse=True)
+        children = sorted(
+            children,
+            key=lambda item: self.profdata.stats[item][ProfilerKey.LocalTime],
+            reverse=True
+        )
+
         if self.ignore_builtins:
             children = [c for c in children if not self.is_builtin(c)]
         children = children[:N_children]
@@ -569,7 +594,9 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
         # List of internal functions to exclude
         internal_list = [
-            ('~', 0, "<method 'disable' of '_lsprof.Profiler' objects>")]
+            ('~', 0, "<method 'disable' of '_lsprof.Profiler' objects>")
+        ]
+
         # List of frames to hide at the top
         head_list = [self.root_key, ]
         head_list += list(
@@ -614,6 +641,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 self.history.append(children)
                 if reset_redo:
                     self.redo_history = []
+
             # Populate the tree
             self.populate_tree(self, children)
             self.setSortingEnabled(True)
@@ -638,7 +666,8 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 item_profdata,
                 item_compdata,
                 self.icon_list,
-                self.index_dict)
+                self.index_dict
+            )
             if not child_item.is_recursive():
                 grandchildren_list = self.find_children(child_key)
                 if grandchildren_list:
@@ -687,6 +716,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             itemlist.append(tlitem)
             if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
+
         return itemlist
 
     def change_view(self, change_in_depth):
