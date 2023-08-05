@@ -28,6 +28,7 @@ from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
 from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
 
@@ -100,6 +101,7 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
+    @comm_handler
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.
@@ -261,10 +263,6 @@ class SpyderShell(ZMQInteractiveShell):
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
                 stack = traceback.extract_tb(tb.tb_next)
-                for f_summary, f in zip(
-                        stack, traceback.walk_tb(tb.tb_next)):
-                    f_summary.locals = self.kernel.get_namespace_view(
-                        frame=f[0])
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:
@@ -274,6 +272,7 @@ class SpyderShell(ZMQInteractiveShell):
         """Register sigint handler."""
         signal.signal(signal.SIGINT, self.spyderkernel_sigint_handler)
 
+    @comm_handler
     def raise_interrupt_signal(self):
         """Raise interrupt signal."""
         if os.name == "nt":
@@ -293,6 +292,7 @@ class SpyderShell(ZMQInteractiveShell):
             else:
                 self.kernel._send_interrupt_children()
 
+    @comm_handler
     def request_pdb_stop(self):
         """Request pdb to stop at the next possible position."""
         pdb_session = self.pdb_session
@@ -351,6 +351,7 @@ class SpyderShell(ZMQInteractiveShell):
         except KeyboardInterrupt:
             self.showtraceback()
 
+    @comm_handler
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
         debugger = self.pdb_session
