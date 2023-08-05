@@ -16,6 +16,7 @@ https://docs.python.org/3/library/profile.html
 # Standard library imports
 import os
 import os.path as osp
+import sys
 import tempfile
 
 # Third party imports
@@ -124,8 +125,18 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
         """Show profile file."""
         if not prof_buffer:
             return
+        
+        tmp_dir = None
+        if sys.platform.startswith('linux'):
+            # Do not use /tmp for temporary files
+            try:
+                from xdg.BaseDirectory import xdg_data_home
+                tmp_dir = xdg_data_home
+                os.makedirs(tmp_dir, exist_ok=True)
+            except Exception:
+                tmp_dir = None
 
-        with tempfile.TemporaryDirectory() as dir:
+        with tempfile.TemporaryDirectory(dir=tmp_dir) as dir:
             filename = os.path.join(dir, "tem.prof")
             with open(filename, "bw") as f:
                 f.write(prof_buffer)
