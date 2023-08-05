@@ -29,11 +29,11 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.widgets import codeeditor
@@ -48,6 +48,7 @@ from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
@@ -204,12 +205,18 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
-        copy_to_cb_action = create_action(
+        copy_absolute_path_action = create_action(
             self,
-            _("Copy path to clipboard"),
+            _("Copy absolute path"),
+            icon=ima.icon('editcopy'),
+            triggered=lambda: self.copy_absolute_path()
+        )
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy relative path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-                QApplication.clipboard().setText(self.get_current_filename())
+            self.copy_relative_path()
         )
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
@@ -233,7 +240,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
                                        symbolfinder_action,
-                                       copy_to_cb_action, None, close_right,
+                                       copy_absolute_path_action,
+                                       copy_relative_path_action, None,
+                                       close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.is_closable = False
@@ -342,6 +351,36 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                         "not available on your system.")
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
+
+    def copy_absolute_path(self):
+        """Copy current filename absolute path to the clipboard."""
+        QApplication.clipboard().setText(self.get_current_filename())
+
+    def copy_relative_path(self):
+        """Copy current filename relative path to the clipboard."""
+        file_drive = osp.splitdrive(self.get_current_filename())[0]
+        if (
+            os.name == 'nt'
+            and osp.splitdrive(getcwd_or_home())[0] != file_drive
+        ):
+            QMessageBox.warning(
+               self,
+               _("No available relative path"),
+               _("It is not possible to copy a relative path "
+                 "for this file because it is placed in a "
+                 "different drive than your current working "
+                 "directory. Please copy its absolute path.")
+            )
+        else:
+            base_path = getcwd_or_home()
+            if self.get_current_project_path():
+                base_path = self.get_current_project_path()
+
+            rel_path = osp.relpath(
+                self.get_current_filename(), base_path
+            ).replace(os.sep, "/")
+
+            QApplication.clipboard().setText(rel_path)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
@@ -1294,6 +1333,12 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     def get_current_language(self):
         if self.data:
             return self.data[self.get_stack_index()].editor.language
+
+    def get_current_project_path(self):
+        if self.data:
+            finfo = self.get_current_finfo()
+            if finfo:
+                return finfo.editor.current_project_path
 
     def get_filenames(self):
         """

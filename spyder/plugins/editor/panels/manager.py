@@ -22,8 +22,8 @@ import logging
 
 
 # Local imports
-from spyder.api.manager import Manager
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.manager import Manager
+from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import is_text_string
 
 

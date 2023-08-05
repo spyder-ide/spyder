@@ -26,6 +26,7 @@ from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -484,7 +485,7 @@ LANGUAGE, ADDR, CMD = [0, 1, 2]
 
 
 class LSPServersModel(QAbstractTableModel):
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -498,17 +499,7 @@ class LSPServersModel(QAbstractTableModel):
         self.widths = []
 
         # Needed to compensate for the HTMLDelegate color selection unawareness
-        palette = parent.palette()
-        if text_color is None:
-            self.text_color = palette.text().color().name()
-        else:
-            self.text_color = text_color
-
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
+        self.text_color = QStylePalette.COLOR_TEXT_1
 
     def sortByName(self):
         """Qt Override."""
@@ -582,11 +573,11 @@ class LSPServersModel(QAbstractTableModel):
 
 
 class LSPServerTable(QTableView):
-    def __init__(self, parent, text_color=None):
+    def __init__(self, parent):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.delete_queue = []
-        self.source_model = LSPServersModel(self, text_color=text_color)
+        self.source_model = LSPServersModel(self)
         self.setModel(self.source_model)
         self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)

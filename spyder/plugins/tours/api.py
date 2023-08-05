@@ -6,7 +6,7 @@
 
 """Tours API."""
 
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 
 # TODO: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython

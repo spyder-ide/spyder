@@ -21,7 +21,7 @@ from qtpy.QtCore import QObject, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 
 
 # Timeout to avoid almost simultaneous calls to update decorations, which

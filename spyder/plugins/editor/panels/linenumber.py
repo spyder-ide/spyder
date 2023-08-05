@@ -20,7 +20,7 @@ from qtpy.QtGui import (
 
 # Local imports
 from spyder.utils.icon_manager import ima
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
 
 
