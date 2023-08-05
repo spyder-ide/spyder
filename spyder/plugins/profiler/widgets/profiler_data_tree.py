@@ -717,6 +717,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
 
+
         return itemlist
 
     def change_view(self, change_in_depth):
