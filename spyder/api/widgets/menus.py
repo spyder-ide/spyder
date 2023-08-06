@@ -46,8 +46,7 @@ class SpyderMenu(QMenu):
     """
     MENUS = []
 
-    def __init__(self, parent=None, title=None, dynamic=True,
-                 menu_id=None):
+    def __init__(self, parent=None, title=None, dynamic=True, menu_id=None):
         self._parent = parent
         self._title = title
         self._sections = []
@@ -64,11 +63,14 @@ class SpyderMenu(QMenu):
             super().__init__(title, parent)
 
         self.MENUS.append((parent, title, self))
+
         if sys.platform == 'darwin' and dynamic:
             # Needed to enable the dynamic population of actions in menus
             # in the aboutToShow signal
             # See spyder-ide/spyder#14612
             self.addAction(QAction(self))
+
+        # Signals
         self.aboutToShow.connect(self._render)
 
     def clear_actions(self):

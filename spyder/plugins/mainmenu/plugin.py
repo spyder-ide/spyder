@@ -66,15 +66,13 @@ class MainMenu(SpyderPluginV2):
             self.main.menuBar().setFont(app_font)
 
         # Create Application menus using plugin public API
-        # FIXME: Migrated menus need to have 'dynamic=True' (default value) to
-        # work on Mac. Remove the 'dynamic' kwarg when migrating a menu!
         create_app_menu = self.create_application_menu
         create_app_menu(ApplicationMenus.File, _("&File"))
         create_app_menu(ApplicationMenus.Edit, _("&Edit"))
         create_app_menu(ApplicationMenus.Search, _("&Search"))
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
-        create_app_menu(ApplicationMenus.Run, _("&Run"), dynamic=False)
-        create_app_menu(ApplicationMenus.Debug, _("&Debug"), dynamic=False)
+        create_app_menu(ApplicationMenus.Run, _("&Run"))
+        create_app_menu(ApplicationMenus.Debug, _("&Debug"))
         if self.is_plugin_enabled(Plugins.IPythonConsole):
             create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
         if self.is_plugin_enabled(Plugins.Projects):
@@ -172,8 +170,7 @@ class MainMenu(SpyderPluginV2):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def create_application_menu(self, menu_id: str, title: str,
-                                dynamic: bool = True):
+    def create_application_menu(self, menu_id: str, title: str):
         """
         Create a Spyder application menu.
 
@@ -188,7 +185,7 @@ class MainMenu(SpyderPluginV2):
             raise SpyderAPIError(
                 'Menu with id "{}" already added!'.format(menu_id))
 
-        menu = ApplicationMenu(self.main, title, dynamic=dynamic)
+        menu = ApplicationMenu(self.main, title)
         menu.menu_id = menu_id
 
         self._APPLICATION_MENUS[menu_id] = menu
