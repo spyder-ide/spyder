@@ -337,6 +337,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Main menu actions for the IPython Console
         new_consoles_actions = [
             widget.create_client_action,
+            widget.console_environment_menu,
             widget.special_console_menu,
             widget.connect_to_kernel_action
         ]

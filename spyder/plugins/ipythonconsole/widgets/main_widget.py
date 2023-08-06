@@ -103,7 +103,6 @@ class IPythonConsoleWidgetOptionsMenus:
 
 
 class IPythonConsoleWidgetOptionsMenuSections:
-    Consoles = 'consoles_section'
     Edit = 'edit_section'
     View = 'view_section'
 
@@ -546,17 +545,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
             _('New special console'))
-
-        for item in [
-                self.create_client_action,
-                self.console_environment_menu,
-                self.special_console_menu,
-                self.connect_to_kernel_action]:
-            self.add_item_to_menu(
-                item,
-                menu=options_menu,
-                section=IPythonConsoleWidgetOptionsMenuSections.Consoles,
-            )
 
         for item in [
                 self.interrupt_action,
