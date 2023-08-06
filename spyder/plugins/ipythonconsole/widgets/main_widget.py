@@ -34,6 +34,10 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_home_dir, running_under_pytest)
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
+    IPythonConsoleWidgetOptionsMenus, IPythonConsoleWidgetOptionsMenuSections,
+    IPythonConsoleWidgetTabsContextMenuSections)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
@@ -60,60 +64,6 @@ logger = logging.getLogger(__name__)
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-
-
-class IPythonConsoleWidgetActions:
-    # Clients creation
-    CreateNewClient = 'new tab'
-    CreateCythonClient = 'create cython client'
-    CreateSymPyClient = 'create cympy client'
-    CreatePyLabClient = 'create pylab client'
-    CreateNewClientEnvironment = 'create environment client'
-
-    # Current console actions
-    ClearConsole = 'Clear shell'
-    ClearLine = 'clear line'
-    ConnectToKernel = 'connect to kernel'
-    Interrupt = 'interrupt kernel'
-    InspectObject = 'Inspect current object'
-    Restart = 'Restart kernel'
-    ResetNamespace = 'reset namespace'
-    ShowEnvironmentVariables = 'Show environment variables'
-    ShowSystemPath = 'show system path'
-    ToggleElapsedTime = 'toggle elapsed time'
-    Quit = 'exit'
-
-    # Tabs
-    RenameTab = 'rename tab'
-
-    # Variables display
-    ArrayInline = 'enter array inline'
-    ArrayTable = 'enter array table'
-
-    # Documentation and help
-    IPythonDocumentation = 'ipython documentation'
-    ConsoleHelp = 'console help'
-    QuickReference = 'quick reference'
-
-
-class IPythonConsoleWidgetOptionsMenus:
-    SpecialConsoles = 'special_consoles_submenu'
-    Documentation = 'documentation_submenu'
-    EnvironmentConsoles = 'environment_consoles_submenu'
-
-
-class IPythonConsoleWidgetOptionsMenuSections:
-    Edit = 'edit_section'
-    View = 'view_section'
-
-
-class IPythonConsoleWidgetMenus:
-    TabsContextMenu = 'tabs_context_menu'
-
-
-class IPythonConsoleWidgetTabsContextMenuSections:
-    Consoles = 'tabs_consoles_section'
-    Edit = 'tabs_edit_section'
 
 
 # --- Widgets
