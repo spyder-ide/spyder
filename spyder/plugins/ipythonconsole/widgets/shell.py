@@ -184,7 +184,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # modules that don't come with them.
         self.show_modules_message = is_conda_based_app()
 
-    # ---- Public API ---------------------------------------------------------
+    # ---- Public API
     @property
     def is_spyder_kernel(self):
         if self.kernel_handler is None:
@@ -1036,30 +1036,7 @@ the sympy module (e.g. plot)
         """
         self._control.insert_horizontal_ruler()
 
-    # ---- Public methods (overrode by us) ------------------------------------
-    def _event_filter_console_keypress(self, event):
-        """Filter events to send to qtconsole code."""
-        key = event.key()
-        if self._control_key_down(event.modifiers(), include_command=False):
-            if key == QtCore.Qt.Key_Period:
-                # Do not use ctrl + . to restart kernel
-                # Handled by IPythonConsoleWidget
-                return False
-        return super()._event_filter_console_keypress(event)
-
-    def adjust_indentation(self, line, indent_adjustment):
-        """Adjust indentation."""
-        if indent_adjustment == 0 or line == "":
-            return line
-
-        if indent_adjustment > 0:
-            return ' ' * indent_adjustment + line
-
-        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
-        indent_adjustment = min(max_indent, -indent_adjustment)
-
-        return line[indent_adjustment:]
-
+    # ---- Public methods (overrode by us)
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
 
@@ -1087,7 +1064,7 @@ the sympy module (e.g. plot)
                 eol_chars = "\n"
                 first_line, *remaining_lines = (text + eol_chars).splitlines()
                 remaining_lines = [
-                    self.adjust_indentation(line, lines_adjustment)
+                    self._adjust_indentation(line, lines_adjustment)
                     for line in remaining_lines]
                 text = eol_chars.join([first_line, *remaining_lines])
 
@@ -1100,6 +1077,35 @@ the sympy module (e.g. plot)
                 text = text[cursor_offset:]
 
             self._insert_plain_text_into_buffer(cursor, dedent(text))
+
+    def copy(self):
+        """
+        Copy the currently selected text to the clipboard.
+        """
+        super().copy()
+        self._save_clipboard_indentation()
+
+    def cut(self):
+        """
+        Copy the currently selected text to the clipboard and delete it
+        if it's inside the input buffer.
+        """
+        super().cut()
+        self._save_clipboard_indentation()
+
+    # ---- Private API
+    def _adjust_indentation(self, line, indent_adjustment):
+        """Adjust indentation."""
+        if indent_adjustment == 0 or line == "":
+            return line
+
+        if indent_adjustment > 0:
+            return ' ' * indent_adjustment + line
+
+        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
+        indent_adjustment = min(max_indent, -indent_adjustment)
+
+        return line[indent_adjustment:]
 
     def _get_preceding_text(self):
         """Get preciding text."""
@@ -1132,22 +1138,17 @@ the sympy module (e.g. plot)
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
-    def copy(self):
-        """
-        Copy the currently selected text to the clipboard.
-        """
-        super().copy()
-        self._save_clipboard_indentation()
+    # ---- Private API (overrode by us)
+    def _event_filter_console_keypress(self, event):
+        """Filter events to send to qtconsole code."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == QtCore.Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
+                return False
+        return super()._event_filter_console_keypress(event)
 
-    def cut(self):
-        """
-        Copy the currently selected text to the clipboard and delete it
-        if it's inside the input buffer.
-        """
-        super().cut()
-        self._save_clipboard_indentation()
-
-    # ---- Private API (overrode by us) ---------------------------------------
     def _handle_execute_reply(self, msg):
         """
         Reimplemented to handle communications between Spyder
@@ -1296,7 +1297,7 @@ the sympy module (e.g. plot)
                 )
             self.show_modules_message = False
 
-    # --- Qt methods ----------------------------------------------------------
+    # ---- Qt methods
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
