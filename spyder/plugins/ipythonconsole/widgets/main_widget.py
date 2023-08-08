@@ -31,9 +31,7 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (
-    get_home_dir, running_under_pytest)
+from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
     IPythonConsoleWidgetOptionsMenus, IPythonConsoleWidgetOptionsMenuSections,
@@ -450,12 +448,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.current_client_clear_console,
             register_shortcut=True)
 
-        self.quit_action = self.create_action(
-            IPythonConsoleWidgetActions.Quit,
-            _("&Quit"),
-            icon=self.create_icon('exit'),
-            triggered=self.current_client_quit)
-
         # --- Other actions with shortcuts
         self.array_table_action = self.create_action(
             IPythonConsoleWidgetActions.ArrayTable,
@@ -468,18 +460,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             text=_("Enter array inline"),
             triggered=self.current_client_enter_array_inline,
             register_shortcut=True)
-
-        self.context_menu_actions = (
-            MENU_SEPARATOR,
-            self.inspect_action,
-            self.clear_line_action,
-            self.clear_console_action,
-            self.reset_action,
-            self.array_table_action,
-            self.array_inline_action,
-            MENU_SEPARATOR,
-            self.quit_action
-        )
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
@@ -1404,7 +1384,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(special),
             interpreter_versions=self.interpreter_versions(
                 path_to_custom_interpreter),
-            context_menu_actions=self.context_menu_actions,
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
@@ -1478,7 +1457,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             interpreter_versions=self.interpreter_versions(),
-            context_menu_actions=self.context_menu_actions,
             handlers=self.registered_spyder_kernel_handlers
         )
 

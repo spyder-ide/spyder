@@ -15,26 +15,31 @@ import time
 from textwrap import dedent
 
 # Third party imports
+from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
 
 # Local imports
+from spyder.api.plugins import Plugins
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
-from spyder.py3compat import to_text_string
-from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
-from spyder.utils import syntaxhighlighters as sh
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
+    ShellWidgetContextMenuActions, ShellWidgetContextMenuSections)
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
-from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
+from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 MODULES_FAQ_URL = (
@@ -42,12 +47,14 @@ MODULES_FAQ_URL = (
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget):
+                  FigureBrowserWidget, SpyderWidgetMixin):
     """
     Shell widget for the IPython Console
 
     This is the widget in charge of executing code
     """
+    PLUGIN_NAME = Plugins.IPythonConsole
+
     # NOTE: Signals can't be assigned separately to each widget
     #       That's why we define all needed signals here.
 
@@ -183,6 +190,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
         self.show_modules_message = is_conda_based_app()
+
+        # For the context menu
+        self.context_menu = self.create_menu(
+            IPythonConsoleWidgetMenus.ShellContextMenu + '_' +
+            ipyclient.id_['int_id']
+        )
+        self._setup_context_menu_actions()
 
     # ---- Public API
     @property
@@ -941,7 +955,7 @@ the sympy module (e.g. plot)
             if self.is_debugging():
                 self.pdb_execute(code, hidden=True)
             else:
-                self.kernel_client.execute(to_text_string(code), silent=True)
+                self.kernel_client.execute(str(code), silent=True)
         except AttributeError:
             pass
 
@@ -1138,6 +1152,53 @@ the sympy module (e.g. plot)
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
+    def _setup_context_menu_actions(self):
+        """Set actions for the context menu."""
+        # The Qtconsole shortcuts for the actions below don't work in Spyder
+        self._copy_raw_action.setText(_("Copy (raw text)"))
+        self._copy_raw_action.action_id = ShellWidgetContextMenuActions.CopyRaw
+        self._copy_raw_action.setShortcut('')
+
+        self.export_action.setText(_("Save as html"))
+        self.export_action.action_id = ShellWidgetContextMenuActions.Export
+        self.export_action.setShortcut('')
+
+        self.select_all_action.setText(_("Select all"))
+        self.select_all_action.action_id = (
+            ShellWidgetContextMenuActions.SelectAll)
+        self.select_all_action.setShortcut('')
+
+        self.print_action.setText(_("Print"))
+        self.print_action.action_id = ShellWidgetContextMenuActions.Print
+        self.print_action.setShortcut('')
+
+        client_id = self.ipyclient.id_['int_id']
+
+        self.copy_image_action = self.create_action(
+            ShellWidgetContextMenuActions.CopyImage + '_' + client_id,
+            text=_("Copy image"),
+            triggered=lambda: self._copy_image(self.copy_image_action.data())
+        )
+
+        self.save_image_action = self.create_action(
+            ShellWidgetContextMenuActions.SaveImage + '_' + client_id,
+            text=_("Save image as..."),
+            triggered=lambda: self._save_image(self.save_image_action.data())
+        )
+
+        self.copy_svg_action = self.create_action(
+            ShellWidgetContextMenuActions.CopySvg + '_' + client_id,
+            text=_("Copy SVG"),
+            triggered=lambda: svg_to_clipboard(self.copy_svg_action.data())
+        )
+
+        self.save_svg_action = self.create_action(
+            ShellWidgetContextMenuActions.SaveSvg + '_' + client_id,
+            text=_("Save SVG as..."),
+            triggered=lambda: save_svg(
+                self.save_svg_action.data(), self._control)
+        )
+
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
         """Filter events to send to qtconsole code."""
@@ -1197,9 +1258,62 @@ the sympy module (e.g. plot)
         self._process_execute_error(msg)
 
     def _context_menu_make(self, pos):
-        """Reimplement the IPython context menu"""
-        menu = super(ShellWidget, self)._context_menu_make(pos)
-        return self.ipyclient.add_actions_to_context_menu(menu)
+        """Reimplement the QtConsole context menu using our API for menus."""
+        self.context_menu.clear_actions()
+
+        fmt = self._control.cursorForPosition(pos).charFormat()
+        name = fmt.stringProperty(QtGui.QTextFormat.ImageName)
+
+        if name:
+            for action in [self.copy_image_action, self.save_image_action]:
+                action.setData(name)
+                self.add_item_to_menu(
+                    action,
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Image
+                )
+
+            svg = self._name_to_svg_map.get(name, None)
+            if svg is not None:
+                for action in [self.copy_svg_action, self.save_svg_action]:
+                    action.setData(svg)
+                    self.add_item_to_menu(
+                        action,
+                        self.context_menu,
+                        section=ShellWidgetContextMenuSections.SVG
+                    )
+        else:
+            self.add_item_to_menu(
+                self.get_action(IPythonConsoleWidgetActions.InspectObject),
+                self.context_menu,
+                section=ShellWidgetContextMenuSections.Inspect
+            )
+
+            for name in [IPythonConsoleWidgetActions.ClearConsole,
+                         IPythonConsoleWidgetActions.ClearLine]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Clear
+                )
+
+            for name in [IPythonConsoleWidgetActions.ArrayTable,
+                         IPythonConsoleWidgetActions.ArrayInline]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Array
+                )
+
+            for action in [self._copy_raw_action, self.export_action,
+                           self.select_all_action, self.print_action]:
+                self.add_item_to_menu(
+                    action,
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Edit
+                )
+
+        return self.context_menu
 
     def _banner_default(self):
         """

@@ -89,9 +89,30 @@ class IPythonConsoleWidgetOptionsMenuSections:
 
 
 class IPythonConsoleWidgetMenus:
+    ShellContextMenu = 'shell_context_menu'
     TabsContextMenu = 'tabs_context_menu'
 
 
 class IPythonConsoleWidgetTabsContextMenuSections:
     Consoles = 'tabs_consoles_section'
     Edit = 'tabs_edit_section'
+
+
+class ShellWidgetContextMenuActions:
+    CopyImage = 'copy_image'
+    SaveImage = 'save_image'
+    CopySvg = 'copy_svg'
+    SaveSvg = 'save_svg'
+    CopyRaw = 'copy_raw'
+    Export = 'export'
+    SelectAll = 'select_all'
+    Print = 'print'
+
+
+class ShellWidgetContextMenuSections:
+    Image = 'image'
+    SVG = 'svg'
+    Inspect = 'inspect'
+    Clear = 'clear'
+    Array = 'array'
+    Edit = 'edit'
