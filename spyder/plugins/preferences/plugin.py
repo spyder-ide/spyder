@@ -66,10 +66,16 @@ class Preferences(SpyderPluginV2):
         self.config_pages = {}
         self.config_tabs = {}
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def register_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]) -> None:
-        if (hasattr(plugin, 'CONF_WIDGET_CLASS') and
-                plugin.CONF_WIDGET_CLASS is not None):
+        self,
+        plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ) -> None:
+        if (
+            hasattr(plugin, 'CONF_WIDGET_CLASS')
+            and plugin.CONF_WIDGET_CLASS is not None
+        ):
             # New API
             Widget = plugin.CONF_WIDGET_CLASS
 
@@ -96,9 +102,10 @@ class Preferences(SpyderPluginV2):
                     plugin_tabs = self.config_tabs.get(plugin_name, [])
                     plugin_tabs += tabs_to_add
                     self.config_tabs[plugin_name] = plugin_tabs
-
-        elif (hasattr(plugin, 'CONFIGWIDGET_CLASS') and
-                plugin.CONFIGWIDGET_CLASS is not None):
+        elif (
+            hasattr(plugin, 'CONFIGWIDGET_CLASS')
+            and plugin.CONFIGWIDGET_CLASS is not None
+        ):
             # Old API
             Widget = plugin.CONFIGWIDGET_CLASS
 
@@ -106,7 +113,9 @@ class Preferences(SpyderPluginV2):
                 self.OLD_API, Widget, plugin)
 
     def deregister_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]):
+        self,
+        plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ) -> None:
         """Remove a plugin preference page and additional configuration tabs."""
         name = (getattr(plugin, 'NAME', None) or
                     getattr(plugin, 'CONF_SECTION', None))
@@ -179,11 +188,13 @@ class Preferences(SpyderPluginV2):
             self.set_conf(
                 conf_key, new_value, section=conf_section)
 
-
-    def merge_defaults(self, prev_default: BasicType,
-                       new_default: BasicType,
-                       allow_replacement: bool = False,
-                       allow_deletions: bool = False) -> BasicType:
+    def merge_defaults(
+        self,
+        prev_default: BasicType,
+        new_default: BasicType,
+        allow_replacement: bool = False,
+        allow_deletions: bool = False
+    ) -> BasicType:
         """Compare and merge two versioned values."""
         prev_type = type(prev_default)
         new_type = type(new_default)
@@ -216,7 +227,10 @@ class Preferences(SpyderPluginV2):
             return prev_default
 
     def merge_configurations(
-            self, current_value: BasicType, new_value: BasicType) -> BasicType:
+        self,
+        current_value: BasicType,
+        new_value: BasicType
+    ) -> BasicType:
         """
         Recursively match and merge a new configuration value into a
         previous one.
@@ -263,7 +277,22 @@ class Preferences(SpyderPluginV2):
         )
         self.after_long_process()
 
-    # ---------------- Public Spyder API required methods ---------------------
+    @Slot()
+    def reset(self):
+        answer = QMessageBox.warning(
+            self.main,
+            _("Warning"),
+             _("Spyder will restart and reset to default settings: <br><br>"
+               "Do you want to continue?"),
+             QMessageBox.Yes | QMessageBox.No
+        )
+
+        if answer == QMessageBox.Yes:
+            os.environ['SPYDER_RESET'] = 'True'
+            self.sig_restart_requested.emit()
+
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name() -> str:
         return _('Preferences')
@@ -330,16 +359,6 @@ class Preferences(SpyderPluginV2):
             PreferencesActions.Show,
             toolbar_id=ApplicationToolbars.Main
         )
-
-    @Slot()
-    def reset(self):
-        answer = QMessageBox.warning(self.main, _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            os.environ['SPYDER_RESET'] = 'True'
-            self.sig_restart_requested.emit()
 
     def on_close(self, cancelable=False):
         container = self.get_container()
