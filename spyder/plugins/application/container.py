@@ -264,13 +264,6 @@ class ApplicationContainer(PluginMainContainer):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        # Release url
-        if sys.platform == 'darwin':
-            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
-                     'download/Spyder.dmg')
-        else:
-            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
-                     'download/Spyder_64bit_full.exe')
         url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
