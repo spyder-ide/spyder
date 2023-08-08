@@ -263,6 +263,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             _("Recent Projects")
         )
         self.recent_project_menu.aboutToShow.connect(self._setup_menu_actions)
+        self.recent_project_menu._reposition = False
         self._setup_menu_actions()
 
         # Add some DirView actions to the Options menu for easy access.

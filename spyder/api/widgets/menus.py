@@ -49,13 +49,17 @@ class SpyderMenu(QMenu):
     def __init__(self, parent=None, title=None, dynamic=True, menu_id=None):
         self._parent = parent
         self._title = title
+        self.menu_id = menu_id
+
         self._sections = []
         self._actions = []
         self._actions_map = {}
         self.unintroduced_actions = {}
         self._after_sections = {}
         self._dirty = False
-        self.menu_id = menu_id
+        self._is_shown = False
+        self._is_submenu = False
+        self._reposition = True
 
         if title is None:
             super().__init__(parent)
@@ -73,6 +77,8 @@ class SpyderMenu(QMenu):
         # Signals
         self.aboutToShow.connect(self._render)
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def clear_actions(self):
         """
         Remove actions from the menu (including custom references)
@@ -123,6 +129,7 @@ class SpyderMenu(QMenu):
             item_id = action.action_id
         elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
+            action._is_submenu = True
 
         if not omit_id and item_id is None and action is not None:
             raise AttributeError(f'Item {action} must declare an id.')
@@ -200,6 +207,8 @@ class SpyderMenu(QMenu):
         """
         return tuple(self._sections)
 
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _render(self):
         """
         Create the menu prior to showing it. This takes into account sections
@@ -273,6 +282,21 @@ class SpyderMenu(QMenu):
                 idx = self._sections.index(section)
                 idx = idx if (idx == 0) else (idx - 1)
                 self._sections.insert(idx, after_section)
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the menu is shown."""
+        # Reposition menu vertically due to padding
+        if (
+            self._reposition
+            and self._is_submenu
+            and not self._is_shown
+        ):
+            self.move(self.pos().x(), self.pos().y() - 6)
+            self._is_shown = True
+
+        super().showEvent(event)
 
 
 class MainWidgetMenu(SpyderMenu):
