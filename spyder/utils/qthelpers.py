@@ -725,13 +725,21 @@ class SpyderProxyStyle(QProxyStyle):
     """Style proxy to adjust qdarkstyle issues."""
 
     def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
         if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
+            # Disable combobox popup top & bottom areas.
+            # See spyder-ide/spyder#9682
+            # Taken from https://stackoverflow.com/a/21019371
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Increase icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            return QProxyStyle.pixelMetric(self, metric, option, widget) + 2
+        else:
+            return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 class QInputDialogMultiline(QDialog):
