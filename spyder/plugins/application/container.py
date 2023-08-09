@@ -401,11 +401,14 @@ class ApplicationContainer(PluginMainContainer):
         # Delay starting this check to avoid blocking the main window
         # while loading.
         # Fixes spyder-ide/spyder#15839
-        self.updates_timer = QTimer(self)
-        self.updates_timer.setInterval(60000)
-        self.updates_timer.setSingleShot(True)
-        self.updates_timer.timeout.connect(self.thread_updates.start)
-        self.updates_timer.start()
+        if startup:
+            self.updates_timer = QTimer(self)
+            self.updates_timer.setInterval(60000)
+            self.updates_timer.setSingleShot(True)
+            self.updates_timer.timeout.connect(self.thread_updates.start)
+            self.updates_timer.start()
+        else:
+            self.thread_updates.start()
 
     @Slot(str)
     def set_installer_path(self, installer_path):
