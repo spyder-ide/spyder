@@ -175,7 +175,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             try:
                 self.results_browser.sig_activated.disconnect(
                     self.set_pdb_index)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
     def set_pdb_index(self, index):

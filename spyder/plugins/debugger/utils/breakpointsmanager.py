@@ -63,7 +63,7 @@ def clear_breakpoint(filename, lineno):
         save_breakpoints(filename, breakpoints)
 
 
-class BreakpointsManager(Manager, QObject, SpyderConfigurationObserver):
+class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
     """
     Manages adding/removing breakpoint from the editor.
     """
