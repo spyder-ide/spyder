@@ -72,7 +72,7 @@ def get_user_environment_variables():
             else:
                 env = {}
             proc = run_shell_command(cmd, env=env, text=True)
-            # Use timeout: https://github.com/spyder-ide/spyder/issues/21172
+            # Use timeout to fix spyder-ide/spyder#21172
             stdout, stderr = proc.communicate(timeout=0.5)
             env_var = eval(stdout, None)
     except Exception:
