@@ -57,7 +57,7 @@ class PluginsConfigPage(PluginConfigPage):
                 )
             )
 
-            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
+            self.plugins_checkboxes[plugin_name] = (cb.checkbox, plugin_state)
 
         # ------------------ External plugins ---------------------------------
         for plugin_name in self.plugin.all_external_plugins:
@@ -86,7 +86,7 @@ class PluginsConfigPage(PluginConfigPage):
                 )
             )
 
-            self.plugins_checkboxes[plugin_name] = (cb, plugin_state)
+            self.plugins_checkboxes[plugin_name] = (cb.checkbox, plugin_state)
 
         # Sort elements by title for easy searching
         collator = Collator()
