@@ -282,7 +282,7 @@ class ApplicationContainer(PluginMainContainer):
         box.set_checked(self.get_conf(option))
 
         header = _(f"<b>Spyder {latest_release} is available!</b> "
-                   f"<i>(you have {__version__})</i><br><br>")
+                   f"<i>(you&nbsp;have&nbsp;{__version__})</i><br><br>")
 
         if error_msg is not None:
             box.setText(error_msg)
