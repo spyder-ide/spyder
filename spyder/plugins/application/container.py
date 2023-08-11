@@ -305,9 +305,9 @@ class ApplicationContainer(PluginMainContainer):
                 )
 
                 if not is_pynsist() and not running_in_mac_app():
-                    msg += _("Clicking Yes will download and install the "
-                             "latest version using Spyder's installer, leaving"
-                             " your existing installation untouched.<br><br>")
+                    msg += _("Clicking <b>Yes</b> will download and install the "
+                             "latest version using Spyder's installer, leaving "
+                             "your existing installation untouched.<br><br>")
 
                 msg += _("For more information, visit our "
                          f"<a href=\"{url_i}\">installation guide</a>.")
@@ -337,14 +337,14 @@ class ApplicationContainer(PluginMainContainer):
                 if not box.result():
                     msg += header
 
-                terminal = "terminal"
-                if sys.platform == "win32":
+                terminal = _("terminal")
+                if os.name == "nt":
                     if is_anaconda():
                         terminal = "Anaconda prompt"
                     else:
-                        terminal = "cmd prompt"
+                        terminal = _("cmd prompt")
                 msg += _(f"Run the following commands in the {terminal} "
-                         "to update manually:<br>")
+                         "to update manually:<br><br>")
 
                 if is_anaconda():
                     if is_anaconda_pkg():
