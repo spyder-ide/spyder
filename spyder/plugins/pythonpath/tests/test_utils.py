@@ -41,6 +41,7 @@ def test_check_path(tmp_path):
             'C:\\Users\\User\\Anaconda3\\envs\\foo\\Lib\\site-packages')
 
         assert not check_path('lib\\site-packages')
+        assert not check_path('lib\\dist-packages')
 
     # Paths that don't have digits must pass
     assert check_path('lib/pythonX.Y/site-packages')

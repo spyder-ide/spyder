@@ -18,12 +18,12 @@ from spyder.utils.environ import get_user_env
 def check_path(path):
     """Check that `path` is not a [site|dist]-packages folder."""
     if os.name == 'nt':
-        pattern = re.compile(r'.*(?:l|L)ib/(?:site|dist)-packages.*')
+        pattern = re.compile(r'.*(l|L)ib/(site|dist)-packages.*')
     else:
         pattern = re.compile(
-            r'.*(:?lib|lib64)/'
-            '(?:python|python(\d+)|python(\d+)\.(\d+)|python(\d+)\.(\d+)(\d+))'
-            '/(?:site|dist)-packages.*'
+            r'.*(lib|lib64)/'
+            '(python|python\d+|python\d+\.\d+)/'
+            '(site|dist)-packages.*'
         )
 
     path_norm = path.replace('\\', '/')
