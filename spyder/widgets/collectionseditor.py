@@ -1315,10 +1315,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
-    def __init__(self, parent, data, readonly=False, title="",
-                 names=False):
+    def __init__(self, parent, data, namespacebrowser=None,  readonly=False,
+                 title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
+        self.namespacebrowser = namespacebrowser
         self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
                                  else CollectionsModel)
@@ -1331,7 +1332,7 @@ class CollectionsEditorTableView(BaseTableView):
         )
         self.model = self.source_model
         self.setModel(self.source_model)
-        self.delegate = CollectionsDelegate(self)
+        self.delegate = CollectionsDelegate(self, namespacebrowser)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1446,14 +1447,15 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
 
-    def __init__(self, parent, data, readonly=False, title="", remote=False):
+    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
+                 title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteCollectionsEditorTableView(self, data,
-                                                           readonly)
+            self.editor = RemoteCollectionsEditorTableView(
+                self, data, readonly)
         else:
-            self.editor = CollectionsEditorTableView(self, data, readonly,
-                                                     title)
+            self.editor = CollectionsEditorTableView(
+                self, data, namespacebrowser, readonly, title)
 
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -1481,7 +1483,7 @@ class CollectionsEditorWidget(QWidget):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, namespacebrowser=None):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1490,6 +1492,7 @@ class CollectionsEditor(BaseDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.namespacebrowser = namespacebrowser
         self.data_copy = None
         self.widget = None
         self.btn_save_and_close = None
@@ -1520,9 +1523,9 @@ class CollectionsEditor(BaseDialog):
         if type(self.data_copy) != type(data):
             readonly = True
 
-        self.widget = CollectionsEditorWidget(self, self.data_copy,
-                                              title=title, readonly=readonly,
-                                              remote=remote)
+        self.widget = CollectionsEditorWidget(
+            self, self.data_copy, self.namespacebrowser, title=title,
+            readonly=readonly, remote=remote)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
         layout = QVBoxLayout()
@@ -1580,8 +1583,8 @@ class CollectionsEditor(BaseDialog):
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
 
-    def __init__(self, parent=None):
-        CollectionsDelegate.__init__(self, parent)
+    def __init__(self, parent=None, namespacebrowser=None):
+        CollectionsDelegate.__init__(self, parent, namespacebrowser)
 
     def get_value(self, index):
         if index.isValid():
@@ -1630,7 +1633,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.hideColumn(4)  # Column 4 for Score
 
-        self.delegate = RemoteCollectionsDelegate(self)
+        self.delegate = RemoteCollectionsDelegate(self, self.namespacebrowser)
         self.delegate.sig_free_memory_requested.connect(
             self.sig_free_memory_requested)
         self.delegate.sig_editor_creation_started.connect(

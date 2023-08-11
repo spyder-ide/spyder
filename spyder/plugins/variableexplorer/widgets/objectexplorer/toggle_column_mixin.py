@@ -155,12 +155,13 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     show/hide columns.
     """
 
-    def __init__(self, readonly=False):
+    def __init__(self, namespacebrowser=None, readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
         from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
             import ToggleColumnDelegate
-        self.setItemDelegate(ToggleColumnDelegate(self))
+        self.delegate = ToggleColumnDelegate(self, namespacebrowser)
+        self.setItemDelegate(self.delegate)
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
         self.expanded.connect(self.resize_columns_to_contents)
         self.collapsed.connect(self.resize_columns_to_contents)
