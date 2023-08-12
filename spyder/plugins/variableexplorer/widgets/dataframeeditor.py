@@ -871,6 +871,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                     '('')'
             indexes = self.model().df.axes[1].tolist()
             new_name = 'new_col'
+            if type(indexes[column]) != str:
+                new_name = indexes[column]
             if new_name in indexes:
                 new_name = self.next_index_name(indexes, new_name)
             self.model().df.insert(loc=column+step, column=new_name,
@@ -881,6 +883,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             # insert row
             indexes = self.model().df.axes[0].tolist()
             new_name = 'new_row'
+            if type(indexes[row]) != str:
+                new_name = indexes[row]
             if new_name in indexes:
                 new_name = self.next_index_name(indexes, new_name)
             # Slice the upper half of the dataframe
@@ -949,7 +953,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         column/row rol/col_copy(ind)"""
         ind = -1
         name = ''
-        acceptable_types = [str, float, int, complex, bool]
+        acceptable_types = [str, float, int, complex, bool] + \
+                            list(REAL_NUMBER_TYPES) + list(COMPLEX_NUMBER_TYPES)
         if type(label) not in acceptable_types:
             # case receiving a different type of acceptable_type,
             # treat as string
