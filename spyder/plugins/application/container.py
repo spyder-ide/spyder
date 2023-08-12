@@ -281,8 +281,10 @@ class ApplicationContainer(PluginMainContainer):
         option = 'check_updates_on_startup'
         box.set_checked(self.get_conf(option))
 
-        header = _(f"<b>Spyder {latest_release} is available!</b> "
-                   f"<i>(you&nbsp;have&nbsp;{__version__})</i><br><br>")
+        header = _(
+            "<b>Spyder {} is available!</b> "
+            "<i>(you&nbsp;have&nbsp;{})</i><br><br>"
+        ).format(latest_release, __version__)
 
         if error_msg is not None:
             box.setText(error_msg)
@@ -305,12 +307,16 @@ class ApplicationContainer(PluginMainContainer):
                 )
 
                 if not is_pynsist() and not running_in_mac_app():
-                    msg += _("Clicking <b>Yes</b> will download and install the "
-                             "latest version using Spyder's installer, leaving "
-                             "your existing installation untouched.<br><br>")
+                    msg += _(
+                        "Clicking <b>Yes</b> will download and install the "
+                        "latest version using Spyder's installer, leaving "
+                        "your existing installation untouched.<br><br>"
+                    )
 
-                msg += _("For more information, visit our "
-                         f"<a href=\"{url_i}\">installation guide</a>.")
+                msg += _(
+                    "For more information, visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
 
                 box.setText(msg)
                 box.exec_()
@@ -343,14 +349,14 @@ class ApplicationContainer(PluginMainContainer):
                         terminal = "Anaconda prompt"
                     else:
                         terminal = _("cmd prompt")
-                msg += _(f"Run the following commands in the {terminal} "
-                         "to update manually:<br><br>")
+                msg += _("Run the following commands in the {} to update "
+                         "manually:<br><br>").format(terminal)
 
                 if is_anaconda():
                     if is_anaconda_pkg():
                         msg += _("<code>conda update anaconda</code><br>")
-                    msg += _(f"<code>conda install spyder={latest_release}"
-                             "</code><br><br>")
+                    msg += _("<code>conda install spyder={}"
+                             "</code><br><br>").format(latest_release)
                     msg += _("<b>Important note:</b> Since you installed "
                              "Spyder with Anaconda, please <b>don't</b> use "
                              "<code>pip</code> to update it as that will "
