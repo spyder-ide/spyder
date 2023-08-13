@@ -424,6 +424,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
                 display = to_text_string(value)
             else:
                 display = value
+        if role == Qt.ToolTipRole:
+            return display
         if role == Qt.UserRole:
             if isinstance(value, NUMERIC_TYPES):
                 return to_qvariant(value)
@@ -910,6 +912,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                and index_clicked in self.selectedIndexes():
                 self.clearSelection()
             else:
+                row = index_clicked.row()
+                # TODO: Remove hard coded "Value" column number (3 here)
+                index_clicked = index_clicked.child(row, 3)
+                self.edit(index_clicked)
                 QTableView.mousePressEvent(self, event)
         else:
             self.clearSelection()
@@ -925,6 +931,13 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.edit(index_clicked)
         else:
             event.accept()
+
+    def mouseMoveEvent(self, event):
+        """Change cursor shape."""
+        if self.rowAt(event.y()) != -1:
+            self.setCursor(Qt.PointingHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
 
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""

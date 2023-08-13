@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import get_conf_path, running_in_ci
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
 
@@ -60,6 +60,24 @@ def editor_bot(base_editor_bot, mocker, qtbot):
     editor_stack.autosave.file_hashes = {'foo.py': hash(text + '\n')}
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
+
+
+@pytest.fixture
+def visible_editor_bot(editor_bot, mocker):
+    """
+    Set up an EditorStack to test functionalities that require a
+    visible editor.
+    """
+    editorstack, editor = editor_bot
+
+    # We need to patch osp.isfile to avoid the 'this file does not exist'
+    # message box.
+    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
+                 returned_value=True)
+
+    editorstack.show()
+
+    return editorstack, editor
 
 
 @pytest.fixture
@@ -116,6 +134,36 @@ def editor_cells_bot(base_editor_bot, qtbot):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+def test_scroll_line_up_and_down(visible_editor_bot, mocker, qtbot):
+    """
+    Test that the scroll line up and down functionalities are working
+    as expected.
+    """
+    editorstack, editor = visible_editor_bot
+
+    # Define text in the editor long enough to require a vertical scrollbar.
+    editor.setPlainText('new_line\n' * 1000)
+    editorstack.go_to_line(1)
+    vsb = editor.verticalScrollBar()
+
+    # Assert initial state.
+    assert vsb.value() == 0
+    assert vsb.maximum() > 0
+
+    # Scroll line down five times.
+    expected_vsb_value = 0
+    for _ in range(5):
+        expected_vsb_value += vsb.singleStep()
+        editor.scroll_line_down()
+        assert vsb.value() == expected_vsb_value
+
+    # Scroll line up three times.
+    for _ in range(3):
+        expected_vsb_value += -vsb.singleStep()
+        editor.scroll_line_up()
+        assert vsb.value() == expected_vsb_value
+
+
 def test_find_number_matches(editor_find_replace_bot):
     """Test for number matches in find/replace."""
     editor = editor_find_replace_bot.editor
@@ -219,22 +267,17 @@ def test_move_multiple_lines_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
 
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Works only on Linux")
-def test_copy_lines_down_up(editor_bot, mocker, qtbot):
+@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
+                    reason="It fails on Windows CI")
+def test_copy_lines_down_up(visible_editor_bot, qtbot):
     """
     Test that copy lines down and copy lines up are working as expected.
     """
-    editorstack, editor = editor_bot
+    # Note that we need a visible editor because the copy lines down and copy
+    # lines up functionalities both rely on a paint event override to work
+    # as expected.
 
-    # We need to show the editor because the copy lines down and copy lines up
-    # functionalities both rely on a paint event override to work as expected.
-    editorstack.show()
-
-    # We need to patch osp.isfile to avoid the 'this file does not exist'
-    # message box.
-    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
-                 returned_value=True)
+    editorstack, editor = visible_editor_bot
 
     # Assert initial state.
     editorstack.go_to_line(1)
@@ -758,7 +801,7 @@ def test_maybe_autosave_does_not_save_new_files(editor_bot, mocker):
 def test_opening_sets_file_hash(base_editor_bot, mocker):
     """Test that opening a file sets the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('my text', 42))
     filename = osp.realpath('/mock-filename')
     editor_stack.load(filename)
@@ -769,7 +812,7 @@ def test_opening_sets_file_hash(base_editor_bot, mocker):
 def test_reloading_updates_file_hash(base_editor_bot, mocker):
     """Test that reloading a file updates the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  side_effect=[('my text', 42), ('new text', 42)])
     filename = osp.realpath('/mock-filename')
     finfo = editor_stack.load(filename)
@@ -782,7 +825,7 @@ def test_reloading_updates_file_hash(base_editor_bot, mocker):
 def test_closing_removes_file_hash(base_editor_bot, mocker):
     """Test that closing a file removes the file hash."""
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('my text', 42))
     filename = osp.realpath('/mock-filename')
     finfo = editor_stack.load(filename)
@@ -802,7 +845,7 @@ def test_maybe_autosave_does_not_save_after_open(base_editor_bot, mocker,
     both Python and text files. The latter covers spyder-ide/spyder#8654.
     """
     editor_stack = base_editor_bot
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=('spam\n', 42))
     editor_stack.load(filename)
     mocker.patch.object(editor_stack, '_write_to_file')
@@ -823,7 +866,7 @@ def test_maybe_autosave_does_not_save_after_reload(base_editor_bot, mocker):
     txt = 'spam\n'
     editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
     mocker.patch.object(editor_stack, '_write_to_file')
-    mocker.patch('spyder.plugins.editor.widgets.editor.encoding.read',
+    mocker.patch('spyder.plugins.editor.widgets.editorstack.editorstack.encoding.read',
                  return_value=(txt, 'ascii'))
     editor_stack.reload(0)
     editor_stack.autosave.maybe_autosave(0)
@@ -944,4 +987,4 @@ def test_ipython_files(base_editor_bot, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main(['test_editor.py'])
+    pytest.main(['test_editor.py', '-vv', '-rw'])

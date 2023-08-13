@@ -39,6 +39,7 @@ class AnalysisThread(QThread):
 
 class ThreadManager(QObject):
     """Analysis thread manager."""
+
     def __init__(self, parent, max_simultaneous_threads=2):
         """Initialize the ThreadManager."""
         super(ThreadManager, self).__init__(parent)

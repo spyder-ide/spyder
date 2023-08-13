@@ -21,13 +21,13 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
-from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.config.manager import CONF
 
 
 # ---- Qt Test Fixtures
 @pytest.fixture
-def editor_bot(qtbot):
+def editorstack(qtbot):
     """
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
@@ -42,7 +42,7 @@ def editor_bot(qtbot):
     editorstack.show()
     editorstack.go_to_line(1)
 
-    return editorstack, qtbot
+    return editorstack
 
 
 # ---- Tests
@@ -76,12 +76,11 @@ def test_default_keybinding_values():
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_start_and_end_of_document_shortcuts(editor_bot):
+def test_start_and_end_of_document_shortcuts(editorstack, qtbot):
     """
     Test that the start of document and end of document shortcut are working
     as expected.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Assert initial state.
@@ -99,14 +98,13 @@ def test_start_and_end_of_document_shortcuts(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_del_undo_redo_shortcuts(editor_bot):
+def test_del_undo_redo_shortcuts(editorstack, qtbot):
     """
     Test that the undo and redo keyboard shortcuts are working as expected
     with the default Spyder keybindings.
 
     Regression test for spyder-ide/spyder#7743.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Delete the first character of the first line.
@@ -130,12 +128,11 @@ def test_del_undo_redo_shortcuts(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_copy_cut_paste_shortcuts(editor_bot):
+def test_copy_cut_paste_shortcuts(editorstack, qtbot):
     """
     Test that the copy, cut, and paste keyboard shortcuts are working as
     expected with the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
     QApplication.clipboard().clear()
 
@@ -164,12 +161,11 @@ def test_copy_cut_paste_shortcuts(editor_bot):
 @pytest.mark.skipif(
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
-def test_select_all_shortcut(editor_bot):
+def test_select_all_shortcut(editorstack, qtbot):
     """
     Test that the select all keyboard shortcut is working as
     expected with the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Select all the text in the editor.
@@ -181,12 +177,11 @@ def test_select_all_shortcut(editor_bot):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
-def test_delete_line_shortcut(editor_bot):
+def test_delete_line_shortcut(editorstack, qtbot):
     """
     Test that the delete line keyboard shortcut is working as
     expected with the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Delete the second line in the editor.
@@ -199,12 +194,11 @@ def test_delete_line_shortcut(editor_bot):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
-def test_go_to_line_shortcut(editor_bot, mocker):
+def test_go_to_line_shortcut(editorstack, qtbot, mocker):
     """
     Test that the go to line keyboard shortcut is working
     as expected with the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
     qtbot.keyClick(editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
@@ -219,12 +213,11 @@ def test_go_to_line_shortcut(editor_bot, mocker):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
-def test_transform_to_lowercase_shortcut(editor_bot):
+def test_transform_to_lowercase_shortcut(editorstack, qtbot):
     """
     Test that the transform to lowercase shorcut is working as expected with
     the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Transform all the text to lowercase.
@@ -237,12 +230,11 @@ def test_transform_to_lowercase_shortcut(editor_bot):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
-def test_transform_to_uppercase_shortcut(editor_bot):
+def test_transform_to_uppercase_shortcut(editorstack, qtbot):
     """
     Test that the transform to uppercase shortcuts is working as expected with
     the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Transform all the text to uppercase.
@@ -256,12 +248,11 @@ def test_transform_to_uppercase_shortcut(editor_bot):
     sys.platform.startswith('linux') and running_in_ci(),
     reason="It fails on Linux due to the lack of a proper X server.")
 @pytest.mark.no_xvfb
-def test_next_and_previous_word_shortcuts(editor_bot):
+def test_next_and_previous_word_shortcuts(editorstack, qtbot):
     """
     Test that the next word and previous word shortcuts are working as
     expected with the default Spyder keybindings.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Go to the next word 3 times.
@@ -283,7 +274,7 @@ def test_next_and_previous_word_shortcuts(editor_bot):
 
 
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Not valid in macOS")
-def test_builtin_shift_del_and_ins(editor_bot):
+def test_builtin_shift_del_and_ins(editorstack, qtbot):
     """
     Test that the builtin key sequences Ctrl+Ins, Shit+Del and Shift+Ins result
     in copy, cut and paste actions in Windows and Linux.
@@ -291,7 +282,6 @@ def test_builtin_shift_del_and_ins(editor_bot):
     Regression test for spyder-ide/spyder#5035, spyder-ide/spyder#4947, and
     spyder-ide/spyder#5973.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
     QApplication.clipboard().clear()
 
@@ -319,13 +309,12 @@ def test_builtin_shift_del_and_ins(editor_bot):
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='Only valid in Windows system')
-def test_builtin_undo_redo(editor_bot):
+def test_builtin_undo_redo(editorstack, qtbot):
     """
     Test that the builtin key sequence Alt+Backspace, Ctrl+Y and
     Alt+Shift+Backspace result in, respectively, an undo, redo and redo action
     in Windows.
     """
-    editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
 
     # Write something on a new line.

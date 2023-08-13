@@ -666,11 +666,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
         color_scheme = self.get_conf('selected', section='appearance')
+        qapp = QApplication.instance()
 
         if ui_theme == 'dark':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
@@ -680,7 +680,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         elif ui_theme == 'light':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             light_qss = str(APP_STYLESHEET)
             self.setStyleSheet(light_qss)
@@ -691,7 +690,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if not is_dark_font_color(color_scheme):
                 if not running_under_pytest():
                     # Set style proxy to fix combobox popup on mac and qdark
-                    qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
                 dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
@@ -702,6 +700,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 self.setStyleSheet(light_qss)
                 self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
+
+        # This needs to done after applying the stylesheet to the window
+        logger.info("Set color for links in Qt widgets")
+        set_links_color(qapp)
 
         # Set css_path as a configuration to be used by the plugins
         self.set_conf('css_path', css_path, section='appearance')
@@ -717,30 +719,47 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         all_plugins = external_plugins.copy()
         all_plugins.update(internal_plugins.copy())
 
-        # Determine 'enable' config for the plugins that have it
+        # Determine 'enable' config for plugins that have it.
         enabled_plugins = {}
         registry_internal_plugins = {}
         registry_external_plugins = {}
+
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable panes that use web widgets (currently Help and Online
+            # Disable plugins that use web widgets (currently Help and Online
             # Help) if the user asks for it.
             # See spyder-ide/spyder#16518
             if self._cli_options.no_web_widgets:
                 if "help" in plugin_name:
                     continue
+
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+
             if plugin_name in internal_plugins:
                 registry_internal_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+                enable_option = "enable"
+                enable_section = plugin_main_attribute_name
             else:
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+
+                # This is a workaround to allow disabling external plugins.
+                # Because of the way the current config implementation works,
+                # an external plugin config option (e.g. 'enable') can only be
+                # read after the plugin is loaded. But here we're trying to
+                # decide if the plugin should be loaded if it's enabled. So,
+                # for now we read (and save, see the config page associated to
+                # PLUGIN_REGISTRY) that option in our internal config options.
+                # See spyder-ide/spyder#17464 for more details.
+                enable_option = f"{plugin_main_attribute_name}/enable"
+                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
+
             try:
-                if self.get_conf("enable", section=plugin_main_attribute_name):
+                if self.get_conf(enable_option, section=enable_section):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
@@ -817,6 +836,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
+
+        if self.get_conf('vertical_tabs'):
+            self.DOCKOPTIONS = self.DOCKOPTIONS | QMainWindow.VerticalTabs
+        self.setDockOptions(self.DOCKOPTIONS)
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -1251,13 +1274,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Apply main window settings."""
         qapp = QApplication.instance()
 
-        default = self.DOCKOPTIONS
-        if self.get_conf('vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
-        self.setDockOptions(default)
-
         self.apply_panes_settings()
-
         if self.get_conf('use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
                 self.get_conf('custom_cursor_blinking'))
@@ -1440,9 +1457,6 @@ def main(options, args):
         except Exception:
             pass
     CONF.set('main', 'previous_crash', previous_crash)
-
-    # **** Set color for links ****
-    set_links_color(app)
 
     # **** Create main window ****
     mainwindow = None

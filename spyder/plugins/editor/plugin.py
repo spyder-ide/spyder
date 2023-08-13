@@ -16,6 +16,7 @@ from datetime import datetime
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import sys
 import time
@@ -34,12 +35,12 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
-from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
+from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
@@ -53,9 +54,9 @@ from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
-                                                  EditorSplitter,
-                                                  EditorStack)
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWindow
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
@@ -70,6 +71,7 @@ from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.stylesheet import MARGIN_SIZE
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -153,7 +155,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     sig_open_files_finished = Signal()
@@ -367,6 +369,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
+
+        # TODO: This is a hack! Remove it after migrating to the new API
+        self.find_widget.layout().setContentsMargins(
+            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, MARGIN_SIZE
+        )
 
         # Start autosave component
         # (needs to be done before EditorSplitter)
@@ -646,9 +653,22 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         title = _('Editor')
         return title
 
-    def get_plugin_icon(self):
+    # TODO: Remove when the editor is migrated to the new API
+    get_name = get_plugin_title
+
+    @staticmethod
+    def get_description():
+        return _(
+            "Edit Python, Markdown, Cython and many other types of text files."
+        )
+
+    @classmethod
+    def get_plugin_icon(cls):
         """Return widget icon."""
         return ima.icon('edit')
+
+    # TODO: Remove when the editor is migrated to the new API
+    get_icon = get_plugin_icon
 
     def get_focus_widget(self):
         """
@@ -2430,7 +2450,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
 
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
+            fname = encoding.to_unicode_from_fs(fname)
+            if os.name == 'nt':
+                # Try to get the correct capitalization and absolute path
+                try:
+                    # This should correctly capitalize the path on Windows
+                    fname = str(Path(fname).resolve())
+                except OSError:
+                    # On Windows, "<string>" is not a valid path
+                    # But it can be used as filename while debugging
+                    fname = osp.abspath(fname)
+            else:
+                fname = osp.abspath(fname)
+
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname

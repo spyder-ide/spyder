@@ -47,7 +47,10 @@ def get_pylintrc_path(search_paths=None, home_path=None):
                 and pylintrc_path != pylintrc_path_home
             ):
                 break
-    finally:  # Ensure working directory is restored if any an error occurs
+    except Exception:
+        # * Capturing all exceptions is necessary to solve issues such as
+        # spyder-ide/spyder#21218.
+        # * Ensure working directory is restored if any error occurs.
         os.chdir(current_cwd)
 
     return pylintrc_path

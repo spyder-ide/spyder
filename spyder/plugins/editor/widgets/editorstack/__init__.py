@@ -6,9 +6,12 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-"""
-spyder.plugins.breakpoints
-==========================
 
-Breakpoints Plugin.
 """
+spyder.plugins.editor.widgets.editorstack
+=========================================
+
+Main widget handler of CodeEditors.
+"""
+
+from .editorstack import EditorStack

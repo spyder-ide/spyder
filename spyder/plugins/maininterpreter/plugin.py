@@ -44,11 +44,16 @@ class MainInterpreter(SpyderPluginV2):
     def get_name():
         return _("Python interpreter")
 
-    def get_description(self):
-        return _("Main Python interpreter to open consoles.")
+    @staticmethod
+    def get_description():
+        return _(
+            "Manage the default Python interpreter used to run, analyze and "
+            "profile your code in Spyder."
+        )
 
-    def get_icon(self):
-        return self.create_icon('python')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('python')
 
     def on_initialize(self):
         container = self.get_container()
@@ -112,11 +117,12 @@ class MainInterpreter(SpyderPluginV2):
     def _open_interpreter_preferences(self):
         """Open the Preferences dialog in the main interpreter section."""
         self._main.show_preferences()
-        preferences = self._main.preferences
-        container = preferences.get_container()
-        dlg = container.dialog
-        index = dlg.get_index_by_name("main_interpreter")
-        dlg.set_current_index(index)
+        preferences = self.get_plugin(Plugins.Preferences)
+        if preferences:
+            container = preferences.get_container()
+            dlg = container.dialog
+            index = dlg.get_index_by_name("main_interpreter")
+            dlg.set_current_index(index)
 
     @Slot(str)
     def _add_to_custom_interpreters(self, interpreter):

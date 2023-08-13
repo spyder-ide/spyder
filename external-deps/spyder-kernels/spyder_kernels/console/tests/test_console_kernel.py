@@ -227,7 +227,8 @@ def kernel(request):
             'False_',
             'True_'
         ],
-        'minmax': False
+        'minmax': False,
+        'filter_on':True
     }
 
     # Teardown
@@ -286,6 +287,31 @@ def test_get_namespace_view(kernel):
     assert "'view': '1'" in nsview
     assert "'numpy_type': 'Unknown'" in nsview
     assert "'python_type': 'int'" in nsview
+
+
+@pytest.mark.parametrize("filter_on", [True, False])
+def test_get_namespace_view_filter_on(kernel, filter_on):
+    """
+    Test the namespace view of the kernel with filters on and off.
+    """
+    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('TestFilterOff = 1', True))
+
+    settings = kernel.namespace_view_settings
+    settings['filter_on'] = filter_on
+    settings['exclude_capitalized'] = True
+    nsview = kernel.get_namespace_view()
+
+    if not filter_on:
+        assert 'a' in nsview
+        assert 'TestFilterOff' in nsview
+    else:
+        assert 'TestFilterOff' not in nsview
+        assert 'a' in nsview
+
+    # Restore settings for other tests
+    settings['filter_on'] = True
+    settings['exclude_capitalized'] = False
 
 
 def test_get_var_properties(kernel):

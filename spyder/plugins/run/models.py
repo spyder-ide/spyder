@@ -150,6 +150,12 @@ class RunExecutorListModel(QAbstractListModel):
     def __contains__(self, exec_input: Tuple[str, str]) -> bool:
         return exec_input in self.executor_configurations
 
+    def __len__(self):
+        return len(self.executor_configurations)
+
+    def __iter__(self):
+        return iter(self.executor_configurations)
+
     def __getitem__(
             self, input_executor: tuple) -> SupportedExecutionRunConfiguration:
         (input, executor) = input_executor

@@ -50,9 +50,9 @@ def _get_user_env_script():
     if Path(shell).name in ('bash', 'zsh'):
         script_text = (
             f"#!{shell} -i\n"
-            f"{shell} -l -c"
-            f" \"{sys.executable} -c 'import os; print(dict(os.environ))'\" "
-            f"\n"
+            "unset HISTFILE\n"
+            f"{shell} -l -c "
+            f"\"{sys.executable} -c 'import os; print(dict(os.environ))'\"\n"
         )
     else:
         logger.info("Getting user environment variables is not supported "
@@ -102,7 +102,10 @@ def get_user_environment_variables():
         try:
             user_env_script = _get_user_env_script()
             proc = run_shell_command(user_env_script, env={}, text=True)
-            stdout, stderr = proc.communicate()
+
+            # Use timeout to fix spyder-ide/spyder#21172
+            stdout, stderr = proc.communicate(timeout=0.5)
+
             if stderr:
                 logger.info(stderr.strip())
             if stdout:

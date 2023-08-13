@@ -153,7 +153,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.results_browser)
-        layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
 
@@ -176,7 +175,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             try:
                 self.results_browser.sig_activated.disconnect(
                     self.set_pdb_index)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
     def set_pdb_index(self, index):
@@ -498,8 +497,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
             self.sig_edit_goto.emit(filename, lineno, '')
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
-        if self.get_conf("show_locals_on_click"):
-            self.view_item_locals()
 
     def view_item_locals(self):
         """View item locals."""

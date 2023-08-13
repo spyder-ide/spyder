@@ -6,20 +6,15 @@
 
 """Shortcut configuration page."""
 
-# Standard library imports
-import re
-
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QPushButton,
                             QVBoxLayout)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
-from spyder.plugins.shortcuts.widgets.table import (ShortcutFinder,
-                                                    ShortcutsTable)
-from spyder.utils.icon_manager import ima
+from spyder.plugins.shortcuts.widgets.table import (
+    ShortcutFinder, ShortcutsTable)
 
 
 class ShortcutsConfigPage(PluginConfigPage):
@@ -27,7 +22,7 @@ class ShortcutsConfigPage(PluginConfigPage):
 
     def setup_page(self):
         # Widgets
-        self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table = ShortcutsTable(self)
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.label_finder = QLabel(_('Search: '))
         self.reset_btn = QPushButton(_("Reset to default values"))

@@ -17,18 +17,17 @@ from qtpy.QtGui import QIcon, QKeySequence, QRegExpValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QSpacerItem, QTableView, QVBoxLayout)
+                            QSpacerItem, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
-from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
-                                          CustomSortFilterProxy,
-                                          HelperToolButton,
-                                          HTMLDelegate)
+from spyder.widgets.helperwidgets import (
+    HelperToolButton, HTMLDelegate, HoverRowsTableView, VALID_FINDER_CHARS)
 
 
 # Valid shortcut keys
@@ -502,7 +501,7 @@ CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
 
 
 class ShortcutsModel(QAbstractTableModel):
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -516,17 +515,8 @@ class ShortcutsModel(QAbstractTableModel):
         self.widths = []
 
         # Needed to compensate for the HTMLDelegate color selection unawarness
-        palette = parent.palette()
-        if text_color is None:
-            self.text_color = palette.text().color().name()
-        else:
-            self.text_color = text_color
-
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
+        self.text_color = QStylePalette.COLOR_TEXT_1
+        self.text_color_highlight = QStylePalette.COLOR_TEXT_1
 
     def current_index(self):
         """Get the currently selected index in the parent table view."""
@@ -575,6 +565,7 @@ class ShortcutsModel(QAbstractTableModel):
                 return to_qvariant(text)
             elif column == SEQUENCE:
                 text = QKeySequence(key).toString(QKeySequence.NativeText)
+                text = '<p style="color:{0}">{1}</p>'.format(color, text)
                 return to_qvariant(text)
             elif column == SEARCH_SCORE:
                 # Treating search scores as a table column simplifies the
@@ -653,17 +644,13 @@ class ShortcutsModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class ShortcutsTable(QTableView):
-    def __init__(self,
-                 parent=None, text_color=None, text_color_highlight=None):
-        QTableView.__init__(self, parent)
+class ShortcutsTable(HoverRowsTableView):
+    def __init__(self, parent=None):
+        HoverRowsTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
         self.shortcut_data = None
-        self.source_model = ShortcutsModel(
-                                    self,
-                                    text_color=text_color,
-                                    text_color_highlight=text_color_highlight)
+        self.source_model = ShortcutsModel(self)
         self.proxy_model = ShortcutsSortFilterProxy(self)
         self.last_regex = ''
 
@@ -675,8 +662,7 @@ class ShortcutsTable(QTableView):
         self.setModel(self.proxy_model)
 
         self.hideColumn(SEARCH_SCORE)
-        self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
-        self.setItemDelegateForColumn(CONTEXT, HTMLDelegate(self, margin=9))
+        self.setItemDelegate(HTMLDelegate(self, margin=9))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
@@ -684,6 +670,10 @@ class ShortcutsTable(QTableView):
         self.selectionModel().selectionChanged.connect(self.selection)
 
         self.verticalHeader().hide()
+
+        self.sig_hover_index_changed.connect(
+            self.itemDelegate().on_hover_index_changed
+        )
 
     def set_shortcut_data(self, shortcut_data):
         """
@@ -783,7 +773,7 @@ class ShortcutsTable(QTableView):
     def show_editor(self):
         """Create, setup and display the shortcut editor dialog."""
         index = self.proxy_model.mapToSource(self.currentIndex())
-        row, column = index.row(), index.column()
+        row = index.row()
         shortcuts = self.source_model.shortcuts
         context = shortcuts[row].context
         name = shortcuts[row].name

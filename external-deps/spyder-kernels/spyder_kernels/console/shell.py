@@ -263,10 +263,6 @@ class SpyderShell(ZMQInteractiveShell):
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
                 stack = traceback.extract_tb(tb.tb_next)
-                for f_summary, f in zip(
-                        stack, traceback.walk_tb(tb.tb_next)):
-                    f_summary.locals = self.kernel.get_namespace_view(
-                        frame=f[0])
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:
