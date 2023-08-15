@@ -12,6 +12,7 @@ blocking threads.
 
 # Standard library imports
 from collections import deque
+import logging
 import os
 import sys
 
@@ -23,7 +24,7 @@ from qtpy.QtCore import (QByteArray, QObject, QProcess, QThread, QTimer,
 from spyder.py3compat import to_text_string
 
 
-WIN = os.name == 'nt'
+logger = logging.getLogger(__name__)
 
 
 def handle_qbytearray(obj, encoding):
@@ -123,7 +124,7 @@ class ProcessWorker(QObject):
         enco = 'utf-8'
 
         #  Currently only cp1252 is allowed?
-        if WIN:
+        if os.name == 'nt':
             import ctypes
             codepage = to_text_string(ctypes.cdll.kernel32.GetACP())
             # import locale
@@ -226,11 +227,12 @@ class ProcessWorker(QObject):
 
 
 class WorkerManager(QObject):
-    """Spyder Worker Manager for Generic Workers."""
+    """Manager for generic workers."""
 
-    def __init__(self, max_threads=10):
-        """Spyder Worker Manager for Generic Workers."""
-        super().__init__()
+    def __init__(self, parent=None, max_threads=10):
+        super().__init__(parent=parent)
+        self.parent = parent
+
         self._queue = deque()
         self._queue_workers = deque()
         self._threads = []
@@ -261,13 +263,16 @@ class WorkerManager(QObject):
             self._queue_workers.append(worker)
 
         if self._queue_workers and self._running_threads < self._max_threads:
-            #print('Queue: {0} Running: {1} Workers: {2} '
-            #       'Threads: {3}'.format(len(self._queue_workers),
-            #                                 self._running_threads,
-            #                                 len(self._workers),
-            #                                 len(self._threads)))
-            worker = self._queue_workers.popleft()
+            if self.parent is not None:
+                logger.debug(
+                    f"Workers managed in {self.parent} -- "
+                    f"In queue: {len(self._queue_workers)} -- "
+                    f"Running threads: {self._running_threads} -- "
+                    f"Workers: {len(self._workers)} -- "
+                    f"Threads: {len(self._threads)}"
+                )
 
+            worker = self._queue_workers.popleft()
             if isinstance(worker, PythonWorker):
                 self._running_threads += 1
                 thread = QThread(None)
