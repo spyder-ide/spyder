@@ -351,7 +351,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     # Open the projects.
     for ppath in [ppath1, ppath2]:
         projects.open_project(path=ppath)
-        projects.get_widget()._update_explorer(None)
+        projects.get_widget()._setup_project(ppath)
 
         # Check that the root path of the project explorer tree widget is
         # set correctly.

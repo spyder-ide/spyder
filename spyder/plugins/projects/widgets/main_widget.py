@@ -183,7 +183,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.watcher.connect_signals(self)
 
         # Signals
-        self.sig_project_loaded.connect(self._update_explorer)
+        self.sig_project_loaded.connect(self._setup_project)
 
         # Layout
         layout = QVBoxLayout()
@@ -995,10 +995,6 @@ class ProjectExplorerWidget(PluginMainWidget):
             expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
-
-    def _update_explorer(self, _unused):
-        """Update explorer tree"""
-        self._setup_project(self.get_active_project_path())
 
     def _get_valid_recent_projects(self, recent_projects):
         """
