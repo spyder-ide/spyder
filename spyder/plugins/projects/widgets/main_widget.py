@@ -39,10 +39,11 @@ from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.programs import find_program
 from spyder.utils.workers import WorkerManager
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # For logging
@@ -168,6 +169,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.current_active_project = None
         self.latest_project = None
         self.completions_available = False
+        self._fzf = find_program('fzf')
         self._default_switcher_paths = []
         self._switcher_items_data = []
 
@@ -1027,13 +1029,13 @@ class ProjectExplorerWidget(PluginMainWidget):
             The search text to pass to fzf.
         """
         project_path = self.get_active_project_path()
-        if project_path is None:
-            return []
+        if self._fzf is None or project_path is None:
+            return
 
         self._worker_manager.terminate_all()
 
         worker = self._worker_manager.create_process_worker(
-            ["fzf", "--filter", search_text],
+            [self._fzf, "--filter", search_text],
             os.environ.copy()
         )
 
