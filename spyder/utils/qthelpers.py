@@ -301,7 +301,7 @@ def create_waitspinner(size=32, n=11, parent=None):
     dot_size = (pi * size - n * dot_padding) / (n + pi)
     inner_radius = (size - 2 * dot_size) / 2
 
-    spinner = QWaitingSpinner(parent, centerOnParent=False)
+    spinner = QWaitingSpinner(parent, centerOnParent=True)
     spinner.setTrailSizeDecreasing(True)
     spinner.setNumberOfLines(n)
     spinner.setLineLength(dot_size)
