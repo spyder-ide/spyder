@@ -14,7 +14,6 @@ import os
 import os.path as osp
 import pathlib
 import shutil
-import subprocess
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -43,6 +42,7 @@ from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.workers import WorkerManager
 
 
 # For logging
@@ -77,8 +77,14 @@ class RecentProjectsMenuSections:
 # -----------------------------------------------------------------------------
 @class_register
 class ProjectExplorerWidget(PluginMainWidget):
-    """Project Explorer"""
+    """Project explorer main widget."""
 
+    # ---- Constants
+    # -------------------------------------------------------------------------
+    MAX_SWITCHER_RESULTS = 50
+
+    # ---- Signals
+    # -------------------------------------------------------------------------
     sig_open_file_requested = Signal(str)
     """
     This signal is emitted when a file is requested to be opened.
@@ -150,11 +156,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin=plugin, parent=parent)
 
-        # Attributes from conf
+        # -- Attributes from conf
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
 
-        # Main attributes
+        # -- Main attributes
         self.recent_projects = self._get_valid_recent_projects(
             self.get_conf('recent_projects', [])
         )
@@ -162,8 +168,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.current_active_project = None
         self.latest_project = None
         self.completions_available = False
+        self._default_switcher_paths = []
+        self._switcher_items_data = []
 
-        # Tree widget
+        # -- Tree widget
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
@@ -178,14 +186,24 @@ class ProjectExplorerWidget(PluginMainWidget):
             _("Create one using the menu entry Projects > New project.")
         )
 
-        # Watcher
+        # -- Watcher
         self.watcher = WorkspaceWatcher(self)
         self.watcher.connect_signals(self)
 
-        # Signals
+        # To manage the worker that calls fzf
+        self._worker_manager = WorkerManager(self)
+
+        # -- Signals
         self.sig_project_loaded.connect(self._setup_project)
 
-        # Layout
+        # This is necessary to populate the switcher with some default list of
+        # paths instead of computing it every open is shown.
+        self.sig_project_loaded.connect(lambda p: self._call_fzf())
+
+        # Clear saved paths for the switcher when closing the project.
+        self.sig_project_closed.connect(lambda p: self._clear_switcher_paths())
+
+        # -- Layout
         layout = QVBoxLayout()
         layout.addWidget(self.pane_empty)
         layout.addWidget(self.treewidget)
@@ -254,10 +272,12 @@ class ProjectExplorerWidget(PluginMainWidget):
     def set_pane_empty(self):
         self.treewidget.hide()
         self.pane_empty.show()
-        
 
     def update_actions(self):
         pass
+
+    def on_close(self):
+        self._worker_manager.terminate_all()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -610,6 +630,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.raise_()
         self.update()
 
+    # ---- Public API for the Switcher
+    # -------------------------------------------------------------------------
     def handle_switcher_modes(self):
         """
         Populate switcher with files in active project.
@@ -617,10 +639,11 @@ class ProjectExplorerWidget(PluginMainWidget):
         List the file names of the current active project with their
         directories in the switcher.
         """
-        paths = self._execute_fzf_subprocess()
+        paths = self._default_switcher_paths
         if paths == []:
             return []
-        # the paths that are opened in the editor need to be excluded because
+
+        # The paths that are opened in the editor need to be excluded because
         # they are shown already in the switcher in the "editor" section.
         open_files = self.get_plugin()._get_open_filenames()
         for file in open_files:
@@ -670,7 +693,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Open file in editor
         self.sig_open_file_requested.emit(item.get_data())
 
-    def handle_switcher_results(self, search_text, items_data):
+    def handle_switcher_filtering(self, search_text, items_data):
         """
         Handle user typing in switcher to filter results.
 
@@ -682,28 +705,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         items_data: list
             List of items shown in the switcher.
         """
-        paths = self._execute_fzf_subprocess(search_text)
-        for sw_path in items_data:
-            if (sw_path in paths):
-                paths.remove(sw_path)
-
-        is_unsaved = [False] * len(paths)
-        short_paths = shorten_paths(paths, is_unsaved)
-        section = self.get_title()
-
-        items = []
-        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
-            title = osp.basename(path)
-            icon = get_file_icon(path)
-            description = osp.dirname(path).lower()
-            if len(path) > 75:
-                description = short_path
-            is_last_item = (i+1 == len(paths))
-
-            item_tuple = (title, description, icon,
-                          section, path, is_last_item)
-            items.append(item_tuple)
-        return items
+        self._call_fzf(search_text)
+        self._switcher_items_data = items_data
 
     # ---- Public API for the LSP
     # -------------------------------------------------------------------------
@@ -1011,55 +1014,88 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         return valid_projects
 
-    def _execute_fzf_subprocess(self, search_text=""):
+    # ---- Private API for the Switcher
+    # -------------------------------------------------------------------------
+    def _call_fzf(self, search_text=""):
         """
-        Execute fzf subprocess to get the list of files in the current
-        project filtered by `search_text`.
+        Call fzf in a worker to get the list of files in the current project
+        that match with `search_text`.
 
         Parameters
         ----------
-        search_text: str
-            The current search text in the switcher dialog box.
+        search_text: str, optional
+            The search text to pass to fzf.
         """
         project_path = self.get_active_project_path()
         if project_path is None:
             return []
 
-        # command = fzf --filter <search_str>
-        cmd_list = ["fzf", "--filter", search_text]
-        shell = False
-        env = os.environ.copy()
+        self._worker_manager.terminate_all()
 
-        # This is only available on Windows
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
+        worker = self._worker_manager.create_process_worker(
+            ["fzf", "--filter", search_text],
+            os.environ.copy()
+        )
+
+        worker.set_cwd(project_path)
+        worker.sig_finished.connect(self._process_fzf_output)
+        worker.start()
+
+    def _process_fzf_output(self, worker, output, error):
+        """Process output that comes from the fzf worker."""
+        if output is None or error:
+            return
+
+        relative_path_list = output.decode('utf-8').strip().split("\n")
+        project_path = self.get_active_project_path()
+
+        # List of tuples with the absolute path
+        result_list = [
+            osp.normpath(os.path.join(project_path, path)).lower()
+            for path in relative_path_list
+        ]
+
+        # Limit the number of results to not introduce lags when displaying
+        # them in the switcher.
+        if len(result_list) > self.MAX_SWITCHER_RESULTS:
+            result_list = result_list[:self.MAX_SWITCHER_RESULTS]
+
+        if not self._default_switcher_paths:
+            self._default_switcher_paths = result_list
         else:
-            startupinfo = None
+            self._display_paths_in_switcher(result_list)
 
-        try:
-            out = subprocess.check_output(
-                cmd_list,
-                cwd=project_path,
-                shell=shell,
-                env=env,
-                startupinfo=startupinfo,
-                stderr=subprocess.STDOUT
-            )
+    def _display_paths_in_switcher(self, paths):
+        """Display a list of paths in the switcher."""
+        for sw_path in self._switcher_items_data:
+            if (sw_path in paths):
+                paths.remove(sw_path)
 
-            relative_path_list = out.decode('UTF-8').strip().split("\n")
+        is_unsaved = [False] * len(paths)
+        short_paths = shorten_paths(paths, is_unsaved)
+        section = self.get_title()
 
-            # List of tuples with the absolute path
-            result_list = [
-                osp.normpath(os.path.join(project_path, path)).lower()
-                for path in relative_path_list]
+        items = []
+        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
+            title = osp.basename(path)
+            icon = get_file_icon(path)
+            description = osp.dirname(path).lower()
+            if len(path) > 75:
+                description = short_path
+            is_last_item = (i+1 == len(paths))
 
-            # Limit the number of results to 500
-            if (len(result_list) > 500):
-                result_list = result_list[:500]
-            return result_list
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return []
+            item_tuple = (title, description, icon,
+                          section, path, is_last_item)
+            items.append(item_tuple)
 
+        # Call directly the plugin's method instead of emitting a signal
+        # because it's faster
+        self._plugin._display_items_in_switcher(items)
+
+    def _clear_switcher_paths(self):
+        """Clear saved switcher results."""
+        self._default_switcher_paths = []
+        self._switcher_items_data = []
 
 # =============================================================================
 # Tests

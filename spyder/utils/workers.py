@@ -115,6 +115,10 @@ class ProcessWorker(QObject):
         self._process = QProcess(self)
         self._set_environment(environ)
 
+        # This is necessary to pass text input to the process as part of
+        # cmd_list
+        self._process.setInputChannelMode(QProcess.ForwardedInputChannel)
+
         self._timer.setInterval(150)
         self._timer.timeout.connect(self._communicate)
         self._process.readyReadStandardOutput.connect(self._partial)
