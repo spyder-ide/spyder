@@ -220,6 +220,10 @@ class ProcessWorker(QObject):
             self.sig_started.emit(self)
             self._started = True
 
+    def set_cwd(self, cwd):
+        """Set the process current working directory."""
+        self._process.setWorkingDirectory(cwd)
+
 
 class WorkerManager(QObject):
     """Spyder Worker Manager for Generic Workers."""
@@ -262,19 +266,19 @@ class WorkerManager(QObject):
             #                                 self._running_threads,
             #                                 len(self._workers),
             #                                 len(self._threads)))
-            self._running_threads += 1
             worker = self._queue_workers.popleft()
-            thread = QThread(None)
+
             if isinstance(worker, PythonWorker):
+                self._running_threads += 1
+                thread = QThread(None)
+                self._threads.append(thread)
+
                 worker.moveToThread(thread)
                 worker.sig_finished.connect(thread.quit)
                 thread.started.connect(worker._start)
                 thread.start()
             elif isinstance(worker, ProcessWorker):
-                thread.quit()
-                thread.wait()
                 worker._start()
-            self._threads.append(thread)
         else:
             self._timer.start()
 
