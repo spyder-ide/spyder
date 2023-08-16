@@ -266,7 +266,7 @@ class ApplicationContainer(PluginMainContainer):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_i = 'https://docs.spyder-ide.org/installation.html'
+        url_i = 'https://docs.spyder-ide.org/current/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
@@ -302,10 +302,7 @@ class ApplicationContainer(PluginMainContainer):
                 box.setDefaultButton(QMessageBox.Yes)
 
                 if not is_pynsist() and not running_in_mac_app():
-                    installers_url = (
-                        "http://docs.spyder-ide.org/current/installation.html"
-                        "#standalone-installers"
-                    )
+                    installers_url = url_i + "#standalone-installers"
                     msg = (
                         header +
                         _("Would you like to automatically download and "
@@ -313,18 +310,18 @@ class ApplicationContainer(PluginMainContainer):
                           "<br><br>"
                           "We <a href='{}'>recommend our own installer</a> "
                           "because it's more stable and makes updating easy. "
-                          "This will leave your existing Spyder installation"
+                          "This will leave your existing Spyder installation "
                           "untouched.").format(installers_url)
                     )
                 else:
                     msg = (
                         header +
                         _("Would you like to automatically download "
-                          "and install it?<br><br>")
+                          "and install it?")
                     )
 
                 msg += _(
-                    "For more information, visit our "
+                    "<br><br>For more information, visit our "
                     "<a href=\"{}\">installation guide</a>."
                 ).format(url_i)
 
@@ -370,10 +367,10 @@ class ApplicationContainer(PluginMainContainer):
                     msg += _("<b>Important note:</b> Since you installed "
                              "Spyder with Anaconda, please <b>don't</b> use "
                              "<code>pip</code> to update it as that will "
-                             "break your installation.<br><br>")
+                             "break your installation.")
                 else:
                     msg += _("<code>pip install --upgrade spyder"
-                             "</code><br><br>")
+                             "</code>")
 
                 box.setText(msg)
                 box.exec_()
