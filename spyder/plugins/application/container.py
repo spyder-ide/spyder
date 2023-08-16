@@ -276,6 +276,7 @@ class ApplicationContainer(PluginMainContainer):
         box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
+        box.setTextFormat(Qt.RichText)
 
         # Adjust the checkbox depending on the stored configuration
         option = 'check_updates_on_startup'
@@ -300,17 +301,26 @@ class ApplicationContainer(PluginMainContainer):
                 box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 box.setDefaultButton(QMessageBox.Yes)
 
-                msg = (
-                    header +
-                    _("Would you like to automatically download "
-                      "and install it? <br><br>")
-                )
-
                 if not is_pynsist() and not running_in_mac_app():
-                    msg += _(
-                        "Clicking <b>Yes</b> will download and install the "
-                        "latest version using Spyder's installer, leaving "
-                        "your existing installation untouched.<br><br>"
+                    installers_url = (
+                        "http://docs.spyder-ide.org/current/installation.html"
+                        "#standalone-installers"
+                    )
+                    msg = (
+                        header +
+                        _("Would you like to automatically download and "
+                          "install it using Spyder's installer?"
+                          "<br><br>"
+                          "We <a href='{}'>recommend our own installer</a> "
+                          "because it's more stable and makes updating easy. "
+                          "This will leave your existing Spyder installation"
+                          "untouched.").format(installers_url)
+                    )
+                else:
+                    msg = (
+                        header +
+                        _("Would you like to automatically download "
+                          "and install it?<br><br>")
                     )
 
                 msg += _(
