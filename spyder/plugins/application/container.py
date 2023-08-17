@@ -15,9 +15,9 @@ import os
 import subprocess
 import sys
 import glob
-from packaging.version import parse
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
@@ -320,11 +320,6 @@ class ApplicationContainer(PluginMainContainer):
                           "and install it?")
                     )
 
-                msg += _(
-                    "<br><br>For more information, visit our "
-                    "<a href=\"{}\">installation guide</a>."
-                ).format(url_i)
-
                 box.setText(msg)
                 box.exec_()
                 if box.result() == QMessageBox.Yes:
@@ -371,6 +366,11 @@ class ApplicationContainer(PluginMainContainer):
                 else:
                     msg += _("<code>pip install --upgrade spyder"
                              "</code>")
+
+                msg += _(
+                    "<br><br>For more information, visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
 
                 box.setText(msg)
                 box.exec_()

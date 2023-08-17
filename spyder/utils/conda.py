@@ -7,6 +7,7 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+from glob import glob
 import json
 import os
 import os.path as osp
@@ -167,11 +168,8 @@ def get_list_conda_envs_cache():
 def is_anaconda_pkg(prefix=sys.prefix):
     """Detect if the anaconda meta package is installed."""
     if is_conda_env(prefix):
-        cmd = f"{find_conda()} list -p {prefix} --json anaconda"
-        res, err = run_shell_command(cmd, text=True).communicate()
-        if not err and res.strip() != "[]":
+        conda_meta = osp.join(prefix, "conda-meta")
+        if glob("anaconda-[0-9]*.json", root_dir=conda_meta):
             return True
-        else:
-            return False
-    else:
-        return False
+
+    return False
