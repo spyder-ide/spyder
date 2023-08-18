@@ -84,10 +84,8 @@ class EditorSwitcherManager(object):
         editor_list = editorstack.data.copy()
         editor_list.reverse()
 
-        paths = [data.filename.lower()
-                 for data in editor_list]
-        save_statuses = [data.newly_created
-                         for data in editor_list]
+        paths = [data.filename for data in editor_list]
+        save_statuses = [data.newly_created for data in editor_list]
         short_paths = shorten_paths(paths, save_statuses)
 
         for idx, data in enumerate(editor_list):
@@ -99,14 +97,17 @@ class EditorSwitcherManager(object):
             if len(paths[idx]) > 75:
                 path = short_paths[idx]
             else:
-                path = osp.dirname(data.filename.lower())
+                path = osp.dirname(data.filename)
             last_item = (idx + 1 == len(editor_list))
-            self._switcher.add_item(title=title,
-                                    description=path,
-                                    icon=icon,
-                                    section=self._section,
-                                    data=data,
-                                    last_item=last_item)
+            self._switcher.add_item(
+                title=title,
+                description=path,
+                icon=icon,
+                section=self._section,
+                data=data,
+                last_item=last_item
+            )
+
         self._switcher.set_current_row(0)
 
     def create_line_switcher(self):

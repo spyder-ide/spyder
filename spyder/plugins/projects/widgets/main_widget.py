@@ -1020,7 +1020,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         # List of tuples with the absolute path
         result_list = [
-            osp.normpath(os.path.join(project_path, path)).lower()
+            osp.normpath(os.path.join(project_path, path))
             for path in relative_path_list
         ]
 
@@ -1039,10 +1039,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         Convert a list of paths to items that can be shown in the switcher.
         """
         # The paths that are opened in the editor need to be excluded because
-        # they are shown already in the switcher in the "editor" section.
+        # they are shown already in the Editor section of the switcher.
         open_files = self.get_plugin()._get_open_filenames()
         for file in open_files:
-            normalized_path = osp.normpath(file).lower()
+            normalized_path = osp.normpath(file)
             if normalized_path in paths:
                 paths.remove(normalized_path)
 
