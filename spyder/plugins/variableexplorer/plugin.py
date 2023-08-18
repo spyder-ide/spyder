@@ -81,8 +81,9 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
         Show figure in Plots plugin.
 
         This shows the figure in the figure browser associated with the given
-        shellwidget. The Plots plugin and the window containing the Plots
-        plugin are both raised so that the user will see the figure.
+        shellwidget. The shellwidget is activated and the Plots plugin and the
+        window containing the Plots plugin are both raised so that the user
+        will see the figure.
 
         Parameters
         ----------
@@ -93,6 +94,10 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
         shellwidget: ShellWidget
             The shellwidget associated with the figure.
         """
+        ipython_console = self.get_plugin(Plugins.IPythonConsole)
+        if ipython_console:
+            ipython_console.set_current_shellwidget(shellwidget)
+
         plots = self.get_plugin(Plugins.Plots)
         if plots:
             plots.add_plot(image, mime_type, shellwidget)
