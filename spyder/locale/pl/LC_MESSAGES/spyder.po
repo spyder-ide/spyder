@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-18 09:57\n"
+"PO-Revision-Date: 2023-08-18 13:14\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -888,7 +888,7 @@ msgstr "Sprawdzanie aktualizacji"
 
 #: spyder/plugins/application/widgets/install.py:38
 msgid "Cancelled update"
-msgstr ""
+msgstr "Anulowana aktualizacja"
 
 #: spyder/plugins/application/widgets/install.py:41
 msgid "Downloading Spyder {version}"
@@ -896,7 +896,7 @@ msgstr "Pobieranie Spyder'a {version}"
 
 #: spyder/plugins/application/widgets/install.py:42
 msgid "Finished downloading Spyder {version}"
-msgstr ""
+msgstr "Zakończono pobieranie Spydera {version}"
 
 #: spyder/plugins/application/widgets/install.py:43
 msgid "Installing Spyder {version}"
@@ -908,7 +908,7 @@ msgstr ""
 
 #: spyder/plugins/application/widgets/install.py:45
 msgid "Spyder {version} available to download"
-msgstr ""
+msgstr "Spyder {version} jest dostępny do pobrania"
 
 #: spyder/plugins/application/widgets/install.py:46
 msgid "Checking for new Spyder version"
