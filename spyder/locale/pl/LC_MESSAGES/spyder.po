@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-06-22 20:05\n"
+"PO-Revision-Date: 2023-08-18 09:57\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -91,7 +91,7 @@ msgstr "Zablokuj panel w aktualnej pozycji"
 
 #: spyder/api/widgets/toolbars.py:120
 msgid "More"
-msgstr ""
+msgstr "Więcej"
 
 #: spyder/app/mainwindow.py:324
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
@@ -226,11 +226,12 @@ msgstr ""
 #: spyder/config/manager.py:697
 msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
+msgstr "Wystąpił błąd w opcjach konfiguracji Spyder'a. Zresetuj je, aby Spyder mógł się uruchomić.\n\n"
+"Czy chcesz kontynuować?"
 
 #: spyder/config/manager.py:705
 msgid "Spyder configuration files resetted!"
-msgstr ""
+msgstr "Zresetowano pliki konfiguracyjne Spyder'a!"
 
 #: spyder/config/utils.py:25 spyder/plugins/console/widgets/main_widget.py:514 spyder/plugins/explorer/widgets/explorer.py:1727 spyder/plugins/profiler/widgets/main_widget.py:462 spyder/plugins/pylint/main_widget.py:868
 msgid "Python files"
@@ -286,7 +287,7 @@ msgstr "Pliki tekstowe"
 
 #: spyder/config/utils.py:39
 msgid "reStructuredText files"
-msgstr ""
+msgstr "pliki reStructuredText"
 
 #: spyder/config/utils.py:40
 msgid "gettext files"
@@ -526,11 +527,11 @@ msgstr "Samoczynnie"
 
 #: spyder/plugins/appearance/confpage.py:48
 msgid "Light"
-msgstr ""
+msgstr "Jasny"
 
 #: spyder/plugins/appearance/confpage.py:49
 msgid "Dark"
-msgstr ""
+msgstr "Ciemny"
 
 #: spyder/plugins/appearance/confpage.py:52
 msgid "Interface theme"
@@ -622,7 +623,7 @@ msgstr "Silnik wyświetlania:"
 
 #: spyder/plugins/application/confpage.py:59
 msgid "Use a single instance"
-msgstr ""
+msgstr "Użyj pojedynczej instancji"
 
 #: spyder/plugins/application/confpage.py:61
 msgid "Set this to open external<br> Python files in an already running instance (Requires a restart)"
@@ -630,7 +631,7 @@ msgstr ""
 
 #: spyder/plugins/application/confpage.py:65
 msgid "Prompt when exiting"
-msgstr ""
+msgstr "Zapytaj przy zamykaniu programu"
 
 #: spyder/plugins/application/confpage.py:66
 msgid "Show internal Spyder errors to report them to Github"
@@ -658,7 +659,7 @@ msgstr "piksele"
 
 #: spyder/plugins/application/confpage.py:109
 msgid "Cursor blinking:"
-msgstr ""
+msgstr "Miganie kursora:"
 
 #: spyder/plugins/application/confpage.py:112
 msgid "ms"
@@ -787,7 +788,7 @@ msgstr ""
 
 #: spyder/plugins/application/container.py:200
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "Uruchom ponownie w trybie debugowania"
 
 #: spyder/plugins/application/container.py:210
 msgid "Debug logs"
@@ -863,15 +864,15 @@ msgstr ""
 
 #: spyder/plugins/application/widgets/install.py:32
 msgid "Downloading update"
-msgstr ""
+msgstr "Pobieranie aktualizacji"
 
 #: spyder/plugins/application/widgets/install.py:33
 msgid "Download finished"
-msgstr ""
+msgstr "Pobieranie zakończone"
 
 #: spyder/plugins/application/widgets/install.py:34
 msgid "Installing update"
-msgstr ""
+msgstr "Instalowanie aktualizacji"
 
 #: spyder/plugins/application/widgets/install.py:35 spyder/plugins/completion/providers/kite/utils/install.py:34
 msgid "Installation finished"
@@ -879,11 +880,11 @@ msgstr "Ukończono wgrywanie"
 
 #: spyder/plugins/application/widgets/install.py:36
 msgid "Update available"
-msgstr ""
+msgstr "Dostępna aktualizacja"
 
 #: spyder/plugins/application/widgets/install.py:37
 msgid "Checking for updates"
-msgstr ""
+msgstr "Sprawdzanie aktualizacji"
 
 #: spyder/plugins/application/widgets/install.py:38
 msgid "Cancelled update"
@@ -891,7 +892,7 @@ msgstr ""
 
 #: spyder/plugins/application/widgets/install.py:41
 msgid "Downloading Spyder {version}"
-msgstr ""
+msgstr "Pobieranie Spyder'a {version}"
 
 #: spyder/plugins/application/widgets/install.py:42
 msgid "Finished downloading Spyder {version}"
@@ -1212,7 +1213,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:62 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:127
 msgid "Show the following errors:"
-msgstr ""
+msgstr "Pokaż następujące błędy:"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:64
 msgid "Example codes: D413, D414"
@@ -1304,7 +1305,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:70
 msgid "Maximum allowed line length:"
-msgstr ""
+msgstr "Maksymalna dopuszczalna długość linii:"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:72
 msgid "Default is 79"
@@ -1332,15 +1333,15 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:138
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "Automatycznie formatuj pliki przy zapisywaniu"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:140
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr ""
+msgstr "Jeśli opcja jest włączona, podczas zapisywania pliku nastąpi automatyczne formatowanie"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:144
 msgid "Code formatting"
-msgstr ""
+msgstr "Formatowanie kodu"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:162
 msgid "Directory patterns listed for exclusion should be valid regular expressions"
@@ -1356,11 +1357,11 @@ msgstr "Introspekcja"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:33
 msgid "Basic features"
-msgstr ""
+msgstr "Podstawowe funkcje"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:35
 msgid "Enable Go to definition"
-msgstr ""
+msgstr "Włącz opcję: \"Przejdź do definicji\""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
 msgid "If enabled, left-clicking on an object name while \n"
@@ -1374,7 +1375,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:43 spyder/plugins/ipythonconsole/confpage.py:33
 msgid "Show calltips"
-msgstr ""
+msgstr "Pokaż podpowiedzi"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:45
 msgid "Enable hover hints"
@@ -1436,7 +1437,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/provider.py:292
 msgid "Language Server Protocol (LSP)"
-msgstr ""
+msgstr "Protokoły Serwerów Językowych (LSP)"
 
 #: spyder/plugins/completion/providers/languageserver/provider.py:409
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
@@ -1597,7 +1598,7 @@ msgstr "Uruchom ponownie Serwer Języka {}"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:33
 msgid "Snippets"
-msgstr ""
+msgstr "Snippety"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:40
 msgid "the LSP grammar"
@@ -1629,11 +1630,11 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:135
 msgid "Save snippets"
-msgstr ""
+msgstr "Zapisz snippets (fragmenty)"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:148
 msgid "Load snippets"
-msgstr ""
+msgstr "Wczytaj snippets (fragmenty)"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:162
 msgid "All snippets imported"
@@ -1866,7 +1867,7 @@ msgstr "Wewnętrzne ustawienia konsoli"
 
 #: spyder/plugins/console/widgets/main_widget.py:512
 msgid "Run Python file"
-msgstr ""
+msgstr "Uruchom plik Python'a"
 
 #: spyder/plugins/console/widgets/main_widget.py:571
 msgid "Buffer"
@@ -2946,23 +2947,23 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/printer.py:100
 msgid "First page"
-msgstr ""
+msgstr "Pierwsza strona"
 
 #: spyder/plugins/editor/widgets/printer.py:101
 msgid "Previous page"
-msgstr ""
+msgstr "Poprzednia strona"
 
 #: spyder/plugins/editor/widgets/printer.py:102
 msgid "Next page"
-msgstr ""
+msgstr "Następna strona"
 
 #: spyder/plugins/editor/widgets/printer.py:103
 msgid "Last page"
-msgstr ""
+msgstr "Ostatnia strona"
 
 #: spyder/plugins/editor/widgets/printer.py:104
 msgid "Show single page"
-msgstr ""
+msgstr "Pokaż pojedynczą stronę"
 
 #: spyder/plugins/editor/widgets/printer.py:105
 msgid "Show overview of all pages"
@@ -2974,7 +2975,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/printer.py:107
 msgid "Print"
-msgstr ""
+msgstr "Drukuj"
 
 #: spyder/plugins/editor/widgets/recover.py:49
 msgid "Recover from autosave"
@@ -3080,7 +3081,7 @@ msgstr "Gałąź (branch) Git"
 
 #: spyder/plugins/explorer/confpage.py:31
 msgid "General options"
-msgstr ""
+msgstr "Ustawienia ogólne"
 
 #: spyder/plugins/explorer/confpage.py:32 spyder/plugins/explorer/widgets/explorer.py:447
 msgid "Show hidden files"
@@ -3524,7 +3525,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:226
 msgid "Case sensitive"
-msgstr ""
+msgstr "Rozróżniaj wielkość liter (Case sensitive)"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:227
 msgid "Case sensitive search"
@@ -3536,7 +3537,7 @@ msgstr "&Znajdź w plikach"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:236
 msgid "Search text"
-msgstr ""
+msgstr "Szukany tekst:"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:252 spyder/plugins/findinfiles/widgets/main_widget.py:253
 msgid "Exclude case sensitive"
@@ -3564,7 +3565,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:261 spyder/plugins/findinfiles/widgets/search_thread.py:315
 msgid "String not found"
-msgstr ""
+msgstr "Nie odnaleziono ciągu znaków"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:289
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -4093,7 +4094,7 @@ msgstr "Uruchamianie"
 
 #: spyder/plugins/ipythonconsole/confpage.py:425
 msgid "Debugger"
-msgstr ""
+msgstr "Debugger"
 
 #: spyder/plugins/ipythonconsole/plugin.py:213 spyder/plugins/ipythonconsole/plugin.py:216
 msgid "IPython console"
@@ -4121,7 +4122,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:252
 msgid "Connecting to kernel..."
-msgstr ""
+msgstr "Łączenie z kernelem..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:319
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
