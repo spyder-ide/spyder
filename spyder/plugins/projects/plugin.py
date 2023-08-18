@@ -216,7 +216,7 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_item_selected.connect(
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.connect(
-            self._handle_switcher_filtering)
+            self._handle_switcher_search)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -281,7 +281,7 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_item_selected.disconnect(
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.disconnect(
-            self._handle_switcher_filtering)
+            self._handle_switcher_search)
         self._switcher = None
 
     def on_close(self, cancelable=False):
@@ -535,19 +535,16 @@ class Projects(SpyderDockablePlugin):
         self.get_widget().handle_switcher_selection(item, mode, search_text)
         self._switcher.hide()
 
-    def _handle_switcher_filtering(self, search_text, items_data):
+    def _handle_switcher_search(self, search_text):
         """
         Handle user typing in switcher to filter results.
 
-        Load switcher results when a search text is typed for projects.
         Parameters
         ----------
         text: str
             The current search text in the switcher dialog box.
-        items_data: list
-            List of items shown in the switcher.
         """
-        self.get_widget().handle_switcher_filtering(search_text, items_data)
+        self.get_widget().handle_switcher_search(search_text)
 
     def _display_items_in_switcher(self, items, setup=True):
         """Display a list of items in the switcher."""

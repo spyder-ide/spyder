@@ -139,7 +139,7 @@ class Switcher(QDialog):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
-    sig_search_text_available = Signal(str, list)
+    sig_search_text_available = Signal(str)
     """
     This signal is emitted when the user stops typing in the filter line edit.
 
@@ -147,8 +147,6 @@ class Switcher(QDialog):
     ----------
     search_text: str
         The current search text.
-    items_data: list
-        List of items shown in the switcher.
     """
 
     _MAX_NUM_ITEMS = 15
@@ -478,7 +476,6 @@ class Switcher(QDialog):
         """Actions to take when the search text has changed."""
         if not self._mode_on:
             search_text = clean_string(self.search_text())
-            items_data = []
 
             # Remove project rows and get data of editor items
             for row in range(self.model.rowCount() - 1, -1, -1):
@@ -489,11 +486,8 @@ class Switcher(QDialog):
                     if item._section == "Projects":
                         self.model.removeRow(row)
                         continue
-                    else:
-                        if item._data is not None:
-                            items_data.append(item._data._filename.lower())
 
-            self.sig_search_text_available.emit(search_text, items_data)
+            self.sig_search_text_available.emit(search_text)
         else:
             self.setup()
 

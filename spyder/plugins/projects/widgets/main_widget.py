@@ -171,7 +171,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.completions_available = False
         self._fzf = find_program('fzf')
         self._default_switcher_paths = []
-        self._switcher_items_data = []
 
         # -- Tree widget
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
@@ -666,7 +665,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Open file in editor
         self.sig_open_file_requested.emit(item.get_data())
 
-    def handle_switcher_filtering(self, search_text, items_data):
+    def handle_switcher_search(self, search_text):
         """
         Handle user typing in switcher to filter results.
 
@@ -675,11 +674,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         ----------
         text: str
             The current search text in the switcher dialog box.
-        items_data: list
-            List of items shown in the switcher.
         """
         self._call_fzf(search_text)
-        self._switcher_items_data = items_data
 
     # ---- Public API for the LSP
     # -------------------------------------------------------------------------
@@ -1081,7 +1077,6 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _clear_switcher_paths(self):
         """Clear saved switcher results."""
         self._default_switcher_paths = []
-        self._switcher_items_data = []
 
 # =============================================================================
 # Tests

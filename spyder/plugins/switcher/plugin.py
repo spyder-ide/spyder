@@ -90,7 +90,7 @@ class Switcher(SpyderPluginV2):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
-    sig_search_text_available = Signal(str, list)
+    sig_search_text_available = Signal(str)
     """
     This signal is emitted when the user stops typing the search/filter text.
 
@@ -98,8 +98,6 @@ class Switcher(SpyderPluginV2):
     ----------
     search_text: str
         The current search/filter text.
-    items_data: list
-        List of items shown in the switcher.
     """
 
     # --- SpyderPluginV2 API
