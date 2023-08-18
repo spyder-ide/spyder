@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-18 22:06\n"
+"PO-Revision-Date: 2023-08-18 23:02\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -647,11 +647,11 @@ msgstr "Okna"
 
 #: spyder/plugins/application/confpage.py:98
 msgid "Vertical tabs in panes"
-msgstr ""
+msgstr "Karty pionowe w panelach"
 
 #: spyder/plugins/application/confpage.py:100
 msgid "Custom margin for panes:"
-msgstr ""
+msgstr "Niestandardowy margines dla paneli:"
 
 #: spyder/plugins/application/confpage.py:102
 msgid "pixels"
@@ -695,15 +695,15 @@ msgstr "Normalny"
 
 #: spyder/plugins/application/confpage.py:185
 msgid "Enable auto high DPI scaling"
-msgstr ""
+msgstr "Włącz automatyczne skalowanie wysokich wartości DPI"
 
 #: spyder/plugins/application/confpage.py:188
 msgid "Set this for high DPI displays"
-msgstr ""
+msgstr "Ustaw to dla wyświetlaczy o wysokiej rozdzielczości"
 
 #: spyder/plugins/application/confpage.py:192
 msgid "Set a custom high DPI scaling"
-msgstr ""
+msgstr "Ustaw niestandardowe skalowanie wysokich rozdzielczości"
 
 #: spyder/plugins/application/confpage.py:195
 msgid "Set this for high DPI displays when auto scaling does not work"
@@ -768,7 +768,7 @@ msgstr "Pokaż i edytuj bieżące zmienne środowiskowe użytkownika w rejestrze
 
 #: spyder/plugins/application/container.py:177
 msgid "Show current user environment variables (i.e. for all sessions)"
-msgstr ""
+msgstr "Pokaż bieżące zmienne środowiskowe użytkownika (np. dla wszystkich sesji)"
 
 #: spyder/plugins/application/container.py:181
 msgid "Current user environment variables..."
@@ -804,7 +804,7 @@ msgstr "Sprawdzaj aktualizacje przy starcie"
 
 #: spyder/plugins/application/container.py:302
 msgid "<b>Spyder {} is available!</b> <i>(you have {})</i><br><br>"
-msgstr ""
+msgstr "<b>Spyder {} jest dostępny!</b> <i>(masz {})</i><br><br>"
 
 #: spyder/plugins/application/container.py:306
 msgid "For more information, visit our <a href=\"{}\">installation guide</a>."
@@ -2182,7 +2182,7 @@ msgstr ""
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:46 spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:154 spyder/plugins/shortcuts/widgets/table.py:141
 msgid "<None>"
-msgstr ""
+msgstr "<brak>"
 
 #: spyder/plugins/editor/plugin.py:508
 msgid "&New file..."
@@ -2604,7 +2604,7 @@ msgstr "Przejdź do następnego pliku"
 
 #: spyder/plugins/editor/plugin.py:1000
 msgid "Go to previous file"
-msgstr ""
+msgstr "Przejdź do poprzedniego pliku"
 
 #: spyder/plugins/editor/plugin.py:1021
 msgid "Open &recent"
@@ -2776,7 +2776,7 @@ msgstr "Wyczyść cały wynik"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4553 spyder/plugins/explorer/widgets/explorer.py:488
 msgid "Convert to Python file"
-msgstr ""
+msgstr "Skonwertuj na skrypt Pythona"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4556
 msgid "Go to definition"
@@ -4275,7 +4275,7 @@ msgstr "Wyczyść konsolę"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:512
 msgid "Enter array table"
-msgstr ""
+msgstr "Wprowadź tablicę"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:518
 msgid "Enter array inline"
@@ -4399,7 +4399,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:169
 msgid "Data is too big to be loaded"
-msgstr ""
+msgstr "Dane są zbyt duże, aby je załadować"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:173
 msgid "The file could not be opened successfully. Recall that the Variable Explorer supports the following file extensions to import data:<br><br><tt>{extensions}</tt>"
@@ -4407,7 +4407,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:189
 msgid "Data is too big to be saved"
-msgstr ""
+msgstr "Dane są zbyt duże, aby je zapisać"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:36
 msgid "Keep Existing Kernels"
@@ -4415,11 +4415,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:37
 msgid "Restart Current Kernel"
-msgstr ""
+msgstr "Zrestartuj bieżący kernel"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:38
 msgid "Restart All Kernels"
-msgstr ""
+msgstr "Uruchom ponownie wszystkie Kernele"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:43
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
