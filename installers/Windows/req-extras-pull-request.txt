@@ -20,7 +20,7 @@ cython
 sympy
 
 # Spyder external plugins
-spyder-terminal>=1.2.2
+# spyder-terminal>=1.2.2
 
 # Spyder external dependencies (spyder-kernels)
 ./external-deps/spyder-kernels

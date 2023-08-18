@@ -13,9 +13,6 @@ The following packages are included in py2app's PACKAGES option so that
 they will be placed in Spyder.app/Contents/Resources/lib/python<ver>
 instead.
 
-humanfriendly :
-    spyder-terminal plugin
-    ModuleNotFoundError: No module named 'humanfriendly.tables'
 keyring:
     ModuleNotFoundError: No module named 'keyring.backends.kwallet'
     ModuleNotFoundError: No module named 'keyring.backends.SecretService'
@@ -42,13 +39,10 @@ spyder :
     python38.zip/spyder/app/mac_stylesheet.qss'
 spyder_kernels :
     No module named spyder_kernels.console.__main__
-spyder_terminal :
-    No module named spyder_terminal.server
 """
 
 # Packages that cannot be in the zip folder
 PACKAGES = [
-    'humanfriendly',
     'keyring',
     'pkg_resources',
     'pygments',
@@ -58,7 +52,6 @@ PACKAGES = [
     'setuptools',
     'spyder',
     'spyder_kernels',
-    'spyder_terminal',
 ]
 
 # Packages to exclude
