@@ -634,42 +634,14 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     # ---- Public API for the Switcher
     # -------------------------------------------------------------------------
-    def handle_switcher_modes(self):
-        """
-        Populate switcher with files in active project.
+    def display_default_switcher_items(self):
+        """Populate switcher with a default set of files in the project."""
+        if not self._default_switcher_paths:
+            return
 
-        List the file names of the current active project with their
-        directories in the switcher.
-        """
-        paths = self._default_switcher_paths
-        if paths == []:
-            return []
-
-        # The paths that are opened in the editor need to be excluded because
-        # they are shown already in the switcher in the "editor" section.
-        open_files = self.get_plugin()._get_open_filenames()
-        for file in open_files:
-            normalized_path = osp.normpath(file).lower()
-            if normalized_path in paths:
-                paths.remove(normalized_path)
-
-        is_unsaved = [False] * len(paths)
-        short_paths = shorten_paths(paths, is_unsaved)
-        section = self.get_title()
-
-        items = []
-        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
-            title = osp.basename(path)
-            icon = get_file_icon(path)
-            description = osp.dirname(path)
-            if len(path) > 75:
-                description = short_path
-            is_last_item = (i+1 == len(paths))
-
-            item_tuple = (title, description, icon,
-                          section, path, is_last_item)
-            items.append(item_tuple)
-        return items
+        self._display_paths_in_switcher(
+            self._default_switcher_paths, setup=False
+        )
 
     def handle_switcher_selection(self, item, mode, search_text):
         """
@@ -688,7 +660,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         search_text: str
             Cleaned search/filter text.
         """
-
         if item.get_section() != self.get_title():
             return
 
@@ -1067,11 +1038,17 @@ class ProjectExplorerWidget(PluginMainWidget):
         else:
             self._display_paths_in_switcher(result_list)
 
-    def _display_paths_in_switcher(self, paths):
-        """Display a list of paths in the switcher."""
-        for sw_path in self._switcher_items_data:
-            if (sw_path in paths):
-                paths.remove(sw_path)
+    def _convert_paths_to_switcher_items(self, paths):
+        """
+        Convert a list of paths to items that can be shown in the switcher.
+        """
+        # The paths that are opened in the editor need to be excluded because
+        # they are shown already in the switcher in the "editor" section.
+        open_files = self.get_plugin()._get_open_filenames()
+        for file in open_files:
+            normalized_path = osp.normpath(file).lower()
+            if normalized_path in paths:
+                paths.remove(normalized_path)
 
         is_unsaved = [False] * len(paths)
         short_paths = shorten_paths(paths, is_unsaved)
@@ -1081,18 +1058,25 @@ class ProjectExplorerWidget(PluginMainWidget):
         for i, (path, short_path) in enumerate(zip(paths, short_paths)):
             title = osp.basename(path)
             icon = get_file_icon(path)
-            description = osp.dirname(path).lower()
+            description = osp.dirname(path)
             if len(path) > 75:
                 description = short_path
-            is_last_item = (i+1 == len(paths))
+            is_last_item = (i + 1 == len(paths))
 
-            item_tuple = (title, description, icon,
-                          section, path, is_last_item)
+            item_tuple = (
+                title, description, icon, section, path, is_last_item
+            )
             items.append(item_tuple)
+
+        return items
+
+    def _display_paths_in_switcher(self, paths, setup=True):
+        """Display a list of paths in the switcher."""
+        items = self._convert_paths_to_switcher_items(paths)
 
         # Call directly the plugin's method instead of emitting a signal
         # because it's faster
-        self._plugin._display_items_in_switcher(items)
+        self._plugin._display_items_in_switcher(items, setup=setup)
 
     def _clear_switcher_paths(self):
         """Clear saved switcher results."""

@@ -508,17 +508,11 @@ class Projects(SpyderDockablePlugin):
         mode: str
             The selected mode (open files "", symbol "@" or line ":").
         """
-        items = self.get_widget().handle_switcher_modes()
-        for (title, description, icon, section, path, is_last_item) in items:
-            self._switcher.add_item(
-                title=title,
-                description=description,
-                icon=icon,
-                section=section,
-                data=path,
-                last_item=is_last_item
-            )
+        # Don't compute anything if we're not in files mode
+        if mode != "":
+            return
 
+        self.get_widget().display_default_switcher_items()
         self._switcher.set_current_row(0)
 
     def _handle_switcher_selection(self, item, mode, search_text):
@@ -555,7 +549,7 @@ class Projects(SpyderDockablePlugin):
         """
         self.get_widget().handle_switcher_filtering(search_text, items_data)
 
-    def _display_items_in_switcher(self, items):
+    def _display_items_in_switcher(self, items, setup=True):
         """Display a list of items in the switcher."""
         for (title, description, icon, section, path, is_last_item) in items:
             self._switcher.add_item(
@@ -568,4 +562,5 @@ class Projects(SpyderDockablePlugin):
                 score=1e10  # To make the editor results appear first
             )
 
-        self._switcher.setup()
+        if setup:
+            self._switcher.setup()
