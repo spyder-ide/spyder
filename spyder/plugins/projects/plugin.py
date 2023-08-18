@@ -518,6 +518,7 @@ class Projects(SpyderDockablePlugin):
                 data=path,
                 last_item=is_last_item
             )
+
         self._switcher.set_current_row(0)
 
     def _handle_switcher_selection(self, item, mode, search_text):
@@ -564,5 +565,7 @@ class Projects(SpyderDockablePlugin):
                 section=section,
                 data=path,
                 last_item=is_last_item,
-                score=100
+                score=1e10  # To make the editor results appear first
             )
+
+        self._switcher.setup()
