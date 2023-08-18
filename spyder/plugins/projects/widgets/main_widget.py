@@ -1024,6 +1024,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             for path in relative_path_list
         ]
 
+        # Remove binary files
+        result_list = [
+            path for path in result_list if encoding.is_text_file(path)
+        ]
+
         # Limit the number of results to not introduce lags when displaying
         # them in the switcher.
         if len(result_list) > self.MAX_SWITCHER_RESULTS:
