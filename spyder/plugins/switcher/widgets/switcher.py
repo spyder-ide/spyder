@@ -475,7 +475,7 @@ class Switcher(QDialog):
 
     def _on_search_text_changed(self):
         """Actions to take when the search text has changed."""
-        if not self._mode_on:
+        if self.search_text() != "" and self.current_project is not None:
             search_text = clean_string(self.search_text())
 
             # Remove project rows and get data of editor items
