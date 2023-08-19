@@ -165,6 +165,7 @@ class Switcher(QDialog):
         self._mode_on = ''
         self._item_styles = item_styles
         self._item_separator_styles = item_separator_styles
+        self.current_project = None
 
         # Widgets
         self.edit = QLineEdit(self)

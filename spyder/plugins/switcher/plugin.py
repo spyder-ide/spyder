@@ -39,7 +39,7 @@ class Switcher(SpyderPluginV2):
     """
 
     NAME = "switcher"
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
     CONTAINER_CLASS = SwitcherContainer
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -160,16 +160,27 @@ class Switcher(SpyderPluginV2):
                 menu_id=ApplicationMenus.File
             )
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    @on_plugin_available(plugin=Plugins.Projects)
+    def on_projects_available(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.connect(self._set_project_dir)
+        projects.sig_project_closed.connect(self._unset_project_dir)
 
+    @on_plugin_teardown(plugin=Plugins.Projects)
+    def on_projects_teardown(self):
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._set_project_dir)
+        projects.sig_project_closed.connect(self._unset_project_dir)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     # Switcher methods
     def set_placeholder_text(self, text):
         """Set the text appearing on the empty line edit."""
         self._switcher.set_placeholder_text(text)
 
     def setup(self):
-        """Set-up list widget content based on the filtering."""
+        """Setup list widget content based on filtering."""
         self._switcher.setup()
 
     def open_switcher(self, symbol=False):
@@ -247,3 +258,11 @@ class Switcher(SpyderPluginV2):
     def set_search_text(self, string):
         """Set the content of the search text."""
         self._switcher.set_search_text(string)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _set_project_dir(self, path):
+        self._switcher.current_project = path
+
+    def _unset_project_dir(self, path):
+        self._switcher.current_project = None
