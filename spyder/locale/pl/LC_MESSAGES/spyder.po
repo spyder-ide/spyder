@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-19 16:00\n"
+"PO-Revision-Date: 2023-08-19 17:23\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1687,7 +1687,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:256
 msgid "Trigger text:"
-msgstr ""
+msgstr "Tekst wyzwalacza:"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:261
 msgid "Description:"
@@ -1719,7 +1719,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:318
 msgid "Trigger information"
-msgstr ""
+msgstr "Informacje o wyzwalaniu"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:460
 msgid "Double-click to view or edit"
@@ -1727,7 +1727,7 @@ msgstr "Kliknij dwukrotnie aby wyświetlić lub edytować"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:472
 msgid "Trigger text"
-msgstr ""
+msgstr "Tekst wyzwalający (trigger)"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:474
 msgid "Description"
@@ -2154,7 +2154,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:306 spyder/plugins/editor/plugin.py:891
 msgid "LF (Unix)"
-msgstr ""
+msgstr "LF (Unix)"
 
 #: spyder/plugins/editor/confpage.py:307 spyder/plugins/editor/plugin.py:886
 msgid "CRLF (Windows)"
@@ -2162,7 +2162,7 @@ msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:308 spyder/plugins/editor/plugin.py:896
 msgid "CR (macOS)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:332 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:419 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
@@ -2382,7 +2382,7 @@ msgstr "Uruchom zaznaczenie lub bieżącą linię"
 
 #: spyder/plugins/editor/plugin.py:709
 msgid "Run &to current line"
-msgstr ""
+msgstr "Uruchom z aktualnej linii"
 
 #: spyder/plugins/editor/plugin.py:710 spyder/plugins/editor/widgets/codeeditor.py:4585
 msgid "Run to current line"
@@ -2390,7 +2390,7 @@ msgstr "Uruchom do bieżącej linii"
 
 #: spyder/plugins/editor/plugin.py:716
 msgid "Run &from current line"
-msgstr ""
+msgstr "Uruchom &od bieżącej linii"
 
 #: spyder/plugins/editor/plugin.py:717 spyder/plugins/editor/widgets/codeeditor.py:4589
 msgid "Run from current line"
@@ -2520,7 +2520,7 @@ msgstr "Dodaj wcięcie"
 
 #: spyder/plugins/editor/plugin.py:862
 msgid "Indent current line or selection"
-msgstr ""
+msgstr "Wcięcie bieżącego wiersza lub zaznaczenie"
 
 #: spyder/plugins/editor/plugin.py:865
 msgid "Unindent"
@@ -2528,7 +2528,7 @@ msgstr "Usuń wcięcie"
 
 #: spyder/plugins/editor/plugin.py:866
 msgid "Unindent current line or selection"
-msgstr ""
+msgstr "Usuń wcięcie bieżącego wiersza lub zaznaczenia"
 
 #: spyder/plugins/editor/plugin.py:870
 msgid "Toggle Uppercase"
@@ -2572,7 +2572,7 @@ msgstr "Popraw wcięcia"
 
 #: spyder/plugins/editor/plugin.py:964
 msgid "Replace tab characters by space characters"
-msgstr ""
+msgstr "Zastąp znaki tabulatora spacjami"
 
 #: spyder/plugins/editor/plugin.py:967
 msgid "Go to line..."
@@ -5531,7 +5531,7 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:437
 msgid "Run settings for %s"
-msgstr ""
+msgstr "Uruchom ustawienia dla %s"
 
 #: spyder/plugins/run/widgets.py:470
 msgid "Select a run configuration:"
@@ -5723,11 +5723,11 @@ msgstr "Główny pasek narzędzi"
 
 #: spyder/plugins/tours/container.py:52
 msgid "Show tour"
-msgstr ""
+msgstr "Pokaż przewodnik"
 
 #: spyder/plugins/tours/container.py:61 spyder/plugins/tours/plugin.py:41
 msgid "Interactive tours"
-msgstr ""
+msgstr "Interaktywny przewodnik"
 
 #: spyder/plugins/tours/plugin.py:44
 msgid "Provide interactive tours."
@@ -5735,7 +5735,7 @@ msgstr ""
 
 #: spyder/plugins/tours/plugin.py:52
 msgid "Introduction to Spyder"
-msgstr ""
+msgstr "Wprowadzenie"
 
 #: spyder/plugins/tours/tours.py:70
 msgid "Welcome to the introduction tour!"
@@ -5803,7 +5803,7 @@ msgstr "Dotarłeś do końca naszej wycieczki i jesteś gotowy do korzystania ze
 
 #: spyder/plugins/tours/tours.py:216
 msgid "New features in Spyder 3.0"
-msgstr ""
+msgstr "Nowe funkcje w Spyder 3.0"
 
 #: spyder/plugins/tours/tours.py:217
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -6038,7 +6038,7 @@ msgstr "Na str"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:666
 msgid "Text can't be copied."
-msgstr ""
+msgstr "Nie można skopiować tekstu."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:869 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:874 spyder/widgets/collectionseditor.py:171
 msgid "Index"
@@ -6964,7 +6964,7 @@ msgstr "Rozwiń wszystko"
 
 #: spyder/widgets/onecolumntree.py:97
 msgid "Restore original tree layout"
-msgstr ""
+msgstr "Przywróć pierwotny układ drzewa"
 
 #: spyder/widgets/onecolumntree.py:104
 msgid "Collapse section"
@@ -7040,7 +7040,7 @@ msgstr ""
 
 #: spyder/widgets/reporterror.py:467
 msgid "Title complete; thanks!"
-msgstr ""
+msgstr "Tytuł kompletny; dziękujemy!"
 
 #: spyder/widgets/switcher.py:926
 msgid "change view"
