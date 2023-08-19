@@ -232,7 +232,9 @@ class SwitcherItem(SwitcherBaseItem):
         self._score = -1
         self._action_item = action_item
 
-        self._section_visible = True
+        # Section visibility is computed by the setup_sections method of the
+        # switcher.
+        self._section_visible = False
 
         # Setup
         self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)

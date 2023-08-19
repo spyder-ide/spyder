@@ -228,13 +228,7 @@ class Switcher(QDialog):
             item.set_score(score)
 
         item.set_width(self._ITEM_WIDTH)
-        if isinstance(item, SwitcherItem):
-            if item._section == "Editor":
-                self.model.insertRow(0, item)
-            else:
-                self.model.appendRow(item)
-        else:
-            self.model.appendRow(item)
+        self.model.appendRow(item)
 
         if last_item:
             # Only set the current row to the first item when the added item is
@@ -242,7 +236,6 @@ class Switcher(QDialog):
             # adding multiple items
             self.set_current_row(0)
             self.set_height()
-        self.setup_sections()
 
     # ---- API
     def clear(self):
@@ -303,8 +296,7 @@ class Switcher(QDialog):
         self._add_item(item)
 
     def setup(self):
-        """Set-up list widget content based on the filtering."""
-        # Check exited mode
+        """Setup list widget content based on filtering."""
         mode = self._mode_on
         if mode:
             search_text = self.search_text()[len(mode):]
@@ -317,6 +309,17 @@ class Switcher(QDialog):
             self.clear()
             self.proxy.set_filter_by_score(False)
             self.sig_mode_selected.emit(self._mode_on)
+
+            # This is necessary to show the Editor items first when results
+            # come back from the Editor and Projects.
+            self.proxy.sortBy('_score')
+
+            # Show sections
+            self.setup_sections()
+
+            # Give focus to the first row
+            self.set_current_row(0)
+
             return
 
         # Check entered mode
@@ -353,6 +356,7 @@ class Switcher(QDialog):
                 item.set_score(score_value)
 
         self.proxy.set_filter_by_score(True)
+        self.proxy.sortBy('_score')
 
         # Graphical setup
         self.setup_sections()
@@ -365,37 +369,46 @@ class Switcher(QDialog):
         self.set_height()
 
     def setup_sections(self):
-        """Set-up which sections appear on the item list."""
+        """Setup which sections appear on the item list."""
         mode = self._mode_on
+        sections = []
+
         if mode:
             search_text = self.search_text()[len(mode):]
         else:
             search_text = self.search_text()
 
-        if search_text:
-            for row in range(self.model.rowCount()):
-                item = self.model.item(row)
-                if isinstance(item, SwitcherItem):
-                    item.set_section_visible(False)
-        else:
-            sections = []
-            for row in range(self.model.rowCount()):
-                item = self.model.item(row)
-                if isinstance(item, SwitcherItem):
-                    sections.append(item.get_section())
-                    item.set_section_visible(bool(search_text))
-                else:
-                    sections.append('')
+        for row in range(self.model.rowCount()):
+            item_row = row
 
-                if row != 0:
-                    visible = sections[row] != sections[row - 1]
-                    if not self._is_separator(item):
-                        item.set_section_visible(visible)
-                else:
+            # When there is search_text, we need to use the proxy model to get
+            # the actual item's row.
+            if search_text:
+                model_index = self.proxy.mapToSource(self.proxy.index(row, 0))
+                item_row = model_index.row()
+
+            # Get item
+            item = self.model.item(item_row)
+
+            # When searching gives no result, the mapped items are None
+            if item is None:
+                continue
+
+            # Get item section
+            if isinstance(item, SwitcherItem):
+                sections.append(item.get_section())
+            else:
+                sections.append('')
+
+            # Decide if we need to make the item's section visible
+            if row != 0:
+                visible = sections[row] != sections[row - 1]
+                if not self._is_separator(item):
+                    item.set_section_visible(visible)
+            else:
+                # We need to remove this if when a mode has several sections
+                if not mode:
                     item.set_section_visible(True)
-
-        self.proxy.sortBy('_score')
-        self.sig_item_changed.emit(self.current_item())
 
     def set_height(self):
         """Set height taking into account the number of items."""
@@ -447,8 +460,9 @@ class Switcher(QDialog):
         item = self.model.item(model_index.row())
         if item:
             mode = self._mode_on
-            self.sig_item_selected.emit(item, mode,
-                                        self.search_text()[len(mode):])
+            self.sig_item_selected.emit(
+                item, mode, self.search_text()[len(mode):]
+            )
 
     def accept(self):
         """Override Qt method."""

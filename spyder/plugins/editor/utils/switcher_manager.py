@@ -78,12 +78,7 @@ class EditorSwitcherManager(object):
             _('Start typing the name of an open file'))
 
         editorstack = self._editorstack()
-
-        # Since editor open files are inserted at position 0, the
-        # list needs to be reversed so they're shown in order.
         editor_list = editorstack.data.copy()
-        editor_list.reverse()
-
         paths = [data.filename for data in editor_list]
         save_statuses = [data.newly_created for data in editor_list]
         short_paths = shorten_paths(paths, save_statuses)
@@ -99,16 +94,16 @@ class EditorSwitcherManager(object):
             else:
                 path = osp.dirname(data.filename)
             last_item = (idx + 1 == len(editor_list))
+
             self._switcher.add_item(
                 title=title,
                 description=path,
                 icon=icon,
                 section=self._section,
                 data=data,
-                last_item=last_item
+                last_item=last_item,
+                score=0  # To make these items appear above those from Projects
             )
-
-        self._switcher.set_current_row(0)
 
     def create_line_switcher(self):
         """Populate switcher with line info."""

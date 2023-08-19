@@ -513,7 +513,6 @@ class Projects(SpyderDockablePlugin):
             return
 
         self.get_widget().display_default_switcher_items()
-        self._switcher.set_current_row(0)
 
     def _handle_switcher_selection(self, item, mode, search_text):
         """
