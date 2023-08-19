@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-18 23:02\n"
+"PO-Revision-Date: 2023-08-19 16:00\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1691,7 +1691,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:261
 msgid "Description:"
-msgstr ""
+msgstr "Opis:"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:266
 msgid "Remove trigger text on insertion"
@@ -3478,7 +3478,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:73
 msgid "Select other directory"
-msgstr ""
+msgstr "Wybierz inny katalog"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:74
 msgid "Search in other folder present on the file system"
@@ -3586,7 +3586,7 @@ msgstr "odmowa dostępu napotkano na  błędy"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:317
 msgid "matches in"
-msgstr ""
+msgstr "dopasowanie w"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:318
 msgid "file"
@@ -4147,7 +4147,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:788
 msgid "Error restarting kernel: %s\n"
-msgstr ""
+msgstr "Błąd ponownego uruchomienia kernel: %s\n"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:817
 msgid "<br>Restarting kernel...<br>"
@@ -4323,7 +4323,7 @@ msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1537
 msgid "Unable to connect to <b>%s</b>"
-msgstr ""
+msgstr "Nie można połączyć się z <b>%s</b>"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1615 spyder/plugins/ipythonconsole/widgets/main_widget.py:1638
 msgid "Connection error"
@@ -4455,7 +4455,7 @@ msgstr "Istotne"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1002
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "Kernel umarł, ponowne uruchomienie"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1002
 msgid "Kernel restarting"
@@ -4491,7 +4491,7 @@ msgstr "Ustawienia układu"
 
 #: spyder/plugins/layout/container.py:137
 msgid "Reset to Spyder default"
-msgstr ""
+msgstr "Przywróć domyślne ustawienia"
 
 #: spyder/plugins/layout/container.py:145
 msgid "Use next layout"
@@ -4593,7 +4593,7 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:72
 msgid "Default (i.e. the same as Spyder's)"
-msgstr ""
+msgstr "Domyślne (tj. takie same jak Spydera)"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Use the following Python interpreter:"
@@ -4774,11 +4774,11 @@ msgstr "Klasa"
 
 #: spyder/plugins/outlineexplorer/widgets.py:43
 msgid "Method"
-msgstr ""
+msgstr "Metoda"
 
 #: spyder/plugins/outlineexplorer/widgets.py:44
 msgid "Property"
-msgstr ""
+msgstr "Własność"
 
 #: spyder/plugins/outlineexplorer/widgets.py:45 spyder/widgets/collectionseditor.py:199
 msgid "Attribute"
@@ -4826,7 +4826,7 @@ msgstr "Klucz"
 
 #: spyder/plugins/outlineexplorer/widgets.py:58
 msgid "Null"
-msgstr ""
+msgstr "Null"
 
 #: spyder/plugins/outlineexplorer/widgets.py:59
 msgid "Enum member"
@@ -5011,7 +5011,7 @@ msgstr "Pokaż wyjście programu"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:220
 msgid "Collapse"
-msgstr ""
+msgstr "Zwiń"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:221
 msgid "Collapse one level up"
@@ -5211,7 +5211,7 @@ msgstr "Nowy katalog"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:83
 msgid "Existing directory"
-msgstr ""
+msgstr "Istniejący katalog"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:85
 msgid "Project name"
@@ -5439,7 +5439,7 @@ msgstr "Ogólne ustawienia"
 
 #: spyder/plugins/run/confpage.py:80 spyder/plugins/run/widgets.py:247
 msgid "Working directory settings"
-msgstr ""
+msgstr "Ustawienia katalogu roboczego"
 
 #: spyder/plugins/run/confpage.py:82
 msgid "Default working directory is:"
@@ -5455,7 +5455,7 @@ msgstr ""
 
 #: spyder/plugins/run/plugin.py:43
 msgid "Manage run configuration."
-msgstr ""
+msgstr "Zarządzaj konfiguracją uruchomienia."
 
 #: spyder/plugins/run/widgets.py:29
 msgid "Run file with default configuration"
@@ -5471,7 +5471,7 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:32
 msgid "Execute in a dedicated console"
-msgstr ""
+msgstr "Wykonaj w dedykowanej konsoli"
 
 #: spyder/plugins/run/widgets.py:33
 msgid "Execute in an external system terminal"
@@ -5503,11 +5503,11 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:53
 msgid "The current working directory"
-msgstr ""
+msgstr "Bieżący katalog roboczy"
 
 #: spyder/plugins/run/widgets.py:54 spyder/plugins/workingdirectory/confpage.py:49 spyder/plugins/workingdirectory/confpage.py:92
 msgid "The following directory:"
-msgstr ""
+msgstr "Następujący katalog:"
 
 #: spyder/plugins/run/widgets.py:211 spyder/plugins/run/widgets.py:239
 msgid "Command line options:"
