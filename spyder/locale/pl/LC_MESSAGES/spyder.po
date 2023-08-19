@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-19 17:23\n"
+"PO-Revision-Date: 2023-08-19 21:07\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1647,7 +1647,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:170
 msgid "JSON malformed"
-msgstr ""
+msgstr "Uszkodzony JSON"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:171
 msgid "There was an error when trying to load the provided JSON file: <tt>{0}</tt>"
@@ -1671,15 +1671,15 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/provider.py:53
 msgid "Text snippets"
-msgstr ""
+msgstr "Fragmenty tekstu"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:219
 msgid "Valid snippet"
-msgstr ""
+msgstr "Prawidłowy fragment"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:220
 msgid "Invalid snippet"
-msgstr ""
+msgstr "Nieprawidłowy fragment"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:232
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
@@ -1707,7 +1707,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:284
 msgid "Snippet editor"
-msgstr ""
+msgstr "Edytor fragmentów"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:288
 msgid "Trigger text for the current snippet"
@@ -2592,7 +2592,7 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:985
 msgid "Clear recent files list"
-msgstr ""
+msgstr "Wyczyść listę ostatnio używanych plików"
 
 #: spyder/plugins/editor/plugin.py:985 spyder/plugins/findinfiles/widgets/combobox.py:77 spyder/plugins/projects/plugin.py:322
 msgid "Clear this list"
@@ -3458,7 +3458,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:45
 msgid "Search directory"
-msgstr ""
+msgstr "Szukaj w katalogu"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:56 spyder/plugins/workingdirectory/container.py:118
 msgid "Current working directory"
@@ -3502,7 +3502,7 @@ msgstr "Błąd wyrażenia regularnego"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:152
 msgid "Write text to search"
-msgstr ""
+msgstr "Wpisz tekst do wyszukiwania"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:154
 msgid "Search in:"
