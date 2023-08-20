@@ -198,8 +198,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.sig_project_loaded.connect(self._setup_project)
 
         # This is necessary to populate the switcher with some default list of
-        # paths instead of computing it every open is shown.
-        self.sig_project_loaded.connect(lambda p: self._call_fzf())
+        # paths instead of computing that list every time it's shown.
+        self.sig_project_loaded.connect(
+            lambda p: self._update_default_switcher_paths()
+        )
 
         # Clear saved paths for the switcher when closing the project.
         self.sig_project_closed.connect(lambda p: self._clear_switcher_paths())
@@ -709,6 +711,9 @@ class ProjectExplorerWidget(PluginMainWidget):
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         """Notify LSP server about file creation."""
+        self._update_default_switcher_paths()
+
+        # LSP specification only considers file updates
         if is_dir:
             return
 
@@ -725,7 +730,8 @@ class ProjectExplorerWidget(PluginMainWidget):
              requires_response=False)
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
-        # LSP specification only considers file updates
+        self._update_default_switcher_paths()
+
         if is_dir:
             return
 
@@ -750,6 +756,8 @@ class ProjectExplorerWidget(PluginMainWidget):
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         """Notify LSP server about file deletion."""
+        self._update_default_switcher_paths()
+
         if is_dir:
             return
 
@@ -1082,6 +1090,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _clear_switcher_paths(self):
         """Clear saved switcher results."""
         self._default_switcher_paths = []
+
+    def _update_default_switcher_paths(self):
+        """Update default paths to be shown in the switcher."""
+        self._default_switcher_paths = []
+        self._call_fzf()
 
 # =============================================================================
 # Tests
