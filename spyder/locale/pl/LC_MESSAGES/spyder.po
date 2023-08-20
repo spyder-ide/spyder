@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-08-19 21:07\n"
+"PO-Revision-Date: 2023-08-20 13:26\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1611,23 +1611,23 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:69
 msgid "Available snippets"
-msgstr ""
+msgstr "Dostępne fragmenty"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:76
 msgid "Create a new snippet"
-msgstr ""
+msgstr "Utwórz nowy fragment kodu"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:78
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "Usuń aktualnie wybrany fragment"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:80
 msgid "Export snippets to JSON"
-msgstr ""
+msgstr "Eksportuj fragmenty do JSON"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:81
 msgid "Import snippets from JSON"
-msgstr ""
+msgstr "Importuj fragmenty z JSON"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:135
 msgid "Save snippets"
@@ -1639,11 +1639,11 @@ msgstr "Wczytaj snippets (fragmenty)"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:162
 msgid "All snippets imported"
-msgstr ""
+msgstr "Wszystkie fragmenty zaimportowane"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:163
 msgid "{0} snippets were loaded successfully"
-msgstr ""
+msgstr "Fragmenty {0} zostały załadowane"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:170
 msgid "JSON malformed"
@@ -1655,7 +1655,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:180
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "Nieprawidłowy fragment"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:181
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
@@ -1663,7 +1663,7 @@ msgstr ""
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:198
 msgid "Incorrect snippet format"
-msgstr ""
+msgstr "Nieprawidłowy format fragmentu"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:199
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
@@ -2784,7 +2784,7 @@ msgstr "Przejdź do definicji"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4561 spyder/plugins/ipythonconsole/widgets/main_widget.py:486
 msgid "Inspect current object"
-msgstr ""
+msgstr "Sprawdź bieżący obiekt"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4599 spyder/plugins/editor/widgets/printer.py:97 spyder/plugins/plots/widgets/main_widget.py:182 spyder/plugins/plots/widgets/main_widget.py:183 spyder/widgets/browser.py:158
 msgid "Zoom in"
@@ -2968,7 +2968,7 @@ msgstr "Pokaż pojedynczą stronę"
 
 #: spyder/plugins/editor/widgets/printer.py:105
 msgid "Show overview of all pages"
-msgstr ""
+msgstr "Pokaż podgląd we wszystkich stronach"
 
 #: spyder/plugins/editor/widgets/printer.py:106
 msgid "Page setup"
@@ -4411,7 +4411,7 @@ msgstr "Dane są zbyt duże, aby je zapisać"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:36
 msgid "Keep Existing Kernels"
-msgstr ""
+msgstr "Zachowaj istniejące kernele"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:37
 msgid "Restart Current Kernel"
@@ -4443,7 +4443,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:610
 msgid "<br><br>Removing all variables...<br>"
-msgstr ""
+msgstr "<br><br>Usuwanie wszystkich zmiennych...<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:792
 msgid "Changing backend to Qt for Mayavi"
