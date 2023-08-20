@@ -217,7 +217,7 @@ class ProjectExplorerWidget(PluginMainWidget):
     # ---- PluginMainWidget API
     # -------------------------------------------------------------------------
     def get_title(self):
-        return _("Projects")
+        return _("Project")
 
     def setup(self):
         """Setup the widget."""

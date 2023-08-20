@@ -163,8 +163,11 @@ class Switcher(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
+
         projects.sig_project_loaded.connect(self._set_project_dir)
         projects.sig_project_closed.connect(self._unset_project_dir)
+
+        self._switcher.projects_section = projects.get_widget().get_title()
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):

@@ -166,6 +166,7 @@ class Switcher(QDialog):
         self._item_styles = item_styles
         self._item_separator_styles = item_separator_styles
         self.current_project = None
+        self.projects_section = None
 
         # Widgets
         self.edit = QLineEdit(self)
@@ -352,7 +353,7 @@ class Switcher(QDialog):
 
             # Results come from Projects in the right order, so we don't need
             # to sort them here.
-            if item._section != "Projects":
+            if item._section != self.projects_section:
                 item.set_score(score_value)
 
         self.proxy.set_filter_by_score(True)
@@ -498,7 +499,7 @@ class Switcher(QDialog):
                 # backwards so that the indexes are not affected
                 item = self.model.item(row)
                 if isinstance(item, SwitcherItem):
-                    if item._section == "Projects":
+                    if item._section == self.projects_section:
                         self.model.removeRow(row)
                         continue
 
