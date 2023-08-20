@@ -2535,9 +2535,14 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
-def test_switcher_project_files(main_window, qtbot, tmpdir):
+def test_switcher_project_files(main_window, pytestconfig, qtbot, tmp_path):
     """Test the number of items in the switcher when a project is active."""
-    # Wait until the window is fully up
+    # Disable pytest stdin capture to make calls to fzf work. Idea taken from:
+    # https://github.com/pytest-dev/pytest/issues/2189#issuecomment-449512764
+    capmanager = pytestconfig.pluginmanager.getplugin('capturemanager')
+    capmanager.suspend_global_capture(in_=True)
+
+    # Wait until the console is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -2550,46 +2555,74 @@ def test_switcher_project_files(main_window, qtbot, tmpdir):
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
-    project_dir = to_text_string(tmpdir.mkdir('test'))
+    project_dir = tmp_path / 'test-projects-switcher'
+    project_dir.mkdir()
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects.create_project(project_dir)
+        projects.create_project(str(project_dir))
 
-    # Create four empty files in the project dir
-    for i in range(3):
-        main_window.editor.new("test_file"+str(i)+".py")
+    # Create some empty files in the project dir
+    n_files_project = 3
+    for i in range(n_files_project):
+        fpath = project_dir / f"test_file{i}.py"
+        fpath.touch()
 
-    switcher.open_switcher()
-    n_files_project = len(projects.get_project_filenames())
-    n_files_open = editorstack.get_stack_count()
+    # Check that the switcher has been populated in Projects
+    qtbot.waitUntil(
+        lambda: projects.get_widget()._default_switcher_paths != [],
+        timeout=1000
+    )
 
     # Assert that the number of items in the switcher is correct
-    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    switcher.open_switcher()
+    n_files_open = editorstack.get_stack_count()
+    assert switcher.count() == n_files_open + n_files_project
     switcher.on_close()
 
-    # Close all files opened in editorstack
-    main_window.editor.close_all_files()
-
+    # Assert only two items have visible sections
     switcher.open_switcher()
-    n_files_project = len(projects.get_project_filenames())
-    n_files_open = editorstack.get_stack_count()
-    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+
+    sections = []
+    for row in range(switcher.count()):
+        item = switcher_widget.model.item(row)
+        if item._section_visible:
+            sections.append(item.get_section())
+
+    assert set(sections) == {"Editor", "Project"}
+    switcher.on_close()
+
+    # Assert searching text in the switcher works as expected
+    switcher.open_switcher()
+    switcher.set_search_text('0')
+    qtbot.wait(500)
+    assert switcher.count() == 1
+    switcher.on_close()
+
+    # Remove project file and check the switcher is updated
+    n_files_project -= 1
+    os.remove(osp.join(str(project_dir), 'test_file1.py'))
+    switcher.open_switcher()
+    qtbot.wait(500)
+    assert switcher.count() == n_files_open + n_files_project
     switcher.on_close()
 
     # Select file in the project explorer
     idx = projects.get_widget().treewidget.get_index(
-        osp.join(project_dir, 'test_file0.py'))
+        osp.join(str(project_dir), 'test_file0.py')
+    )
     projects.get_widget().treewidget.setCurrentIndex(idx)
 
     # Press Enter there
     qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     switcher.open_switcher()
-    n_files_project = len(projects.get_project_filenames())
     n_files_open = editorstack.get_stack_count()
-    assert switcher_widget.model.rowCount() == n_files_open + n_files_project
+    assert switcher.count() == n_files_open + n_files_project - 1
     switcher.on_close()
+
+    # Resume capturing
+    capmanager.resume_global_capture()
 
 
 @flaky(max_runs=3)
