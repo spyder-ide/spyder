@@ -264,13 +264,15 @@ class CompletionPlugin(SpyderPluginV2):
     def get_name() -> str:
         return _('Completion and linting')
 
-    def get_description(self) -> str:
-        return _('This plugin is in charge of handling and dispatching, as '
-                 'well as of receiving the responses of completion and '
-                 'linting requests sent to multiple providers.')
+    @staticmethod
+    def get_description() -> str:
+        return _('Handle code completion, analysis, formatting, introspection, '
+                 'folding and more via the Language Server Protocol and other '
+                 'providers.')
 
-    def get_icon(self):
-        return self.create_icon('completions')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('completions')
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)

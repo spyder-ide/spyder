@@ -1,6 +1,6 @@
 # History of changes for Spyder 6
 
-## Version 6.0alpha1 (2023-06-19)
+## Version 6.0.0 (unreleased)
 
 ### New features
 
@@ -17,16 +17,37 @@
 
 ### Important fixes
 
+* Environment variables declared in `~/.bashrc` or `~/.zhrc` are detected and
+  passed to the IPython console.
 * Restore ability to load Hdf5 and Dicom files through the Variable Explorer
   (this was working in Spyder 4 and before).
 
+### UX/UI improvements
+
+* The file switcher can open files present in the current project.
+* The interface font used by the entire application can be configured in
+  `Preferences > Appearance`
+* Files can be opened in the editor by pasting their path in the Working
+  Directory toolbar.
+* Add a new button to the Variable Explorer to indicate when variables are being
+  filtered.
+
 ### New API features
 
-* Generalize Run plugin to support generic inputs and executors. This allows
+* `SpyderPluginV2.get_description` must be a static method now and
+  `SpyderPluginV2.get_icon` a class or static method. This is necessary to
+  display the list of available plugins in Preferences in a more user-friendly
+  way (see PR spyder-ide/spyder#21101).
+* Generalize the Run plugin to support generic inputs and executors. This allows
   plugins to declare what kind of inputs (i.e. file, cell or selection) they
   can execute and how they will display the result.
-* Add a new plugin for the files and symbols switcher.
+* Add a new plugin called Switcher for the files and symbols switcher.
 * Declare a proper API for the Projects plugin.
+* Remove the Breakpoints plugin and add its functionality to the Debugger one.
+
+----
+
+## Version 6.0alpha1 (2023-06-19)
 
 ### Issues Closed
 

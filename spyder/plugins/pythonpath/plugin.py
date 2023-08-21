@@ -33,7 +33,6 @@ class PythonpathManager(SpyderPluginV2):
     CONTAINER_CLASS = PythonpathContainer
     CONF_SECTION = NAME
     CONF_FILE = False
-    CAN_BE_DISABLED = False
 
     sig_pythonpath_changed = Signal(object, object)
     """
@@ -66,12 +65,13 @@ class PythonpathManager(SpyderPluginV2):
     def get_name():
         return _("PYTHONPATH manager")
 
-    def get_description(self):
-        return _("Manager of additional locations to search for Python "
-                 "modules.")
+    @staticmethod
+    def get_description():
+        return _("Manage additional locations to search for Python modules.")
 
-    def get_icon(self):
-        return self.create_icon('python')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('python')
 
     def on_initialize(self):
         container = self.get_container()

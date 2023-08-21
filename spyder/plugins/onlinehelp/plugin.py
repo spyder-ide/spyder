@@ -46,12 +46,16 @@ class OnlineHelp(SpyderDockablePlugin):
     def get_name():
         return _('Online help')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _(
-            'Browse and search the currently installed modules interactively.')
+            "Browse and search documentation for installed Python modules "
+            "interactively."
+        )
 
-    def get_icon(self):
-        return self.create_icon('help')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('online_help')
 
     def on_close(self, cancelable=False):
         self.save_history()

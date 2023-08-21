@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
@@ -90,23 +92,22 @@ jobs:
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
-          extra-specs: |
-            python=${{ matrix.PYTHON_VERSION }}
+          create-args: python=${{ matrix.PYTHON_VERSION }}
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: false
           environment-name: test
           cache-downloads: true
-          channels: conda-forge
-          extra-specs: |
-            python=${{ matrix.PYTHON_VERSION }}
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+          condarc: |
+            channels:
+              - conda-forge
       - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
@@ -145,5 +146,5 @@ jobs:
       - name: Coverage
         uses: codecov/codecov-action@v3
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true

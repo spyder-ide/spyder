@@ -48,4 +48,4 @@ class LintingConfigTab(SpyderPreferencesTab):
         linting_layout.addWidget(underline_errors_box)
         linting_layout.addWidget(linting_complexity_box)
         self.setLayout(linting_layout)
-        linting_check.toggled.connect(underline_errors_box.setEnabled)
+        linting_check.checkbox.toggled.connect(underline_errors_box.setEnabled)

@@ -44,10 +44,12 @@ class MainMenu(SpyderPluginV2):
     def get_name():
         return _('Main menus')
 
-    def get_icon(self):
-        return self.create_icon('genprefs')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('genprefs')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _('Provide main application menu management.')
 
     def on_initialize(self):

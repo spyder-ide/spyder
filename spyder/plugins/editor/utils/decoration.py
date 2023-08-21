@@ -21,7 +21,7 @@ from qtpy.QtCore import QObject, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 
 
 # Timeout to avoid almost simultaneous calls to update decorations, which
@@ -41,8 +41,7 @@ class TextDecorationsManager(Manager, QObject):
     widget.
     """
     def __init__(self, editor):
-        super(TextDecorationsManager, self).__init__(editor)
-        QObject.__init__(self, None)
+        super().__init__(editor)
         self._decorations = {"misc": []}
 
         # Timer to not constantly update decorations.
