@@ -15,16 +15,16 @@ import re
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
+    QEvent, QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
                         QImage, QPainter, QRegExpValidator, QTextDocument,
                         QPixmap)
 from qtpy.QtSvg import QSvgRenderer
-from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
-                            QSpacerItem, QStyle, QStyledItemDelegate,
-                            QStyleOptionFrame, QStyleOptionViewItem,
-                            QTableView, QToolButton, QToolTip, QVBoxLayout,
-                            QWidget, QHBoxLayout, QLabel, QFrame)
+from qtpy.QtWidgets import (
+    QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
+    QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
+    QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
+    QLabel, QFrame)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -374,12 +374,57 @@ class IconLineEdit(QLineEdit):
         super().focusOutEvent(event)
 
 
-class FinderLineEdit(QLineEdit):
+class ClearLineEdit(QLineEdit):
+    """QLineEdit with a clear button."""
+
+    def __init__(self, parent, reposition_button=False):
+        super().__init__(parent)
+
+        # Add button to clear text inside the line edit.
+        self.clear_action = QAction(self)
+        self.clear_action.setIcon(ima.icon('clear_text'))
+        self.clear_action.setToolTip(_('Clear text'))
+        self.clear_action.triggered.connect(self.clear)
+        self.addAction(self.clear_action, QLineEdit.TrailingPosition)
+
+        # Button that corresponds to the clear_action above
+        self.clear_button = self.findChildren(QToolButton)[0]
+
+        # Hide clear_action by default because lineEdit is empty when the
+        # combobox is created, so it doesn't make sense to show it.
+        self.clear_action.setVisible(False)
+
+        # Signals
+        self.textChanged.connect(self._on_text_changed)
+
+        # Event filter
+        if reposition_button:
+            self.installEventFilter(self)
+
+    def _on_text_changed(self, text):
+        """Actions to take when text has changed on the line edit widget."""
+        if text:
+            self.clear_action.setVisible(True)
+        else:
+            self.clear_action.setVisible(False)
+
+    def eventFilter(self, widget, event):
+        """
+        Event filter for this widget used to reduce the space between
+        clear_button and the right border of the line edit.
+        """
+        if event.type() == QEvent.Paint:
+            self.clear_button.move(self.width() - 22, self.clear_button.y())
+
+        return super().eventFilter(widget, event)
+
+
+class FinderLineEdit(ClearLineEdit):
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None):
-        super(FinderLineEdit, self).__init__(parent)
+        super().__init__(parent)
         self.key_filter_dict = key_filter_dict
 
         if regex_base is not None:

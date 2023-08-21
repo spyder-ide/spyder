@@ -107,7 +107,9 @@ class FindReplace(QWidget):
         self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
-        self.search_text.clear_action.triggered.connect(self.clear_matches)
+        self.search_text.lineEdit().clear_action.triggered.connect(
+            self.clear_matches
+        )
         self.hide_number_matches_text = False
         self.number_matches_pixmap = (
             ima.icon('number_matches').pixmap(self.icon_size)
