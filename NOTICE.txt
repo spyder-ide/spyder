@@ -1479,37 +1479,6 @@ spyder/images/light/file_type_tex.svg
 -------------------------------------------------------------------------------
 
 
-Icons for Kite Completions Plugin
----------------------------------
-
-
-Copyright (c) 2019 Kite
-
-
-Author: Kite | https://kite.com
-Site: https://kite.com
-Source: https://kite.com
-License: Creative Commons Attribution 4.0 International
-https://creativecommons.org/licenses/by/4.0/
-
-
-Licensed under the terms of the Creative Commons Attribution International 4.0.
-
-
-See below for the full text of the Creative Commons Attribution International 4.0 License.
-
-
-Files covered:
-
-spyder/images/dark/kite.svg
-spyder/images/kite/kite_copilot.png
-spyder/images/light/kite.svg
-
-
-===============================================================================
-
-
-
 Plugin Assets
 =============
 
