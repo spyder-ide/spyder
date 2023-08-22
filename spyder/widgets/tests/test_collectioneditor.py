@@ -29,8 +29,9 @@ from qtpy.QtWidgets import QWidget, QDateEdit
 # Local imports
 from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
-    RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
+    CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
+    CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
+    ROWS_TO_LOAD)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
@@ -920,6 +921,22 @@ def test_dicts_natural_sorting_mixed_types():
     assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
                                     ['Series', 'dict', 'list', 'str'],
                                     ['(0,)', 2, 3, str_size]]
+
+
+def test_collectioneditor_plot(qtbot):
+    """
+    Test that plotting a list from the collection editor calls the .plot()
+    function in the associated namespace browser.
+    """
+    my_list = [4, 2]
+    mock_namespacebrowser = Mock()
+    cew = CollectionsEditorWidget(
+        None, {'list': my_list}, namespacebrowser=mock_namespacebrowser)
+    qtbot.addWidget(cew)
+
+    cew.editor.plot('list', 'plot')
+
+    mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
 
 
 if __name__ == "__main__":

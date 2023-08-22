@@ -1420,10 +1420,7 @@ class CollectionsEditorTableView(BaseTableView):
     def plot(self, key, funcname):
         """Plot item"""
         data = self.source_model.get_data()
-        import spyder.pyplot as plt
-        plt.figure()
-        getattr(plt, funcname)(data[key])
-        plt.show()
+        self.namespacebrowser.plot(data[key], funcname)
 
     def imshow(self, key):
         """Show item's image"""

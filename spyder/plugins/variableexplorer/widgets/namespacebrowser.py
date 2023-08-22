@@ -432,3 +432,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             return msg
         except (UnpicklingError, RuntimeError, CommError):
             return None
+
+    def plot(self, data, funcname):
+        """Plot data"""
+        import spyder.pyplot as plt
+        plt.figure()
+        getattr(plt, funcname)(data)
+        plt.show()
