@@ -421,7 +421,8 @@ class ApplicationContainer(PluginMainContainer):
     def compute_dependencies(self):
         """Compute dependencies."""
         self.dependencies_thread.run = self._compute_dependencies
-        self.dependencies_thread.finished.connect(self.report_missing_dependencies)
+        self.dependencies_thread.finished.connect(
+            self.report_missing_dependencies)
         self.dependencies_thread.finished.connect(self._set_dependencies)
 
         # This avoids computing missing deps before the window is fully up
