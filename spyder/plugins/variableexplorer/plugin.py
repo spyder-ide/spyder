@@ -88,7 +88,8 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
         Parameters
         ----------
         image: bytes
-            The image to show.
+            The image to show. SVG images should be encoded so that the type
+            of this parameter is `bytes`, not `str`.
         mime_type: str
             The image's mime type.
         shellwidget: ShellWidget
@@ -100,4 +101,6 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
 
         plots = self.get_plugin(Plugins.Plots)
         if plots:
+            if mime_type == 'image/svg+xml':
+                image = image.decode()
             plots.add_plot(image, mime_type, shellwidget)

@@ -480,10 +480,32 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         import spyder.pyplot as plt
         from IPython.core.pylabtools import print_figure
 
-        fig, ax = plt.subplots()
+        if self.get_conf('pylab/inline/figure_format',
+                         section='ipython_console') == 1:
+            figure_format = 'svg'
+            mime_type = 'image/svg+xml'
+        else:
+            figure_format = 'png'
+            mime_type = 'image/png'
+        resolution = self.get_conf('pylab/inline/resolution',
+                                   section='ipython_console')
+        width = self.get_conf('pylab/inline/width',
+                              section='ipython_console')
+        height = self.get_conf('pylab/inline/height',
+                               section='ipython_console')
+        if self.get_conf('pylab/inline/bbox_inches',
+                         section='ipython_console'):
+            bbox_inches = 'tight'
+        else:
+            bbox_inches = None
+
+        fig, ax = plt.subplots(figsize=(width, height))
         getattr(ax, funcname)(data)
-        png = print_figure(fig)
-        self.sig_show_figure_requested.emit(png, 'image/png', self.shellwidget)
+        image = print_figure(fig, fmt=figure_format, bbox_inches=bbox_inches,
+                             dpi=resolution)
+        if figure_format == 'svg':
+            image = image.encode()
+        self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)
 
     def plot_in_window(self, data, funcname):
         """
