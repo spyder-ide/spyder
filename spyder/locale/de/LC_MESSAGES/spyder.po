@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-06-22 20:04\n"
+"PO-Revision-Date: 2023-08-22 07:18\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -6281,7 +6281,7 @@ msgstr "<b>Warnung: %s-Dateien können bösartigen Code enthalten!</b><br><br>Fa
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:203
 msgid "<b>Unsupported file extension '%s'</b><br><br>Would you like to import it anyway by selecting a known file format?"
-msgstr ""
+msgstr "<b>Nicht unterstützte Dateierweiterung ‚%s‘</b><br><br>Möchten Sie sie trotzdem importieren, indem Sie ein bekanntes Dateiformat auswählen?"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:213
 msgid "Open file as:"
