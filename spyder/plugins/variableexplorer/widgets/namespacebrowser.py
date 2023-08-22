@@ -29,6 +29,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
@@ -58,6 +59,20 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
     sig_hide_finder_requested = Signal()
+
+    sig_show_figure_requested = Signal(bytes, str, object)
+    """
+    This is emitted to request that a figure be shown in the Plots plugin.
+
+    Parameters
+    ----------
+    image: bytes
+        The image to show.
+    mime_type: str
+        The image's mime type.
+    shellwidget: ShellWidget
+        The shellwidget associated with the figure.
+    """
 
     def __init__(self, parent):
         if PYQT5:
@@ -186,7 +201,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     def update_view(self, kernel_state):
         """
         Update namespace view and other properties from a new kernel state.
-        
+
         Parameters
         ----------
         kernel_state: dict
@@ -301,7 +316,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     return
 
             load_func = iofunctions.load_funcs[extension]
-                
+
             # 'import_wizard' (self.setup_io)
             if isinstance(load_func, str):
                 # Import data with import wizard
@@ -322,7 +337,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 error_message = self.load_data(self.filename, extension)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
-    
+
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
@@ -434,8 +449,48 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             return None
 
     def plot(self, data, funcname):
-        """Plot data"""
+        """
+        Plot data.
+
+        If all the following conditions are met:
+        * the Plots plugin is enabled, and
+        * the setting "Mute inline plotting" in the Plots plugin is set, and
+        * the graphics backend in the IPython Console preferences is set
+          to "inline",
+        then call `plot_in_plots_plugin`, else call `plot_in_window`.
+        """
+        stacked_widget = self.parent()
+        variable_explorer_widget = stacked_widget.parent()
+        variable_explorer_plugin = variable_explorer_widget.get_plugin()
+        if (variable_explorer_plugin.is_plugin_enabled(Plugins.Plots)
+                and self.get_conf('mute_inline_plotting', section='plots')
+                and self.get_conf('pylab/backend',
+                                  section='ipython_console') == 0):
+            self.plot_in_plots_plugin(data, funcname)
+        else:
+            self.plot_in_window(data, funcname)
+
+    def plot_in_plots_plugin(self, data, funcname):
+        """
+        Plot data in Plots plugin.
+
+        Plot the given data to a PNG image and show the plot in the Plots
+        plugin.
+        """
         import spyder.pyplot as plt
+        from IPython.core.pylabtools import print_figure
+
+        fig, ax = plt.subplots()
+        getattr(ax, funcname)(data)
+        png = print_figure(fig)
+        self.sig_show_figure_requested.emit(png, 'image/png', self.shellwidget)
+
+    def plot_in_window(self, data, funcname):
+        """
+        Plot data in new Qt window.
+        """
+        import spyder.pyplot as plt
+
         plt.figure()
         getattr(plt, funcname)(data)
         plt.show()

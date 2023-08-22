@@ -9,7 +9,7 @@ Tests for namespacebrowser.py
 
 # Standard library imports
 import string
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 # Third party imports
 from flaky import flaky
@@ -17,6 +17,7 @@ import pytest
 from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
@@ -201,6 +202,56 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
     # Assert that can find 'z' among the declared variables.
     browser.do_find("z")
     assert model.rowCount() == 1
+
+
+def test_namespacebrowser_plot_with_mute_inline_plotting_true(
+        namespacebrowser, qtbot):
+    """
+    Test that plotting a list from the namespace browser sends a signal
+    with the plot if `mute_inline_plotting` is set to `True`.
+    """
+    CONF.set('plots', 'mute_inline_plotting', True)
+    my_list = [4, 2]
+    mock_figure = Mock()
+    mock_axis = Mock()
+    mock_png = b'fake png'
+    mock_stacked_widget = Mock()
+
+    with (patch.object(namespacebrowser, 'parent',
+                       return_value=mock_stacked_widget),
+          patch('spyder.pyplot.subplots',
+                return_value=(mock_figure, mock_axis)),
+          patch('IPython.core.pylabtools.print_figure',
+                return_value=mock_png) as mock_print_figure,
+          qtbot.waitSignal(namespacebrowser.sig_show_figure_requested)
+          as blocker):
+        namespacebrowser.plot(my_list, 'plot')
+
+    mock_axis.plot.assert_called_once_with(my_list)
+    mock_print_figure.assert_called_once_with(mock_figure)
+    expected_args = [mock_png, 'image/png', namespacebrowser.shellwidget]
+    assert blocker.args == expected_args
+
+
+def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser):
+    """
+    Test that plotting a list from the namespace browser shows a plot if
+    `mute_inline_plotting` is set to `False`.
+    """
+    CONF.set('plots', 'mute_inline_plotting', False)
+    my_list = [4, 2]
+    mock_stacked_widget = Mock()
+
+    with (patch.object(namespacebrowser, 'parent',
+                       return_value=mock_stacked_widget),
+          patch('spyder.pyplot.figure') as mock_figure,
+          patch('spyder.pyplot.plot') as mock_plot,
+          patch('spyder.pyplot.show') as mock_show):
+        namespacebrowser.plot(my_list, 'plot')
+
+    mock_figure.assert_called_once_with()
+    mock_plot.assert_called_once_with(my_list)
+    mock_show.assert_called_once_with()
 
 
 if __name__ == "__main__":

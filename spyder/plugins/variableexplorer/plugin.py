@@ -26,6 +26,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     """
     NAME = 'variable_explorer'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
+    OPTIONAL = [Plugins.Plots]
     TABIFY = None
     WIDGET_CLASS = VariableExplorerWidget
     CONF_SECTION = NAME
@@ -50,9 +51,8 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
 
     def on_initialize(self):
         widget = self.get_widget()
-        widget.sig_open_preferences_requested.connect(
-            self._open_preferences
-        )
+        widget.sig_open_preferences_requested.connect(self._open_preferences)
+        widget.sig_show_figure_requested.connect(self._show_figure)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -75,3 +75,24 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
             dlg = container.dialog
             index = dlg.get_index_by_name(self.NAME)
             dlg.set_current_index(index)
+
+    def _show_figure(self, image, mime_type, shellwidget):
+        """
+        Show figure in Plots plugin.
+
+        This shows the figure in the figure browser associated with the given
+        shellwidget. The Plots plugin and the window containing the Plots
+        plugin are both raised so that the user will see the figure.
+
+        Parameters
+        ----------
+        image: bytes
+            The image to show.
+        mime_type: str
+            The image's mime type.
+        shellwidget: ShellWidget
+            The shellwidget associated with the figure.
+        """
+        plots = self.get_plugin(Plugins.Plots)
+        if plots:
+            plots.add_plot(image, mime_type, shellwidget)

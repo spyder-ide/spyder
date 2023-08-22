@@ -2388,6 +2388,50 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
+def test_plot_from_collectioneditor(main_window, qtbot):
+    """
+    Create a variable with value `[[1, 2, 3], [4, 5, 6]]`, use the variable
+    explorer to open a collection editor and plot the first sublist. Check
+    that a plot is displayed in the Plots pane.
+    """
+    CONF.set('plots', 'mute_inline_plotting', True)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    figbrowser = main_window.plots.current_widget()
+    nsb = main_window.variableexplorer.current_widget()
+
+    # Check that we start with no plots
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+
+    # Wait until the window console is fully up
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Create variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(('nested_list = [[1, 2, 3], [4, 5, 6]]'))
+
+    # Edit `nested_list` in Variable Explorer
+    main_window.variableexplorer.change_visibility(True)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    nsb.editor.setFocus()
+    nsb.editor.edit_item()
+
+    # Find the collection editor
+    from spyder.widgets.collectionseditor import CollectionsEditor
+    for child in nsb.editor.children():
+        for grandchild in child.children():
+            if isinstance(grandchild, CollectionsEditor):
+                collections_editor = grandchild
+
+    # Plot item 0 in collection editor
+    collections_editor.widget.editor.plot(0, 'plot')
+
+    # Check that we now have one plot
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 1
+
+
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")

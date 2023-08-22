@@ -13,7 +13,7 @@ import logging
 import traceback
 
 # Third-party imports
-from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import Signal, Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QGroupBox, QHBoxLayout, QHeaderView,
