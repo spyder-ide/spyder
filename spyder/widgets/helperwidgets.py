@@ -541,7 +541,7 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         # add the image_lebel (icon)
         pane_empty_layout.addWidget(image_label)
 
-        # Display spinner if called
+        # Display spinner if requested
         if spinner is not False:
             spin_widget = qta.IconWidget()
             spin_icon = qta.icon(
