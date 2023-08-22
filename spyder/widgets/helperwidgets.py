@@ -549,9 +549,6 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
                 color="white",
                 animation=qta.Spin(spin_widget, interval=3),
             )
-            # spin_widget = create_waitspinner(size=32, parent=self)
-            # spin_widget.setRevolutionsPerSecond(1)
-            # spin_widget.start()
             spin_widget.setIconSize(QSize(32, 32))
             spin_widget.setIcon(spin_icon)
             spin_widget.setStyleSheet(image_label_qss.toString())
