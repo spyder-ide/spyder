@@ -27,6 +27,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
+from spyder.config.utils import get_edit_extensions
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
@@ -191,8 +192,11 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.watcher = WorkspaceWatcher(self)
         self.watcher.connect_signals(self)
 
-        # To manage the worker that calls fzf
+        # -- Worker manager for calls to fzf
         self._worker_manager = WorkerManager(self)
+
+        # -- List of possible file extensions that can be opened in the Editor
+        self._edit_extensions = get_edit_extensions()
 
         # -- Signals
         self.sig_project_loaded.connect(self._setup_project)
@@ -1032,9 +1036,10 @@ class ProjectExplorerWidget(PluginMainWidget):
             for path in relative_path_list
         ]
 
-        # Remove binary files
+        # Filter files that can be opened in the editor
         result_list = [
-            path for path in result_list if encoding.is_text_file(path)
+            path for path in result_list
+            if osp.splitext(path)[1] in self._edit_extensions
         ]
 
         # Limit the number of results to not introduce lags when displaying
