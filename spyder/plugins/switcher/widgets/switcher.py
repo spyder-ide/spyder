@@ -407,7 +407,7 @@ class Switcher(QDialog):
                 if not self._is_separator(item):
                     item.set_section_visible(visible)
             else:
-                # We need to remove this if when a mode has several sections
+                # We need to remove this when a mode has several sections
                 if not mode:
                     item.set_section_visible(True)
 
@@ -471,13 +471,14 @@ class Switcher(QDialog):
 
     def reject(self):
         """Override Qt method."""
+        # This prevents calling _on_search_text_changed, which unnecessarily
+        # tries to populate the switcher when we're closing it.
+        self.edit.blockSignals(True)
         self.set_search_text('')
+        self.edit.blockSignals(False)
+
         self.sig_rejected.emit()
         super(Switcher, self).reject()
-
-    def resizeEvent(self, event):
-        """Override Qt method."""
-        super(Switcher, self).resizeEvent(event)
 
     # ---- Helper methods: Lineedit widget
     def search_text(self):
