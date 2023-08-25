@@ -61,6 +61,9 @@ class EditorSwitcherManager(object):
         self._switcher.sig_rejected.connect(self.handle_switcher_rejection)
         self._switcher.sig_item_changed.connect(
             self.handle_switcher_item_change)
+        self._switcher.sig_search_text_available.connect(
+            lambda text: self._switcher.setup()
+        )
 
     def handle_switcher_modes(self, mode):
         """Handle switcher for registered modes."""
