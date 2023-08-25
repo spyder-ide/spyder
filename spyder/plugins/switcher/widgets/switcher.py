@@ -222,11 +222,8 @@ class Switcher(QDialog):
         self.edit.setFocus()
 
     # ---- Helper methods
-    def _add_item(self, item, last_item=True, score=None):
+    def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
-        if score is not None:
-            item.set_score(score)
-
         item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
 
@@ -273,7 +270,7 @@ class Switcher(QDialog):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True, score=None):
+                 last_item=True, score=-1, use_score=True):
         """Add switcher list item."""
         item = SwitcherItem(
             parent=self.list,
@@ -285,14 +282,17 @@ class Switcher(QDialog):
             section=section,
             action_item=action_item,
             tool_tip=tool_tip,
-            styles=self._item_styles
+            styles=self._item_styles,
+            score=score,
+            use_score=use_score
         )
-        self._add_item(item, last_item=last_item, score=score)
+        self._add_item(item, last_item=last_item)
 
     def add_separator(self):
         """Add separator item."""
-        item = SwitcherSeparatorItem(parent=self.list,
-                                     styles=self._item_separator_styles)
+        item = SwitcherSeparatorItem(
+            parent=self.list, styles=self._item_separator_styles
+        )
         self._add_item(item)
 
     def setup(self):

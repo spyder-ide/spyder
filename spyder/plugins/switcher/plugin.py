@@ -212,11 +212,11 @@ class Switcher(SpyderPluginV2):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True, score=None):
+                 last_item=True, score=None, use_score=True):
         """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
-                                last_item, score)
+                                last_item, score, use_score)
 
     def set_current_row(self, row):
         """Set the current selected row in the switcher."""
