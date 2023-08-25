@@ -569,7 +569,8 @@ class Projects(SpyderDockablePlugin):
                 section=section,
                 data=path,
                 last_item=is_last_item,
-                score=1e10  # To make the editor results appear first
+                score=1e10,  # To make the editor results appear first
+                use_score=False  # Results come from fzf in the right order
             )
 
         if setup:

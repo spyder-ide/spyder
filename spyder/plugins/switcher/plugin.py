@@ -39,7 +39,7 @@ class Switcher(SpyderPluginV2):
     """
 
     NAME = "switcher"
-    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    OPTIONAL = [Plugins.MainMenu]
     CONTAINER_CLASS = SwitcherContainer
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -159,15 +159,6 @@ class Switcher(SpyderPluginV2):
                 action,
                 menu_id=ApplicationMenus.File
             )
-
-    @on_plugin_available(plugin=Plugins.Projects)
-    def on_projects_available(self):
-        projects = self.get_plugin(Plugins.Projects)
-        self._switcher.projects_section = projects.get_widget().get_title()
-
-    @on_plugin_teardown(plugin=Plugins.Projects)
-    def on_projects_teardown(self):
-        self._switcher.projects_section = None
 
     # ---- Public API
     # -------------------------------------------------------------------------

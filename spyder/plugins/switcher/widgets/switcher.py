@@ -165,7 +165,6 @@ class Switcher(QDialog):
         self._mode_on = ''
         self._item_styles = item_styles
         self._item_separator_styles = item_separator_styles
-        self.projects_section = None
 
         # Widgets
         self.edit = QLineEdit(self)
@@ -350,10 +349,7 @@ class Switcher(QDialog):
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
 
-            # Results come from Projects in the right order, so we don't need
-            # to sort them here.
-            if item._section != self.projects_section:
-                item.set_score(score_value)
+            item.set_score(score_value)
 
         self.proxy.set_filter_by_score(True)
         self.proxy.sortBy('_score')
