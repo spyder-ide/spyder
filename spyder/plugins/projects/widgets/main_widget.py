@@ -645,7 +645,7 @@ class ProjectExplorerWidget(PluginMainWidget):
             return
 
         self._display_paths_in_switcher(
-            self._default_switcher_paths, setup=False
+            self._default_switcher_paths, setup=False, clear_section=False
         )
 
     def handle_switcher_selection(self, item, mode, search_text):
@@ -1052,7 +1052,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         if not self._default_switcher_paths:
             self._default_switcher_paths = result_list
         else:
-            self._display_paths_in_switcher(result_list)
+            self._display_paths_in_switcher(
+                result_list, setup=True, clear_section=True
+            )
 
     def _convert_paths_to_switcher_items(self, paths):
         """
@@ -1086,13 +1088,13 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         return items
 
-    def _display_paths_in_switcher(self, paths, setup=True):
+    def _display_paths_in_switcher(self, paths, setup, clear_section):
         """Display a list of paths in the switcher."""
         items = self._convert_paths_to_switcher_items(paths)
 
         # Call directly the plugin's method instead of emitting a signal
-        # because it's faster
-        self._plugin._display_items_in_switcher(items, setup=setup)
+        # because it's faster.
+        self._plugin._display_items_in_switcher(items, setup, clear_section)
 
     def _clear_switcher_paths(self):
         """Clear saved switcher results."""

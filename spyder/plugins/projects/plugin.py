@@ -545,8 +545,22 @@ class Projects(SpyderDockablePlugin):
         """
         self.get_widget().handle_switcher_search(search_text)
 
-    def _display_items_in_switcher(self, items, setup=True):
-        """Display a list of items in the switcher."""
+    def _display_items_in_switcher(self, items, setup, clear_section):
+        """
+        Display a list of items in the switcher.
+
+        Parameters
+        ----------
+        items: list
+            Items to display.
+        setup: bool
+            Call the switcher's setup after adding the items.
+        clear_section: bool
+            Clear Projects section before adding the items.
+        """
+        if clear_section:
+            self._switcher.remove_section(self.get_widget().get_title())
+
         for (title, description, icon, section, path, is_last_item) in items:
             self._switcher.add_item(
                 title=title,

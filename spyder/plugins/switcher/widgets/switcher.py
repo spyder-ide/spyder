@@ -165,7 +165,6 @@ class Switcher(QDialog):
         self._mode_on = ''
         self._item_styles = item_styles
         self._item_separator_styles = item_separator_styles
-        self.current_project = None
         self.projects_section = None
 
         # Widgets
@@ -411,6 +410,17 @@ class Switcher(QDialog):
                 if not mode:
                     item.set_section_visible(True)
 
+    def remove_section(self, section):
+        """Remove all items in a section of the switcher."""
+        # As we are removing items from the model, we need to iterate backwards
+        # so that the indexes are not affected.
+        for row in range(self.model.rowCount() - 1, -1, -1):
+            item = self.model.item(row)
+            if isinstance(item, SwitcherItem):
+                if item._section == section:
+                    self.model.removeRow(row)
+                    continue
+
     def set_height(self):
         """Set height taking into account the number of items."""
         if self.count() >= self._MAX_NUM_ITEMS:
@@ -491,19 +501,8 @@ class Switcher(QDialog):
 
     def _on_search_text_changed(self):
         """Actions to take when the search text has changed."""
-        if self.search_text() != "" and self.current_project is not None:
+        if self.search_text() != "":
             search_text = clean_string(self.search_text())
-
-            # Remove project rows and get data of editor items
-            for row in range(self.model.rowCount() - 1, -1, -1):
-                # As we are removing items from the model, we need to iterate
-                # backwards so that the indexes are not affected
-                item = self.model.item(row)
-                if isinstance(item, SwitcherItem):
-                    if item._section == self.projects_section:
-                        self.model.removeRow(row)
-                        continue
-
             self.sig_search_text_available.emit(search_text)
         else:
             self.setup()

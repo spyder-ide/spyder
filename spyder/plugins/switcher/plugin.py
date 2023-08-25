@@ -163,17 +163,11 @@ class Switcher(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-
-        projects.sig_project_loaded.connect(self._set_project_dir)
-        projects.sig_project_closed.connect(self._unset_project_dir)
-
         self._switcher.projects_section = projects.get_widget().get_title()
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
-        projects = self.get_plugin(Plugins.Projects)
-        projects.sig_project_loaded.disconnect(self._set_project_dir)
-        projects.sig_project_closed.connect(self._unset_project_dir)
+        self._switcher.projects_section = None
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -240,6 +234,10 @@ class Switcher(SpyderPluginV2):
         """Get the item count in the list widget."""
         return self._switcher.count()
 
+    def remove_section(self, section):
+        """Remove all items in a section of the switcher."""
+        self._switcher.remove_section(section)
+
     # Mode methods
     def add_mode(self, token, description):
         """Add mode by token key and description."""
@@ -261,11 +259,3 @@ class Switcher(SpyderPluginV2):
     def set_search_text(self, string):
         """Set the content of the search text."""
         self._switcher.set_search_text(string)
-
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _set_project_dir(self, path):
-        self._switcher.current_project = path
-
-    def _unset_project_dir(self, path):
-        self._switcher.current_project = None
