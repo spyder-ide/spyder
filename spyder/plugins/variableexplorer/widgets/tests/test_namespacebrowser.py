@@ -211,15 +211,13 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
     with the plot if `mute_inline_plotting` is set to `True`.
     """
     CONF.set('plots', 'mute_inline_plotting', True)
+    namespacebrowser.plots_plugin_enabled = True
     my_list = [4, 2]
     mock_figure = Mock()
     mock_axis = Mock()
     mock_png = b'fake png'
-    mock_stacked_widget = Mock()
 
-    with (patch.object(namespacebrowser, 'parent',
-                       return_value=mock_stacked_widget),
-          patch('spyder.pyplot.subplots',
+    with (patch('spyder.pyplot.subplots',
                 return_value=(mock_figure, mock_axis)),
           patch('IPython.core.pylabtools.print_figure',
                 return_value=mock_png) as mock_print_figure,
@@ -241,11 +239,8 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser)
     """
     CONF.set('plots', 'mute_inline_plotting', False)
     my_list = [4, 2]
-    mock_stacked_widget = Mock()
 
-    with (patch.object(namespacebrowser, 'parent',
-                       return_value=mock_stacked_widget),
-          patch('spyder.pyplot.figure') as mock_figure,
+    with (patch('spyder.pyplot.figure') as mock_figure,
           patch('spyder.pyplot.plot') as mock_plot,
           patch('spyder.pyplot.show') as mock_show):
         namespacebrowser.plot(my_list, 'plot')

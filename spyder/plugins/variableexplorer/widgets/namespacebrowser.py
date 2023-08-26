@@ -83,6 +83,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
         # Attributes
         self.filename = None
+        self.plots_plugin_enabled = False
 
         # Widgets
         self.editor = None
@@ -459,10 +460,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
           to "inline",
         then call `plot_in_plots_plugin`, else call `plot_in_window`.
         """
-        stacked_widget = self.parent()
-        variable_explorer_widget = stacked_widget.parent()
-        variable_explorer_plugin = variable_explorer_widget.get_plugin()
-        if (variable_explorer_plugin.is_plugin_enabled(Plugins.Plots)
+        if (self.plots_plugin_enabled
                 and self.get_conf('mute_inline_plotting', section='plots')
                 and self.get_conf('pylab/backend',
                                   section='ipython_console') == 0):

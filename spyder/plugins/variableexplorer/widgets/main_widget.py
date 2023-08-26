@@ -129,6 +129,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Attributes
         self._is_filter_button_checked = True
+        self.plots_plugin_enabled = False
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -465,6 +466,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             if widget:
                 widget.setup()
 
+    def set_plots_plugin_enabled(self, value: bool):
+        """
+        Change whether the Plots plugin is enabled.
+
+        This stores the information in this widget and propagates it to every
+        NamespaceBrowser.
+        """
+        self.plots_plugin_enabled = value
+        for index in range(self.count()):
+            nsb = self._stack.widget(index)
+            if nsb:
+                nsb.plots_plugin_enabled = value
+
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def switch_widget(self, nsb, old_nsb):
@@ -482,6 +496,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
         nsb.sig_show_figure_requested.connect(self.sig_show_figure_requested)
         nsb.set_shellwidget(shellwidget)
+        nsb.plots_plugin_enabled = self.plots_plugin_enabled
         nsb.setup()
         self._set_actions_and_menus(nsb)
 

@@ -54,6 +54,14 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
         widget.sig_open_preferences_requested.connect(self._open_preferences)
         widget.sig_show_figure_requested.connect(self._show_figure)
 
+    @on_plugin_available(plugin=Plugins.Plots)
+    def on_plots_available(self):
+        self.get_widget().set_plots_plugin_enabled(True)
+
+    @on_plugin_teardown(plugin=Plugins.Plots)
+    def on_plots_teardown(self):
+        self.get_widget().set_plots_plugin_enabled(False)
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
