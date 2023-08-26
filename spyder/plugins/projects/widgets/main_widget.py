@@ -1027,16 +1027,18 @@ class ProjectExplorerWidget(PluginMainWidget):
         if output is None or error:
             return
 
+        # Get list of paths from fzf output
         relative_path_list = output.decode('utf-8').strip().split("\n")
-        if relative_path_list == ['']:
-            return
 
-        # List of tuples with the absolute path
-        project_path = self.get_active_project_path()
-        result_list = [
-            osp.normpath(os.path.join(project_path, path))
-            for path in relative_path_list
-        ]
+        # List of results with absolute path
+        if relative_path_list != ['']:
+            project_path = self.get_active_project_path()
+            result_list = [
+                osp.normpath(os.path.join(project_path, path))
+                for path in relative_path_list
+            ]
+        else:
+            result_list = []
 
         # Filter files that can be opened in the editor
         result_list = [
