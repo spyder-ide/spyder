@@ -14,6 +14,7 @@ Tests for the main window.
 import gc
 import os
 import os.path as osp
+from pathlib import Path
 import random
 import re
 import shutil
@@ -2535,8 +2536,9 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
-def test_switcher_project_files(main_window, pytestconfig, qtbot, tmp_path):
-    """Test the number of items in the switcher when a project is active."""
+def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
+                                       tmp_path):
+    """Test integration between the Switcher and Projects plugins."""
     # Disable pytest stdin capture to make calls to fzf work. Idea taken from:
     # https://github.com/pytest-dev/pytest/issues/2189#issuecomment-449512764
     capmanager = pytestconfig.pluginmanager.getplugin('capturemanager')
@@ -2558,15 +2560,21 @@ def test_switcher_project_files(main_window, pytestconfig, qtbot, tmp_path):
     project_dir = tmp_path / 'test-projects-switcher'
     project_dir.mkdir()
 
-    # Create project
-    with qtbot.waitSignal(projects.sig_project_loaded):
-        projects.create_project(str(project_dir))
-
     # Create some empty files in the project dir
     n_files_project = 3
     for i in range(n_files_project):
         fpath = project_dir / f"test_file{i}.py"
         fpath.touch()
+
+    # Copy binary file from our source tree to the project to check it's not
+    # displayed in the switcher.
+    binary_file = Path(LOCATION).parents[1] / 'images' / 'windows_app_icon.ico'
+    binary_file_copy = project_dir / 'windows.ico'
+    shutil.copyfile(binary_file, binary_file_copy)
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects.create_project(str(project_dir))
 
     # Check that the switcher has been populated in Projects
     qtbot.waitUntil(
@@ -2589,7 +2597,7 @@ def test_switcher_project_files(main_window, pytestconfig, qtbot, tmp_path):
         if item._section_visible:
             sections.append(item.get_section())
 
-    assert set(sections) == {"Editor", "Project"}
+    assert len(sections) == 2
     switcher.on_close()
 
     # Assert searching text in the switcher works as expected
@@ -2599,27 +2607,53 @@ def test_switcher_project_files(main_window, pytestconfig, qtbot, tmp_path):
     assert switcher.count() == 1
     switcher.on_close()
 
+    # Assert searching for a non-existent file leaves the switcher empty
+    switcher.open_switcher()
+    switcher.set_search_text('foo')
+    qtbot.wait(500)
+    assert switcher.count() == 0
+    switcher.on_close()
+
+    # Assert searching for a binary file leaves the switcher empty
+    switcher.open_switcher()
+    switcher.set_search_text('windows')
+    qtbot.wait(500)
+    assert switcher.count() == 0
+    switcher.on_close()
+
     # Remove project file and check the switcher is updated
     n_files_project -= 1
-    os.remove(osp.join(str(project_dir), 'test_file1.py'))
-    switcher.open_switcher()
+    os.remove(str(project_dir / 'test_file1.py'))
     qtbot.wait(500)
+    switcher.open_switcher()
     assert switcher.count() == n_files_open + n_files_project
     switcher.on_close()
 
-    # Select file in the project explorer
+    # Check that a project file opened in the editor is not shown twice in the
+    # switcher
     idx = projects.get_widget().treewidget.get_index(
-        osp.join(str(project_dir), 'test_file0.py')
+        str(project_dir / 'test_file0.py')
     )
     projects.get_widget().treewidget.setCurrentIndex(idx)
-
-    # Press Enter there
     qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
 
     switcher.open_switcher()
     n_files_open = editorstack.get_stack_count()
     assert switcher.count() == n_files_open + n_files_project - 1
     switcher.on_close()
+
+    # Check the switcher works without fzf
+    fzf = projects.get_widget()._fzf
+    projects.get_widget()._fzf = None
+    projects.get_widget()._default_switcher_paths = []
+
+    switcher.open_switcher()
+    switcher.set_search_text('0')
+    qtbot.wait(500)
+    assert switcher.count() == 1
+    switcher.on_close()
+
+    projects.get_widget()._fzf = fzf
 
     # Resume capturing
     capmanager.resume_global_capture()
