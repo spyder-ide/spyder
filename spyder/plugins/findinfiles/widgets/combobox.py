@@ -9,13 +9,12 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import QEvent, QSize, Qt, Signal, Slot
+from qtpy.QtCore import QEvent, Qt, Signal, Slot
 from qtpy.QtWidgets import QComboBox, QMessageBox, QSizePolicy
 
 # Local imports
 from spyder.api.translations import _
 from spyder.utils.encoding import to_unicode_from_fs
-from spyder.utils.stylesheet import FIND_HEIGHT, FIND_MIN_WIDTH
 
 
 # ---- Constants
@@ -50,7 +49,6 @@ class SearchInComboBox(QComboBox):
         self.project_path = None
         self.file_path = None
         self.external_path = None
-        self.recommended_width = FIND_MIN_WIDTH
 
         if id_ is not None:
             self.ID = id_
@@ -212,7 +210,3 @@ class SearchInComboBox(QComboBox):
                 self.setCurrentIndex(new_index)
             return True
         return QComboBox.eventFilter(self, widget, event)
-
-    def sizeHint(self):
-        """Recommended size."""
-        return QSize(self.recommended_width, FIND_HEIGHT)

@@ -11,7 +11,7 @@ import os.path as osp
 import re
 
 # Third party imports
-from qtpy.QtCore import QSize, Signal
+from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
 
@@ -77,25 +77,6 @@ class FindInFilesWidgetToolbarItems:
     Stretcher1 = 'stretcher_1'
     SearchInCombo = 'search_in_combo'
     Stretcher2 = 'stretcher_2'
-
-
-# ---- Widgets
-# -----------------------------------------------------------------------------
-class ExcludePatternEdit(PatternComboBox):
-
-    def __init__(self, parent, items):
-        self.recommended_width = MAX_COMBOBOX_WIDTH
-        super().__init__(
-            parent,
-            items=items,
-            adjust_to_minimum=False,
-            id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo,
-            tip=_("Exclude pattern")
-        )
-
-    def sizeHint(self):
-        """Recommended size."""
-        return QSize(self.recommended_width, FIND_HEIGHT)
 
 
 # ---- Main widget
@@ -198,13 +179,24 @@ class FindInFilesWidget(PluginMainWidget):
         self.exclude_label.ID = FindInFilesWidgetToolbarItems.ExcludeLabel
 
         self.path_selection_combo = SearchInComboBox(
-            path_history, self,
-            id_=FindInFilesWidgetToolbarItems.SearchInCombo)
-        self.path_selection_combo.recommended_width = MAX_COMBOBOX_WIDTH
+            path_history,
+            self,
+            id_=FindInFilesWidgetToolbarItems.SearchInCombo
+        )
+        self.path_selection_combo.setMinimumSize(
+            MAX_COMBOBOX_WIDTH, FIND_HEIGHT
+        )
         self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
-        self.exclude_pattern_edit = ExcludePatternEdit(self, items=exclude)
-        self.exclude_pattern_edit.recommended_width = MAX_COMBOBOX_WIDTH
+        self.exclude_pattern_edit = PatternComboBox(
+            self,
+            exclude,
+            _("Exclude pattern"),
+            id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
+        )
+        self.exclude_pattern_edit.setMinimumSize(
+            MAX_COMBOBOX_WIDTH, FIND_HEIGHT
+        )
         self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.result_browser = ResultsBrowser(
