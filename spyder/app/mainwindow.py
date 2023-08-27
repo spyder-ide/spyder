@@ -391,7 +391,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Spyder compatibility check'))
+        messageBox.setWindowTitle(_('Plugin compatibility check'))
         messageBox.setText(
             _("It was not possible to load the {} plugin. The problem "
               "was:<br><br>{}").format(plugin_name, message)
