@@ -215,7 +215,17 @@ class ScrollFlagArea(Panel):
         }
         dict_flag_lists.update(self._dict_flag_list)
 
-        for flag_type in reversed(dict_flag_lists):
+        # The ability to reverse dictionaries was added in Python 3.8.
+        # Fixes spyder-ide/spyder#21286
+        if sys.version_info[:2] > (3, 7):
+            # This is necessary to paint find matches above errors and
+            # warnings.
+            # See spyder-ide/spyder#20970
+            dict_flag_lists_iter = reversed(dict_flag_lists)
+        else:
+            dict_flag_lists_iter = dict_flag_lists
+
+        for flag_type in dict_flag_lists_iter:
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
             if editor.verticalScrollBar().maximum() == 0:
