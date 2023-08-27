@@ -34,7 +34,7 @@ from spyder.widgets.helperwidgets import PaneEmptyWidget
 # ---- Constants
 # -----------------------------------------------------------------------------
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
-MAX_COMBOBOX_WIDTH = FIND_MIN_WIDTH + 130  # In pixels
+MAX_COMBOBOX_WIDTH = FIND_MIN_WIDTH + 80  # In pixels
 
 
 # ---- Enums
@@ -156,6 +156,8 @@ class FindInFilesWidget(PluginMainWidget):
         self.running = False
         self.more_options_action = None
         self.extras_toolbar = None
+        self._search_in_label_width = None
+        self._exclude_label_width = None
         self._is_shown = False
 
         search_text = self.get_conf('search_text', '')
@@ -198,8 +200,12 @@ class FindInFilesWidget(PluginMainWidget):
         self.path_selection_combo = SearchInComboBox(
             path_history, self,
             id_=FindInFilesWidgetToolbarItems.SearchInCombo)
+        self.path_selection_combo.recommended_width = MAX_COMBOBOX_WIDTH
+        self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.exclude_pattern_edit = ExcludePatternEdit(self, items=exclude)
+        self.exclude_pattern_edit.recommended_width = MAX_COMBOBOX_WIDTH
+        self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.result_browser = ResultsBrowser(
             self,
@@ -379,6 +385,34 @@ class FindInFilesWidget(PluginMainWidget):
         if self.extras_toolbar:
             self.extras_toolbar.setVisible(value)
 
+        # These adjustments can only be done when the widget is visible.
+        if self._is_shown:
+            if value:
+                # Resize either the search_in or exclude label so that their
+                # comboboxes are aligned to the left.
+                if self._search_in_label_width > self._exclude_label_width:
+                    self.exclude_label.setMinimumSize(
+                        self._exclude_label_width +
+                        (self._search_in_label_width -
+                         self._exclude_label_width),
+                        FIND_HEIGHT
+                    )
+                else:
+                    self.search_in_label.setMinimumSize(
+                        self._search_in_label_width +
+                        (self._exclude_label_width -
+                         self._search_in_label_width),
+                        FIND_HEIGHT
+                    )
+            else:
+                # Restore initial search_in label width when it's shorter than
+                # exclude_label to not show an empty space next to it.
+                if self._search_in_label_width < self._exclude_label_width:
+                    self.search_in_label.setMinimumSize(
+                        self._search_in_label_width,
+                        FIND_HEIGHT
+                    )
+
         if self.more_options_action:
             self.more_options_action.setIcon(icon)
             self.more_options_action.setToolTip(tip)
@@ -390,38 +424,21 @@ class FindInFilesWidget(PluginMainWidget):
     # ---- Qt methods
     # ------------------------------------------------------------------------
     def showEvent(self, event):
+        """Adjustments when the widget is shown."""
         if not self._is_shown:
-            # -- Make combobox widths match.
+            # Save default widths of search_in and exclude labels
+            self._search_in_label_width = self.search_in_label.size().width()
+
             if not self.extras_toolbar.isVisible():
                 # This correctly computes the exclude label width when the
                 # extras_toolbar is not visible.
                 metrics = QFontMetricsF(self.font())
                 exclude_text_width = metrics.width(self.exclude_label.text())
-                exclude_label_width = (
+                self._exclude_label_width = (
                     math.ceil(exclude_text_width) + self.font().pointSize()
                 )
             else:
-                exclude_label_width = self.exclude_label.size().width()
-
-            # Extra width we need to remove from comboboxes with labels (don't
-            # know where it comes from).
-            extra_width = 5
-
-            # Set width for exclude_pattern_edit
-            exclude_width = (
-                MAX_COMBOBOX_WIDTH - exclude_label_width - extra_width
-            )
-            self.exclude_pattern_edit.recommended_width = exclude_width
-            self.exclude_pattern_edit.setMaximumWidth(exclude_width)
-
-            # Set width for path_selection_combo
-            path_selection_width = (
-                MAX_COMBOBOX_WIDTH -
-                self.search_in_label.size().width() -
-                extra_width
-            )
-            self.path_selection_combo.recommended_width = path_selection_width
-            self.path_selection_combo.setMaximumWidth(path_selection_width)
+                self._exclude_label_width = self.exclude_label.size().width()
 
             self._is_shown = True
 
