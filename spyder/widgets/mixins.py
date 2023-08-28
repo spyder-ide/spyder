@@ -1116,7 +1116,13 @@ class BaseEditMixin(object):
         """Return current line's text."""
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText())
+        line = str(cursor.selectedText())
+
+        # Remove EOL's at the beginning of the line added by Qt
+        if line and line[0] in EOL_SYMBOLS:
+            line = line[1:]
+
+        return line
 
     def get_current_line_bounds(self):
         """Return the (line, column) bounds for the current line."""

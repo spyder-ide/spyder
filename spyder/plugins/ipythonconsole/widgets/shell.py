@@ -15,6 +15,7 @@ import time
 from textwrap import dedent
 
 # Third party imports
+from IPython.core.inputtransformer2 import TransformerManager
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
@@ -142,11 +143,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
 
-        super(ShellWidget, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.special_kernel = special_kernel
+        self._initial_line_indent_level = None
+        self._transformer_manager = TransformerManager()
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -472,6 +475,69 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 _("<br><br>It is not possible to interrupt a non-Spyder "
                   "kernel I did not start.<br>")
             )
+
+    def execute_line_by_line(self, line):
+        """Execute code when sent from the editor in a line by line basis."""
+        # If the console is busy, we can't send lines for execution because the
+        # input buffer is already filled.
+        if self._executing:
+            return
+
+        complete_state, __ = self._transformer_manager.check_complete(line)
+        line_indent_level = len(line) - len(line.lstrip())
+
+        if self._initial_line_indent_level is None:
+            self._initial_line_indent_level = line_indent_level
+
+        indent_diff = line_indent_level - self._initial_line_indent_level
+
+        if complete_state == 'incomplete' and indent_diff >= 0:
+            # If the line is incomplete and has the same or greater indentation
+            # level than the one with which we started, we insert it without
+            # that level.
+            self._insert_plain_text_into_buffer(
+                self._get_cursor(),
+                line[self._initial_line_indent_level:] + '\n'
+            )
+            self._set_cursor(self._get_end_cursor())
+        else:
+            execute = False
+            add_eol = True
+
+            if (
+                # If the buffer is empty and the line is complete, we can
+                # directly execute it. This is useful to evaluate simple
+                # assignments.
+                self._get_input_buffer() == ''
+                # If the indentation level of the current line is less than the
+                # one with which we started, it means the block is over and we
+                # need to execute it.
+                or indent_diff < 0
+                # If the buffer has content but the line is empty, we execute
+                # what's present in the buffer. This means that we assume an
+                # empty line works as a block separator.
+                or (self._get_input_buffer() != '' and line.strip() == '')
+            ):
+                execute = True
+
+                # Don't add an eol if the line is complete and can be executed
+                # immediately.
+                if self._get_input_buffer() == '':
+                    add_eol = False
+
+            # Don't insert empty lines because they serve as block separators.
+            # Also only insert lines at the same or greater indentation level
+            # than the block we're trying to execute.
+            if line.strip() != '' and indent_diff >= 0:
+                self._insert_plain_text_into_buffer(
+                    self._get_cursor(),
+                    line[self._initial_line_indent_level:] +
+                    ('\n' if add_eol else '')
+                )
+
+            if execute:
+                self._initial_line_indent_level = None
+                self.execute()
 
     def is_running(self):
         """Check if shell is running."""

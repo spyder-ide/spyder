@@ -2157,16 +2157,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For execution
     def execute_code(self, lines, current_client=True, clear_variables=False,
-                     shellwidget=None):
+                     shellwidget=None, check_line_by_line=False):
         """Execute code instructions."""
         if current_client:
             sw = self.get_current_shellwidget()
         else:
             sw = shellwidget
+
         if sw is not None:
             if not current_client:
-                # Clear console and reset namespace for
-                # dedicated clients.
+                # Clear console and reset namespace for dedicated clients.
                 # See spyder-ide/spyder#5748.
                 try:
                     sw.sig_prompt_ready.disconnect()
@@ -2176,6 +2176,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     sw.reset_namespace(warning=False)
             elif current_client and clear_variables:
                 sw.reset_namespace(warning=False)
+
+            # If the user is trying to execute code line by line, we need to
+            # call a special method to do it.
+            # Fixes spyder-ide/spyder#4431.
+            if check_line_by_line and len(lines.splitlines()) <= 1:
+                sw.execute_line_by_line(lines)
+                return
 
             # Needed to handle an error when kernel_client is none.
             # See spyder-ide/spyder#6308.

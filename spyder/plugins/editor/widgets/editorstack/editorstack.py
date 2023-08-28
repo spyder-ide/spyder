@@ -2779,8 +2779,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         # Get current line if no selection
         line_col_from, line_col_to = editor.get_current_line_bounds()
         line_off_from, line_off_to = editor.get_current_line_offsets()
-        line = editor.get_current_line()
-        text = line.lstrip()
+        text = editor.get_current_line()
 
         return (
             text, (line_off_from, line_off_to),

@@ -817,9 +817,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             clear_variables=clear_variables)
 
     def run_selection(self, lines):
-        """Execute selected lines in the current console."""
+        """
+        Execute selected lines in the current console.
+
+        Parameters
+        ----------
+        lines : str
+            Code lines to run.
+        """
         self.sig_unmaximize_plugin_requested.emit()
-        self.get_widget().execute_code(lines)
+        self.get_widget().execute_code(lines, check_line_by_line=True)
 
     # ---- For working directory and path management
     def set_current_client_working_directory(self, directory):
