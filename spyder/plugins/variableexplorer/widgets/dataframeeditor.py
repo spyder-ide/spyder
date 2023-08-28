@@ -63,7 +63,7 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
 
 
-# Supported Numbers and complex numbers
+# Supported real and complex number types
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 
@@ -89,6 +89,18 @@ BACKGROUND_NUMBER_ALPHA = 0.6
 BACKGROUND_NONNUMBER_COLOR = QStylePalette.COLOR_BACKGROUND_2
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
+
+
+def is_any_real_numeric_dtype(dtype) -> bool:
+    """
+    Test whether a Pandas dtype is a real numeric type.
+    """
+    try:
+        import pandas.api.types
+        return pandas.api.types.is_any_real_numeric_dtype(dtype)
+    except AttributeError:
+        # Pandas version 1
+        return dtype in REAL_NUMBER_TYPES
 
 
 def bool_false_check(value):
@@ -250,8 +262,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             # the maximum of a column.
             # Fixes spyder-ide/spyder#17145
             try:
-                if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
-                    if col.dtype in REAL_NUMBER_TYPES:
+                if (is_any_real_numeric_dtype(col.dtype)
+                        or col.dtype in COMPLEX_NUMBER_TYPES):
+                    if is_any_real_numeric_dtype(col.dtype):
                         vmax = col.max(skipna=True)
                         vmin = col.min(skipna=True)
                     else:
