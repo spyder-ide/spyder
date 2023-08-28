@@ -512,10 +512,11 @@ class TextEditBaseWidget(
         return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Get selected text in a way that allows other plugins executed it."""
+        """
+        Get selected text in a way that allows other plugins to execute it.
+        """
         ls = self.get_line_separator()
-
-        _indent = lambda line: len(line)-len(line.lstrip())
+        _indent = lambda line: len(line) - len(line.lstrip())
 
         line_from, line_to = self.get_selection_bounds(cursor)
         line_col_from, line_col_to = self.get_selection_start_end(cursor)
@@ -529,7 +530,7 @@ class TextEditBaseWidget(
         if len(lines) > 1:
             # Multiline selection -> eventually fixing indentation
             original_indent = _indent(self.get_text_line(line_from))
-            text = (" "*(original_indent-_indent(lines[0])))+text
+            text = (" " * (original_indent - _indent(lines[0]))) + text
 
         # If there is a common indent to all lines, find it.
         # Moving from bottom line to top line ensures that blank
@@ -538,7 +539,7 @@ class TextEditBaseWidget(
         min_indent = 999
         current_indent = 0
         lines = text.split(ls)
-        for i in range(len(lines)-1, -1, -1):
+        for i in range(len(lines) - 1, -1, -1):
             line = lines[i]
             if line.strip():
                 current_indent = _indent(line)
@@ -577,18 +578,22 @@ class TextEditBaseWidget(
         """Return cell contents as executable code."""
         if cursor is None:
             cursor = self.textCursor()
+
         ls = self.get_line_separator()
         cursor, __ = self.select_current_cell(cursor)
         line_from, __ = self.get_selection_bounds(cursor)
+
         # Get the block for the first cell line
         start = cursor.selectionStart()
         block = self.document().findBlock(start)
         if not is_cell_header(block) and start > 0:
             block = self.document().findBlock(start - 1)
+
         # Get text
         text, off_pos, col_pos = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
+
         return text, block, off_pos, col_pos
 
     def select_current_cell(self, cursor=None):
