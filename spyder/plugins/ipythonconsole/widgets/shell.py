@@ -473,21 +473,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   "kernel I did not start.<br>")
             )
 
-    def execute(self, source=None, hidden=False, interactive=False):
-        """
-        Executes source or the input buffer, possibly prompting for more
-        input.
-        """
-        # Needed for cases where there is no kernel initialized but
-        # an execution is triggered like when setting initial configs.
-        # See spyder-ide/spyder#16896
-        if self.kernel_client is None:
-            return
-        if self._executing:
-            self._execute_queue.append((source, hidden, interactive))
-            return
-        super(ShellWidget, self).execute(source, hidden, interactive)
-
     def is_running(self):
         """Check if shell is running."""
         return (
@@ -1037,15 +1022,20 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Public methods (overrode by us) ------------------------------------
-    def _event_filter_console_keypress(self, event):
-        """Filter events to send to qtconsole code."""
-        key = event.key()
-        if self._control_key_down(event.modifiers(), include_command=False):
-            if key == QtCore.Qt.Key_Period:
-                # Do not use ctrl + . to restart kernel
-                # Handled by IPythonConsoleWidget
-                return False
-        return super()._event_filter_console_keypress(event)
+    def execute(self, source=None, hidden=False, interactive=False):
+        """
+        Executes source or the input buffer, possibly prompting for more
+        input.
+        """
+        # Needed for cases where there is no kernel initialized but
+        # an execution is triggered like when setting initial configs.
+        # See spyder-ide/spyder#16896
+        if self.kernel_client is None:
+            return
+        if self._executing:
+            self._execute_queue.append((source, hidden, interactive))
+            return
+        super().execute(source, hidden, interactive)
 
     def adjust_indentation(self, line, indent_adjustment):
         """Adjust indentation."""
@@ -1148,6 +1138,16 @@ the sympy module (e.g. plot)
         self._save_clipboard_indentation()
 
     # ---- Private API (overrode by us) ---------------------------------------
+    def _event_filter_console_keypress(self, event):
+        """Filter events to send to qtconsole code."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == QtCore.Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
+                return False
+        return super()._event_filter_console_keypress(event)
+
     def _handle_execute_reply(self, msg):
         """
         Reimplemented to handle communications between Spyder
