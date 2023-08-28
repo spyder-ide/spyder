@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""External console plugin."""
+"""External terminal plugin."""
 
 # Standard library imports.
 import os
@@ -23,10 +23,10 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun, SelectionRun
-from spyder.plugins.externalconsole.api import (
-    ExtConsolePyConfiguration, ExtConsoleShConfiguration)
-from spyder.plugins.externalconsole.widgets.run_conf import (
-    ExternalConsolePyConfiguration, ExternalConsoleShConfiguration)
+from spyder.plugins.externalterminal.api import (
+    ExtTerminalPyConfiguration, ExtTerminalShConfiguration)
+from spyder.plugins.externalterminal.widgets.run_conf import (
+    ExternalTerminalPyConfiguration, ExternalTerminalShConfiguration)
 from spyder.plugins.run.api import (
     RunContext, run_execute, RunConfiguration, ExtendedRunExecutionParameters,
     RunResult, RunExecutor)
@@ -34,10 +34,10 @@ from spyder.utils import programs
 from spyder.utils.misc import get_python_executable
 
 
-class ExternalConsole(SpyderPluginV2, RunExecutor):
-    """External console plugin."""
+class ExternalTerminal(SpyderPluginV2, RunExecutor):
+    """External terminal plugin."""
 
-    NAME = 'external_console'
+    NAME = 'external_terminal'
     REQUIRES = [Plugins.Run]
     OPTIONAL = [Plugins.Editor]
     CONF_SECTION = NAME
@@ -47,7 +47,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("External console")
+        return _("External terminal")
 
     @staticmethod
     def get_description():
@@ -77,7 +77,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsolePyConfiguration,
+                'configuration_widget': ExternalTerminalPyConfiguration,
                 'requires_cwd': True,
                 'priority': 2
             },
@@ -103,7 +103,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     'cmd.exe', '/K'),
                 'requires_cwd': True,
                 'priority': 1
@@ -115,7 +115,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'Selection'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     'cmd.exe', '/K'),
                 'requires_cwd': True,
                 'priority': 1
@@ -140,7 +140,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     'powershell.exe'),
                 'requires_cwd': True,
                 'priority': 1
@@ -152,7 +152,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'Selection'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     'powershell.exe'),
                 'requires_cwd': True,
                 'priority': 1
@@ -185,7 +185,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     programs.is_program_installed(default_shell)),
                 'requires_cwd': True,
                 'priority': 1
@@ -197,7 +197,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
                     'name': 'Selection'
                 },
                 'output_formats': [],
-                'configuration_widget': ExternalConsoleShConfiguration(
+                'configuration_widget': ExternalTerminalShConfiguration(
                     programs.is_program_installed(default_shell)),
                 'requires_cwd': True,
                 'priority': 1
@@ -228,9 +228,9 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def open_external_python_console(self, fname, wdir, args, interact, debug,
+    def open_external_python_terminal(self, fname, wdir, args, interact, debug,
                                      python_args):
-        """Open external console"""
+        """Open external terminal."""
         # Running script in an external system terminal
         try:
             if self.get_conf('default', section='main_interpreter'):
@@ -258,7 +258,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
-        params: ExtConsolePyConfiguration = exec_params['executor_params']
+        params: ExtTerminalPyConfiguration = exec_params['executor_params']
 
         run_input: FileRun = input['run_input']
         filename = run_input['path']
@@ -268,7 +268,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
         interact = params['interact']
         debug = False
         python_args = params['python_args']
-        self.open_external_python_console(
+        self.open_external_python_terminal(
             filename, wdir, args, interact, debug, python_args)
 
     @run_execute(extension=['sh', 'bat', 'ps1'])
@@ -279,7 +279,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
-        params: ExtConsoleShConfiguration = exec_params['executor_params']
+        params: ExtTerminalShConfiguration = exec_params['executor_params']
 
         run_input: FileRun = input['run_input']
         filename = run_input['path']
@@ -314,7 +314,7 @@ class ExternalConsole(SpyderPluginV2, RunExecutor):
     ) -> List[RunResult]:
         exec_params = conf['params']
         cwd_opts = exec_params['working_dir']
-        params: ExtConsoleShConfiguration = exec_params['executor_params']
+        params: ExtTerminalShConfiguration = exec_params['executor_params']
 
         metadata = input['metadata']
         run_input: SelectionRun = input['run_input']
