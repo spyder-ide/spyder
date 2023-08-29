@@ -26,6 +26,7 @@ from pandas import (
 import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtWidgets import QMessageBox, QApplication, QInputDialog
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -398,6 +399,153 @@ def test_dataframemodel_with_format_thousands():
     dfm = DataFrameModel(dataframe, format_spec=',.2f')
     assert data(dfm, 0, 0) == '10,000.10'
 
+def create_view(qtbot, value):
+    df = DataFrame(data=value)
+    editor = DataFrameEditor()
+    assert editor.setup_and_check(df, 'Test DataFrame To action')
+    with qtbot.waitExposed(editor):
+        editor.show()
+    view = editor.dataTable
+    dfm = editor.dataModel
+    return view, editor, dfm
+    
+@flaky(max_runs=1)
+def test_dataframeeditor_menu_options(qtbot, monkeypatch):
+    d = {'COLUMN_1': [1, 2]}
+    view, editor, dfm = create_view(qtbot,d)
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
+                     '.dataframeeditor.QMessageBox.question')
+    monkeypatch.setattr(attr_to_patch, lambda *args: QMessageBox.Yes)
+
+    #test remove item1(row)
+    view.setCurrentIndex(view.model().index(1, 0))
+    view.menu.show()
+    assert dfm.rowCount() == 2
+    assert dfm.columnCount() == 1
+    for i in range(3): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert editor.btn_save_and_close.isEnabled()
+
+    #test remove item2(row)
+    view.setCurrentIndex(view.model().index(0, 0))
+    assert dfm.rowCount() == 1
+    view.menu.show()
+    for i in range(3): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert editor.btn_save_and_close.isEnabled()
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
+    assert dfm.rowCount() == 0
+
+    #test remove item1(column)
+    d = {'COLUMN_1': [1, 2]}
+    view, editor, dfm = create_view(qtbot,d)
+    view.setCurrentIndex(view.model().index(0, 0))
+    view.menu.show()
+    assert dfm.rowCount() == 2
+    assert dfm.columnCount() == 1
+    for i in range(4): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert editor.btn_save_and_close.isEnabled()
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
+
+    #test insert above
+    d = {'COLUMN_1': [1, 2, 3],'COLUMN_2': [4, 5, 6],}
+    view, editor, dfm = create_view(qtbot,d)
+    view.setCurrentIndex(view.model().index(0, 0))
+    view.menu.show()
+    assert dfm.rowCount() == 3
+    assert dfm.columnCount() == 2
+    for i in range(5): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 4
+    assert dfm.columnCount() == 2
+
+    #test insert bellow
+    view.setCurrentIndex(view.model().index(2, 0))
+    view.menu.show()
+    for i in range(6): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 2
+
+    #test insert after
+    view.setCurrentIndex(view.model().index(4, 1))
+    view.menu.show()
+    for i in range(7): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 3
+
+    #test insert before
+    view.setCurrentIndex(view.model().index(4, 0))
+    view.menu.show()
+    for i in range(8): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 4
+
+    #duplicate row
+    view.setCurrentIndex(view.model().index(0, 3))
+    view.menu.show()
+    for i in range(9): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 4
+
+    #duplicate column(2x)
+    view.setCurrentIndex(view.model().index(1, 3))
+    view.menu.show()
+    for i in range(10): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 5
+    view.setCurrentIndex(view.model().index(0, 1))
+    view.menu.show()
+    for i in range(10): qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 6
+
+    #test edit item
+    view.setCurrentIndex(view.model().index(0, 2))
+    view.menu.show()
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+    qtbot.wait(200)
+    view.setCurrentIndex(view.model().index(0, 2))
+    assert data(dfm, 0, 2) == '0'
+    qtbot.keyPress(view.focusWidget(), Qt.Key_9)
+    qtbot.keyPress(view.focusWidget(), Qt.Key_Return)
+    qtbot.wait(200)
+    assert data(dfm, 0, 2) == '9'
+
+    #test edit horizontal header
+    monkeypatch.setattr(QInputDialog, "getText", lambda *args: ("SPYDERTEST_H", True))
+    header = editor.table_header.model()
+    model_index = view.header_class.model().index(0, 2)
+    view.header_class.setCurrentIndex(model_index)
+    qtbot.wait(200)
+    view.menu_header_h.show()
+    qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
+    qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
+    qtbot.wait(200)
+    assert header.headerData(2, Qt.Horizontal,Qt.DisplayRole) == "SPYDERTEST_H"
+    
+    #test edit vertical header
+    index = editor.table_index.model()
+    model_index = editor.table_index.model().index(5, 0)
+    editor.table_index.setCurrentIndex(model_index)
+    editor.menu_header_v.show()
+    qtbot.wait(200)
+    qtbot.keyPress(editor.menu_header_v, Qt.Key_Down)
+    qtbot.keyPress(editor.menu_header_v, Qt.Key_Return)
+    qtbot.wait(200)
+    qtbot.keyPress(editor.focusWidget(), Qt.Key_9)
+    qtbot.keyPress(editor.focusWidget(), Qt.Key_Return)
+    qtbot.wait(200)
+    assert data_index(index, 5, 0) == '9'
+    assert editor.btn_save_and_close.isEnabled()
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
 
 def test_dataframeeditor_with_various_indexes():
     for rng_name, rng in generate_pandas_indexes().items():

@@ -902,7 +902,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 eval_type = (
                     module
                     + '.'
-                    + df.iat[row, column].__class__.__name__ +
+                    + df.iat[row, column].__class__.__name__ 
                     + '('')'
                 )
 
@@ -958,7 +958,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
                 new_row.iat[0, col] = eval(eval_type)
 
-            df = pd.concat([df1, new_row, df2])
+            self.model().df = pd.concat([df1, new_row, df2])
 
         self.parent()._reload()
         self.model().dataChanged.emit(current_index, current_index)
