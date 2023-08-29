@@ -17,7 +17,6 @@ import pytest
 from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.widgets.collectionseditor import ROWS_TO_LOAD
@@ -210,7 +209,7 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
     Test that plotting a list from the namespace browser sends a signal
     with the plot if `mute_inline_plotting` is set to `True`.
     """
-    CONF.set('plots', 'mute_inline_plotting', True)
+    namespacebrowser.set_conf('mute_inline_plotting', True, section='plots')
     namespacebrowser.plots_plugin_enabled = True
     my_list = [4, 2]
     mock_figure = Mock()
@@ -237,7 +236,7 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser)
     Test that plotting a list from the namespace browser shows a plot if
     `mute_inline_plotting` is set to `False`.
     """
-    CONF.set('plots', 'mute_inline_plotting', False)
+    namespacebrowser.set_conf('mute_inline_plotting', False, section='plots')
     my_list = [4, 2]
 
     with (patch('spyder.pyplot.figure') as mock_figure,

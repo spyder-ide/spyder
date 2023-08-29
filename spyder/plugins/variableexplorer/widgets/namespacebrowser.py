@@ -460,10 +460,11 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
           to "inline",
         then call `plot_in_plots_plugin`, else call `plot_in_window`.
         """
-        if (self.plots_plugin_enabled
-                and self.get_conf('mute_inline_plotting', section='plots')
-                and self.get_conf('pylab/backend',
-                                  section='ipython_console') == 0):
+        if (
+            self.plots_plugin_enabled
+            and self.get_conf('mute_inline_plotting', section='plots')
+            and self.get_conf('pylab/backend', section='ipython_console') == 0
+        ):
             self.plot_in_plots_plugin(data, funcname)
         else:
             self.plot_in_window(data, funcname)
@@ -472,8 +473,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         """
         Plot data in Plots plugin.
 
-        Plot the given data to a PNG image and show the plot in the Plots
-        plugin.
+        Plot the given data to a PNG or SVG image and show the plot in the
+        Plots plugin.
         """
         import spyder.pyplot as plt
         from IPython.core.pylabtools import print_figure

@@ -2409,7 +2409,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
 
     # Create variable
     with qtbot.waitSignal(shell.executed):
-        shell.execute(('nested_list = [[1, 2, 3], [4, 5, 6]]'))
+        shell.execute('nested_list = [[1, 2, 3], [4, 5, 6]]')
 
     # Edit `nested_list` in Variable Explorer
     main_window.variableexplorer.change_visibility(True)

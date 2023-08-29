@@ -1315,7 +1315,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
-    def __init__(self, parent, data, namespacebrowser=None,  readonly=False,
+    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
                  title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None

@@ -935,7 +935,6 @@ def test_collectioneditor_plot(qtbot):
     qtbot.addWidget(cew)
 
     cew.editor.plot('list', 'plot')
-
     mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
 
 
