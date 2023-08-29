@@ -98,7 +98,7 @@ def is_any_real_numeric_dtype(dtype) -> bool:
     try:
         import pandas.api.types
         return pandas.api.types.is_any_real_numeric_dtype(dtype)
-    except AttributeError:
+    except Exception:
         # Pandas version 1
         return dtype in REAL_NUMBER_TYPES
 
@@ -262,8 +262,10 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             # the maximum of a column.
             # Fixes spyder-ide/spyder#17145
             try:
-                if (is_any_real_numeric_dtype(col.dtype)
-                        or col.dtype in COMPLEX_NUMBER_TYPES):
+                if (
+                    is_any_real_numeric_dtype(col.dtype)
+                    or col.dtype in COMPLEX_NUMBER_TYPES
+                ):
                     if is_any_real_numeric_dtype(col.dtype):
                         vmax = col.max(skipna=True)
                         vmin = col.min(skipna=True)
