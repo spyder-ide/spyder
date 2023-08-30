@@ -265,6 +265,25 @@ def test_filter_rows(qtbot):
     assert editor.model.rowCount() == 0
 
 
+def test_remote_make_data_function():
+    """
+    Test that the function returned by make_data_function() ...
+    """
+    variables = {'a': {'type': 'int',
+                       'size': 1,
+                       'view': '1',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'}}
+    mock_shellwidget = Mock()
+    editor = RemoteCollectionsEditorTableView(
+        None, variables, mock_shellwidget)
+    index = editor.model.index(0, 0)
+    data_function = editor.delegate.make_data_function(index)
+    value = data_function()
+    mock_shellwidget.get_value.assert_called_once_with('a')
+    assert value == mock_shellwidget.get_value.return_value
+
+
 def test_create_dataframeeditor_with_correct_format(qtbot):
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})

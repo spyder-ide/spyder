@@ -224,6 +224,32 @@ def test_arrayeditor_with_empty_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+def test_arrayeditor_refreshaction_disabled():
+    """
+    Test that the Refresh action is disabled by default.
+    """
+    arr_ones = np.ones((3, 3))
+    dlg = ArrayEditor()
+    dlg.setup_and_check(arr_ones, '2D array')
+    assert not dlg.refresh_action.isEnabled()
+
+
+def test_arrayeditor_refresh():
+    """
+    Test that after pressing the refresh button, the value of the Array Editor
+    is replaced by the return value of the data_function.
+    """
+    arr_ones = np.ones((3, 3))
+    arr_zeros = np.zeros((4, 4))
+    datafunc = lambda: arr_zeros
+    dlg = ArrayEditor(data_function=datafunc)
+    assert dlg.setup_and_check(arr_ones, '2D array')
+    assert_array_equal(dlg.get_value(), arr_ones)
+    assert dlg.refresh_action.isEnabled()
+    dlg.refresh_action.trigger()
+    assert_array_equal(dlg.get_value(), arr_zeros)
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)

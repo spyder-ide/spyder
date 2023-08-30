@@ -8,6 +8,8 @@
 NumPy Array Editor Dialog based on Qt
 """
 
+from __future__ import annotations
+
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
@@ -15,6 +17,7 @@ NumPy Array Editor Dialog based on Qt
 
 # Standard library imports
 import io
+from typing import Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -28,6 +31,9 @@ from qtpy.QtWidgets import (
     QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
+
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -47,6 +53,7 @@ class ArrayEditorActions:
     Copy = 'copy_action'
     Edit = 'edit_action'
     Format = 'format_action'
+    Refresh = 'refresh_action'
     Resize = 'resize_action'
     ToggleBackgroundColor = 'toggle_background_color_action'
 
@@ -656,7 +663,21 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None,
+                 data_function: Optional[Callable[[], ArrayLike]] = None):
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        parent : Optional[QWidget]
+            The parent widget. The default is None.
+        data_function : Optional[Callable[[], ArrayLike]]
+            A function which returns the current value of the array. This is
+            used for refreshing the editor. If set to None, the editor cannot
+            be refreshed. The default is None.
+        """
+
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -665,6 +686,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.data_function = data_function
         self.data = None
         self.arraywidget = None
         self.stack = None
@@ -741,6 +763,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('background_color'),
             toggled=do_nothing)
         toolbar.add_item(self.toggle_bgcolor_action)
+
+        self.refresh_action = self.create_action(
+            ArrayEditorActions.Refresh,
+            text=_('Refresh'),
+            icon=self.create_icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh)
+        self.refresh_action.setDisabled(self.data_function is None)
+        toolbar.add_item(self.refresh_action)
 
         toolbar._render()
         self.layout.addWidget(toolbar, 0, 0)
@@ -995,9 +1026,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
-        self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
-        self.toggle_bgcolor_action.setChecked(
-            self.arraywidget.model.bgcolor_enabled)
+        if self.arraywidget:
+            self.arraywidget.model.dataChanged.connect(
+                self.save_and_close_enable)
+            self.toggle_bgcolor_action.setChecked(
+                self.arraywidget.model.bgcolor_enabled)
 
     def change_active_widget(self, index):
         """
@@ -1052,6 +1085,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             self.change_active_widget(0)
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
+
+    def refresh(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        data = self.data_function()
+        self.set_data_and_check(data)
 
     @Slot()
     def accept(self):

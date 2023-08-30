@@ -24,6 +24,7 @@ import io
 import re
 import sys
 import warnings
+from typing import Any, Callable, Optional
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
@@ -1594,6 +1595,36 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
             source_index = index.model().mapToSource(index)
             name = source_index.model().keys[source_index.row()]
             self.parent().new_value(name, value)
+
+    def make_data_function(self, index: QModelIndex
+                           ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        The returned function uses the associated console to retrieve the
+        current value of the variable. This is used to refresh editors created
+        from that variable.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        source_index = index.model().mapToSource(index)
+        name = source_index.model().keys[source_index.row()]
+        parent = self.parent()
+
+        def get_data():
+            return parent.get_value(name)
+
+        return get_data
 
 
 class RemoteCollectionsEditorTableView(BaseTableView):

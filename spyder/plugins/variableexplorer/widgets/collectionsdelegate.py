@@ -12,12 +12,14 @@ import copy
 import datetime
 import functools
 import operator
+from typing import Any, Callable, Optional
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QDateTime, Qt, Signal
-from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
-                            QItemDelegate, QLineEdit, QMessageBox, QTableView)
+from qtpy.QtCore import QDateTime, QModelIndex, Qt, Signal
+from qtpy.QtWidgets import (
+    QAbstractItemDelegate, QDateEdit, QDateTimeEdit, QItemDelegate, QLineEdit,
+    QMessageBox, QTableView)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
@@ -55,6 +57,29 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
+
+    def make_data_function(self, index: QModelIndex
+                           ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        This is used to refresh editors created from this piece of data.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        # TODO: Implement this to handle refreshing editors opened from other
+        # editors, e.g., arrays nested inside a list.
+        return None
 
     def show_warning(self, index):
         """
@@ -174,7 +199,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 np.ndarray is not FakeObject and not object_explorer):
             # We need to leave this import here for tests to pass.
             from .arrayeditor import ArrayEditor
-            editor = ArrayEditor(parent=parent)
+            editor = ArrayEditor(
+                parent=parent, data_function=self.make_data_function(index))
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 self.sig_editor_shown.emit()
                 return
