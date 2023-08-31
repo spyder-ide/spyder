@@ -16,7 +16,7 @@ import os.path as osp
 import re
 import shutil
 import sys
-from textwrap import dedent
+from textwrap import dedent, indent
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -2151,11 +2151,6 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
     not is_anaconda(), reason="Only works with Anaconda")
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
-    # Wait until the window is fully up
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
     pyexec = get_list_conda_envs()['conda: base'][0]
@@ -2185,6 +2180,116 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     assert not main_widget.env_action.isEnabled()
     assert not main_widget.syspath_action.isEnabled()
     assert not main_widget.show_time_action.isEnabled()
+
+
+def test_line_by_line_execution(ipyconsole, qtbot):
+    """Check that we can run multiline statements line by line."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    # Check that running code line by line works as expected
+    code = dedent("""
+    for i in range(2):
+        for j in range(2):
+            print(i, j)
+        print('foo')
+
+    """)
+
+    with qtbot.waitSignal(shell.executed):
+        for line in code.splitlines()[1:]:
+            ipyconsole.run_selection(line)
+
+    assert '0 1\nfoo' in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    # Check that running different complete statements executes them
+    # immediately and don't show the continuation prompt
+    with qtbot.waitSignal(shell.executed):
+        ipyconsole.run_selection('a = 10')
+
+    assert shell.get_value('a') == 10
+    assert '...' not in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    with qtbot.waitSignal(shell.executed):
+        ipyconsole.run_selection("print('foo')")
+
+    assert 'foo' == control.toPlainText().splitlines()[-3]
+    assert '...' not in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    with qtbot.waitSignal(shell.executed):
+        ipyconsole.run_selection("import math")
+
+    assert 'error' not in control.toPlainText().lower()
+    assert '...' not in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    # Check that running indented code works as expected
+    code1 = indent(code, ' ' * 4)
+
+    with qtbot.waitSignal(shell.executed):
+        for line in code1.splitlines()[1:]:
+            ipyconsole.run_selection(line)
+
+    assert '0 1\nfoo' in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    # Check that trying to run lines with less indentation than the initial
+    # block with which we started runs what's in the buffer.
+    code2 = dedent("""
+    for i in range(2):
+        print('foo')
+        for j in range(2):
+            if j > 0:
+                print(j)
+            else:
+                print('bar')
+    print('baz')
+    """)
+
+    with qtbot.waitSignal(shell.executed):
+        for line in code2.splitlines()[3:]:
+            ipyconsole.run_selection(line)
+
+    assert 'foo' not in control.toPlainText()
+    assert 'bar\n1' in control.toPlainText()
+    assert 'baz' not in control.toPlainText()
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.clear_console()
+
+    # Check that we can execute complex multiline assignments
+    code3 = dedent("""
+    d = {
+        'a': {
+            'b': 1,
+            'c': 2
+        },
+        'd': {
+            'e': 3,
+            'f': 4
+        }
+    }
+
+    """)
+
+    with qtbot.waitSignal(shell.executed):
+        for line in code3.splitlines()[1:]:
+            ipyconsole.run_selection(line)
+
+    assert shell.get_value('d')
 
 
 if __name__ == "__main__":
