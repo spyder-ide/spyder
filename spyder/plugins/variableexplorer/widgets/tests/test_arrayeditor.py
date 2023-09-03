@@ -37,10 +37,10 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 # =============================================================================
 # Utility functions
 # =============================================================================
-def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
+def launch_arrayeditor(data, title=""):
     """Helper routine to launch an arrayeditor and return its result."""
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
+    assert dlg.setup_and_check(data, title)
     dlg.show()
     dlg.accept()  # trigger slot connected to OK button
     return dlg.get_value()
@@ -185,16 +185,13 @@ def test_arrayeditor_with_record_array_with_titles(qtbot):
 
 def test_arrayeditor_with_float_array(qtbot):
     arr = np.random.rand(5, 5)
-    assert_array_equal(arr, launch_arrayeditor(arr, "float array",
-                                      xlabels=['a', 'b', 'c', 'd', 'e']))
+    assert_array_equal(arr, launch_arrayeditor(arr, "float array"))
 
 
 def test_arrayeditor_with_complex_array(qtbot):
     arr = np.round(np.random.rand(5, 5)*10)+\
                    np.round(np.random.rand(5, 5)*10)*1j
-    assert_array_equal(arr, launch_arrayeditor(arr, "complex array",
-                                      xlabels=np.linspace(-12, 12, 5),
-                                      ylabels=np.linspace(-12, 12, 5)))
+    assert_array_equal(arr, launch_arrayeditor(arr, "complex array"))
 
 
 def test_arrayeditor_with_bool_array(qtbot):
@@ -231,7 +228,7 @@ def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, '1D array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -251,7 +248,7 @@ def test_arrayeditor_edit_2d_array(qtbot):
     arr = np.ones((3, 3))
     diff_arr = arr.copy()
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, '2D array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -276,8 +273,7 @@ def test_arrayeditor_edit_complex_array(qtbot):
     cnum = -1+0.5j
     arr = (np.random.random((10, 10)) - 0.50) * cnum
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
-                               ylabels=None)
+    assert dlg.setup_and_check(arr, '2D complex array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -343,8 +339,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     for idx, int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
-        assert dialog.setup_and_check(test_array, '1D array',
-                                      xlabels=None, ylabels=None)
+        assert dialog.setup_and_check(test_array, '1D array')
         with qtbot.waitExposed(dialog):
             dialog.show()
         view = dialog.arraywidget.view

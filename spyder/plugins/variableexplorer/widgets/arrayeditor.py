@@ -130,14 +130,11 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format_spec=".6g", xlabels=None, ylabels=None,
-                 readonly=False, parent=None):
+    def __init__(self, data, format_spec=".6g", readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
         self.dialog = parent
         self.changes = {}
-        self.xlabels = xlabels
-        self.ylabels = ylabels
         self.readonly = readonly
         self.test_array = np.array([0], dtype=data.dtype)
 
@@ -383,11 +380,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         """Set header data"""
         if role != Qt.DisplayRole:
             return to_qvariant()
-        labels = self.xlabels if orientation == Qt.Horizontal else self.ylabels
-        if labels is None:
-            return to_qvariant(int(section))
-        else:
-            return to_qvariant(labels[section])
+        return to_qvariant(int(section))
 
     def reset(self):
         self.beginResetModel()
@@ -601,8 +594,7 @@ class ArrayView(QTableView):
 
 class ArrayEditorWidget(QWidget):
 
-    def __init__(self, parent, data, readonly=False,
-                 xlabels=None, ylabels=None):
+    def __init__(self, parent, data, readonly=False):
         QWidget.__init__(self, parent)
         self.data = data
         self.old_data_shape = None
@@ -614,8 +606,8 @@ class ArrayEditorWidget(QWidget):
             self.data.shape = (1, 1)
 
         format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
-        self.model = ArrayModel(self.data, format_spec=format_spec, xlabels=xlabels,
-                                ylabels=ylabels, readonly=readonly, parent=self)
+        self.model = ArrayModel(self.data, format_spec=format_spec,
+                                readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
 
         layout = QVBoxLayout()
@@ -675,8 +667,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
 
-    def setup_and_check(self, data, title='', readonly=False,
-                        xlabels=None, ylabels=None):
+    def setup_and_check(self, data, title='', readonly=False):
         """
         Setup ArrayEditor:
         return False if data is not supported, True otherwise
@@ -696,14 +687,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         if data.ndim > 3:
             self.error(_("Arrays with more than 3 dimensions are not "
                          "supported"))
-            return False
-        if xlabels is not None and len(xlabels) != self.data.shape[1]:
-            self.error(_("The 'xlabels' argument length do no match array "
-                         "column number"))
-            return False
-        if ylabels is not None and len(ylabels) != self.data.shape[0]:
-            self.error(_("The 'ylabels' argument length do no match array row "
-                         "number"))
             return False
         if not is_record_array:
             # This is necessary in case users subclass ndarray and set the
@@ -744,15 +727,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         if is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
-                                                       readonly, xlabels,
-                                                       ylabels))
+                                                       readonly))
         elif is_masked_array:
-            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
-                                                   xlabels, ylabels))
-            self.stack.addWidget(ArrayEditorWidget(self, data.data, readonly,
-                                                   xlabels, ylabels))
-            self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
-                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data, readonly))
+            self.stack.addWidget(ArrayEditorWidget(self, data.data, readonly))
+            self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly))
         elif data.ndim == 3:
             # We create here the necessary widgets for current_dim_changed to
             # work. The rest are created below.
@@ -767,8 +746,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             # Set the widget to display when launched
             self.current_dim_changed(self.last_dim)
         else:
-            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
-                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data, readonly))
 
         self.arraywidget = self.stack.currentWidget()
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
