@@ -64,7 +64,7 @@ class CompletionPlugin(SpyderPluginV2):
     set of :class:`SpyderCompletionProvider` instances that are discovered
     and registered via entrypoints.
 
-    This plugin can assume that `fallback`, `snippets`, `lsp` and `kite`
+    This plugin can assume that `fallback`, `snippets` and `lsp`
     completion providers are available, since they are included as part of
     Spyder.
     """
