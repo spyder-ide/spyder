@@ -185,16 +185,16 @@ jobs:
       - name: Create Keychain
         if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
         run: |
-          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CNAME=$CNAME" >> $GITHUB_ENV
-
           _codesign=$(which codesign)
           if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
               # Find correct codesign
               echo "Moving $_codesign..."
               mv $_codesign ${_codesign}.bak
           fi
+
+          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CNAME=$CNAME" >> $GITHUB_ENV
 
       - name: Build Package Installer
         run: |
