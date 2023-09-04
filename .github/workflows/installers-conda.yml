@@ -173,7 +173,7 @@ jobs:
           mamba search -c local --override-channels || true
 
       - name: Create Keychain
-        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
+        if: 'false'
         run: |
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
           CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
@@ -271,7 +271,7 @@ jobs:
           EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
-        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        if: 'false'
         run: |
           if [[ $RUNNER_OS == "macOS" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
