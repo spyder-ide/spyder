@@ -58,11 +58,14 @@ class SwitcherContainer(PluginMainContainer):
             switcher.hide()
             return
 
+        # Set mode and setup
         if symbol:
             switcher.set_search_text('@')
         else:
             switcher.set_search_text('')
-            switcher.setup()
+
+        # Setup
+        switcher.setup()
 
         # Set position
         mainwindow = self._plugin.get_main()

@@ -155,7 +155,6 @@ jobs:
         run: env | sort
 
       - name: Build ${{ matrix.target-platform }} spyder Conda Package
-        if: env.IS_STANDARD_PR == 'true'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
@@ -166,7 +165,6 @@ jobs:
           python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
-        if: env.IS_STANDARD_PR == 'true'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |

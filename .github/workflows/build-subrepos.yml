@@ -4,6 +4,9 @@ on:
       - 'master'
     paths:
       - '**.gitrepo'
+  pull_request:
+    paths:
+      - '**.gitrepo'
 
   workflow_dispatch:
 

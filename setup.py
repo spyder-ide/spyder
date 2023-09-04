@@ -240,7 +240,7 @@ install_requires = [
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0b1,<3.0.0b2',
+    'spyder-kernels>=3.0.0b2,<3.0.0b3',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -253,7 +253,7 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
     install_requires.append('python-lsp-server[all]>=1.7.4,<1.9.0')
     install_requires.append('qtconsole>=5.4.2,<5.6.0')
-    install_requires.append('spyder-kernels>=3.0.0b1,<3.1.0')
+    install_requires.append('spyder-kernels>=3.0.0b2,<3.1.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],

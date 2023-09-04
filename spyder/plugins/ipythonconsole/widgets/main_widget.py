@@ -1233,6 +1233,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Register client
         self.register_client(client)
 
+    def select_tab(self, shellwidget):
+        """
+        Select tab with given shellwidget.
+        """
+        for client in self.clients:
+            if client.shellwidget == shellwidget:
+                self.tabwidget.setCurrentWidget(client)
+                return
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget).
