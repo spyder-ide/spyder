@@ -1232,7 +1232,7 @@ class CompletionPlugin(SpyderPluginV2):
             # Any empty response will be discarded and the completion
             # loop will wait for the next non-empty response.
             # This should fix the scenario where Providers does not have a
-            # response for a non-aggregated request.
+            # response for a non-aggregated request but the LSP does.
             any_nonempty = any(request_responses['sources'].get(source)
                                for source in sorted_providers)
             if any_nonempty:
