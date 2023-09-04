@@ -116,6 +116,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 10
+        with:
+          detached: true
+
       - name: Restore python-lsp-server Cache
         if: env.IS_STANDARD_PR == 'true'
         uses: actions/cache/restore@v3
@@ -279,16 +286,6 @@ jobs:
               cd $(dirname $PKG_PATH)
               echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
           fi
-
-      - name: Setup Remote SSH Connection
-        # Notes:
-        # 1. This only works for conda, probably because it has the necessary
-        #    MSYS2 packages to create the connection.
-        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
-        #    usage.
-        if: failure() && env.ENABLE_SSH == 'true'
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 45
 
       - name: Upload Artifact
         if: env.IS_RELEASE == 'false'
