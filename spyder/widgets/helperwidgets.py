@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (
     QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
     QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
     QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
-    QLabel, QFrame)
+    QLabel, QFrame, QComboBox)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -34,7 +34,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import MARGIN_SIZE, FIND_HEIGHT, FIND_MIN_WIDTH
+from spyder.utils.stylesheet import MARGIN_SIZE, FIND_MIN_WIDTH
 
 
 
@@ -420,12 +420,16 @@ class ClearLineEdit(QLineEdit):
 
 
 class FinderLineEdit(ClearLineEdit):
+
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None):
         super().__init__(parent)
         self.key_filter_dict = key_filter_dict
+
+        self._combobox = QComboBox(self)
+        self._is_shown = False
 
         if regex_base is not None:
             # Widget setup
@@ -442,17 +446,28 @@ class FinderLineEdit(ClearLineEdit):
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             self.sig_find_requested.emit()
         else:
-            super(FinderLineEdit, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
-    def sizeHint(self):
-        """Recommended size."""
-        # The extra height is compensated with FinderWidget's top margin, which
-        # has almost the same value (the -1 is necessary to make the height of
-        # this widget match the one of the find/replace line edit).
-        return QSize(FIND_MIN_WIDTH, FIND_HEIGHT + MARGIN_SIZE - 1)
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            height = self._combobox.size().height()
+            self._combobox.hide()
+
+            # Only set a min width so it grows with the parent's width.
+            self.setMinimumWidth(FIND_MIN_WIDTH)
+
+            # Set a fixed height so that it looks the same as our comboboxes.
+            self.setMinimumHeight(height)
+            self.setMaximumHeight(height)
+
+            self._is_shown = True
+
+        super().showEvent(event)
 
 
 class FinderWidget(QWidget):
+
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 

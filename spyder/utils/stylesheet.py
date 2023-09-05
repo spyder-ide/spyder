@@ -223,6 +223,25 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
                 fontSize=f'{font_size}pt'
             )
 
+        # Make our comboboxes have a uniform height
+        if font_size < 10:
+            combobox_min_height = 1.8
+        elif 10 <= font_size < 13:
+            combobox_min_height = 1.7 if MAC else 1.6
+        else:
+            combobox_min_height = 1.5 if MAC else 1.4
+
+        css.QComboBox.setValues(
+            minHeight=f'{combobox_min_height}em'
+        )
+
+        # Make lineedits have *almost* the same height as our comboboxes. This
+        # is not perfect because (oddly enough) Qt doesn't set the same height
+        # for both when using the same value, but it's close enough.
+        css.QLineEdit.setValues(
+            minHeight=f'{combobox_min_height - 0.2}em'
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
