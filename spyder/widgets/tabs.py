@@ -15,21 +15,25 @@
 import os.path as osp
 
 # Third party imports
+from qdarkstyle.colorsystem import Gray
+import qstylizer.style
 from qtpy import PYQT5
-from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
-from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget, QLineEdit)
+from qtpy.QtWidgets import (
+    QHBoxLayout, QLineEdit, QMenu, QTabBar, QTabWidget, QToolButton, QWidget)
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
 
 
 class EditTabNamePopup(QLineEdit):
@@ -151,6 +155,110 @@ class EditTabNamePopup(QLineEdit):
             self.main.sig_name_changed.emit(tab_text)
 
 
+class CloseTabButton(QToolButton):
+    """Close button for our tabs."""
+
+    SIZE = 16  # in pixels
+    sig_clicked = Signal(int)
+
+    def __init__(self, parent, index):
+        super().__init__(parent)
+        self.index = index
+
+        # Icon and tooltip
+        self.setIcon(ima.icon('fileclose'))
+        self._tab_tooltip = ''
+
+        # Size
+        size = self.SIZE
+        self.resize(size + 2, size + 6)
+        self.setIconSize(QSize(size, size))
+
+        # Colors for different states
+        self._selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+        self._not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_4
+
+        self._hover_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+        self._hover_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+
+        self._clicked_selected_tab_color = (
+            Gray.B70 if is_dark_interface() else Gray.B80
+        )
+        self._clicked_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+
+        # To keep track of the tab's current color
+        self._tab_color = self._selected_tab_color
+
+        # Stylesheet
+        self.css = qstylizer.style.StyleSheet()
+        self.css.QToolButton.setValues(
+            marginTop='9px',
+            marginBottom='-7px',
+            marginLeft='3px' if MAC else '2px',
+            marginRight='-7px' if MAC else '-6px',
+            padding='0px',
+            paddingTop='-5px' if (MAC or WIN) else '-8px',
+            borderRadius='3px'
+        )
+
+        self._set_background_color(self._selected_tab_color)
+
+        # Signals
+        self.clicked.connect(lambda: self.sig_clicked.emit(self.index))
+
+    def enterEvent(self, event):
+        """Actions to take when hovering the widget with the mouse."""
+        # Set background color on hover according to the tab one
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._hover_selected_tab_color)
+        else:
+            self._set_background_color(self._hover_not_selected_tab_color)
+
+        # Don't show tooltip on hover because it's annoying
+        self._tab_tooltip = self.parent().tabToolTip(self.index)
+        self.parent().setTabToolTip(self.index, '')
+
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Actions to take when leaving the widget with the mouse."""
+        # Restore background color
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._selected_tab_color)
+        else:
+            self._set_background_color(self._not_selected_tab_color)
+
+        # Restore tab tooltip
+        self.parent().setTabToolTip(self.index, self._tab_tooltip)
+
+        super().leaveEvent(event)
+
+    def mousePressEvent(self, event):
+        """Actions to take when clicking the widget."""
+        # Set the clicked state for the button
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._clicked_selected_tab_color)
+        else:
+            self._set_background_color(self._clicked_not_selected_tab_color)
+
+        super().mousePressEvent(event)
+
+    def set_selected_color(self):
+        """Set background color when the tab is selected."""
+        self._tab_color = self._selected_tab_color
+        self._set_background_color(self._selected_tab_color)
+
+    def set_not_selected_color(self):
+        """Set background color when the tab is not selected."""
+        self._tab_color = self._not_selected_tab_color
+        self._set_background_color(self._not_selected_tab_color)
+
+    def _set_background_color(self, background_color):
+        """Auxiliary function to set the widget's background color."""
+        self.css.setValues(backgroundColor=f'{background_color}')
+        self.setStyleSheet(self.css.toString())
+
+
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
@@ -176,6 +284,33 @@ class TabBar(QTabBar):
                                                     split_index)
         else:
             self.tab_name_editor = None
+
+        self.close_btn_side = QTabBar.LeftSide if MAC else QTabBar.RightSide
+
+        # Signals
+        self.currentChanged.connect(self._on_tab_changed)
+        self.tabMoved.connect(self._on_tab_moved)
+
+    def _on_tab_changed(self, index):
+        for i in range(self.count()):
+            close_btn: CloseTabButton = self.tabButton(i, self.close_btn_side)
+
+            if close_btn:
+                close_btn.index = i
+
+                if i == index:
+                    close_btn.set_selected_color()
+                else:
+                    close_btn.set_not_selected_color()
+
+    def _on_tab_moved(self, index_from, index_to):
+        close_btn_from = self.tabButton(index_from, self.close_btn_side)
+        close_btn_to = self.tabButton(index_to, self.close_btn_side)
+
+        close_btn_from.index, close_btn_to.index = index_from, index_to
+
+        close_btn_from.set_not_selected_color()
+        close_btn_to.set_selected_color()
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -259,6 +394,17 @@ class TabBar(QTabBar):
         else:
             # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
+
+    def tabInserted(self, index):
+        """Actions to take when a new tab is added or inserted."""
+        # Use our own close button because we can style it to our needs.
+        close_button = CloseTabButton(self, index)
+
+        # Request to close the tab when the close button is clicked
+        close_button.sig_clicked.connect(self.tabCloseRequested)
+
+        # Set close button
+        self.setTabButton(index, self.close_btn_side, close_button)
 
 
 class BaseTabs(QTabWidget):

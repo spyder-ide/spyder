@@ -378,7 +378,7 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    TOP_MARGIN = '15px'
+    TOP_MARGIN = '12px'
     OBJECT_NAME = '#pane-tabbar'
     SCROLL_BUTTONS_BORDER_WIDTH = '5px'
     SCROLL_BUTTONS_BORDER_POS = 'right'
@@ -440,13 +440,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
                 paddingLeft='4px' if MAC else '10px',
                 paddingRight='10px' if MAC else '4px'
             )
-
-        # This crops the close button a bit at the bottom in order to
-        # center it. But a bigger negative padding-bottom crops it even
-        # more.
-        css['QTabBar::close-button'].setValues(
-            paddingBottom='-6px' if MAC else '-7px',
-        )
 
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
