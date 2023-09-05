@@ -358,6 +358,41 @@ def test_dataframemodel_get_bgcolor_with_missings():
             'Wrong bg color for missing of type ' + column
 
 
+def test_dataframemodel_get_bgcolor_with_nullable_numbers():
+    """
+    Test background colors for nullable integer data types
+
+    Regression test for spyder-ide/spyder#21222.
+    """
+    vals = [1, 2, 3, 4, 5]
+    vals_na = [1, 2, 3, None, 5]
+    df = DataFrame({
+        'old': Series(vals),
+        'old_na': Series(vals_na),
+        'new': Series(vals, dtype='Int64'),
+        'new_na': Series(vals_na, dtype='Int64')
+    })
+    dfm = DataFrameModel(df)
+    dfm.colum_avg(0)
+
+    # Test numbers
+    h0 = dataframeeditor.BACKGROUND_NUMBER_MINHUE
+    dh = dataframeeditor.BACKGROUND_NUMBER_HUERANGE
+    s = dataframeeditor.BACKGROUND_NUMBER_SATURATION
+    v = dataframeeditor.BACKGROUND_NUMBER_VALUE
+    a = dataframeeditor.BACKGROUND_NUMBER_ALPHA
+    for col_index in range(4):
+        assert colorclose(bgcolor(dfm, 0, col_index), (h0 + dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 3, 0), (h0 + 1 / 4 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 3, 2), (h0 + 1 / 4 * dh, s, v, a))
+
+    # Test null values
+    h, s, v, __ = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
+    alpha = dataframeeditor.BACKGROUND_MISC_ALPHA
+    assert colorclose(bgcolor(dfm, 3, 1), (h, s, v, alpha))
+    assert colorclose(bgcolor(dfm, 3, 3), (h, s, v, alpha))
+
+
 def test_dataframemodel_with_format_percent_d_and_nan():
     """
     Test DataFrameModel with format `d` and dataframe containing NaN

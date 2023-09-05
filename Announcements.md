@@ -1,40 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.4.4 is released!
+**Subject**: [ANN] Spyder 5.4.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.4.4** has been released and is available for
+I'm pleased to announce that Spyder **5.4.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes fourteen weeks and six days after version 5.4.3 and it contains the
-following new features and important fixes:
+This release comes six weeks after version 5.4.4 and it contains the
+following important fixes:
 
-* Add new shortcuts to switch Editor tabs for macOS (`Cmd + 8` and `Cmd + 9`)
-* Add syntax highlighting for Python 3.10 missing statements (`match` and `case`)
-* Improve compatibility with PySide2
-* Improve Editor scrollflags painting (find matches flags painted above errors and warnings flags)
-* Fix crash when plugins fail their compatibility checks
-* Fix LSP status bar error when cliking it
-* Fix IPython console font size setting
-* Prevent IPython console `This version of python seems to be incorrectly compiled` warning message in Python 3.11
-* Skip some IPython versions with somes bugs and add some error catching for the IPython console
-* Fix Editor found results rehighlighting when switching between files
-* Fix Editor class/function dropdown widget when using splited editors
-* Fix Editor line numbers and autoformat cursor position when the wrap lines option is enabled
-* Fix Editor error when removing unsaved files from Projects/Files explorer while open in the Editor
-* Prevent Editor `QTextCursor::setPosition: Position '-1' out of range` warning message
-* Fix Find functionality for a single file
-* Fix PYTHONPATH manager focus issues after adding a path
-* Fix Online Help issues when searching for `numpy` or `pandas`
-* Fix Windows installer being launched with admin rights after installation/autoupdate
-* Fix Windows installer conda environments activation logic when there are spaces in the installation path
-* Fix macOS standalone installer workflow and notarization process with new certificate
+* Fix Editor scrollflags error on Python 3.7
 
-In this release we fixed 25 issues and merged 37 pull requests that amount
-to more than 103 commits. For a full list of fixes, please see our
+In this release we fixed 2 issues and merged 1 pull requests that amount
+to more than 6 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

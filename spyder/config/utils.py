@@ -116,11 +116,11 @@ def get_filter(filetypes, ext):
         return ''
 
 
-def get_edit_filetypes():
+def get_edit_filetypes(ignore_pygments_extensions=True):
     """Get all file types supported by the Editor"""
-    # The filter details are not hidden on Windows, so we can't use
-    # all Pygments extensions on that platform
-    if os.name == 'nt':
+    # The filter details are not hidden on Windows, so we can't use all
+    # Pygments extensions on that platform.
+    if os.name == 'nt' and ignore_pygments_extensions:
         supported_exts = []
     else:
         try:
@@ -154,8 +154,8 @@ def get_edit_extensions():
     Return extensions associated with the file types
     supported by the Editor
     """
-    edit_filetypes = get_edit_filetypes()
-    return _get_extensions(edit_filetypes)+['']
+    edit_filetypes = get_edit_filetypes(ignore_pygments_extensions=False)
+    return _get_extensions(edit_filetypes) + ['']
 
 
 #==============================================================================

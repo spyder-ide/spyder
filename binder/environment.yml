@@ -13,6 +13,8 @@ dependencies:
 - cloudpickle >=0.5.0
 - cookiecutter >=1.6.0
 - diff-match-patch >=20181111
+- fcitx-qt5 >=1.2.7
+- fzf >=0.42.0
 - intervaltree >=3.0.2
 - ipython >=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1
 - jedi >=0.17.2,<0.19.0
@@ -44,7 +46,7 @@ dependencies:
 - rtree >=0.9.7
 - setuptools >=49.6.0
 - sphinx >=0.6.6
-- spyder-kernels >=3.0.0b1,<3.0.0b2
+- spyder-kernels >=3.0.0b2,<3.0.0b3
 - textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3

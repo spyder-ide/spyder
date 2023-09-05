@@ -20,6 +20,7 @@ from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
@@ -374,6 +375,14 @@ class PlotsWidget(ShellConnectMainWidget):
                 # Reset the toolbar buttons to use the figviewer and not the thumbnail
                 # selection
                 self._right_clicked_thumbnail = None
+
+    def add_plot(self, fig, fmt, shellwidget):
+        """
+        Add a plot to the figure browser with the given shellwidget, if any.
+        """
+        fig_browser = self.get_widget_for_shellwidget(shellwidget)
+        if fig_browser and not isinstance(fig_browser, PaneEmptyWidget):
+            fig_browser.add_figure(fig, fmt)
 
     def remove_plot(self):
         """
