@@ -291,7 +291,13 @@ class TabBar(QTabBar):
         self.currentChanged.connect(self._on_tab_changed)
         self.tabMoved.connect(self._on_tab_moved)
 
+    def refresh_style(self):
+        """Refresh the widget style."""
+        self._on_tab_changed(self.currentIndex())
+
     def _on_tab_changed(self, index):
+        """Actions to take when the current tab has changed."""
+        # Repaint background color of close buttons
         for i in range(self.count()):
             close_btn: CloseTabButton = self.tabButton(i, self.close_btn_side)
 
@@ -304,6 +310,8 @@ class TabBar(QTabBar):
                     close_btn.set_not_selected_color()
 
     def _on_tab_moved(self, index_from, index_to):
+        """Actions to take when drag and drop a tab to a different place."""
+        # Repaint background color of switched buttons
         close_btn_from = self.tabButton(index_from, self.close_btn_side)
         close_btn_to = self.tabButton(index_to, self.close_btn_side)
 
@@ -414,7 +422,8 @@ class BaseTabs(QTabWidget):
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
-        self.setUsesScrollButtons(True)
+        self.setTabBar(TabBar(self, parent))
+
         # Needed to prevent eliding tabs text on MacOS
         # See spyder-ide/spyder#18817
         self.setElideMode(Qt.ElideNone)
@@ -603,6 +612,10 @@ class BaseTabs(QTabWidget):
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
+    def refresh_style(self):
+        """Refresh the widget style."""
+        self.tabBar().refresh_style()
+
 
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
@@ -623,7 +636,7 @@ class Tabs(BaseTabs):
                          split_index=split_index)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
-                                          self.move_tab_from_another_tabwidget)
+            self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
         CONF.config_shortcut(

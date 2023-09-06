@@ -3708,7 +3708,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             # have been loaded.
             editorstack = self.get_current_editorstack()
             if editorstack:
-                self.get_current_editorstack().refresh()
+                editorstack.refresh()
+
+            # This is necessary to paint correctly the editorstack tabbars.
+            for editorstack in self.editorstacks:
+                if editorstack:
+                    editorstack.tabs.refresh_style()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)

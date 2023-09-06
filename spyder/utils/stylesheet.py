@@ -449,12 +449,10 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         # Adjust margins of corner widgets
         css['QTabWidget::left-corner'].setValues(
             top='-1px',
-            bottom='-2px'
         )
 
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
-            bottom='-2px',
             right='-3px' if WIN else '-1px'
         )
 
