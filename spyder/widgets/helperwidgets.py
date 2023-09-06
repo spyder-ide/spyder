@@ -34,7 +34,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import MARGIN_SIZE, FIND_MIN_WIDTH
+from spyder.utils.stylesheet import AppStyle
 
 
 
@@ -455,7 +455,7 @@ class FinderLineEdit(ClearLineEdit):
             self._combobox.hide()
 
             # Only set a min width so it grows with the parent's width.
-            self.setMinimumWidth(FIND_MIN_WIDTH)
+            self.setMinimumWidth(AppStyle.FindMinWidth)
 
             # Set a fixed height so that it looks the same as our comboboxes.
             self.setMinimumHeight(height)
@@ -497,7 +497,10 @@ class FinderWidget(QWidget):
         finder_layout.addWidget(self.text_finder)
         finder_layout.addStretch()
         finder_layout.setContentsMargins(
-            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, 0
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            0
         )
         self.setLayout(finder_layout)
         self.setVisible(False)

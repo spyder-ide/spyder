@@ -31,14 +31,21 @@ from spyder.utils.palette import QStylePalette
 MAC = sys.platform == 'darwin'
 WIN = os.name == 'nt'
 
-# -- Values below are in pixels
 
-# Size of margins.
-MARGIN_SIZE = 3
+class AppStyle:
+    """
+    Enum with several constants used in the application style.
 
-# Size of find widget line edits (e.g. FinderWidget and FindReplace)
-FIND_MIN_WIDTH = 400
-FIND_HEIGHT = 26
+    Notes
+    -----
+    All sizes are in pixels.
+    """
+    # Size of margins.
+    MarginSize = 3
+
+    # Size of find widget line edits (e.g. FinderWidget and FindReplace)
+    FindMinWidth = 400
+    FindHeight = 26
 
 
 # =============================================================================
@@ -515,6 +522,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
+        margin_size = AppStyle.MarginSize
 
         # Basic style
         css['QTabBar::tab'].setValues(
@@ -525,7 +533,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             #   a bottom margin on dockwidgets that are not tabified.
             # * The other half is added through the _margin_bottom attribute of
             #   PluginMainWidget.
-            margin=f'{MARGIN_SIZE}px 0px {2 * MARGIN_SIZE}px 0px',
+            margin=f'{margin_size}px 0px {2 * margin_size}px 0px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove a colored border added by QDarkStyle
@@ -560,13 +568,13 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderBottomLeftRadius='4px',
-            marginLeft=f'{2 * MARGIN_SIZE}px',
+            marginLeft=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderTopRightRadius='4px',
             borderBottomRightRadius='4px',
-            marginRight='{2 * MARGIN_SIZE}px',
+            marginRight=f'{2 * margin_size}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -581,7 +589,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         # bottom (see the notes in the 'QTabBar::tab' style above).
         css['QTabBar QToolButton'].setValues(
             marginTop='0px',
-            marginBottom=f'{MARGIN_SIZE}px',
+            marginBottom=f'{margin_size}px',
         )
 
 
@@ -597,12 +605,13 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
+        margin_size = AppStyle.MarginSize
 
         # Basic style
         css['QTabBar::tab'].setValues(
             # No margins to top/bottom but left/right to separate tabbar from
             # the dockwidget areas
-            margin=f'0px {2 * MARGIN_SIZE}px',
+            margin=f'0px {2 * margin_size}px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove colored borders added by QDarkStyle
@@ -636,13 +645,13 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderTopRightRadius='4px',
-            marginTop=f'{2 * MARGIN_SIZE}px',
+            marginTop=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderBottomLeftRadius='4px',
             borderBottomRightRadius='4px',
-            marginBottom=f'{2 * MARGIN_SIZE}px',
+            marginBottom=f'{2 * margin_size}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -654,8 +663,8 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Make style for scroll buttons match the horizontal one
         css['QTabBar QToolButton'].setValues(
-            marginLeft=f'{MARGIN_SIZE}px',
-            marginRight=f'{MARGIN_SIZE}px',
+            marginLeft=f'{margin_size}px',
+            marginRight=f'{margin_size}px',
         )
 
 

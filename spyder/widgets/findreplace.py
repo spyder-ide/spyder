@@ -30,7 +30,7 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.sourcecode import get_eol_chars
-from spyder.utils.stylesheet import MARGIN_SIZE, FIND_HEIGHT, FIND_MIN_WIDTH
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -46,12 +46,12 @@ def is_position_inf(pos1, pos2):
 class SearchText(PatternComboBox):
 
     def __init__(self, parent):
-        self.recommended_width = FIND_MIN_WIDTH
+        self.recommended_width = AppStyle.FindMinWidth
         super().__init__(parent, adjust_to_minimum=False)
 
     def sizeHint(self):
         """Recommended size."""
-        return QSize(self.recommended_width, FIND_HEIGHT)
+        return QSize(self.recommended_width, AppStyle.FindHeight)
 
 
 class FindReplace(QWidget):
@@ -73,7 +73,10 @@ class FindReplace(QWidget):
 
         glayout = QGridLayout()
         glayout.setContentsMargins(
-            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, 0
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            0
         )
         self.setLayout(glayout)
 

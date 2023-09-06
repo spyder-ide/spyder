@@ -26,7 +26,7 @@ from spyder.plugins.findinfiles.widgets.combobox import (
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.stylesheet import FIND_HEIGHT, FIND_MIN_WIDTH, MARGIN_SIZE
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
@@ -34,7 +34,7 @@ from spyder.widgets.helperwidgets import PaneEmptyWidget
 # ---- Constants
 # -----------------------------------------------------------------------------
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
-MAX_COMBOBOX_WIDTH = FIND_MIN_WIDTH + 80  # In pixels
+MAX_COMBOBOX_WIDTH = AppStyle.FindMinWidth + 80  # In pixels
 
 
 # ---- Enums
@@ -88,7 +88,7 @@ class FindInFilesWidget(PluginMainWidget):
 
     # PluginMainWidget constants
     ENABLE_SPINNER = True
-    MARGIN_TOP = MARGIN_SIZE + 5
+    MARGIN_TOP = AppStyle.MarginSize + 5
 
     # Other constants
     REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
@@ -184,7 +184,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.SearchInCombo
         )
         self.path_selection_combo.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, FIND_HEIGHT
+            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
@@ -195,7 +195,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
         )
         self.exclude_pattern_edit.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, FIND_HEIGHT
+            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
@@ -387,14 +387,14 @@ class FindInFilesWidget(PluginMainWidget):
                         self._exclude_label_width +
                         (self._search_in_label_width -
                          self._exclude_label_width),
-                        FIND_HEIGHT
+                        AppStyle.FindHeight
                     )
                 else:
                     self.search_in_label.setMinimumSize(
                         self._search_in_label_width +
                         (self._exclude_label_width -
                          self._search_in_label_width),
-                        FIND_HEIGHT
+                        AppStyle.FindHeight
                     )
             else:
                 # Restore initial search_in label width when it's shorter than
@@ -402,7 +402,7 @@ class FindInFilesWidget(PluginMainWidget):
                 if self._search_in_label_width < self._exclude_label_width:
                     self.search_in_label.setMinimumSize(
                         self._search_in_label_width,
-                        FIND_HEIGHT
+                        AppStyle.FindHeight
                     )
 
         if self.more_options_action:
