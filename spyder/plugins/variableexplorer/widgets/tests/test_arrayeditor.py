@@ -296,6 +296,24 @@ def test_arrayeditor_refresh_into_int(qtbot):
     mock_critical.assert_called_once()
 
 
+def test_arrayeditor_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the array editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    arr_ones = np.ones((3, 3))
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(dlg.rejected, timeout=0):
+        dlg.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)

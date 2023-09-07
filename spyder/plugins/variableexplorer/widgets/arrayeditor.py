@@ -1098,7 +1098,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         if self.btn_save_and_close.isEnabled():
             if not self.ask_for_refresh_confirmation():
                 return
-        data = self.data_function()
+
+        try:
+            data = self.data_function()
+        except KeyError:
+            self.error(_('The variable no longer exists.'))
+            return
+
         if not self.set_data_and_check(data):
             self.error(
                 _('The new value cannot be displayed in the array editor.'))
