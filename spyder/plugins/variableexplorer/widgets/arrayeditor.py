@@ -1092,8 +1092,25 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         """
         assert self.data_function is not None
 
+        if self.btn_save_and_close.isEnabled():
+            if not self.ask_for_refresh_confirmation():
+                return
         data = self.data_function()
         self.set_data_and_check(data)
+
+    def ask_for_refresh_confirmation(self) -> bool:
+        """
+        Ask user to confirm refreshing the editor.
+
+        This function is to be called if refreshing the editor would overwrite
+        changes that the user made previously. The function returns True if
+        the user confirms that they want to refresh and False otherwise.
+        """
+        message = _('Refreshing the editor will overwrite the changes that '
+                    'you made. Do you want to proceed?')
+        result = QMessageBox.question(
+            self, _('Refresh array editor?'), message)
+        return result == QMessageBox.Yes
 
     @Slot()
     def accept(self):

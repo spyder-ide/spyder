@@ -13,7 +13,7 @@ Tests for the array editor.
 # Standard library imports
 import os
 import sys
-from unittest.mock import Mock, ANY
+from unittest.mock import Mock, patch, ANY
 
 # Third party imports
 from flaky import flaky
@@ -21,6 +21,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMessageBox
 from scipy.io import loadmat
 
 # Local imports
@@ -248,6 +249,35 @@ def test_arrayeditor_refresh():
     assert dlg.refresh_action.isEnabled()
     dlg.refresh_action.trigger()
     assert_array_equal(dlg.get_value(), arr_zeros)
+
+
+@pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
+def test_arrayeditor_refresh_after_edit(result):
+    """
+    Test that after changing a value in the array editor, pressing the Refresh
+    button opens a dialog box (which asks for confirmation), and that the
+    editor is only refreshed if the user clicks Yes.
+    """
+    arr_ones = np.ones((3, 3))
+    arr_edited = arr_ones.copy()
+    arr_edited[0, 0] = 2
+    arr_zeros = np.zeros((4, 4))
+    datafunc = lambda: arr_zeros
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    dlg.show()
+    model = dlg.arraywidget.model
+    model.setData(model.index(0, 0), '2')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.question',
+               return_value=result) as mock_question:
+        dlg.refresh_action.trigger()
+    mock_question.assert_called_once()
+    dlg.accept()
+    if result == QMessageBox.Yes:
+        assert_array_equal(dlg.get_value(), arr_zeros)
+    else:
+        assert_array_equal(dlg.get_value(), arr_edited)
 
 
 def test_arrayeditor_edit_1d_array(qtbot):
