@@ -280,6 +280,22 @@ def test_arrayeditor_refresh_after_edit(result):
         assert_array_equal(dlg.get_value(), arr_edited)
 
 
+def test_arrayeditor_refresh_into_int(qtbot):
+    """
+    Test that if the value after refreshing is not an array but an integer,
+    a critical dialog box is displayed and that the array editor is closed.
+    """
+    arr_ones = np.ones((3, 3))
+    datafunc = lambda: 1
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(dlg.rejected, timeout=0):
+        dlg.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)

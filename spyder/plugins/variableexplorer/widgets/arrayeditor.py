@@ -857,6 +857,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         Setup ArrayEditor:
         return False if data is not supported, True otherwise
         """
+        if not isinstance(data, (np.ndarray, np.ma.MaskedArray)):
+            return False
+
         self.data = data
         readonly = readonly or not self.data.flags.writeable
         is_masked_array = isinstance(data, np.ma.MaskedArray)
@@ -1096,7 +1099,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             if not self.ask_for_refresh_confirmation():
                 return
         data = self.data_function()
-        self.set_data_and_check(data)
+        if not self.set_data_and_check(data):
+            self.error(
+                _('The new value cannot be displayed in the array editor.'))
 
     def ask_for_refresh_confirmation(self) -> bool:
         """
