@@ -777,6 +777,29 @@ class ArrayEditor(BaseDialog):
             triggered=self.arraywidget.view.edit_item)
         toolbar.addAction(self.edit_action)
 
+        self.format_action = create_action(
+            self, _('Format'), icon=ima.icon('format_float'),
+            tip=_('Set format of floating-point numbers'),
+            triggered=self.arraywidget.change_format)
+        self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
+        toolbar.addAction(self.format_action)
+
+        self.resize_action = create_action(
+            self, _('Resize'), icon=ima.icon('collapse_column'),
+            tip=_('Resize columns to contents'),
+            triggered=self.arraywidget.view.resize_to_contents)
+        toolbar.addAction(self.resize_action)
+
+        self.toggle_bgcolor_action = create_action(
+            self, _('Background color'), icon=ima.icon('background_color'),
+            toggled=lambda state: self.arraywidget.model.bgcolor(state))
+        self.toggle_bgcolor_action.setCheckable(True)
+        self.toggle_bgcolor_action.setChecked(
+            self.arraywidget.model.bgcolor_enabled)
+        self.toggle_bgcolor_action.setEnabled(
+            self.arraywidget.model.bgcolor_enabled)
+        toolbar.addAction(self.toggle_bgcolor_action)
+
         self.layout.addWidget(toolbar, 0, 0)
 
         # ---- Top row of buttons
@@ -837,23 +860,6 @@ class ArrayEditor(BaseDialog):
         # ---- Bottom row of buttons
         btn_layout_bottom = QHBoxLayout()
 
-        btn_format = QPushButton(_("Format"))
-        # disable format button for int type
-        btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
-        btn_layout_bottom.addWidget(btn_format)
-        btn_format.clicked.connect(self.arraywidget.change_format)
-
-        btn_resize = QPushButton(_("Resize"))
-        btn_layout_bottom.addWidget(btn_resize)
-        btn_resize.clicked.connect(self.arraywidget.view.resize_to_contents)
-
-        self.bgcolor = QCheckBox(_('Background color'))
-        self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.stateChanged.connect(
-            lambda state: self.arraywidget.model.bgcolor(state))
-        btn_layout_bottom.addWidget(self.bgcolor)
-
         btn_layout_bottom.addStretch()
 
         if not readonly:
@@ -896,7 +902,8 @@ class ArrayEditor(BaseDialog):
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
-        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
+        self.toggle_bgcolor_action.setChecked(
+            self.arraywidget.model.bgcolor_enabled)
 
     def change_active_widget(self, index):
         """
