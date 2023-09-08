@@ -32,13 +32,15 @@ from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.config.manager import CONF
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 # Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
@@ -581,6 +583,12 @@ class ArrayView(QTableView):
         clipboard = QApplication.clipboard()
         clipboard.setText(cliptxt)
 
+    def edit_item(self):
+        """Edit item"""
+        index = self.currentIndex()
+        if index.isValid():
+            self.edit(index)
+
 
 class ArrayEditorWidget(QWidget):
 
@@ -754,6 +762,22 @@ class ArrayEditor(BaseDialog):
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
+
+        # ---- Toolbar and actions
+        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
+        self.copy_action = create_action(
+            self, _('Copy'), icon=ima.icon('editcopy'),
+            triggered=self.arraywidget.view.copy)
+        toolbar.addAction(self.copy_action)
+
+        self.edit_action = create_action(
+            self, _('Edit'), icon=ima.icon('edit'),
+            triggered=self.arraywidget.view.edit_item)
+        toolbar.addAction(self.edit_action)
+
+        self.layout.addWidget(toolbar, 0, 0)
 
         # ---- Top row of buttons
         btn_layout_top = None
