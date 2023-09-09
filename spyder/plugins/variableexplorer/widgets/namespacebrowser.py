@@ -239,7 +239,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def setup_kernel(self):
         self.set_namespace_view_settings()
-        self.refresh_namespacebrowser(interrupt=False)
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
