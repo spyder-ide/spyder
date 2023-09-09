@@ -418,7 +418,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     
     def kernel_configure_callback(self, dic):
         """Kernel configuration callback"""
-        for key, value in dic:
+        for key, value in dic.items():
             if key == "faulthandler":
                 self.kernel_handler.faulthandler_setup(value)
             elif key == "check_special_kernel":
