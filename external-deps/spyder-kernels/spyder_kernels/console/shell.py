@@ -27,7 +27,6 @@ import spyder_kernels
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
-from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 

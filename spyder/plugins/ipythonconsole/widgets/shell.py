@@ -370,19 +370,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Check for fault and send config
         self.kernel_handler.poll_fault_text()
 
-        # Show possible errors when setting Matplotlib backend
-        self.call_kernel().show_mpl_backend_errors()
-
-        # Check if the dependecies for special consoles are available.
-        self.call_kernel(
-            callback=self.ipyclient._show_special_console_error
-            ).is_special_kernel_valid()
-
         self.send_spyder_kernel_configuration()
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
         self.is_kernel_configured = False
+        
+        # Show possible errors when setting Matplotlib backend
+        self.set_kernel_configuration("show_mpl_backend_errors", True)
+        
+        # Check if the dependecies for special consoles are available.
+        self.set_kernel_configuration("check_special_kernel", True)
+        
         # Set current cwd
         self.set_cwd()
 
@@ -390,13 +389,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_color_scheme(self.syntax_style, reset=False)
 
         # Enable faulthandler
-        self.kernel_handler.enable_faulthandler()
+        self.set_kernel_configuration("faulthandler", True)
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
 
         self.call_kernel(
-            interrupt=self.is_debugging()
+            interrupt=self.is_debugging(),
+            callback=self.kernel_configure_callback
         ).set_configuration(self._kernel_configuration)
 
         self.is_kernel_configured = True
@@ -407,8 +407,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.is_kernel_configured:
             # Otherwise will be sent later
             self.call_kernel(
-                interrupt=self.is_debugging()
+                interrupt=self.is_debugging(),
+                callback=self.kernel_configure_callback
             ).set_configuration({key: value})
+    
+    def kernel_configure_callback(self, dic):
+        """Kernel configuration callback"""
+        for key, value in dic:
+            if key == "faulthandler":
+                self.kernel_handler.faulthandler_setup(value)
+            elif key == "check_special_kernel":
+                self.ipyclient._show_special_console_error(value)
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""

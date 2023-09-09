@@ -577,13 +577,6 @@ class KernelHandler(QObject):
         """Setup faulthandler"""
         self._fault_args = args
 
-    def enable_faulthandler(self):
-        """Enable faulthandler"""
-        # To display faulthandler
-        self.kernel_comm.remote_call(
-            callback=self.faulthandler_setup
-        ).enable_faulthandler()
-
     def poll_fault_text(self):
         """Get a fault from a previous session."""
         if self._fault_args is None:

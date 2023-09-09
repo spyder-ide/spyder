@@ -114,7 +114,6 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             pass
 
-    @comm_handler
     def enable_faulthandler(self):
         """
         Open a file to save the faulthandling and identifiers for
@@ -596,6 +595,7 @@ class SpyderKernel(IPythonKernel):
     @comm_handler
     def set_configuration(self, dic):
         """Set kernel configuration"""
+        ret = {}
         for key, value in dic.items():
             if key == "cwd":
                 self._cwd_initialised = True
@@ -605,6 +605,13 @@ class SpyderKernel(IPythonKernel):
                 self.namespace_view_settings = value
             elif key == "pdb":
                 self.shell.set_pdb_configuration(value)
+            elif key == "faulthandler":
+                ret[key] = self.enable_faulthandler()
+            elif key == "show_mpl_backend_errors":
+                self.show_mpl_backend_errors()
+            elif key == "check_special_kernel":
+                ret[key] = self.check_special_kernel()
+        return ret
 
     def get_cwd(self):
         """Get current working directory."""
@@ -632,8 +639,7 @@ class SpyderKernel(IPythonKernel):
         except:
             pass
 
-    @comm_handler
-    def is_special_kernel_valid(self):
+    def check_special_kernel(self):
         """
         Check if optional dependencies are available for special consoles.
         """
@@ -877,7 +883,6 @@ class SpyderKernel(IPythonKernel):
             # Needed in case matplolib isn't installed
             pass
 
-    @comm_handler
     def show_mpl_backend_errors(self):
         """Show Matplotlib backend errors after the prompt is ready."""
         if self._mpl_backend_error is not None:
