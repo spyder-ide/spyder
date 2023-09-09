@@ -603,6 +603,8 @@ class SpyderKernel(IPythonKernel):
                 self.publish_state()
             elif key == "namespace_view_settings":
                 self.namespace_view_settings = value
+            elif key == "pdb":
+                self.shell.set_pdb_configuration(value)
 
     def get_cwd(self):
         """Get current working directory."""

@@ -263,7 +263,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_config_kernel(self):
         """Ask shellwidget to send Pdb configuration to kernel."""
-        self.shellwidget.call_kernel().set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration("pdb", {
             'breakpoints': self.get_conf("breakpoints", default={}),
             'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
             'pdb_execute_events': self.get_conf('pdb_execute_events'),
@@ -277,44 +277,42 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Ask shellwidget to stop sending stack."""
         if not self.shellwidget.spyder_kernel_ready:
             return
-        self.shellwidget.call_kernel().set_pdb_configuration(
-            {'pdb_publish_stack': False})
-
-    def set_pdb_configuration(self, configuration):
-        """Set configuration into a debugging session."""
-        if not self.shellwidget.spyder_kernel_ready:
-            # will be sent by on_config_kernel
-            return
-        self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
-            configuration)
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {'pdb_publish_stack': False}
+        )
 
     @on_conf_change(option='pdb_ignore_lib')
     def change_pdb_ignore_lib(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_ignore_lib': value
         })
 
     @on_conf_change(option='pdb_execute_events')
     def change_pdb_execute_events(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_execute_events': value
         })
 
     @on_conf_change(option='pdb_use_exclamation_mark')
     def change_pdb_use_exclamation_mark(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_use_exclamation_mark': value
         })
 
     @on_conf_change(option='pdb_stop_first_line')
     def change_pdb_stop_first_line(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_stop_first_line': value
         })
 
     def set_breakpoints(self):
         """Set current breakpoints."""
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'breakpoints': self.get_conf(
                 "breakpoints", default={}, section='debugger')
         })

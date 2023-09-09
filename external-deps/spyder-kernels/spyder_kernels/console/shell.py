@@ -101,7 +101,6 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
-    @comm_handler
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.

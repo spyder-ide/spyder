@@ -715,7 +715,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to True
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': True
     })
 
@@ -729,7 +730,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to False
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': False
     })
 
