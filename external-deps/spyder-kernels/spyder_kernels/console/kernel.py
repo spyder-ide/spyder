@@ -261,11 +261,6 @@ class SpyderKernel(IPythonKernel):
 
     # --- For the Variable Explorer
     @comm_handler
-    def set_namespace_view_settings(self, settings):
-        """Set namespace_view_settings."""
-        self.namespace_view_settings = settings
-
-    @comm_handler
     def get_namespace_view(self, frame=None):
         """
         Return the namespace view
@@ -599,11 +594,15 @@ class SpyderKernel(IPythonKernel):
 
     # --- Additional methods
     @comm_handler
-    def set_cwd(self, dirname):
-        """Set current working directory."""
-        self._cwd_initialised = True
-        os.chdir(dirname)
-        self.publish_state()
+    def set_configuration(self, dic):
+        """Set kernel configuration"""
+        for key, value in dic.items():
+            if key == "cwd":
+                self._cwd_initialised = True
+                os.chdir(value)
+                self.publish_state()
+            elif key == "namespace_view_settings":
+                self.namespace_view_settings = value
 
     def get_cwd(self):
         """Get current working directory."""

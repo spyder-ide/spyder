@@ -148,7 +148,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.kernel_handler = None
-        self._cwd = ''
+        self._kernel_configuration = {}
+        self.is_kernel_configured = False
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -381,6 +382,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        self.is_kernel_configured = False
         # Set current cwd
         self.set_cwd()
 
@@ -392,6 +394,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
+
+        self.call_kernel(
+            interrupt=self.is_debugging()
+        ).set_configuration(self._kernel_configuration)
+
+        self.is_kernel_configured = True
+
+    def set_kernel_configuration(self, key, value):
+        """Set kernel configuration."""
+        self._kernel_configuration[key] = value
+        if self.is_kernel_configured:
+            # Otherwise will be sent later
+            self.call_kernel(
+                interrupt=self.is_debugging()
+            ).set_configuration({key: value})
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""
@@ -463,23 +480,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
 
         if dirname is None:
-            if not self._cwd:
+            if not self.get_cwd():
                 return
-            dirname = self._cwd
+            dirname = self.get_cwd()
         elif os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
+        self.set_kernel_configuration("cwd", dirname)
 
-        if self.spyder_kernel_ready:
-            # Otherwise cwd will be sent later
-            self.call_kernel(
-                interrupt=self.is_debugging()
-            ).set_cwd(dirname)
-
-        self._cwd = dirname
         if emit_cwd_change:
-            self.sig_working_directory_changed.emit(self._cwd)
+            self.sig_working_directory_changed.emit(dirname)
 
     def get_cwd(self):
         """
@@ -492,17 +503,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         * We do it for performance reasons because we call this method when
           switching consoles to update the Working Directory toolbar.
         """
-        return self._cwd
+        return self._kernel_configuration.get("cwd", '')
 
     def update_state(self, state):
         """
         New state received from kernel.
         """
         cwd = state.pop("cwd", None)
-        if cwd and self._cwd and cwd != self._cwd:
-            # Only set it if self._cwd is already set
-            self._cwd = cwd
-            self.sig_working_directory_changed.emit(self._cwd)
+        if cwd and self.get_cwd() and cwd != self.get_cwd():
+            # Only set it if self.get_cwd() is already set
+            self._kernel_configuration["cwd"] = cwd
+            self.sig_working_directory_changed.emit(cwd)
 
         if state:
             self.sig_kernel_state_arrived.emit(state)

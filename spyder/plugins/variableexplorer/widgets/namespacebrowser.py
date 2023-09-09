@@ -228,17 +228,17 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             callback=self.set_var_properties
         ).get_var_properties()
 
-    def set_namespace_view_settings(self, interrupt=True):
+    def set_namespace_view_settings(self):
         """Set the namespace view settings"""
         if not self.shellwidget.spyder_kernel_ready:
             return
         settings = self.get_view_settings()
-        self.shellwidget.call_kernel(
-            interrupt=interrupt
-        ).set_namespace_view_settings(settings)
+        self.shellwidget.set_kernel_configuration(
+            "namespace_view_settings", settings
+        )
 
     def setup_kernel(self):
-        self.set_namespace_view_settings(interrupt=False)
+        self.set_namespace_view_settings()
         self.refresh_namespacebrowser(interrupt=False)
 
     def process_remote_view(self, remote_view):
