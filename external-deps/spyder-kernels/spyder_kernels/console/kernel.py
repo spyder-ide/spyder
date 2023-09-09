@@ -611,6 +611,14 @@ class SpyderKernel(IPythonKernel):
                 self.show_mpl_backend_errors()
             elif key == "check_special_kernel":
                 ret[key] = self.check_special_kernel()
+            elif key == "color scheme":
+                if value == "dark":
+                    # Needed to change the colors of tracebacks
+                    self.shell.run_line_magic("colors", "linux")
+                    self.set_sympy_forecolor(background_color='dark')
+                elif value == "light":
+                    self.shell.run_line_magic("colors", "lightbg")
+                    self.set_sympy_forecolor(background_color='light')
         return ret
 
     def get_cwd(self):
