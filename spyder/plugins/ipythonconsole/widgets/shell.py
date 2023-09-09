@@ -403,13 +403,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_kernel_configuration(self, key, value):
         """Set kernel configuration."""
-        self._kernel_configuration[key] = value
         if self.is_kernel_configured:
-            # Otherwise will be sent later
-            self.call_kernel(
-                interrupt=self.is_debugging(),
-                callback=self.kernel_configure_callback
-            ).set_configuration({key: value})
+            if (
+                key not in self._kernel_configuration
+                or self._kernel_configuration[key] != value
+            ):
+                # Do not send twice
+                self.call_kernel(
+                    interrupt=self.is_debugging(),
+                    callback=self.kernel_configure_callback
+                ).set_configuration({key: value})
+        
+        self._kernel_configuration[key] = value
     
     def kernel_configure_callback(self, dic):
         """Kernel configuration callback"""
