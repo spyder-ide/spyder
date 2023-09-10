@@ -23,5 +23,5 @@ class SpyderKernelClient(QtKernelClient):
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
         super()._handle_kernel_info_reply(rep)
-        spyder_kernel_info = rep["content"].get("spyder_kernel_info", None)
+        spyder_kernel_info = rep["content"].get("spyder_kernels_info", None)
         self.sig_spyder_kernel_info.emit(spyder_kernel_info)
