@@ -620,6 +620,22 @@ class SpyderKernel(IPythonKernel):
                 elif value == "light":
                     self.shell.run_line_magic("colors", "lightbg")
                     self.set_sympy_forecolor(background_color='light')
+            elif key == "jedi_completer":
+                self.set_jedi_completer(value)
+            elif key == "greedy_completer":
+                self.set_greedy_completer(value)
+            elif key == "autocall":
+                self.set_autocall(value)
+            elif key == "matplotlib_backend":
+                self.set_matplotlib_backend(*value)
+            elif key == "mpl_inline_figure_format":
+                self.set_mpl_inline_figure_format(value)
+            elif key == "mpl_inline_resolution":
+                self.set_mpl_inline_resolution(value)
+            elif key == "mpl_inline_figure_size":
+                self.set_mpl_inline_figure_size(*value)
+            elif key == "mpl_inline_bbox_inches":
+                self.set_mpl_inline_bbox_inches(value)
         return ret
 
     def get_cwd(self):

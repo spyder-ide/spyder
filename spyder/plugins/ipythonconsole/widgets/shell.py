@@ -604,43 +604,51 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
-        cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"
-        self.execute(cmd.format(backend_option, pylab), hidden=True)
+        self.set_kernel_configuration(
+            "matplotlib_backend", (backend_option, pylab)
+        )
 
     def set_mpl_inline_figure_format(self, figure_format):
         """Set matplotlib inline figure format."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_format('{}')"
-        self.execute(cmd.format(figure_format), hidden=True)
+        self.set_kernel_configuration(
+            "mpl_inline_figure_format", figure_format
+        )
 
     def set_mpl_inline_resolution(self, resolution):
         """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_resolution({})"
-        self.execute(cmd.format(resolution), hidden=True)
+        self.set_kernel_configuration(
+            "mpl_inline_resolution", resolution
+        )
 
     def set_mpl_inline_figure_size(self, width, height):
         """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_size({}, {})"
-        self.execute(cmd.format(width, height), hidden=True)
+        self.set_kernel_configuration(
+            "mpl_inline_figure_size", (width, height)
+        )
 
     def set_mpl_inline_bbox_inches(self, bbox_inches):
         """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_bbox_inches({})"
-        self.execute(cmd.format(bbox_inches), hidden=True)
+        self.set_kernel_configuration(
+            "mpl_inline_bbox_inches", bbox_inches
+        )
 
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
-        cmd = "get_ipython().kernel.set_jedi_completer({})"
-        self.execute(cmd.format(use_jedi), hidden=True)
+        self.set_kernel_configuration(
+            "jedi_completer", use_jedi
+        )
 
     def set_greedy_completer(self, use_greedy):
         """Set if greedy completions should be used."""
-        cmd = "get_ipython().kernel.set_greedy_completer({})"
-        self.execute(cmd.format(use_greedy), hidden=True)
+        self.set_kernel_configuration(
+            "greedy_completer", use_greedy
+        )
 
     def set_autocall(self, autocall):
         """Set if autocall functionality is enabled or not."""
-        cmd = "get_ipython().kernel.set_autocall({})"
-        self.execute(cmd.format(autocall), hidden=True)
+        self.set_kernel_configuration(
+            "autocall", autocall
+        )
 
     # --- To handle the banner
     def long_banner(self):
