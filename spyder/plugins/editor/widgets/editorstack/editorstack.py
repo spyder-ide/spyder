@@ -159,7 +159,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     def __init__(self, parent, actions, use_switcher=True):
