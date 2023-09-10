@@ -77,6 +77,7 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
 
 
 class KernelConnectionState:
+    SpyderKernelWaitComm = 'spyder_kernel_wait_comm'
     SpyderKernelReady = 'spyder_kernel_ready'
     IpykernelReady = 'ipykernel_ready'
     Connecting = 'connecting'
@@ -179,6 +180,7 @@ class KernelHandler(QObject):
         self._init_stderr = ""
         self._init_stdout = ""
         self._shellwidget_connected = False
+        self._comm_ready_recieved = False
 
         # Start kernel
         self.kernel_client.sig_spyder_kernel_info.connect(
@@ -186,6 +188,11 @@ class KernelHandler(QObject):
         )
         self.connect_std_pipes()
         self.kernel_client.start_channels()
+
+        # Open comm and wait for comm ready reply
+        # Only works for spyder-kernels, but this is the majority of cases
+        # For ipykernels, this does nothing
+        self.kernel_comm.open_comm(self.kernel_client)
 
     def connect_(self):
         """Connect to shellwidget."""
@@ -254,14 +261,16 @@ class KernelHandler(QObject):
                 return
 
         self.known_spyder_kernel = True
-
-        # Open comm and wait for comm ready reply
-        self.kernel_comm.open_comm(self.kernel_client)
+        self.connection_state = KernelConnectionState.SpyderKernelWaitComm
+        if self._comm_ready_recieved:
+            self.handle_comm_ready()
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self.connection_state = KernelConnectionState.SpyderKernelReady
-        self.sig_kernel_is_ready.emit()
+        self._comm_ready_recieved = True
+        if self.connection_state == KernelConnectionState.SpyderKernelWaitComm:
+            self.connection_state = KernelConnectionState.SpyderKernelReady
+            self.sig_kernel_is_ready.emit()
 
     def connect_std_pipes(self):
         """Connect to std pipes."""
