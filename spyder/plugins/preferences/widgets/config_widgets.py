@@ -686,7 +686,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if min_ is not None:
             spinbox.setMinimum(min_)
         if max_ is not None:
-            spinbox.setMaximum(max_)        
+            spinbox.setMaximum(max_)
         self.spinboxes[spinbox] = (section, option, default)
         layout = QHBoxLayout()
         for subwidget in (plabel, spinbox, slabel):
@@ -943,32 +943,3 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             self.tabs.addTab(self.create_tab(widget),
                              Widget.TITLE)
         self.load_from_conf()
-
-
-class GeneralConfigPage(SpyderConfigPage):
-    """Config page that maintains reference to main Spyder window
-       and allows to specify page name and icon declaratively
-    """
-    CONF_SECTION = None
-
-    NAME = None    # configuration page name, e.g. _("General")
-    ICON = None    # name of icon resource (24x24)
-
-    def __init__(self, parent, main):
-        SpyderConfigPage.__init__(self, parent)
-        self.main = main
-
-    def get_name(self):
-        """Configuration page name"""
-        return self.NAME
-
-    def get_icon(self):
-        """Loads page icon named by self.ICON"""
-        return self.ICON
-
-    def apply_settings(self, options):
-        raise NotImplementedError
-
-
-class PreferencePages:
-    General = 'main'
