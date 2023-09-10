@@ -83,6 +83,7 @@ class KernelConnectionState:
     Connecting = 'connecting'
     Error = 'error'
     Closed = 'closed'
+    Crashed = 'crashed'
 
 
 class StdThread(QThread):
@@ -268,7 +269,10 @@ class KernelHandler(QObject):
     def handle_comm_ready(self):
         """The kernel comm is ready"""
         self._comm_ready_recieved = True
-        if self.connection_state == KernelConnectionState.SpyderKernelWaitComm:
+        if self.connection_state in [
+            KernelConnectionState.SpyderKernelWaitComm,
+            KernelConnectionState.Crashed
+        ]:
             self.connection_state = KernelConnectionState.SpyderKernelReady
             self.sig_kernel_is_ready.emit()
 
@@ -589,5 +593,5 @@ class KernelHandler(QObject):
     def reopen_comm(self):
         """Reopen comm (following a crash)"""
         self.kernel_comm.remove()
-        self.connection_state = KernelConnectionState.Connecting
+        self.connection_state = KernelConnectionState.Crashed
         self.kernel_comm.open_comm(self.kernel_client)
