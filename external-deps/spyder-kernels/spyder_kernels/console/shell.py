@@ -23,7 +23,6 @@ from _thread import interrupt_main
 from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
-import spyder_kernels
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
@@ -54,12 +53,6 @@ class SpyderShell(ZMQInteractiveShell):
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
-
-        # Used for checking correct version by spyder
-        self._spyder_kernels_version = (
-            spyder_kernels.__version__,
-            sys.executable
-        )
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)

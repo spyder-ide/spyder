@@ -7,7 +7,6 @@
 """Kernel handler."""
 
 # Standard library imports
-import ast
 import os
 import os.path as osp
 from subprocess import PIPE
@@ -179,13 +178,14 @@ class KernelHandler(QObject):
         self._fault_args = None
         self._init_stderr = ""
         self._init_stdout = ""
-        self._spyder_kernel_info_uuid = None
         self._shellwidget_connected = False
 
         # Start kernel
+        self.kernel_client.sig_spyder_kernel_info.connect(
+            self.check_spyder_kernel_info
+        )
         self.connect_std_pipes()
         self.kernel_client.start_channels()
-        self.check_kernel_info()
 
     def connect_(self):
         """Connect to shellwidget."""
@@ -205,32 +205,6 @@ class KernelHandler(QObject):
         if self._init_stdout:
             self.sig_stdout.emit(self._init_stdout)
         self._init_stdout = None
-
-    def check_kernel_info(self):
-        """Send request to check kernel info."""
-        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
-        self.kernel_client.shell_channel.message_received.connect(
-            self._dispatch_kernel_info)
-        self._spyder_kernel_info_uuid = str(uuid.uuid1())
-        self.kernel_client.execute(
-            '', silent=True, user_expressions={
-                self._spyder_kernel_info_uuid:code })
-
-    def _dispatch_kernel_info(self, msg):
-        """Listen for spyder_kernel_info."""
-        user_exp = msg['content'].get('user_expressions')
-        if not user_exp:
-            return
-        for expression in user_exp:
-            if expression == self._spyder_kernel_info_uuid:
-                self.kernel_client.shell_channel.message_received.disconnect(
-                    self._dispatch_kernel_info)
-                # Process kernel reply
-                data = user_exp[expression].get('data')
-                if data is not None and 'text/plain' in data:
-                    spyder_kernel_info = ast.literal_eval(
-                        data['text/plain'])
-                    self.check_spyder_kernel_info(spyder_kernel_info)
 
     def check_spyder_kernel_info(self, spyder_kernel_info):
         """
