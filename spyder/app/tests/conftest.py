@@ -298,9 +298,6 @@ def main_window(request, tmpdir, qtbot):
     # fails
     super_processEvents = QApplication.processEvents
 
-    # Disable Kite provider
-    CONF.set('completions', 'enabled_providers', {'kite': False})
-
     # Don't show tours message
     CONF.set('tours', 'show_tour_message', False)
 
