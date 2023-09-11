@@ -10,14 +10,14 @@ from qtpy.QtWidgets import QAction
 from qtpy import PYSIDE2
 
 # Local imports
+from spyder.api.plugin_registration.registry import PreferencesAdapter
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.plugins.preferences.api import (
+    MOST_IMPORTANT_PAGES,
+    PreferencesActions
+)
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
-
-
-class PreferencesActions:
-    Show = 'show_action'
-    Reset = 'reset_action'
 
 
 class PreferencesContainer(PluginMainContainer):
@@ -54,6 +54,10 @@ class PreferencesContainer(PluginMainContainer):
             dlg.resize(*self._dialog_size)
 
             for page_name in config_pages:
+                # Add separator before the Plugins page
+                if page_name == PreferencesAdapter.NAME:
+                    dlg.add_separator()
+
                 (api, ConfigPage, plugin) = config_pages[page_name]
                 if api == 'new':
                     page = ConfigPage(plugin, dlg)
@@ -66,6 +70,11 @@ class PreferencesContainer(PluginMainContainer):
                     for Tab in config_tabs.get(page_name, []):
                         page.add_tab(Tab)
                     dlg.add_page(page)
+
+                # Add separator after the last element of the most important
+                # pages
+                if page_name == MOST_IMPORTANT_PAGES[-1]:
+                    dlg.add_separator()
 
             dlg.set_current_index(self.dialog_index)
             dlg.show()

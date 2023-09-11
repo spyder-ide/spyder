@@ -8,7 +8,7 @@
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QListView,
+    QDialog, QDialogButtonBox, QFrame, QGridLayout, QHBoxLayout, QListView,
     QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
     QVBoxLayout, QWidget)
 
@@ -38,8 +38,8 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     sig_reset_preferences_requested = Signal()
 
     # Constants
-    ITEMS_MARGIN = 9
-    ITEMS_PADDING = 6
+    ITEMS_MARGIN = 6
+    ITEMS_PADDING = 3
     CONTENTS_MIN_WIDTH = 300
     ICON_SIZE = 24
 
@@ -112,7 +112,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
-                                             self.pages_widget.setCurrentIndex)
+            self.pages_widget.setCurrentIndex)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         bbox.clicked.connect(self.button_clicked)
@@ -131,12 +131,14 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     def get_page(self, index=None):
         """Return page widget"""
         if index is None:
-            widget = self.pages_widget.currentWidget()
+            page = self.pages_widget.currentWidget()
         else:
-            widget = self.pages_widget.widget(index)
+            page = self.pages_widget.widget(index)
 
-        if widget:
-            return widget.widget()
+        # Not all pages are config pages (e.g. separators have a simple QWidget
+        # as their config page). So, we need to check for this.
+        if page and hasattr(page, 'widget'):
+            return page.widget()
 
     def get_index_by_name(self, name):
         """Return page index by CONF_SECTION name."""
@@ -159,9 +161,17 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         """Reimplement Qt method"""
         for index in range(self.pages_widget.count()):
             configpage = self.get_page(index)
+
+            # This can be the case for separators, which doesn't have a config
+            # page.
+            if configpage is None:
+                continue
+
             if not configpage.is_valid():
                 return
+
             configpage.apply_changes()
+
         QDialog.accept(self)
 
     def button_clicked(self, button):
@@ -176,6 +186,21 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         widget = self.get_page(index)
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
+
+    def add_separator(self):
+        """Add a horizontal line to separate different sections."""
+        # Solution taken from https://stackoverflow.com/a/24819554/438386
+        item = QListWidgetItem(self.contents_widget)
+        item.setFlags(Qt.NoItemFlags)
+        item.setSizeHint(QSize(9, 9))
+
+        hline = QFrame(self.contents_widget)
+        hline.setFrameShape(QFrame.HLine)
+        self.contents_widget.setItemWidget(item, hline)
+
+        # This is necessary to keep in sync the contents_widget and
+        # pages_widget indexes.
+        self.pages_widget.addWidget(QWidget(self))
 
     def add_page(self, page):
         # Signals

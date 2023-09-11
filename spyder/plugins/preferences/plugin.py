@@ -18,6 +18,7 @@ from typing import Union
 
 # Third-party imports
 from packaging.version import parse, Version
+from pyuca import Collator
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
@@ -26,17 +27,22 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.plugin_registration.registry import PreferencesAdapter
 from spyder.config.base import _
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
+from spyder.plugins.preferences.api import MOST_IMPORTANT_PAGES
 from spyder.plugins.preferences.widgets.container import (
     PreferencesActions, PreferencesContainer)
 from spyder.plugins.pythonpath.api import PythonpathActions
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
+
+# Logger
 logger = logging.getLogger(__name__)
 
+# Types
 BaseType = Union[int, float, bool, complex, str, bytes]
 IterableType = Union[list, tuple]
 BasicType = Union[BaseType, IterableType]
@@ -65,6 +71,7 @@ class Preferences(SpyderPluginV2):
         super().__init__(parent, configuration)
         self.config_pages = {}
         self.config_tabs = {}
+        self._config_pages_ordered = False
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -271,10 +278,14 @@ class Preferences(SpyderPluginV2):
 
     def open_dialog(self):
         container = self.get_container()
+
         self.before_long_process('')
+
+        self._reorder_config_pages()
         container.create_dialog(
             self.config_pages, self.config_tabs, self.get_main()
         )
+
         self.after_long_process()
 
     @Slot()
@@ -365,3 +376,33 @@ class Preferences(SpyderPluginV2):
         if container.is_preferences_open():
             container.close_preferences()
         return True
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _reorder_config_pages(self):
+        if self._config_pages_ordered:
+            return
+
+        plugins_page = [PreferencesAdapter.NAME]
+
+        # Order pages alphabetically by plugin name
+        pages = []
+        for k, v in self.config_pages.items():
+            pages.append((k, v[2].get_name()))
+
+        collator = Collator()
+        pages.sort(key=lambda p: collator.sort_key(p[1]))
+
+        # Get pages from the previous list without including the most important
+        # ones and the plugins page because they'll be added in a different
+        # order.
+        other_pages = [
+            page[0] for page in pages
+            if page[0] not in (MOST_IMPORTANT_PAGES + plugins_page)
+        ]
+
+        # Show most important pages first and the Plugins page last
+        ordering = MOST_IMPORTANT_PAGES + other_pages + plugins_page
+        self.config_pages = {k: self.config_pages[k] for k in ordering}
+
+        self._config_pages_ordered = True

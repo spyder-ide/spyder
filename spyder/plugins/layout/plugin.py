@@ -33,7 +33,7 @@ from spyder.plugins.layout.layouts import (DefaultLayouts,
                                            HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
                                            SpyderLayout, VerticalSplitLayout)
-from spyder.plugins.preferences.widgets.container import PreferencesActions
+from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
