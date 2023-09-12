@@ -22,8 +22,8 @@ def convert_version_info(version: str) -> (int, ..., str):
 
 _version.VERSION_INFO = convert_version_info(__version__)
 
-PYLSP = 'pylsp'
-IS_WIN = os.name == 'nt'
+PYLSP = "pylsp"
+IS_WIN = os.name == "nt"
 
 hookspec = pluggy.HookspecMarker(PYLSP)
 hookimpl = pluggy.HookimplMarker(PYLSP)
