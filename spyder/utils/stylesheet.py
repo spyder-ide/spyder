@@ -47,6 +47,9 @@ class AppStyle:
     FindMinWidth = 400
     FindHeight = 26
 
+    # To have it for quick access because it's needed a lot in Mac
+    MacScrollBarWidth = 16
+
 
 # =============================================================================
 # ---- Base stylesheet class

@@ -4,9 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics
+from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import (
     QDialog, QDialogButtonBox, QFrame, QGridLayout, QHBoxLayout, QListView,
     QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
@@ -18,7 +21,7 @@ from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import SPECIAL_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import AppStyle, SPECIAL_TABBAR_STYLESHEET
 
 
 class PageScrollArea(QScrollArea):
@@ -38,10 +41,10 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     sig_reset_preferences_requested = Signal()
 
     # Constants
-    ITEMS_MARGIN = 6
-    ITEMS_PADDING = 3
-    CONTENTS_MIN_WIDTH = 300
-    ICON_SIZE = 24
+    ITEMS_MARGIN = 2 * AppStyle.MarginSize
+    ITEMS_PADDING = AppStyle.MarginSize
+    CONTENTS_MAX_WIDTH = 230
+    ICON_SIZE = 20
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -49,7 +52,9 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Attributes
         self.main = parent
         self.items_font = self.get_font(
-            SpyderFontType.Interface, font_size_delta=1)
+            SpyderFontType.Interface, font_size_delta=1
+        )
+        self._is_shown = False
 
         # Widgets
         self.pages_widget = QStackedWidget(self)
@@ -75,9 +80,9 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(3)
         self.contents_widget.setCurrentRow(0)
-        self.contents_widget.setMinimumWidth(self.CONTENTS_MIN_WIDTH)
         self.contents_widget.setObjectName('configdialog-contents')
         self.contents_widget.setIconSize(QSize(self.ICON_SIZE, self.ICON_SIZE))
+        self.contents_widget.setFixedWidth(self.CONTENTS_MAX_WIDTH)
 
         # Don't show horizontal scrollbar because it doesn't look good. Instead
         # we show tooltips if the text doesn't fit in contents_widget width.
@@ -106,7 +111,8 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.setLayout(layout)
 
         # Stylesheet
-        self.setStyleSheet(self._stylesheet)
+        self._css = self._generate_stylesheet()
+        self.setStyleSheet(self._css.toString())
 
         # Signals and slots
         self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
@@ -120,6 +126,8 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
@@ -244,28 +252,30 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Set font for items
         item.setFont(self.items_font)
 
-        # Check if it's necessary to add a tooltip to the item
-        text_width = QFontMetrics(self.items_font).size(
-            Qt.TextSingleLine, page.get_name()
-        ).width()
-
-        actual_width = (
-            text_width + 2 * self.ITEMS_MARGIN + self.ICON_SIZE +
-            self.ITEMS_PADDING
-        )
-
-        available_width = (
-            self.CONTENTS_MIN_WIDTH -
-            (2 * self.ITEMS_MARGIN + self.ICON_SIZE + self.ITEMS_PADDING)
-        )
-
-        if actual_width > available_width:
-            item.setToolTip(page.get_name())
-
     def check_all_settings(self):
         """This method is called to check all configuration page settings
         after configuration dialog has been shown"""
         self.check_settings.emit()
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            self._add_tooltips()
+            self._adjust_items_margin()
+
+            self._is_shown = True
+
+        super().showEvent(event)
+
+        # This is necessary to paint the separators as expected when there
+        # are elided items in contents_widget.
+        self.blockSignals(True)
+        height = self.height()
+        self.resize(self.width(), height + 1)
+        self.resize(self.width(), height - 1)
+        self.blockSignals(False)
 
     def resizeEvent(self, event):
         """
@@ -275,8 +285,72 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         QDialog.resizeEvent(self, event)
         self.sig_size_changed.emit(self.size())
 
-    @property
-    def _stylesheet(self):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _add_tooltips(self):
+        """
+        Check if it's necessary to add tooltips to the contents_widget items.
+        """
+        contents_width = self.contents_widget.width()
+        metrics = QFontMetricsF(self.items_font)
+
+        for i in range(self.contents_widget.count()):
+            item = self.contents_widget.item(i)
+
+            # Item width
+            item_width = self.contents_widget.visualItemRect(item).width()
+
+            # Set tooltip
+            if item_width >= contents_width:
+                item.setToolTip(item.text())
+            else:
+                # This covers the case when item_width is too close to
+                # contents_width without the scrollbar being visible, which
+                # can't be detected by Qt with the check above.
+                scrollbar = self.contents_widget.verticalScrollBar()
+
+                if scrollbar.isVisible():
+                    if sys.platform == 'darwin':
+                        # This is a crude heuristic to detect if we need to add
+                        # tooltips on Mac. However, it's the best we can do
+                        # (the approach for other OSes below ends up adding
+                        # tooltips to all items) and it works for all our
+                        # localized languages.
+                        text_width = metrics.boundingRect(item.text()).width()
+                        if text_width + 70 > item_width - 5:
+                            item.setToolTip(item.text())
+                    else:
+                        if item_width > (contents_width - scrollbar.width()):
+                            item.setToolTip(item.text())
+
+    def _adjust_items_margin(self):
+        """
+        Adjust margins of contents_widget items depending on if its vertical
+        scrollbar is visible.
+
+        Notes
+        -----
+        We need to do this only in Mac because Qt doesn't account for the
+        scrollbar width in most widgets.
+        """
+        if sys.platform == 'darwin':
+            scrollbar = self.contents_widget.verticalScrollBar()
+            extra_margin = (
+                AppStyle.MacScrollBarWidth if scrollbar.isVisible() else 0
+            )
+            item_margin = (
+                f'0px {self.ITEMS_MARGIN + extra_margin}px '
+                f'0px {self.ITEMS_MARGIN}px'
+            )
+
+            self._css['QListView#configdialog-contents::item'].setValues(
+                margin=item_margin
+            )
+
+            self.setStyleSheet(self._css.toString())
+
+    def _generate_stylesheet(self):
+        """Generate stylesheet for this widget as qstylizer object."""
         # Use special tabbar stylesheet for as the base one and then extend it.
         tabs_stylesheet = SPECIAL_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
@@ -332,4 +406,4 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
             border='0px',
         )
 
-        return css.toString()
+        return css
