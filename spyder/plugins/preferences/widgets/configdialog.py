@@ -164,24 +164,6 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         else:
             return None
 
-    @Slot()
-    def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.pages_widget.count()):
-            configpage = self.get_page(index)
-
-            # This can be the case for separators, which doesn't have a config
-            # page.
-            if configpage is None:
-                continue
-
-            if not configpage.is_valid():
-                return
-
-            configpage.apply_changes()
-
-        QDialog.accept(self)
-
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
@@ -259,6 +241,24 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
+    @Slot()
+    def accept(self):
+        """Reimplement Qt method"""
+        for index in range(self.pages_widget.count()):
+            configpage = self.get_page(index)
+
+            # This can be the case for separators, which doesn't have a config
+            # page.
+            if configpage is None:
+                continue
+
+            if not configpage.is_valid():
+                return
+
+            configpage.apply_changes()
+
+        QDialog.accept(self)
+
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
         if not self._is_shown:
