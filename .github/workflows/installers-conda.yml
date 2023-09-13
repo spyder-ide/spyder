@@ -6,7 +6,6 @@ on:
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
-      - '.github/workflows/build-subrepos.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
 
@@ -86,11 +85,18 @@ jobs:
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
 
+  build-subrepos:
+    name: Build Subrepos
+    if: github.event_name == 'pull_request' || github.event == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    uses: ./.github/workflows/build-subrepos.yml
+
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
+    if: ${{ ! failure() && ! cancelled() }}
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
+      - build-subrepos
     strategy:
       fail-fast: false
       matrix:
