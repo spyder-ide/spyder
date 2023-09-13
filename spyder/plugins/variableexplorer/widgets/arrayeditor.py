@@ -823,13 +823,12 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         toolbar._render()
         self.layout.addWidget(toolbar, 0, 0)
 
-        # ---- Top row of buttons
-        btn_layout_top = None
+        # ---- Buttons in bottom left, if any
+        btn_layout = QHBoxLayout()
         if is_record_array or is_masked_array or data.ndim == 3:
-            btn_layout_top = QHBoxLayout()
 
             if is_record_array:
-                btn_layout_top.addWidget(QLabel(_("Record array fields:")))
+                btn_layout.addWidget(QLabel(_("Record array fields:")))
                 names = []
                 for name in data.dtype.names:
                     field = data.dtype.fields[name]
@@ -852,20 +851,20 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
-                btn_layout_top.addWidget(label)
-                btn_layout_top.addWidget(ra_combo)
-                btn_layout_top.addWidget(self.shape_label)
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(ra_combo)
+                btn_layout.addWidget(self.shape_label)
 
                 label = QLabel(_("Index:"))
-                btn_layout_top.addWidget(label)
-                btn_layout_top.addWidget(self.index_spin)
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(self.index_spin)
 
-                btn_layout_top.addWidget(self.slicing_label)
+                btn_layout.addWidget(self.slicing_label)
             else:
                 ra_combo = QComboBox(self)
                 ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
-                btn_layout_top.addWidget(ra_combo)
+                btn_layout.addWidget(ra_combo)
 
             if is_masked_array:
                 label = QLabel(
@@ -874,35 +873,26 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                 label.setToolTip(_("For performance reasons, changes applied "
                                    "to masked arrays won't be reflected in "
                                    "array's data (and vice-versa)."))
-                btn_layout_top.addWidget(label)
+                btn_layout.addWidget(label)
 
-            btn_layout_top.addStretch()
-
-        # ---- Bottom row of buttons
-        btn_layout_bottom = QHBoxLayout()
-
-        btn_layout_bottom.addStretch()
+        # ---- Buttons on bottom right
+        btn_layout.addStretch()
 
         if not readonly:
             self.btn_save_and_close = QPushButton(_('Save and Close'))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
-            btn_layout_bottom.addWidget(self.btn_save_and_close)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_close = QPushButton(_('Close'))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
-        btn_layout_bottom.addWidget(self.btn_close)
+        btn_layout.addWidget(self.btn_close)
 
         # ---- Final layout
-        btn_layout_bottom.setContentsMargins(4, 4, 4, 4)
-        if btn_layout_top is not None:
-            btn_layout_top.setContentsMargins(4, 4, 4, 4)
-            self.layout.addLayout(btn_layout_top, 2, 0)
-            self.layout.addLayout(btn_layout_bottom, 3, 0)
-        else:
-            self.layout.addLayout(btn_layout_bottom, 2, 0)
+        btn_layout.setContentsMargins(4, 4, 4, 4)
+        self.layout.addLayout(btn_layout, 2, 0)
 
         # Set minimum size
         self.setMinimumSize(500, 300)
