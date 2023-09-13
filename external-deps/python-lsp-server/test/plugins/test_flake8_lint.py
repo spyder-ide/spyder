@@ -22,7 +22,7 @@ def using_const():
 
 
 def temp_document(doc_text, workspace):
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
         name = temp_file.name
         temp_file.write(doc_text)
     doc = Document(uris.from_fs_path(name), workspace)
@@ -31,31 +31,31 @@ def temp_document(doc_text, workspace):
 
 
 def test_flake8_unsaved(workspace):
-    doc = Document('', workspace, DOC)
+    doc = Document("", workspace, DOC)
     diags = flake8_lint.pylsp_lint(workspace, doc)
-    msg = 'F841 local variable \'a\' is assigned to but never used'
-    unused_var = [d for d in diags if d['message'] == msg][0]
+    msg = "F841 local variable 'a' is assigned to but never used"
+    unused_var = [d for d in diags if d["message"] == msg][0]
 
-    assert unused_var['source'] == 'flake8'
-    assert unused_var['code'] == 'F841'
-    assert unused_var['range']['start'] == {'line': 5, 'character': 1}
-    assert unused_var['range']['end'] == {'line': 5, 'character': 11}
-    assert unused_var['severity'] == lsp.DiagnosticSeverity.Error
-    assert unused_var['tags'] == [lsp.DiagnosticTag.Unnecessary]
+    assert unused_var["source"] == "flake8"
+    assert unused_var["code"] == "F841"
+    assert unused_var["range"]["start"] == {"line": 5, "character": 1}
+    assert unused_var["range"]["end"] == {"line": 5, "character": 11}
+    assert unused_var["severity"] == lsp.DiagnosticSeverity.Error
+    assert unused_var["tags"] == [lsp.DiagnosticTag.Unnecessary]
 
 
 def test_flake8_lint(workspace):
     name, doc = temp_document(DOC, workspace)
     try:
         diags = flake8_lint.pylsp_lint(workspace, doc)
-        msg = 'F841 local variable \'a\' is assigned to but never used'
-        unused_var = [d for d in diags if d['message'] == msg][0]
+        msg = "F841 local variable 'a' is assigned to but never used"
+        unused_var = [d for d in diags if d["message"] == msg][0]
 
-        assert unused_var['source'] == 'flake8'
-        assert unused_var['code'] == 'F841'
-        assert unused_var['range']['start'] == {'line': 5, 'character': 1}
-        assert unused_var['range']['end'] == {'line': 5, 'character': 11}
-        assert unused_var['severity'] == lsp.DiagnosticSeverity.Error
+        assert unused_var["source"] == "flake8"
+        assert unused_var["code"] == "F841"
+        assert unused_var["range"]["start"] == {"line": 5, "character": 1}
+        assert unused_var["range"]["end"] == {"line": 5, "character": 11}
+        assert unused_var["severity"] == lsp.DiagnosticSeverity.Error
     finally:
         os.remove(name)
 
@@ -65,13 +65,18 @@ def test_flake8_respecting_configuration(workspace):
         ("src/__init__.py", ""),
         ("src/a.py", DOC),
         ("src/b.py", "import os"),
-        ("setup.cfg", dedent("""
+        (
+            "setup.cfg",
+            dedent(
+                """
         [flake8]
         ignore = E302,W191
         per-file-ignores =
             src/a.py:F401
             src/b.py:W292
-        """))
+        """
+            ),
+        ),
     ]
 
     made = {}
@@ -118,25 +123,27 @@ def test_flake8_respecting_configuration(workspace):
 
 
 def test_flake8_config_param(workspace):
-    with patch('pylsp.plugins.flake8_lint.Popen') as popen_mock:
+    with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
-        flake8_conf = '/tmp/some.cfg'
-        workspace._config.update({'plugins': {'flake8': {'config': flake8_conf}}})
+        flake8_conf = "/tmp/some.cfg"
+        workspace._config.update({"plugins": {"flake8": {"config": flake8_conf}}})
         _name, doc = temp_document(DOC, workspace)
         flake8_lint.pylsp_lint(workspace, doc)
         (call_args,) = popen_mock.call_args[0]
-        assert 'flake8' in call_args
-        assert '--config={}'.format(flake8_conf) in call_args
+        assert "flake8" in call_args
+        assert "--config={}".format(flake8_conf) in call_args
 
 
 def test_flake8_executable_param(workspace):
-    with patch('pylsp.plugins.flake8_lint.Popen') as popen_mock:
+    with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
 
-        flake8_executable = '/tmp/flake8'
-        workspace._config.update({'plugins': {'flake8': {'executable': flake8_executable}}})
+        flake8_executable = "/tmp/flake8"
+        workspace._config.update(
+            {"plugins": {"flake8": {"executable": flake8_executable}}}
+        )
 
         _name, doc = temp_document(DOC, workspace)
         flake8_lint.pylsp_lint(workspace, doc)
@@ -151,7 +158,9 @@ def get_flake8_cfg_settings(workspace, config_str):
     This function creates a ``setup.cfg``; you'll have to delete it yourself.
     """
 
-    with open(os.path.join(workspace.root_path, "setup.cfg"), "w+", encoding='utf-8') as f:
+    with open(
+        os.path.join(workspace.root_path, "setup.cfg"), "w+", encoding="utf-8"
+    ) as f:
         f.write(config_str)
 
     workspace.update_config({"pylsp": {"configurationSources": ["flake8"]}})
@@ -176,7 +185,7 @@ exclude =
     assert "exclude" in flake8_settings
     assert len(flake8_settings["exclude"]) == 2
 
-    with patch('pylsp.plugins.flake8_lint.Popen') as popen_mock:
+    with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
 
@@ -186,7 +195,13 @@ exclude =
     call_args = popen_mock.call_args[0][0]
 
     init_file = os.path.join("blah", "__init__.py")
-    assert call_args == ["flake8", "-", "--exclude=blah/,file_2.py", "--stdin-display-name", init_file]
+    assert call_args == [
+        "flake8",
+        "-",
+        "--exclude=blah/,file_2.py",
+        "--stdin-display-name",
+        init_file,
+    ]
 
     os.unlink(os.path.join(workspace.root_path, "setup.cfg"))
 

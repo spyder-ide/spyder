@@ -23,40 +23,40 @@ DEFAULT_MATCH_DIR_RE = pydocstyle.config.ConfigurationParser.DEFAULT_MATCH_DIR_R
 @hookimpl
 def pylsp_settings():
     # Default pydocstyle to disabled
-    return {'plugins': {'pydocstyle': {'enabled': False}}}
+    return {"plugins": {"pydocstyle": {"enabled": False}}}
 
 
 @hookimpl
 def pylsp_lint(config, workspace, document):
     # pylint: disable=too-many-locals
     with workspace.report_progress("lint: pydocstyle"):
-        settings = config.plugin_settings('pydocstyle', document_path=document.path)
+        settings = config.plugin_settings("pydocstyle", document_path=document.path)
         log.debug("Got pydocstyle settings: %s", settings)
 
         # Explicitly passing a path to pydocstyle means it doesn't respect the --match flag, so do it ourselves
-        filename_match_re = re.compile(settings.get('match', DEFAULT_MATCH_RE) + '$')
+        filename_match_re = re.compile(settings.get("match", DEFAULT_MATCH_RE) + "$")
         if not filename_match_re.match(os.path.basename(document.path)):
             return []
 
         # Likewise with --match-dir
-        dir_match_re = re.compile(settings.get('matchDir', DEFAULT_MATCH_DIR_RE) + '$')
+        dir_match_re = re.compile(settings.get("matchDir", DEFAULT_MATCH_DIR_RE) + "$")
         if not dir_match_re.match(os.path.basename(os.path.dirname(document.path))):
             return []
 
         args = [document.path]
 
-        if settings.get('convention'):
-            args.append('--convention=' + settings['convention'])
+        if settings.get("convention"):
+            args.append("--convention=" + settings["convention"])
 
-            if settings.get('addSelect'):
-                args.append('--add-select=' + ','.join(settings['addSelect']))
-            if settings.get('addIgnore'):
-                args.append('--add-ignore=' + ','.join(settings['addIgnore']))
+            if settings.get("addSelect"):
+                args.append("--add-select=" + ",".join(settings["addSelect"]))
+            if settings.get("addIgnore"):
+                args.append("--add-ignore=" + ",".join(settings["addIgnore"]))
 
-        elif settings.get('select'):
-            args.append('--select=' + ','.join(settings['select']))
-        elif settings.get('ignore'):
-            args.append('--ignore=' + ','.join(settings['ignore']))
+        elif settings.get("select"):
+            args.append("--select=" + ",".join(settings["select"]))
+        elif settings.get("ignore"):
+            args.append("--ignore=" + ",".join(settings["ignore"]))
 
         log.info("Using pydocstyle args: %s", args)
 
@@ -103,20 +103,14 @@ def _parse_diagnostic(document, error):
     end_character = len(line)
 
     return {
-        'source': 'pydocstyle',
-        'code': error.code,
-        'message': error.message,
-        'severity': lsp.DiagnosticSeverity.Warning,
-        'range': {
-            'start': {
-                'line': lineno,
-                'character': start_character
-            },
-            'end': {
-                'line': lineno,
-                'character': end_character
-            }
-        }
+        "source": "pydocstyle",
+        "code": error.code,
+        "message": error.message,
+        "severity": lsp.DiagnosticSeverity.Warning,
+        "range": {
+            "start": {"line": lineno, "character": start_character},
+            "end": {"line": lineno, "character": end_character},
+        },
     }
 
 
