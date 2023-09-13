@@ -1,0 +1,36 @@
+{
+    "diagnostics": [
+        {
+            "message": "invalid syntax",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 1
+                },
+                "start": {
+                    "character": 7,
+                    "line": 1
+                }
+            },
+            "severity": 1,
+            "source": "pyflakes"
+        },
+        {
+            "code": "W292",
+            "message": "W292 no newline at end of file",
+            "range": {
+                "end": {
+                    "character": 7,
+                    "line": 1
+                },
+                "start": {
+                    "character": 7,
+                    "line": 1
+                }
+            },
+            "severity": 2,
+            "source": "pycodestyle"
+        }
+    ],
+    "uri": "/Users/.../code/python-lsp-server/test"
+}
