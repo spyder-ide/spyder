@@ -21,17 +21,17 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
-                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QSpinBox,
-                            QStackedWidget, QTableView, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemDelegate, QApplication, QComboBox, QDialog, QGridLayout,
+    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu,
+    QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
+    QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.config.manager import CONF
@@ -41,6 +41,15 @@ from spyder.py3compat import (is_binary_string, is_string, is_text_string,
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+
+
+class ArrayEditorActions:
+    Copy = 'copy_action'
+    Edit = 'edit_action'
+    Format = 'format_action'
+    Resize = 'resize_action'
+    ToggleBackgroundColor = 'toggle_background_color_action'
+
 
 # Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
@@ -642,8 +651,11 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format_spec(format_spec)
 
 
-class ArrayEditor(BaseDialog):
+class ArrayEditor(BaseDialog, SpyderWidgetMixin):
     """Array Editor Dialog"""
+
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -764,42 +776,51 @@ class ArrayEditor(BaseDialog):
         self.layout.addWidget(self.stack, 1, 0)
 
         # ---- Toolbar and actions
-        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        toolbar = SpyderToolbar(parent=self, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
-        self.copy_action = create_action(
-            self, _('Copy'), icon=ima.icon('editcopy'),
+        self.copy_action = self.create_action(
+            ArrayEditorActions.Copy,
+            text=_('Copy'),
+            icon=ima.icon('editcopy'),
             triggered=self.arraywidget.view.copy)
-        toolbar.addAction(self.copy_action)
+        toolbar.add_item(self.copy_action)
 
-        self.edit_action = create_action(
-            self, _('Edit'), icon=ima.icon('edit'),
+        self.edit_action = self.create_action(
+            ArrayEditorActions.Edit,
+            text=_('Edit'),
+            icon=ima.icon('edit'),
             triggered=self.arraywidget.view.edit_item)
-        toolbar.addAction(self.edit_action)
+        toolbar.add_item(self.edit_action)
 
-        self.format_action = create_action(
-            self, _('Format'), icon=ima.icon('format_float'),
+        self.format_action = self.create_action(
+            ArrayEditorActions.Format,
+            text=_('Format'),
+            icon=ima.icon('format_float'),
             tip=_('Set format of floating-point numbers'),
             triggered=self.arraywidget.change_format)
         self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
-        toolbar.addAction(self.format_action)
+        toolbar.add_item(self.format_action)
 
-        self.resize_action = create_action(
-            self, _('Resize'), icon=ima.icon('collapse_column'),
+        self.resize_action = self.create_action(
+            ArrayEditorActions.Resize,
+            text=_('Resize'),
+            icon=ima.icon('collapse_column'),
             tip=_('Resize columns to contents'),
             triggered=self.arraywidget.view.resize_to_contents)
-        toolbar.addAction(self.resize_action)
+        toolbar.add_item(self.resize_action)
 
-        self.toggle_bgcolor_action = create_action(
-            self, _('Background color'), icon=ima.icon('background_color'),
-            toggled=lambda state: self.arraywidget.model.bgcolor(state))
-        self.toggle_bgcolor_action.setCheckable(True)
-        self.toggle_bgcolor_action.setChecked(
-            self.arraywidget.model.bgcolor_enabled)
+        self.toggle_bgcolor_action = self.create_action(
+            ArrayEditorActions.ToggleBackgroundColor,
+            text=_('Background color'),
+            icon=ima.icon('background_color'),
+            toggled=lambda state: self.arraywidget.model.bgcolor(state),
+            initial=self.arraywidget.model.bgcolor_enabled)
         self.toggle_bgcolor_action.setEnabled(
             self.arraywidget.model.bgcolor_enabled)
-        toolbar.addAction(self.toggle_bgcolor_action)
+        toolbar.add_item(self.toggle_bgcolor_action)
 
+        toolbar._render()
         self.layout.addWidget(toolbar, 0, 0)
 
         # ---- Top row of buttons
