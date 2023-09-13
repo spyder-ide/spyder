@@ -216,12 +216,12 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
     mock_axis = Mock()
     mock_png = b'fake png'
 
-    with (patch('spyder.pyplot.subplots',
-                return_value=(mock_figure, mock_axis)),
-          patch('IPython.core.pylabtools.print_figure',
-                return_value=mock_png) as mock_print_figure,
-          qtbot.waitSignal(namespacebrowser.sig_show_figure_requested)
-          as blocker):
+    with patch('spyder.pyplot.subplots',
+               return_value=(mock_figure, mock_axis)), \
+         patch('IPython.core.pylabtools.print_figure',
+               return_value=mock_png) as mock_print_figure, \
+         qtbot.waitSignal(namespacebrowser.sig_show_figure_requested) \
+             as blocker:
         namespacebrowser.plot(my_list, 'plot')
 
     mock_axis.plot.assert_called_once_with(my_list)
@@ -239,9 +239,9 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser)
     namespacebrowser.set_conf('mute_inline_plotting', False, section='plots')
     my_list = [4, 2]
 
-    with (patch('spyder.pyplot.figure') as mock_figure,
-          patch('spyder.pyplot.plot') as mock_plot,
-          patch('spyder.pyplot.show') as mock_show):
+    with patch('spyder.pyplot.figure') as mock_figure, \
+         patch('spyder.pyplot.plot') as mock_plot, \
+         patch('spyder.pyplot.show') as mock_show:
         namespacebrowser.plot(my_list, 'plot')
 
     mock_figure.assert_called_once_with()
