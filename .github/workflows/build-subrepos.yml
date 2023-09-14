@@ -4,9 +4,12 @@ on:
       - 'master'
     paths:
       - '**.gitrepo'
+      - '.github/workflows/build-subrepos.yml'
+
   pull_request:
     paths:
       - '**.gitrepo'
+      - '.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
