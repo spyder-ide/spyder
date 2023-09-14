@@ -8,7 +8,7 @@ import os
 import re
 import uuid
 import functools
-from typing import Optional, Generator, Callable
+from typing import Optional, Generator, Callable, List
 from threading import RLock
 
 import jedi
@@ -20,26 +20,29 @@ log = logging.getLogger(__name__)
 DEFAULT_AUTO_IMPORT_MODULES = ["numpy"]
 
 # TODO: this is not the best e.g. we capture numbers
-RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
-RE_END_WORD = re.compile('^[A-Za-z_0-9]*')
+RE_START_WORD = re.compile("[A-Za-z_0-9]*$")
+RE_END_WORD = re.compile("^[A-Za-z_0-9]*")
 
 
 def lock(method):
     """Define an atomic region over a method."""
+
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         with self._lock:
             return method(self, *args, **kwargs)
+
     return wrapper
 
 
 class Workspace:
+    # pylint: disable=too-many-public-methods
 
-    M_PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics'
-    M_PROGRESS = '$/progress'
-    M_INITIALIZE_PROGRESS = 'window/workDoneProgress/create'
-    M_APPLY_EDIT = 'workspace/applyEdit'
-    M_SHOW_MESSAGE = 'window/showMessage'
+    M_PUBLISH_DIAGNOSTICS = "textDocument/publishDiagnostics"
+    M_PROGRESS = "$/progress"
+    M_INITIALIZE_PROGRESS = "window/workDoneProgress/create"
+    M_APPLY_EDIT = "workspace/applyEdit"
+    M_SHOW_MESSAGE = "window/showMessage"
 
     def __init__(self, root_uri, endpoint, config=None):
         self._config = config
@@ -60,6 +63,7 @@ class Workspace:
     def _rope_autoimport(self, rope_config: Optional, memory: bool = False):
         # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
+
         if self.__rope_autoimport is None:
             project = self._rope_project_builder(rope_config)
             self.__rope_autoimport = AutoImport(project, memory=memory)
@@ -71,15 +75,16 @@ class Workspace:
 
         # TODO: we could keep track of dirty files and validate only those
         if self.__rope is None or self.__rope_config != rope_config:
-            rope_folder = rope_config.get('ropeFolder')
+            rope_folder = rope_config.get("ropeFolder")
             if rope_folder:
                 self.__rope = Project(self._root_path, ropefolder=rope_folder)
             else:
                 self.__rope = Project(self._root_path)
-            self.__rope.prefs.set('extension_modules',
-                                  rope_config.get('extensionModules', []))
-            self.__rope.prefs.set('ignore_syntax_errors', True)
-            self.__rope.prefs.set('ignore_bad_imports', True)
+            self.__rope.prefs.set(
+                "extension_modules", rope_config.get("extensionModules", [])
+            )
+            self.__rope.prefs.set("ignore_syntax_errors", True)
+            self.__rope.prefs.set("ignore_bad_imports", True)
         self.__rope.validate()
         return self.__rope
 
@@ -96,7 +101,9 @@ class Workspace:
         return self._root_uri
 
     def is_local(self):
-        return (self._root_uri_scheme in ['', 'file']) and os.path.exists(self._root_path)
+        return (self._root_uri_scheme in ["", "file"]) and os.path.exists(
+            self._root_path
+        )
 
     def get_document(self, doc_uri):
         """Return a managed document if-present, else create one pointing at disk.
@@ -105,11 +112,50 @@ class Workspace:
         """
         return self._docs.get(doc_uri) or self._create_document(doc_uri)
 
+    def get_cell_document(self, doc_uri):
+        return self._docs.get(doc_uri)
+
     def get_maybe_document(self, doc_uri):
         return self._docs.get(doc_uri)
 
     def put_document(self, doc_uri, source, version=None):
-        self._docs[doc_uri] = self._create_document(doc_uri, source=source, version=version)
+        self._docs[doc_uri] = self._create_document(
+            doc_uri, source=source, version=version
+        )
+
+    def put_notebook_document(
+        self, doc_uri, notebook_type, cells, version=None, metadata=None
+    ):
+        self._docs[doc_uri] = self._create_notebook_document(
+            doc_uri, notebook_type, cells, version, metadata
+        )
+
+    @contextmanager
+    def temp_document(self, source, path=None):
+        if path is None:
+            path = self.root_path
+        uri = uris.from_fs_path(os.path.join(path, str(uuid.uuid4())))
+        try:
+            self.put_document(uri, source)
+            yield uri
+        finally:
+            self.rm_document(uri)
+
+    def add_notebook_cells(self, doc_uri, cells, start):
+        self._docs[doc_uri].add_cells(cells, start)
+
+    def remove_notebook_cells(self, doc_uri, start, delete_count):
+        self._docs[doc_uri].remove_cells(start, delete_count)
+
+    def update_notebook_metadata(self, doc_uri, metadata):
+        self._docs[doc_uri].metadata = metadata
+
+    def put_cell_document(
+        self, doc_uri, notebook_uri, language_id, source, version=None
+    ):
+        self._docs[doc_uri] = self._create_cell_document(
+            doc_uri, notebook_uri, language_id, source, version
+        )
 
     def rm_document(self, doc_uri):
         self._docs.pop(doc_uri)
@@ -119,15 +165,18 @@ class Workspace:
         self._docs[doc_uri].version = version
 
     def update_config(self, settings):
-        self._config.update((settings or {}).get('pylsp', {}))
+        self._config.update((settings or {}).get("pylsp", {}))
         for doc_uri in self.documents:
             self.get_document(doc_uri).update_config(settings)
 
     def apply_edit(self, edit):
-        return self._endpoint.request(self.M_APPLY_EDIT, {'edit': edit})
+        return self._endpoint.request(self.M_APPLY_EDIT, {"edit": edit})
 
     def publish_diagnostics(self, doc_uri, diagnostics):
-        self._endpoint.notify(self.M_PUBLISH_DIAGNOSTICS, params={'uri': doc_uri, 'diagnostics': diagnostics})
+        self._endpoint.notify(
+            self.M_PUBLISH_DIAGNOSTICS,
+            params={"uri": doc_uri, "diagnostics": diagnostics},
+        )
 
     @contextmanager
     def report_progress(
@@ -150,16 +199,20 @@ class Workspace:
         of the progress token.
         """
         if self._config:
-            client_supports_progress_reporting = (
-                self._config.capabilities.get("window", {}).get("workDoneProgress", False)
-            )
+            client_supports_progress_reporting = self._config.capabilities.get(
+                "window", {}
+            ).get("workDoneProgress", False)
         else:
             client_supports_progress_reporting = False
 
         if client_supports_progress_reporting:
-            token = self._progress_begin(title, message, percentage, skip_token_initialization)
+            token = self._progress_begin(
+                title, message, percentage, skip_token_initialization
+            )
 
-            def progress_message(message: str, percentage: Optional[int] = None) -> None:
+            def progress_message(
+                message: str, percentage: Optional[int] = None
+            ) -> None:
                 self._progress_report(token, message, percentage)
 
             try:
@@ -172,7 +225,9 @@ class Workspace:
         # FALLBACK:
         # If the client doesn't support progress reporting, we have a dummy method
         # for the caller to use.
-        def dummy_progress_message(message: str, percentage: Optional[int] = None) -> None:
+        def dummy_progress_message(
+            message: str, percentage: Optional[int] = None
+        ) -> None:
             # pylint: disable=unused-argument
             pass
 
@@ -189,7 +244,9 @@ class Workspace:
 
         if not skip_token_initialization:
             try:
-                self._endpoint.request(self.M_INITIALIZE_PROGRESS, {'token': token}).result(timeout=1.0)
+                self._endpoint.request(
+                    self.M_INITIALIZE_PROGRESS, {"token": token}
+                ).result(timeout=1.0)
             except Exception:  # pylint: disable=broad-exception-caught
                 log.warning(
                     "There was an error while trying to initialize progress reporting."
@@ -198,7 +255,7 @@ class Workspace:
                     "To prevent waiting for the timeout you can set "
                     "`skip_token_initialization=True`. "
                     "Not every editor will show progress then, but many will.",
-                    exc_info=True
+                    exc_info=True,
                 )
 
         value = {
@@ -257,12 +314,21 @@ class Workspace:
         )
 
     def show_message(self, message, msg_type=lsp.MessageType.Info):
-        self._endpoint.notify(self.M_SHOW_MESSAGE, params={'type': msg_type, 'message': message})
+        self._endpoint.notify(
+            self.M_SHOW_MESSAGE, params={"type": msg_type, "message": message}
+        )
 
     def source_roots(self, document_path):
         """Return the source roots for the given document."""
-        files = _utils.find_parents(self._root_path, document_path, ['setup.py', 'pyproject.toml']) or []
-        return list({os.path.dirname(project_file) for project_file in files}) or [self._root_path]
+        files = (
+            _utils.find_parents(
+                self._root_path, document_path, ["setup.py", "pyproject.toml"]
+            )
+            or []
+        )
+        return list({os.path.dirname(project_file) for project_file in files}) or [
+            self._root_path
+        ]
 
     def _create_document(self, doc_uri, source=None, version=None):
         path = uris.to_fs_path(doc_uri)
@@ -275,15 +341,50 @@ class Workspace:
             rope_project_builder=self._rope_project_builder,
         )
 
+    def _create_notebook_document(
+        self, doc_uri, notebook_type, cells, version=None, metadata=None
+    ):
+        return Notebook(
+            doc_uri,
+            notebook_type,
+            self,
+            cells=cells,
+            version=version,
+            metadata=metadata,
+        )
+
+    def _create_cell_document(
+        self, doc_uri, notebook_uri, language_id, source=None, version=None
+    ):
+        # TODO: remove what is unnecessary here.
+        path = uris.to_fs_path(doc_uri)
+        return Cell(
+            doc_uri,
+            notebook_uri=notebook_uri,
+            language_id=language_id,
+            workspace=self,
+            source=source,
+            version=version,
+            extra_sys_path=self.source_roots(path),
+            rope_project_builder=self._rope_project_builder,
+        )
+
     def close(self):
         if self.__rope_autoimport is not None:
             self.__rope_autoimport.close()
 
 
 class Document:
-
-    def __init__(self, uri, workspace, source=None, version=None, local=True, extra_sys_path=None,
-                 rope_project_builder=None):
+    def __init__(
+        self,
+        uri,
+        workspace,
+        source=None,
+        version=None,
+        local=True,
+        extra_sys_path=None,
+        rope_project_builder=None,
+    ):
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
@@ -305,7 +406,10 @@ class Document:
     def _rope_resource(self, rope_config):
         # pylint: disable=import-outside-toplevel
         from rope.base import libutils
-        return libutils.path_to_resource(self._rope_project_builder(rope_config), self.path)
+
+        return libutils.path_to_resource(
+            self._rope_project_builder(rope_config), self.path
+        )
 
     @property
     @lock
@@ -316,28 +420,28 @@ class Document:
     @lock
     def source(self):
         if self._source is None:
-            with io.open(self.path, 'r', encoding='utf-8') as f:
+            with io.open(self.path, "r", encoding="utf-8") as f:
                 return f.read()
         return self._source
 
     def update_config(self, settings):
-        self._config.update((settings or {}).get('pylsp', {}))
+        self._config.update((settings or {}).get("pylsp", {}))
 
     @lock
     def apply_change(self, change):
         """Apply a change to the document."""
-        text = change['text']
-        change_range = change.get('range')
+        text = change["text"]
+        change_range = change.get("range")
 
         if not change_range:
             # The whole file has changed
             self._source = text
             return
 
-        start_line = change_range['start']['line']
-        start_col = change_range['start']['character']
-        end_line = change_range['end']['line']
-        end_col = change_range['end']['character']
+        start_line = change_range["start"]["line"]
+        start_col = change_range["start"]["character"]
+        end_line = change_range["end"]["line"]
+        end_col = change_range["end"]["character"]
 
         # Check for an edit occuring at the very end of the file
         if start_line == len(self.lines):
@@ -369,15 +473,15 @@ class Document:
 
     def offset_at_position(self, position):
         """Return the byte-offset pointed at by the given position."""
-        return position['character'] + len(''.join(self.lines[:position['line']]))
+        return position["character"] + len("".join(self.lines[: position["line"]]))
 
     def word_at_position(self, position):
         """Get the word under the cursor returning the start and end positions."""
-        if position['line'] >= len(self.lines):
-            return ''
+        if position["line"] >= len(self.lines):
+            return ""
 
-        line = self.lines[position['line']]
-        i = position['character']
+        line = self.lines[position["line"]]
+        i = position["character"]
         # Split word in two
         start = line[:i]
         end = line[i:]
@@ -392,8 +496,9 @@ class Document:
     @lock
     def jedi_names(self, all_scopes=False, definitions=True, references=False):
         script = self.jedi_script()
-        return script.get_names(all_scopes=all_scopes, definitions=definitions,
-                                references=references)
+        return script.get_names(
+            all_scopes=all_scopes, definitions=definitions, references=references
+        )
 
     @lock
     def jedi_script(self, position=None, use_document_path=False):
@@ -402,25 +507,32 @@ class Document:
         env_vars = None
 
         if self._config:
-            jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
-            jedi.settings.auto_import_modules = jedi_settings.get('auto_import_modules',
-                                                                  DEFAULT_AUTO_IMPORT_MODULES)
-            environment_path = jedi_settings.get('environment')
+            jedi_settings = self._config.plugin_settings(
+                "jedi", document_path=self.path
+            )
+            jedi.settings.auto_import_modules = jedi_settings.get(
+                "auto_import_modules", DEFAULT_AUTO_IMPORT_MODULES
+            )
+            environment_path = jedi_settings.get("environment")
             # Jedi itself cannot deal with homedir-relative paths.
             # On systems, where it is expected, expand the home directory.
-            if environment_path and os.name != 'nt':
+            if environment_path and os.name != "nt":
                 environment_path = os.path.expanduser(environment_path)
 
-            extra_paths = jedi_settings.get('extra_paths') or []
-            env_vars = jedi_settings.get('env_vars')
+            extra_paths = jedi_settings.get("extra_paths") or []
+            env_vars = jedi_settings.get("env_vars")
 
         # Drop PYTHONPATH from env_vars before creating the environment because that makes
         # Jedi throw an error.
         if env_vars is None:
             env_vars = os.environ.copy()
-        env_vars.pop('PYTHONPATH', None)
+        env_vars.pop("PYTHONPATH", None)
 
-        environment = self.get_enviroment(environment_path, env_vars=env_vars) if environment_path else None
+        environment = (
+            self.get_enviroment(environment_path, env_vars=env_vars)
+            if environment_path
+            else None
+        )
         sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
         project_path = self._workspace.root_path
 
@@ -429,10 +541,10 @@ class Document:
             sys_path += [os.path.normpath(os.path.dirname(self.path))]
 
         kwargs = {
-            'code': self.source,
-            'path': self.path,
-            'environment': environment,
-            'project': jedi.Project(path=project_path, sys_path=sys_path),
+            "code": self.source,
+            "path": self.path,
+            "environment": environment,
+            "project": jedi.Project(path=project_path, sys_path=sys_path),
         }
 
         if position:
@@ -449,9 +561,9 @@ class Document:
             if environment_path in self._workspace._environments:
                 environment = self._workspace._environments[environment_path]
             else:
-                environment = jedi.api.environment.create_environment(path=environment_path,
-                                                                      safe=False,
-                                                                      env_vars=env_vars)
+                environment = jedi.api.environment.create_environment(
+                    path=environment_path, safe=False, env_vars=env_vars
+                )
                 self._workspace._environments[environment_path] = environment
 
         return environment
@@ -460,6 +572,86 @@ class Document:
         # Copy our extra sys path
         # TODO: when safe to break API, use env_vars explicitly to pass to create_environment
         path = list(self._extra_sys_path)
-        environment = self.get_enviroment(environment_path=environment_path, env_vars=env_vars)
+        environment = self.get_enviroment(
+            environment_path=environment_path, env_vars=env_vars
+        )
         path.extend(environment.get_sys_path())
         return path
+
+
+class Notebook:
+    """Represents a notebook."""
+
+    def __init__(
+        self, uri, notebook_type, workspace, cells=None, version=None, metadata=None
+    ):
+        self.uri = uri
+        self.notebook_type = notebook_type
+        self.workspace = workspace
+        self.version = version
+        self.cells = cells or []
+        self.metadata = metadata or {}
+
+    def __str__(self):
+        return "Notebook with URI '%s'" % str(self.uri)
+
+    def add_cells(self, new_cells: List, start: int) -> None:
+        self.cells[start:start] = new_cells
+
+    def remove_cells(self, start: int, delete_count: int) -> None:
+        del self.cells[start : start + delete_count]
+
+    def cell_data(self):
+        """Extract current cell data.
+
+        Returns a dict (ordered by cell position) where the key is the cell uri and the
+        value is a dict with line_start, line_end, and source attributes.
+        """
+        cell_data = {}
+        offset = 0
+        for cell in self.cells:
+            cell_uri = cell["document"]
+            cell_document = self.workspace.get_cell_document(cell_uri)
+            num_lines = cell_document.line_count
+            cell_data[cell_uri] = {
+                "line_start": offset,
+                "line_end": offset + num_lines - 1,
+                "source": cell_document.source,
+            }
+            offset += num_lines
+        return cell_data
+
+
+class Cell(Document):
+    """
+    Represents a cell in a notebook.
+
+    Notes
+    -----
+    We inherit from Document for now to get the same API. However, a cell document differs from text documents in that
+    they have a language id.
+    """
+
+    def __init__(
+        self,
+        uri,
+        notebook_uri,
+        language_id,
+        workspace,
+        source=None,
+        version=None,
+        local=True,
+        extra_sys_path=None,
+        rope_project_builder=None,
+    ):
+        super().__init__(
+            uri, workspace, source, version, local, extra_sys_path, rope_project_builder
+        )
+        self.language_id = language_id
+        self.notebook_uri = notebook_uri
+
+    @property
+    @lock
+    def line_count(self):
+        """ "Return the number of lines in the cell document."""
+        return len(self.source.split("\n"))

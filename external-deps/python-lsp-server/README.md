@@ -2,7 +2,7 @@
 
 [![image](https://github.com/python-ls/python-ls/workflows/Linux%20tests/badge.svg)](https://github.com/python-ls/python-ls/actions?query=workflow%3A%22Linux+tests%22) [![image](https://github.com/python-ls/python-ls/workflows/Mac%20tests/badge.svg)](https://github.com/python-ls/python-ls/actions?query=workflow%3A%22Mac+tests%22) [![image](https://github.com/python-ls/python-ls/workflows/Windows%20tests/badge.svg)](https://github.com/python-ls/python-ls/actions?query=workflow%3A%22Windows+tests%22) [![image](https://img.shields.io/github/license/python-ls/python-ls.svg)](https://github.com/python-ls/python-ls/blob/master/LICENSE)
 
-A Python 3.7+ implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol).
+A Python 3.8+ implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol).
 (Note: versions <1.4 should still work with Python 3.6)
 
 ## Installation
@@ -81,7 +81,7 @@ apk add py3-lsp-server
 
 Installing these plugins will add extra functionality to the language server:
 
-- [pylsp-mypy](https://github.com/Richardk2n/pylsp-mypy): [MyPy](http://mypy-lang.org/) type checking for Python >=3.7.
+- [pylsp-mypy](https://github.com/Richardk2n/pylsp-mypy): [MyPy](http://mypy-lang.org/) type checking for Python >=3.8.
 - [pyls-isort](https://github.com/paradoxxxzero/pyls-isort): code formatting using [isort](https://github.com/PyCQA/isort) (automatic import sorting).
 - [python-lsp-black](https://github.com/python-lsp/python-lsp-black): code formatting using [Black](https://github.com/psf/black).
 - [pyls-memestra](https://github.com/QuantStack/pyls-memestra): detecting the use of deprecated APIs.
@@ -160,6 +160,24 @@ pip install 'python-lsp-server[websockets]'
 * Multiple workspaces
 
 ## Development
+
+Dev install
+
+```
+# create conda env
+conda create --name python-lsp-server python=3.8 -y
+conda activate python-lsp-server
+
+pip install ".[all]"
+pip install ".[websockets]"
+```
+
+Run server with ws
+
+```
+pylsp --ws -v    # Info level logging
+pylsp --ws -v -v # Debug level logging
+```
 
 To run the test suite:
 

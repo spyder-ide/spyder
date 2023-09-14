@@ -38,7 +38,7 @@ def describe_type(prop: dict) -> str:
         prop_type = types[0]
     parts = [f"`{prop_type}`"]
     for option in types:
-        if  option in EXTRA_DESCRIPTORS:
+        if option in EXTRA_DESCRIPTORS:
             parts.append(EXTRA_DESCRIPTORS[option](prop))
     if "enum" in prop:
         allowed_values = [f"`{value!r}`" for value in prop["enum"]]

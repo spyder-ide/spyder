@@ -9,7 +9,7 @@ import re
 from urllib import parse
 from pylsp import IS_WIN
 
-RE_DRIVE_LETTER_PATH = re.compile(r'^\/[a-zA-Z]:')
+RE_DRIVE_LETTER_PATH = re.compile(r"^\/[a-zA-Z]:")
 
 
 def urlparse(uri):
@@ -21,7 +21,7 @@ def urlparse(uri):
         parse.unquote(path),
         parse.unquote(params),
         parse.unquote(query),
-        parse.unquote(fragment)
+        parse.unquote(fragment),
     )
 
 
@@ -35,14 +35,16 @@ def urlunparse(parts):
     else:
         quoted_path = parse.quote(path)
 
-    return parse.urlunparse((
-        parse.quote(scheme),
-        parse.quote(netloc),
-        quoted_path,
-        parse.quote(params),
-        parse.quote(query),
-        parse.quote(fragment)
-    ))
+    return parse.urlunparse(
+        (
+            parse.quote(scheme),
+            parse.quote(netloc),
+            quoted_path,
+            parse.quote(params),
+            parse.quote(query),
+            parse.quote(fragment),
+        )
+    )
 
 
 def to_fs_path(uri):
@@ -55,7 +57,7 @@ def to_fs_path(uri):
     # scheme://netloc/path;parameters?query#fragment
     scheme, netloc, path, _params, _query, _fragment = urlparse(uri)
 
-    if netloc and path and scheme == 'file':
+    if netloc and path and scheme == "file":
         # unc path: file://shares/c$/far/boo
         value = "//{}{}".format(netloc, path)
 
@@ -68,49 +70,55 @@ def to_fs_path(uri):
         value = path
 
     if IS_WIN:
-        value = value.replace('/', '\\')
+        value = value.replace("/", "\\")
 
     return value
 
 
 def from_fs_path(path):
     """Returns a URI for the given filesystem path."""
-    scheme = 'file'
-    params, query, fragment = '', '', ''
+    scheme = "file"
+    params, query, fragment = "", "", ""
     path, netloc = _normalize_win_path(path)
     return urlunparse((scheme, netloc, path, params, query, fragment))
 
 
-def uri_with(uri, scheme=None, netloc=None, path=None, params=None, query=None, fragment=None):
+def uri_with(
+    uri, scheme=None, netloc=None, path=None, params=None, query=None, fragment=None
+):
     """Return a URI with the given part(s) replaced.
 
     Parts are decoded / encoded.
     """
-    old_scheme, old_netloc, old_path, old_params, old_query, old_fragment = urlparse(uri)
+    old_scheme, old_netloc, old_path, old_params, old_query, old_fragment = urlparse(
+        uri
+    )
     path, _netloc = _normalize_win_path(path)
-    return urlunparse((
-        scheme or old_scheme,
-        netloc or old_netloc,
-        path or old_path,
-        params or old_params,
-        query or old_query,
-        fragment or old_fragment
-    ))
+    return urlunparse(
+        (
+            scheme or old_scheme,
+            netloc or old_netloc,
+            path or old_path,
+            params or old_params,
+            query or old_query,
+            fragment or old_fragment,
+        )
+    )
 
 
 def _normalize_win_path(path):
-    netloc = ''
+    netloc = ""
 
     # normalize to fwd-slashes on windows,
     # on other systems bwd-slaches are valid
     # filename character, eg /f\oo/ba\r.txt
     if IS_WIN:
-        path = path.replace('\\', '/')
+        path = path.replace("\\", "/")
 
     # check for authority as used in UNC shares
     # or use the path as given
-    if path[:2] == '//':
-        idx = path.index('/', 2)
+    if path[:2] == "//":
+        idx = path.index("/", 2)
         if idx == -1:
             netloc = path[2:]
         else:
@@ -119,8 +127,8 @@ def _normalize_win_path(path):
 
     # Ensure that path starts with a slash
     # or that it is at least a slash
-    if not path.startswith('/'):
-        path = '/' + path
+    if not path.startswith("/"):
+        path = "/" + path
 
     # Normalize drive paths to lower case
     if RE_DRIVE_LETTER_PATH.match(path):
