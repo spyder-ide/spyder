@@ -18,9 +18,9 @@ def pylsp_document_symbols(config, document):
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
 
-    symbols_settings = config.plugin_settings('jedi_symbols')
-    all_scopes = symbols_settings.get('all_scopes', True)
-    add_import_symbols = symbols_settings.get('include_import_symbols', True)
+    symbols_settings = config.plugin_settings("jedi_symbols")
+    all_scopes = symbols_settings.get("all_scopes", True)
+    add_import_symbols = symbols_settings.get("include_import_symbols", True)
     definitions = document.jedi_names(all_scopes=all_scopes)
     symbols = []
     exclude = set({})
@@ -33,7 +33,7 @@ def pylsp_document_symbols(config, document):
         if not add_import_symbols:
             # Skip if there's an import in the code the symbol is defined.
             code = d.get_line_code()
-            if ' import ' in code or 'import ' in code:
+            if " import " in code or "import " in code:
                 continue
 
             # Skip imported symbols comparing module names.
@@ -47,15 +47,15 @@ def pylsp_document_symbols(config, document):
 
                 # The last element of sym_full_name is the symbol itself, so
                 # we need to discard it to do module comparisons below.
-                if '.' in sym_full_name:
-                    sym_module_name = sym_full_name.rpartition('.')[0]
+                if "." in sym_full_name:
+                    sym_module_name = sym_full_name.rpartition(".")[0]
                 else:
                     sym_module_name = sym_full_name
 
                 # This is necessary to display symbols in init files (the checks
                 # below fail without it).
-                if document_dot_path.endswith('__init__'):
-                    document_dot_path = document_dot_path.rpartition('.')[0]
+                if document_dot_path.endswith("__init__"):
+                    document_dot_path = document_dot_path.rpartition(".")[0]
 
                 # document_dot_path is the module where the symbol is imported,
                 # whereas sym_module_name is the one where it was declared.
@@ -63,13 +63,13 @@ def pylsp_document_symbols(config, document):
                     # If document_dot_path is in sym_module_name, we can safely assume
                     # that the symbol was declared in the document.
                     imported_symbol = False
-                elif sym_module_name.split('.')[0] in document_dot_path.split('.'):
+                elif sym_module_name.split(".")[0] in document_dot_path.split("."):
                     # If the first module in sym_module_name is one of the modules in
                     # document_dot_path, we need to check if sym_module_name starts
                     # with the modules in document_dot_path.
-                    document_mods = document_dot_path.split('.')
+                    document_mods = document_dot_path.split(".")
                     for i in range(1, len(document_mods) + 1):
-                        submod = '.'.join(document_mods[-i:])
+                        submod = ".".join(document_mods[-i:])
                         if sym_module_name.startswith(submod):
                             imported_symbol = False
                             break
@@ -79,7 +79,7 @@ def pylsp_document_symbols(config, document):
                 # to tell if the symbol was declared in the same file: if
                 # sym_module_name starts by __main__.
                 if imported_symbol:
-                    if not sym_module_name.startswith('__main__'):
+                    if not sym_module_name.startswith("__main__"):
                         continue
             else:
                 # We need to skip symbols if their definition doesn't have `full_name` info, they
@@ -100,29 +100,29 @@ def pylsp_document_symbols(config, document):
             if kind is not None:
                 exclude |= {tuple_range}
 
-            if d.type == 'statement':
-                if d.description.startswith('self'):
-                    kind = 'field'
+            if d.type == "statement":
+                if d.description.startswith("self"):
+                    kind = "field"
 
             symbol = {
-                'name': d.name,
-                'containerName': _container(d),
-                'location': {
-                    'uri': document.uri,
-                    'range': _range(d),
+                "name": d.name,
+                "containerName": _container(d),
+                "location": {
+                    "uri": document.uri,
+                    "range": _range(d),
                 },
-                'kind': _kind(d) if kind is None else _SYMBOL_KIND_MAP[kind],
+                "kind": _kind(d) if kind is None else _SYMBOL_KIND_MAP[kind],
             }
             symbols.append(symbol)
 
-            if d.type == 'class':
+            if d.type == "class":
                 try:
                     defined_names = list(d.defined_names())
                     for method in defined_names:
-                        if method.type == 'function':
-                            redefinitions[_tuple_range(method)] = 'method'
-                        elif method.type == 'statement':
-                            redefinitions[_tuple_range(method)] = 'field'
+                        if method.type == "function":
+                            redefinitions[_tuple_range(method)] = "method"
+                        elif method.type == "statement":
+                            redefinitions[_tuple_range(method)] = "field"
                         else:
                             redefinitions[_tuple_range(method)] = method.type
                     definitions = list(defined_names) + definitions
@@ -134,10 +134,11 @@ def pylsp_document_symbols(config, document):
 def _include_def(definition):
     return (
         # Don't tend to include parameters as symbols
-        definition.type != 'param' and
+        definition.type != "param"
+        and
         # Unused vars should also be skipped
-        definition.name != '_' and
-        _kind(definition) is not None
+        definition.name != "_"
+        and _kind(definition) is not None
     )
 
 
@@ -161,8 +162,8 @@ def _range(definition):
     (start_line, start_column) = definition.start_pos
     (end_line, end_column) = definition.end_pos
     return {
-        'start': {'line': start_line - 1, 'character': start_column},
-        'end': {'line': end_line - 1, 'character': end_column}
+        "start": {"line": start_line - 1, "character": start_column},
+        "end": {"line": end_line - 1, "character": end_column},
     }
 
 
@@ -172,48 +173,48 @@ def _tuple_range(definition):
 
 
 _SYMBOL_KIND_MAP = {
-    'none': SymbolKind.Variable,
-    'type': SymbolKind.Class,
-    'tuple': SymbolKind.Class,
-    'dict': SymbolKind.Class,
-    'dictionary': SymbolKind.Class,
-    'function': SymbolKind.Function,
-    'lambda': SymbolKind.Function,
-    'generator': SymbolKind.Function,
-    'class': SymbolKind.Class,
-    'instance': SymbolKind.Class,
-    'method': SymbolKind.Method,
-    'builtin': SymbolKind.Class,
-    'builtinfunction': SymbolKind.Function,
-    'module': SymbolKind.Module,
-    'file': SymbolKind.File,
-    'xrange': SymbolKind.Array,
-    'slice': SymbolKind.Class,
-    'traceback': SymbolKind.Class,
-    'frame': SymbolKind.Class,
-    'buffer': SymbolKind.Array,
-    'dictproxy': SymbolKind.Class,
-    'funcdef': SymbolKind.Function,
-    'property': SymbolKind.Property,
-    'import': SymbolKind.Module,
-    'keyword': SymbolKind.Variable,
-    'constant': SymbolKind.Constant,
-    'variable': SymbolKind.Variable,
-    'value': SymbolKind.Variable,
-    'param': SymbolKind.Variable,
-    'statement': SymbolKind.Variable,
-    'boolean': SymbolKind.Boolean,
-    'int': SymbolKind.Number,
-    'longlean': SymbolKind.Number,
-    'float': SymbolKind.Number,
-    'complex': SymbolKind.Number,
-    'string': SymbolKind.String,
-    'unicode': SymbolKind.String,
-    'list': SymbolKind.Array,
-    'field': SymbolKind.Field
+    "none": SymbolKind.Variable,
+    "type": SymbolKind.Class,
+    "tuple": SymbolKind.Class,
+    "dict": SymbolKind.Class,
+    "dictionary": SymbolKind.Class,
+    "function": SymbolKind.Function,
+    "lambda": SymbolKind.Function,
+    "generator": SymbolKind.Function,
+    "class": SymbolKind.Class,
+    "instance": SymbolKind.Class,
+    "method": SymbolKind.Method,
+    "builtin": SymbolKind.Class,
+    "builtinfunction": SymbolKind.Function,
+    "module": SymbolKind.Module,
+    "file": SymbolKind.File,
+    "xrange": SymbolKind.Array,
+    "slice": SymbolKind.Class,
+    "traceback": SymbolKind.Class,
+    "frame": SymbolKind.Class,
+    "buffer": SymbolKind.Array,
+    "dictproxy": SymbolKind.Class,
+    "funcdef": SymbolKind.Function,
+    "property": SymbolKind.Property,
+    "import": SymbolKind.Module,
+    "keyword": SymbolKind.Variable,
+    "constant": SymbolKind.Constant,
+    "variable": SymbolKind.Variable,
+    "value": SymbolKind.Variable,
+    "param": SymbolKind.Variable,
+    "statement": SymbolKind.Variable,
+    "boolean": SymbolKind.Boolean,
+    "int": SymbolKind.Number,
+    "longlean": SymbolKind.Number,
+    "float": SymbolKind.Number,
+    "complex": SymbolKind.Number,
+    "string": SymbolKind.String,
+    "unicode": SymbolKind.String,
+    "list": SymbolKind.Array,
+    "field": SymbolKind.Field,
 }
 
 
 def _kind(d):
-    """ Return the VSCode Symbol Type """
+    """Return the VSCode Symbol Type"""
     return _SYMBOL_KIND_MAP.get(d.type)

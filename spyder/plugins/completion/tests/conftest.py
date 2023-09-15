@@ -15,8 +15,6 @@ from qtpy.QtWidgets import QMainWindow
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.manager import CONF
 from spyder.plugins.completion.plugin import CompletionPlugin
-from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed)
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.
@@ -80,9 +78,6 @@ def create_completion_plugin():
         main_window = MainWindowMock()
         completions = CompletionPlugin(main_window, CONF)
 
-        # Remove Kite (In case it was registered via setup.py)
-        completions.providers.pop('kite', None)
-
         return completions
     return completion_plugin_wrap
 
@@ -100,14 +95,11 @@ def completion_plugin_all_started(request, qtbot_module,
     completion_plugin.wait_for_ms = 20000
     completion_plugin.start_all_providers()
 
-    kite_installed, _ = check_if_kite_installed()
 
     def wait_until_all_started():
         all_started = True
         for provider in completion_plugin.providers:
-            if provider == 'kite' and not kite_installed:
-                continue
-
+            
             provider_info = completion_plugin.providers[provider]
             all_started &= provider_info['status'] == completion_plugin.RUNNING
         return all_started

@@ -534,6 +534,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Return the shellwidget of the current client"""
         return self.get_widget().get_current_shellwidget()
 
+    def set_current_shellwidget(self, shellwidget):
+        """Activate client associated to given shellwidget."""
+        self.get_widget().select_tab(shellwidget)
+
     def rename_client_tab(self, client, given_name):
         """
         Rename a client's tab.

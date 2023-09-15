@@ -1,28 +1,31 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-def get_well_formatted_range(lsp_range):
-    start = lsp_range['start']
-    end = lsp_range['end']
 
-    if start['line'] > end['line'] or (start['line'] == end['line'] and start['character'] > end['character']):
-        return {'start': end, 'end': start}
+def get_well_formatted_range(lsp_range):
+    start = lsp_range["start"]
+    end = lsp_range["end"]
+
+    if start["line"] > end["line"] or (
+        start["line"] == end["line"] and start["character"] > end["character"]
+    ):
+        return {"start": end, "end": start}
 
     return lsp_range
 
 
 def get_well_formatted_edit(text_edit):
-    lsp_range = get_well_formatted_range(text_edit['range'])
-    if lsp_range != text_edit['range']:
-        return {'newText': text_edit['newText'], 'range': lsp_range}
+    lsp_range = get_well_formatted_range(text_edit["range"])
+    if lsp_range != text_edit["range"]:
+        return {"newText": text_edit["newText"], "range": lsp_range}
 
     return text_edit
 
 
 def compare_text_edits(a, b):
-    diff = a['range']['start']['line'] - b['range']['start']['line']
+    diff = a["range"]["start"]["line"] - b["range"]["start"]["line"]
     if diff == 0:
-        return a['range']['start']['character'] - b['range']['start']['character']
+        return a["range"]["start"]["character"] - b["range"]["start"]["character"]
 
     return diff
 
@@ -79,16 +82,16 @@ def apply_text_edits(doc, text_edits):
     last_modified_offset = 0
     spans = []
     for e in sorted_edits:
-        start_offset = doc.offset_at_position(e['range']['start'])
+        start_offset = doc.offset_at_position(e["range"]["start"])
         if start_offset < last_modified_offset:
-            raise OverLappingTextEditException('overlapping edit')
+            raise OverLappingTextEditException("overlapping edit")
 
         if start_offset > last_modified_offset:
             spans.append(text[last_modified_offset:start_offset])
 
-        if len(e['newText']):
-            spans.append(e['newText'])
-        last_modified_offset = doc.offset_at_position(e['range']['end'])
+        if len(e["newText"]):
+            spans.append(e["newText"])
+        last_modified_offset = doc.offset_at_position(e["range"]["end"])
 
     spans.append(text[last_modified_offset:])
-    return ''.join(spans)
+    return "".join(spans)

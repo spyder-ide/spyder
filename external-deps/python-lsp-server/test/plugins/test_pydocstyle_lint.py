@@ -22,18 +22,18 @@ def test_pydocstyle(config, workspace):
     doc = Document(DOC_URI, workspace, DOC)
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
 
-    assert all(d['source'] == 'pydocstyle' for d in diags)
+    assert all(d["source"] == "pydocstyle" for d in diags)
 
     # One we're expecting is:
     assert diags[0] == {
-        'code': 'D100',
-        'message': 'D100: Missing docstring in public module',
-        'severity': lsp.DiagnosticSeverity.Warning,
-        'range': {
-            'start': {'line': 0, 'character': 0},
-            'end': {'line': 0, 'character': 11},
+        "code": "D100",
+        "message": "D100: Missing docstring in public module",
+        "severity": lsp.DiagnosticSeverity.Warning,
+        "range": {
+            "start": {"line": 0, "character": 0},
+            "end": {"line": 0, "character": 11},
         },
-        'source': 'pydocstyle'
+        "source": "pydocstyle",
     }
 
 
@@ -47,7 +47,7 @@ def test_pydocstyle_test_document(config, workspace):
 def test_pydocstyle_empty_source(config, workspace):
     doc = Document(DOC_URI, workspace, "")
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
-    assert diags[0]['message'] == 'D100: Missing docstring in public module'
+    assert diags[0]["message"] == "D100: Missing docstring in public module"
     assert len(diags) == 1
 
 

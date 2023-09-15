@@ -64,7 +64,7 @@ class CompletionPlugin(SpyderPluginV2):
     set of :class:`SpyderCompletionProvider` instances that are discovered
     and registered via entrypoints.
 
-    This plugin can assume that `fallback`, `snippets`, `lsp` and `kite`
+    This plugin can assume that `fallback`, `snippets` and `lsp`
     completion providers are available, since they are included as part of
     Spyder.
     """
@@ -236,12 +236,6 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
-                # This absolutely ensures that the Kite provider won't be
-                # loaded. For instance, it can happen when you have an older
-                # Spyder version installed, but you're running it with
-                # bootstrap.
-                if 'kite' in entry_point.name:
-                    continue
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
@@ -1231,7 +1225,7 @@ class CompletionPlugin(SpyderPluginV2):
         else:
             # Any empty response will be discarded and the completion
             # loop will wait for the next non-empty response.
-            # This should fix the scenario where Kite does not have a
+            # This should fix the scenario where a provider does not have a
             # response for a non-aggregated request but the LSP does.
             any_nonempty = any(request_responses['sources'].get(source)
                                for source in sorted_providers)
