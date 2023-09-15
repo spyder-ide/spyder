@@ -296,13 +296,9 @@ class Switcher(QDialog):
 
     def setup(self):
         """Setup list widget content based on filtering."""
-        mode = self._mode_on
-        if mode:
-            search_text = self.search_text()[len(mode):]
-        else:
-            search_text = self.search_text()
+        search_text = self.search_text_without_mode()
 
-        # Check exited mode
+        # Build default view
         if self.search_text() == '':
             self._mode_on = ''
             self.clear()
@@ -320,13 +316,6 @@ class Switcher(QDialog):
             self.set_current_row(0)
 
             return
-
-        # Check entered mode
-        for key in self._modes:
-            if self.search_text().startswith(key) and not mode:
-                self._mode_on = key
-                self.sig_mode_selected.emit(key)
-                return
 
         # Filter by text
         titles = []
@@ -366,13 +355,8 @@ class Switcher(QDialog):
 
     def setup_sections(self):
         """Setup which sections appear on the item list."""
-        mode = self._mode_on
         sections = []
-
-        if mode:
-            search_text = self.search_text()[len(mode):]
-        else:
-            search_text = self.search_text()
+        search_text = self.search_text_without_mode()
 
         for row in range(self.model.rowCount()):
             item_row = row
@@ -403,7 +387,7 @@ class Switcher(QDialog):
                     item.set_section_visible(visible)
             else:
                 # We need to remove this when a mode has several sections
-                if not mode:
+                if not self._mode_on:
                     item.set_section_visible(True)
 
     def remove_section(self, section):
@@ -468,7 +452,7 @@ class Switcher(QDialog):
         if item:
             mode = self._mode_on
             self.sig_item_selected.emit(
-                item, mode, self.search_text()[len(mode):]
+                item, mode, self.search_text_without_mode()
             )
 
     def accept(self):
@@ -491,6 +475,16 @@ class Switcher(QDialog):
         """Get the normalized (lowecase) content of the search text."""
         return to_text_string(self.edit.text()).lower()
 
+    def search_text_without_mode(self):
+        """Get search text without mode."""
+        mode = self._mode_on
+        if mode:
+            search_text = self.search_text()[len(mode):]
+        else:
+            search_text = self.search_text()
+
+        return search_text
+
     def set_search_text(self, string):
         """Set the content of the search text."""
         self.edit.setText(string)
@@ -498,8 +492,21 @@ class Switcher(QDialog):
     def _on_search_text_changed(self):
         """Actions to take when the search text has changed."""
         if self.search_text() != "":
-            search_text = clean_string(self.search_text())
-            self.sig_search_text_available.emit(search_text)
+            search_text = self.search_text_without_mode()
+
+            # Inform if mode has changed
+            for key in self._modes:
+                if search_text.startswith(key) and not self._mode_on:
+                    self._mode_on = key
+                    self.sig_mode_selected.emit(key)
+                    break
+
+            # Emit this signal only for the files mode for now. We'll see if
+            # it's necessary for other modes later.
+            if self._mode_on == "":
+                self.sig_search_text_available.emit(clean_string(search_text))
+            else:
+                self.setup()
         else:
             self.setup()
 
