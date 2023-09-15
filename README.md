@@ -24,7 +24,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
-[![Nightly Installer](https://github.com/mrclary/spyder/actions/workflows/installers-conda.yml/badge.svg?branch=master&event=schedule)](https://github.com/mrclary/spyder/actions/workflows/installers-conda.yml)
+[![Nightly Installers](https://github.com/mrclary/spyder/actions/workflows/installers-conda.yml/badge.svg?branch=master&event=schedule)](https://github.com/mrclary/spyder/actions/workflows/installers-conda.yml)
 
 ## Try Spyder online
 
