@@ -48,7 +48,7 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  USE_SUBREPOS: ${{ github.event_name == 'pull_request' || github.event == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
+  USE_SUBREPOS: ${{ github.event_name == 'pull_request' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
   IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
@@ -87,7 +87,7 @@ jobs:
 
   build-subrepos:
     name: Build Subrepos
-    if: github.event_name == 'pull_request' || github.event == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     uses: ./.github/workflows/build-subrepos.yml
 
   build-installers:
