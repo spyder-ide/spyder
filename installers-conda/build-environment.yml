@@ -4,10 +4,10 @@ channels:
   - conda-forge
 dependencies:
   - boa
-  - napari/label/bundle_tools_3::conda
-  - napari/label/bundle_tools_3::conda-standalone
-  - napari/label/bundle_tools_3::constructor
+  - conda
+  - conda-standalone
+  - constructor
   - gitpython
-  - napari/label/bundle_tools_3::menuinst
+  - menuinst
   - ruamel.yaml.jinja2
   - setuptools_scm
