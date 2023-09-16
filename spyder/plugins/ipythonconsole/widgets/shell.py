@@ -163,6 +163,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = None
         self.kernel_client = None
         self._init_kernel_setup = False
+        if handlers is None:
+            handlers = {}
+        else:
+            # Avoid changing the plugin dict
+            handlers = handlers.copy()
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
             'pdb_input': self.pdb_input,
