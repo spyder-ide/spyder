@@ -29,11 +29,11 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.widgets import codeeditor
@@ -48,6 +48,7 @@ from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
@@ -158,7 +159,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     def __init__(self, parent, actions, use_switcher=True):
@@ -204,12 +205,18 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
-        copy_to_cb_action = create_action(
+        copy_absolute_path_action = create_action(
             self,
-            _("Copy path to clipboard"),
+            _("Copy absolute path"),
+            icon=ima.icon('editcopy'),
+            triggered=lambda: self.copy_absolute_path()
+        )
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy relative path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-                QApplication.clipboard().setText(self.get_current_filename())
+            self.copy_relative_path()
         )
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
@@ -233,7 +240,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
                                        symbolfinder_action,
-                                       copy_to_cb_action, None, close_right,
+                                       copy_absolute_path_action,
+                                       copy_relative_path_action, None,
+                                       close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.is_closable = False
@@ -342,6 +351,36 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                         "not available on your system.")
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
+
+    def copy_absolute_path(self):
+        """Copy current filename absolute path to the clipboard."""
+        QApplication.clipboard().setText(self.get_current_filename())
+
+    def copy_relative_path(self):
+        """Copy current filename relative path to the clipboard."""
+        file_drive = osp.splitdrive(self.get_current_filename())[0]
+        if (
+            os.name == 'nt'
+            and osp.splitdrive(getcwd_or_home())[0] != file_drive
+        ):
+            QMessageBox.warning(
+               self,
+               _("No available relative path"),
+               _("It is not possible to copy a relative path "
+                 "for this file because it is placed in a "
+                 "different drive than your current working "
+                 "directory. Please copy its absolute path.")
+            )
+        else:
+            base_path = getcwd_or_home()
+            if self.get_current_project_path():
+                base_path = self.get_current_project_path()
+
+            rel_path = osp.relpath(
+                self.get_current_filename(), base_path
+            ).replace(os.sep, "/")
+
+            QApplication.clipboard().setText(rel_path)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
@@ -1295,6 +1334,12 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         if self.data:
             return self.data[self.get_stack_index()].editor.language
 
+    def get_current_project_path(self):
+        if self.data:
+            finfo = self.get_current_finfo()
+            if finfo:
+                return finfo.editor.current_project_path
+
     def get_filenames(self):
         """
         Return a list with the names of all the files currently opened in
@@ -2191,26 +2236,44 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
             if str(lastm.toString()) != str(finfo.lastmodified.toString()):
-                if finfo.editor.document().isModified():
+                # Catch any error when trying to reload a file and close it if
+                # that's the case to prevent users from destroying external
+                # changes in Spyder.
+                # Fixes spyder-ide/spyder#21248
+                try:
+                    if finfo.editor.document().isModified():
+                        self.msgbox = QMessageBox(
+                            QMessageBox.Question,
+                            self.title,
+                            _("The file <b>{}</b> has been modified outside "
+                              "Spyder."
+                              "<br><br>"
+                              "Do you want to reload it and lose all your "
+                              "changes?").format(name),
+                            QMessageBox.Yes | QMessageBox.No,
+                            self
+                        )
+
+                        answer = self.msgbox.exec_()
+                        if answer == QMessageBox.Yes:
+                            self.reload(index)
+                        else:
+                            finfo.lastmodified = lastm
+                    else:
+                        self.reload(index)
+                except Exception:
                     self.msgbox = QMessageBox(
-                        QMessageBox.Question,
+                        QMessageBox.Warning,
                         self.title,
-                        _("The file <b>%s</b> has been modified outside "
-                          "Spyder."
+                        _("The file <b>{}</b> has been modified outside "
+                          "Spyder but it was not possible to reload it."
                           "<br><br>"
-                          "Do you want to reload it and lose all your "
-                          "changes?") % name,
-                        QMessageBox.Yes | QMessageBox.No,
+                          "Therefore, it will be closed.").format(name),
+                        QMessageBox.Ok,
                         self
                     )
-
-                    answer = self.msgbox.exec_()
-                    if answer == QMessageBox.Yes:
-                        self.reload(index)
-                    else:
-                        finfo.lastmodified = lastm
-                else:
-                    self.reload(index)
+                    self.msgbox.exec_()
+                    self.close_file(index, force=True)
 
         # Finally, resetting temporary flag:
         self.__file_status_flag = False

@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
@@ -137,10 +139,10 @@ jobs:
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh
       - name: Coverage
         uses: codecov/codecov-action@v3
         with:

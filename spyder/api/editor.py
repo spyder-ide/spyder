@@ -8,4 +8,5 @@
 This module contains the code editor API.
 """
 
-from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel

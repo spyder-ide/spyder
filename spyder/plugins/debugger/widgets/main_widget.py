@@ -533,7 +533,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         try:
             shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)
             shellwidget.sig_prompt_ready.disconnect(self.update_actions)
-        except TypeError:
+        except (TypeError, RuntimeError):
             # disconnect was called elsewhere without argument
             pass
 

@@ -11,9 +11,9 @@ from qtpy.QtCore import QSize, Qt, QRect, Slot
 from qtpy.QtGui import QPainter, QFontMetrics
 
 # Local imports
-from spyder.utils.icon_manager import ima
-from spyder.api.panel import Panel
 from spyder.config.base import debug_print
+from spyder.plugins.editor.api.panel import Panel
+from spyder.utils.icon_manager import ima
 
 
 class DebuggerPanel(Panel):

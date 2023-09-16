@@ -35,12 +35,12 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
-from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
+from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima

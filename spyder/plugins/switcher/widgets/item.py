@@ -28,9 +28,9 @@ class SwitcherBaseItem(QStandardItem):
     _STYLES = None
     _TEMPLATE = None
 
-    def __init__(self, parent=None, styles=_STYLES):
+    def __init__(self, parent=None, styles=_STYLES, use_score=True):
         """Create basic List Item."""
-        super(SwitcherBaseItem, self).__init__()
+        super().__init__()
 
         # Style
         self._width = self._WIDTH
@@ -39,6 +39,7 @@ class SwitcherBaseItem(QStandardItem):
         self._action_item = False
         self._score = -1
         self._height = self._get_height()
+        self._use_score = use_score
 
         # Setup
         # self._height is a float from QSizeF but
@@ -84,8 +85,9 @@ class SwitcherBaseItem(QStandardItem):
 
     def set_score(self, value):
         """Set the search text fuzzy match score."""
-        self._score = value
-        self._set_rendered_text()
+        if self._use_score:
+            self._score = value
+            self._set_rendered_text()
 
     def is_action_item(self):
         """Return whether the item is of action type."""
@@ -122,8 +124,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
 
     def __init__(self, parent=None, styles=_STYLES):
         """Separator Item represented as <hr>."""
-        super(SwitcherSeparatorItem, self).__init__(parent=parent,
-                                                    styles=styles)
+        super().__init__(parent=parent, styles=styles)
         self.setFlags(Qt.NoItemFlags)
         self._set_rendered_text()
 
@@ -218,9 +219,9 @@ class SwitcherItem(SwitcherBaseItem):
 
     def __init__(self, parent=None, icon=None, title=None, description=None,
                  shortcut=None, section=None, data=None, tool_tip=None,
-                 action_item=False, styles=_STYLES):
+                 action_item=False, styles=_STYLES, score=-1, use_score=True):
         """Switcher item with title, description, shortcut and section."""
-        super(SwitcherItem, self).__init__(parent=parent, styles=styles)
+        super().__init__(parent=parent, styles=styles, use_score=use_score)
 
         self._title = title if title else ''
         self._rich_title = ''
@@ -229,10 +230,12 @@ class SwitcherItem(SwitcherBaseItem):
         self._section = section if section else ''
         self._icon = icon
         self._data = data
-        self._score = -1
+        self._score = score
         self._action_item = action_item
 
-        self._section_visible = True
+        # Section visibility is computed by the setup_sections method of the
+        # switcher.
+        self._section_visible = False
 
         # Setup
         self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)

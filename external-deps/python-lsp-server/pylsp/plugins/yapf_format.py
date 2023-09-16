@@ -26,9 +26,9 @@ def pylsp_format_document(workspace, document, options):
 def pylsp_format_range(document, range, options):  # pylint: disable=redefined-builtin
     log.info("Formatting document %s in range %s with yapf", document, range)
     # First we 'round' the range up/down to full lines only
-    range['start']['character'] = 0
-    range['end']['line'] += 1
-    range['end']['character'] = 0
+    range["start"]["character"] = 0
+    range["end"]["line"] += 1
+    range["end"]["character"] = 0
 
     # From Yapf docs:
     # lines: (list of tuples of integers) A list of tuples of lines, [start, end],
@@ -37,21 +37,21 @@ def pylsp_format_range(document, range, options):  # pylint: disable=redefined-b
     #   than a whole file.
 
     # Add 1 for 1-indexing vs LSP's 0-indexing
-    lines = [(range['start']['line'] + 1, range['end']['line'] + 1)]
+    lines = [(range["start"]["line"] + 1, range["end"]["line"] + 1)]
     return _format(document, lines=lines, options=options)
 
 
 def get_style_config(document_path, options=None):
     # Exclude file if it follows the patterns for that
-    exclude_patterns_from_ignore_file = file_resources.GetExcludePatternsForDir(os.getcwd())
+    exclude_patterns_from_ignore_file = file_resources.GetExcludePatternsForDir(
+        os.getcwd()
+    )
     if file_resources.IsIgnored(document_path, exclude_patterns_from_ignore_file):
         return []
 
     # Get the default styles as a string
     # for a preset configuration, i.e. "pep8"
-    style_config = file_resources.GetDefaultStyleForDir(
-        os.path.dirname(document_path)
-    )
+    style_config = file_resources.GetDefaultStyleForDir(os.path.dirname(document_path))
     if options is None:
         return style_config
 
@@ -61,24 +61,24 @@ def get_style_config(document_path, options=None):
     # to pass instead of a string so that we can modify it
     style_config = style.CreateStyleFromConfig(style_config)
 
-    use_tabs = style_config['USE_TABS']
-    indent_width = style_config['INDENT_WIDTH']
+    use_tabs = style_config["USE_TABS"]
+    indent_width = style_config["INDENT_WIDTH"]
 
-    if options.get('tabSize') is not None:
-        indent_width = max(int(options.get('tabSize')), 1)
+    if options.get("tabSize") is not None:
+        indent_width = max(int(options.get("tabSize")), 1)
 
-    if options.get('insertSpaces') is not None:
+    if options.get("insertSpaces") is not None:
         # TODO is it guaranteed to be a boolean, or can it be a string?
-        use_tabs = not options.get('insertSpaces')
+        use_tabs = not options.get("insertSpaces")
 
         if use_tabs:
             # Indent width doesn't make sense when using tabs
             # the specifications state: "Size of a tab in spaces"
             indent_width = 1
 
-    style_config['USE_TABS'] = use_tabs
-    style_config['INDENT_WIDTH'] = indent_width
-    style_config['CONTINUATION_INDENT_WIDTH'] = indent_width
+    style_config["USE_TABS"] = use_tabs
+    style_config["INDENT_WIDTH"] = indent_width
+    style_config["CONTINUATION_INDENT_WIDTH"] = indent_width
 
     for style_option, value in options.items():
         # Apply arbitrary options passed as formatter options
@@ -109,39 +109,34 @@ def diff_to_text_edits(diff, eol_chars):
             prev_line_no = change.old - 1
         elif change.new:
             # addition
-            text_edits.append({
-                'range': {
-                    'start': {
-                        'line': prev_line_no + 1,
-                        'character': 0
+            text_edits.append(
+                {
+                    "range": {
+                        "start": {"line": prev_line_no + 1, "character": 0},
+                        "end": {"line": prev_line_no + 1, "character": 0},
                     },
-                    'end': {
-                        'line': prev_line_no + 1,
-                        'character': 0
-                    }
-                },
-                'newText': change.line + eol_chars
-            })
+                    "newText": change.line + eol_chars,
+                }
+            )
         elif change.old:
             # remove
             lsp_line_no = change.old - 1
-            text_edits.append({
-                'range': {
-                    'start': {
-                        'line': lsp_line_no,
-                        'character': 0
+            text_edits.append(
+                {
+                    "range": {
+                        "start": {"line": lsp_line_no, "character": 0},
+                        "end": {
+                            # From LSP spec:
+                            # If you want to specify a range that contains a line
+                            # including the line ending character(s) then use an
+                            # end position denoting the start of the next line.
+                            "line": lsp_line_no + 1,
+                            "character": 0,
+                        },
                     },
-                    'end': {
-                        # From LSP spec:
-                        # If you want to specify a range that contains a line
-                        # including the line ending character(s) then use an
-                        # end position denoting the start of the next line.
-                        'line': lsp_line_no + 1,
-                        'character': 0
-                    }
-                },
-                'newText': ''
-            })
+                    "newText": "",
+                }
+            )
             prev_line_no = lsp_line_no
 
     return text_edits
@@ -157,22 +152,18 @@ def ensure_eof_new_line(document, eol_chars, text_edits):
     lines = document.lines
     last_line_number = len(lines) - 1
 
-    if text_edits and text_edits[-1]['range']['start']['line'] >= last_line_number:
+    if text_edits and text_edits[-1]["range"]["start"]["line"] >= last_line_number:
         return
 
-    text_edits.append({
-        'range': {
-            'start': {
-                'line': last_line_number,
-                'character': 0
+    text_edits.append(
+        {
+            "range": {
+                "start": {"line": last_line_number, "character": 0},
+                "end": {"line": last_line_number + 1, "character": 0},
             },
-            'end': {
-                'line': last_line_number + 1,
-                'character': 0
-            }
-        },
-        'newText': lines[-1] + eol_chars
-    })
+            "newText": lines[-1] + eol_chars,
+        }
+    )
 
 
 def _format(document, lines=None, options=None):
@@ -180,10 +171,10 @@ def _format(document, lines=None, options=None):
     # Yapf doesn't work with CRLF/CR line endings, so we replace them by '\n'
     # and restore them below when adding new lines
     eol_chars = get_eol_chars(source)
-    if eol_chars in ['\r', '\r\n']:
-        source = source.replace(eol_chars, '\n')
+    if eol_chars in ["\r", "\r\n"]:
+        source = source.replace(eol_chars, "\n")
     else:
-        eol_chars = '\n'
+        eol_chars = "\n"
 
     style_config = get_style_config(document_path=document.path, options=options)
 
@@ -192,7 +183,7 @@ def _format(document, lines=None, options=None):
         lines=lines,
         filename=document.filename,
         print_diff=True,
-        style_config=style_config
+        style_config=style_config,
     )
 
     if not changed:

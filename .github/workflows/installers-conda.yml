@@ -1,14 +1,13 @@
 on:
+  schedule:
+    - cron: '30 6 * * *'
+
   pull_request:
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
-      - '**.bat'
-      - '**.py'
-      - '**.sh'
-      - '!**.md'
 
   release:
     types:
@@ -49,13 +48,13 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
-  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
   BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
   BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
-  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+  USE_SUBREPOS: ${{ github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
+  NOTARIZE: ${{ github.event_name == 'schedule' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.pre) }}
 
 jobs:
   build-matrix:
@@ -72,84 +71,38 @@ jobs:
       run: |
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
-            include="{'os': 'macos-11', 'target-platform': 'osx-64'}"
+            include="{'os': 'macos-11', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
         fi
         if [[ $BUILD_LNX == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
-            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64'}"
+            include=${include:+"$include, "}"{'os': 'ubuntu-latest', 'target-platform': 'linux-64', 'spyk-arch': 'unix'}"
         fi
         if [[ $BUILD_WIN == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'win-64'"
-            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64'}"
+            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64', 'spyk-arch': 'win-64'}"
         fi
-
-        python_version="'3.10'"
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
-        echo "python_version=[$python_version]" >> $GITHUB_OUTPUT
 
-  build-noarch-pkgs:
-    name: Build ${{ matrix.pkg }} Python-${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    needs:
-      - build-matrix
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
-    strategy:
-      matrix:
-        pkg: ["python-lsp-server", "qtconsole", "spyder-kernels"]
-        python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
-    defaults:
-      run:
-        shell: bash -l {0}
-        working-directory: ${{ github.workspace }}/installers-conda
-    env:
-      DISTDIR: ${{ github.workspace }}/installers-conda/dist
-      pkg: ${{ matrix.pkg }}
-      cache_base: ${{ matrix.pkg }}_${{ matrix.python-version }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Cache ${{ matrix.pkg }} Conda Build
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
-          key: ${{ env.cache_base }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
-          lookup-only: true
-          enableCrossOsArchive: true
-
-      - name: Setup Build Environment
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: installers-conda/build-environment.yml
-          create-args: python=${{ matrix.python-version }}
-          cache-downloads: true
-          cache-environment: true
-
-      - name: Build & Cache ${{ matrix.pkg }} Conda Package
-        if: steps.cache.outputs.cache-hit != 'true'
-        env:
-          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
-        run: python build_conda_pkgs.py --build $pkg
+  build-subrepos:
+    name: Build Subrepos
+    # env.USE_SUBREPOS is not available at job level; must copy-paste here
+    if: github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    uses: ./.github/workflows/build-subrepos.yml
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
+    if: ${{ ! failure() && ! cancelled() }}
     runs-on: ${{ matrix.os }}
     needs:
       - build-matrix
-      - build-noarch-pkgs
-    if: ${{ ! failure() && ! cancelled() }}
+      - build-subrepos
     strategy:
       fail-fast: false
       matrix:
         target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
-        python-version: ${{fromJson(needs.build-matrix.outputs.python_version)}}
+        python-version: ['3.10']
         include: ${{fromJson(needs.build-matrix.outputs.include)}}
     defaults:
       run:
@@ -162,8 +115,6 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      BNP_STATUS: ${{ needs.build-noarch-pkgs.result }}
-      MAT_STATUS: ${{ needs.build-matrix.result }}
 
     steps:
       - name: Checkout Code
@@ -171,56 +122,55 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 10
+        with:
+          detached: true
+
       - name: Restore python-lsp-server Cache
-        if: env.IS_STANDARD_PR == 'true'
+        if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v3
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
-          key: python-lsp-server_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
+          key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
       - name: Restore qtconsole Cache
-        if: env.IS_STANDARD_PR == 'true'
+        if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v3
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
-          key: qtconsole_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
+          key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
-      - name: Restore Unix spyder-kernels Cache
-        if: env.IS_STANDARD_PR == 'true' && runner.os != 'Windows'
+      - name: Restore ${{ matrix.spyk-arch }} spyder-kernels Cache
+        if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v3
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
-          key: spyder-kernels_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
-
-      - name: Restore Windows spyder-kernels Cache
-        id: cache
-        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows'
-        uses: actions/cache@v3
-        with:
-          path: installers-conda/build/conda-bld/**/spyder-kernels-*.tar.bz2
-          key: spyder-kernels_${{ matrix.target-platform }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
+          key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
       - name: Setup Build Environment
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
-          create-args: python=${{ matrix.python-version }}
+          environment-name: spy-inst
+          create-args: >-
+            --channel-priority=strict
+            python=${{ matrix.python-version }}
           cache-downloads: true
           cache-environment: true
 
       - name: Env Variables
         run: env | sort
 
-      - name: Build & Cache Windows spyder-kernels Conda Package
-        if: env.IS_STANDARD_PR == 'true' && runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
-        env:
-          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
-        run: python build_conda_pkgs.py --build spyder-kernels
-
       - name: Build ${{ matrix.target-platform }} spyder Conda Package
-        if: env.IS_STANDARD_PR == 'true'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
@@ -231,7 +181,6 @@ jobs:
           python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
-        if: env.IS_STANDARD_PR == 'true'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
@@ -240,18 +189,18 @@ jobs:
           mamba search -c local --override-channels || true
 
       - name: Create Keychain
-        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
         run: |
-          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CNAME=$CNAME" >> $GITHUB_ENV
-
           _codesign=$(which codesign)
           if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
               # Find correct codesign
               echo "Moving $_codesign..."
               mv $_codesign ${_codesign}.bak
           fi
+
+          ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
+          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CNAME=$CNAME" >> $GITHUB_ENV
 
       - name: Build Package Installer
         run: |
@@ -338,7 +287,7 @@ jobs:
           EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
-        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        if: env.NOTARIZE == 'true'
         run: |
           if [[ $RUNNER_OS == "macOS" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
@@ -346,16 +295,6 @@ jobs:
               cd $(dirname $PKG_PATH)
               echo $(sha256sum $PKG_NAME) > "${PKG_GLOB}-sha256sum.txt"
           fi
-
-      - name: Setup Remote SSH Connection
-        # Notes:
-        # 1. This only works for conda, probably because it has the necessary
-        #    MSYS2 packages to create the connection.
-        # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
-        #    usage.
-        if: failure() && env.ENABLE_SSH == 'true'
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 45
 
       - name: Upload Artifact
         if: env.IS_RELEASE == 'false'

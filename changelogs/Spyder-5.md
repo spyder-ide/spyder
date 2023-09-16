@@ -1,5 +1,28 @@
 # History of changes for Spyder 5
 
+## Version 5.4.5 (2023-08-29)
+
+### Important fixes
+
+* Fix Editor scrollflags error on Python 3.7
+
+### Issues Closed
+
+* [Issue 21293](https://github.com/spyder-ide/spyder/issues/21293) - Spyder 5.4.5 release
+* [Issue 21286](https://github.com/spyder-ide/spyder/issues/21286) - `TypeError: 'dict' object is not reversible` in Python 3.7 ([PR 21290](https://github.com/spyder-ide/spyder/pull/21290) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21290](https://github.com/spyder-ide/spyder/pull/21290) - PR: Don't try to reverse the dict of scroll flags in Python 3.7 (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([21286](https://github.com/spyder-ide/spyder/issues/21286))
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 5.4.4 (2023-07-17)
 
 ### New features

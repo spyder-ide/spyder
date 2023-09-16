@@ -861,7 +861,7 @@ class SpyderPdb(ipyPdb):
                 hidden = self.hidden_frames(self.stack)
                 pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
                 # Adjust the index
-                pdb_index -= sum(hidden[:pdb_index])
+                pdb_index -= sum([bool(i) for i in hidden[:pdb_index]])
 
             state['stack'] = (pdb_stack, pdb_index)
 
