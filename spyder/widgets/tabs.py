@@ -15,20 +15,25 @@
 import os.path as osp
 
 # Third party imports
+from qdarkstyle.colorsystem import Gray
+import qstylizer.style
 from qtpy import PYQT5
-from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget, QLineEdit)
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
+from qtpy.QtGui import QFontMetrics
+from qtpy.QtWidgets import (
+    QHBoxLayout, QLineEdit, QMenu, QTabBar, QTabWidget, QToolButton, QWidget)
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
 
 
 class EditTabNamePopup(QLineEdit):
@@ -45,6 +50,12 @@ class EditTabNamePopup(QLineEdit):
 
         # Track which tab is being edited
         self.tab_index = None
+
+        # Track if any text has been typed
+        self.has_typed = False
+
+        # Track the initial tab text
+        self.initial_text = None
 
         # Widget setup
         QLineEdit.__init__(self, parent=parent)
@@ -69,24 +80,33 @@ class EditTabNamePopup(QLineEdit):
             )
         self.setFrame(False)
 
-        # Align with tab name
-        self.setTextMargins(9, 0, 0, 0)
-
     def eventFilter(self, widget, event):
         """Catch clicks outside the object and ESC key press."""
-        if ((event.type() == QEvent.MouseButtonPress and
-                 not self.geometry().contains(event.globalPos())) or
-                (event.type() == QEvent.KeyPress and
-                 event.key() == Qt.Key_Escape)):
-            # Exits editing
+        if (
+            event.type() == QEvent.MouseButtonPress
+            and not self.geometry().contains(event.globalPos())
+        ):
+            # Exit editing and change text
             self.hide()
             return True
+        elif event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+            # Exit editing and restore initial text
+            self.setText(self.initial_text)
+            self.hide()
+            return True
+        elif event.type() == QEvent.KeyPress and event.text():
+            # Remove left margin when the user starts typing to not crop long
+            # names.
+            if not self.has_typed:
+                self.setTextMargins(0, 0, 0, 0)
+                self.has_typed = True
 
-        # Event is not interessant, raise to parent
+        # Event is not interesting, raise to parent
         return QLineEdit.eventFilter(self, widget, event)
 
     def edit_tab(self, index):
         """Activate the edit tab."""
+        self.has_typed = False
 
         # Sets focus, shows cursor
         self.setFocus()
@@ -94,9 +114,10 @@ class EditTabNamePopup(QLineEdit):
         # Updates tab index
         self.tab_index = index
 
-        # Gets tab size and shrinks to avoid overlapping tab borders
+        # Gets tab size and adjust top margin
         rect = self.main.tabRect(index)
-        rect.adjust(1, 1, -2, -1)
+        top_margin = PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0]
+        rect.adjust(2, int(top_margin), 0, 0)
 
         # Sets size
         self.setFixedSize(rect.size())
@@ -105,13 +126,18 @@ class EditTabNamePopup(QLineEdit):
         self.move(self.main.mapToGlobal(rect.topLeft()))
 
         # Copies tab name and selects all
-        text = self.main.tabText(index)
-        text = text.replace(u'&', u'')
+        self.initial_text = self.main.tabText(index)
+        text = self.initial_text.replace('&', '')
         if self.split_char:
             text = text.split(self.split_char)[self.split_index]
 
         self.setText(text)
         self.selectAll()
+
+        # Center text because it looks nicer.
+        metrics = QFontMetrics(self.font())
+        text_width = metrics.width(text) + self.font().pointSize()
+        self.setTextMargins((rect.width() - text_width) // 2, 0, 0, 0)
 
         if not self.isVisible():
             # Makes editor visible
@@ -127,6 +153,110 @@ class EditTabNamePopup(QLineEdit):
             tab_text = to_text_string(self.text())
             self.main.setTabText(self.tab_index, tab_text)
             self.main.sig_name_changed.emit(tab_text)
+
+
+class CloseTabButton(QToolButton):
+    """Close button for our tabs."""
+
+    SIZE = 16  # in pixels
+    sig_clicked = Signal(int)
+
+    def __init__(self, parent, index):
+        super().__init__(parent)
+        self.index = index
+
+        # Icon and tooltip
+        self.setIcon(ima.icon('fileclose'))
+        self._tab_tooltip = ''
+
+        # Size
+        size = self.SIZE
+        self.resize(size + 2, size + 6)
+        self.setIconSize(QSize(size, size))
+
+        # Colors for different states
+        self._selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+        self._not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_4
+
+        self._hover_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+        self._hover_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+
+        self._clicked_selected_tab_color = (
+            Gray.B70 if is_dark_interface() else Gray.B80
+        )
+        self._clicked_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+
+        # To keep track of the tab's current color
+        self._tab_color = self._selected_tab_color
+
+        # Stylesheet
+        self.css = qstylizer.style.StyleSheet()
+        self.css.QToolButton.setValues(
+            marginTop='9px',
+            marginBottom='-7px',
+            marginLeft='3px' if MAC else '2px',
+            marginRight='-7px' if MAC else '-6px',
+            padding='0px',
+            paddingTop='-5px' if (MAC or WIN) else '-8px',
+            borderRadius='3px'
+        )
+
+        self._set_background_color(self._selected_tab_color)
+
+        # Signals
+        self.clicked.connect(lambda: self.sig_clicked.emit(self.index))
+
+    def enterEvent(self, event):
+        """Actions to take when hovering the widget with the mouse."""
+        # Set background color on hover according to the tab one
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._hover_selected_tab_color)
+        else:
+            self._set_background_color(self._hover_not_selected_tab_color)
+
+        # Don't show tooltip on hover because it's annoying
+        self._tab_tooltip = self.parent().tabToolTip(self.index)
+        self.parent().setTabToolTip(self.index, '')
+
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Actions to take when leaving the widget with the mouse."""
+        # Restore background color
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._selected_tab_color)
+        else:
+            self._set_background_color(self._not_selected_tab_color)
+
+        # Restore tab tooltip
+        self.parent().setTabToolTip(self.index, self._tab_tooltip)
+
+        super().leaveEvent(event)
+
+    def mousePressEvent(self, event):
+        """Actions to take when clicking the widget."""
+        # Set the clicked state for the button
+        if self._tab_color == self._selected_tab_color:
+            self._set_background_color(self._clicked_selected_tab_color)
+        else:
+            self._set_background_color(self._clicked_not_selected_tab_color)
+
+        super().mousePressEvent(event)
+
+    def set_selected_color(self):
+        """Set background color when the tab is selected."""
+        self._tab_color = self._selected_tab_color
+        self._set_background_color(self._selected_tab_color)
+
+    def set_not_selected_color(self):
+        """Set background color when the tab is not selected."""
+        self._tab_color = self._not_selected_tab_color
+        self._set_background_color(self._not_selected_tab_color)
+
+    def _set_background_color(self, background_color):
+        """Auxiliary function to set the widget's background color."""
+        self.css.setValues(backgroundColor=f'{background_color}')
+        self.setStyleSheet(self.css.toString())
 
 
 class TabBar(QTabBar):
@@ -154,6 +284,41 @@ class TabBar(QTabBar):
                                                     split_index)
         else:
             self.tab_name_editor = None
+
+        self.close_btn_side = QTabBar.LeftSide if MAC else QTabBar.RightSide
+
+        # Signals
+        self.currentChanged.connect(self._on_tab_changed)
+        self.tabMoved.connect(self._on_tab_moved)
+
+    def refresh_style(self):
+        """Refresh the widget style."""
+        self._on_tab_changed(self.currentIndex())
+
+    def _on_tab_changed(self, index):
+        """Actions to take when the current tab has changed."""
+        # Repaint background color of close buttons
+        for i in range(self.count()):
+            close_btn: CloseTabButton = self.tabButton(i, self.close_btn_side)
+
+            if close_btn:
+                close_btn.index = i
+
+                if i == index:
+                    close_btn.set_selected_color()
+                else:
+                    close_btn.set_not_selected_color()
+
+    def _on_tab_moved(self, index_from, index_to):
+        """Actions to take when drag and drop a tab to a different place."""
+        # Repaint background color of switched buttons
+        close_btn_from = self.tabButton(index_from, self.close_btn_side)
+        close_btn_to = self.tabButton(index_to, self.close_btn_side)
+
+        close_btn_from.index, close_btn_to.index = index_from, index_to
+
+        close_btn_from.set_not_selected_color()
+        close_btn_to.set_selected_color()
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -193,8 +358,10 @@ class TabBar(QTabBar):
         mimeData = event.mimeData()
         formats = list(mimeData.formats())
 
-        if "parent-id" in formats and \
-          int(mimeData.data("parent-id")) == id(self.ancestor):
+        if (
+            "parent-id" in formats
+            and int(mimeData.data("parent-id")) == id(self.ancestor)
+        ):
             event.acceptProposedAction()
 
         QTabBar.dragEnterEvent(self, event)
@@ -223,8 +390,10 @@ class TabBar(QTabBar):
 
     def mouseDoubleClickEvent(self, event):
         """Override Qt method to trigger the tab name editor."""
-        if self.rename_tabs is True and \
-                event.buttons() == Qt.MouseButtons(Qt.LeftButton):
+        if (
+            self.rename_tabs is True
+            and event.buttons() == Qt.MouseButtons(Qt.LeftButton)
+        ):
             # Tab index
             index = self.tabAt(event.pos())
             if index >= 0:
@@ -234,6 +403,17 @@ class TabBar(QTabBar):
             # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
 
+    def tabInserted(self, index):
+        """Actions to take when a new tab is added or inserted."""
+        # Use our own close button because we can style it to our needs.
+        close_button = CloseTabButton(self, index)
+
+        # Request to close the tab when the close button is clicked
+        close_button.sig_clicked.connect(self.tabCloseRequested)
+
+        # Set close button
+        self.setTabButton(index, self.close_btn_side, close_button)
+
 
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -242,7 +422,8 @@ class BaseTabs(QTabWidget):
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
-        self.setUsesScrollButtons(True)
+        self.setTabBar(TabBar(self, parent))
+
         # Needed to prevent eliding tabs text on MacOS
         # See spyder-ide/spyder#18817
         self.setElideMode(Qt.ElideNone)
@@ -431,6 +612,10 @@ class BaseTabs(QTabWidget):
                                              tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
+    def refresh_style(self):
+        """Refresh the widget style."""
+        self.tabBar().refresh_style()
+
 
 class Tabs(BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
@@ -451,7 +636,7 @@ class Tabs(BaseTabs):
                          split_index=split_index)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
-                                          self.move_tab_from_another_tabwidget)
+            self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
         CONF.config_shortcut(

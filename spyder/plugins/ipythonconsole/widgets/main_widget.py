@@ -44,7 +44,7 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import MARGIN_SIZE
+from spyder.utils.stylesheet import AppStyle
 from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
@@ -371,9 +371,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Manually adjust pane margins, don't know why this is necessary.
         # Note: Do this before setting the layout.
         if not self.get_conf('vertical_tabs', section='main'):
-            self._margin_left = self._margin_right = MARGIN_SIZE - 1
+            self._margin_left = self._margin_right = AppStyle.MarginSize - 1
         else:
-            self._margin_right = self._margin_bottom = MARGIN_SIZE - 1
+            self._margin_right = self._margin_bottom = AppStyle.MarginSize - 1
 
         self.setLayout(layout)
 

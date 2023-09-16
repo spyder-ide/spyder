@@ -152,6 +152,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         # Setup layout.
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.results_browser)
         layout.addWidget(self.finder)
         self.setLayout(layout)
