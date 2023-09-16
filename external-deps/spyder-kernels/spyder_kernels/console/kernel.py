@@ -644,6 +644,8 @@ class SpyderKernel(IPythonKernel):
                 self.set_autocall(value)
             elif key == "matplotlib":
                 self.set_matplotlib_conf(value)
+            elif key == "update_gui":
+                self.shell.update_gui_frontend = value
         return ret
 
     def set_color_scheme(self, color_scheme):

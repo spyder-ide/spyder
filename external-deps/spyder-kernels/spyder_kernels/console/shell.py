@@ -54,6 +54,7 @@ class SpyderShell(ZMQInteractiveShell):
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
+        self.update_gui_frontend = False
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -87,10 +88,11 @@ class SpyderShell(ZMQInteractiveShell):
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
         gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
-        try:
-            self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
-        except Exception:
-            pass
+        if self.update_gui_frontend:
+            try:
+                self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
+            except Exception:
+                pass
         return gui, backend
 
     # --- For Pdb namespace integration

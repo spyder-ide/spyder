@@ -2019,12 +2019,12 @@ def test_old_kernel_version(ipyconsole, qtbot):
     w = ipyconsole.get_widget()
 
     kernel_handler = w._cached_kernel_properties[-1]
+    kernel_handler.kernel_client.sig_spyder_kernel_info.disconnect()
 
     # Wait until it is launched
     qtbot.waitUntil(
         lambda: (
-            kernel_handler.connection_state ==
-            KernelConnectionState.SpyderKernelReady
+            kernel_handler._comm_ready_recieved
         ),
         timeout=SHELL_TIMEOUT)
 
