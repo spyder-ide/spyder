@@ -137,7 +137,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     """
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, **kw):
+                 handlers, *args, special_kernel=None, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -163,6 +163,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
+        self.special_kernel = special_kernel
         self._init_kernel_setup = False
         if handlers is None:
             handlers = {}
@@ -843,17 +844,12 @@ the sympy module (e.g. plot)
 
     def set_special_kernel(self):
         """Reset special kernel"""
-        if self.kernel_handler is None:
-            # This is not a special kernel
+        if not self.special_kernel:
             return
-
-        if self.kernel_handler.special is None:
-            return
-
 
         # Check if the dependecies for special consoles are available.
         self.set_kernel_configuration(
-            "special_kernel", self.kernel_handler.special
+            "special_kernel", self.special_kernel
         )
 
     def _update_reset_options(self, message_box):

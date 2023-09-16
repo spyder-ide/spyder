@@ -1451,6 +1451,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
 
+        # Find what kind of kernel we want
+        if self.get_conf('pylab/autoload'):
+            special = "pylab"
+        elif self.get_conf('symbolic_math'):
+            special = "sympy"
+
         client = ClientWidget(
             self,
             id_=client_id,
@@ -1464,19 +1470,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
-            forcing_custom_interpreter=path_to_custom_interpreter is not None
+            forcing_custom_interpreter=path_to_custom_interpreter is not None,
+            special_kernel=special
         )
 
         # Add client to widget
         self.add_tab(
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
-
-        # Find what kind of kernel we want
-        if self.get_conf('pylab/autoload'):
-            special = "pylab"
-        elif self.get_conf('symbolic_math'):
-            special = "sympy"
 
         try:
             # Create new kernel
@@ -1487,8 +1488,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 kernel_spec,
                 cache=cache,
                 )
-            # Set special so it will be correct
-            kernel_handler.special = special
         except Exception as e:
             client.show_kernel_error(e)
             return
