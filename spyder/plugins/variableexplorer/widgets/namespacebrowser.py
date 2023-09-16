@@ -460,7 +460,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         if (
             self.plots_plugin_enabled
             and self.get_conf('mute_inline_plotting', section='plots')
-            and self.get_conf('pylab/backend', section='ipython_console') == 0
+            and (
+                self.get_conf('pylab/backend', section='ipython_console')
+                == 'inline'
+            )
         ):
             self.plot_in_plots_plugin(data, funcname)
         else:
