@@ -67,6 +67,7 @@ class SpyderKernel(IPythonKernel):
         self.namespace_view_settings = {}
         self.faulthandler_handle = None
         self._cwd_initialised = False
+        self.special = None
 
         # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
@@ -635,13 +636,7 @@ class SpyderKernel(IPythonKernel):
             elif key == "special_kernel":
                 ret[key] = self.set_special_kernel(value)
             elif key == "color scheme":
-                if value == "dark":
-                    # Needed to change the colors of tracebacks
-                    self.shell.run_line_magic("colors", "linux")
-                    self.set_sympy_forecolor(background_color='dark')
-                elif value == "light":
-                    self.shell.run_line_magic("colors", "lightbg")
-                    self.set_sympy_forecolor(background_color='light')
+                self.set_color_scheme(value)
             elif key == "jedi_completer":
                 self.set_jedi_completer(value)
             elif key == "greedy_completer":
@@ -651,6 +646,15 @@ class SpyderKernel(IPythonKernel):
             elif key == "matplotlib":
                 self.set_matplotlib_conf(value)
         return ret
+
+    def set_color_scheme(self, color_scheme):
+        if color_scheme == "dark":
+            # Needed to change the colors of tracebacks
+            self.shell.run_line_magic("colors", "linux")
+            self.set_sympy_forecolor(background_color='dark')
+        elif color_scheme == "light":
+            self.shell.run_line_magic("colors", "lightbg")
+            self.set_sympy_forecolor(background_color='light')
 
     def get_cwd(self):
         """Get current working directory."""
@@ -682,6 +686,7 @@ class SpyderKernel(IPythonKernel):
         """
         Check if optional dependencies are available for special consoles.
         """
+        self.special = None
         if special is None:
             return
 
@@ -691,6 +696,7 @@ class SpyderKernel(IPythonKernel):
             except Exception:
                 return "matplotlib"
             self.do_execute("from pylab import *", silent=True)
+            self.special = special
             return
 
         if special == "sympy":
@@ -706,6 +712,7 @@ class SpyderKernel(IPythonKernel):
                 "init_printing()",
             ])
             self.do_execute(sympy_init, silent=True)
+            self.special = special
             return
 
         if special == "cython":
@@ -714,6 +721,7 @@ class SpyderKernel(IPythonKernel):
             except Exception:
                 return "cython"
             self.shell.run_line_magic("reload_ext", "Cython")
+            self.special = special
             return
 
         raise NotImplementedError(f"{special}")
@@ -943,9 +951,10 @@ class SpyderKernel(IPythonKernel):
             # Needed in case matplolib isn't installed
             pass
 
-    @comm_handler
     def set_sympy_forecolor(self, background_color='dark'):
         """Set SymPy forecolor depending on console background."""
+        if self.special != "sympy":
+            return
         try:
             from sympy import init_printing
             if background_color == 'dark':
