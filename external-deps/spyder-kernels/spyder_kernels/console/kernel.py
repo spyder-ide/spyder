@@ -65,7 +65,6 @@ class SpyderKernel(IPythonKernel):
         register_comm_handlers(self.shell, self.frontend_comm)
 
         self.namespace_view_settings = {}
-        self._mpl_backend_error = None
         self.faulthandler_handle = None
         self._cwd_initialised = False
 
@@ -633,8 +632,6 @@ class SpyderKernel(IPythonKernel):
                 self.shell.set_pdb_configuration(value)
             elif key == "faulthandler":
                 ret[key] = self.enable_faulthandler()
-            elif key == "show_mpl_backend_errors":
-                self.show_mpl_backend_errors()
             elif key == "special_kernel":
                 ret[key] = self.set_special_kernel(value)
             elif key == "color scheme":
@@ -651,16 +648,8 @@ class SpyderKernel(IPythonKernel):
                 self.set_greedy_completer(value)
             elif key == "autocall":
                 self.set_autocall(value)
-            elif key == "matplotlib_backend":
-                self.set_matplotlib_backend(*value)
-            elif key == "mpl_inline_figure_format":
-                self.set_mpl_inline_figure_format(value)
-            elif key == "mpl_inline_resolution":
-                self.set_mpl_inline_resolution(value)
-            elif key == "mpl_inline_figure_size":
-                self.set_mpl_inline_figure_size(*value)
-            elif key == "mpl_inline_bbox_inches":
-                self.set_mpl_inline_bbox_inches(value)
+            elif key == "matplotlib":
+                self.set_matplotlib_conf(value)
         return ret
 
     def get_cwd(self):
@@ -921,8 +910,8 @@ class SpyderKernel(IPythonKernel):
             error = generic_error.format(err) + '\n\n' + additional_info
         except Exception:
             error = generic_error.format(traceback.format_exc())
-
-        self._mpl_backend_error = error
+        if error:
+            print(error)
 
     def _set_config_option(self, option, value):
         """
@@ -953,11 +942,6 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             # Needed in case matplolib isn't installed
             pass
-
-    def show_mpl_backend_errors(self):
-        """Show Matplotlib backend errors after the prompt is ready."""
-        if self._mpl_backend_error is not None:
-            print(self._mpl_backend_error)  # spyder: test-skip
 
     @comm_handler
     def set_sympy_forecolor(self, background_color='dark'):

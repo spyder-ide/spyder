@@ -381,13 +381,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Send kernel configuration to spyder kernel."""
         self.is_kernel_configured = False
 
-        # Show possible errors when setting Matplotlib backend
-        self.set_kernel_configuration("show_mpl_backend_errors", True)
-
         # Set matplotlib backend
         self.send_mpl_backend()
 
-        # Make sure special kernel is correctly set up
+        # set special kernel
         self.set_special_kernel()
 
         # Set current cwd
@@ -588,8 +585,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
 
         if matplotlib_conf:
-            self.call_kernel().set_matplotlib_conf(
-                matplotlib_conf)
+            self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
         """
