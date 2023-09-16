@@ -48,13 +48,13 @@ concurrency:
 name: Create conda-based installers for Windows, macOS, and Linux
 
 env:
-  USE_SUBREPOS: ${{ github.event_name == 'pull_request' || github.event == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
   IS_RELEASE: ${{ github.event_name == 'release' }}
-  IS_PRE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
   BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
   BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
-  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+  USE_SUBREPOS: ${{ github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
+  NOTARIZE: ${{ github.event_name == 'schedule' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.pre) }}
 
 jobs:
   build-matrix:
@@ -87,7 +87,8 @@ jobs:
 
   build-subrepos:
     name: Build Subrepos
-    if: github.event_name == 'pull_request' || github.event == 'schedule' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    # env.USE_SUBREPOS is not available at job level; must copy-paste here
+    if: github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
     uses: ./.github/workflows/build-subrepos.yml
 
   build-installers:
@@ -188,7 +189,7 @@ jobs:
           mamba search -c local --override-channels || true
 
       - name: Create Keychain
-        if: runner.os == 'macOS' && (env.IS_RELEASE == 'true' || env.IS_PRE == 'true')
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
         run: |
           _codesign=$(which codesign)
           if [[ $_codesign =~ ${CONDA_PREFIX}.* ]]; then
@@ -286,7 +287,7 @@ jobs:
           EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
-        if: env.IS_RELEASE == 'true' || env.IS_PRE == 'true'
+        if: env.NOTARIZE == 'true'
         run: |
           if [[ $RUNNER_OS == "macOS" ]]; then
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH

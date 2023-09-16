@@ -2580,6 +2580,7 @@ def example_def_2():
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(running_in_ci(), reason="Can't run on CI")
 def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
                                        tmp_path):
     """Test integration between the Switcher and Projects plugins."""
