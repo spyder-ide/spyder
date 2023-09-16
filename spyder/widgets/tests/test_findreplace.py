@@ -260,7 +260,7 @@ def test_clear_action(findreplace_editor, qtbot):
     """
     editor = findreplace_editor.editor
     findreplace = findreplace_editor.findreplace
-    clear_action = findreplace.search_text.clear_action
+    clear_action = findreplace.search_text.lineEdit().clear_action
     editor.set_text('foo\nfoo\n')
 
     # clear_action should not be visible when the widget is shown

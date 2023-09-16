@@ -31,8 +31,21 @@ from spyder.utils.palette import QStylePalette
 MAC = sys.platform == 'darwin'
 WIN = os.name == 'nt'
 
-# Size of margins (in pixels).
-MARGIN_SIZE = 3
+
+class AppStyle:
+    """
+    Enum with several constants used in the application style.
+
+    Notes
+    -----
+    All sizes are in pixels.
+    """
+    # Size of margins.
+    MarginSize = 3
+
+    # Size of find widget line edits (e.g. FinderWidget and FindReplace)
+    FindMinWidth = 400
+    FindHeight = 26
 
 
 # =============================================================================
@@ -217,6 +230,25 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
                 fontSize=f'{font_size}pt'
             )
 
+        # Make our comboboxes have a uniform height
+        if font_size < 10:
+            combobox_min_height = 1.8
+        elif 10 <= font_size < 13:
+            combobox_min_height = 1.7 if MAC else 1.6
+        else:
+            combobox_min_height = 1.5 if MAC else 1.4
+
+        css.QComboBox.setValues(
+            minHeight=f'{combobox_min_height}em'
+        )
+
+        # Make lineedits have *almost* the same height as our comboboxes. This
+        # is not perfect because (oddly enough) Qt doesn't set the same height
+        # for both when using the same value, but it's close enough.
+        css.QLineEdit.setValues(
+            minHeight=f'{combobox_min_height - 0.2}em'
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
@@ -353,7 +385,7 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
     """Stylesheet for pane tabbars"""
 
-    TOP_MARGIN = '15px'
+    TOP_MARGIN = '12px'
     OBJECT_NAME = '#pane-tabbar'
     SCROLL_BUTTONS_BORDER_WIDTH = '5px'
     SCROLL_BUTTONS_BORDER_POS = 'right'
@@ -416,13 +448,6 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
                 paddingRight='10px' if MAC else '4px'
             )
 
-        # This crops the close button a bit at the bottom in order to
-        # center it. But a bigger negative padding-bottom crops it even
-        # more.
-        css['QTabBar::close-button'].setValues(
-            paddingBottom='-6px' if MAC else '-7px',
-        )
-
         # Remove border between selected tab and pane below
         css['QTabWidget::pane'].setValues(
             borderTop='0px',
@@ -431,12 +456,10 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         # Adjust margins of corner widgets
         css['QTabWidget::left-corner'].setValues(
             top='-1px',
-            bottom='-2px'
         )
 
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
-            bottom='-2px',
             right='-3px' if WIN else '-1px'
         )
 
@@ -499,6 +522,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
+        margin_size = AppStyle.MarginSize
 
         # Basic style
         css['QTabBar::tab'].setValues(
@@ -509,7 +533,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             #   a bottom margin on dockwidgets that are not tabified.
             # * The other half is added through the _margin_bottom attribute of
             #   PluginMainWidget.
-            margin=f'{MARGIN_SIZE}px 0px {2 * MARGIN_SIZE}px 0px',
+            margin=f'{margin_size}px 0px {2 * margin_size}px 0px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove a colored border added by QDarkStyle
@@ -544,13 +568,13 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderBottomLeftRadius='4px',
-            marginLeft=f'{2 * MARGIN_SIZE}px',
+            marginLeft=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderTopRightRadius='4px',
             borderBottomRightRadius='4px',
-            marginRight='{2 * MARGIN_SIZE}px',
+            marginRight=f'{2 * margin_size}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -565,7 +589,7 @@ class HorizontalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         # bottom (see the notes in the 'QTabBar::tab' style above).
         css['QTabBar QToolButton'].setValues(
             marginTop='0px',
-            marginBottom=f'{MARGIN_SIZE}px',
+            marginBottom=f'{margin_size}px',
         )
 
 
@@ -581,12 +605,13 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
+        margin_size = AppStyle.MarginSize
 
         # Basic style
         css['QTabBar::tab'].setValues(
             # No margins to top/bottom but left/right to separate tabbar from
             # the dockwidget areas
-            margin=f'0px {2 * MARGIN_SIZE}px',
+            margin=f'0px {2 * margin_size}px',
             # Border radius is added for specific tabs (see below)
             borderRadius='0px',
             # Remove colored borders added by QDarkStyle
@@ -620,13 +645,13 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderTopRightRadius='4px',
-            marginTop=f'{2 * MARGIN_SIZE}px',
+            marginTop=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
             borderBottomLeftRadius='4px',
             borderBottomRightRadius='4px',
-            marginBottom=f'{2 * MARGIN_SIZE}px',
+            marginBottom=f'{2 * margin_size}px',
         )
 
         # Last tab doesn't need to show the separator
@@ -638,8 +663,8 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # Make style for scroll buttons match the horizontal one
         css['QTabBar QToolButton'].setValues(
-            marginLeft=f'{MARGIN_SIZE}px',
-            marginRight=f'{MARGIN_SIZE}px',
+            marginLeft=f'{margin_size}px',
+            marginRight=f'{margin_size}px',
         )
 
 
