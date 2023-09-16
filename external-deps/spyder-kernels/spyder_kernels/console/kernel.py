@@ -67,7 +67,6 @@ class SpyderKernel(IPythonKernel):
         self.namespace_view_settings = {}
         self.faulthandler_handle = None
         self._cwd_initialised = False
-        self.special = None
 
         # Add handlers to control to process messages while debugging
         self.control_handlers['comm_msg'] = self.control_comm_msg
@@ -686,7 +685,7 @@ class SpyderKernel(IPythonKernel):
         """
         Check if optional dependencies are available for special consoles.
         """
-        self.special = None
+        self.shell.special = None
         if special is None:
             return
 
@@ -696,7 +695,7 @@ class SpyderKernel(IPythonKernel):
             except Exception:
                 return "matplotlib"
             self.do_execute("from pylab import *", silent=True)
-            self.special = special
+            self.shell.special = special
             return
 
         if special == "sympy":
@@ -712,16 +711,33 @@ class SpyderKernel(IPythonKernel):
                 "init_printing()",
             ])
             self.do_execute(sympy_init, silent=True)
-            self.special = special
+            self.shell.special = special
             return
 
         if special == "cython":
             try:
                import cython
+
+               # Import pyximport to enable Cython files support for
+               # import statement
+               import pyximport
+               pyx_setup_args = {}
+
+               # Add Numpy include dir to pyximport/distutils
+               try:
+                   import numpy
+                   pyx_setup_args['include_dirs'] = numpy.get_include()
+               except Exception:
+                   pass
+
+               # Setup pyximport and enable Cython files reload
+               pyximport.install(setup_args=pyx_setup_args,
+                                 reload_support=True)
             except Exception:
                 return "cython"
+            
             self.shell.run_line_magic("reload_ext", "Cython")
-            self.special = special
+            self.shell.special = special
             return
 
         raise NotImplementedError(f"{special}")
@@ -953,7 +969,7 @@ class SpyderKernel(IPythonKernel):
 
     def set_sympy_forecolor(self, background_color='dark'):
         """Set SymPy forecolor depending on console background."""
-        if self.special != "sympy":
+        if self.shell.special != "sympy":
             return
         try:
             from sympy import init_printing

@@ -49,13 +49,6 @@ class UserModuleReloader:
         # List of previously loaded modules
         self.previous_modules = list(sys.modules.keys())
 
-        # List of module names to reload
-        self.modnames_to_reload = []
-
-        # Activate Cython support
-        self.has_cython = False
-        self.activate_cython()
-
         # Check if the UMR is enabled or not
         enabled = os.environ.get("SPY_UMR_ENABLED", "")
         self.enabled = enabled.lower() == "true"
@@ -66,53 +59,16 @@ class UserModuleReloader:
 
     def is_module_reloadable(self, module, modname):
         """Decide if a module is reloadable or not."""
-        if self.has_cython:
-            # Don't return cached inline compiled .PYX files
+        if (path_is_library(getattr(module, '__file__', None),
+                            self.pathlist) or
+                self.is_module_in_namelist(modname)):
             return False
         else:
-            if (path_is_library(getattr(module, '__file__', None),
-                                self.pathlist) or
-                    self.is_module_in_namelist(modname)):
-                return False
-            else:
-                return True
+            return True
 
     def is_module_in_namelist(self, modname):
         """Decide if a module can be reloaded or not according to its name."""
         return set(modname.split('.')) & set(self.namelist)
-
-    def activate_cython(self):
-        """
-        Activate Cython support.
-
-        We need to run this here because if the support is
-        active, we don't to run the UMR at all.
-        """
-        run_cython = os.environ.get("SPY_RUN_CYTHON") == "True"
-
-        if run_cython:
-            try:
-                __import__('Cython')
-                self.has_cython = True
-            except Exception:
-                pass
-
-            if self.has_cython:
-                # Import pyximport to enable Cython files support for
-                # import statement
-                import pyximport
-                pyx_setup_args = {}
-
-                # Add Numpy include dir to pyximport/distutils
-                try:
-                    import numpy
-                    pyx_setup_args['include_dirs'] = numpy.get_include()
-                except Exception:
-                    pass
-
-                # Setup pyximport and enable Cython files reload
-                pyximport.install(setup_args=pyx_setup_args,
-                                  reload_support=True)
 
     def run(self):
         """
@@ -122,18 +78,20 @@ class UserModuleReloader:
         modules installed in subdirectories of Python interpreter's binary
         Do not del C modules
         """
-        self.modnames_to_reload = []
+        modnames_to_reload = []
         for modname, module in list(sys.modules.items()):
             if modname not in self.previous_modules:
                 # Decide if a module can be reloaded or not
                 if self.is_module_reloadable(module, modname):
-                    self.modnames_to_reload.append(modname)
+                    modnames_to_reload.append(modname)
                     del sys.modules[modname]
                 else:
                     continue
 
         # Report reloaded modules
-        if self.verbose and self.modnames_to_reload:
-            modnames = self.modnames_to_reload
+        if self.verbose and modnames_to_reload:
+            modnames = modnames_to_reload
             print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"
                   % ("Reloaded modules", ": "+", ".join(modnames)))
+        
+        return modnames_to_reload

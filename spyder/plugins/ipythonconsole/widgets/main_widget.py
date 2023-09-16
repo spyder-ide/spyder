@@ -1481,7 +1481,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         try:
             # Create new kernel
             kernel_spec = SpyderKernelSpec(
-                is_cpython=(special == "cython"),
                 path_to_custom_interpreter=path_to_custom_interpreter
             )
             kernel_handler = self.get_cached_kernel(

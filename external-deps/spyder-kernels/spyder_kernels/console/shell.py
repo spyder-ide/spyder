@@ -49,6 +49,7 @@ class SpyderShell(ZMQInteractiveShell):
         # Create _namespace_stack before __init__
         self._namespace_stack = []
         self._request_pdb_stop = False
+        self.special = None
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False

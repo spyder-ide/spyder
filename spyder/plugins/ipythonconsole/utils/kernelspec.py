@@ -79,10 +79,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'ipython_console'
 
-    def __init__(self, is_cpython, path_to_custom_interpreter=None,
+    def __init__(self, path_to_custom_interpreter=None,
                  **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
-        self.is_cpython = is_cpython
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
@@ -189,7 +188,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             'SPY_PYTHONPATH': pypath,
-            "SPY_RUN_CYTHON": str(self.is_cpython)
         })
 
         # App considerations
