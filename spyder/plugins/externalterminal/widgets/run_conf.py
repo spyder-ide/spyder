@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""External console run executor configurations."""
+"""External terminal run executor configurations."""
 
 # Standard library imports
 import os.path as osp
@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.translations import _
-from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
+from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata,
     RunExecutorConfigurationGroupFactory)
@@ -27,19 +27,11 @@ from spyder.utils.qthelpers import create_toolbutton
 
 
 # Main constants
-RUN_DEFAULT_CONFIG = _("Run file with default configuration")
-RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
-CURRENT_INTERPRETER = _("Execute in current console")
-DEDICATED_INTERPRETER = _("Execute in a dedicated console")
-SYSTERM_INTERPRETER = _("Execute in an external system terminal")
-CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
-CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
-POST_MORTEM = _("Directly enter debugging when errors appear")
-INTERACT = _("Interact with the Python console after execution")
+INTERACT = _("Interact with the Python terminal after execution")
 
 
-class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
-    """External console Python run configuration options."""
+class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
+    """External terminal Python run configuration options."""
 
     def __init__(self, parent, context: Context, input_extension: str,
                  input_metadata: RunConfigurationMetadata):
@@ -48,7 +40,7 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         self.dir = None
 
         # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Console"))
+        interpreter_group = QGroupBox(_("Terminal"))
         interpreter_layout = QVBoxLayout(interpreter_group)
 
         # --- System terminal ---
@@ -130,8 +122,8 @@ class ExternalConsolePyConfiguration(RunExecutorConfigurationGroup):
         }
 
 
-class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
-    """External console shell run configuration options."""
+class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
+    """External terminal shell run configuration options."""
 
     def __init__(
         self,
@@ -180,7 +172,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         script_layout.addWidget(self.script_opts_edit, 1, 1)
 
         self.close_after_exec_cb = QCheckBox(
-            _('Close console after execution'))
+            _('Close terminal after execution'))
         script_layout.addWidget(self.close_after_exec_cb, 2, 0)
 
         layout = QVBoxLayout(self)
@@ -197,7 +189,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         if file:
             self.interpreter_edit.setText(file)
 
-    def set_configuration(self, config: ExtConsoleShConfiguration):
+    def set_configuration(self, config: ExtTerminalShConfiguration):
         interpreter = config['interpreter']
         interpreter_opts_enabled = config['interpreter_opts_enabled']
         interpreter_opts = config['interpreter_opts']
@@ -212,7 +204,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         self.script_opts_edit.setText(script_opts)
         self.close_after_exec_cb.setChecked(close_after_exec)
 
-    def get_configuration(self) -> ExtConsoleShConfiguration:
+    def get_configuration(self) -> ExtTerminalShConfiguration:
         return {
             'interpreter': self.interpreter_edit.text(),
             'interpreter_opts_enabled': self.interpreter_opts_cb.isChecked(),
@@ -223,7 +215,7 @@ class GenericExternalConsoleShConfiguration(RunExecutorConfigurationGroup):
         }
 
 
-class MetaShConfiguration(type(GenericExternalConsoleShConfiguration)):
+class MetaShConfiguration(type(GenericExternalTerminalShConfiguration)):
     def __new__(cls, clsname, bases, attrs):
         interp = attrs.pop('default_shell_meta')
         interp_opts = attrs.pop('shell_args_meta')
@@ -245,16 +237,16 @@ class MetaShConfiguration(type(GenericExternalConsoleShConfiguration)):
         })
 
 
-def ExternalConsoleShConfiguration(
+def ExternalTerminalShConfiguration(
     default_shell: str,
     shell_args: str = ''
 ) -> RunExecutorConfigurationGroup:
 
-    class WrappedExternalConsoleShConfiguration(
-        GenericExternalConsoleShConfiguration,
+    class WrappedExternalTerminalShConfiguration(
+        GenericExternalTerminalShConfiguration,
         metaclass=MetaShConfiguration
     ):
         default_shell_meta = default_shell
         shell_args_meta = shell_args
 
-    return WrappedExternalConsoleShConfiguration
+    return WrappedExternalTerminalShConfiguration

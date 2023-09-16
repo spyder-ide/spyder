@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.plugins.externalconsole.widgets
-======================================
+spyder.plugins.externalterminal.widgets
+=======================================
 
-Widgets for the external console plugin.
+Widgets for the external terminal plugin.
 """
