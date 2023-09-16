@@ -1472,16 +1472,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
 
-        # Create new kernel
-        kernel_spec = SpyderKernelSpec(
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
-            path_to_custom_interpreter=path_to_custom_interpreter
-        )
+        # Find what kind of kernel we want
+        if self.get_conf('pylab/autoload'):
+            special = "pylab"
+        elif self.get_conf('symbolic_math'):
+            special = "sympy"
 
         try:
-            kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
+            # Create new kernel
+            kernel_spec = SpyderKernelSpec(
+                is_cpython=(special == "cython"),
+                path_to_custom_interpreter=path_to_custom_interpreter
+            )
+            kernel_handler = self.get_cached_kernel(
+                kernel_spec,
+                cache=cache,
+                )
+            # Set special so it will be correct
+            kernel_handler.special = special
         except Exception as e:
             client.show_kernel_error(e)
             return
