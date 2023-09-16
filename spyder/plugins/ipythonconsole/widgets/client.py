@@ -97,7 +97,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  given_name=None,
                  give_focus=True,
                  options_button=None,
-                 handlers={},
+                 handlers=None,
                  initial_cwd=None,
                  forcing_custom_interpreter=False):
         super(ClientWidget, self).__init__(parent)

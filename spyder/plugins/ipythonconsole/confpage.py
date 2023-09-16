@@ -113,16 +113,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Tkinter", 3)]
+        backends = [
+            (inline, 'inline'),
+            (automatic, 'auto'), 
+            ("Qt5", 'qt5'),
+            ("Tkinter", 'tk')
+        ]
 
         if sys.platform == 'darwin':
-            backends.append(("macOS", 4))
+            backends.append(("macOS", 'osx'))
         backends = tuple(backends)
 
         backend_box = self.create_combobox(
             _("Backend:") + "   ",
             backends,
-            'pylab/backend', default=0,
+            'pylab/backend', default='inline',
             tip=_("This option will be applied the next time a console is "
                   "opened."))
 
@@ -138,10 +143,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_label = QLabel(_("Decide how to render the figures created by "
                                 "this backend"))
         inline_label.setWordWrap(True)
-        formats = (("PNG", 0), ("SVG", 1))
+        formats = (("PNG", 'png'), ("SVG", 'svg'))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                           'pylab/inline/figure_format',
-                                          default=0)
+                                          default='png')
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
                         'pylab/inline/resolution', min_=50, max_=999, step=0.1,

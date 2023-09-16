@@ -68,26 +68,23 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
-        # Leave this import here so that we avoid importing Matplotlib (which
-        # is imported by matplotlib_inline unconditionally) before the main
-        # window is visible. We do this because Matplotlib takes a long time
-        # to be imported, so it makes Spyder appear slow to start to users.
-        from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
+        shellwidget.sig_config_spyder_kernel.connect(
+            lambda sw=shellwidget: self.config_spyder_kernel(sw))
 
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "update_matplotlib_gui",
-            lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid)
-        )
-        backend = MPL_BACKENDS_FROM_SPYDER[
-            str(self.get_conf('pylab/backend'))
-        ]
+        backend = self.get_conf('pylab/backend')
         swid = id(shellwidget)
         self._shellwidget_dict[swid] = {
             "gui": backend,
             "widget": shellwidget,
         }
         self.set_shellwidget(shellwidget)
+    
+    def config_spyder_kernel(self, shellwidget):
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+            "update_matplotlib_gui",
+            lambda gui, sid=id(shellwidget):
+                self.update_matplotlib_gui(gui, sid)
+        )
 
     def set_shellwidget(self, shellwidget):
         """Set current shellwidget."""
@@ -99,8 +96,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "update_matplotlib_gui", None)
+        shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
+            "update_matplotlib_gui")
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
             del self._shellwidget_dict[shellwidget_id]

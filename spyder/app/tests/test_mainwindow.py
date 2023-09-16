@@ -2148,8 +2148,8 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
-     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 'svg')},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 'png')}],
     indirect=True)
 def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
@@ -2170,7 +2170,7 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
 
-    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
+    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 'png':
         assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
     else:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'
