@@ -696,7 +696,7 @@ class SpyderKernel(IPythonKernel):
                import matplotlib
             except Exception:
                 return "matplotlib"
-            self.do_execute("from pylab import *", silent=True)
+            exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
 
@@ -712,7 +712,7 @@ class SpyderKernel(IPythonKernel):
                 "f, g, h = symbols('f g h', cls=Function)",
                 "init_printing()",
             ])
-            self.do_execute(sympy_init, silent=True)
+            exec(sympy_init, self.shell.user_ns)
             self.shell.special = special
             return
 
