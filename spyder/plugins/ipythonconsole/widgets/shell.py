@@ -377,15 +377,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Show possible errors when setting Matplotlib backend
         self.call_kernel().show_mpl_backend_errors()
 
-        # Check if the dependecies for special consoles are available.
-        self.call_kernel(
-            callback=self.ipyclient._show_special_console_error
-            ).is_special_kernel_valid()
-
         self.send_spyder_kernel_configuration()
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        # Set matplotlib backend
+        self.send_mpl_backend()
+
+        # Make sure special kernel is correctly set up
+        self.reset_special_kernel()
+
         # Set current cwd
         self.set_cwd()
 
@@ -486,6 +487,83 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if emit_cwd_change:
             self.sig_working_directory_changed.emit(self._cwd)
 
+    def send_mpl_backend(self, option=None):
+        """
+        Send matplotlib backend.
+
+        If option is not None only send the related options
+        """
+        if not self.spyder_kernel_ready:
+            # will be sent later
+            return
+        # Set Matplotlib backend with Spyder options
+
+        pylab_n = 'pylab'
+        pylab_o = self.get_conf(pylab_n)
+
+        if option is not None and not pylab_o:
+            # The options are only related to pylab_o
+            # So no need to change the backend
+            return
+
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        figure_format_n = 'pylab/inline/figure_format'
+        resolution_n = 'pylab/inline/resolution'
+        width_n = 'pylab/inline/width'
+        height_n = 'pylab/inline/height'
+        bbox_inches_n = 'pylab/inline/bbox_inches'
+        backend_o = self.get_conf(pylab_backend_n)
+
+        inline_backend = 'inline'
+
+        matplotlib_conf = {}
+
+        if pylab_o:
+            # Figure format
+            format_o = self.get_conf(figure_format_n)
+            if format_o and (option is None or figure_format_n in option):
+                matplotlib_conf[figure_format_n] = format_o
+
+            # Resolution
+            resolution_o = self.get_conf(resolution_n)
+            if resolution_o is not None and (
+                    option is None or resolution_n in option):
+                matplotlib_conf[resolution_n] = resolution_o
+
+            # Figure size
+            width_o = float(self.get_conf(width_n))
+            height_o = float(self.get_conf(height_n))
+            if option is None or (width_n in option or height_n in option):
+                if width_o is not None:
+                    matplotlib_conf[width_n] = width_o
+                if height_o is not None:
+                    matplotlib_conf[height_n] = height_o
+
+            # Print figure kwargs
+            bbox_inches_o = self.get_conf(bbox_inches_n)
+            if option is None or bbox_inches_n in option:
+                matplotlib_conf[bbox_inches_n] = bbox_inches_o
+
+        if pylab_o and backend_o is not None:
+            mpl_backend = backend_o
+        else:
+            # Set Matplotlib backend to inline for external kernels.
+            # Fixes issue 108
+            mpl_backend = inline_backend
+
+        # Automatically load Pylab and Numpy, or only set Matplotlib
+        # backend
+        autoload_pylab_o = self.get_conf(pylab_autoload_n)
+        if option is None or pylab_backend_n in option:
+            matplotlib_conf[pylab_backend_n] = mpl_backend
+        if option is None or pylab_autoload_n in option:
+            matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
+
+        if matplotlib_conf:
+            self.call_kernel().set_matplotlib_conf(
+                matplotlib_conf)
+
     def get_cwd(self):
         """
         Get current working directory.
@@ -533,10 +611,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
-            self.call_kernel().set_sympy_forecolor(background_color='dark')
+            if self.kernel_handler.special == "sympy":
+                self.call_kernel().set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
-            self.call_kernel().set_sympy_forecolor(background_color='light')
+            if self.kernel_handler.special == "sympy":
+                self.call_kernel().set_sympy_forecolor(
+                    background_color='light')
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
@@ -585,31 +666,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         return self.call_kernel(
             interrupt=True,
             blocking=True).get_mpl_interactive_backend()
-
-    def set_matplotlib_backend(self, backend_option, pylab=False):
-        """Set matplotlib backend given a backend name."""
-        cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"
-        self.execute(cmd.format(backend_option, pylab), hidden=True)
-
-    def set_mpl_inline_figure_format(self, figure_format):
-        """Set matplotlib inline figure format."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_format('{}')"
-        self.execute(cmd.format(figure_format), hidden=True)
-
-    def set_mpl_inline_resolution(self, resolution):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_resolution({})"
-        self.execute(cmd.format(resolution), hidden=True)
-
-    def set_mpl_inline_figure_size(self, width, height):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_size({}, {})"
-        self.execute(cmd.format(width, height), hidden=True)
-
-    def set_mpl_inline_bbox_inches(self, bbox_inches):
-        """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_bbox_inches({})"
-        self.execute(cmd.format(bbox_inches), hidden=True)
 
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
@@ -766,24 +822,41 @@ the sympy module (e.g. plot)
                     )
                     self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
-                if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
-                    self.silent_execute("from pylab import *")
-                if kernel_env.get('SPY_SYMPY_O') == 'True':
-                    sympy_init = """
-                        from sympy import *
-                        x, y, z, t = symbols('x y z t')
-                        k, m, n = symbols('k m n', integer=True)
-                        f, g, h = symbols('f g h', cls=Function)
-                        init_printing()"""
-                    self.silent_execute(dedent(sympy_init))
-                if kernel_env.get('SPY_RUN_CYTHON') == 'True':
-                    self.silent_execute("%reload_ext Cython")
+                self.reset_special_kernel()
 
                 if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
                     self.send_spyder_kernel_configuration()
         except AttributeError:
             pass
+
+    def reset_special_kernel(self):
+        """Reset special kernel"""
+        if self.kernel_handler is None:
+            # This is not a special kernel
+            return
+
+        if self.kernel_handler.special is None:
+            return
+
+
+        # Check if the dependecies for special consoles are available.
+        self.call_kernel(
+            callback=self.ipyclient._show_special_console_error
+            ).is_special_kernel_valid(self.kernel_handler.special)
+
+        if self.kernel_handler.special == "pylab":
+            self.silent_execute("from pylab import *")
+        if self.kernel_handler.special == "sympy":
+            sympy_init = """
+                from sympy import *
+                x, y, z, t = symbols('x y z t')
+                k, m, n = symbols('k m n', integer=True)
+                f, g, h = symbols('f g h', cls=Function)
+                init_printing()"""
+            self.silent_execute(dedent(sympy_init))
+        if self.kernel_handler.special == "cython":
+            self.silent_execute("%reload_ext Cython")
 
     def _update_reset_options(self, message_box):
         """

@@ -113,7 +113,7 @@ def ipyconsole(qtbot, request, tmpdir):
                 return Mock()
 
     # Tests assume inline backend
-    configuration.set('ipython_console', 'pylab/backend', 0)
+    configuration.set('ipython_console', 'pylab/backend', 'inline')
 
     # Start the console in a fixed working directory
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
@@ -137,24 +137,24 @@ def ipyconsole(qtbot, request, tmpdir):
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
-        configuration.set('ipython_console', 'pylab/backend', 1)
+        configuration.set('ipython_console', 'pylab/backend', 'auto')
 
     # Use the Tkinter backend if requested
     tk_backend = request.node.get_closest_marker('tk_backend')
     if tk_backend:
-        configuration.set('ipython_console', 'pylab/backend', 3)
+        configuration.set('ipython_console', 'pylab/backend', 'tk')
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
-    is_pylab = True if pylab_client else False
+    special = "pylab" if pylab_client else None
 
     # Start a Sympy client if requested
     sympy_client = request.node.get_closest_marker('sympy_client')
-    is_sympy = True if sympy_client else False
+    special = "sympy" if sympy_client else special
 
     # Start a Cython client if requested
     cython_client = request.node.get_closest_marker('cython_client')
-    is_cython = True if cython_client else False
+    special = "cython" if cython_client else special
 
     # Start a specific env client if requested
     environment_client = request.node.get_closest_marker(
@@ -207,9 +207,7 @@ def ipyconsole(qtbot, request, tmpdir):
     console.on_initialize()
     console._register()
     console.create_new_client(
-        is_pylab=is_pylab,
-        is_sympy=is_sympy,
-        is_cython=is_cython,
+        special=special,
         given_name=given_name,
         path_to_custom_interpreter=path_to_custom_interpreter
     )

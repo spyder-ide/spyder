@@ -339,10 +339,10 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Get a CONF env var
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+        shell.execute("import os; a = os.environ.get('SPY_TESTING')")
 
     # Assert we get the assigned value correctly
-    assert shell.get_value('a') == 'False'
+    assert shell.get_value('a') == 'True'
 
 
 @flaky(max_runs=3)
@@ -1845,13 +1845,14 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-def test_restart_intertactive_backend(ipyconsole):
+def test_restart_intertactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart after switching to a different interactive
     backend in preferences.
     """
     main_widget = ipyconsole.get_widget()
-    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 3)
+    qtbot.wait(1000)
+    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
 
