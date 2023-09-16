@@ -182,6 +182,7 @@ class KernelHandler(QObject):
         self._init_stdout = ""
         self._shellwidget_connected = False
         self._comm_ready_recieved = False
+        self.special = None
 
         # Start kernel
         self.kernel_client.sig_spyder_kernel_info.connect(
