@@ -150,7 +150,7 @@ class SpyderToolbarMixin:
         """
         Create a stretcher widget to be used in a Qt toolbar.
         """
-        stretcher = QWidget()
+        stretcher = QWidget(self)
         stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         if id_ is not None:
