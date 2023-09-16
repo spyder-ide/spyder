@@ -921,7 +921,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 sw = client.shellwidget
                 if (
                     interactive_backend is None
-                    and sw._shellwidget_state != "started"
+                    and sw._starting
                 ):
                     # If the kernel didn't start and no backend was requested,
                     # the backend is inline
