@@ -48,7 +48,11 @@ class StdThread(QThread):
             if self.closing.is_set():
                 return
             if txt:
-                self.sig_text.emit(txt.decode())
+                try:
+                    txt = txt.decode()
+                except UnicodeDecodeError:
+                    txt = str(txt)
+                self.sig_text.emit(txt)
 
 
 class ShutdownThread(Thread):
