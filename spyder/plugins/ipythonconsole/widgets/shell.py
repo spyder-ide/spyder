@@ -380,18 +380,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
         self.is_kernel_configured = False
-        
+
         # Show possible errors when setting Matplotlib backend
         self.set_kernel_configuration("show_mpl_backend_errors", True)
-        
-        # Check if the dependecies for special consoles are available.
-        self.set_kernel_configuration("check_special_kernel", True)
-        
+
         # Set matplotlib backend
         self.send_mpl_backend()
 
         # Make sure special kernel is correctly set up
-        self.reset_special_kernel()
+        self.set_special_kernel()
 
         # Set current cwd
         self.set_cwd()
@@ -424,15 +421,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     interrupt=self.is_debugging(),
                     callback=self.kernel_configure_callback
                 ).set_configuration({key: value})
-        
+
         self._kernel_configuration[key] = value
-    
+
     def kernel_configure_callback(self, dic):
         """Kernel configuration callback"""
         for key, value in dic.items():
             if key == "faulthandler":
                 self.kernel_handler.faulthandler_setup(value)
-            elif key == "check_special_kernel":
+            elif key == "special_kernel":
                 self.ipyclient._show_special_console_error(value)
 
     def pop_execute_queue(self):
@@ -828,14 +825,6 @@ the sympy module (e.g. plot)
             Whether to show a message in the console telling users the
             namespace was reset.
         """
-        # This is necessary to make resetting variables work in external
-        # kernels.
-        # See spyder-ide/spyder#9505.
-        try:
-            kernel_env = self.kernel_manager._kernel_spec.env
-        except AttributeError:
-            kernel_env = {}
-
         try:
             if self.is_waiting_pdb_input():
                 self.execute('%reset -f')
@@ -848,7 +837,7 @@ the sympy module (e.g. plot)
                     )
                     self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
-                self.reset_special_kernel()
+                self.set_special_kernel()
 
                 if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
@@ -856,7 +845,7 @@ the sympy module (e.g. plot)
         except AttributeError:
             pass
 
-    def reset_special_kernel(self):
+    def set_special_kernel(self):
         """Reset special kernel"""
         if self.kernel_handler is None:
             # This is not a special kernel
@@ -867,22 +856,9 @@ the sympy module (e.g. plot)
 
 
         # Check if the dependecies for special consoles are available.
-        self.call_kernel(
-            callback=self.ipyclient._show_special_console_error
-            ).is_special_kernel_valid(self.kernel_handler.special)
-
-        if self.kernel_handler.special == "pylab":
-            self.silent_execute("from pylab import *")
-        if self.kernel_handler.special == "sympy":
-            sympy_init = """
-                from sympy import *
-                x, y, z, t = symbols('x y z t')
-                k, m, n = symbols('k m n', integer=True)
-                f, g, h = symbols('f g h', cls=Function)
-                init_printing()"""
-            self.silent_execute(dedent(sympy_init))
-        if self.kernel_handler.special == "cython":
-            self.silent_execute("%reload_ext Cython")
+        self.set_kernel_configuration(
+            "special_kernel", self.kernel_handler.special
+        )
 
     def _update_reset_options(self, message_box):
         """

@@ -635,8 +635,8 @@ class SpyderKernel(IPythonKernel):
                 ret[key] = self.enable_faulthandler()
             elif key == "show_mpl_backend_errors":
                 self.show_mpl_backend_errors()
-            elif key == "check_special_kernel":
-                ret[key] = self.check_special_kernel()
+            elif key == "special_kernel":
+                ret[key] = self.set_special_kernel(value)
             elif key == "color scheme":
                 if value == "dark":
                     # Needed to change the colors of tracebacks
@@ -689,27 +689,45 @@ class SpyderKernel(IPythonKernel):
         except:
             pass
 
-    def is_special_kernel_valid(self, special):
+    def set_special_kernel(self, special):
         """
         Check if optional dependencies are available for special consoles.
         """
         if special is None:
             return
-        elif special == "pylab":
+
+        if special == "pylab":
             try:
                import matplotlib
             except Exception:
                 return "matplotlib"
-        elif special == "sympy":
+            self.do_execute("from pylab import *", silent=True)
+            return
+
+        if special == "sympy":
             try:
                import sympy
             except Exception:
                 return "sympy"
-        elif special == "cython":
+            sympy_init = "\n".join([
+                "from sympy import *",
+                "x, y, z, t = symbols('x y z t')",
+                "k, m, n = symbols('k m n', integer=True)",
+                "f, g, h = symbols('f g h', cls=Function)",
+                "init_printing()",
+            ])
+            self.do_execute(sympy_init, silent=True)
+            return
+
+        if special == "cython":
             try:
                import cython
             except Exception:
                 return "cython"
+            self.shell.run_line_magic("reload_ext", "Cython")
+            return
+
+        raise NotImplementedError(f"{special}")
 
     @comm_handler
     def update_syspath(self, path_dict, new_path_dict):
