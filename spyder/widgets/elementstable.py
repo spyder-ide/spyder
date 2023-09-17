@@ -15,7 +15,7 @@ from typing import List, Optional, TypedDict
 
 # Third-party imports
 import qstylizer.style
-from qtpy.QtCore import QAbstractTableModel, QEvent, QModelIndex, QSize, Qt
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 
@@ -371,13 +371,6 @@ class ElementsTable(HoverRowsTableView):
         # resized.
         self._set_layout()
         super().resizeEvent(event)
-
-    def event(self, event):
-        # This is necessary to readjust the layout when the parent widget is
-        # maximized.
-        if event.type() == QEvent.LayoutRequest:
-            self._set_layout()
-        return super().event(event)
 
 
 def test_elements_table():
