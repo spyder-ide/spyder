@@ -10,6 +10,7 @@ associated widget.
 """
 
 # Standard library imports
+import sys
 from typing import List, Optional, TypedDict
 
 # Third-party imports
@@ -22,6 +23,7 @@ from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
 
 
@@ -302,12 +304,25 @@ class ElementsTable(HoverRowsTableView):
 
         This is necessary to make the table look good at different sizes.
         """
+        # We need to make these extra adjustments for Mac so that the last
+        # column is not too close to the right border
+        extra_width = 0
+        if sys.platform == 'darwin':
+            if self.verticalScrollBar().isVisible():
+                extra_width = (
+                    AppStyle.MacScrollBarWidth +
+                    (15 if self._with_widgets else 5)
+                )
+            else:
+                extra_width = 10 if self._with_widgets else 5
+
         # Resize title column so that the table fits into the available
         # horizontal space.
         if self._info_column_width > 0 or self._widgets_column_width > 0:
             title_column_width = (
                 self.horizontalHeader().size().width() -
-                (self._info_column_width + self._widgets_column_width)
+                (self._info_column_width + self._widgets_column_width +
+                 extra_width)
             )
 
             self.horizontalHeader().resizeSection(
