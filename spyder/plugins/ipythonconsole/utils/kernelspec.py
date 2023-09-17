@@ -12,10 +12,10 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
+from spyder_kernels_server.conda_utils import is_different_interpreter
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -25,8 +25,7 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
-                                find_conda)
+from spyder.utils.conda import (get_conda_env_path, is_conda_env, find_conda)
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
@@ -53,16 +52,6 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "<pre>"
     "    <tt>{3}</tt>"
     "</pre>")
-
-
-def is_different_interpreter(pyexec):
-    """Check that pyexec is a different interpreter from sys.executable."""
-    # Paths may be symlinks
-    real_pyexe = osp.realpath(pyexec)
-    real_sys_exe = osp.realpath(sys.executable)
-    executable_validation = osp.basename(real_pyexe).startswith('python')
-    directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
-    return directory_validation and executable_validation
 
 
 def has_spyder_kernels(pyexec):
