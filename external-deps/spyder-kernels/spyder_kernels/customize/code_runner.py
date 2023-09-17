@@ -266,7 +266,7 @@ class SpyderCodeRunner(Magics):
         """
         Execute a file.
         """
-        if self.umr.enabled:
+        if self.umr.enabled and self.shell.special != "cython":
             self.umr.run()
         if args is not None and not isinstance(args, str):
             raise TypeError("expected a character buffer object")
@@ -324,7 +324,7 @@ class SpyderCodeRunner(Magics):
                     print("Working directory {} doesn't exist.\n".format(wdir))
 
             try:
-                if self.umr.has_cython:
+                if self.shell.special == "cython":
                     # Cython files
                     with io.open(filename, encoding="utf-8") as f:
                         self.shell.run_cell_magic("cython", "", f.read())

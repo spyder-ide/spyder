@@ -85,6 +85,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             lambda gui, sid=id(shellwidget):
                 self.update_matplotlib_gui(gui, sid)
         )
+        shellwidget.set_kernel_configuration("update_gui", True)
 
     def set_shellwidget(self, shellwidget):
         """Set current shellwidget."""

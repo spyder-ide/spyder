@@ -425,7 +425,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
     shell = ipyconsole.get_current_shellwidget()
 
     # spyder-ide/spyder#6451.
-    savetemp = shell._cwd
+    savetemp = shell.get_cwd()
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
@@ -447,9 +447,9 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     shell = ipyconsole.get_current_shellwidget()
 
     # spyder-ide/spyder#6451.
-    savetemp = shell._cwd
+    savetemp = shell.get_cwd()
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
-    assert shell._cwd != tempdir
+    assert shell.get_cwd() != tempdir
 
     # Need to escape \ on Windows.
     if os.name == 'nt':
@@ -462,7 +462,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     if os.name == 'nt':
         tempdir = tempdir.replace(u"\\\\", u"\\")
 
-    assert shell._cwd == tempdir
+    assert shell.get_cwd() == tempdir
 
     shell.set_cwd(savetemp)
 
@@ -715,7 +715,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to True
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': True
     })
 
@@ -729,7 +730,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to False
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': False
     })
 
@@ -1835,9 +1837,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
      'show_special_attributes': False,
      'filter_on': True}
 
-    shell.call_kernel(
-            interrupt=True
-        ).set_namespace_view_settings(settings)
+    shell.set_kernel_configuration("namespace_view_settings", settings)
     namespace = shell.call_kernel(blocking=True).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
@@ -2019,12 +2019,12 @@ def test_old_kernel_version(ipyconsole, qtbot):
     w = ipyconsole.get_widget()
 
     kernel_handler = w._cached_kernel_properties[-1]
+    kernel_handler.kernel_client.sig_spyder_kernel_info.disconnect()
 
     # Wait until it is launched
     qtbot.waitUntil(
         lambda: (
-            kernel_handler.connection_state ==
-            KernelConnectionState.SpyderKernelReady
+            kernel_handler._comm_ready_recieved
         ),
         timeout=SHELL_TIMEOUT)
 

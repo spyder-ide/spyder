@@ -1453,6 +1453,12 @@ class IPythonConsoleWidget(
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
 
+        # Find what kind of kernel we want
+        if self.get_conf('pylab/autoload'):
+            special = "pylab"
+        elif self.get_conf('symbolic_math'):
+            special = "sympy"
+
         client = ClientWidget(
             self,
             id_=client_id,
@@ -1466,7 +1472,8 @@ class IPythonConsoleWidget(
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
-            forcing_custom_interpreter=path_to_custom_interpreter is not None
+            forcing_custom_interpreter=path_to_custom_interpreter is not None,
+            special_kernel=special
         )
 
         # Add client to widget
@@ -1481,18 +1488,10 @@ class IPythonConsoleWidget(
                 )
             kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
             kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
-            kernel_spec_dict["env"]["SPY_RUN_CYTHON"] = str(
-                special == "cython")
             kernel_handler = self.get_cached_kernel(
                 kernel_spec_dict,
                 cache=cache,
                 )
-            if special is not None:
-                kernel_handler.special = special
-            elif self.get_conf('pylab/autoload'):
-                kernel_handler.special = "pylab"
-            elif self.get_conf('symbolic_math'):
-                kernel_handler.special = "sympy"
         except Exception as e:
             client.show_kernel_error(e)
             return

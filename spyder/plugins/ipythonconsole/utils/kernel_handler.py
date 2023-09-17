@@ -7,7 +7,6 @@
 """Kernel handler."""
 
 # Standard library imports
-import ast
 import os
 import uuid
 
@@ -74,11 +73,13 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
 
 
 class KernelConnectionState:
+    SpyderKernelWaitComm = 'spyder_kernel_wait_comm'
     SpyderKernelReady = 'spyder_kernel_ready'
     IpykernelReady = 'ipykernel_ready'
     Connecting = 'connecting'
     Error = 'error'
     Closed = 'closed'
+    Crashed = 'crashed'
 
 
 class KernelHandler(QObject):
@@ -150,14 +151,12 @@ class KernelHandler(QObject):
 
         # Internal
         self._fault_args = None
-        self._spyder_kernel_info_uuid = None
-        self._shellwidget_connected = False
         self._init_stderr = ""
         self._init_stdout = ""
+        self._shellwidget_connected = False
+        self._comm_ready_recieved = False
 
-        # Special kernel
-        self.special = None
-
+        # Start kernel
         if self.kernel_client:
             # Start kernel
             self.kernel_client.start_channels()
@@ -197,32 +196,6 @@ class KernelHandler(QObject):
         if self._init_stdout:
             self.sig_stdout.emit(self._init_stdout)
         self._init_stdout = None
-
-    def check_kernel_info(self):
-        """Send request to check kernel info."""
-        code = "getattr(get_ipython(), '_spyder_kernels_version', False)"
-        self.kernel_client.shell_channel.message_received.connect(
-            self._dispatch_kernel_info)
-        self._spyder_kernel_info_uuid = str(uuid.uuid1())
-        self.kernel_client.execute(
-            '', silent=True, user_expressions={
-                self._spyder_kernel_info_uuid:code })
-
-    def _dispatch_kernel_info(self, msg):
-        """Listen for spyder_kernel_info."""
-        user_exp = msg['content'].get('user_expressions')
-        if not user_exp:
-            return
-        for expression in user_exp:
-            if expression == self._spyder_kernel_info_uuid:
-                self.kernel_client.shell_channel.message_received.disconnect(
-                    self._dispatch_kernel_info)
-                # Process kernel reply
-                data = user_exp[expression].get('data')
-                if data is not None and 'text/plain' in data:
-                    spyder_kernel_info = ast.literal_eval(
-                        data['text/plain'])
-                    self.check_spyder_kernel_info(spyder_kernel_info)
 
     def check_spyder_kernel_info(self, spyder_kernel_info):
         """
@@ -272,14 +245,19 @@ class KernelHandler(QObject):
                 return
 
         self.known_spyder_kernel = True
-
-        # Open comm and wait for comm ready reply
-        self.kernel_comm.open_comm(self.kernel_client)
+        self.connection_state = KernelConnectionState.SpyderKernelWaitComm
+        if self._comm_ready_recieved:
+            self.handle_comm_ready()
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self.connection_state = KernelConnectionState.SpyderKernelReady
-        self.sig_kernel_is_ready.emit()
+        self._comm_ready_recieved = True
+        if self.connection_state in [
+            KernelConnectionState.SpyderKernelWaitComm,
+            KernelConnectionState.Crashed
+        ]:
+            self.connection_state = KernelConnectionState.SpyderKernelReady
+            self.sig_kernel_is_ready.emit()
 
     @staticmethod
     def tunnel_to_kernel(
@@ -419,13 +397,6 @@ class KernelHandler(QObject):
         """Setup faulthandler"""
         self._fault_args = args
 
-    def enable_faulthandler(self):
-        """Enable faulthandler"""
-        # To display faulthandler
-        self.kernel_comm.remote_call(
-            callback=self.faulthandler_setup
-        ).enable_faulthandler()
-
     def poll_fault_text(self):
         """Get a fault from a previous session."""
         if self._fault_args is None:
@@ -455,7 +426,7 @@ class KernelHandler(QObject):
     def reopen_comm(self):
         """Reopen comm (following a crash)"""
         self.kernel_comm.remove()
-        self.connection_state = KernelConnectionState.Connecting
+        self.connection_state = KernelConnectionState.Crashed
         self.kernel_comm.open_comm(self.kernel_client)
 
     def set_connection(self, connection_file, connection_info,

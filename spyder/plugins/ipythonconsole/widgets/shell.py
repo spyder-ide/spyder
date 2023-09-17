@@ -137,7 +137,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     """
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, **kw):
+                 handlers, *args, special_kernel=None, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -148,7 +148,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.kernel_handler = None
-        self._cwd = ''
+        self._kernel_configuration = {}
+        self.is_kernel_configured = False
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -161,6 +162,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.shutting_down = False
         self.kernel_client = None
+        self.special_kernel = special_kernel
         self._init_kernel_setup = False
         self._shellwidget_state = "starting"
         if handlers is None:
@@ -425,18 +427,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Check for fault and send config
         self.kernel_handler.poll_fault_text()
 
-        # Show possible errors when setting Matplotlib backend
-        self.call_kernel().show_mpl_backend_errors()
-
         self.send_spyder_kernel_configuration()
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        self.is_kernel_configured = False
+
         # Set matplotlib backend
         self.send_mpl_backend()
 
-        # Make sure special kernel is correctly set up
-        self.reset_special_kernel()
+        # set special kernel
+        self.set_special_kernel()
 
         # Set current cwd
         self.set_cwd()
@@ -445,10 +446,40 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_color_scheme(self.syntax_style, reset=False)
 
         # Enable faulthandler
-        self.kernel_handler.enable_faulthandler()
+        self.set_kernel_configuration("faulthandler", True)
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
+
+        self.call_kernel(
+            interrupt=self.is_debugging(),
+            callback=self.kernel_configure_callback
+        ).set_configuration(self._kernel_configuration)
+
+        self.is_kernel_configured = True
+
+    def set_kernel_configuration(self, key, value):
+        """Set kernel configuration."""
+        if self.is_kernel_configured:
+            if (
+                key not in self._kernel_configuration
+                or self._kernel_configuration[key] != value
+            ):
+                # Do not send twice
+                self.call_kernel(
+                    interrupt=self.is_debugging(),
+                    callback=self.kernel_configure_callback
+                ).set_configuration({key: value})
+
+        self._kernel_configuration[key] = value
+
+    def kernel_configure_callback(self, dic):
+        """Kernel configuration callback"""
+        for key, value in dic.items():
+            if key == "faulthandler":
+                self.kernel_handler.faulthandler_setup(value)
+            elif key == "special_kernel":
+                self.ipyclient._show_special_console_error(value)
 
     def pop_execute_startup_queue(self):
         for item in self._execute_startup_queue:
@@ -517,23 +548,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
 
         if dirname is None:
-            if not self._cwd:
+            if not self.get_cwd():
                 return
-            dirname = self._cwd
+            dirname = self.get_cwd()
         elif os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
+        self.set_kernel_configuration("cwd", dirname)
 
-        if self.spyder_kernel_ready:
-            # Otherwise cwd will be sent later
-            self.call_kernel(
-                interrupt=self.is_debugging()
-            ).set_cwd(dirname)
-
-        self._cwd = dirname
         if emit_cwd_change:
-            self.sig_working_directory_changed.emit(self._cwd)
+            self.sig_working_directory_changed.emit(dirname)
 
     def send_mpl_backend(self, option=None):
         """
@@ -543,7 +568,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         if not self.spyder_kernel_ready:
             # will be sent later
-            return
         # Set Matplotlib backend with Spyder options
 
         pylab_n = 'pylab'
@@ -609,8 +633,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
 
         if matplotlib_conf:
-            self.call_kernel().set_matplotlib_conf(
-                matplotlib_conf)
+            self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
         """
@@ -623,17 +646,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         * We do it for performance reasons because we call this method when
           switching consoles to update the Working Directory toolbar.
         """
-        return self._cwd
+        return self._kernel_configuration.get("cwd", '')
 
     def update_state(self, state):
         """
         New state received from kernel.
         """
         cwd = state.pop("cwd", None)
-        if cwd and self._cwd and cwd != self._cwd:
-            # Only set it if self._cwd is already set
-            self._cwd = cwd
-            self.sig_working_directory_changed.emit(self._cwd)
+        if cwd and self.get_cwd() and cwd != self.get_cwd():
+            # Only set it if self.get_cwd() is already set
+            self._kernel_configuration["cwd"] = cwd
+            self.sig_working_directory_changed.emit(cwd)
 
         if state:
             self.sig_kernel_state_arrived.emit(state)
@@ -656,16 +679,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
-        if not dark_color:
-            # Needed to change the colors of tracebacks
-            self.silent_execute("%colors linux")
-            if self.kernel_handler.special == "sympy":
-                self.call_kernel().set_sympy_forecolor(background_color='dark')
-        else:
-            self.silent_execute("%colors lightbg")
-            if self.kernel_handler.special == "sympy":
-                self.call_kernel().set_sympy_forecolor(
-                    background_color='light')
+        self.set_kernel_configuration(
+            "color scheme", "dark" if not dark_color else "light"
+        )
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
@@ -717,18 +733,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
-        cmd = "get_ipython().kernel.set_jedi_completer({})"
-        self.execute(cmd.format(use_jedi), hidden=True)
+        self.set_kernel_configuration(
+            "jedi_completer", use_jedi
+        )
 
     def set_greedy_completer(self, use_greedy):
         """Set if greedy completions should be used."""
-        cmd = "get_ipython().kernel.set_greedy_completer({})"
-        self.execute(cmd.format(use_greedy), hidden=True)
+        self.set_kernel_configuration(
+            "greedy_completer", use_greedy
+        )
 
     def set_autocall(self, autocall):
         """Set if autocall functionality is enabled or not."""
-        cmd = "get_ipython().kernel.set_autocall({})"
-        self.execute(cmd.format(autocall), hidden=True)
+        self.set_kernel_configuration(
+            "autocall", autocall
+        )
 
     # --- To handle the banner
     def long_banner(self):
@@ -862,7 +881,7 @@ the sympy module (e.g. plot)
                     )
                     self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
-                self.reset_special_kernel()
+                self.set_special_kernel()
 
                 if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
@@ -870,33 +889,15 @@ the sympy module (e.g. plot)
         except AttributeError:
             pass
 
-    def reset_special_kernel(self):
+    def set_special_kernel(self):
         """Reset special kernel"""
-        if self.kernel_handler is None:
-            # This is not a special kernel
+        if not self.special_kernel:
             return
-
-        if self.kernel_handler.special is None:
-            return
-
 
         # Check if the dependecies for special consoles are available.
-        self.call_kernel(
-            callback=self.ipyclient._show_special_console_error
-            ).is_special_kernel_valid(self.kernel_handler.special)
-
-        if self.kernel_handler.special == "pylab":
-            self.silent_execute("from pylab import *")
-        if self.kernel_handler.special == "sympy":
-            sympy_init = """
-                from sympy import *
-                x, y, z, t = symbols('x y z t')
-                k, m, n = symbols('k m n', integer=True)
-                f, g, h = symbols('f g h', cls=Function)
-                init_printing()"""
-            self.silent_execute(dedent(sympy_init))
-        if self.kernel_handler.special == "cython":
-            self.silent_execute("%reload_ext Cython")
+        self.set_kernel_configuration(
+            "special_kernel", self.special_kernel
+        )
 
     def _update_reset_options(self, message_box):
         """
