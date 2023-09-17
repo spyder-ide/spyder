@@ -155,16 +155,16 @@ class ElementsTable(HoverRowsTableView):
         self.elements = elements
 
         # Check for additional features
-        with_icons = self._with_feature('icon')
-        with_addtional_info = self._with_feature('additional_info')
-        with_widgets = self._with_feature('widget')
+        self._with_icons = self._with_feature('icon')
+        self._with_addtional_info = self._with_feature('additional_info')
+        self._with_widgets = self._with_feature('widget')
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
         self._current_row = -1
         self._current_row_widget = None
 
-        # To do adjustments when the widget is shown only once
+        # To make adjustments when the widget is shown
         self._is_shown = False
 
         # This is used to paint the entire row's background color when its
@@ -173,7 +173,11 @@ class ElementsTable(HoverRowsTableView):
 
         # Set model
         self.model = ElementsModel(
-            self, self.elements, with_icons, with_addtional_info, with_widgets
+            self,
+            self.elements,
+            self._with_icons,
+            self._with_addtional_info,
+            self._with_widgets
         )
         self.setModel(self.model)
 
@@ -186,7 +190,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Adjustments for the additional info column
         self._info_column_width = 0
-        if with_addtional_info:
+        if self._with_addtional_info:
             info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate)
@@ -201,7 +205,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Adjustments for the widgets column
         self._widgets_column_width = 0
-        if with_widgets:
+        if self._with_widgets:
             widgets_delegate = HTMLDelegate(self, margin=0)
             self.setItemDelegateForColumn(
                 self.model.columns['widgets'], widgets_delegate)
@@ -244,7 +248,7 @@ class ElementsTable(HoverRowsTableView):
         self.verticalHeader().hide()
 
         # Set icons size
-        if with_icons:
+        if self._with_icons:
             self.setIconSize(QSize(32, 32))
 
         # Hide grid to only paint horizontal lines with css
@@ -265,18 +269,19 @@ class ElementsTable(HoverRowsTableView):
         if row != self._current_row:
             self._current_row = row
 
-            # Remove background color of previous row widget
-            if self._current_row_widget is not None:
-                self._current_row_widget.setStyleSheet("")
+            if self._with_widgets:
+                # Remove background color of previous row widget
+                if self._current_row_widget is not None:
+                    self._current_row_widget.setStyleSheet("")
 
-            # Set background for the new row widget
-            new_row_widget = self.elements[row]["row_widget"]
-            new_row_widget.setStyleSheet(
-                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
-            )
+                # Set background for the new row widget
+                new_row_widget = self.elements[row]["row_widget"]
+                new_row_widget.setStyleSheet(
+                    f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+                )
 
-            # Set new current row widget
-            self._current_row_widget = new_row_widget
+                # Set new current row widget
+                self._current_row_widget = new_row_widget
 
     def _set_stylesheet(self, leave=False):
         """Set stylesheet when entering or leaving the widget."""
