@@ -294,7 +294,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
                 kernel_handler.sig_kernel_restarted.emit()
 
         elif cmd == "stderr":
-            err, connection_file = message
+            connection_file = message[1]
+            err = message[2]
             kernel_handler = self._alive_kernel_handlers.get(
                 connection_file, None
             )
@@ -302,7 +303,8 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
                 kernel_handler.handle_stderr(err)
 
         elif cmd == "stdout":
-            out, connection_file = message
+            connection_file = message[1]
+            out = message[2]
             kernel_handler = self._alive_kernel_handlers.get(
                 connection_file, None
             )
