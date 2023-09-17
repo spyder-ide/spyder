@@ -195,9 +195,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_UMR_VERBOSE': self.get_conf(
                 'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
-            'SPY_RUN_LINES_O': self.get_conf('startup/run_lines'),
-            'SPY_USE_FILE_O': self.get_conf('startup/use_run_file'),
-            'SPY_RUN_FILE_O': self.get_conf('startup/run_file'),
             'SPY_AUTOCALL_O': self.get_conf('autocall'),
             'SPY_GREEDY_O': self.get_conf('greedy_completer'),
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
