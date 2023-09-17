@@ -57,7 +57,7 @@ from spyder.config.base import (
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
-from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
+from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
@@ -883,12 +883,12 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     test_file = osp.join(LOCATION, script)
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
-    external_console = main_window.external_console
+    external_terminal = main_window.external_terminal
 
     temp_dir = str(tmpdir.mkdir("test_dir"))
 
     # --- Set run options for the executor ---
-    ext_conf = ExtConsoleShConfiguration(
+    ext_conf = ExtTerminalShConfiguration(
         interpreter=interpreter, interpreter_opts_enabled=False,
         interpreter_opts=opts, script_opts_enabled=True, script_opts=temp_dir,
         close_after_exec=True)
@@ -903,14 +903,14 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     ext_exec_conf = ExtendedRunExecutionParameters(
         uuid=exec_uuid, name='TestConf', params=exec_conf)
 
-    ipy_dict = {external_console.NAME: {
+    ipy_dict = {external_terminal.NAME: {
         (ext, RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
     }}
     CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(
-        main_window, test_file, exec_uuid, external_console.NAME)
+        main_window, test_file, exec_uuid, external_terminal.NAME)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # --- Run test file and assert that the script gets executed ---
