@@ -455,9 +455,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
         
-        # Enable wurlitzer
-        self.set_kernel_configuration("wurlitzer", True)
-        
+        if self.is_external_kernel:
+            # Enable wurlitzer
+            # Not necessary if started by spyder
+            # Does not work if the external kernel is on windows
+            self.set_kernel_configuration("wurlitzer", True)
+
         # Enable autoreload_magic
         self.set_kernel_configuration("autoreload_magic", True)
 
