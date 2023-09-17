@@ -2029,7 +2029,9 @@ def test_old_kernel_version(ipyconsole, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Set wrong version
-    kernel_handler.check_spyder_kernel_info({"content": ('1.0.0', '')})
+    kernel_handler.check_spyder_kernel_info(
+        {"content": {"spyder_kernels_info": ('1.0.0', '')}}
+    )
 
     # Create new client
     w.create_new_client()

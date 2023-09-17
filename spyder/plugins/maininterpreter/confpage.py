@@ -122,8 +122,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
             word_wrap=False
         )
         password.textbox.setEchoMode(QLineEdit.Password)
-        password_radio.toggled.connect(password.setEnabled)
-        keyfile_radio.toggled.connect(password.setDisabled)
+        password_radio.radiobutton.toggled.connect(password.setEnabled)
+        keyfile_radio.radiobutton.toggled.connect(password.setDisabled)
 
         keyfile = self.create_file_combobox(
             _('SSH Keyfile'),
@@ -142,10 +142,10 @@ class MainInterpreterConfigPage(PluginConfigPage):
         passphrase.textbox.setPlaceholderText(_('Optional'))
         passphrase.textbox.setEchoMode(QLineEdit.Password)
 
-        keyfile_radio.toggled.connect(keyfile.setEnabled)
-        keyfile_radio.toggled.connect(passphrase.setEnabled)
-        password_radio.toggled.connect(keyfile.setDisabled)
-        password_radio.toggled.connect(passphrase.setDisabled)
+        keyfile_radio.radiobutton.toggled.connect(keyfile.setEnabled)
+        keyfile_radio.radiobutton.toggled.connect(passphrase.setEnabled)
+        password_radio.radiobutton.toggled.connect(keyfile.setDisabled)
+        password_radio.radiobutton.toggled.connect(passphrase.setDisabled)
 
 
 
@@ -166,7 +166,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         rm_layout.addWidget(auth_group)
         rm_group.setLayout(rm_layout)
         auth_group.setCheckable(True)
-        auth_group.toggled.connect(password_radio.setChecked)
+        auth_group.toggled.connect(password_radio.radiobutton.setChecked)
         rm_group.setCheckable(True)
 
         # Python executable Group
