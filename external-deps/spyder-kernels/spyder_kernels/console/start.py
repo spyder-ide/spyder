@@ -93,21 +93,6 @@ def kernel_config():
             "del sys; del pdb"
         )
 
-    # Run lines of code at startup
-    run_lines_o = os.environ.get('SPY_RUN_LINES_O')
-    if run_lines_o is not None:
-        spy_cfg.IPKernelApp.exec_lines += (
-            [x.strip() for x in run_lines_o.split(';')]
-        )
-
-    # Load %autoreload magic
-    spy_cfg.IPKernelApp.exec_lines.append(
-        "get_ipython().kernel._load_autoreload_magic()")
-
-    # Load wurlitzer extension
-    spy_cfg.IPKernelApp.exec_lines.append(
-        "get_ipython().kernel._load_wurlitzer()")
-
     # Default inline backend configuration.
     # This is useful to have when people doesn't
     # use our config system to configure the
@@ -134,13 +119,6 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines.append(
             "get_ipython().kernel._set_mpl_backend('inline')"
         )
-
-    # Run a file at startup
-    use_file_o = os.environ.get('SPY_USE_FILE_O')
-    run_file_o = os.environ.get('SPY_RUN_FILE_O')
-    if use_file_o == 'True' and run_file_o is not None:
-        if osp.exists(run_file_o):
-            spy_cfg.IPKernelApp.file_to_run = run_file_o
 
     # Autocall
     autocall_o = os.environ.get('SPY_AUTOCALL_O')

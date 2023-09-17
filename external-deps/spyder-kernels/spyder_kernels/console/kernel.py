@@ -646,6 +646,10 @@ class SpyderKernel(IPythonKernel):
                 self.set_matplotlib_conf(value)
             elif key == "update_gui":
                 self.shell.update_gui_frontend = value
+            elif key == "wurlitzer":
+                self._load_wurlitzer()
+            elif key == "autoreload_magic":
+                self._load_autoreload_magic()
         return ret
 
     def set_color_scheme(self, color_scheme):

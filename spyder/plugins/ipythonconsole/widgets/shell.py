@@ -280,7 +280,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
-            return
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -377,6 +376,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_handler.poll_fault_text()
 
         self.send_spyder_kernel_configuration()
+        
+        run_lines = self.get_conf('startup/run_lines')
+        if run_lines:
+            self.execute(run_lines, hidden=True)
+        
+        if self.get_conf('startup/use_run_file'):
+            run_file = self.get_conf('startup/run_file')
+            if run_file:
+                self.execute(f"exec(open({run_file}))", hidden=True)
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
@@ -399,6 +407,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
+        
+        # Enable wurlitzer
+        self.set_kernel_configuration("wurlitzer", True)
+        
+        # Enable autoreload_magic
+        self.set_kernel_configuration("autoreload_magic", True)
 
         self.call_kernel(
             interrupt=self.is_debugging(),
