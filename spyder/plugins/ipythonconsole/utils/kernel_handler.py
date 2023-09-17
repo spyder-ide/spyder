@@ -158,9 +158,7 @@ class KernelHandler(QObject):
 
         # Start kernel
         if self.kernel_client:
-            # Start kernel
-            self.kernel_client.start_channels()
-            self.check_kernel_info()
+            self.start_channels()
 
     @Slot(str, str)
     def handle_stderr(self, err):
@@ -431,6 +429,9 @@ class KernelHandler(QObject):
 
     def set_connection(self, connection_file, connection_info,
                        hostname, sshkey, password):
+        """Set connection file."""
+        if self.connection_file:
+            raise RuntimeError("Connection file already set")
         self.connection_file = connection_file
         self.connection_info = connection_info
         self.hostname = hostname
@@ -450,6 +451,13 @@ class KernelHandler(QObject):
         # See spyder-ide/spyder#3444.
         self.kernel_client.hb_channel.time_to_dead = 25.0
 
+        self.start_channels()
+    
+    def start_channels(self):
+        """Start channels"""
         # Start kernel
+        self.kernel_client.sig_spyder_kernel_info.connect(
+            self.check_spyder_kernel_info
+        )
         self.kernel_client.start_channels()
-        self.check_kernel_info()
+        self.kernel_comm.open_comm(self.kernel_client)

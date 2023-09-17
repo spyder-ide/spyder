@@ -223,7 +223,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
-        kernel_handler.connect_()
+        kernel_handler.connect()
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
@@ -568,6 +568,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         if not self.spyder_kernel_ready:
             # will be sent later
+            return
         # Set Matplotlib backend with Spyder options
 
         pylab_n = 'pylab'
