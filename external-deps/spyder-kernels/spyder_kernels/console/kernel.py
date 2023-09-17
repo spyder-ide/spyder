@@ -631,7 +631,8 @@ class SpyderKernel(IPythonKernel):
             elif key == "pdb":
                 self.shell.set_pdb_configuration(value)
             elif key == "faulthandler":
-                ret[key] = self.enable_faulthandler()
+                if value:
+                    ret[key] = self.enable_faulthandler()
             elif key == "special_kernel":
                 ret[key] = self.set_special_kernel(value)
             elif key == "color scheme":
@@ -647,9 +648,10 @@ class SpyderKernel(IPythonKernel):
             elif key == "update_gui":
                 self.shell.update_gui_frontend = value
             elif key == "wurlitzer":
-                self._load_wurlitzer()
+                if value:
+                    self._load_wurlitzer()
             elif key == "autoreload_magic":
-                self._load_autoreload_magic()
+                self._autoreload_magic(value)
         return ret
 
     def set_color_scheme(self, color_scheme):
@@ -987,11 +989,14 @@ class SpyderKernel(IPythonKernel):
             pass
 
     # --- Others
-    def _load_autoreload_magic(self):
+    def _autoreload_magic(self, enable):
         """Load %autoreload magic."""
         try:
+            value = "2"
+            if not enable:
+                value = "0"
             self.shell.run_line_magic('reload_ext', 'autoreload')
-            self.shell.run_line_magic('autoreload', '2')
+            self.shell.run_line_magic('autoreload', value)
         except Exception:
             pass
 
