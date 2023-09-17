@@ -18,10 +18,9 @@ class SpyderKernelClient(QtKernelClient):
     # Enable receiving messages on control channel.
     # Useful for pdb completion
     control_channel_class = Type(QtZMQSocketChannel)
-    sig_spyder_kernel_info = Signal(object)
+    sig_kernel_info = Signal(object)
     
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
         super()._handle_kernel_info_reply(rep)
-        spyder_kernel_info = rep["content"].get("spyder_kernels_info", None)
-        self.sig_spyder_kernel_info.emit(spyder_kernel_info)
+        self.sig_kernel_info.emit(rep)

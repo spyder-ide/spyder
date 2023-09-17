@@ -1921,7 +1921,6 @@ class IPythonConsoleWidget(
             ks_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
             ks_dict["setup_kwargs"] = kernel_spec_kwargs
             kernel_handler = self.get_cached_kernel(ks_dict)
-            kernel_handler.special = client.kernel_handler.special
         except Exception as e:
             client.show_kernel_error(e)
             return

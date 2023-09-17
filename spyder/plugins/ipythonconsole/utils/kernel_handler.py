@@ -155,6 +155,7 @@ class KernelHandler(QObject):
         self._init_stdout = ""
         self._shellwidget_connected = False
         self._comm_ready_recieved = False
+        self._kernel_info_msg = None
 
         # Start kernel
         if self.kernel_client:
@@ -195,14 +196,15 @@ class KernelHandler(QObject):
             self.sig_stdout.emit(self._init_stdout)
         self._init_stdout = None
 
-    def check_spyder_kernel_info(self, spyder_kernel_info):
+    def check_spyder_kernel_info(self, msg):
         """
         Check if the Spyder-kernels version is the right one after receiving it
         from the kernel.
 
         If the kernel is non-locally managed, check if it is a spyder-kernel.
         """
-
+        self._kernel_info_msg = msg
+        spyder_kernel_info = msg["content"].get("spyder_kernels_info", None)
         if not spyder_kernel_info:
             if self.known_spyder_kernel:
                 # spyder-kernels version < 3.0
@@ -456,8 +458,9 @@ class KernelHandler(QObject):
     def start_channels(self):
         """Start channels"""
         # Start kernel
-        self.kernel_client.sig_spyder_kernel_info.connect(
+        self.kernel_client.sig_kernel_info.connect(
             self.check_spyder_kernel_info
         )
         self.kernel_client.start_channels()
+        self.kernel_client.kernel_info()
         self.kernel_comm.open_comm(self.kernel_client)

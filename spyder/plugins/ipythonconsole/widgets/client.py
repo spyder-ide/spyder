@@ -370,12 +370,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     error_text = self.error_text + error_text
                 self.show_kernel_error(error_text)
 
-        if self.shellwidget._starting:
-            self.shellwidget.banner = (
-                stderr + '\n' + self.shellwidget.banner)
-        else:
-            self.shellwidget._append_plain_text(
-                stderr, before_prompt=True)
+        self.shellwidget._append_plain_text(stderr, before_prompt=True)
 
     @Slot(str)
     def print_stdout(self, stdout):
@@ -383,12 +378,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if not stdout:
             return
 
-        if self.shellwidget._starting:
-            self.shellwidget.banner = (
-                stdout + '\n' + self.shellwidget.banner)
-        else:
-            self.shellwidget._append_plain_text(
-                stdout, before_prompt=True)
+        self.shellwidget._append_plain_text(stdout, before_prompt=True)
 
     def connect_shellwidget_signals(self):
         """Configure shellwidget after kernel is connected."""

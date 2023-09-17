@@ -2019,7 +2019,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     w = ipyconsole.get_widget()
 
     kernel_handler = w._cached_kernel_properties[-1]
-    kernel_handler.kernel_client.sig_spyder_kernel_info.disconnect()
+    kernel_handler.kernel_client.sig_kernel_info.disconnect()
 
     # Wait until it is launched
     qtbot.waitUntil(
@@ -2029,7 +2029,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Set wrong version
-    kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
+    kernel_handler.check_spyder_kernel_info({"content": ('1.0.0', '')})
 
     # Create new client
     w.create_new_client()

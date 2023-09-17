@@ -284,39 +284,34 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client != self.kernel_handler.kernel_client:
                 # If the kernel crashed, the right client is already connected
                 self.kernel_client = self.kernel_handler.kernel_client
-
+                # kernel_info must have already been recieved for 
+                # handle_kernel_is_ready to be called
+                self._handle_kernel_info_reply(
+                    self.kernel_handler._kernel_info_msg
+                )
+                # If the user asked for a restart, print the restart message
+                if self._shellwidget_state == "user_restart":
+                    self._control.clear()
+                    self.print_restart_message()
+                # Print The banner
+                if self._display_banner:
+                    self._append_plain_text(self.banner)
+                    if self.kernel_banner:
+                        self._append_plain_text(self.kernel_banner)
+                # Show first prompt
+                self.reset()
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
-
-    def _handle_kernel_info_reply(self, rep):
-        """
-        Handle kernel info replies.
-
-        Note:
-            This is called after handle_kernel_is_ready.
-            When the code reaches this point the kernel /and/ the shell are
-            ready.
-            We avoid sending sig_shellwidget_created before this point because
-            the shellwidget is cleared here if self._starting == True.
-            if self._starting is True then we send /another/ round trip
-            message to ask for a prompt.
-            (TODO: The number of round trip messages to get the kernel running
-             could be optimised)
-        """
-        if self._shellwidget_state == "started":
-            # Set _starting to False to avoid reset if kernel restart without
-            # user interaction. If self._shellwidget_state == "user_restart",
-            # We clear the console as usual
-            self._starting = False
-
-        super()._handle_kernel_info_reply(rep)
-
-        if self._shellwidget_state == "user_restart":
-            # If the user asked for a restart, pring the restart message
-            self.print_restart_message()
+    
+    def _started_channels(self):
+        """Make a history request"""
+        # Disable the _starting mechanism
+        self._starting = False
+        # Request history
+        self.kernel_client.history(hist_access_type='tail', n=1000)
 
     def _prompt_started_hook(self):
         """Emit a signal when the prompt is ready."""
