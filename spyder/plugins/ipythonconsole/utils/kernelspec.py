@@ -29,7 +29,9 @@ from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
                                 find_conda)
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import is_python_interpreter, is_module_installed
+from spyder.utils.programs import (
+    is_python_interpreter, is_module_installed, get_module_version
+    )
 
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -65,10 +67,16 @@ def is_different_interpreter(pyexec):
 
 def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
-    return is_module_installed(
+    if is_module_installed(
         'spyder_kernels',
         version=SPYDER_KERNELS_VERSION,
-        interpreter=pyexec)
+        interpreter=pyexec):
+        return True
+    # dev versions are acceptable
+    try:
+        return "dev0" in get_module_version('spyder_kernels', pyexec)
+    except Exception:
+        return False
 
 
 HERE = osp.dirname(os.path.realpath(__file__))
