@@ -165,6 +165,7 @@ DEFAULTS = [
               'greedy_completer': False,
               'jedi_completer': False,
               'autocall': 0,
+              'autoreload': False,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',

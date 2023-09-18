@@ -116,9 +116,7 @@ def kernel_config():
     }
 
     if is_module_installed('matplotlib'):
-        spy_cfg.IPKernelApp.exec_lines.append(
-            "get_ipython().kernel._set_mpl_backend('inline')"
-        )
+        spy_cfg.IPKernelApp.matplotlib = "inline"
 
     # Autocall
     autocall_o = os.environ.get('SPY_AUTOCALL_O')
