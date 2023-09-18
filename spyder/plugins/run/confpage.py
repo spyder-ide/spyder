@@ -16,7 +16,7 @@ from uuid import uuid4
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
                             QTableView, QAbstractItemView, QPushButton,
-                            QGridLayout, QHeaderView, QTabWidget, QWidget)
+                            QGridLayout, QHeaderView, QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
@@ -239,13 +239,8 @@ class RunConfigPage(PluginConfigPage):
         executor_widget = QWidget()
         executor_widget.setLayout(vlayout)
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(executor_widget), _("Run executors"))
-        self.tabs.addTab(
-            self.create_tab(run_widget), _("Editor interactions"))
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.tabs)
-        self.setLayout(main_layout)
+        self.create_tab(_("Run executors"), executor_widget)
+        self.create_tab(_("Editor interactions"), run_widget)
 
     def executor_index_changed(self, index: int):
         # Save previous executor configuration

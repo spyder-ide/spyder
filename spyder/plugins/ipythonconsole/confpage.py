@@ -12,7 +12,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout)
+                            QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -368,29 +368,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group.setLayout(windows_layout)
 
         # --- Tabs organization ---
-        self.tabs = QTabWidget(self)
-        self.tabs.addTab(
-            self.create_tab(display_group, confirmations_group, comp_group,
-                            source_code_group),
-            _("Interface")
+        self.create_tab(
+            _("Interface"),
+            [display_group, confirmations_group, comp_group, source_code_group]
         )
 
-        self.tabs.addTab(
-            self.create_tab(pylab_group, backend_group, inline_group),
-            _("Graphics")
+        self.create_tab(
+            _("Graphics"),
+            [pylab_group, backend_group, inline_group]
         )
 
-        self.tabs.addTab(
-            self.create_tab(run_lines_group, run_file_group),
-            _("Startup")
+        self.create_tab(
+            _("Startup"),
+            [run_lines_group, run_file_group]
         )
 
-        self.tabs.addTab(
-            self.create_tab(jedi_group, greedy_group, autocall_group,
-                            sympy_group, prompts_group, windows_group),
-            _("Advanced settings")
+        self.create_tab(
+            _("Advanced settings"),
+            [jedi_group, greedy_group, autocall_group, sympy_group,
+             prompts_group, windows_group]
         )
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)

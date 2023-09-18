@@ -889,16 +889,41 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.CONF_SECTION, opt))
         return btn
 
-    def create_tab(self, *widgets):
-        """Create simple tab widget page: widgets added in a vertical layout"""
-        widget = QWidget(self)
+    def create_tab(self, name, widgets):
+        """
+        Create a tab widget page.
+
+        Parameters
+        ----------
+        name: str
+            Name of the tab
+        widgets: list or QWidget
+            List of widgets to add to the tab. This can be also a single
+            widget.
+
+        Notes
+        -----
+        * Widgets are added in a vertical layout.
+        """
+        if self.tabs is None:
+            self.tabs = QTabWidget(self)
+
+            vlayout = QVBoxLayout()
+            vlayout.addWidget(self.tabs)
+            self.setLayout(vlayout)
+
+        if not isinstance(widgets, list):
+            widgets = [widgets]
+
+        tab = QWidget(self)
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        for widg in widgets:
-            layout.addWidget(widg)
+        for w in widgets:
+            layout.addWidget(w)
         layout.addStretch(1)
-        widget.setLayout(layout)
-        return widget
+        tab.setLayout(layout)
+
+        self.tabs.addTab(tab, name)
 
     def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
@@ -922,24 +947,20 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Restart Spyder."""
         self.main.restart(close_immediately=True)
 
-    def add_tab(self, Widget):
+    def _add_tab(self, Widget):
         widget = Widget(self)
+
         if self.tabs is None:
             # In case a preference page does not have any tabs, we need to
             # add a tab with the widgets that already exist and then add the
             # new tab.
-            self.tabs = QTabWidget()
             layout = self.layout()
-            main_widget = QWidget()
+            main_widget = QWidget(self)
             main_widget.setLayout(layout)
-            self.tabs.addTab(self.create_tab(main_widget),
-                             _('General'))
-            self.tabs.addTab(self.create_tab(widget),
-                             Widget.TITLE)
-            vlayout = QVBoxLayout()
-            vlayout.addWidget(self.tabs)
-            self.setLayout(vlayout)
+
+            self.create_tab(_('General'), main_widget)
+            self.create_tab(Widget.TITLE, widget)
         else:
-            self.tabs.addTab(self.create_tab(widget),
-                             Widget.TITLE)
+            self.create_tab(Widget.TITLE, widget)
+
         self.load_from_conf()

@@ -7,7 +7,7 @@
 """Editor config page."""
 
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout)
+                            QVBoxLayout)
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -333,26 +333,18 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_group.setLayout(eol_layout)
 
         # --- Tabs ---
-        self.tabs = QTabWidget(self)
-        self.tabs.addTab(
-            self.create_tab(display_group, highlight_group, other_group),
-            _("Interface")
+        self.create_tab(
+            _("Interface"),
+            [display_group, highlight_group, other_group]
         )
 
-        self.tabs.addTab(
-            self.create_tab(automatic_group, indentation_group),
-            _("Source code")
-        )
+        self.create_tab(_("Source code"), [automatic_group, indentation_group])
 
-        self.tabs.addTab(
-            self.create_tab(templates_group, autosave_group, docstring_group,
-                            annotations_group, eol_group),
-            _("Advanced settings")
+        self.create_tab(
+            _("Advanced settings"),
+            [templates_group, autosave_group, docstring_group,
+             annotations_group, eol_group]
         )
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)
 
     @on_conf_change(
         option=('provider_configuration', 'lsp', 'values', 'format_on_save'),

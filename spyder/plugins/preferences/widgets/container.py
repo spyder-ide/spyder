@@ -63,12 +63,12 @@ class PreferencesContainer(PluginMainContainer):
                     page = ConfigPage(plugin, dlg)
                     page.initialize()
                     for Tab in config_tabs.get(page_name, []):
-                        page.add_tab(Tab)
+                        page._add_tab(Tab)
                     dlg.add_page(page)
                 else:
                     page = plugin._create_configwidget(dlg, main_window)
                     for Tab in config_tabs.get(page_name, []):
-                        page.add_tab(Tab)
+                        page._add_tab(Tab)
                     dlg.add_page(page)
 
                 # Add separator after the last element of the most important
