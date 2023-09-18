@@ -21,7 +21,8 @@ from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import AppStyle, SPECIAL_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    AppStyle, MAC, SPECIAL_TABBAR_STYLESHEET, WIN)
 
 
 class PageScrollArea(QScrollArea):
@@ -359,6 +360,13 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         css.QTabBar.setValues(
             fontSize=f'{self.items_font.pointSize()}pt',
         )
+
+        # Make tabbar scroll button a bit bigger on Windows and Mac (this has
+        # no effect on Linux).
+        if WIN or MAC:
+            css['QTabBar QToolButton'].setValues(
+                padding=f'{tabs_stylesheet.SCROLL_BUTTONS_PADDING - 1}px',
+            )
 
         # Increase padding around text a bit because we're using an larger font
         css['QTabBar::tab'].setValues(

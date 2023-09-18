@@ -907,6 +907,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """
         if self.tabs is None:
             self.tabs = QTabWidget(self)
+            self.tabs.setUsesScrollButtons(True)
+            self.tabs.setElideMode(Qt.ElideNone)
 
             vlayout = QVBoxLayout()
             vlayout.addWidget(self.tabs)
