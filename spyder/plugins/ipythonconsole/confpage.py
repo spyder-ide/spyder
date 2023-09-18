@@ -299,6 +299,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_layout.addWidget(autocall_label)
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
+        
+        # Autoreload group
+        autoreload_group = QGroupBox(_("Autoreload"))
+        autoreload_label = QLabel(_(
+            "Autoreload reloads modules automatically every time before "
+            "executing the Python code typed.<br>"
+            "This is a different mechanism than the UMR.<br>"
+            "It can be slow on windows because of the NTFS file system."
+            ))
+        autoreload_label.setWordWrap(True)
+        
+        autoreload_box = newcb(_("Use autoreload"), "autoreload",
+                          tip=_("This option enables the autoreload kernel "
+                                "extension.<br>Please refer to its documentation "
+                                "to learn how to use it."))
+
+        autoreload_layout = QVBoxLayout()
+        autoreload_layout.addWidget(autoreload_label)
+        autoreload_layout.addWidget(autoreload_box)
+        autoreload_group.setLayout(autoreload_layout)
 
         # Sympy group
         sympy_group = QGroupBox(_("Symbolic mathematics"))
@@ -369,7 +389,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.tabs.addTab(self.create_tab(
             run_lines_group, run_file_group), _("Startup"))
         self.tabs.addTab(self.create_tab(
-            jedi_group, greedy_group, autocall_group,
+            jedi_group, greedy_group, autocall_group, autoreload_group,
             sympy_group, prompts_group,
             windows_group), _("Advanced settings"))
 

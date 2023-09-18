@@ -992,11 +992,12 @@ class SpyderKernel(IPythonKernel):
     def _autoreload_magic(self, enable):
         """Load %autoreload magic."""
         try:
-            value = "2"
-            if not enable:
-                value = "0"
-            self.shell.run_line_magic('reload_ext', 'autoreload')
-            self.shell.run_line_magic('autoreload', value)
+            if enable:
+                self.shell.run_line_magic('reload_ext', 'autoreload')
+                self.shell.run_line_magic('autoreload', "2")
+            else:
+                self.shell.run_line_magic('autoreload', "off")
+            
         except Exception:
             pass
 

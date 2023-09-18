@@ -414,8 +414,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Does not work if the external kernel is on windows
             self.set_kernel_configuration("wurlitzer", True)
 
-        # Enable autoreload_magic
-        self.set_kernel_configuration("autoreload_magic", True)
+        if self.get_conf('autoreload'):
+            # Enable autoreload_magic
+            self.set_kernel_configuration("autoreload_magic", True)
 
         self.call_kernel(
             interrupt=self.is_debugging(),
