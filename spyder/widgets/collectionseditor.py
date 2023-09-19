@@ -1316,8 +1316,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
-    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
-                 title="", names=False):
+    def __init__(self, parent, data, namespacebrowser=None,
+                 readonly=False, title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.namespacebrowser = namespacebrowser
@@ -1445,8 +1445,11 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
 
-    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
-                 title="", remote=False):
+    sig_refresh_requested = Signal()
+
+    def __init__(self, parent, data, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
+                 readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
@@ -1462,8 +1465,18 @@ class CollectionsEditorWidget(QWidget):
             if item is not None:
                 toolbar.addAction(item)
 
+        self.refresh_action = create_action(
+            self,
+            text=_('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=lambda: self.sig_refresh_requested.emit())
+        toolbar.addAction(self.refresh_action)
+
         # Update the toolbar actions state
         self.editor.refresh_menu()
+        self.refresh_action.setEnabled(data_function is not None)
+
         layout = QVBoxLayout()
         layout.addWidget(toolbar)
         layout.addWidget(self.editor)
@@ -1481,7 +1494,8 @@ class CollectionsEditorWidget(QWidget):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None, namespacebrowser=None):
+    def __init__(self, parent=None, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1491,6 +1505,7 @@ class CollectionsEditor(BaseDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
         self.data_copy = None
         self.widget = None
         self.btn_save_and_close = None
@@ -1522,8 +1537,9 @@ class CollectionsEditor(BaseDialog):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
-            self, self.data_copy, self.namespacebrowser, title=title,
-            readonly=readonly, remote=remote)
+            self, self.data_copy, self.namespacebrowser, self.data_function,
+            title=title, readonly=readonly, remote=remote)
+        self.widget.sig_refresh_requested.connect(self.refresh_editor)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
         layout = QVBoxLayout()
@@ -1573,6 +1589,44 @@ class CollectionsEditor(BaseDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data_copy
+
+    def refresh_editor(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        if self.btn_save_and_close and self.btn_save_and_close.isEnabled():
+            if not self.ask_for_refresh_confirmation():
+                return
+
+        try:
+            new_value = self.data_function()
+        except KeyError:
+            QMessageBox.critical(self, _('Collection editor'),
+                                 _('The variable no longer exists.'))
+            self.reject()
+            return
+
+        self.widget.set_data(new_value)
+        self.data_copy = new_value
+        self.btn_save_and_close.setEnabled(False)
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+
+    def ask_for_refresh_confirmation(self) -> bool:
+        """
+        Ask user to confirm refreshing the editor.
+
+        This function is to be called if refreshing the editor would overwrite
+        changes that the user made previously. The function returns True if
+        the user confirms that they want to refresh and False otherwise.
+        """
+        message = _('Refreshing the editor will overwrite the changes that '
+                    'you made. Do you want to proceed?')
+        result = QMessageBox.question(
+            self, _('Refresh collection editor?'), message)
+        return result == QMessageBox.Yes
 
 
 #==============================================================================

@@ -16,7 +16,7 @@ from os import path
 import copy
 import datetime
 from xml.dom.minidom import parseString
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 # Third party imports
 import numpy
@@ -24,7 +24,7 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QWidget, QDateEdit
+from qtpy.QtWidgets import QDateEdit, QMessageBox, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
@@ -495,6 +495,74 @@ def test_rename_and_duplicate_item_in_collection_editor():
         if isinstance(coll, list):
             editor.duplicate_item()
             assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
+
+
+def test_collectioneditorwidget_refresh_action_disabled():
+    """
+    Test that the Refresh button is disabled by default.
+    """
+    lst = [1, 2, 3, 4]
+    widget = CollectionsEditorWidget(None, lst.copy())
+    assert not widget.refresh_action.isEnabled()
+
+
+def test_collectioneditor_refresh():
+    """
+    Test that after pressing the refresh button, the value of the Array Editor
+    is replaced by the return value of the data_function.
+    """
+    old_list = [1, 2, 3, 4]
+    new_list = [3, 1, 4, 1, 5]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    assert editor.get_value() == old_list
+    assert editor.widget.refresh_action.isEnabled()
+    editor.widget.refresh_action.trigger()
+    assert editor.get_value() == new_list
+
+
+@pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
+def test_collectioneditor_refresh_after_edit(result):
+    """
+    Test that after changing a value in the collection editor, refreshing the
+    editor opens a dialog box (which asks for confirmation), and that the
+    editor is only refreshed if the user clicks Yes.
+    """
+    old_list = [1, 2, 3, 4]
+    edited_list = [1, 2, 3, 5]
+    new_list = [3, 1, 4, 1, 5]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    editor.show()
+    model = editor.widget.editor.source_model
+    model.setData(model.index(3, 3), '5')
+    with patch('spyder.widgets.collectionseditor.QMessageBox.question',
+               return_value=result) as mock_question:
+        editor.widget.refresh_action.trigger()
+    mock_question.assert_called_once()
+    editor.accept()
+    if result == QMessageBox.Yes:
+        assert editor.get_value() == new_list
+    else:
+        assert editor.get_value() == edited_list
+
+
+def test_collectioneditor_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the array editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    lst = [1, 2, 3, 4]
+    editor = CollectionsEditor(None, data_function=datafunc)
+    editor.setup(lst)
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(editor.rejected, timeout=0):
+        editor.widget.refresh_action.trigger()
+    mock_critical.assert_called_once()
 
 
 def test_edit_datetime(monkeypatch):

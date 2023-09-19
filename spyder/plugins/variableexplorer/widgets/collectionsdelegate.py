@@ -188,7 +188,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
-                parent=parent, namespacebrowser=self.namespacebrowser)
+                parent=parent, namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index))
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
