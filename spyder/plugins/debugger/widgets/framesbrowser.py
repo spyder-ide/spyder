@@ -20,7 +20,7 @@ from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QSize, Qt, Slot)
 from qtpy.QtWidgets import (
     QApplication, QStyle, QStyledItemDelegate, QStyleOptionViewItem,
-    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
+    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget, QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -131,6 +131,12 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.finder is None:
             return False
         return self.finder.isVisible()
+    
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.container)
 
     def setup(self):
         """
@@ -152,21 +158,28 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         # Widget empty pane
         self.pane_empty = PaneEmptyWidget(
             self,
-            "plots",
-            _("No plots to show"),
-            _("Run plot-generating code in the Editor or IPython console to "
-              "see your figures appear here. This pane only supports "
-              "static images, so it can't display interactive plots "
-              "like Bokeh, Plotly or Altair.")
+            "debugger",
+            _("Not debugging right now"),
+            _("Please come back later when we're actually debugging")
         )
 
         # Setup layout.
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
+        self.setContentsMargins(0, 0, 0, 0)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.results_browser)
         layout.addWidget(self.finder)
-        self.setLayout(layout)
+
+        self.container = QWidget(self)
+        self.container.setLayout(layout)
+        self.stack_layout.addWidget(self.container)
 
     def _show_namespace(self, namespace):
         """
@@ -182,6 +195,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pdb_curindex = None
 
         if self.results_browser is not None:
+            if frames is not None:
+                self.set_pane_empty(False)
+            else:
+                self.set_pane_empty(True)
             self.results_browser.set_frames(frames)
             self.results_browser.set_title(title)
             try:
