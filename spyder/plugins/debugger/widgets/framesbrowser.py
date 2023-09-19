@@ -28,7 +28,7 @@ from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
 class FramesBrowserState:
@@ -148,6 +148,17 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
+        
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "plots",
+            _("No plots to show"),
+            _("Run plot-generating code in the Editor or IPython console to "
+              "see your figures appear here. This pane only supports "
+              "static images, so it can't display interactive plots "
+              "like Bokeh, Plotly or Altair.")
+        )
 
         # Setup layout.
         layout = QVBoxLayout()
