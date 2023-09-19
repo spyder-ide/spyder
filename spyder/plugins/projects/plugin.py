@@ -216,7 +216,7 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_item_selected.connect(
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.connect(
-            self._handle_switcher_results)
+            self._handle_switcher_search)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -281,7 +281,7 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_item_selected.disconnect(
             self._handle_switcher_selection)
         self._switcher.sig_search_text_available.disconnect(
-            self._handle_switcher_results)
+            self._handle_switcher_search)
         self._switcher = None
 
     def on_close(self, cancelable=False):
@@ -508,17 +508,11 @@ class Projects(SpyderDockablePlugin):
         mode: str
             The selected mode (open files "", symbol "@" or line ":").
         """
-        items = self.get_widget().handle_switcher_modes()
-        for (title, description, icon, section, path, is_last_item) in items:
-            self._switcher.add_item(
-                title=title,
-                description=description,
-                icon=icon,
-                section=section,
-                data=path,
-                last_item=is_last_item
-            )
-        self._switcher.set_current_row(0)
+        # Don't compute anything if we're not in files mode
+        if mode != "":
+            return
+
+        self.get_widget().display_default_switcher_items()
 
     def _handle_switcher_selection(self, item, mode, search_text):
         """
@@ -540,20 +534,33 @@ class Projects(SpyderDockablePlugin):
         self.get_widget().handle_switcher_selection(item, mode, search_text)
         self._switcher.hide()
 
-    def _handle_switcher_results(self, search_text, items_data):
+    def _handle_switcher_search(self, search_text):
         """
         Handle user typing in switcher to filter results.
 
-        Load switcher results when a search text is typed for projects.
         Parameters
         ----------
         text: str
             The current search text in the switcher dialog box.
-        items_data: list
-            List of items shown in the switcher.
         """
-        items = self.get_widget().handle_switcher_results(search_text,
-                                                          items_data)
+        self.get_widget().handle_switcher_search(search_text)
+
+    def _display_items_in_switcher(self, items, setup, clear_section):
+        """
+        Display a list of items in the switcher.
+
+        Parameters
+        ----------
+        items: list
+            Items to display.
+        setup: bool
+            Call the switcher's setup after adding the items.
+        clear_section: bool
+            Clear Projects section before adding the items.
+        """
+        if clear_section:
+            self._switcher.remove_section(self.get_widget().get_title())
+
         for (title, description, icon, section, path, is_last_item) in items:
             self._switcher.add_item(
                 title=title,
@@ -562,5 +569,9 @@ class Projects(SpyderDockablePlugin):
                 section=section,
                 data=path,
                 last_item=is_last_item,
-                score=100
+                score=1e10,  # To make the editor results appear first
+                use_score=False  # Results come from fzf in the right order
             )
+
+        if setup:
+            self._switcher.setup()

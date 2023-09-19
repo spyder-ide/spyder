@@ -51,7 +51,7 @@ class VariableExplorerWidgetActions:
 
 class VariableExplorerWidgetOptionsMenuSections:
     Display = 'excludes_section'
-    Highlight = 'highlight_section'    
+    Highlight = 'highlight_section'
     Resize = 'resize_section'
 
 
@@ -105,6 +105,20 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     Signal to open the variable explorer preferences.
     """
 
+    sig_show_figure_requested = Signal(bytes, str, object)
+    """
+    This is emitted to request that a figure be shown in the Plots plugin.
+
+    Parameters
+    ----------
+    image: bytes
+        The image to show.
+    mime_type: str
+        The image's mime type.
+    shellwidget: ShellWidget
+        The shellwidget associated with the figure.
+    """
+
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -115,6 +129,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Attributes
         self._is_filter_button_checked = True
+        self.plots_plugin_enabled = False
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -401,7 +416,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=self.context_menu,
                 section=VariableExplorerContextMenuSections.Filter,
             )
-        
+
         for item in [self.view_action, self.plot_action, self.hist_action,
                      self.imshow_action]:
             self.add_item_to_menu(
@@ -451,6 +466,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             if widget:
                 widget.setup()
 
+    def set_plots_plugin_enabled(self, value: bool):
+        """
+        Change whether the Plots plugin is enabled.
+
+        This stores the information in this widget and propagates it to every
+        NamespaceBrowser.
+        """
+        self.plots_plugin_enabled = value
+        for index in range(self.count()):
+            nsb = self._stack.widget(index)
+            if nsb:
+                nsb.plots_plugin_enabled = value
+
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def switch_widget(self, nsb, old_nsb):
@@ -466,7 +494,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.sig_free_memory_requested.connect(self.free_memory)
         nsb.sig_start_spinner_requested.connect(self.start_spinner)
         nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
+        nsb.sig_show_figure_requested.connect(self.sig_show_figure_requested)
         nsb.set_shellwidget(shellwidget)
+        nsb.plots_plugin_enabled = self.plots_plugin_enabled
         nsb.setup()
         self._set_actions_and_menus(nsb)
 
@@ -481,6 +511,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         nsb.sig_free_memory_requested.disconnect(self.free_memory)
         nsb.sig_start_spinner_requested.disconnect(self.start_spinner)
         nsb.sig_stop_spinner_requested.disconnect(self.stop_spinner)
+        nsb.sig_show_figure_requested.disconnect(
+            self.sig_show_figure_requested)
         nsb.shellwidget.sig_kernel_state_arrived.disconnect(nsb.update_view)
         nsb.shellwidget.sig_config_spyder_kernel.disconnect(
             nsb.setup_kernel)

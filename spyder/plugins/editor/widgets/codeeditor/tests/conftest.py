@@ -138,51 +138,6 @@ def codeeditor_factory():
 
 
 @pytest.fixture
-def kite_codeeditor(qtbot_module, request):
-    """
-    CodeEditor instance with Kite enabled.
-
-    NOTE: This fixture only works if used with kite installed.
-    If running in the CI, the installation of Kite could be accomplished by
-    spyder/plugins/completion/kite/utils/tests/test_install.py::test_kite_install
-
-    Any test running with this fixture should run after the installation
-    test mentioned above.
-    """
-    main = MainWindowMock()
-    completions = CompletionManager(main, ['kite'])
-    completions.start()
-    completions.start_client('python')
-    completions.language_status['python']['kite'] = True
-    qtbot_module.addWidget(completions)
-
-    # Create a CodeEditor instance
-    editor = codeeditor_factory()
-    qtbot_module.addWidget(editor)
-    editor.show()
-
-    # Redirect editor fallback requests to FallbackActor
-    editor.sig_perform_completion_request.connect(completions.send_request)
-    editor.filename = 'test.py'
-    editor.language = 'Python'
-    editor.completions_available = True
-    qtbot_module.wait(2000)
-
-    def teardown():
-        completions.shutdown()
-        editor.hide()
-        editor.completion_widget.hide()
-
-    request.addfinalizer(teardown)
-    kite = completions.get_client('kite')
-    CONF.set('kite', 'show_installation_dialog', False)
-    CONF.set('kite', 'show_onboarding', False)
-    CONF.set('kite', 'call_to_action', False)
-    kite.update_configuration()
-    return editor, kite
-
-
-@pytest.fixture
 def mock_completions_codeeditor(qtbot_module, request):
     """CodeEditor instance with ability to mock the completions response.
 

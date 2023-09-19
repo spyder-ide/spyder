@@ -1,5 +1,22 @@
 # History of changes
 
+## Version 3.0.0b2 (2023-08-22)
+
+### Pull Requests Merged
+
+* [PR 465](https://github.com/spyder-ide/spyder-kernels/pull/465) - Save temporary file in test to temporary location, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 464](https://github.com/spyder-ide/spyder-kernels/pull/464) - Remove locals inspection, by [@impact27](https://github.com/impact27)
+* [PR 460](https://github.com/spyder-ide/spyder-kernels/pull/460) - PR: Add a global filter flag to settings, by [@jsbautista](https://github.com/jsbautista)
+* [PR 445](https://github.com/spyder-ide/spyder-kernels/pull/445) - PR: Add `exitdb` command and some speed optimizations to the debugger, by [@impact27](https://github.com/impact27)
+* [PR 429](https://github.com/spyder-ide/spyder-kernels/pull/429) - PR: Add a comm handler decorator, by [@impact27](https://github.com/impact27)
+* [PR 411](https://github.com/spyder-ide/spyder-kernels/pull/411) - PR: Remove `set_debug_state` and `do_where` calls, by [@impact27](https://github.com/impact27)
+
+In this release 6 pull requests were closed.
+
+
+----
+
+
 ## Version 3.0.0b1 (2023-06-14)
 
 ### Issues Closed

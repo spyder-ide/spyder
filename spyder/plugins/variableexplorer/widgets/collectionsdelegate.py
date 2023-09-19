@@ -43,8 +43,9 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, namespacebrowser=None):
         QItemDelegate.__init__(self, parent)
+        self.namespacebrowser = namespacebrowser
         self._editors = {}  # keep references on opened editors
 
     def get_value(self, index):
@@ -161,7 +162,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         # CollectionsEditor for a list, tuple, dict, etc.
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
-            editor = CollectionsEditor(parent=parent)
+            editor = CollectionsEditor(
+                parent=parent, namespacebrowser=self.namespacebrowser)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -269,6 +271,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 value,
                 name=key,
                 parent=parent,
+                namespacebrowser=self.namespacebrowser,
                 readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
@@ -411,8 +414,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
 class ToggleColumnDelegate(CollectionsDelegate):
     """ToggleColumn Item Delegate"""
-    def __init__(self, parent=None):
-        CollectionsDelegate.__init__(self, parent)
+    def __init__(self, parent=None, namespacebrowser=None):
+        CollectionsDelegate.__init__(self, parent, namespacebrowser)
         self.current_index = None
         self.old_obj = None
 
@@ -467,7 +470,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
             from spyder.widgets.collectionseditor import CollectionsEditor
-            editor = CollectionsEditor(parent=parent)
+            editor = CollectionsEditor(
+                parent=parent, namespacebrowser=self.namespacebrowser)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,

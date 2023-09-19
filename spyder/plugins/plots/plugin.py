@@ -46,6 +46,23 @@ class Plots(SpyderDockablePlugin, ShellConnectPluginMixin):
         # a plot is generated.
         self.get_widget().sig_figure_loaded.connect(self._on_first_plot)
 
+    # ---- Public API
+    # ------------------------------------------------------------------------
+    def add_plot(self, fig, fmt, shellwidget):
+        """
+        Add a plot to the specified figure browser.
+
+        Add the plot to the figure browser with the given shellwidget. Also,
+        bring the plugin to the front and raise the window that it is in so
+        that the plot is shown.
+
+        If no figure browser with the given shellwidget exists, then nothing
+        happens.
+        """
+        self.switch_to_plugin(force_focus=False)
+        self.get_widget().window().raise_()
+        self.get_widget().add_plot(fig, fmt, shellwidget)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     def _on_first_plot(self):

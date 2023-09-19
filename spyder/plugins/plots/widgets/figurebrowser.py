@@ -259,13 +259,15 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Bind the shellwidget instance to the figure browser"""
         self.shellwidget = shellwidget
         self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
-        shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+        shellwidget.sig_new_inline_figure.connect(self.add_figure)
         shellwidget.executing.connect(self._handle_new_execution)
 
-    def _handle_new_figure(self, fig, fmt):
+    def add_figure(self, fig, fmt):
         """
-        Handle when a new figure is sent to the IPython console by the
-        kernel.
+        Add a figure to the figure browser.
+
+        This is called when a new figure is sent to the IPython console by the
+        kernel, but can also be called directly.
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
 

@@ -90,7 +90,7 @@ class Switcher(SpyderPluginV2):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
-    sig_search_text_available = Signal(str, list)
+    sig_search_text_available = Signal(str)
     """
     This signal is emitted when the user stops typing the search/filter text.
 
@@ -98,8 +98,6 @@ class Switcher(SpyderPluginV2):
     ----------
     search_text: str
         The current search/filter text.
-    items_data: list
-        List of items shown in the switcher.
     """
 
     # --- SpyderPluginV2 API
@@ -162,16 +160,15 @@ class Switcher(SpyderPluginV2):
                 menu_id=ApplicationMenus.File
             )
 
-    # --- Public API
-    # ------------------------------------------------------------------------
-
+    # ---- Public API
+    # -------------------------------------------------------------------------
     # Switcher methods
     def set_placeholder_text(self, text):
         """Set the text appearing on the empty line edit."""
         self._switcher.set_placeholder_text(text)
 
     def setup(self):
-        """Set-up list widget content based on the filtering."""
+        """Setup list widget content based on filtering."""
         self._switcher.setup()
 
     def open_switcher(self, symbol=False):
@@ -206,11 +203,11 @@ class Switcher(SpyderPluginV2):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True, score=None):
+                 last_item=True, score=None, use_score=True):
         """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
-                                last_item, score)
+                                last_item, score, use_score)
 
     def set_current_row(self, row):
         """Set the current selected row in the switcher."""
@@ -227,6 +224,10 @@ class Switcher(SpyderPluginV2):
     def count(self):
         """Get the item count in the list widget."""
         return self._switcher.count()
+
+    def remove_section(self, section):
+        """Remove all items in a section of the switcher."""
+        self._switcher.remove_section(section)
 
     # Mode methods
     def add_mode(self, token, description):

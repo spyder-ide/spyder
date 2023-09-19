@@ -298,9 +298,6 @@ def main_window(request, tmpdir, qtbot):
     # fails
     super_processEvents = QApplication.processEvents
 
-    # Disable Kite provider
-    CONF.set('completions', 'enabled_providers', {'kite': False})
-
     # Don't show tours message
     CONF.set('tours', 'show_tour_message', False)
 
@@ -465,12 +462,13 @@ def main_window(request, tmpdir, qtbot):
                 CONF.reset_to_defaults(notification=False)
             else:
                 try:
-                    # Close everything we can think of
-                    window.switcher.close()
+                    # Close or hide everything we can think of
+                    window.switcher.hide()
 
                     # Close editor related elements
                     window.editor.close_all_files()
-                    # force close all files
+
+                    # Force close all files
                     while window.editor.editorstacks[0].close_file(force=True):
                         pass
                     for editorwindow in window.editor.editorwindows:
@@ -501,7 +499,6 @@ def main_window(request, tmpdir, qtbot):
                     (window.ipyconsole.get_widget()
                         .create_new_client_if_empty) = False
                     window.ipyconsole.restart()
-
                 except Exception:
                     main_window.window = None
                     window.close()

@@ -99,7 +99,11 @@ class StdThread(QThread):
         while txt:
             txt = self._std_buffer.read1()
             if txt:
-                self.sig_out.emit(txt.decode())
+                try:
+                    txt = txt.decode()
+                except UnicodeDecodeError:
+                    txt = str(txt)
+                self.sig_out.emit(txt)
 
 
 class KernelHandler(QObject):

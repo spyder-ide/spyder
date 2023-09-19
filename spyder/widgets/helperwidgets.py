@@ -16,16 +16,16 @@ import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
+    QEvent, QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
                         QImage, QPainter, QRegExpValidator, QTextDocument,
                         QPixmap)
 from qtpy.QtSvg import QSvgRenderer
-from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
-                            QSpacerItem, QStyle, QStyledItemDelegate,
-                            QStyleOptionFrame, QStyleOptionViewItem,
-                            QTableView, QToolButton, QToolTip, QVBoxLayout,
-                            QWidget, QHBoxLayout, QLabel, QFrame)
+from qtpy.QtWidgets import (
+    QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
+    QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
+    QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
+    QLabel, QFrame, QComboBox)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -35,8 +35,9 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import DialogStyle
+from spyder.utils.stylesheet import AppStyle, DialogStyle
 from spyder.utils.qthelpers import create_waitspinner
+
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
@@ -374,13 +375,62 @@ class IconLineEdit(QLineEdit):
         super().focusOutEvent(event)
 
 
-class FinderLineEdit(QLineEdit):
+class ClearLineEdit(QLineEdit):
+    """QLineEdit with a clear button."""
+
+    def __init__(self, parent, reposition_button=False):
+        super().__init__(parent)
+
+        # Add button to clear text inside the line edit.
+        self.clear_action = QAction(self)
+        self.clear_action.setIcon(ima.icon('clear_text'))
+        self.clear_action.setToolTip(_('Clear text'))
+        self.clear_action.triggered.connect(self.clear)
+        self.addAction(self.clear_action, QLineEdit.TrailingPosition)
+
+        # Button that corresponds to the clear_action above
+        self.clear_button = self.findChildren(QToolButton)[0]
+
+        # Hide clear_action by default because lineEdit is empty when the
+        # combobox is created, so it doesn't make sense to show it.
+        self.clear_action.setVisible(False)
+
+        # Signals
+        self.textChanged.connect(self._on_text_changed)
+
+        # Event filter
+        if reposition_button:
+            self.installEventFilter(self)
+
+    def _on_text_changed(self, text):
+        """Actions to take when text has changed on the line edit widget."""
+        if text:
+            self.clear_action.setVisible(True)
+        else:
+            self.clear_action.setVisible(False)
+
+    def eventFilter(self, widget, event):
+        """
+        Event filter for this widget used to reduce the space between
+        clear_button and the right border of the line edit.
+        """
+        if event.type() == QEvent.Paint:
+            self.clear_button.move(self.width() - 22, self.clear_button.y())
+
+        return super().eventFilter(widget, event)
+
+
+class FinderLineEdit(ClearLineEdit):
+
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None):
-        super(FinderLineEdit, self).__init__(parent)
+        super().__init__(parent)
         self.key_filter_dict = key_filter_dict
+
+        self._combobox = QComboBox(self)
+        self._is_shown = False
 
         if regex_base is not None:
             # Widget setup
@@ -397,16 +447,35 @@ class FinderLineEdit(QLineEdit):
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             self.sig_find_requested.emit()
         else:
-            super(FinderLineEdit, self).keyPressEvent(event)
+            super().keyPressEvent(event)
+
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            height = self._combobox.size().height()
+            self._combobox.hide()
+
+            # Only set a min width so it grows with the parent's width.
+            self.setMinimumWidth(AppStyle.FindMinWidth)
+
+            # Set a fixed height so that it looks the same as our comboboxes.
+            self.setMinimumHeight(height)
+            self.setMaximumHeight(height)
+
+            self._is_shown = True
+
+        super().showEvent(event)
 
 
 class FinderWidget(QWidget):
+
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None,
                  find_on_change=False):
         super().__init__(parent)
+
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
@@ -427,7 +496,13 @@ class FinderWidget(QWidget):
         finder_layout = QHBoxLayout()
         finder_layout.addWidget(self.finder_close_button)
         finder_layout.addWidget(self.text_finder)
-        finder_layout.setContentsMargins(0, 0, 0, 0)
+        finder_layout.addStretch()
+        finder_layout.setContentsMargins(
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            0
+        )
         self.setLayout(finder_layout)
         self.setVisible(False)
 
