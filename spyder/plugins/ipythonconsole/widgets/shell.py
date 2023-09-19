@@ -578,11 +578,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         If option is not None only send the related options
         """
-        if not self.spyder_kernel_ready:
-            # will be sent later
-            return
         # Set Matplotlib backend with Spyder options
-
         pylab_n = 'pylab'
         pylab_o = self.get_conf(pylab_n)
 
@@ -690,9 +686,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._syntax_style_changed()
         if reset and color_changed:
             self.reset()
-        if not self.spyder_kernel_ready:
-            # Will be sent later
-            return
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
         )

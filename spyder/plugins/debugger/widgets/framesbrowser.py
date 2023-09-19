@@ -279,8 +279,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_unconfig_kernel(self):
         """Ask shellwidget to stop sending stack."""
-        if not self.shellwidget.spyder_kernel_ready:
-            return
         self.shellwidget.set_kernel_configuration(
             "pdb", {'pdb_publish_stack': False}
         )
