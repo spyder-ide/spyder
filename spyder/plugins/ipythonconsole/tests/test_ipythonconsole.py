@@ -859,8 +859,6 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     """
     Test that kernel is restarted correctly
     """
-    # Mock method we want to check
-    mocker.patch.object(ShellWidget, "send_spyder_kernel_configuration")
 
     ipyconsole.create_new_client()
 
@@ -868,6 +866,10 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    
+    # Check kernel is configured
+    faulthandler_args = shell.kernel_handler._fault_args
+    assert faulthandler_args is not None
 
     # Do an assignment to verify that it's not there after restarting
     with qtbot.waitSignal(shell.executed):
@@ -892,8 +894,8 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     assert not shell.is_defined('a')
 
     # Check that we send configuration at the beginning and after the restart.
-    qtbot.waitUntil(
-        lambda: ShellWidget.send_spyder_kernel_configuration.call_count == 2)
+    assert shell.kernel_handler._fault_args is not None
+    assert shell.kernel_handler._fault_args != faulthandler_args
 
 
 @flaky(max_runs=3)
