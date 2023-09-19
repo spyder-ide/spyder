@@ -60,7 +60,7 @@ from spyder.widgets.tabs import BaseTabs
 
 logger = logging.getLogger(__name__)
 
-
+# TODO: Make it a SpyderWidgetMixin
 class EditorStack(QWidget, SpyderConfigurationAccessor):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
@@ -101,7 +101,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     sig_perform_completion_request = Signal(str, str, dict)
-    sig_option_changed = Signal(str, object)  # config option needs changing
+    # sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
@@ -184,16 +184,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.tabs_switcher = None
         self.switcher_plugin = None
 
-        switcher_action = None
-        symbolfinder_action = None
-        if use_switcher and self.get_plugin().main:
-            self.switcher_plugin = self.get_plugin().main.switcher
-            if self.switcher_plugin:
-                switcher_action = self.switcher_plugin.get_action(
-                    "file switcher")
-                symbolfinder_action = self.switcher_plugin.get_action(
-                    "symbol finder")
-
         self.stack_history = StackHistory(self)
 
         # External panels
@@ -205,6 +195,17 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
+        # Actions
+        # TODO: Use self.create_action
+        switcher_action = None
+        symbolfinder_action = None
+        if use_switcher and self.get_plugin()._plugin.main: # TODO: Change access to main
+            self.switcher_plugin = self.get_plugin()._plugin.main.switcher
+            if self.switcher_plugin:
+                switcher_action = self.switcher_plugin.get_action(
+                    "file switcher")
+                symbolfinder_action = self.switcher_plugin.get_action(
+                    "symbol finder")
         copy_absolute_path_action = create_action(
             self,
             _("Copy absolute path"),
@@ -223,8 +224,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
 
-        sort_tabs = create_action(self, _("Sort tabs alphabetically"),
-                                  triggered=self.sort_file_tabs_alphabetically)
+        sort_tabs = create_action(
+            self, _("Sort tabs alphabetically"),
+            triggered=self.sort_file_tabs_alphabetically)
 
         if sys.platform == 'darwin':
             text = _("Show in Finder")
@@ -238,12 +240,12 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             context=Qt.WidgetShortcut)
 
         self.menu_actions = actions + [external_fileexp_action,
-                                       None, switcher_action,
-                                       symbolfinder_action,
-                                       copy_absolute_path_action,
-                                       copy_relative_path_action, None,
-                                       close_right,
-                                       close_all_but_this, sort_tabs]
+                                    MENU_SEPARATOR, switcher_action,
+                                    symbolfinder_action,
+                                    copy_absolute_path_action,
+                                    copy_relative_path_action, MENU_SEPARATOR,
+                                    close_right,
+                                    close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.is_closable = False
         self.new_action = None
@@ -1302,13 +1304,13 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]
         elif plugin is not None:
-            if plugin._undocked_window is not None:
+            if plugin.windowwidget is not None:
                 actions += [MENU_SEPARATOR, plugin._dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin._lock_unlock_action,
-                            plugin._undock_action,
-                            plugin._close_plugin_action]
+                            plugin.lock_unlock_action,
+                            plugin.dock_action,
+                            plugin.close_action]
 
         return actions
 

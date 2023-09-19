@@ -235,8 +235,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.selectall_action = None
 
         # TODO: Move to corresponding Plugins
-        self.file_toolbar = None
-        self.file_toolbar_actions = []
+        # self.file_toolbar = None
+        # self.file_toolbar_actions = []
 
         self.menus = []
 
@@ -804,9 +804,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # Toolbars
         # TODO: Remove after finishing the migration
-        logger.info("Creating toolbars...")
-        toolbar = self.toolbar
-        self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
+        # logger.info("Creating toolbars...")
+        # toolbar = self.toolbar
+        # self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
 
         self.set_splash(_("Setting up main window..."))
 

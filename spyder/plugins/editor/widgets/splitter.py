@@ -82,7 +82,7 @@ class EditorSplitter(QSplitter):
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
-            self.editorstack.set_color_scheme(plugin.get_color_scheme())
+            self.editorstack.set_color_scheme(plugin._plugin.get_color_scheme())  # TODO: Color scheme handling?
 
         self.setStyleSheet(self._stylesheet)
 

@@ -66,7 +66,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts(self.find_widget)
+        # self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
 
         # Set up an outline but only if its corresponding plugin is available.
@@ -291,13 +291,13 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
     def closeEvent(self, event):
         """Reimplement Qt method"""
         self.editorwidget.unregister_all_editorstacks()
-        if self.plugin._undocked_window is not None:
+        if self.plugin.windowwidget is not None:
             self.plugin.dockwidget.setWidget(self.plugin)
             self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin._undocked_window is not None:
-            self.plugin._undocked_window = None
+        if self.plugin.windowwidget is not None:
+            self.plugin.windowwidget = None
 
     def changeEvent(self, event):
         """

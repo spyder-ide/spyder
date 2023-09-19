@@ -61,7 +61,10 @@ DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 #                            Projects to the new API).
 # * Spyder 5.2.0: Version 3 (a bump was required due to the migration of
 #                            IPython Console to the new API)
-WINDOW_STATE_VERSION = 3
+# * Spyder 6.0.0: Version 4 (a bump was required due to the migration of
+#                            Editor to the new API)
+
+WINDOW_STATE_VERSION = 4
 
 
 class Layout(SpyderPluginV2):

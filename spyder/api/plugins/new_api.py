@@ -326,6 +326,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 parent=parent
             )
 
+            if hasattr(container, '_setup'):
+                container._setup()
+
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()
                 container.update_actions()
@@ -343,9 +346,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 self.sig_unmaximize_plugin_requested)
 
             self.after_container_creation()
-
-            if hasattr(container, '_setup'):
-                container._setup()
 
         # Load the custom images of the plugin
         if self.IMG_PATH:

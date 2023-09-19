@@ -216,13 +216,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         ]
         for name in editor_shortcuts:
             action = self.get_action(name)
+            # TODO: This should be handled differently?
             CONF.config_shortcut(
                 action.trigger,
                 context=self.CONF_SECTION,
                 name=name,
-                parent=editor
+                parent=editor.get_widget()
             )
-            editor.pythonfile_dependent_actions += [action]
+            editor.get_widget().pythonfile_dependent_actions += [action]
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):

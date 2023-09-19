@@ -32,7 +32,7 @@ class EditorSwitcherManager(object):
     LINE_MODE = ':'
     FILES_MODE = ''
 
-    def __init__(self, plugin, switcher_plugin, get_codeeditor,
+    def __init__(self, main_widget, switcher_plugin, get_codeeditor,
                  get_editorstack, section=_("Editor")):
         """
         'get_codeeditor' and 'get_editorstack' params should be callables
@@ -41,7 +41,7 @@ class EditorSwitcherManager(object):
             current_codeeditor = get_codeditor()
             current_editorstack = get_editorstack()
         """
-        self._plugin = plugin
+        self._main_widget = main_widget
         self._switcher = switcher_plugin
         self._editor = get_codeeditor
         self._editorstack = get_editorstack
@@ -72,7 +72,7 @@ class EditorSwitcherManager(object):
         elif mode == self.LINE_MODE:
             self.create_line_switcher()
         elif mode == self.FILES_MODE:
-            # Each plugin that wants to attach to the switcher should do this?
+            # Each plugin/main_widget that wants to attach to the switcher should do this?
             self.create_editor_switcher()
 
     def create_editor_switcher(self):
@@ -190,10 +190,10 @@ class EditorSwitcherManager(object):
         elif mode == ':':
             self.line_switcher_handler(data, search_text)
         elif mode == '':
-            # Each plugin that wants to attach to the switcher should do this?
+            # Each plugin/main_widget that wants to attach to the switcher should do this?
             if item.get_section() == self._section:
                 self.editor_switcher_handler(data)
-                self._plugin.switch_to_plugin()
+                self._main_widget.switch_to_main_widget()
 
     def handle_switcher_text(self, search_text):
         """Handle switcher search text for line mode."""
