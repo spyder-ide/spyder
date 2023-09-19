@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QTreeWidget, QTreeWidgetItem)
+                            QStackedWidget, QTreeWidget, QTreeWidgetItem)
 
 # Local imports
 from spyder import __version__
@@ -22,6 +22,7 @@ from spyder.config.base import _
 from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 class DependenciesTreeWidget(QTreeWidget):
@@ -101,6 +102,25 @@ class DependenciesDialog(QDialog):
         self.setWindowIcon(ima.icon('tooloptions'))
         self.setModal(False)
 
+        # Create a QStackedWidget
+        self.stacked_widget = QStackedWidget()
+
+        # Create a loading message
+        self.loading_pane = PaneEmptyWidget(
+            self,
+            "dependencies",
+            _("Please wait while we prepare your dependencies..."),
+            bottom_stretch=1,
+            spinner=True,
+        )
+
+        # Add the loading label and tree widget to the stacked widget
+        self.stacked_widget.addWidget(self.loading_pane)
+        self.stacked_widget.addWidget(self.treewidget)
+
+        # Make sure the loading label is the one shown initially
+        self.stacked_widget.setCurrentWidget(self.loading_pane)
+
         # Layout
         hlayout = QHBoxLayout()
         hlayout.addWidget(btn)
@@ -108,7 +128,7 @@ class DependenciesDialog(QDialog):
         hlayout.addWidget(bbox)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(self.treewidget)
+        vlayout.addWidget(self.stacked_widget)
         vlayout.addWidget(self.label)
         vlayout.addWidget(self.label2)
         vlayout.addLayout(hlayout)
@@ -124,8 +144,12 @@ class DependenciesDialog(QDialog):
         self.treewidget.update_dependencies(dependencies)
         self.treewidget.resize_columns_to_contents()
 
+        # Once data is loaded, switch to the tree widget
+        self.stacked_widget.setCurrentWidget(self.treewidget)
+
     def copy_to_clipboard(self):
         from spyder.dependencies import status
+
         QApplication.clipboard().setText(status())
 
 

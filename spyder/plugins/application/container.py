@@ -103,6 +103,7 @@ class ApplicationContainer(PluginMainContainer):
 
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
+        self.dependencies_dialog = DependenciesDialog(self)
 
         # Attributes
         self.dialog_manager = DialogManager()
@@ -429,17 +430,14 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- Dependencies
     # -------------------------------------------------------------------------
+    def _set_dependencies(self):
+        if dependencies.DEPENDENCIES:
+            self.dependencies_dialog.set_data(dependencies.DEPENDENCIES)
+
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
-        # This is here in case the user tries to display the dialog before
-        # dependencies_thread has finished.
-        if not dependencies.DEPENDENCIES:
-            dependencies.declare_dependencies()
-
-        dlg = DependenciesDialog(self)
-        dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.show()
+        self.dependencies_dialog.show()
 
     def _compute_dependencies(self):
         """Compute dependencies without errors."""
@@ -456,10 +454,11 @@ class ApplicationContainer(PluginMainContainer):
         self.dependencies_thread.run = self._compute_dependencies
         self.dependencies_thread.finished.connect(
             self.report_missing_dependencies)
+        self.dependencies_thread.finished.connect(self._set_dependencies)
 
         # This avoids computing missing deps before the window is fully up
         dependencies_timer = QTimer(self)
-        dependencies_timer.setInterval(10000)
+        dependencies_timer.setInterval(30000)
         dependencies_timer.setSingleShot(True)
         dependencies_timer.timeout.connect(self.dependencies_thread.start)
         dependencies_timer.start()

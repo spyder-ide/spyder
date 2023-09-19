@@ -73,7 +73,7 @@ from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
-# from spyder.utils.stylesheet import MARGIN_SIZE
+# from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -472,8 +472,11 @@ class EditorMainWidget(PluginMainWidget):
         # self.register_widget_shortcuts(self.find_widget)
 
         # TODO: This is a hack! Remove it after migrating to the new API
-        # self.find_widget.layout().setContentsMargins(
-        #     2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, MARGIN_SIZE
+        #  self.find_widget.layout().setContentsMargins(
+        #     2 * AppStyle.MarginSize,
+        #     AppStyle.MarginSize,
+        #     2 * AppStyle.MarginSize,
+        #     AppStyle.MarginSize
         # )
 
         # Start autosave component
@@ -4513,7 +4516,12 @@ class EditorMainWidget(PluginMainWidget):
             # have been loaded.
             editorstack = self.get_current_editorstack()
             if editorstack:
-                self.get_current_editorstack().refresh()
+                editorstack.refresh()
+
+            # This is necessary to paint correctly the editorstack tabbars.
+            for editorstack in self.editorstacks:
+                if editorstack:
+                    editorstack.tabs.refresh_style()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)

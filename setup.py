@@ -228,7 +228,7 @@ install_requires = [
     'pyqt5<5.16',
     'pyqtwebengine<5.16',
     'python-lsp-black>=1.2.0,<3.0.0',
-    'python-lsp-server[all]>=1.7.4,<1.8.0',
+    'python-lsp-server[all]>=1.8.0,<1.9.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=22.1.0',
@@ -251,7 +251,7 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.7.4,<1.9.0')
+    install_requires.append('python-lsp-server[all]>=1.8.0,<1.10.0')
     install_requires.append('qtconsole>=5.4.2,<5.6.0')
     install_requires.append('spyder-kernels>=3.0.0b2,<3.1.0')
 
@@ -285,7 +285,7 @@ spyder_plugins_entry_points = [
     'debugger = spyder.plugins.debugger.plugin:Debugger',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
-    'external_console = spyder.plugins.externalconsole.plugin:ExternalConsole',
+    'external_terminal = spyder.plugins.externalterminal.plugin:ExternalTerminal',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',

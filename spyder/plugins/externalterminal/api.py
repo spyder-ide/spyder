@@ -4,35 +4,35 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""External console API."""
+"""External terminal API."""
 
 # Standard library imports
 from __future__ import annotations
 from typing import TypedDict
 
 
-class ExtConsolePyConfiguration(TypedDict):
-    """External console execution parameters for Python files."""
+class ExtTerminalPyConfiguration(TypedDict):
+    """External terminal execution parameters for Python files."""
 
-    # True if the external console is using custom arguments. False otherwise
+    # True if the external terminal is using custom arguments. False otherwise
     args_enabled: bool
 
-    # Custom arguments to pass to the external console.
+    # Custom arguments to pass to the external terminal.
     args: str
 
-    # True if the console should remain open once the execution finishes.
+    # True if the terminal should remain open once the execution finishes.
     # False otherwise.
     interact: bool
 
-    # True if the console is using custom Python arguments. False otherwise.
+    # True if the terminal is using custom Python arguments. False otherwise.
     python_args_enabled: bool
 
-    # Custom arguments to pass to the console.
+    # Custom arguments to pass to the terminal.
     python_args: str
 
 
-class ExtConsoleShConfiguration(TypedDict):
-    """External console execution parameters for shell files."""
+class ExtTerminalShConfiguration(TypedDict):
+    """External terminal execution parameters for shell files."""
 
     # Path/name of the shell interpreter to use.
     interpreter: str
@@ -49,5 +49,5 @@ class ExtConsoleShConfiguration(TypedDict):
     # Custom arguments to pass to the shell script.
     script_opts: str
 
-    # True if the console will be closed after execution, False otherwise.
+    # True if the terminal will be closed after execution, False otherwise.
     close_after_exec: bool
