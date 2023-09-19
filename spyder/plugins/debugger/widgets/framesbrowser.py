@@ -131,7 +131,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.finder is None:
             return False
         return self.finder.isVisible()
-    
+
     def set_pane_empty(self, empty):
         if empty:
             self.stack_layout.setCurrentWidget(self.pane_empty)
@@ -154,7 +154,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
-        
+
         # Widget empty pane
         self.pane_empty = PaneEmptyWidget(
             self,
