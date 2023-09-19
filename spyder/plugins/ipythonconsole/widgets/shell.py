@@ -204,7 +204,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         if self.kernel_handler is None:
             return False
-        return (
+        return (self.is_kernel_configured and
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady)
 
@@ -304,7 +304,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady
         ):
-            self.setup_spyder_kernel()
+            self.kernel_connect_sig()
+            self.send_spyder_kernel_configuration()
     
     def _started_channels(self):
         """Make a history request"""
@@ -393,9 +394,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.kernel_handler is None:
             return False
         return self.kernel_handler.kernel_spec_dict is None
-
-    def setup_spyder_kernel(self):
-        """Setup spyder kernel"""
+    
+    def kernel_connect_sig(self):
+        """Connect signals for kernel."""
         if not self._init_kernel_setup:
             # Only do this setup once
             self._init_kernel_setup = True
@@ -417,21 +418,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             for request_id, handler in self.kernel_comm_handlers.items():
                 self.kernel_handler.kernel_comm.register_call_handler(
                     request_id, handler)
-
-        # Setup to do after restart
-        # Check for fault and send config
-        self.kernel_handler.poll_fault_text()
-
-        self.send_spyder_kernel_configuration()
-        
-        run_lines = self.get_conf('startup/run_lines')
-        if run_lines:
-            self.execute(run_lines, hidden=True)
-        
-        if self.get_conf('startup/use_run_file'):
-            run_file = self.get_conf('startup/run_file')
-            if run_file:
-                self.execute(f"exec(open({run_file}))", hidden=True)
+        else:
+            # kernel might have restarted
+            self.kernel_handler.poll_fault_text()
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
@@ -470,6 +459,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             callback=self.kernel_configure_callback
         ).set_configuration(self._kernel_configuration)
 
+        run_lines = self.get_conf('startup/run_lines')
+        if run_lines:
+            self.execute(run_lines, hidden=True)
+        
+        if self.get_conf('startup/use_run_file'):
+            run_file = self.get_conf('startup/run_file')
+            if run_file:
+                self.execute(f"exec(open({run_file}))", hidden=True)
+        
         self.is_kernel_configured = True
 
     def set_kernel_configuration(self, key, value):

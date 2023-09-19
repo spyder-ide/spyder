@@ -1454,10 +1454,11 @@ class IPythonConsoleWidget(
                          str_id='A')
 
         # Find what kind of kernel we want
-        if self.get_conf('pylab/autoload'):
-            special = "pylab"
-        elif self.get_conf('symbolic_math'):
-            special = "sympy"
+        if special is None:
+            if self.get_conf('pylab/autoload'):
+                special = "pylab"
+            elif self.get_conf('symbolic_math'):
+                special = "sympy"
 
         client = ClientWidget(
             self,
