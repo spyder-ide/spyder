@@ -682,13 +682,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_color_scheme(self, color_scheme, reset=True):
         """Set color scheme of the shell."""
+        color_changed = self.syntax_style != color_scheme
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
         self._syntax_style_changed()
-        if reset:
-            self.reset(clear=True)
+        if reset and color_changed:
+            self.reset()
         if not self.spyder_kernel_ready:
             # Will be sent later
             return

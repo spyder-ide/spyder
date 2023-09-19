@@ -1703,6 +1703,9 @@ class IPythonConsoleWidget(
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
+        if client is None:
+            # Nothing to do?
+            return
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
