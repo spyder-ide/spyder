@@ -46,7 +46,7 @@ from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
     QApplication, QCheckBox, QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
     QMenu, QMessageBox, QPushButton, QTableView, QScrollBar, QTableWidget,
-    QFrame, QItemDelegate, QVBoxLayout)
+    QFrame, QItemDelegate, QVBoxLayout, QLabel, QDialog)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -842,18 +842,49 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         index = self.header_class.logicalIndex(pos.column())
         if index >= 0:
             model_index = self.header_class.model().index(0, index)
-            value, confirmation = QInputDialog.getText(
-                self,
-                _("Enter a value"),
-                _("Enter a value"),
-                QLineEdit.Normal,
-                ""
-            )
+            index_number_rows = 1
+            if type(self.model().df.columns[0]) is tuple:
+                index_number_rows = len(self.model().df.columns[0])
+            if index_number_rows > 1:
+                dialog = QInputDialog()
+                dialog.setWindowTitle("Enter the values")
+                label = QLabel("Enter the values:")
+                dialog.show()
+                dialog.findChild(QLineEdit).hide()
+                dialog.findChild(QLabel).hide()
+                lines = []
+                for row in range(index_number_rows):
+                    line = QLineEdit(text=self.model().df.columns[index][row])
+                    dialog.layout().insertWidget(row, line)
+                    lines.append(line)
+                dialog.layout().insertWidget(0, label)
+                dialog.hide()
+                confirmation = dialog.exec_() == QDialog.Accepted
+                if confirmation:
+                    value = tuple(line.text() for line in lines)
+            else:
+                value, confirmation = QInputDialog.getText(
+                    self,
+                    _("Enter a value"),
+                    _("Enter a value"),
+                    QLineEdit.Normal,
+                    ""
+                )
 
             if confirmation:
                 if value not in self.model().df.columns.tolist():
-                    self.header_class.model().setData(model_index, value,
-                                                      Qt.EditRole)
+                    if type(value) is tuple:
+                        n_cols = len(self.model().df.columns)
+                        cols = self.model().df.columns
+                        names = cols.names
+                        cols = self.model().df.columns.tolist()[0:index] + \
+                            [value] + \
+                            self.model().df.columns.tolist()[index+1:n_cols]
+                        self.model().df.columns = \
+                            pd.MultiIndex.from_tuples(cols, names=names)
+                    else:
+                        self.header_class.model().setData(model_index, value,
+                                                          Qt.EditRole)
                     self.parent()._reload()
                     self.model().dataChanged.emit(pos, pos)
                 else:
@@ -902,7 +933,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 eval_type = (
                     module
                     + '.'
-                    + df.iat[row, column].__class__.__name__ 
+                    + df.iat[row, column].__class__.__name__
                     + '('')'
                 )
 
@@ -911,7 +942,17 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             if type(indexes[column]) != str:
                 new_name = indexes[column]
             if new_name in indexes:
-                new_name = self.next_index_name(indexes, new_name)
+                if type(new_name) is tuple:
+                    tuple_idx = []
+                    new_tuple = []
+                    for idx in indexes:
+                        tuple_idx = tuple_idx + list(idx)
+                    for idx in range(len(new_name)):
+                        new_tuple.append(self.next_index_name(tuple_idx,
+                                                              new_name[idx]))
+                    new_name = tuple(new_tuple)
+                else:
+                    new_name = self.next_index_name(indexes, new_name)
             df.insert(
                 loc=column + step,
                 column=new_name,
@@ -992,12 +1033,20 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             indexes = df.axes[1].tolist()
             label = indexes[column]
             indexes.remove(label)
-            new_name = self.next_index_name(indexes, label)
-            df.insert(loc=column, column="dup_col", value='',
+            if type(label) is tuple:
+                tuple_idx = []
+                new_tuple = []
+                for idx in indexes:
+                    tuple_idx = tuple_idx + list(idx)
+                for idx in range(len(label)):
+                    new_tuple.append(self.next_index_name(tuple_idx,
+                                                          label[idx]))
+                new_name = tuple(new_tuple)
+            else:
+                new_name = self.next_index_name(indexes, label)
+            df.insert(loc=column, column=new_name, value='',
                       allow_duplicates=True)
-            df['dup_col'] = df.iloc[:, column + 1]
-            df.axes[1].values[column] = 'dup_col'
-            df.rename(columns={'dup_col': new_name}, inplace=True)
+            df[new_name] = df.iloc[:, column + 1]
             self.model().max_min_col_update()
 
         self.parent()._reload()
@@ -1011,7 +1060,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         ind = -1
         name = ''
         acceptable_types = [str, float, int, complex, bool] + \
-                            list(REAL_NUMBER_TYPES) + list(COMPLEX_NUMBER_TYPES)
+            list(REAL_NUMBER_TYPES) + list(COMPLEX_NUMBER_TYPES)
         if type(label) not in acceptable_types:
             # Case receiving a different type of acceptable_type,
             # treat as string
@@ -1330,18 +1379,28 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
                 old_value = df.index[index.row()]
 
                 if value not in df.index.tolist():
-                    try:
-                        df.rename(index={old_value: value}, inplace=True,
-                                  errors='raise')
-                    except TypeError as e:
-                        QMessageBox.warning(
-                            self.model().dialog,
-                            _("Warning: It was not possible to remove this "
-                              "index!"),
-                            _("ValueError: {} must be removed from "
-                              "index.").format(str(e))
-                        )
-                        return False
+                    if type(old_value) is tuple:
+                        old_value_list = list(old_value)
+                        rows = df.index
+                        names = rows.names
+                        old_value_list[index.column()] = value
+                        rows = (df.index.tolist()[0:index.row()] +
+                                [tuple(old_value_list)] +
+                                df.index.tolist()[index.row()+1:])
+                        df.index = pd.MultiIndex.from_tuples(rows, names=names)
+                    else:
+                        try:
+                            df.rename(index={old_value: value}, inplace=True,
+                                      errors='raise')
+                        except TypeError as e:
+                            QMessageBox.warning(
+                                self.model().dialog,
+                                _("Warning: It was not possible to remove "
+                                  "this index!"),
+                                _("ValueError: {} must be removed from "
+                                  "index.").format(str(e))
+                            )
+                            return False
                 else:
                     QMessageBox.warning(
                         self.model().dialog,
