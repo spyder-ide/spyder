@@ -75,6 +75,7 @@ class WorkerUpdates(QObject):
         if is_stable_version(self.version):
             # If current version is stable, only use stable releases
             releases = [r for r in releases if is_stable_version(r)]
+        logger.debug(f"Available versions: {releases}")
 
         # If releases is empty, default to current version
         self.latest_release = releases[-1] if releases else self.version
