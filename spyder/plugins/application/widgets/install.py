@@ -260,15 +260,6 @@ class UpdateInstallerDialog(QDialog):
         if self.cancelled:
             return
 
-        self.installer_path = None
-        # Get data from WorkerDownload
-        if self.download_worker:
-            if self.download_worker.error:
-                # If download error, do not proceed with install
-                self._change_update_download_status(NO_STATUS)
-                return
-            self.installer_path = self.download_worker.installer_path
-
         msg_box = QMessageBox(
             icon=QMessageBox.Question,
             text=_("Would you like to proceed with the installation?<br><br>"),
@@ -276,6 +267,20 @@ class UpdateInstallerDialog(QDialog):
         )
         msg_box.setWindowTitle(_("Spyder update"))
         msg_box.setAttribute(Qt.WA_ShowWithoutActivating)
+
+        self.installer_path = None
+        # Get data from WorkerDownload
+        if self.download_worker:
+            if self.download_worker.error:
+                # If download error, do not proceed with install
+                msg_box.setIcon(QMessageBox.Warning)
+                msg_box.setText(self.download_worker.error)
+                msg_box.addButton(QMessageBox.Ok)
+                msg_box.exec_()
+                self._change_update_download_status(status=PENDING)
+                return
+            self.installer_path = self.download_worker.installer_path
+
         if is_conda_based_app():
             # Only add yes button for conda-based installers
             yes_button = msg_box.addButton(QMessageBox.Yes)

@@ -21,7 +21,6 @@ from urllib.error import URLError, HTTPError
 # Third party imports
 from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
-from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder import __version__
@@ -259,16 +258,6 @@ class WorkerDownloadInstaller(QObject):
             logger.debug(exc, stack_info=True)
             error_msg = _('Unable to download the installer.')
         self.error = error_msg
-
-        if error_msg:
-            msg_box = QMessageBox(
-                icon=QMessageBox.Warning,
-                text=error_msg,
-                parent=self._parent
-            )
-            msg_box.setWindowTitle(_("Spyder update"))
-            msg_box.addButton(QMessageBox.Ok)
-            msg_box.exec_()
 
         try:
             self.sig_ready.emit()
