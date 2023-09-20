@@ -1419,7 +1419,7 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
                 try:
                     df.rename(columns={old_value: value}, inplace=True,
                               errors='raise')
-                except:
+                except Exception:
                     return False
 
                 return True
