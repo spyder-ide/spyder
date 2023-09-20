@@ -108,17 +108,14 @@ class ApplicationContainer(PluginMainContainer):
 
         # Attributes
         self.dialog_manager = DialogManager()
-        self.application_update_status = None
-        if is_conda_based_app():
-            self.application_update_status = ApplicationUpdateStatus(
-                parent=self)
-            (self.application_update_status.sig_check_for_updates_requested
+        self.application_update_status = ApplicationUpdateStatus(parent=self)
+        (self.application_update_status.sig_check_for_updates_requested
              .connect(self.check_updates))
-            (self.application_update_status.sig_install_on_close_requested
-                 .connect(self.set_install_on_close))
-            self.application_update_status.sig_quit_requested.connect(
-                self.sig_quit_requested)
-            self.application_update_status.set_no_status()
+        (self.application_update_status.sig_install_on_close_requested
+             .connect(self.set_install_on_close))
+        self.application_update_status.sig_quit_requested.connect(
+            self.sig_quit_requested)
+        self.application_update_status.set_no_status()
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
@@ -276,8 +273,7 @@ class ApplicationContainer(PluginMainContainer):
              or not update_available)             # or no updates available
         ):
             # Just set status and return
-            if self.application_update_status:
-                self.application_update_status.set_no_status()
+            self.application_update_status.set_no_status()
             self.check_updates_action.setDisabled(False)
             self.give_updates_feedback = True
             return
@@ -386,8 +382,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
             box.setText(_("Spyder is up to date."))
             box.exec_()
-            if self.application_update_status:
-                self.application_update_status.set_no_status()
+            self.application_update_status.set_no_status()
 
         self.set_conf(option, box.is_checked())
 
@@ -400,8 +395,7 @@ class ApplicationContainer(PluginMainContainer):
         logger.debug(f"Checking for updates. startup = {startup}.")
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
-        if self.application_update_status:
-            self.application_update_status.set_status_checking()
+        self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()
@@ -412,9 +406,8 @@ class ApplicationContainer(PluginMainContainer):
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
-        if self.application_update_status:
-            self.thread_updates.started.connect(
-                self.application_update_status.set_status_checking)
+        self.thread_updates.started.connect(
+            self.application_update_status.set_status_checking)
         self.thread_updates.started.connect(self.worker_updates.start)
 
         # Delay starting this check to avoid blocking the main window
@@ -424,10 +417,9 @@ class ApplicationContainer(PluginMainContainer):
             self.updates_timer = QTimer(self)
             self.updates_timer.setInterval(60000)
             self.updates_timer.setSingleShot(True)
-            if self.application_update_status:
-                self.application_update_status.blockSignals(True)
-                self.updates_timer.timeout.connect(
-                    lambda: self.application_update_status.blockSignals(False))
+            self.application_update_status.blockSignals(True)
+            self.updates_timer.timeout.connect(
+                lambda: self.application_update_status.blockSignals(False))
             self.updates_timer.timeout.connect(self.thread_updates.start)
             self.updates_timer.start()
         else:
