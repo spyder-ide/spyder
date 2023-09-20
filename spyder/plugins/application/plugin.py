@@ -149,8 +149,8 @@ class Application(SpyderPluginV2):
 
         # Check for updates
         if DEV is None and self.get_conf('check_updates_on_startup'):
-            container.give_updates_feedback = False
-            container.check_updates(startup=True)
+            container.startup = True
+            container.check_updates()
 
         # Handle DPI scale and window changes to show a restart message.
         # Don't activate this functionality on macOS because it's being

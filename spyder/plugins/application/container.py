@@ -116,7 +116,7 @@ class ApplicationContainer(PluginMainContainer):
         self.application_update_status.sig_quit_requested.connect(
             self.sig_quit_requested)
         self.application_update_status.set_no_status()
-        self.give_updates_feedback = False
+        self.startup = False
         self.thread_updates = None
         self.worker_updates = None
         self.updates_timer = None
@@ -262,20 +262,18 @@ class ApplicationContainer(PluginMainContainer):
         update_from_github = self.worker_updates.update_from_github
         error_msg = self.worker_updates.error
 
-        # give_updates_feedback = False is used on startup, so only positive
-        # feedback is given. give_updates_feedback = True is used after startup
-        # when using the menu action, and gives feeback if updates are, or are
-        # not found.
+        # self.startup = True is used on startup, so only positive feedback is
+        # given. self.startup = False is used after startup when using the menu
+        # action, and gives feeback if updates are, or are not found.
         if (
-            not self.give_updates_feedback and    # startup and...
+            self.startup and                       # startup and...
             ('dev' in self.worker_updates.version  # current version is dev
-             or error_msg is not None             # or there is an error
-             or not update_available)             # or no updates available
+             or error_msg is not None              # or there is an error
+             or not update_available)              # or no updates available
         ):
             # Just set status and return
             self.application_update_status.set_no_status()
             self.check_updates_action.setDisabled(False)
-            self.give_updates_feedback = True
             return
 
         url_i = 'https://docs.spyder-ide.org/current/installation.html'
@@ -390,9 +388,9 @@ class ApplicationContainer(PluginMainContainer):
         self.check_updates_action.setDisabled(False)
 
     @Slot()
-    def check_updates(self, startup=False):
+    def check_updates(self):
         """Check for spyder updates on github releases using a QThread."""
-        logger.debug(f"Checking for updates. startup = {startup}.")
+        logger.debug(f"Checking for updates. startup = {self.startup}.")
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
         self.application_update_status.set_status_checking()
@@ -413,7 +411,7 @@ class ApplicationContainer(PluginMainContainer):
         # Delay starting this check to avoid blocking the main window
         # while loading.
         # Fixes spyder-ide/spyder#15839
-        if startup:
+        if self.startup:
             self.updates_timer = QTimer(self)
             self.updates_timer.setInterval(60000)
             self.updates_timer.setSingleShot(True)
@@ -422,6 +420,7 @@ class ApplicationContainer(PluginMainContainer):
                 lambda: self.application_update_status.blockSignals(False))
             self.updates_timer.timeout.connect(self.thread_updates.start)
             self.updates_timer.start()
+            self.startup = False
         else:
             # Otherwise, start immediately
             self.thread_updates.start()
