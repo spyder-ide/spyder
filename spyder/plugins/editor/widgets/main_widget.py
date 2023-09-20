@@ -1194,6 +1194,9 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Private API
     # ------------------------------------------------------------------------
+    def get_color_scheme(self):
+        return self._plugin.get_color_scheme()
+
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         # Widget is now visible, we may center cursor on top level editor:
@@ -2271,7 +2274,7 @@ class EditorMainWidget(PluginMainWidget):
     def update_font(self, font):
         """Update font from Preferences"""
         self._font = font
-        color_scheme = self._plugin.get_color_scheme()  # TODO: Should be available for the main_widgets too?
+        color_scheme = self.get_color_scheme()  # TODO: Should be available for the main_widgets too?
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
             completion_size = self.get_conf('completion/size', section='main')
@@ -2551,7 +2554,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
         editorstack.set_edgeline_columns(edge_line_columns)
-        color_scheme = self._plugin.get_color_scheme()  # TODO: Should be available for the main_widgets too?
+        color_scheme = self.get_color_scheme()  # TODO: Should be available for the main_widgets too?
         editorstack.set_default_font(self._font, color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)

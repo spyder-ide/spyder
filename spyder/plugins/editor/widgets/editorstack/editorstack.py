@@ -721,7 +721,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         """Get the plugin of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#10684.
-        return self.parent().plugin
+        return self.parent().main_widget
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
@@ -1249,7 +1249,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     #  ------ Hor/Ver splitting
     def __get_split_actions(self):
         if self.parent() is not None:
-            plugin = self.parent().plugin
+            plugin = self.parent().main_widget
         else:
             plugin = None
 
@@ -1470,7 +1470,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             else:
                 new_index = current_index
 
-        can_close_file = self.parent().plugin.can_close_file(
+        can_close_file = self.parent().main_widget.can_close_file(
             self.data[index].filename) if self.parent() else True
         is_ok = (force or self.save_if_changed(cancelable=True, index=index)
                  and can_close_file)

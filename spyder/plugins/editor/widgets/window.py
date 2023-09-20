@@ -341,15 +341,17 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
             self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
 
 
-class EditorPluginExample(QSplitter):
+class EditorMainWidgetExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
-        self._dock_action = None
-        self._undock_action = None
-        self._close_plugin_action = None
-        self._undocked_window = None
-        self._lock_unlock_action = None
+        self._plugin = None
+
+        self.dock_action = None
+        self.undock_action = None
+        self.close_action = None
+        self.windowwidget = None
+        self.lock_unlock_action = None
         menu_actions = []
 
         self.editorstacks = []
@@ -490,9 +492,9 @@ class EditorPluginExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def register_widget_shortcuts(self, widget):
-        """Fake!"""
-        pass
+    # def register_widget_shortcuts(self, widget):
+    #     """Fake!"""
+    #     pass
 
     def get_color_scheme(self):
         pass
@@ -505,7 +507,7 @@ def test():
     spyder_dir = get_module_path('spyder')
     app = qapplication(test_time=8)
 
-    test = EditorPluginExample()
+    test = EditorMainWidgetExample()
     test.resize(900, 700)
     test.show()
 
