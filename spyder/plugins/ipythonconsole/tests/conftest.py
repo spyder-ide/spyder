@@ -34,7 +34,7 @@ from spyder.utils.conda import get_list_conda_envs
 # =============================================================================
 # ---- Constants
 # =============================================================================
-SHELL_TIMEOUT = 20000
+SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NEW_DIR = 'new_workingdir'
 
