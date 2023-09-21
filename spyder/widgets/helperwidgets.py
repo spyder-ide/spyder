@@ -12,6 +12,7 @@ Helper widgets.
 import re
 
 # Third party imports
+import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
@@ -34,8 +35,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import AppStyle
-
+from spyder.utils.stylesheet import AppStyle, DialogStyle
+from spyder.utils.qthelpers import create_waitspinner
 
 
 # Valid finder chars. To be improved
@@ -557,13 +558,23 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
 class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
     """Widget to show a pane/plugin functionality description."""
 
-    def __init__(self, parent, icon_filename, text, description):
+    def __init__(
+        self,
+        parent,
+        icon_filename,
+        text=None,
+        description=None,
+        top_stretch: int = 1,
+        middle_stretch: int = 1,
+        bottom_stretch: int = 0,
+        spinner: bool = False,
+    ):
         super().__init__(parent)
 
         interface_font_size = self.get_font(
             SpyderFontType.Interface).pointSize()
 
-        # Image
+        # Image (icon)
         image_label = QLabel(self)
         image_label.setPixmap(self.get_icon(icon_filename))
         image_label.setAlignment(Qt.AlignCenter)
@@ -572,37 +583,65 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         image_label.setStyleSheet(image_label_qss.toString())
 
         # Main text
-        text_label = QLabel(text, parent=self)
-        text_label.setAlignment(Qt.AlignCenter)
-        text_label.setWordWrap(True)
-        text_label_qss = qstylizer.style.StyleSheet()
-        text_label_qss.QLabel.setValues(
-            fontSize=f'{interface_font_size + 5}pt',
-            border="0px"
-        )
-        text_label.setStyleSheet(text_label_qss.toString())
+        if text is not None:
+            text_label = QLabel(text, parent=self)
+            text_label.setAlignment(Qt.AlignCenter)
+            text_label.setWordWrap(True)
+            text_label_qss = qstylizer.style.StyleSheet()
+            text_label_qss.QLabel.setValues(
+                fontSize=f"{interface_font_size + 5}pt", border="0px"
+            )
+            text_label.setStyleSheet(text_label_qss.toString())
 
         # Description text
-        description_label = QLabel(description, parent=self)
-        description_label.setAlignment(Qt.AlignCenter)
-        description_label.setWordWrap(True)
-        description_label_qss = qstylizer.style.StyleSheet()
-        description_label_qss.QLabel.setValues(
-            fontSize=f"{interface_font_size}pt",
-            backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
-            border="0px",
-            padding="20px"
-        )
-        description_label.setStyleSheet(description_label_qss.toString())
+        if description is not None:
+            description_label = QLabel(description, parent=self)
+            description_label.setAlignment(Qt.AlignCenter)
+            description_label.setWordWrap(True)
+            description_label_qss = qstylizer.style.StyleSheet()
+            description_label_qss.QLabel.setValues(
+                fontSize=f"{interface_font_size}pt",
+                backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
+                border="0px",
+                padding="20px",
+            )
+            description_label.setStyleSheet(description_label_qss.toString())
 
         # Setup layout
         pane_empty_layout = QVBoxLayout()
-        pane_empty_layout.addStretch(1)
+
+        # Add the top stretch
+        pane_empty_layout.addStretch(top_stretch)
+
+        # add the image_lebel (icon)
         pane_empty_layout.addWidget(image_label)
-        pane_empty_layout.addWidget(text_label)
-        pane_empty_layout.addStretch(2)
-        pane_empty_layout.addWidget(description_label)
-        pane_empty_layout.setContentsMargins(10, 0, 10, 10)
+
+        # Display spinner if requested
+        if spinner is not False:
+            spin_widget = qta.IconWidget()
+            spin_icon = qta.icon(
+                "mdi.loading",
+                color="white",
+                animation=qta.Spin(spin_widget, interval=3),
+            )
+            spin_widget.setIconSize(QSize(32, 32))
+            spin_widget.setIcon(spin_icon)
+            spin_widget.setStyleSheet(image_label_qss.toString())
+            spin_widget.setAlignment(Qt.AlignCenter)
+            pane_empty_layout.addWidget(spin_widget)
+            pane_empty_layout.addItem(QSpacerItem(20, 20))
+
+        # If text, display text and stretch
+        if text is not None:
+            pane_empty_layout.addWidget(text_label)
+            pane_empty_layout.addStretch(middle_stretch)
+
+        # If description, display description
+        if description is not None:
+            pane_empty_layout.addWidget(description_label)
+
+        pane_empty_layout.addStretch(bottom_stretch)
+        pane_empty_layout.setContentsMargins(20, 0, 20, 20)
         self.setLayout(pane_empty_layout)
 
         # Setup border style
