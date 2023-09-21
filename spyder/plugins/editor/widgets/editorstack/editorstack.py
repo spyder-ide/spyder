@@ -28,7 +28,8 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QSizePolicy, QToolBar)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+# from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -50,7 +51,7 @@ from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (add_actions, create_action,
+from spyder.utils.qthelpers import (add_actions,  # create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons,
                                     create_waitspinner)
@@ -60,8 +61,23 @@ from spyder.widgets.tabs import BaseTabs
 
 logger = logging.getLogger(__name__)
 
-# TODO: Make it a SpyderWidgetMixin
-class EditorStack(QWidget, SpyderConfigurationAccessor):
+
+class EditorStackActions:
+    CopyAbsolutePath = "copy_absolute_path_action"
+    CopyRelativePath = "copy_relative_path_action"
+    CloseAllRight = "close_all_rigth_action"
+    CloseAllButThis = "close_all_but_this_action"
+    SortTabs = "sort_tabs_action"
+    ShowInExternalFileExplorer = "show in external file explorer"
+    NewWindow = "new_window_action"
+    SplitVertically = "split vertically"
+    SplitHorizontally = "split horizontally"
+    CloseSplitPanel = "close split panel"
+    CloseWindow = "close_window_action"
+
+
+# TODO: Make it a SpyderWidgetMixin?
+class EditorStack(QWidget, SpyderWidgetMixin):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
@@ -163,7 +179,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        QWidget.__init__(self, parent)
+        # QWidget.__init__(self, parent)
+        super().__init__(parent, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -171,7 +188,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.new_window = False
         self.horsplit_action = None
         self.versplit_action = None
-        self.close_action = None
+        self.close_split_action = None
         self.__get_split_actions()
 
         layout = QVBoxLayout()
@@ -199,53 +216,66 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         # TODO: Use self.create_action
         switcher_action = None
         symbolfinder_action = None
-        if use_switcher and self.get_plugin()._plugin.main: # TODO: Change access to main
+        # TODO: Change access to main and plugin/main_widget
+        if use_switcher and self.get_plugin()._plugin.main:
             self.switcher_plugin = self.get_plugin()._plugin.main.switcher
             if self.switcher_plugin:
                 switcher_action = self.switcher_plugin.get_action(
                     "file switcher")
                 symbolfinder_action = self.switcher_plugin.get_action(
                     "symbol finder")
-        copy_absolute_path_action = create_action(
-            self,
-            _("Copy absolute path"),
-            icon=ima.icon('editcopy'),
+        copy_absolute_path_action = self.create_action(
+            EditorStackActions.CopyAbsolutePath,
+            text=_("Copy absolute path"),
+            icon=self.create_icon('editcopy'),
             triggered=lambda: self.copy_absolute_path()
         )
-        copy_relative_path_action = create_action(
-            self,
-            _("Copy relative path"),
-            icon=ima.icon('editcopy'),
-            triggered=lambda:
-            self.copy_relative_path()
+        copy_relative_path_action = self.create_action(
+            EditorStackActions.CopyRelativePath,
+            text=_("Copy relative path"),
+            icon=self.create_icon('editcopy'),
+            triggered=lambda: self.copy_relative_path()
         )
-        close_right = create_action(self, _("Close all to the right"),
-                                    triggered=self.close_all_right)
-        close_all_but_this = create_action(self, _("Close all but this"),
-                                           triggered=self.close_all_but_this)
-
-        sort_tabs = create_action(
-            self, _("Sort tabs alphabetically"),
-            triggered=self.sort_file_tabs_alphabetically)
+        close_right = self.create_action(
+            EditorStackActions.CloseAllRight,
+            text=_("Close all to the right"),
+            triggered=self.close_all_right
+        )
+        close_all_but_this = self.create_action(
+            EditorStackActions.CloseAllButThis,
+            text=_("Close all but this"),
+            triggered=self.close_all_but_this
+        )
+        sort_tabs = self.create_action(
+            EditorStackActions.SortTabs,
+            text=_("Sort tabs alphabetically"),
+            triggered=self.sort_file_tabs_alphabetically
+        )
 
         if sys.platform == 'darwin':
             text = _("Show in Finder")
         else:
             text = _("Show in external file explorer")
-        external_fileexp_action = create_action(
-            self, text,
+        external_fileexp_action = self.create_action(
+            EditorStackActions.ShowInExternalFileExplorer,
+            text=text,
             triggered=self.show_in_external_file_explorer,
-            shortcut=self.get_shortcut(context="Editor",
-                                       name="show in external file explorer"),
-            context=Qt.WidgetShortcut)
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
 
-        self.menu_actions = actions + [external_fileexp_action,
-                                    MENU_SEPARATOR, switcher_action,
-                                    symbolfinder_action,
-                                    copy_absolute_path_action,
-                                    copy_relative_path_action, MENU_SEPARATOR,
-                                    close_right,
-                                    close_all_but_this, sort_tabs]
+        self.menu_actions = actions + [
+            external_fileexp_action,
+            MENU_SEPARATOR,
+            switcher_action,
+            symbolfinder_action,
+            copy_absolute_path_action,
+            copy_relative_path_action,
+            MENU_SEPARATOR,
+            close_right,
+            close_all_but_this,
+            sort_tabs
+        ]
         self.outlineexplorer = None
         self.is_closable = False
         self.new_action = None
@@ -591,8 +621,11 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         layout.addWidget(self.top_toolbar)
 
         # Tabbar
-        menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
-                                     tip=_('Options'))
+        menu_btn = create_toolbutton(
+            self,
+            icon=self.create_icon('tooloptions'),
+            tip=_('Options')
+        )
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
@@ -1241,7 +1274,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
         add_actions(self.menu, list(actions) + self.__get_split_actions())
-        self.close_action.setEnabled(self.is_closable)
+        self.close_split_action.setEnabled(self.is_closable)
 
         if sys.platform == 'darwin':
             set_menu_icons(self.menu, True)
@@ -1249,68 +1282,70 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     #  ------ Hor/Ver splitting
     def __get_split_actions(self):
         if self.parent() is not None:
-            plugin = self.parent().main_widget
+            main_widget = self.parent().main_widget
         else:
-            plugin = None
+            main_widget = None
 
         # New window
-        if plugin is not None:
-            self.new_window_action = create_action(
-                self, _("New window"),
-                icon=ima.icon('newwindow'),
+        if main_widget is not None:
+            self.new_window_action = self.create_action(
+                EditorStackActions.NewWindow,
+                text=_("New window"),
+                icon=self.create_icon('newwindow'),
                 tip=_("Create a new editor window"),
-                triggered=plugin.create_new_window)
+                triggered=main_widget.create_new_window
+            )
 
         # Splitting
-        self.versplit_action = create_action(
-            self,
-            _("Split vertically"),
-            icon=ima.icon('versplit'),
+        self.versplit_action = self.create_action(
+            EditorStackActions.SplitVertically,
+            text=_("Split vertically"),
+            icon=self.create_icon('versplit'),
             tip=_("Split vertically this editor window"),
             triggered=self.sig_split_vertically,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='split vertically'),
-            context=Qt.WidgetShortcut)
-
-        self.horsplit_action = create_action(
-            self,
-            _("Split horizontally"),
-            icon=ima.icon('horsplit'),
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.horsplit_action = self.create_action(
+            EditorStackActions.SplitHorizontally,
+            text=_("Split horizontally"),
+            icon=self.create_icon('horsplit'),
             tip=_("Split horizontally this editor window"),
             triggered=self.sig_split_horizontally,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='split horizontally'),
-            context=Qt.WidgetShortcut)
-
-        self.close_action = create_action(
-            self,
-            _("Close this panel"),
-            icon=ima.icon('close_panel'),
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.close_split_action = self.create_action(
+            EditorStackActions.CloseSplitPanel,
+            text=_("Close this panel"),
+            icon=self.create_icon('close_panel'),
             triggered=self.close_split,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='close split panel'),
-            context=Qt.WidgetShortcut)
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
 
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,
-                   self.horsplit_action, self.close_action]
+                   self.horsplit_action, self.close_split_action]
 
         if self.new_window:
             window = self.window()
-            close_window_action = create_action(
-                self, _("Close window"),
-                icon=ima.icon('close_pane'),
-                triggered=window.close)
+            close_window_action = self.create_action(
+                EditorStackActions.CloseWindow,
+                text=_("Close window"),
+                icon=self.create_icon('close_pane'),
+                triggered=window.close
+            )
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]
-        elif plugin is not None:
-            if plugin.windowwidget is not None:
-                actions += [MENU_SEPARATOR, plugin._dock_action]
+        elif main_widget is not None:
+            if main_widget.windowwidget is not None:
+                actions += [MENU_SEPARATOR, main_widget.dock_action]
             else:
                 actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin.lock_unlock_action,
-                            plugin.dock_action,
-                            plugin.close_action]
+                            main_widget.lock_unlock_action,
+                            main_widget.undock_action,
+                            main_widget.close_action]
 
         return actions
 
@@ -1487,9 +1522,9 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
-            if self.parent():
-                # Can be None in tests
-                self.get_plugin().unregister_widget_shortcuts(editor)
+            # if self.parent():
+            #     # Can be None in tests
+            #     self.get_plugin().unregister_widget_shortcuts(editor)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing

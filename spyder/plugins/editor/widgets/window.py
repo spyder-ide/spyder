@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -31,8 +31,8 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action,
+# from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import (add_actions,  # create_action,
                                     create_toolbutton)
 from spyder.utils.stylesheet import APP_STYLESHEET, APP_TOOLBAR_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
@@ -41,10 +41,14 @@ from spyder.widgets.findreplace import FindReplace
 logger = logging.getLogger(__name__)
 
 
+class EditorMainWindowActions:
+    CloseWindow = "close_window_action"
+
+
 class EditorWidget(QSplitter):
     CONF_SECTION = 'editor'
 
-    def __init__(self, parent, plugin, menu_actions, outline_plugin):
+    def __init__(self, parent, main_widget, menu_actions, outline_plugin):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -63,7 +67,7 @@ class EditorWidget(QSplitter):
 
         self.editorstacks = []
 
-        self.plugin = plugin
+        self.main_widget = main_widget
 
         self.find_widget = FindReplace(self, enable_replace=True)
         # self.plugin.register_widget_shortcuts(self.find_widget)
@@ -94,8 +98,8 @@ class EditorWidget(QSplitter):
 
             self.outlineexplorer.edit_goto.connect(
                 lambda filenames, goto, word:
-                plugin.load(filenames=filenames, goto=goto, word=word,
-                            editorwindow=self.parent())
+                main_widget.load(filenames=filenames, goto=goto, word=word,
+                                 editorwindow=self.parent())
             )
 
             # Start symbol services for all supported languages
@@ -112,7 +116,7 @@ class EditorWidget(QSplitter):
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(
             self,
-            plugin,
+            main_widget,
             menu_actions,
             register_editorstack_cb=self.register_editorstack,
             unregister_editorstack_cb=self.unregister_editorstack
@@ -134,7 +138,7 @@ class EditorWidget(QSplitter):
         self.__print_editorstacks()
 
         self.editorstacks.append(editorstack)
-        self.plugin.last_focused_editorstack[self.parent()] = editorstack
+        self.main_widget.last_focused_editorstack[self.parent()] = editorstack
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
@@ -148,7 +152,7 @@ class EditorWidget(QSplitter):
         editorstack.sig_editor_cursor_position_changed.connect(
             self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
-        self.plugin.register_editorstack(editorstack)
+        self.main_widget.register_editorstack(editorstack)
 
     def __print_editorstacks(self):
         logger.debug(
@@ -159,7 +163,7 @@ class EditorWidget(QSplitter):
 
     def unregister_editorstack(self, editorstack):
         logger.debug("Unregistering editorstack")
-        self.plugin.unregister_editorstack(editorstack)
+        self.main_widget.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         self.__print_editorstacks()
 
@@ -192,20 +196,22 @@ class EditorWidget(QSplitter):
             self.outlineexplorer.change_tree_visibility(True)
 
 
-class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
+# TODO: Should extend from SpyderToolbarMixin?
+class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
     sig_window_state_changed = Signal(object)
 
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
+    def __init__(self, main_widget, menu_actions, toolbar_list, menu_list,
                  outline_plugin, parent=None):
         # Parent needs to be `None` if the the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        QMainWindow.__init__(self, parent)
+        super(EditorMainWindow, self).__init__(parent)
+        # QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.plugin = plugin
+        self.main_widget = main_widget
         self.window_size = None
 
-        self.editorwidget = EditorWidget(self, plugin, menu_actions,
+        self.editorwidget = EditorWidget(self, main_widget, menu_actions,
                                          outline_plugin)
         self.sig_window_state_changed.connect(
             self.editorwidget.on_window_state_changed)
@@ -220,8 +226,8 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
         if editor is not None:
             editor.setFocus()
 
-        self.setWindowTitle("Spyder - %s" % plugin.windowTitle())
-        self.setWindowIcon(plugin.windowIcon())
+        self.setWindowTitle("Spyder - %s" % main_widget.windowTitle())
+        self.setWindowIcon(main_widget.windowIcon())
 
         self.toolbars = []
         if toolbar_list:
@@ -235,10 +241,13 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         self.menus = []
         if menu_list:
-            quit_action = create_action(self, _("Close window"),
-                                        icon=ima.icon("close_pane"),
-                                        tip=_("Close this window"),
-                                        triggered=self.close)
+            quit_action = self.create_action(
+                EditorMainWindowActions.CloseWindow,
+                _("Close window"),
+                icon=self.create_icon("close_pane"),
+                tip=_("Close this window"),
+                triggered=self.close
+            )
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)
                 if index == 0:
@@ -248,9 +257,9 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
                     add_actions(menu, actions)
                 self.menus.append(menu)
 
-    def get_toolbars(self):
-        """Get the toolbars."""
-        return self.toolbars
+    # def get_toolbars(self):
+    #     """Get the toolbars."""
+    #     return self.toolbars
 
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""
@@ -291,13 +300,13 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
     def closeEvent(self, event):
         """Reimplement Qt method"""
         self.editorwidget.unregister_all_editorstacks()
-        if self.plugin.windowwidget is not None:
-            self.plugin.dockwidget.setWidget(self.plugin)
-            self.plugin.dockwidget.setVisible(True)
-        self.plugin.switch_to_plugin()
+        if self.main_widget.windowwidget is not None:
+            self.main_widget.dockwidget.setWidget(self.main_widget)
+            self.main_widget.dockwidget.setVisible(True)
+        self.main_widget.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin.windowwidget is not None:
-            self.plugin.windowwidget = None
+        if self.main_widget.windowwidget is not None:
+            self.main_widget.windowwidget = None
 
     def changeEvent(self, event):
         """
@@ -406,10 +415,12 @@ class EditorMainWidgetExample(QSplitter):
         editorstack.analyze_script()
 
     def register_editorstack(self, editorstack):
-        logger.debug("FakePlugin.register_editorstack: %r" % editorstack)
+        logger.debug(
+            "FakeEditorMainWidget.register_editorstack: %r" % editorstack
+            )
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
-            # editorstack is a child of the Editor plugin
+            # editorstack is a child of the EditorMainWidget
             editorstack.set_closable(len(self.editorstacks) > 1)
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
@@ -429,7 +440,9 @@ class EditorMainWidgetExample(QSplitter):
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
-        logger.debug("FakePlugin.unregister_editorstack: %r" % editorstack)
+        logger.debug(
+            "EditorMainWidget.unregister_editorstack: %r" % editorstack
+        )
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):

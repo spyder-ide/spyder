@@ -72,7 +72,8 @@ class EditorSwitcherManager(object):
         elif mode == self.LINE_MODE:
             self.create_line_switcher()
         elif mode == self.FILES_MODE:
-            # Each plugin/main_widget that wants to attach to the switcher should do this?
+            # Each plugin/main_widget that wants to attach to the switcher
+            # should do this?
             self.create_editor_switcher()
 
     def create_editor_switcher(self):
@@ -190,7 +191,8 @@ class EditorSwitcherManager(object):
         elif mode == ':':
             self.line_switcher_handler(data, search_text)
         elif mode == '':
-            # Each plugin/main_widget that wants to attach to the switcher should do this?
+            # Each plugin/main_widget that wants to attach to the switcher
+            # should do this?
             if item.get_section() == self._section:
                 self.editor_switcher_handler(data)
                 self._main_widget.switch_to_main_widget()

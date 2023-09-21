@@ -20,6 +20,7 @@ from qtpy.QtCore import QByteArray, Qt, Slot
 from qtpy.QtWidgets import QSplitter
 
 # Local imports
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.widgets.editorstack.editorstack import EditorStack
 from spyder.py3compat import qbytearray_to_str
@@ -29,7 +30,7 @@ from spyder.utils.palette import QStylePalette
 logger = logging.getLogger(__name__)
 
 
-class EditorSplitter(QSplitter):
+class EditorSplitter(QSplitter, SpyderWidgetMixin):
     """QSplitter for editor windows."""
 
     def __init__(self, parent, main_widget, menu_actions, first=False,
@@ -38,7 +39,8 @@ class EditorSplitter(QSplitter):
         """Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
-        the first splitter, clones the current EditorStack from the EditorMainWidget.
+        the first splitter, clones the current EditorStack from the
+        EditorMainWidget.
 
         Args:
             parent: Parent widget.
@@ -52,8 +54,8 @@ class EditorSplitter(QSplitter):
                         Defaults to main_widget.unregister_editorstack() to
                         unregister the EditorStack with the EditorMainWidget.
         """
-
-        QSplitter.__init__(self, parent)
+        # QSplitter.__init__(self, parent)
+        super().__init__(parent, class_parent=parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
 
@@ -82,7 +84,8 @@ class EditorSplitter(QSplitter):
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
-            self.editorstack.set_color_scheme(main_widget.get_color_scheme())  # TODO: Color scheme handling?
+            # TODO: Color scheme handling?
+            self.editorstack.set_color_scheme(main_widget.get_color_scheme())
 
         self.setStyleSheet(self._stylesheet)
 

@@ -20,9 +20,7 @@ from spyder.plugins.editor.api.run import (
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.widgets.main_widget import (
-    EditorMainWidget,
-    EditorWidgetActions,
-    EditorWidgetMenus
+    EditorMainWidget
 )
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
@@ -174,7 +172,7 @@ class Editor(SpyderDockablePlugin):
     @staticmethod
     def get_icon():
         return ima.icon('edit')
-    
+
     def on_initialize(self):
         widget = self.get_widget()
 
@@ -250,19 +248,25 @@ class Editor(SpyderDockablePlugin):
         run = self.get_plugin(Plugins.Run)
 
         widget.sig_editor_focus_changed_uuid.connect(
-            run.switch_focused_run_configuration)
-
+            run.switch_focused_run_configuration
+        )
         widget.sig_register_run_configuration_provider_requested.connect(
-            lambda supported_extension: 
-                run.register_run_configuration_provider(self.NAME, supported_extension)
+            lambda supported_extension:
+                run.register_run_configuration_provider(
+                    self.NAME, supported_extension
+                )
         )
         widget.sig_deregister_run_configuration_provider_requested.connect(
-            lambda unsupported_extension: 
-                run.deregister_run_configuration_provider(self.NAME, unsupported_extension)
+            lambda unsupported_extension:
+                run.deregister_run_configuration_provider(
+                    self.NAME, unsupported_extension
+                )
         )
         run.register_run_configuration_provider(
-            self.NAME, widget.supported_run_extensions)
+            self.NAME, widget.supported_run_extensions
+        )
 
+        # Buttons creation
         run.create_run_button(
             RunContext.Cell,
             _("Run cell"),
@@ -273,7 +277,6 @@ class Editor(SpyderDockablePlugin):
             add_to_toolbar=True,
             add_to_menu=True
         )
-
         run.create_run_button(
             RunContext.Cell,
             _("Run cell and advance"),
@@ -285,7 +288,6 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             extra_action_name=ExtraAction.Advance
         )
-
         run.create_run_button(
             RunContext.Cell,
             _("Re-run last cell"),
@@ -295,7 +297,6 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             re_run=True
         )
-
         run.create_run_button(
             RunContext.Selection,
             _("Run &selection or current line"),
@@ -307,7 +308,6 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             extra_action_name=ExtraAction.Advance,
         )
-
         run.create_run_button(
             RunContext.Selection,
             _("Run &to line"),
@@ -318,7 +318,6 @@ class Editor(SpyderDockablePlugin):
             add_to_menu=True,
             context_modificator=SelectionContextModificator.ToLine
         )
-
         run.create_run_button(
             RunContext.Selection,
             _("Run &from line"),
@@ -392,7 +391,7 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
                 before_section=FileMenuSections.Print
-        )
+            )
         # Open section
         open_actions = [
             widget.open_action,
@@ -413,6 +412,7 @@ class Editor(SpyderDockablePlugin):
             section=FileMenuSections.New,
             before_section=FileMenuSections.Open
         )
+
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
@@ -442,7 +442,7 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.Edit,
                 section=EditMenuSections.Editor
             )
-        
+
         # ---- Search menu ----
         search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
         search_menu.aboutToShow.connect(widget.update_search_menu)
@@ -454,7 +454,7 @@ class Editor(SpyderDockablePlugin):
                 section=SearchMenuSections.FindInText,
                 before_section=SearchMenuSections.FindInFiles
             )
-        
+
         # ---- Source menu ----
         source_menu = mainmenu.get_application_menu(
             ApplicationMenus.Source
@@ -521,7 +521,7 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_available(self):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        # TODO: 
+        # TODO: Check changes to toolbar plugin
         file_toolbar_actions = [
             widget.new_action,
             widget.open_action,
@@ -538,8 +538,8 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        # TODO: 
-  
+        # TODO: Check toolbar teardown
+
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
         widget = self.get_widget()
@@ -570,9 +570,8 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer)
         outline_widget = outline.get_widget()
-        
+
         widget.set_outlineexplorer(outline_widget)
-        
         # TODO: Should the above be done from the Outline Explorer plugin
         # as done with the console/internal console plugin?
         outline_widget.edit_goto.connect(
@@ -592,7 +591,7 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
         outline = self.get_plugin(Plugins.OutlineExplorer)
-        # TODO:
+        # TODO: Check outline teardown
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
@@ -615,7 +614,7 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        # TODO:
+        # TODO: Check ipython consle teardown
 
     @on_plugin_available(plugin=Plugins.Switcher)
     def on_switcher_available(self):
@@ -625,13 +624,13 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.Switcher)
     def on_switcher_teardown(self):
         switcher = self.get_plugin(Plugins.Switcher)
-        # TODO:     
+        # TODO: Check switcher teardown
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
         # TODO: See handling of active project path done by IPython console
-    
+
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
         widget = self.get_widget()
@@ -651,7 +650,7 @@ class Editor(SpyderDockablePlugin):
         outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
         widget.setup_other_windows(self._main, outline)
         widget.restore_scrollbar_position()
-        # TODO: Something else?. Move setup_other_windows to plugin
+        # TODO: Something else?. Move setup_other_windows to plugin?
 
     def on_close(self, cancellable=True):
         # TODO: See `closing_plugin`
@@ -702,29 +701,35 @@ class Editor(SpyderDockablePlugin):
     def new(self, *args, **kwargs):
         return self.get_widget().new(*args, **kwargs)
 
-    def removed(self, *args, **kwargs): # explorer plugin
+    def removed(self, *args, **kwargs):  # explorer plugin
         return self.get_widget().removed(*args, **kwargs)
 
-    def removed_tree(self, *args, **kwargs): # explorer plugin
+    def removed_tree(self, *args, **kwargs):  # explorer plugin
         return self.get_widget().removed_tree(*args, **kwargs)
 
-    def renamed(self, *args, **kwargs): # explorer plugin
+    def renamed(self, *args, **kwargs):  # explorer plugin
         return self.get_widget().renamed(*args, **kwargs)
 
-    def renamed_tree(self, *args, **kwargs): # explorer plugin
+    def renamed_tree(self, *args, **kwargs):  # explorer plugin
         return self.get_widget().renamed_tree(*args, **kwargs)
 
-    def add_supported_run_configuration(self, *args, **kwargs): # external console plugin
-        return self.get_widget().add_supported_run_configuration(*args, **kwargs)
+    def add_supported_run_configuration(self, *args, **kwargs):
+        # external console plugin
+        return self.get_widget().add_supported_run_configuration(
+            *args, **kwargs
+        )
 
-    def save_open_files(self, *args, **kwargs): # projects plugin
+    def save_open_files(self, *args, **kwargs):  # projects plugin
         return self.get_widget().save_open_files(*args, **kwargs)
 
-    def get_current_editor(self, *args, **kwargs): # debugger plugin
+    def get_current_editor(self, *args, **kwargs):  # debugger plugin
         return self.get_widget().get_current_editor(*args, **kwargs)
-    
-    def setup_open_files(self, *args, **kwargs): # mainwindow?
+
+    def setup_open_files(self, *args, **kwargs):  # mainwindow?
         return self.get_widget().setup_open_files(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        return self.get_widget().save(*args, **kwargs)
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -733,7 +738,9 @@ class Editor(SpyderDockablePlugin):
     def register_run_configuration_metadata(self, metadata):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
-            run.register_run_configuration_metadata(self.get_widget(), metadata)
+            run.register_run_configuration_metadata(
+                self.get_widget(), metadata
+            )
 
     def deregister_run_configuration_metadata(self, file_id):
         run = self.get_plugin(Plugins.Run, error=False)

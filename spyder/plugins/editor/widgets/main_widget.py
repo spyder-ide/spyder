@@ -146,7 +146,7 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
-    
+
     Undo = "Undo"
     Redo = "Redo"
     Copy = "Copy"
@@ -156,7 +156,7 @@ class EditorWidgetActions:
 
 
 class EditorWidgetMenus:
-    
+
     TodoList = "todo_list_menu"
     WarningErrorList = "warning_error_list_menu"
     EOL = "eol_menu"
@@ -643,7 +643,7 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.print_file
         )
         # Shortcut for close_action is defined in widgets/editor.py
-        self.close_action = self.create_action(
+        self.close_file_action = self.create_action(
             EditorWidgetActions.CloseFile,
             text=_("&Close"),
             icon=self.create_icon('fileclose'),
@@ -751,7 +751,7 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
-        
+
         self.search_menu_actions = [
             self.find_action,
             self.find_next_action,
@@ -765,39 +765,47 @@ class EditorMainWidget(PluginMainWidget):
         # ---- Source code operations ----
         # Checkable actions
         self.showblanks_action = self._create_checkable_action(
+            EditorWidgetActions.ShowBlanks,
             _("Show blank spaces"),
             'blank_spaces',
             method='set_blanks_enabled'
         )
         self.scrollpastend_action = self._create_checkable_action(
+            EditorWidgetActions.ScrollPastEnd,
             _("Scroll past the end"),
             'scroll_past_end',
             method='set_scrollpastend_enabled'
         )
         self.showindentguides_action = self._create_checkable_action(
+            EditorWidgetActions.ShowIndentGuides,
             _("Show indent guides"),
             'indent_guides',
             method='set_indent_guides'
         )
         self.showcodefolding_action = self._create_checkable_action(
+            EditorWidgetActions.ShowCodeFolding,
             _("Show code folding"),
             'code_folding',
             method='set_code_folding_enabled'
         )
         self.show_classfunc_dropdown_action = self._create_checkable_action(
+            EditorWidgetActions.ShowClassFuncDropdown,
             _("Show selector for classes and functions"),
             'show_class_func_dropdown',
             method='set_classfunc_dropdown_visible'
         )
         self.show_codestyle_warnings_action = self._create_checkable_action(
+            EditorWidgetActions.ShowCodeStyleWarnings,
             _("Show code style warnings"),
             'pycodestyle',
         )
         self.show_docstring_warnings_action = self._create_checkable_action(
+            EditorWidgetActions.ShowDoctringWarnings,
             _("Show docstring style warnings"),
             'pydocstyle'
         )
         self.underline_errors = self._create_checkable_action(
+            EditorWidgetActions.UnderlineErrors,
             _("Underline errors and warnings"),
             'underline_errors',
             method='set_underline_errors_enabled'
@@ -834,7 +842,9 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Show code analysis warnings/errors"),
             triggered=self.go_to_next_warning
         )
-        self.warning_menu = self.create_menu(EditorWidgetMenus.WarningErrorList)
+        self.warning_menu = self.create_menu(
+            EditorWidgetMenus.WarningErrorList
+        )
         self.warning_menu.setStyleSheet(stylesheet.toString())
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
@@ -1014,7 +1024,7 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
-        
+
         self.edit_menu_actions = [
             self.toggle_comment_action,
             self.blockcomment_action,
@@ -1024,7 +1034,7 @@ class EditorMainWidget(PluginMainWidget):
             self.text_uppercase_action,
             self.text_lowercase_action
         ]
-        
+
         self.undo_action = self._create_edit_action(
             EditorWidgetActions.Undo,
             _('Undo'),
@@ -1062,7 +1072,7 @@ class EditorMainWidget(PluginMainWidget):
             self.open_action,
             self.save_action,
             self.save_all_action,
-            self.create_new_cell,  
+            self.create_new_cell,
             MENU_SEPARATOR
         ]
         self.pythonfile_dependent_actions = [
@@ -1080,7 +1090,7 @@ class EditorMainWidget(PluginMainWidget):
                 self.save_all_action,
                 self.gotoline_action,
                 self.workdir_action,
-                self.close_action,
+                self.close_file_action,
                 self.close_all_action,
                 self.toggle_comment_action,
                 self.revert_action,
@@ -1089,9 +1099,8 @@ class EditorMainWidget(PluginMainWidget):
             ]
         )
         self.stack_menu_actions = [self.gotoline_action, self.workdir_action]
-        
+
         # ---- Finish child widgets and actions setup ----
-        
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
@@ -1148,8 +1157,9 @@ class EditorMainWidget(PluginMainWidget):
             cursor = current_editor.textCursor()
             self.add_cursor_to_history(filename, cursor)
         self.update_cursorpos_actions()
-        
-        # TODO: How the maintoolbar should be handled? Each editorstack has its own toolbar?
+
+        # TODO: How the maintoolbar should be handled?
+        # Each editorstack has its own toolbar?
         self._main_toolbar.hide()
         self._corner_toolbar.hide()
         self._options_button.hide()
@@ -1176,7 +1186,8 @@ class EditorMainWidget(PluginMainWidget):
                 except RuntimeError:
                     pass
 
-    def change_visibility(self, state, force_focus=None):  # _visibility_changed
+    # _visibility_changed
+    def change_visibility(self, state, force_focus=None):
         """DockWidget visibility has changed"""
         super().change_visibility(state)
         if self.dockwidget is None:
@@ -1206,8 +1217,9 @@ class EditorMainWidget(PluginMainWidget):
             pass
 
     # ---- Run plugin related
-    # TODO: Change direct Run plugin call to signal to be register on_plugin_available or a _plugin call 
-    # pylint plugin could be an example of how to handel this?
+    # TODO: Change direct Run plugin call to signal to be register
+    # on_plugin_available or a _plugin call
+    # pylint plugin could be an example of how to handle this?
     def update_run_focus_file(self):
         """
         Inform run plugin that the current editor with focus has changed.
@@ -1252,19 +1264,19 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.pop(filename)
         self.file_per_id.pop(file_id)
         self.metadata_per_id.pop(file_id)
-        
         # run = self.main.get_plugin(Plugins.Run, error=False)
         # if run is not None:
         #     run.deregister_run_configuration_metadata(file_id)
         self._plugin.deregister_run_configuration_metadata(file_id)
-    
+
     def change_register_file_run_metadata(self, old_filename, new_filename):
         """Change registered run metadata when renaming files."""
-        run_selected_config = self._plugin.get_currently_selected_run_configuration()
+        run_selected_config = (
+            self._plugin.get_currently_selected_run_configuration()
+        )
 
         is_selected = (
-            run_selected_config 
-            == self.id_per_file.get(old_filename, None)
+            run_selected_config == self.id_per_file.get(old_filename, None)
         )
 
         self.deregister_file_run_metadata(old_filename)
@@ -1382,793 +1394,11 @@ class EditorMainWidget(PluginMainWidget):
         meth = getattr(self, method)
         meth(*args, **kwargs)
 
-    # ---- SpyderPluginWidget API ---------------------------------------------
-    # @staticmethod
-    # def get_plugin_title():
-    #     """Return widget title"""
-    #     # TODO: This is a temporary measure to get the title of this plugin
-    #     # without creating an instance
-    #     title = _('Editor')
-    #     return title
-
-    # TODO: Remove when the editor is migrated to the new API
-    # get_name = get_plugin_title
-
-    # @staticmethod
-    # def get_description():
-    #     return _(
-    #         "Edit Python, Markdown, Cython and many other types of text files."
-    #     )
-
-    # @classmethod
-    # def get_plugin_icon(cls):
-    #     """Return widget icon."""
-    #     return ima.icon('edit')
-
-    # TODO: Remove when the editor is migrated to the new API
-    # get_icon = get_plugin_icon
-
-    # def get_focus_widget(self):
-    #     """
-    #     Return the widget to give focus to.
-
-    #     This happens when plugin's dockwidget is raised on top-level.
-    #     """
-    #     return self.get_current_editor()
-
-    # def change_visibility(self, state): # _visibility_changed
-    #     """DockWidget visibility has changed"""
-    #     super().change_visibility(state)
-    #     if self.dockwidget is None:
-    #         return
-    #     if self.dockwidget.isWindow():
-    #         self.dock_toolbar.show()
-    #     else:
-    #         self.dock_toolbar.hide()
-    #     if state:
-    #         self.refresh()
-    #     self.update_title()  # sig_update_plugin_title.emit()
-
-    def refresh(self):  #refresh_plugin
+    def refresh(self):  # refresh_plugin
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
         editorstack.refresh()
         self.refresh_save_all_action()
-
-#     def closing_plugin(self, cancelable=False):
-#         """Perform actions before parent main window is closed"""
-#         # TODO: Move to plugin on_close`
-#         state = self.splitter.saveState()
-#         self.set_option('splitter_state', qbytearray_to_str(state))
-#         editorstack = self.editorstacks[0]
-
-#         active_project_path = None
-#         if self.projects is not None:
-#             active_project_path = self.projects.get_active_project_path()
-#         if not active_project_path:
-#             filenames = self.get_open_filenames()
-#             self.set_option('filenames', filenames)
-#         else:
-#             self.projects.set_project_filenames(
-#                 [finfo.filename for finfo in editorstack.data])
-
-#         self.set_option('layout_settings',
-#                         self.editorsplitter.get_layout_settings())
-#         self.set_option('windows_layout_settings',
-#                     [win.get_layout_settings() for win in self.editorwindows])
-# #        self.set_option('filenames', filenames)
-#         self.set_option('recent_files', self.recent_files)
-
-#         # Stop autosave timer before closing windows
-#         self.autosave.stop_autosave_timer()
-
-#         try:
-#             if not editorstack.save_if_changed(cancelable) and cancelable:
-#                 return False
-#             else:
-#                 for win in self.editorwindows[:]:
-#                     win.close()
-#                 return True
-#         except IndexError:
-#             return True
-
-    # def get_plugin_actions(self):
-    #     """Return a list of actions related to plugin"""
-        # TODO: Move actions registration in mainmenu plugin to plugin
-        # Move to API setup overwrite
-        # # ---- File menu and toolbar ----
-        # self.new_action = create_action(
-        #         self,
-        #         _("&New file..."),
-        #         icon=ima.icon('filenew'), tip=_("New file"),
-        #         triggered=self.new,
-        #         context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(self.new_action, context="Editor",
-        #                        name="New file", add_shortcut_to_tip=True)
-
-        # self.open_last_closed_action = create_action(
-        #         self,
-        #         _("O&pen last closed"),
-        #         tip=_("Open last closed"),
-        #         triggered=self.open_last_closed
-        # )
-        # self.register_shortcut(self.open_last_closed_action, context="Editor",
-        #                        name="Open last closed")
-
-        # self.open_action = create_action(self, _("&Open..."),
-        #         icon=ima.icon('fileopen'), tip=_("Open file"),
-        #         triggered=self.load,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.open_action, context="Editor",
-        #                        name="Open file", add_shortcut_to_tip=True)
-
-        # self.revert_action = create_action(self, _("&Revert"),
-        #         icon=ima.icon('revert'), tip=_("Revert file from disk"),
-        #         triggered=self.revert)
-
-        # self.save_action = create_action(self, _("&Save"),
-        #         icon=ima.icon('filesave'), tip=_("Save file"),
-        #         triggered=self.save,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.save_action, context="Editor",
-        #                        name="Save file", add_shortcut_to_tip=True)
-
-        # self.save_all_action = create_action(self, _("Sav&e all"),
-        #         icon=ima.icon('save_all'), tip=_("Save all files"),
-        #         triggered=self.save_all,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.save_all_action, context="Editor",
-        #                        name="Save all", add_shortcut_to_tip=True)
-
-        # save_as_action = create_action(self, _("Save &as..."), None,
-        #         ima.icon('filesaveas'), tip=_("Save current file as..."),
-        #         triggered=self.save_as,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(save_as_action, "Editor", "Save As")
-
-        # save_copy_as_action = create_action(self, _("Save copy as..."), None,
-        #         ima.icon('filesaveas'), _("Save copy of current file as..."),
-        #         triggered=self.save_copy_as)
-
-        # print_preview_action = create_action(self, _("Print preview..."),
-        #         tip=_("Print preview..."), triggered=self.print_preview)
-        # self.print_action = create_action(self, _("&Print..."),
-        #         icon=ima.icon('print'), tip=_("Print current file..."),
-        #         triggered=self.print_file)
-        # # Shortcut for close_action is defined in widgets/editor.py
-        # self.close_action = create_action(self, _("&Close"),
-        #         icon=ima.icon('fileclose'), tip=_("Close current file"),
-        #         triggered=self.close_file)
-
-        # self.close_all_action = create_action(self, _("C&lose all"),
-        #         icon=ima.icon('filecloseall'), tip=_("Close all opened files"),
-        #         triggered=self.close_all_files,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.close_all_action, context="Editor",
-        #                        name="Close all")
-
-        # # ---- Find menu and toolbar ----
-        # _text = _("&Find text")
-        # self.find_action = create_action(
-        #     self, _text,
-        #     icon=ima.icon('find'),
-        #     tip=_text,
-        #     triggered=self.find,
-        #     context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(self.find_action, context="find_replace",
-        #                        name="Find text", add_shortcut_to_tip=True)
-        # self.find_next_action = create_action(
-        #     self, _("Find &next"),
-        #     icon=ima.icon('findnext'),
-        #     triggered=self.find_next,
-        #     context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(self.find_next_action, context="find_replace",
-        #                        name="Find next")
-        # self.find_previous_action = create_action(
-        #     self, _("Find &previous"),
-        #     icon=ima.icon('findprevious'),
-        #     triggered=self.find_previous,
-        #     context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(
-        #     self.find_previous_action,
-        #     context="find_replace",
-        #     name="Find previous"
-        # )
-        # _text = _("&Replace text")
-        # self.replace_action = create_action(
-        #     self,
-        #     _text,
-        #     icon=ima.icon('replace'),
-        #     tip=_text,
-        #     triggered=self.replace,
-        #     context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(self.replace_action, context="find_replace",
-        #                        name="Replace text")
-
-        # # --- Run toolbar ---
-
-        # # --- Source code Toolbar ---
-        # self.todo_list_action = create_action(self,
-        #         _("Show todo list"), icon=ima.icon('todo_list'),
-        #         tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
-        #               "HACK/BUG/OPTIMIZE/!!!/???)"),
-        #         triggered=self.go_to_next_todo)
-        # self.todo_menu = QMenu(self)
-        # self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
-        # self.todo_list_action.setMenu(self.todo_menu)
-        # self.todo_menu.aboutToShow.connect(self.update_todo_menu)
-
-        # self.warning_list_action = create_action(self,
-        #         _("Show warning/error list"), icon=ima.icon('wng_list'),
-        #         tip=_("Show code analysis warnings/errors"),
-        #         triggered=self.go_to_next_warning)
-        # self.warning_menu = QMenu(self)
-        # self.warning_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
-        # self.warning_list_action.setMenu(self.warning_menu)
-        # self.warning_menu.aboutToShow.connect(self.update_warning_menu)
-        # self.previous_warning_action = create_action(self,
-        #         _("Previous warning/error"), icon=ima.icon('prev_wng'),
-        #         tip=_("Go to previous code analysis warning/error"),
-        #         triggered=self.go_to_previous_warning,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.previous_warning_action,
-        #                        context="Editor",
-        #                        name="Previous warning",
-        #                        add_shortcut_to_tip=True)
-        # self.next_warning_action = create_action(self,
-        #         _("Next warning/error"), icon=ima.icon('next_wng'),
-        #         tip=_("Go to next code analysis warning/error"),
-        #         triggered=self.go_to_next_warning,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.next_warning_action,
-        #                        context="Editor",
-        #                        name="Next warning",
-        #                        add_shortcut_to_tip=True)
-
-        # self.previous_edit_cursor_action = create_action(self,
-        #         _("Last edit location"), icon=ima.icon('last_edit_location'),
-        #         tip=_("Go to last edit location"),
-        #         triggered=self.go_to_last_edit_location,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.previous_edit_cursor_action,
-        #                        context="Editor",
-        #                        name="Last edit location",
-        #                        add_shortcut_to_tip=True)
-        # self.previous_cursor_action = create_action(self,
-        #         _("Previous cursor position"), icon=ima.icon('prev_cursor'),
-        #         tip=_("Go to previous cursor position"),
-        #         triggered=self.go_to_previous_cursor_position,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.previous_cursor_action,
-        #                        context="Editor",
-        #                        name="Previous cursor position",
-        #                        add_shortcut_to_tip=True)
-        # self.next_cursor_action = create_action(self,
-        #         _("Next cursor position"), icon=ima.icon('next_cursor'),
-        #         tip=_("Go to next cursor position"),
-        #         triggered=self.go_to_next_cursor_position,
-        #         context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.next_cursor_action,
-        #                        context="Editor",
-        #                        name="Next cursor position",
-        #                        add_shortcut_to_tip=True)
-
-        # # --- Edit Toolbar ---
-        # create_new_cell = create_action(self, _("Create new cell at the "
-        #                                         "current line"),
-        #                                 icon=ima.icon('new_cell'),
-        #                                 tip=_("Create new cell"),
-        #                                 triggered=self.create_cell,
-        #                                 context=Qt.WidgetShortcut)
-        # self.register_shortcut(create_new_cell, context="Editor",
-        #                        name="create_new_cell")
-        # self.toggle_comment_action = create_action(self,
-        #         _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-        #         tip=_("Comment current line or selection"),
-        #         triggered=self.toggle_comment, context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.toggle_comment_action, context="Editor",
-        #                        name="Toggle comment")
-        # blockcomment_action = create_action(self, _("Add &block comment"),
-        #         tip=_("Add block comment around "
-        #                     "current line or selection"),
-        #         triggered=self.blockcomment, context=Qt.WidgetShortcut)
-        # self.register_shortcut(blockcomment_action, context="Editor",
-        #                        name="Blockcomment")
-        # unblockcomment_action = create_action(self,
-        #         _("R&emove block comment"),
-        #         tip = _("Remove comment block around "
-        #                       "current line or selection"),
-        #         triggered=self.unblockcomment, context=Qt.WidgetShortcut)
-        # self.register_shortcut(unblockcomment_action, context="Editor",
-        #                        name="Unblockcomment")
-
-        # # ----------------------------------------------------------------------
-        # # The following action shortcuts are hard-coded in CodeEditor
-        # # keyPressEvent handler (the shortcut is here only to inform user):
-        # # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
-        # self.indent_action = create_action(self,
-        #         _("Indent"), "Tab", icon=ima.icon('indent'),
-        #         tip=_("Indent current line or selection"),
-        #         triggered=self.indent, context=Qt.WidgetShortcut)
-        # self.unindent_action = create_action(self,
-        #         _("Unindent"), "Shift+Tab", icon=ima.icon('unindent'),
-        #         tip=_("Unindent current line or selection"),
-        #         triggered=self.unindent, context=Qt.WidgetShortcut)
-
-        # self.text_uppercase_action = create_action(self,
-        #         _("Toggle Uppercase"), icon=ima.icon('toggle_uppercase'),
-        #         tip=_("Change to uppercase current line or selection"),
-        #         triggered=self.text_uppercase, context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.text_uppercase_action, context="Editor",
-        #                        name="transform to uppercase")
-
-        # self.text_lowercase_action = create_action(self,
-        #         _("Toggle Lowercase"), icon=ima.icon('toggle_lowercase'),
-        #         tip=_("Change to lowercase current line or selection"),
-        #         triggered=self.text_lowercase, context=Qt.WidgetShortcut)
-        # self.register_shortcut(self.text_lowercase_action, context="Editor",
-        #                        name="transform to lowercase")
-        # # ----------------------------------------------------------------------
-
-        # self.win_eol_action = create_action(
-        #     self,
-        #     _("CRLF (Windows)"),
-        #     toggled=lambda checked: self.toggle_eol_chars('nt', checked)
-        # )
-        # self.linux_eol_action = create_action(
-        #     self,
-        #     _("LF (Unix)"),
-        #     toggled=lambda checked: self.toggle_eol_chars('posix', checked)
-        # )
-        # self.mac_eol_action = create_action(
-        #     self,
-        #     _("CR (macOS)"),
-        #     toggled=lambda checked: self.toggle_eol_chars('mac', checked)
-        # )
-        # eol_action_group = QActionGroup(self)
-        # eol_actions = (self.win_eol_action, self.linux_eol_action,
-        #                self.mac_eol_action)
-        # add_actions(eol_action_group, eol_actions)
-        # eol_menu = SpyderMenu(parent=self, title=_("Convert end-of-line characters"))
-        # eol_menu.setObjectName('checkbox-padding')
-        # add_actions(eol_menu, eol_actions)
-
-        # trailingspaces_action = create_action(
-        #     self,
-        #     _("Remove trailing spaces"),
-        #     triggered=self.remove_trailing_spaces)
-
-        # formatter = self.get_conf(
-        #     ('provider_configuration', 'lsp', 'values', 'formatting'),
-        #     default='',
-        #     section='completions'
-        # )
-        # self.formatting_action = create_action(
-        #     self,
-        #     _('Format file or selection with {0}').format(
-        #         formatter.capitalize()),
-        #     shortcut=self.get_shortcut('autoformatting'),
-        #     context=Qt.WidgetShortcut,
-        #     triggered=self.format_document_or_selection)
-        # self.formatting_action.setEnabled(False)
-
-        # # Checkable actions
-        # showblanks_action = self._create_checkable_action(
-        #     _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
-
-        # scrollpastend_action = self._create_checkable_action(
-        #     _("Scroll past the end"), 'scroll_past_end',
-        #     'set_scrollpastend_enabled')
-
-        # showindentguides_action = self._create_checkable_action(
-        #     _("Show indent guides"), 'indent_guides', 'set_indent_guides')
-
-        # showcodefolding_action = self._create_checkable_action(
-        #     _("Show code folding"), 'code_folding', 'set_code_folding_enabled')
-
-        # show_classfunc_dropdown_action = self._create_checkable_action(
-        #     _("Show selector for classes and functions"),
-        #     'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
-
-        # show_codestyle_warnings_action = self._create_checkable_action(
-        #     _("Show code style warnings"), 'pycodestyle',)
-
-        # show_docstring_warnings_action = self._create_checkable_action(
-        #     _("Show docstring style warnings"), 'pydocstyle')
-
-        # underline_errors = self._create_checkable_action(
-        #     _("Underline errors and warnings"),
-        #     'underline_errors', 'set_underline_errors_enabled')
-
-        # self.checkable_actions = {
-        #         'blank_spaces': showblanks_action,
-        #         'scroll_past_end': scrollpastend_action,
-        #         'indent_guides': showindentguides_action,
-        #         'code_folding': showcodefolding_action,
-        #         'show_class_func_dropdown': show_classfunc_dropdown_action,
-        #         'pycodestyle': show_codestyle_warnings_action,
-        #         'pydocstyle': show_docstring_warnings_action,
-        #         'underline_errors': underline_errors}
-
-        # fixindentation_action = create_action(self, _("Fix indentation"),
-        #               tip=_("Replace tab characters by space characters"),
-        #               triggered=self.fix_indentation)
-
-        # self.gotoline_action = create_action(
-        #     self, _("Go to line..."),
-        #     icon=ima.icon('gotoline'),
-        #     triggered=self.go_to_line,
-        #     context=Qt.WidgetShortcut
-        # )
-        # self.register_shortcut(self.gotoline_action, context="Editor",
-        #                        name="Go to line")
-
-        # workdir_action = create_action(self,
-        #         _("Set console working directory"),
-        #         icon=ima.icon('DirOpenIcon'),
-        #         tip=_("Set current console (and file explorer) working "
-        #                     "directory to current script directory"),
-        #         triggered=self.__set_workdir)
-
-        # self.max_recent_action = create_action(self,
-        #     _("Maximum number of recent files..."),
-        #     triggered=self.change_max_recent_files)
-        # self.clear_recent_action = create_action(self,
-        #     _("Clear this list"), tip=_("Clear recent files list"),
-        #     triggered=self.clear_recent_files)
-
-        # # Fixes spyder-ide/spyder#6055.
-        # # See: https://bugreports.qt.io/browse/QTBUG-8596
-        # self.tab_navigation_actions = []
-        # if sys.platform == 'darwin':
-        #     self.go_to_next_file_action = create_action(
-        #         self,
-        #         _("Go to next file"),
-        #         shortcut=self.get_shortcut('go to previous file'),
-        #         triggered=self.go_to_next_file,
-        #     )
-        #     self.go_to_previous_file_action = create_action(
-        #         self,
-        #         _("Go to previous file"),
-        #         shortcut=self.get_shortcut('go to next file'),
-        #         triggered=self.go_to_previous_file,
-        #     )
-        #     self.register_shortcut(
-        #         self.go_to_next_file_action,
-        #         context="Editor",
-        #         name="Go to next file",
-        #     )
-        #     self.register_shortcut(
-        #         self.go_to_previous_file_action,
-        #         context="Editor",
-        #         name="Go to previous file",
-        #     )
-        #     self.tab_navigation_actions = [
-        #         MENU_SEPARATOR,
-        #         self.go_to_previous_file_action,
-        #         self.go_to_next_file_action,
-        #     ]
-
-        # # ---- File menu/toolbar construction ----
-        # self.recent_file_menu = QMenu(_("Open &recent"), self)
-        # self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
-
-        # TODO: Move to plugin.on_mainmenu_available
-        # from spyder.plugins.mainmenu.api import (
-        #     ApplicationMenus, FileMenuSections)
-        # # Navigation
-        # if sys.platform == 'darwin':
-        #     self.main.mainmenu.add_item_to_application_menu(
-        #         self.tab_navigation_actions,
-        #         menu_id=ApplicationMenus.File,
-        #         section=FileMenuSections.Navigation,
-        #         before_section=FileMenuSections.Restart,
-        #         omit_id=True)
-        # # Close
-        # close_actions = [
-        #     self.close_action,
-        #     self.close_all_action
-        # ]
-        # for close_action in close_actions:
-        #     self.main.mainmenu.add_item_to_application_menu(
-        #         close_action,
-        #         menu_id=ApplicationMenus.File,
-        #         section=FileMenuSections.Close,
-        #         before_section=FileMenuSections.Switcher,
-        #         omit_id=True)
-        # # Print
-        # print_actions = [
-        #     print_preview_action,
-        #     self.print_action,
-        # ]
-        # for print_action in print_actions:
-        #     self.main.mainmenu.add_item_to_application_menu(
-        #         print_action,
-        #         menu_id=ApplicationMenus.File,
-        #         section=FileMenuSections.Print,
-        #         before_section=FileMenuSections.Close,
-        #         omit_id=True)
-        # # Save section
-        # save_actions = [
-        #     self.save_action,
-        #     self.save_all_action,
-        #     save_as_action,
-        #     save_copy_as_action,
-        #     self.revert_action,
-        # ]
-        # for save_action in save_actions:
-        #     self.main.mainmenu.add_item_to_application_menu(
-        #         save_action,
-        #         menu_id=ApplicationMenus.File,
-        #         section=FileMenuSections.Save,
-        #         before_section=FileMenuSections.Print,
-        #         omit_id=True)
-        # Open section
-        # open_actions = [
-        #     self.open_action,
-        #     self.open_last_closed_action,
-        #     self.recent_file_menu,
-        # ]
-        # for open_action in open_actions:
-        #     self.main.mainmenu.add_item_to_application_menu(
-        #         open_action,
-        #         menu_id=ApplicationMenus.File,
-        #         section=FileMenuSections.Open,
-        #         before_section=FileMenuSections.Save,
-        #         omit_id=True)
-        # # New Section
-        # self.main.mainmenu.add_item_to_application_menu(
-        #     self.new_action,
-        #     menu_id=ApplicationMenus.File,
-        #     section=FileMenuSections.New,
-        #     before_section=FileMenuSections.Open,
-        #     omit_id=True)
-
-        # file_toolbar_actions = ([self.new_action, self.open_action,
-        #                         self.save_action, self.save_all_action] +
-        #                         [self.create_new_cell] +
-        #                         self.main.file_toolbar_actions)
-
-        # self.main.file_toolbar_actions += file_toolbar_actions
-
-        # # ---- Find menu/toolbar construction ----
-
-        # mainmenu = self.main.get_plugin(Plugins.MainMenu)
-        # # ----- Edit menu/toolbar construction ----
-        # self.edit_menu_actions = [self.toggle_comment_action,
-        #                           blockcomment_action, unblockcomment_action,
-        #                           self.indent_action, self.unindent_action,
-        #                           self.text_uppercase_action,
-        #                           self.text_lowercase_action]
-
-        # if mainmenu:
-            # edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-            # edit_menu.aboutToShow.connect(self.update_edit_menu)
-
-            # def create_edit_action(text, tr_text, icon):
-            #     textseq = text.split(' ')
-            #     method_name = textseq[0].lower() + "".join(textseq[1:])
-            #     action = create_action(
-            #         self, tr_text,
-            #         icon=icon,
-            #         triggered=self.base_edit_actions_callback,
-            #         data=method_name,
-            #         context=Qt.WidgetShortcut
-            #     )
-            #     self.register_shortcut(action, "Editor", text)
-            #     return action
-
-            # self.undo_action = create_edit_action('Undo', _('Undo'),
-            #                                       ima.icon('undo'))
-            # self.redo_action = create_edit_action('Redo', _('Redo'),
-            #                                       ima.icon('redo'))
-            # self.copy_action = create_edit_action('Copy', _('Copy'),
-            #                                       ima.icon('editcopy'))
-            # self.cut_action = create_edit_action('Cut', _('Cut'),
-            #                                      ima.icon('editcut'))
-            # self.paste_action = create_edit_action('Paste', _('Paste'),
-            #                                        ima.icon('editpaste'))
-            # self.selectall_action = create_edit_action("Select All",
-            #                                            _("Select All"),
-            #                                            ima.icon('selectall'))
-
-            # for action in [self.undo_action, self.redo_action]:
-            #     mainmenu.add_item_to_application_menu(
-            #         action,
-            #         menu_id=ApplicationMenus.Edit,
-            #         section=EditMenuSections.UndoRedo,
-            #         before_section=EditMenuSections.Editor,
-            #         omit_id=True
-            #     )
-
-            # for action in [
-            #         self.cut_action, self.copy_action, self.paste_action,
-            #         self.selectall_action]:
-            #     mainmenu.add_item_to_application_menu(
-            #         action,
-            #         menu_id=ApplicationMenus.Edit,
-            #         section=EditMenuSections.Copy,
-            #         before_section=EditMenuSections.Editor,
-            #         omit_id=True
-            #     )
-
-            # for edit_item in self.edit_menu_actions:
-            #     mainmenu.add_item_to_application_menu(
-            #         edit_item,
-            #         omit_id=True,
-            #         menu_id=ApplicationMenus.Edit,
-            #         section=EditMenuSections.Editor
-            #     )
-
-        # # ----- Search menu construction ----
-        # search_menu_actions = [self.find_action,
-        #                        self.find_next_action,
-        #                        self.find_previous_action,
-        #                        self.replace_action,
-        #                        self.gotoline_action]
-        # if mainmenu:
-        #     search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-        #     search_menu.aboutToShow.connect(self.update_search_menu)
-        #     for search_item in search_menu_actions:
-        #         mainmenu.add_item_to_application_menu(
-        #             search_item,
-        #             omit_id=True,
-        #             menu_id=ApplicationMenus.Search,
-        #             section=SearchMenuSections.FindInText,
-        #             before_section=SearchMenuSections.FindInFiles
-        #         )
-
-        # # ---- Source menu construction ----
-        # source_menu_option_actions = [
-        #     showblanks_action,
-        #     scrollpastend_action,
-        #     showindentguides_action,
-        #     showcodefolding_action,
-        #     show_classfunc_dropdown_action,
-        #     show_codestyle_warnings_action,
-        #     show_docstring_warnings_action,
-        #     underline_errors,
-        # ]
-        # source_menu_linting_actions = [
-        #     self.todo_list_action,
-        #     self.warning_list_action,
-        #     self.previous_warning_action,
-        #     self.next_warning_action,
-        # ]
-        # source_menu_cursor_actions = [
-        #     self.previous_edit_cursor_action,
-        #     self.previous_cursor_action,
-        #     self.next_cursor_action,
-        # ]
-        # source_menu_formatting_actions = [
-        #     eol_menu,
-        #     trailingspaces_action,
-        #     fixindentation_action,
-        #     self.formatting_action
-        # ]
-        # if mainmenu:
-        #     source_menu = mainmenu.get_application_menu(
-        #         ApplicationMenus.Source
-        #     )
-        #     source_menu.aboutToShow.connect(self.refresh_formatter_name)
-        #     for cursor_item in source_menu_cursor_actions:
-        #         mainmenu.add_item_to_application_menu(
-        #             cursor_item,
-        #             omit_id=True,
-        #             menu_id=ApplicationMenus.Source,
-        #             section=SourceMenuSections.Cursor,
-        #             before_section=SourceMenuSections.Formatting
-        #         )
-        #     for formatting_item in source_menu_formatting_actions:
-        #         mainmenu.add_item_to_application_menu(
-        #             formatting_item,
-        #             omit_id=True,
-        #             menu_id=ApplicationMenus.Source,
-        #             section=SourceMenuSections.Formatting,
-        #             before_section=SourceMenuSections.CodeAnalysis
-        #         )
-        #     for option_item in source_menu_option_actions:
-        #         mainmenu.add_item_to_application_menu(
-        #             option_item,
-        #             omit_id=True,
-        #             menu_id=ApplicationMenus.Source,
-        #             section=SourceMenuSections.Options,
-        #             before_section=SourceMenuSections.Linting
-        #         )
-        #     for linting_item in source_menu_linting_actions:
-        #         mainmenu.add_item_to_application_menu(
-        #             linting_item,
-        #             omit_id=True,
-        #             menu_id=ApplicationMenus.Source,
-        #             section=SourceMenuSections.Linting,
-        #             before_section=SourceMenuSections.Cursor
-        #         )
-
-        # # ---- Dock widget and file dependent actions ----
-        # self.dock_toolbar_actions = (
-        #     file_toolbar_actions +  # TODO: Should be obtenined from toolbar plugin an passedusing args
-        #     [MENU_SEPARATOR]
-        # )
-        # self.pythonfile_dependent_actions = [
-        #     blockcomment_action,
-        #     unblockcomment_action,
-        # ]
-        # self.file_dependent_actions = (
-        #     self.pythonfile_dependent_actions +
-        #     [
-        #         self.save_action,
-        #         self.save_as_action,
-        #         self.save_copy_as_action,
-        #         self.print_preview_action,
-        #         self.print_action,
-        #         self.save_all_action,
-        #         self.gotoline_action,
-        #         workdir_action,
-        #         self.close_action,
-        #         self.close_all_action,
-        #         self.toggle_comment_action,
-        #         self.revert_action,
-        #         self.indent_action,
-        #         self.unindent_action
-        #     ]
-        # )
-        # self.stack_menu_actions = [self.gotoline_action, workdir_action]
-
-        # return self.file_dependent_actions
-
-    # def register_plugin(self):
-    #     """Register plugin in Spyder's main window"""
-        # TODO: Move to plugin
-        # completions = self.main.get_plugin(Plugins.Completions, error=False)
-        # outlineexplorer = self.main.get_plugin(
-        #     Plugins.OutlineExplorer, error=False)
-        # ipyconsole = self.main.get_plugin(Plugins.IPythonConsole, error=False)
-
-        # TODO: Move to on_mainwindow_visible
-        # self.main.restore_scrollbar_position.connect(
-        #     self.restore_scrollbar_position)
-        # TODO: Move to console
-        # self.main.console.sig_edit_goto_requested.connect(self.load)
-        # TODO: Connect to plugin signal
-        # self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-
-        # if completions:
-        #     self.main.completions.sig_language_completions_available.connect(
-        #         self.register_completion_capabilities)
-        #     self.main.completions.sig_open_file.connect(self.load)
-        #     self.main.completions.sig_editor_rpc.connect(self._rpc_call)
-        #     self.main.completions.sig_stop_completions.connect(
-        #         self.stop_completion_services)
-
-        #     self.sig_file_opened_closed_or_updated.connect(
-        #         self.main.completions.file_opened_closed_or_updated)
-
-        # if outlineexplorer:
-        #     self.set_outlineexplorer(self.main.outlineexplorer)
-
-        # if ipyconsole:
-        #     ipyconsole.register_spyder_kernel_call_handler(
-        #         'cell_count', self.handle_cell_count)
-        #     ipyconsole.register_spyder_kernel_call_handler(
-        #         'current_filename', self.handle_current_filename)
-        #     ipyconsole.register_spyder_kernel_call_handler(
-        #         'get_file_code', self.handle_get_file_code)
-        #     ipyconsole.register_spyder_kernel_call_handler(
-        #         'run_cell', self.handle_run_cell)
-
-        # self.add_dockwidget()
-        # if self.main.switcher is not None:
-        #     self.switcher_manager = EditorSwitcherManager(
-        #         self,
-        #         self.main.switcher,
-        #         self.get_current_editor,
-        #         self.get_current_editorstack,
-        #         section=self.get_plugin_title())
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -2274,7 +1504,8 @@ class EditorMainWidget(PluginMainWidget):
     def update_font(self, font):
         """Update font from Preferences"""
         self._font = font
-        color_scheme = self.get_color_scheme()  # TODO: Should be available for the main_widgets too?
+        # TODO: Should `get_color_scheme` be available for the main_widgets?
+        color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
             completion_size = self.get_conf('completion/size', section='main')
@@ -2292,7 +1523,8 @@ class EditorMainWidget(PluginMainWidget):
             Text that will be used to identifiy the method associated with the
             action and set as action id.
         tr_text : str
-            Text that the action will show. Usually it will be some translated text.
+            Text that the action will show. Usually it will be some
+            translated text.
         icon : QIcon
             Icon that the action will have.
 
@@ -2315,12 +1547,14 @@ class EditorMainWidget(PluginMainWidget):
         )
         return action
 
-    def _create_checkable_action(self, text, conf_name, method=''):
+    def _create_checkable_action(self, name, text, conf_name, method=''):
         """
         Helper function to create a checkable action.
 
         Parameters
         ----------
+        name: str
+            Name that will be used as action identifier.
         text: str
             Text to be displayed in the action.
         conf_name: str
@@ -2333,7 +1567,7 @@ class EditorMainWidget(PluginMainWidget):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
 
-        action = self.create_action(self, text=text, toggled=toggle)
+        action = self.create_action(name, text=text, toggled=toggle)
         action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
@@ -2394,33 +1628,20 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    # def set_projects(self, projects):
-    #     self.projects = projects
-
-    # @Slot()
-    # def show_hide_projects(self):
-    #     if self.projects is not None:
-    #         dw = self.projects.dockwidget
-    #         if dw.isVisible():
-    #             dw.hide()
-    #         else:
-    #             dw.show()
-    #             dw.raise_()
-    #         self.switch_to_plugin()
-
     def set_outlineexplorer(self, outlineexplorer_widget):
         self.outlineexplorer = outlineexplorer_widget
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
         # self.outlineexplorer.get_widget().edit_goto.connect(
         #                    lambda filenames, goto, word:
-        #                    self.load(filenames=filenames, goto=goto, word=word,
-        #                              editorwindow=self))
+        #               self.load(filenames=filenames, goto=goto, word=word,
+        #                         editorwindow=self))
         # self.outlineexplorer.get_widget().edit.connect(
         #                      lambda filenames:
-        #                      self.load(filenames=filenames, editorwindow=self))
-    
+        #               self.load(filenames=filenames, editorwindow=self))
+
     def set_switcher(self, switcher):
+        # TODO: Is there another way to do this?
         self.switcher_manager = EditorSwitcherManager(
             self,
             switcher,
@@ -2503,7 +1724,7 @@ class EditorMainWidget(PluginMainWidget):
             ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
-            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
+            ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),  # noqa
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
             ('set_automatic_completions_after_chars',
@@ -2513,13 +1734,13 @@ class EditorMainWidget(PluginMainWidget):
              'completions_hint_after_ms'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
-            ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
-            ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),
+            ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),  # noqa
+            ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),  # noqa
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_tabbar_visible',                  'show_tab_bar'),
-            ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
-            ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
-            ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),
+            ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),  # noqa
+            ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),  # noqa
+            ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),  # noqa
             ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
@@ -2554,7 +1775,9 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
         editorstack.set_edgeline_columns(edge_line_columns)
-        color_scheme = self.get_color_scheme()  # TODO: Should be available for the main_widgets too?
+        # TODO: Should be available for the main_widgets too?
+        # Or should be handled as with font?
+        color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self._font, color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)
@@ -2593,7 +1816,9 @@ class EditorMainWidget(PluginMainWidget):
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
             self.refresh_file_dependent_actions)
-        editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
+        editorstack.refresh_save_all_action.connect(
+            self.refresh_save_all_action
+        )
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.text_changed_at.connect(self.text_changed_at)
@@ -2603,7 +1828,9 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.edit_goto.connect(self.load)
         editorstack.sig_save_as.connect(self.save_as)
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
-        editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
+        editorstack.sig_prev_cursor.connect(
+            self.go_to_previous_cursor_position
+        )
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
@@ -2663,7 +1890,7 @@ class EditorMainWidget(PluginMainWidget):
                                                             filename)
 
     # ---- Handling editor windows
-    def setup_other_windows(self, main, outline_plugin): # TODO: Remove args
+    def setup_other_windows(self, main, outline_plugin):  # TODO: Remove args
         """Setup toolbars and menus for 'New window' instances"""
         # TODO: Move to the plugin?
         file_menu_actions = main.mainmenu.get_application_menu(
@@ -2704,8 +1931,9 @@ class EditorMainWidget(PluginMainWidget):
                           (_("&Tools"), tools_menu_actions),
                           (_("&View"), []),
                           (_("&Help"), help_menu_actions))
-        
+
         self.outline_plugin = outline_plugin
+
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -2816,8 +2044,10 @@ class EditorMainWidget(PluginMainWidget):
         """Enable 'Save All' if there are files to be saved"""
         editorstack = self.get_current_editorstack()
         if editorstack:
-            state = any(finfo.editor.document().isModified() or finfo.newly_created
-                        for finfo in editorstack.data)
+            state = any(
+                finfo.editor.document().isModified() or finfo.newly_created
+                for finfo in editorstack.data
+            )
             self.save_all_action.setEnabled(state)
 
     def update_warning_menu(self):
@@ -2829,8 +2059,14 @@ class EditorMainWidget(PluginMainWidget):
         for message, line_number in check_results:
             error = 'syntax' in message
             text = message[:1].upper() + message[1:]
-            icon = ima.icon('error') if error else ima.icon('warning')
-            slot = lambda _checked, _l=line_number: self.load(filename, goto=_l)
+            icon = (
+                self.create_icon('error') if error else
+                self.create_icon('warning')
+            )
+            # TODO: Make this a method (`load_line`)?
+            slot = (
+                lambda _checked, _l=line_number: self.load(filename, goto=_l)
+            )
             action = create_action(self, text=text, icon=icon)
             action.triggered[bool].connect(slot)
             self.warning_menu.addAction(action)
@@ -2842,7 +2078,7 @@ class EditorMainWidget(PluginMainWidget):
         self.todo_menu.clear()
         filename = self.get_current_filename()
         for text, line0 in results:
-            icon = ima.icon('todo')
+            icon = self.create_icon('todo')
             slot = lambda _checked, _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon)
             action.triggered[bool].connect(slot)
@@ -3132,9 +2368,14 @@ class EditorMainWidget(PluginMainWidget):
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInt(editorstack, _('Editor'),
-                               _('Maximum number of recent files'),
-                               self.get_conf('max_recent_files'), 1, 35)
+        mrf, valid = QInputDialog.getInt(
+            editorstack,
+            _('Editor'),
+            _('Maximum number of recent files'),
+            self.get_conf('max_recent_files'),
+            1,
+            35
+        )
         if valid:
             self.set_option('max_recent_files', mrf)
 
@@ -3246,7 +2487,9 @@ class EditorMainWidget(PluginMainWidget):
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
             editorwindow.raise_()
-        elif (self.dockwidget and not self._is_maximized  # and not self._ismaximized   # TODO: Is this the correct way to replace?
+            # TODO: Is this the correct way to replace?
+        elif (self.dockwidget and not self._is_maximized
+              # and not self._ismaximized
               and not self.dockwidget.isAncestorOf(focus_widget)
               and not isinstance(focus_widget, CodeEditor)):
             self.switch_to_plugin()
@@ -3596,6 +2839,7 @@ class EditorMainWidget(PluginMainWidget):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
+
     @Slot()
     def go_to_next_todo(self):
         self.switch_to_plugin()
@@ -3784,7 +3028,6 @@ class EditorMainWidget(PluginMainWidget):
                 backwards_history.pop())
         return current_filename, current_cursor
 
-
     def __move_cursor_position(self, index_move):
         """
         Move the cursor position forward or backward in the cursor
@@ -3939,10 +3182,10 @@ class EditorMainWidget(PluginMainWidget):
         origin = config['origin']
         extensions = config['extension']
         contexts = config['contexts']
-        
+
         if not isinstance(extensions, list):
             extensions = [extensions]
-        
+
         for extension in extensions:
             ext_contexts = []
             for context in contexts:
@@ -3952,7 +3195,7 @@ class EditorMainWidget(PluginMainWidget):
             supported_extension = SupportedExtensionContexts(
                 input_extension=extension, contexts=ext_contexts)
             self.supported_run_extensions.append(supported_extension)
-    
+
             # run = self.main.get_plugin(Plugins.Run, error=False)
             # if run:
             #     run.register_run_configuration_provider(
@@ -3963,7 +3206,7 @@ class EditorMainWidget(PluginMainWidget):
 
             actual_contexts = set({})
             ext_origins = self.run_configurations_per_origin.get(extension, {})
-    
+
             file_enabled = False
             for context in contexts:
                 context_name = context['name']
@@ -3974,13 +3217,13 @@ class EditorMainWidget(PluginMainWidget):
                 ext_origins[context_id] = context_origins
                 if context_id == RunContext.File:
                     file_enabled = True
-    
+
             ext_contexts = self.supported_run_configurations.get(
                 extension, set({}))
             ext_contexts |= actual_contexts
             self.supported_run_configurations[extension] = ext_contexts
             self.run_configurations_per_origin[extension] = ext_origins
-    
+
             for filename, filename_ext in list(self.pending_run_files):
                 if filename_ext == extension and file_enabled:
                     self.register_file_run_metadata(filename)
@@ -4185,7 +3428,7 @@ class EditorMainWidget(PluginMainWidget):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         if self.editorstacks is not None:
-            # --- syntax highlight and text rendering settings
+            # ---- syntax highlight and text rendering settings
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_conf(currentline_n)
             currentcell_n = 'highlight_current_cell'
@@ -4203,12 +3446,15 @@ class EditorMainWidget(PluginMainWidget):
                     editorstack.set_highlight_current_cell_enabled(
                                                                 currentcell_o)
                 if occurrence_n in options:
-                    editorstack.set_occurrence_highlighting_enabled(occurrence_o)
+                    editorstack.set_occurrence_highlighting_enabled(
+                        occurrence_o
+                    )
                 if occurrence_timeout_n in options:
                     editorstack.set_occurrence_highlighting_timeout(
-                                                           occurrence_timeout_o)
+                        occurrence_timeout_o
+                    )
 
-            # --- everything else
+            # ---- everything else
             tabbar_n = 'show_tab_bar'
             tabbar_o = self.get_conf(tabbar_n)
             classfuncdropdown_n = 'show_class_func_dropdown'
@@ -4287,7 +3533,9 @@ class EditorMainWidget(PluginMainWidget):
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
-                    editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                    editorstack.set_always_remove_trailing_spaces(
+                        removetrail_o
+                    )
                 if add_newline_n in options:
                     editorstack.set_add_newline(add_newline_o)
                 if removetrail_newlines_n in options:
@@ -4308,7 +3556,9 @@ class EditorMainWidget(PluginMainWidget):
                 if indent_chars_n in options:
                     editorstack.set_indent_chars(indent_chars_o)
                 if tab_stop_width_spaces_n in options:
-                    editorstack.set_tab_stop_width_spaces(tab_stop_width_spaces_o)
+                    editorstack.set_tab_stop_width_spaces(
+                        tab_stop_width_spaces_o
+                    )
                 if help_n in options:
                     editorstack.set_help_enabled(help_o)
                 if todo_n in options:
@@ -4317,7 +3567,8 @@ class EditorMainWidget(PluginMainWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
-                    # Avoid triggering the action when this action changes state
+                    # Avoid triggering the action when this action
+                    # changes state
                     action.blockSignals(True)
                     state = self.get_conf(name)
                     action.setChecked(state)
@@ -4473,7 +3724,11 @@ class EditorMainWidget(PluginMainWidget):
                 if cfname in filenames and len(filenames) == len(clines):
                     index = filenames.index(cfname)
                     # First we load the last focused file.
-                    self.load(filenames[index], goto=clines[index], set_focus=True)
+                    self.load(
+                        filenames[index],
+                        goto=clines[index],
+                        set_focus=True
+                    )
                     # Then we load the files located to the left of the last
                     # focused file in the tabbar, while keeping the focus on
                     # the last focused file.
@@ -4486,8 +3741,8 @@ class EditorMainWidget(PluginMainWidget):
                     if index < (len(filenames) - 1):
                         self.load(filenames[index+1:], goto=clines[index:],
                                   set_focus=False, add_where='end')
-                    # Finally we load any recovered files at the end of the tabbar,
-                    # while keeping focus on the last focused file.
+                    # Finally we load any recovered files at the end of
+                    # the tabbar, while keeping focus on the last focused file.
                     if self.autosave.recover_files_to_open:
                         self.load(self.autosave.recover_files_to_open,
                                   set_focus=False, add_where='end')
