@@ -34,7 +34,6 @@ from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_home_dir, running_under_pytest)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
-from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
@@ -50,6 +49,8 @@ from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
+from spyder.utils.environ import clean_env, get_user_environment_variables
+from spyder.config.base import get_safe_mode, is_conda_based_app
 
 
 # Logging
@@ -1484,15 +1485,13 @@ class IPythonConsoleWidget(
 
         try:
             # Create new kernel
-            kernel_spec_kwargs = dict(
-                path_to_custom_interpreter=path_to_custom_interpreter
-                )
-            kernel_spec_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
-            kernel_spec_dict["setup_kwargs"] = kernel_spec_kwargs
+            kernel_spec_dict = self.get_kernel_spec_dict(
+                path_to_custom_interpreter
+            )
             kernel_handler = self.get_cached_kernel(
                 kernel_spec_dict,
                 cache=cache,
-                )
+            )
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1500,6 +1499,86 @@ class IPythonConsoleWidget(
         # Connect kernel to client
         client.connect_kernel(kernel_handler)
         return client
+    
+    def get_kernel_spec_dict(self, pyexec=None):
+        """Create a kernel spec dict"""
+        kernel_spec = {
+            "display_name": 'Python 3 (Spyder)',
+            "language": 'python3',
+            "resource_dir": '',
+        }
+        if (
+            pyexec is None 
+            and not self.get_conf('default', section='main_interpreter')
+        ):
+            pyexec = self.get_conf(
+                'executable', section='main_interpreter'
+            )
+        kernel_spec["pyexec"] = pyexec
+        kernel_spec["env"] = self.get_kernel_spec_env(pyexec)
+        return kernel_spec
+    
+    def get_kernel_spec_env(self, pyexec):
+        """Env vars for kernels"""
+        default_interpreter = self.get_conf(
+            'default', section='main_interpreter')
+
+        # Ensure that user environment variables are included, but don't
+        # override existing environ values
+        env_vars = get_user_environment_variables()
+        env_vars.update(os.environ)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
+
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
+
+        # List of paths declared by the user, plus project's path, to
+        # add to PYTHONPATH
+        pathlist = self.get_conf(
+            'spyder_pythonpath', default=[], section='pythonpath_manager')
+        pypath = os.pathsep.join(pathlist)
+
+        # List of modules to exclude from our UMR
+        umr_namelist = self.get_conf(
+            'umr/namelist', section='main_interpreter')
+
+        # Environment variables that we need to pass to the kernel
+        env_vars.update({
+            'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
+                                         or pyexec),
+            'SPY_UMR_ENABLED': self.get_conf(
+                'umr/enabled', section='main_interpreter'),
+            'SPY_UMR_VERBOSE': self.get_conf(
+                'umr/verbose', section='main_interpreter'),
+            'SPY_UMR_NAMELIST': ','.join(umr_namelist),
+            'SPY_AUTOCALL_O': self.get_conf('autocall'),
+            'SPY_GREEDY_O': self.get_conf('greedy_completer'),
+            'SPY_JEDI_O': self.get_conf('jedi_completer'),
+            'SPY_TESTING': running_under_pytest() or get_safe_mode(),
+            'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
+            'SPY_PYTHONPATH': pypath,
+        })
+
+        # App considerations
+        # ??? Do we need this?
+        if is_conda_based_app() and default_interpreter:
+            # See spyder-ide/spyder#16927
+            # See spyder-ide/spyder#16828
+            # See spyder-ide/spyder#17552
+            env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
+
+        # Remove this variable because it prevents starting kernels for
+        # external interpreters when present.
+        # Fixes spyder-ide/spyder#13252
+        env_vars.pop('PYTHONEXECUTABLE', None)
+
+        # Making all env_vars strings
+        clean_env_vars = clean_env(env_vars)
+
+        return clean_env_vars
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
                                  password):
@@ -1921,9 +2000,7 @@ class IPythonConsoleWidget(
         # Get new kernel
         try:
             # Update the kernel because settings might have changed
-            kernel_spec_kwargs = ks_dict["setup_kwargs"]
-            ks_dict = SpyderKernelSpec(**kernel_spec_kwargs).to_dict()
-            ks_dict["setup_kwargs"] = kernel_spec_kwargs
+            ks_dict = self.get_kernel_spec_dict(ks_dict["pyexec"])
             kernel_handler = self.get_cached_kernel(ks_dict)
         except Exception as e:
             client.show_kernel_error(e)

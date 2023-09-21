@@ -27,14 +27,13 @@ from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.config.base import get_home_dir, running_in_ci
 from spyder.config.manager import CONF
-from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 from spyder.utils.environ import (get_user_env, set_user_env,
                                   amend_user_shell_init)
-
+from spyder_kernels_server.kernel_spec import get_kernel_spec
 
 # =============================================================================
 # ---- Constants
@@ -84,12 +83,12 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
 
-def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
-                     **kwargs):
+def start_new_kernel(ipyconsole, startup_timeout=60, kernel_name='python',
+                     spykernel=False, **kwargs):
     """Start a new kernel, and return its Manager and Client"""
     km = KernelManager(kernel_name=kernel_name)
     if spykernel:
-        km._kernel_spec = SpyderKernelSpec()
+        km._kernel_spec = get_kernel_spec(ipyconsole.get_kernel_spec_dict())
     km.start_kernel(**kwargs)
     kc = km.client()
     kc.start_channels()

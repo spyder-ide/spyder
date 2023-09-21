@@ -935,7 +935,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
-    km, kc = start_new_kernel()
+    km, kc = start_new_kernel(main_window.ipyconsole)
 
     main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -954,7 +954,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     python_shell = shell
 
     # Test with a kernel from Spyder
-    spykm, spykc = start_new_kernel(spykernel=True)
+    spykm, spykc = start_new_kernel(main_window.ipyconsole, spykernel=True)
     main_window.ipyconsole.create_client_for_kernel(spykc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -5164,7 +5164,7 @@ def test_outline_no_init(main_window, qtbot):
 def test_pdb_ipykernel(main_window, qtbot):
     """Check if pdb works without spyder kernel."""
     # Test with a generic kernel
-    km, kc = start_new_kernel()
+    km, kc = start_new_kernel(main_window.ipyconsole)
 
     main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     ipyconsole = main_window.ipyconsole

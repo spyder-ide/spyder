@@ -12,12 +12,12 @@ import os
 import pytest
 
 from spyder.config.manager import CONF
-from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import to_text_string
+from spyder_kernels_server.kernel_spec import get_kernel_spec
 
 
 @pytest.mark.parametrize('default_interpreter', [True, False])
-def test_kernel_pypath(tmpdir, default_interpreter):
+def test_kernel_pypath(ipyconsole, tmpdir, default_interpreter):
     """
     Test that PYTHONPATH and spyder_pythonpath option are properly handled
     when an external interpreter is used or not.
@@ -33,7 +33,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
     os.environ['PYTHONPATH'] = pypath
     CONF.set('pythonpath_manager', 'spyder_pythonpath', [pypath])
 
-    kernel_spec = SpyderKernelSpec()
+    kernel_spec = get_kernel_spec(ipyconsole.get_kernel_spec_dict())
 
     # Check that PYTHONPATH is not in our kernelspec
     # and pypath is in SPY_PYTHONPATH
@@ -46,7 +46,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
     del os.environ['PYTHONPATH']
 
 
-def test_python_interpreter(tmpdir):
+def test_python_interpreter(ipyconsole, tmpdir):
     """Test the validation of the python interpreter."""
     # Set a non existing python interpreter
     interpreter = str(tmpdir.mkdir('interpreter').join('python'))
@@ -55,7 +55,7 @@ def test_python_interpreter(tmpdir):
     CONF.set('main_interpreter', 'executable', interpreter)
 
     # Create a kernel spec
-    kernel_spec = SpyderKernelSpec()
+    kernel_spec = get_kernel_spec(ipyconsole.get_kernel_spec_dict())
 
     # Assert that the python interprerter is the default one
     assert interpreter not in kernel_spec.argv
