@@ -699,7 +699,7 @@ class SpyderKernel(IPythonKernel):
 
         if special == "pylab":
             try:
-               import matplotlib
+                import matplotlib
             except Exception:
                 return "matplotlib"
             exec("from pylab import *", self.shell.user_ns)
@@ -708,7 +708,7 @@ class SpyderKernel(IPythonKernel):
 
         if special == "sympy":
             try:
-               import sympy
+                import sympy
             except Exception:
                 return "sympy"
             sympy_init = "\n".join([
@@ -724,26 +724,26 @@ class SpyderKernel(IPythonKernel):
 
         if special == "cython":
             try:
-               import cython
+                import cython
 
-               # Import pyximport to enable Cython files support for
-               # import statement
-               import pyximport
-               pyx_setup_args = {}
+                # Import pyximport to enable Cython files support for
+                # import statement
+                import pyximport
+                pyx_setup_args = {}
 
-               # Add Numpy include dir to pyximport/distutils
-               try:
-                   import numpy
-                   pyx_setup_args['include_dirs'] = numpy.get_include()
-               except Exception:
-                   pass
+                # Add Numpy include dir to pyximport/distutils
+                try:
+                    import numpy
+                    pyx_setup_args['include_dirs'] = numpy.get_include()
+                except Exception:
+                    pass
 
-               # Setup pyximport and enable Cython files reload
-               pyximport.install(setup_args=pyx_setup_args,
-                                 reload_support=True)
+                # Setup pyximport and enable Cython files reload
+                pyximport.install(setup_args=pyx_setup_args,
+                                  reload_support=True)
             except Exception:
                 return "cython"
-            
+
             self.shell.run_line_magic("reload_ext", "Cython")
             self.shell.special = special
             return
@@ -997,7 +997,7 @@ class SpyderKernel(IPythonKernel):
                 self.shell.run_line_magic('autoreload', "2")
             else:
                 self.shell.run_line_magic('autoreload', "off")
-            
+
         except Exception:
             pass
 

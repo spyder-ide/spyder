@@ -78,7 +78,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             "widget": shellwidget,
         }
         self.set_shellwidget(shellwidget)
-    
+
     def config_spyder_kernel(self, shellwidget):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",

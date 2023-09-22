@@ -982,7 +982,9 @@ def get_module_version(module_name, interpreter=None):
                 import {} as mod
             except Exception:
                 print('No Module')  # spyder: test-skip
-            print(getattr(mod, '__version__', getattr(mod, 'VERSION', None)))  # spyder: test-skip
+            print(
+                getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+            )  # spyder: test-skip
             """).format(module_name)
         # use clean environment
         proc = run_program(interpreter, ['-c', cmd], env={})
@@ -995,7 +997,7 @@ def get_module_version(module_name, interpreter=None):
             # the module is installed and it has a version attribute
             return stdout
         return None
-        
+
     mod = __import__(module_name)
     ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
     if not ver:

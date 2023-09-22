@@ -90,7 +90,9 @@ class SpyderShell(ZMQInteractiveShell):
         gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
         if self.update_gui_frontend:
             try:
-                self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
+                self.kernel.frontend_call(
+                    blocking=False
+                ).update_matplotlib_gui(gui)
             except Exception:
                 pass
         return gui, backend

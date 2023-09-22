@@ -443,7 +443,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
-        
+
         if self.is_external_kernel:
             # Enable wurlitzer
             # Not necessary if started by spyder
