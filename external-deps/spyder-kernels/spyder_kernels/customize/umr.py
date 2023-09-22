@@ -93,5 +93,5 @@ class UserModuleReloader:
             modnames = modnames_to_reload
             print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"
                   % ("Reloaded modules", ": "+", ".join(modnames)))
-        
+
         return modnames_to_reload

@@ -70,7 +70,8 @@ def has_spyder_kernels(pyexec):
     if is_module_installed(
         'spyder_kernels',
         version=SPYDER_KERNELS_VERSION,
-        interpreter=pyexec):
+        interpreter=pyexec
+    ):
         return True
     # dev versions are acceptable
     try:

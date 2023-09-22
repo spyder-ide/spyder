@@ -376,11 +376,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_handler.poll_fault_text()
 
         self.send_spyder_kernel_configuration()
-        
+
         run_lines = self.get_conf('startup/run_lines')
         if run_lines:
             self.execute(run_lines, hidden=True)
-        
+
         if self.get_conf('startup/use_run_file'):
             run_file = self.get_conf('startup/run_file')
             if run_file:
@@ -407,7 +407,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
-        
+
         if self.is_external_kernel:
             # Enable wurlitzer
             # Not necessary if started by spyder

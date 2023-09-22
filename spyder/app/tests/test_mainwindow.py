@@ -1111,7 +1111,9 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
     # Change directory in the explorer widget
     explorer.chdir(temp_dir)
-    qtbot.waitUntil(lambda: osp.normpath(temp_dir) == osp.normpath(shell.get_cwd()))
+    qtbot.waitUntil(
+        lambda: osp.normpath(temp_dir) == osp.normpath(shell.get_cwd())
+    )
 
     # Assert that cwd changed in workingdirectory
     assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(

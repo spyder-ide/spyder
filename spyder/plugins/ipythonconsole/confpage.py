@@ -115,7 +115,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         backends = [
             (inline, 'inline'),
-            (automatic, 'auto'), 
+            (automatic, 'auto'),
             ("Qt5", 'qt5'),
             ("Tkinter", 'tk')
         ]
@@ -299,7 +299,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_layout.addWidget(autocall_label)
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
-        
+
         # Autoreload group
         autoreload_group = QGroupBox(_("Autoreload"))
         autoreload_label = QLabel(_(
@@ -309,11 +309,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             "It can be slow on windows because of the NTFS file system."
             ))
         autoreload_label.setWordWrap(True)
-        
-        autoreload_box = newcb(_("Use autoreload"), "autoreload",
-                          tip=_("This option enables the autoreload kernel "
-                                "extension.<br>Please refer to its documentation "
-                                "to learn how to use it."))
+
+        autoreload_box = newcb(
+            _("Use autoreload"),
+            "autoreload",
+            tip=_(
+                "This option enables the autoreload kernel "
+                "extension.<br>Please refer to its documentation "
+                "to learn how to use it."
+            )
+        )
 
         autoreload_layout = QVBoxLayout()
         autoreload_layout.addWidget(autoreload_label)
