@@ -60,7 +60,7 @@ class Editor(SpyderDockablePlugin):
     ]
     WIDGET_CLASS = EditorMainWidget
     CONF_SECTION = NAME
-    CONFIGWIDGET_CLASS = EditorConfigPage
+    CONF_WIDGET_CLASS = EditorConfigPage
     CONF_FILE = False
 
     # ---- Signals
@@ -725,11 +725,26 @@ class Editor(SpyderDockablePlugin):
     def get_current_editor(self, *args, **kwargs):  # debugger plugin
         return self.get_widget().get_current_editor(*args, **kwargs)
 
+    def get_current_editorstack(self, *args, **kwargs):
+        return self.get_widget().get_current_editorstack()
+
     def setup_open_files(self, *args, **kwargs):  # mainwindow?
         return self.get_widget().setup_open_files(*args, **kwargs)
 
+    def close_file_from_name(self, *args, **kwargs):
+        return self.get_widget().close_file_from_name(*args, **kwargs)
+
     def save(self, *args, **kwargs):
         return self.get_widget().save(*args, **kwargs)
+
+    def edit_template(self, *args, **kwargs):
+        return self.get_widget().edit_template(*args, **kwargs)
+
+    def get_filenames(self, *args, **kwargs):
+        return self.get_widget().get_filenames(*args, **kwargs)
+
+    def get_current_filename(self, *args, **kwargs):
+        return self.get_widget().get_current_filename(*args, **kwargs)
 
     # ---- Private API
     # ------------------------------------------------------------------------

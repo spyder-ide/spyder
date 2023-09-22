@@ -257,9 +257,9 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                     add_actions(menu, actions)
                 self.menus.append(menu)
 
-    # def get_toolbars(self):
-    #     """Get the toolbars."""
-    #     return self.toolbars
+    def get_toolbars(self):
+        """Get the toolbars."""
+        return self.toolbars
 
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""

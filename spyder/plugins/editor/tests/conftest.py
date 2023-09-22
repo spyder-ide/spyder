@@ -11,11 +11,14 @@
 import os.path as osp
 from unittest.mock import MagicMock, Mock
 
+from qtpy.QtCore import QCoreApplication, Qt
+
 from spyder.api.plugins import Plugins
 from spyder.utils.qthelpers import qapplication
 
 # This is needed to avoid an error because QtAwesome
 # needs a QApplication to work correctly.
+QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 app = qapplication()
 
 from qtpy.QtWidgets import QMainWindow
@@ -37,7 +40,7 @@ def mock_RecoveryDialog(monkeypatch):
 @pytest.fixture
 def editor_plugin(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
+    monkeypatch.setattr('spyder.plugins.editor.widgets.main_widget.add_actions', Mock())
 
     class MainMock(QMainWindow):
         def __getattr__(self, attr):
@@ -56,15 +59,18 @@ def editor_plugin(qtbot, monkeypatch):
                 return Mock()
 
     window = MainMock()
-    editor = Editor(window)
-    window.setCentralWidget(editor)
+    configuration = CONF
+    editor = Editor(window, configuration)
+    editor.on_initialize()
+    editor.update_font()  # Set initial font
+    window.setCentralWidget(editor.get_widget())
     window.resize(640, 480)
     qtbot.addWidget(window)
     window.show()
 
     yield editor
-    editor.close()
 
+    editor.on_close()
     CONF.remove_option('editor', 'autosave_mapping')
 
 
@@ -118,6 +124,15 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             'occurrence_highlighting/timeout': 1500,
             'tab_stop_width_spaces': 4,
             'show_class_func_dropdown': False,
+            'file_uuids': {},
+            # From help section:
+            'connect/editor': False,
+            # From completions:
+            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'): True,
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'): False,
+            ('provider_configuration', 'lsp', 'values',
+             'pycodestyle/max_line_length'): 79,
+            
         }
 
         if last_focused_filename is not None:
@@ -127,14 +142,16 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             layout_dict = {'layout_settings': {'splitsettings': splitsettings}}
             options_dict.update(layout_dict)
 
-        def get_option(option, default=None):
+        def get_conf(option, default=None, section=None):
             return options_dict.get(option)
 
-        def set_option(option, value):
+        def set_conf(option, value):
             options_dict[option] = value
 
-        editor.get_option = get_option
-        editor.set_option = set_option
+        editor.get_conf = get_conf
+        editor.set_conf = set_conf
+        editor.get_widget().get_conf = get_conf
+        editor.get_widget().set_conf = set_conf
 
         editor.setup_open_files()
         return editor, expected_filenames, expected_current_filename

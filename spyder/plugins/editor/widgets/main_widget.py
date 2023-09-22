@@ -2063,7 +2063,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.create_icon('error') if error else
                 self.create_icon('warning')
             )
-            # TODO: Make this a method (`load_line`)?
             slot = (
                 lambda _checked, _l=line_number: self.load(filename, goto=_l)
             )
