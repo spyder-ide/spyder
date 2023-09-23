@@ -700,27 +700,27 @@ class SpyderKernel(IPythonKernel):
         if special == "pylab":
             try:
                 import matplotlib
+                exec("from pylab import *", self.shell.user_ns)
+                self.shell.special = special
+                return
             except Exception:
                 return "matplotlib"
-            exec("from pylab import *", self.shell.user_ns)
-            self.shell.special = special
-            return
 
         if special == "sympy":
             try:
                 import sympy
+                sympy_init = "\n".join([
+                    "from sympy import *",
+                    "x, y, z, t = symbols('x y z t')",
+                    "k, m, n = symbols('k m n', integer=True)",
+                    "f, g, h = symbols('f g h', cls=Function)",
+                    "init_printing()",
+                ])
+                exec(sympy_init, self.shell.user_ns)
+                self.shell.special = special
+                return
             except Exception:
                 return "sympy"
-            sympy_init = "\n".join([
-                "from sympy import *",
-                "x, y, z, t = symbols('x y z t')",
-                "k, m, n = symbols('k m n', integer=True)",
-                "f, g, h = symbols('f g h', cls=Function)",
-                "init_printing()",
-            ])
-            exec(sympy_init, self.shell.user_ns)
-            self.shell.special = special
-            return
 
         if special == "cython":
             try:
@@ -741,12 +741,13 @@ class SpyderKernel(IPythonKernel):
                 # Setup pyximport and enable Cython files reload
                 pyximport.install(setup_args=pyx_setup_args,
                                   reload_support=True)
+
+                self.shell.run_line_magic("reload_ext", "Cython")
+                self.shell.special = special
+                return
+
             except Exception:
                 return "cython"
-
-            self.shell.run_line_magic("reload_ext", "Cython")
-            self.shell.special = special
-            return
 
         raise NotImplementedError(f"{special}")
 
