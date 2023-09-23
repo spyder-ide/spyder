@@ -782,21 +782,21 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.copy_action = self.create_action(
             ArrayEditorActions.Copy,
             text=_('Copy'),
-            icon=ima.icon('editcopy'),
+            icon=self.create_icon('editcopy'),
             triggered=self.arraywidget.view.copy)
         toolbar.add_item(self.copy_action)
 
         self.edit_action = self.create_action(
             ArrayEditorActions.Edit,
             text=_('Edit'),
-            icon=ima.icon('edit'),
+            icon=self.create_icon('edit'),
             triggered=self.arraywidget.view.edit_item)
         toolbar.add_item(self.edit_action)
 
         self.format_action = self.create_action(
             ArrayEditorActions.Format,
             text=_('Format'),
-            icon=ima.icon('format_float'),
+            icon=self.create_icon('format_float'),
             tip=_('Set format of floating-point numbers'),
             triggered=self.arraywidget.change_format)
         self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
@@ -805,7 +805,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.resize_action = self.create_action(
             ArrayEditorActions.Resize,
             text=_('Resize'),
-            icon=ima.icon('collapse_column'),
+            icon=self.create_icon('collapse_column'),
             tip=_('Resize columns to contents'),
             triggered=self.arraywidget.view.resize_to_contents)
         toolbar.add_item(self.resize_action)
@@ -813,7 +813,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.toggle_bgcolor_action = self.create_action(
             ArrayEditorActions.ToggleBackgroundColor,
             text=_('Background color'),
-            icon=ima.icon('background_color'),
+            icon=self.create_icon('background_color'),
             toggled=lambda state: self.arraywidget.model.bgcolor(state),
             initial=self.arraywidget.model.bgcolor_enabled)
         self.toggle_bgcolor_action.setEnabled(
