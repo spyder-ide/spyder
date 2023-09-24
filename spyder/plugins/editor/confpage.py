@@ -18,7 +18,13 @@ from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
-GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html"
+GOOGLEDOC = (
+    "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/"
+    "example_google.html"
+)
+SPHINXDOC = (
+    "https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html"
+)
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
@@ -247,12 +253,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
+        sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Here you can select the type of docstrings ({} or {}) you "
+            _("Here you can select the type of docstrings ({}, {} or {}) you "
               "want the editor to automatically introduce when pressing "
-              "<tt>{}</tt> after a function/method/class "
+              "<tt>{}</tt> after a function, method or class "
               "declaration.").format(
-                  numpy_url, googledoc_url, DOCSTRING_SHORTCUT))
+                  numpy_url, googledoc_url, sphinx_url, DOCSTRING_SHORTCUT)
+        )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
 
@@ -262,7 +270,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_combo = self.create_combobox(
             _("Type:"),
             docstring_combo_choices,
-            'docstring_type')
+            'docstring_type'
+        )
 
         docstring_layout = QVBoxLayout()
         docstring_layout.addWidget(docstring_label)
