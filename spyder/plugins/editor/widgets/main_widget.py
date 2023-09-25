@@ -692,7 +692,7 @@ class EditorMainWidget(PluginMainWidget):
                 triggered=self.go_to_next_file,
                 register_shortcut=True
             )
-            self.go_to_previous_file_action = create_action(
+            self.go_to_previous_file_action = self.create_action(
                 EditorWidgetActions.GoToPreviousFile,
                 text=_("Go to previous file"),
                 triggered=self.go_to_previous_file,
