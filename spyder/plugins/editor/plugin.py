@@ -737,6 +737,12 @@ class Editor(SpyderDockablePlugin):
     def save(self, *args, **kwargs):
         return self.get_widget().save(*args, **kwargs)
 
+    def save_bookmark(self, *args, **kwargs):
+        return self.get_widget().save_bookmark(*args, **kwargs)
+
+    def load_bookmark(self, *args, **kwargs):
+        return self.get_widget().load_bookmark(*args, **kwargs)
+
     def edit_template(self, *args, **kwargs):
         return self.get_widget().edit_template(*args, **kwargs)
 

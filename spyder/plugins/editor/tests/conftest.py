@@ -125,6 +125,7 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             'tab_stop_width_spaces': 4,
             'show_class_func_dropdown': False,
             'file_uuids': {},
+            'bookmarks': {},
             # From help section:
             'connect/editor': False,
             # From completions:

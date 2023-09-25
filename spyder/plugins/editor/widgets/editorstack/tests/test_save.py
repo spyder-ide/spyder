@@ -34,7 +34,7 @@ from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 # ---- Helpers
 def add_files(editorstack):
-    editorstack.close_action.setEnabled(False)
+    editorstack.close_split_action.setEnabled(False)
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
@@ -50,6 +50,7 @@ def add_files(editorstack):
 # ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
+    EditorStack.CONF_SECTION = "Editor"
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -76,6 +77,7 @@ def editor_bot(base_editor_bot, request):
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
+    EditorSplitter.CONF_SECTION = "Editor"
     es = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
     es.show()
@@ -87,7 +89,7 @@ def editor_splitter_bot(qtbot):
 def editor_splitter_layout_bot(editor_splitter_bot):
     """Create editor splitter for testing layouts."""
     es = editor_splitter_bot
-    es.plugin.clone_editorstack.side_effect = add_files
+    es.main_widget.clone_editorstack.side_effect = add_files
 
     # Setup editor info for this EditorStack.
     add_files(es.editorstack)
