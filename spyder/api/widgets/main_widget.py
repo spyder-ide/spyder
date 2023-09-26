@@ -773,6 +773,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 window.restoreGeometry(
                     QByteArray().fromHex(str(geometry).encode('utf-8'))
                 )
+
+                # Move to the primary screen if the window is not placed in a
+                # visible location.
+                window.move_to_primary_screen()
             except Exception:
                 pass
 

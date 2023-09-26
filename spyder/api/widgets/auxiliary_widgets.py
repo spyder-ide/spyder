@@ -14,10 +14,11 @@ from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 
-class SpyderWindowWidget(QMainWindow):
+class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
     """MainWindow subclass that contains a SpyderDockablePlugin."""
 
     # ---- Signals

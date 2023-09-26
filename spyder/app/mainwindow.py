@@ -74,6 +74,7 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_pynsist, running_in_mac_app,
                                 running_under_pytest, STDERR)
@@ -123,7 +124,11 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderConfigurationAccessor):
+class MainWindow(
+    QMainWindow,
+    SpyderMainWindowMixin,
+    SpyderConfigurationAccessor
+):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -1031,6 +1036,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         QApplication.processEvents()
         if self.splash is not None:
             self.splash.hide()
+
+        # Move the window to the primary screen if the previous location is not
+        # visible to the user.
+        self.move_to_primary_screen()
 
         # Call on_mainwindow_visible for all plugins, except Layout because it
         # needs to be called first (see above).
