@@ -40,6 +40,9 @@ class SpyderWindowWidget(QMainWindow):
         super().__init__()
         self.widget = widget
 
+        # To distinguish these windows from the main Spyder one
+        self.is_window_widget = True
+
         # Setting interface theme
         self.setStyleSheet(str(APP_STYLESHEET))
 
