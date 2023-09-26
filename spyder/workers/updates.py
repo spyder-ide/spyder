@@ -107,32 +107,31 @@ class WorkerUpdates(QObject):
                 page = urlopen(self.url, context=context)
             else:
                 page = urlopen(self.url)
-            try:
-                data = page.read()
 
-                # Needed step for python3 compatibility
-                if not is_text_string(data):
-                    data = data.decode()
-                data = json.loads(data)
+            data = page.read()
 
-                if is_anaconda():
-                    if self.releases is None:
-                        self.releases = []
-                        for item in data['packages']:
-                            if ('spyder' in item and
-                                    not re.search(r'spyder-[a-zA-Z]', item)):
-                                self.releases.append(item.split('-')[1])
-                    result = self.check_update_available()
-                else:
-                    if self.releases is None:
-                        self.releases = [item['tag_name'].replace('v', '')
-                                         for item in data]
-                        self.releases = list(reversed(self.releases))
+            # Needed step for python3 compatibility
+            if not is_text_string(data):
+                data = data.decode()
+            data = json.loads(data)
 
-                result = self.check_update_available()
-                self.update_available, self.latest_release = result
-            except Exception:
-                error_msg = _('Unable to retrieve information.')
+            if is_anaconda():
+                if self.releases is None:
+                    self.releases = []
+                    for item in data['packages']:
+                        if (
+                            'spyder' in item
+                            and not re.search(r'spyder-[a-zA-Z]', item)
+                        ):
+                            self.releases.append(item.split('-')[1])
+            else:
+                if self.releases is None:
+                    self.releases = [item['tag_name'].replace('v', '')
+                                     for item in data]
+                    self.releases = list(reversed(self.releases))
+
+            result = self.check_update_available()
+            self.update_available, self.latest_release = result
         except HTTPError:
             error_msg = _('Unable to retrieve information.')
         except URLError:
