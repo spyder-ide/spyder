@@ -617,10 +617,10 @@ class SpyderKernel(IPythonKernel):
 
     # --- Additional methods
     @comm_handler
-    def set_configuration(self, dic):
+    def set_configuration(self, conf):
         """Set kernel configuration"""
         ret = {}
-        for key, value in dic.items():
+        for key, value in conf.items():
             if key == "cwd":
                 self._cwd_initialised = True
                 os.chdir(value)
