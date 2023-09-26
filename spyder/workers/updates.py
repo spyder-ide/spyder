@@ -13,6 +13,7 @@ import re
 import ssl
 import sys
 import tempfile
+import traceback
 from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError, HTTPError
 
@@ -132,13 +133,23 @@ class WorkerUpdates(QObject):
 
             result = self.check_update_available()
             self.update_available, self.latest_release = result
-        except HTTPError:
-            error_msg = _('Unable to retrieve information.')
         except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
+            error_msg = _(
+                'It was not possible to connect to the internet to check for '
+                'Spyder updates.'
+                '.<br><br>'
+                'Make sure the connection is working properly.'
+            )
         except Exception:
-            error_msg = _('Unable to check for updates.')
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
+
+            error_msg = _(
+                'It was not possible to check for Spyder updates due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
