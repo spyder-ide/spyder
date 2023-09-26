@@ -160,7 +160,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             self,
             "debugger",
             _("Not debugging right now"),
-            _("Please come back later when we're actually debugging")
+            _("Start a debugging session with the ⏯ button, allowing you to "
+              "step through your code and see the functions that "
+              "Python has run.")
         )
 
         # Setup layout.
