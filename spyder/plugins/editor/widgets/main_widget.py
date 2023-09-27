@@ -816,6 +816,7 @@ class EditorMainWidget(PluginMainWidget):
             'indent_guides': self.showindentguides_action,
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
+            # TODO: Should this actions be created from the completions plugin?
             'pycodestyle': self.show_codestyle_warnings_action,
             'pydocstyle': self.show_docstring_warnings_action,
             'underline_errors': self.underline_errors
@@ -1487,10 +1488,10 @@ class EditorMainWidget(PluginMainWidget):
         for name, action in self.checkable_actions.items():
             if name in named_options:
                 if name == 'underline_errors':
-                    section = 'editor'
+                    section = 'completions'
                     opt = 'underline_errors'
                 else:
-                    section = 'completions'
+                    section = 'editor'
                     opt = named_options[name]
 
                 state = self.get_conf(opt, section=section)
@@ -1606,7 +1607,7 @@ class EditorMainWidget(PluginMainWidget):
                         method(checked)
                     except AttributeError as e:
                         logger.error(e, exc_info=True)
-            self.set_option(conf_name, checked)
+            self.set_conf(conf_name, checked)
         else:
             if conf_name in ('pycodestyle', 'pydocstyle'):
                 self.set_conf(
@@ -3424,167 +3425,303 @@ class EditorMainWidget(PluginMainWidget):
         editor.update_tab_stop_width_spaces()
 
     # ---- Options
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
+    # TODO: Use mapping general mapping for all the settings and set methods
+    # to change config with decorator
+    # Should this @on_conf_change be moved to the EditorStack class itself?
+    @on_conf_change(
+        option=[
+            'highlight_current_line',
+            'highlight_current_cell',
+            'occurrence_highlighting',
+            'occurrence_highlighting/timeout'
+        ]
+    )
+    def on_syntax_highlight_changes(self, option, value):
+        # ---- syntax highlight and text rendering settings
+        option_to_method = {
+            'highlight_current_line': 'set_highlight_current_line_enabled',
+            'highlight_current_cell': 'set_highlight_current_cell_enabled',
+            'occurrence_highlighting': 'set_occurrence_highlighting_enabled',
+            'occurrence_highlighting/timeout': 'set_occurrence_highlighting_timeout'
+        }
         if self.editorstacks is not None:
-            # ---- syntax highlight and text rendering settings
-            currentline_n = 'highlight_current_line'
-            currentline_o = self.get_conf(currentline_n)
-            currentcell_n = 'highlight_current_cell'
-            currentcell_o = self.get_conf(currentcell_n)
-            occurrence_n = 'occurrence_highlighting'
-            occurrence_o = self.get_conf(occurrence_n)
-            occurrence_timeout_n = 'occurrence_highlighting/timeout'
-            occurrence_timeout_o = self.get_conf(occurrence_timeout_n)
-
             for editorstack in self.editorstacks:
-                if currentline_n in options:
-                    editorstack.set_highlight_current_line_enabled(
-                                                                currentline_o)
-                if currentcell_n in options:
-                    editorstack.set_highlight_current_cell_enabled(
-                                                                currentcell_o)
-                if occurrence_n in options:
-                    editorstack.set_occurrence_highlighting_enabled(
-                        occurrence_o
-                    )
-                if occurrence_timeout_n in options:
-                    editorstack.set_occurrence_highlighting_timeout(
-                        occurrence_timeout_o
-                    )
+                getattr(editorstack, option_to_method[option])(value)
+
+    @on_conf_change(
+        option=[
+            'blank_spaces',
+            'scroll_past_end',
+            'indent_guides',
+            'code_folding',
+            'show_class_func_dropdown'
+        ]
+    )
+    def on_checkable_action_change(self, option, value):
+        option_to_method = {
+            'blank_spaces': 'set_blanks_enabled',
+            'scroll_past_end': 'set_scrollpastend_enabled',
+            'indent_guides': 'set_indent_guides',
+            'code_folding': 'set_code_folding_enabled',
+            'show_class_func_dropdown': 'set_classfunc_dropdown_visible'
+        }
+
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                getattr(editorstack, option_to_method[option])(value)
+
+        action = self.checkable_actions[option]
+        # Avoid triggering the action when it changes state
+        action.blockSignals(True)
+        action.setChecked(value)
+        action.blockSignals(False)
+        # See: spyder-ide/spyder#9915
+
+    @on_conf_change(
+        option=[
+            'show_tab_bar',
+            'wrap',
+            'line_numbers',
+            'tab_always_indent',
+            'strip_trailing_spaces_on_modify',
+            'intelligent_backspace',
+            'always_remove_trailing_spaces',
+            'add_newline',
+            'always_remove_trailing_newlines',
+            'convert_eol_on_save',
+            'convert_eol_on_save_to',
+            'close_parentheses',
+            'close_quotes',
+            'add_colons',
+            'auto_unindent',
+            'indent_chars',
+            'tab_stop_width_spaces'
+        ]
+    )
+    def on_general_option_change(self, option, value):
+        option_to_method = {
+            'show_tab_bar': 'set_tabbar_visible',
+            'wrap': 'set_wrap_enabled',
+            'line_numbers': 'set_linenumbers_enabled',
+            'tab_always_indent': 'set_tabmode_enabled',
+            'strip_trailing_spaces_on_modify': 'set_stripmode_enabled',
+            'intelligent_backspace': 'set_intelligent_backspace_enabled',
+            'always_remove_trailing_spaces': 'set_always_remove_trailing_spaces',
+            'add_newline': 'set_add_newline',
+            'always_remove_trailing_newlines': 'set_remove_trailing_newlines',
+            'convert_eol_on_save': 'set_convert_eol_on_save',
+            'convert_eol_on_save_to': 'set_convert_eol_on_save_to',
+            'close_parentheses': 'set_close_parentheses_enabled',
+            'close_quotes': 'set_close_quotes_enabled',
+            'add_colons': 'set_add_colons_enabled',
+            'auto_unindent': 'set_auto_unindent_enabled',
+            'indent_chars': 'set_indent_chars',
+            'tab_stop_width_spaces': 'set_tab_stop_width_spaces'
+        }
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                getattr(editorstack, option_to_method[option])(value)
+
+    @on_conf_change(
+        option=[
+            'line_numbers',
+            'todo_list'
+        ]
+    )
+    def on_current_finfo_option_change(self, option, value):
+        option_to_method = {
+            'line_numbers': 'set_linenumbers_enabled',
+            'todo_list': 'set_todolist_enabled'
+        }
+        finfo = self.get_current_finfo()
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                getattr(editorstack, option_to_method[option])(
+                    value, current_finfo=finfo
+                )
+        # We must update the current editor after the others:
+        # (otherwise, code analysis buttons state would correspond to the
+        #  last editor instead of showing the one of the current editor)
+        if finfo is not None and option == 'todo_list':
+            finfo.run_todo_finder()
+
+    @on_conf_change(option='autosave_enabled')
+    def on_autosave_enabled_change(self, value):
+        self.autosave.enabled = value
+
+    @on_conf_change(option='autosave_interval')
+    def on_autosave_interval_change(self, value):
+        # Multiply by 1000 to convert seconds to milliseconds
+        self.autosave.interval = value * 1000
+
+    @on_conf_change(option='connect_to_oi')
+    def on_help_connection_change(self, value):
+        help_option_value = self.get_conf('connect/editor', section='help')
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                editorstack.set_help_enabled(help_option_value)
+
+    # def apply_plugin_settings(self, options):
+    #     """Apply configuration file's plugin settings"""
+    #     if self.editorstacks is not None:
+            # # ---- syntax highlight and text rendering settings
+            # currentline_n = 'highlight_current_line'
+            # currentline_o = self.get_conf(currentline_n)
+            # currentcell_n = 'highlight_current_cell'
+            # currentcell_o = self.get_conf(currentcell_n)
+            # occurrence_n = 'occurrence_highlighting'
+            # occurrence_o = self.get_conf(occurrence_n)
+            # occurrence_timeout_n = 'occurrence_highlighting/timeout'
+            # occurrence_timeout_o = self.get_conf(occurrence_timeout_n)
+
+            # for editorstack in self.editorstacks:
+            #     if currentline_n in options:
+            #         editorstack.set_highlight_current_line_enabled(
+            #                                                     currentline_o)
+            #     if currentcell_n in options:
+            #         editorstack.set_highlight_current_cell_enabled(
+            #                                                     currentcell_o)
+            #     if occurrence_n in options:
+            #         editorstack.set_occurrence_highlighting_enabled(
+            #             occurrence_o
+            #         )
+            #     if occurrence_timeout_n in options:
+            #         editorstack.set_occurrence_highlighting_timeout(
+            #             occurrence_timeout_o
+            #         )
 
             # ---- everything else
-            tabbar_n = 'show_tab_bar'
-            tabbar_o = self.get_conf(tabbar_n)
-            classfuncdropdown_n = 'show_class_func_dropdown'
-            classfuncdropdown_o = self.get_conf(classfuncdropdown_n)
-            linenb_n = 'line_numbers'
-            linenb_o = self.get_conf(linenb_n)
-            blanks_n = 'blank_spaces'
-            blanks_o = self.get_conf(blanks_n)
-            scrollpastend_n = 'scroll_past_end'
-            scrollpastend_o = self.get_conf(scrollpastend_n)
-            wrap_n = 'wrap'
-            wrap_o = self.get_conf(wrap_n)
-            indentguides_n = 'indent_guides'
-            indentguides_o = self.get_conf(indentguides_n)
-            codefolding_n = 'code_folding'
-            codefolding_o = self.get_conf(codefolding_n)
-            tabindent_n = 'tab_always_indent'
-            tabindent_o = self.get_conf(tabindent_n)
-            stripindent_n = 'strip_trailing_spaces_on_modify'
-            stripindent_o = self.get_conf(stripindent_n)
-            ibackspace_n = 'intelligent_backspace'
-            ibackspace_o = self.get_conf(ibackspace_n)
-            removetrail_n = 'always_remove_trailing_spaces'
-            removetrail_o = self.get_conf(removetrail_n)
-            add_newline_n = 'add_newline'
-            add_newline_o = self.get_conf(add_newline_n)
-            removetrail_newlines_n = 'always_remove_trailing_newlines'
-            removetrail_newlines_o = self.get_conf(removetrail_newlines_n)
-            converteol_n = 'convert_eol_on_save'
-            converteol_o = self.get_conf(converteol_n)
-            converteolto_n = 'convert_eol_on_save_to'
-            converteolto_o = self.get_conf(converteolto_n)
-            closepar_n = 'close_parentheses'
-            closepar_o = self.get_conf(closepar_n)
-            close_quotes_n = 'close_quotes'
-            close_quotes_o = self.get_conf(close_quotes_n)
-            add_colons_n = 'add_colons'
-            add_colons_o = self.get_conf(add_colons_n)
-            autounindent_n = 'auto_unindent'
-            autounindent_o = self.get_conf(autounindent_n)
-            indent_chars_n = 'indent_chars'
-            indent_chars_o = self.get_conf(indent_chars_n)
-            tab_stop_width_spaces_n = 'tab_stop_width_spaces'
-            tab_stop_width_spaces_o = self.get_conf(tab_stop_width_spaces_n)
-            help_n = 'connect_to_oi'
-            help_o = self.get_conf('connect/editor', section='help')
-            todo_n = 'todo_list'
-            todo_o = self.get_conf(todo_n)
+            # tabbar_n = 'show_tab_bar'
+            # tabbar_o = self.get_conf(tabbar_n)
+            # classfuncdropdown_n = 'show_class_func_dropdown'
+            # classfuncdropdown_o = self.get_conf(classfuncdropdown_n)
+            # linenb_n = 'line_numbers'
+            # linenb_o = self.get_conf(linenb_n)
+            # blanks_n = 'blank_spaces'
+            # blanks_o = self.get_conf(blanks_n)
+            # scrollpastend_n = 'scroll_past_end'
+            # scrollpastend_o = self.get_conf(scrollpastend_n)
+            # wrap_n = 'wrap'
+            # wrap_o = self.get_conf(wrap_n)
+            # indentguides_n = 'indent_guides'
+            # indentguides_o = self.get_conf(indentguides_n)
+            # codefolding_n = 'code_folding'
+            # codefolding_o = self.get_conf(codefolding_n)
+            # tabindent_n = 'tab_always_indent'
+            # tabindent_o = self.get_conf(tabindent_n)
+            # stripindent_n = 'strip_trailing_spaces_on_modify'
+            # stripindent_o = self.get_conf(stripindent_n)
+            # ibackspace_n = 'intelligent_backspace'
+            # ibackspace_o = self.get_conf(ibackspace_n)
+            # removetrail_n = 'always_remove_trailing_spaces'
+            # removetrail_o = self.get_conf(removetrail_n)
+            # add_newline_n = 'add_newline'
+            # add_newline_o = self.get_conf(add_newline_n)
+            # removetrail_newlines_n = 'always_remove_trailing_newlines'
+            # removetrail_newlines_o = self.get_conf(removetrail_newlines_n)
+            # converteol_n = 'convert_eol_on_save'
+            # converteol_o = self.get_conf(converteol_n)
+            # converteolto_n = 'convert_eol_on_save_to'
+            # converteolto_o = self.get_conf(converteolto_n)
+            # closepar_n = 'close_parentheses'
+            # closepar_o = self.get_conf(closepar_n)
+            # close_quotes_n = 'close_quotes'
+            # close_quotes_o = self.get_conf(close_quotes_n)
+            # add_colons_n = 'add_colons'
+            # add_colons_o = self.get_conf(add_colons_n)
+            # autounindent_n = 'auto_unindent'
+            # autounindent_o = self.get_conf(autounindent_n)
+            # indent_chars_n = 'indent_chars'
+            # indent_chars_o = self.get_conf(indent_chars_n)
+            # tab_stop_width_spaces_n = 'tab_stop_width_spaces'
+            # tab_stop_width_spaces_o = self.get_conf(tab_stop_width_spaces_n)
+            # help_n = 'connect_to_oi'
+            # help_o = self.get_conf('connect/editor', section='help')
+            # todo_n = 'todo_list'
+            # todo_o = self.get_conf(todo_n)
 
-            finfo = self.get_current_finfo()
+            # finfo = self.get_current_finfo()
 
-            for editorstack in self.editorstacks:
-                # Checkable options
-                if blanks_n in options:
-                    editorstack.set_blanks_enabled(blanks_o)
-                if scrollpastend_n in options:
-                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
-                if indentguides_n in options:
-                    editorstack.set_indent_guides(indentguides_o)
-                if codefolding_n in options:
-                    editorstack.set_code_folding_enabled(codefolding_o)
-                if classfuncdropdown_n in options:
-                    editorstack.set_classfunc_dropdown_visible(
-                        classfuncdropdown_o)
-                if tabbar_n in options:
-                    editorstack.set_tabbar_visible(tabbar_o)
-                if linenb_n in options:
-                    editorstack.set_linenumbers_enabled(linenb_o,
-                                                        current_finfo=finfo)
-                if wrap_n in options:
-                    editorstack.set_wrap_enabled(wrap_o)
-                if tabindent_n in options:
-                    editorstack.set_tabmode_enabled(tabindent_o)
-                if stripindent_n in options:
-                    editorstack.set_stripmode_enabled(stripindent_o)
-                if ibackspace_n in options:
-                    editorstack.set_intelligent_backspace_enabled(ibackspace_o)
-                if removetrail_n in options:
-                    editorstack.set_always_remove_trailing_spaces(
-                        removetrail_o
-                    )
-                if add_newline_n in options:
-                    editorstack.set_add_newline(add_newline_o)
-                if removetrail_newlines_n in options:
-                    editorstack.set_remove_trailing_newlines(
-                        removetrail_newlines_o)
-                if converteol_n in options:
-                    editorstack.set_convert_eol_on_save(converteol_o)
-                if converteolto_n in options:
-                    editorstack.set_convert_eol_on_save_to(converteolto_o)
-                if closepar_n in options:
-                    editorstack.set_close_parentheses_enabled(closepar_o)
-                if close_quotes_n in options:
-                    editorstack.set_close_quotes_enabled(close_quotes_o)
-                if add_colons_n in options:
-                    editorstack.set_add_colons_enabled(add_colons_o)
-                if autounindent_n in options:
-                    editorstack.set_auto_unindent_enabled(autounindent_o)
-                if indent_chars_n in options:
-                    editorstack.set_indent_chars(indent_chars_o)
-                if tab_stop_width_spaces_n in options:
-                    editorstack.set_tab_stop_width_spaces(
-                        tab_stop_width_spaces_o
-                    )
-                if help_n in options:
-                    editorstack.set_help_enabled(help_o)
-                if todo_n in options:
-                    editorstack.set_todolist_enabled(todo_o,
-                                                     current_finfo=finfo)
+            # for editorstack in self.editorstacks:
+                # # Checkable options
+                # if blanks_n in options:
+                #     editorstack.set_blanks_enabled(blanks_o)
+                # if scrollpastend_n in options:
+                #     editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                # if indentguides_n in options:
+                #     editorstack.set_indent_guides(indentguides_o)
+                # if codefolding_n in options:
+                #     editorstack.set_code_folding_enabled(codefolding_o)
+                # if classfuncdropdown_n in options:
+                #     editorstack.set_classfunc_dropdown_visible(
+                #         classfuncdropdown_o)
+                # if tabbar_n in options:
+                #     editorstack.set_tabbar_visible(tabbar_o)
+                # if linenb_n in options:
+                #     editorstack.set_linenumbers_enabled(linenb_o,
+                #                                         current_finfo=finfo)
+                # if wrap_n in options:
+                #     editorstack.set_wrap_enabled(wrap_o)
+                # if tabindent_n in options:
+                #     editorstack.set_tabmode_enabled(tabindent_o)
+                # if stripindent_n in options:
+                #     editorstack.set_stripmode_enabled(stripindent_o)
+                # if ibackspace_n in options:
+                #     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
+                # if removetrail_n in options:
+                #     editorstack.set_always_remove_trailing_spaces(
+                #         removetrail_o
+                #     )
+                # if add_newline_n in options:
+                #     editorstack.set_add_newline(add_newline_o)
+                # if removetrail_newlines_n in options:
+                #     editorstack.set_remove_trailing_newlines(
+                #         removetrail_newlines_o)
+                # if converteol_n in options:
+                #     editorstack.set_convert_eol_on_save(converteol_o)
+                # if converteolto_n in options:
+                #     editorstack.set_convert_eol_on_save_to(converteolto_o)
+                # if closepar_n in options:
+                #     editorstack.set_close_parentheses_enabled(closepar_o)
+                # if close_quotes_n in options:
+                #     editorstack.set_close_quotes_enabled(close_quotes_o)
+                # if add_colons_n in options:
+                #     editorstack.set_add_colons_enabled(add_colons_o)
+                # if autounindent_n in options:
+                #     editorstack.set_auto_unindent_enabled(autounindent_o)
+                # if indent_chars_n in options:
+                #     editorstack.set_indent_chars(indent_chars_o)
+                # if tab_stop_width_spaces_n in options:
+                #     editorstack.set_tab_stop_width_spaces(
+                #         tab_stop_width_spaces_o
+                #     )
+                # if help_n in options:
+                #     editorstack.set_help_enabled(help_o)
+                # if todo_n in options:
+                #     editorstack.set_todolist_enabled(todo_o,
+                #                                      current_finfo=finfo)
 
-            for name, action in self.checkable_actions.items():
-                if name in options:
-                    # Avoid triggering the action when this action
-                    # changes state
-                    action.blockSignals(True)
-                    state = self.get_conf(name)
-                    action.setChecked(state)
-                    action.blockSignals(False)
-                    # See: spyder-ide/spyder#9915
+            # for name, action in self.checkable_actions.items():
+            #     if name in options:
+            #         # Avoid triggering the action when this action
+            #         # changes state
+            #         action.blockSignals(True)
+            #         state = self.get_conf(name)
+            #         action.setChecked(state)
+            #         action.blockSignals(False)
+            #         # See: spyder-ide/spyder#9915
 
-            # Multiply by 1000 to convert seconds to milliseconds
-            self.autosave.interval = (
-                    self.get_conf('autosave_interval') * 1000)
-            self.autosave.enabled = self.get_conf('autosave_enabled')
+            # # Multiply by 1000 to convert seconds to milliseconds
+            # self.autosave.interval = (
+            #         self.get_conf('autosave_interval') * 1000)
+            # self.autosave.enabled = self.get_conf('autosave_enabled')
 
-            # We must update the current editor after the others:
-            # (otherwise, code analysis buttons state would correspond to the
-            #  last editor instead of showing the one of the current editor)
-            if finfo is not None:
-                if todo_n in options and todo_o:
-                    finfo.run_todo_finder()
+            # # We must update the current editor after the others:
+            # # (otherwise, code analysis buttons state would correspond to the
+            # #  last editor instead of showing the one of the current editor)
+            # if finfo is not None:
+            #     if todo_n in options and todo_o:
+            #         finfo.run_todo_finder()
 
     @on_conf_change(option='edge_line')
     def set_edgeline_enabled(self, value):

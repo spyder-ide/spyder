@@ -743,8 +743,8 @@ class Editor(SpyderDockablePlugin):
     def load_bookmark(self, *args, **kwargs):
         return self.get_widget().load_bookmark(*args, **kwargs)
 
-    def edit_template(self, *args, **kwargs):
-        return self.get_widget().edit_template(*args, **kwargs)
+    def edit_template(self):
+        return self.get_widget().edit_template()
 
     def get_filenames(self, *args, **kwargs):
         return self.get_widget().get_filenames(*args, **kwargs)
