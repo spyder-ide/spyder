@@ -84,13 +84,17 @@ class WorkerUpdates(QObject):
     def start(self):
         """Main method of the WorkerUpdates worker"""
         if is_anaconda():
-            self.url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                self.url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                self.url += '/osx-64/repodata.json'
+            if 'conda-forge' in sys.version:
+                self.url = 'https://conda.anaconda.org/conda-forge/'
             else:
-                self.url += '/linux-64/repodata.json'
+                self.url = 'https://repo.anaconda.com/pkgs/main'
+
+            if os.name == 'nt':
+                self.url += '/win-64/current_repodata.json'
+            elif sys.platform == 'darwin':
+                self.url += '/osx-64/current_repodata.json'
+            else:
+                self.url += '/linux-64/current_repodata.json'
         else:
             self.url = ('https://api.github.com/repos/'
                         'spyder-ide/spyder/releases')
@@ -119,7 +123,7 @@ class WorkerUpdates(QObject):
             if is_anaconda():
                 if self.releases is None:
                     self.releases = []
-                    for item in data['packages']:
+                    for item in data['packages.conda']:
                         if (
                             'spyder' in item
                             and not re.search(r'spyder-[a-zA-Z]', item)
