@@ -169,7 +169,7 @@ def is_anaconda_pkg(prefix=sys.prefix):
     """Detect if the anaconda meta package is installed."""
     if is_conda_env(prefix):
         conda_meta = osp.join(prefix, "conda-meta")
-        if glob("anaconda-[0-9]*.json", root_dir=conda_meta):
+        if glob(f"{conda_meta}{os.sep}anaconda-[0-9]*.json"):
             return True
 
     return False
