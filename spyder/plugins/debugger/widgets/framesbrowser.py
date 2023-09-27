@@ -159,9 +159,9 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pane_empty = PaneEmptyWidget(
             self,
             "debugger",
-            _("Not debugging right now"),
+            _("Debugging is not active"),
             _("Start a debugging session with the ⏯ button, allowing you to "
-              "step through your code and see the functions that "
+              "step through your code and see the functions here that "
               "Python has run.")
         )
 
