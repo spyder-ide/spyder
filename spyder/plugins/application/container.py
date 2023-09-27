@@ -290,7 +290,7 @@ class ApplicationContainer(PluginMainContainer):
         if error_msg is not None:
             box.setText(error_msg)
             box.set_check_visible(False)
-            box.exec_()
+            box.show()
 
         elif update_available:
             # Update using our installers
@@ -341,7 +341,7 @@ class ApplicationContainer(PluginMainContainer):
                 box.setStandardButtons(QMessageBox.Ok)
                 box.setDefaultButton(QMessageBox.Ok)
 
-                msg = _("")
+                msg = ""
                 if not box.result():
                     msg += header
 
@@ -356,16 +356,25 @@ class ApplicationContainer(PluginMainContainer):
 
                 if is_anaconda():
                     if is_anaconda_pkg():
-                        msg += _("<code>conda update anaconda</code><br>")
-                    msg += _("<code>conda install spyder={}"
-                             "</code><br><br>").format(latest_release)
+                        msg += "<code>conda update anaconda</code><br>"
+
+                    if 'conda-forge' in sys.version:
+                        channel = '-c conda-forge'
+                    else:
+                        channel = ''
+
+                    msg += (
+                        f"<code>conda install {channel} "
+                        f"spyder={latest_release}"
+                        f"</code><br><br>"
+                    )
+
                     msg += _("<b>Important note:</b> Since you installed "
                              "Spyder with Anaconda, please <b>don't</b> use "
                              "<code>pip</code> to update it as that will "
                              "break your installation.")
                 else:
-                    msg += _("<code>pip install --upgrade spyder"
-                             "</code>")
+                    msg += "<code>pip install --upgrade spyder</code>"
 
                 msg += _(
                     "<br><br>For more information, visit our "
@@ -373,11 +382,11 @@ class ApplicationContainer(PluginMainContainer):
                 ).format(url_i)
 
                 box.setText(msg)
-                box.exec_()
+                box.show()
 
         elif feedback:
             box.setText(_("Spyder is up to date."))
-            box.exec_()
+            box.show()
             if self.application_update_status:
                 self.application_update_status.set_no_status()
         else:
