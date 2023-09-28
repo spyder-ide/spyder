@@ -10,7 +10,6 @@ import logging
 import os
 import os.path as osp
 import platform
-import re
 import shutil
 import ssl
 import sys
@@ -27,7 +26,8 @@ from spyder import __version__
 from spyder.config.base import (_, is_stable_version, is_conda_based_app,
                                 running_under_pytest)
 from spyder.py3compat import is_text_string
-from spyder.utils.programs import check_version
+from spyder.utils.conda import find_conda
+from spyder.utils.programs import check_version, run_shell_command
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -89,22 +89,27 @@ class WorkerUpdates(QObject):
         if self.update_from_github:
             # Get releases from GitHub
             url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+            logger.debug(f"Getting releases from {url}.")
+            data = urlopen(url, **context).read()
         else:
             # Get releases from conda
-            url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                url += '/osx-64/repodata.json'
+            logger.debug("Getting releases from conda-forge.")
+            if os.name == "nt":
+                platform = "win-64"
+            elif sys.platform == "darwin":
+                platform = "osx-64"
             else:
-                url += '/linux-64/repodata.json'
+                platform = "linux-64"
+            cmd = f"{find_conda()} search "
+            cmd += f"'spyder[channel=conda-forge, subdir={platform}]'"
+            cmd += " --json"
 
-        logger.debug(f"Getting releases from {url}.")
-
-        page = urlopen(url, **context)
+            proc = run_shell_command(cmd)
+            try:
+                data, err = proc.communicate(timeout=20)
+            except TimeoutError:
+                pass
         try:
-            data = page.read()
-
             # Needed step for python3 compatibility
             if not is_text_string(data):
                 data = data.decode()
@@ -115,17 +120,13 @@ class WorkerUpdates(QObject):
                 return
 
             if self.update_from_github:
-                self.releases = [item['tag_name'].replace('v', '')
-                                 for item in data]
-                self.releases = list(reversed(self.releases))
+                releases = set(item['tag_name'].replace('v', '')
+                               for item in data)
             else:
-                self.releases = []
-                for item in data['packages']:
-                    if ('spyder' in item and
-                            not re.search(r'spyder-[a-zA-Z]', item)):
-                        self.releases.append(item.split('-')[1])
+                releases = set(v['version'] for v in data['spyder'])
+            self.releases = sorted(releases)
         except Exception:
-            self.error = _('Unable to retrieve information.')
+            self.error = _('Unable to retrieve Spyder version information.')
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
