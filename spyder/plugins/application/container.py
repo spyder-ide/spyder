@@ -262,6 +262,15 @@ class ApplicationContainer(PluginMainContainer):
         update_from_github = self.worker_updates.update_from_github
         error_msg = self.worker_updates.error
 
+        # Always set the following if update available, even if there is an
+        # error, DEV, or at startup
+        if update_available:
+            self.application_update_status.set_status_pending()
+            self.application_update_status.save_latest_release(
+                latest_release, update_from_github)
+        else:
+            self.application_update_status.set_no_status()
+
         url_i = 'https://docs.spyder-ide.org/current/installation.html'
 
         # Define the custom QMessageBox
@@ -293,18 +302,14 @@ class ApplicationContainer(PluginMainContainer):
              or not update_available)              # or no updates available
         ):
             # Do not show QMessageBox
-            self.application_update_status.set_no_status()
-            self.check_updates_action.setDisabled(False)
+            pass
 
         elif error_msg is not None:
             box.setText(error_msg)
             box.set_check_visible(False)
             box.exec_()
-            self.application_update_status.set_no_status()
-        elif update_available:
-            self.application_update_status.save_latest_release(
-                latest_release, update_from_github)
 
+        elif update_available:
             # Update using our installers
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             box.setDefaultButton(QMessageBox.Yes)
@@ -379,7 +384,6 @@ class ApplicationContainer(PluginMainContainer):
         else:
             box.setText(_("Spyder is up to date."))
             box.exec_()
-            self.application_update_status.set_no_status()
 
         # Always set startup=False after first call to _check_updates_ready
         if self.startup:
@@ -396,7 +400,6 @@ class ApplicationContainer(PluginMainContainer):
         logger.debug(f"Checking for updates. startup = {self.startup}.")
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
-        self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
             self.thread_updates.quit()
