@@ -11,6 +11,7 @@ import logging
 import os
 import sys
 import subprocess
+from tempfile import gettempdir
 
 # Third-party imports
 from qtpy.QtCore import Qt, QThread, Signal
@@ -296,30 +297,45 @@ class UpdateInstallerDialog(QDialog):
 
     def start_installation(self):
         """Install from downloaded installer or update through conda."""
+
+        # Install script
+        script = os.path.abspath(__file__ + '/../../scripts/install.' +
+                                 ('bat' if os.name == 'nt' else 'sh'))
+
+        # Sub command
+        sub_cmd = [script, '-p', sys.prefix]
         if (
             self.update_from_github
             and self.installer_path is not None
             and os.path.exists(self.installer_path)
         ):
-            # TODO: Close Spyder
-            # TODO: Uninstall existing version
             # Run downloaded installer
-            if os.name == 'nt':
-                cmd = 'start'
-            elif sys.platform == 'darwin':
-                cmd = 'open'
-            else:
-                cmd = 'gnome-terminal --window -- sh'
-            subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)
+            sub_cmd.extend(['-i', self.installer_path])
         elif (
             not self.update_from_github
             and self.latest_release is not None
         ):
             # Update with conda
-            # TODO: Restart Spyder
-            cmd = [find_conda(), 'install', '-p', sys.prefix,
-                   f'spyder={self.latest_release}']
-            subprocess.Popen(' '.join(cmd), shell=True)
+            sub_cmd.extend(['-c', find_conda(), '-v', self.latest_release])
+
+        # Final command assembly
+        if os.name == 'nt':
+            cmd = ['start', '"Update Spyder"'] + sub_cmd
+        elif sys.platform == 'darwin':
+            # Terminal cannot accept a command with arguments therefore
+            # create a temporary script
+            tmpdir = os.path.join(gettempdir(), 'spyder')
+            tmpscript = os.path.join(tmpdir, 'tmp_install.sh')
+            os.makedirs(tmpdir, exist_ok=True)
+            with open(tmpscript, 'w') as f:
+                f.write(' '.join(sub_cmd))
+            os.chmod(tmpscript, 0o711)  # set executable permissions
+
+            cmd = ['open', '-b', 'com.apple.terminal', tmpscript]
+        else:
+            cmd = ['gnome-terminal', '--window', '--'] + sub_cmd
+
+        subprocess.Popen(' '.join(cmd), shell=True)
 
     def finish_installation(self):
         """Handle finished installation."""
