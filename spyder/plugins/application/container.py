@@ -17,7 +17,6 @@ import sys
 import glob
 
 # Third party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
@@ -294,46 +293,36 @@ class ApplicationContainer(PluginMainContainer):
             box.exec_()
         elif update_available:
             # Update using our installers
-            if parse(latest_release) >= parse("6.0.0"):
-                box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                box.setDefaultButton(QMessageBox.Yes)
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
 
-                if not is_conda_based_app():
-                    installers_url = url_i + "#standalone-installers"
-                    msg = (
-                        header +
-                        _("Would you like to automatically download and "
-                          "install it using Spyder's installer?"
-                          "<br><br>"
-                          "We <a href='{}'>recommend our own installer</a> "
-                          "because it's more stable and makes updating easy. "
-                          "This will leave your existing Spyder installation "
-                          "untouched.").format(installers_url)
-                    )
-                else:
-                    msg = (
-                        header +
-                        _("Would you like to automatically download "
-                          "and install it?")
-                    )
+            if not is_conda_based_app():
+                installers_url = url_i + "#standalone-installers"
+                msg = (
+                    header +
+                    _("Would you like to automatically download and "
+                      "install it using Spyder's installer?"
+                      "<br><br>"
+                      "We <a href='{}'>recommend our own installer</a> "
+                      "because it's more stable and makes updating easy. "
+                      "This will leave your existing Spyder installation "
+                      "untouched.").format(installers_url)
+                )
+            else:
+                msg = (
+                    header +
+                    _("Would you like to automatically download "
+                      "and install it?")
+                )
 
-                box.setText(msg)
-                box.exec_()
-                if box.result() == QMessageBox.Yes:
-                    self.application_update_status.start_installation(
-                        latest_release=latest_release)
+            box.setText(msg)
+            box.exec_()
+            if box.result() == QMessageBox.Yes:
+                self.application_update_status.start_installation(
+                    latest_release=latest_release)
 
             # Manual update
-            if (
-                not box.result()  # The installer dialog was skipped
-                or (
-                    box.result() == QMessageBox.No
-                    and not is_conda_based_app()
-                )
-            ):
-                # Update-at-startup checkbox visible only if manual update
-                # is first message box
-                box.set_check_visible(not box.result())
+            if box.result() == QMessageBox.No and not is_conda_based_app():
                 box.setStandardButtons(QMessageBox.Ok)
                 box.setDefaultButton(QMessageBox.Ok)
 
@@ -370,6 +359,7 @@ class ApplicationContainer(PluginMainContainer):
 
                 box.setText(msg)
                 box.exec_()
+
         elif feedback:
             box.setText(_("Spyder is up to date."))
             box.exec_()
