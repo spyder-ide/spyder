@@ -91,77 +91,68 @@ class WorkerUpdates(QObject):
         releases = []
         self.error = None
 
-        if self.update_from_github:
-            # Get releases from GitHub
-            url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-            logger.debug(f"Getting releases from {url}.")
-            data = urlopen(url, **context).read()
-        else:
-            # Get releases from conda
-            logger.debug("Getting releases from conda-forge.")
-            if os.name == "nt":
-                platform = "win-64"
-            elif sys.platform == "darwin":
-                platform = "osx-64"
-            else:
-                platform = "linux-64"
-            cmd = f"{find_conda()} search "
-            cmd += f"'spyder[channel=conda-forge, subdir={platform}]'"
-            cmd += " --json"
-
-            proc = run_shell_command(cmd)
-            try:
-                data, err = proc.communicate(timeout=20)
-            except TimeoutError:
-                pass
         try:
+            if self.update_from_github:
+                # Get releases from GitHub
+                url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+                logger.debug(f"Getting releases from {url}.")
+                data = urlopen(url, **context).read()
+            else:
+                # Get releases from conda
+                logger.debug("Getting releases from conda-forge.")
+                if os.name == "nt":
+                    platform = "win-64"
+                elif sys.platform == "darwin":
+                    platform = "osx-64"
+                else:
+                    platform = "linux-64"
+                cmd = f"{find_conda()} search "
+                cmd += f"'spyder[channel=conda-forge, subdir={platform}]'"
+                cmd += " --json"
+                proc = run_shell_command(cmd)
+                data, err = proc.communicate(timeout=20)
+        except URLError as exc:
+            logger.debug(exc)
+            self.error = _('Unable to connect to the internet. <br><br>Make '
+                           'sure the connection is working properly.')
+        except (HTTPError, TimeoutError, Exception) as exc:
+            logger.debug(exc)
+            self.error = _('Unable to retrieve Spyder version information.')
+
+        if self.error is None:
             # Needed step for python3 compatibility
             if not is_text_string(data):
                 data = data.decode()
             data = json.loads(data)
 
             if running_under_pytest() and self.releases:
-                # If releases set in pytest, don't overwrite
-                return
-
-            if self.update_from_github:
+                # If releases set in pytest, keep value
+                releases = self.releases
+            elif self.update_from_github:
                 releases = set(item['tag_name'].replace('v', '')
                                for item in data)
             else:
                 releases = set(v['version'] for v in data['spyder'])
-        except Exception:
-            self.error = _('Unable to retrieve Spyder version information.')
-        finally:
-            # Always reset self.releases
-            self.releases = sorted(releases)
+
+        # Always reset self.releases
+        self.releases = sorted(releases)
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
         logger.debug("Starting WorkerUpdates.")
 
-        try:
-            # First check major version update for conda-based app
-            self.update_from_github = True
+        # First check major version update for conda-based app
+        self.update_from_github = True
+        self.get_releases()
+        self.check_update_available()
+        current_major = parse(self.version).major
+        latest_major = parse(self.latest_release).major
+        download = is_conda_based_app() and current_major < latest_major
+        if self.update_available and not download:
+            # Check for available update from conda
+            self.update_from_github = False
             self.get_releases()
             self.check_update_available()
-            current_major = parse(self.version).major
-            latest_major = parse(self.latest_release).major
-            download = is_conda_based_app() and current_major < latest_major
-            if self.update_available and not download:
-                # Check for available update from conda
-                self.update_from_github = False
-                self.get_releases()
-                self.check_update_available()
-        except HTTPError as exc:
-            logger.debug(exc, stack_info=True)
-            self.error = _('Unable to retrieve information.')
-        except URLError as exc:
-            logger.debug(exc, stack_info=True)
-            self.error = _('Unable to connect to the internet. <br><br>Make '
-                           'sure the connection is working properly.')
-        except Exception as exc:
-            logger.debug(exc, stack_info=True)
-            self.error = _('Unable to check for updates.')
 
         try:
             self.sig_ready.emit()
