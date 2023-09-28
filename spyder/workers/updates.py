@@ -69,6 +69,8 @@ class WorkerUpdates(QObject):
         """Checks if there is an update available from releases."""
         logger.debug("Checking releases for available updates.")
 
+        self.update_available = False
+
         # Filter releases
         releases = self.releases
         if is_stable_version(self.version):
@@ -86,6 +88,9 @@ class WorkerUpdates(QObject):
         logger.debug(f"Latest release: {self.latest_release}")
 
     def get_releases(self):
+        releases = []
+        self.error = None
+
         if self.update_from_github:
             # Get releases from GitHub
             url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
@@ -124,17 +129,15 @@ class WorkerUpdates(QObject):
                                for item in data)
             else:
                 releases = set(v['version'] for v in data['spyder'])
-            self.releases = sorted(releases)
         except Exception:
             self.error = _('Unable to retrieve Spyder version information.')
+        finally:
+            # Always reset self.releases
+            self.releases = sorted(releases)
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
         logger.debug("Starting WorkerUpdates.")
-
-        self.update_available = False
-        self.latest_release = self.version
-        self.error = None
 
         try:
             # First check major version update for conda-based app
