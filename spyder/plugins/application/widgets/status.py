@@ -144,7 +144,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
             percentage_progress = round((current_value/total) * 100)
         self.custom_widget.setText(f"{percentage_progress}%")
 
-    def set_status_pending(self, latest_release):
+    def set_status_pending(self):
         self.set_value(PENDING)
 
     def set_status_checking(self):
