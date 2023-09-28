@@ -953,10 +953,14 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                     new_name = tuple(new_tuple)
                 else:
                     new_name = self.next_index_name(indexes, new_name)
+            item_value = eval(eval_type)
+            if item_value == ():
+                item_value = ('')
+
             df.insert(
                 loc=column + step,
                 column=new_name,
-                value=eval(eval_type),
+                value=item_value,
                 allow_duplicates=True
             )
             self.model().max_min_col_update()
