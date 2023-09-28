@@ -23,7 +23,7 @@ from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
@@ -283,9 +283,8 @@ class ApplicationContainer(PluginMainContainer):
         box.set_checked(self.get_conf(option))
 
         header = _(
-            "<b>Spyder {} is available!</b> "
-            "<i>(you&nbsp;have&nbsp;{})</i><br><br>"
-        ).format(latest_release, __version__)
+            "<h3>Spyder {} is available!</h3><br>"
+        ).format(latest_release)
 
         if error_msg is not None:
             box.setText(error_msg)
