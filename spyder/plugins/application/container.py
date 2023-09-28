@@ -262,20 +262,6 @@ class ApplicationContainer(PluginMainContainer):
         update_from_github = self.worker_updates.update_from_github
         error_msg = self.worker_updates.error
 
-        # self.startup = True is used on startup, so only positive feedback is
-        # given. self.startup = False is used after startup when using the menu
-        # action, and gives feeback if updates are, or are not found.
-        if (
-            self.startup and                       # startup and...
-            ('dev' in self.worker_updates.version  # current version is dev
-             or error_msg is not None              # or there is an error
-             or not update_available)              # or no updates available
-        ):
-            # Just set status and return
-            self.application_update_status.set_no_status()
-            self.check_updates_action.setDisabled(False)
-            return
-
         url_i = 'https://docs.spyder-ide.org/current/installation.html'
 
         # Define the custom QMessageBox
@@ -297,7 +283,20 @@ class ApplicationContainer(PluginMainContainer):
             "<i>(you&nbsp;have&nbsp;{})</i><br><br>"
         ).format(latest_release, __version__)
 
-        if error_msg is not None:
+        # self.startup = True is used on startup, so only positive feedback is
+        # given. self.startup = False is used after startup when using the menu
+        # action, and gives feeback if updates are, or are not found.
+        if (
+            self.startup and                       # startup and...
+            ('dev' in self.worker_updates.version  # current version is dev
+             or error_msg is not None              # or there is an error
+             or not update_available)              # or no updates available
+        ):
+            # Do not show QMessageBox
+            self.application_update_status.set_no_status()
+            self.check_updates_action.setDisabled(False)
+
+        elif error_msg is not None:
             box.setText(error_msg)
             box.set_check_visible(False)
             box.exec_()
@@ -382,6 +381,10 @@ class ApplicationContainer(PluginMainContainer):
             box.exec_()
             self.application_update_status.set_no_status()
 
+        # Always set startup=False after first call to _check_updates_ready
+        if self.startup:
+            self.startup = False
+
         self.set_conf(option, box.is_checked())
 
         # Enable check_updates_action after the thread has finished
@@ -420,7 +423,6 @@ class ApplicationContainer(PluginMainContainer):
                 lambda: self.application_update_status.blockSignals(False))
             self.updates_timer.timeout.connect(self.thread_updates.start)
             self.updates_timer.start()
-            self.startup = False
         else:
             # Otherwise, start immediately
             self.thread_updates.start()
