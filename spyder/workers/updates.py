@@ -26,6 +26,7 @@ from spyder import __version__
 from spyder.config.base import (_, is_stable_version, is_conda_based_app,
                                 running_under_pytest)
 from spyder.py3compat import is_text_string
+from spyder.utils.conda import is_conda_env
 from spyder.utils.programs import check_version
 
 # Logger setup
@@ -90,13 +91,14 @@ class WorkerUpdates(QObject):
         releases = []
         self.error = None
 
+        if is_conda_env(pyexec=sys.executable):
+            # Any conda env, including conda-based installer, use conda-forge
+            url = 'https://conda.anaconda.org/conda-forge/channeldata.json'
+        else:
+            # Use PyPi
+            url = 'https://pypi.org/pypi/spyder/json'
+
         try:
-            if self.update_from_github:
-                # Get releases from GitHub
-                url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-            else:
-                # Get releases from conda-forge
-                url = 'https://conda.anaconda.org/conda-forge/channeldata.json'
             logger.debug(f"Getting releases from {url}.")
             data = urlopen(url, **context).read()
         except URLError as exc:
@@ -106,8 +108,7 @@ class WorkerUpdates(QObject):
         except (HTTPError, Exception) as exc:
             logger.debug(exc)
             self.error = _('Unable to retrieve Spyder version information.')
-
-        if self.error is None:
+        else:
             # Needed step for python3 compatibility
             if not is_text_string(data):
                 data = data.decode()
@@ -116,10 +117,11 @@ class WorkerUpdates(QObject):
             if running_under_pytest() and self.releases:
                 # If releases set in pytest, keep value
                 releases = self.releases
-            elif self.update_from_github:
-                releases = set(item['tag_name'].replace('v', '')
-                               for item in data)
+            elif 'releases' in data:
+                # PyPi
+                releases = data['releases'].keys()
             else:
+                # conda-forge
                 releases = [data['packages']['spyder']['version']]
 
         # Always reset self.releases

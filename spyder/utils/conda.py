@@ -35,7 +35,8 @@ def is_conda_env(prefix=None, pyexec=None):
         raise ValueError('Only `prefix` or `pyexec` should be provided!')
 
     if pyexec and prefix is None:
-        prefix = get_conda_env_path(pyexec).replace('\\', '/')
+        real_pyexec = osp.realpath(pyexec)  # May be symlink
+        prefix = get_conda_env_path(real_pyexec).replace('\\', '/')
 
     return os.path.exists(os.path.join(prefix, 'conda-meta'))
 
