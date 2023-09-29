@@ -964,6 +964,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 allow_duplicates=True
             )
             self.model().max_min_col_update()
+            if before_above:
+                column = column + 1
 
         if axis == 1:
             # insert row
@@ -1002,11 +1004,13 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                     )
 
                 new_row.iat[0, col] = eval(eval_type)
-
             self.model().df = pd.concat([df1, new_row, df2])
+            if before_above:
+                row = row + 1
 
         self.parent()._reload()
         self.model().dataChanged.emit(current_index, current_index)
+        self.setCurrentIndex(self.model().index(row, column))
 
     def duplicate_row_col(self, dup_row=False):
         """Duplicate row or column."""
@@ -1033,6 +1037,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             new_name = self.next_index_name(indexes, label)
             new_row.axes[0].values[0] = new_name
             self.model().df = pd.concat([df1, new_row, df2])
+            row = row + 1
         else:
             indexes = df.axes[1].tolist()
             label = indexes[column]
@@ -1052,9 +1057,11 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                       allow_duplicates=True)
             df[new_name] = df.iloc[:, column + 1]
             self.model().max_min_col_update()
+            column = column + 1
 
         self.parent()._reload()
         self.model().dataChanged.emit(current_index, current_index)
+        self.setCurrentIndex(self.model().index(row, column))
 
     def next_index_name(self, indexes, label):
         """
@@ -1166,7 +1173,13 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         df = self.model().df
         if not indexes:
             return
-
+        # keep focus on the item before the deleted one
+        focus_row = indexes[0].row()
+        focus_col = indexes[0].column()
+        if axis == 0 and focus_row > 0:
+            focus_row = focus_row - 1
+        if axis == 1 and focus_col > 0:
+            focus_col = focus_col - 1
         for index in indexes:
             if not index.isValid():
                 return
@@ -1206,6 +1219,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             self.parent()._reload()
             index = QModelIndex()
             self.model().dataChanged.emit(index, index)
+            self.setCurrentIndex(self.model().index(focus_row, focus_col))
 
 
 class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
