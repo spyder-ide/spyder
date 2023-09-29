@@ -315,11 +315,7 @@ class ApplicationContainer(PluginMainContainer):
                 box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 box.setDefaultButton(QMessageBox.Yes)
 
-                msg = (
-                    header +
-                    _("Would you like to automatically download "
-                      "and install it?")
-                )
+                msg = header + _("Would you like to automatically download it?")
 
                 box.setText(msg)
                 box.exec_()
