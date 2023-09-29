@@ -242,7 +242,7 @@ def preferences_dialog_helper(qtbot, main_window, section):
 def generate_run_parameters(mainwindow, filename, selected=None,
                             executor=None):
     """Generate run configuration parameters for a given filename."""
-    file_uuid = mainwindow.editor.id_per_file[filename]
+    file_uuid = mainwindow.editor.get_widget().id_per_file[filename]
     if executor is None:
         executor = mainwindow.ipyconsole.NAME
 
@@ -469,9 +469,9 @@ def main_window(request, tmpdir, qtbot):
                     window.editor.close_all_files()
 
                     # Force close all files
-                    while window.editor.editorstacks[0].close_file(force=True):
+                    while window.editor.get_widget().editorstacks[0].close_file(force=True):
                         pass
-                    for editorwindow in window.editor.editorwindows:
+                    for editorwindow in window.editor.get_widget().editorwindows:
                         editorwindow.close()
                     editorstack = window.editor.get_current_editorstack()
                     if editorstack.switcher_plugin:

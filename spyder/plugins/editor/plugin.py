@@ -331,8 +331,29 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
+        widget = self.get_widget()
         run = self.get_plugin(Plugins.Run)
-        # TODO:
+        run.deregister_run_configuration_provider(
+            self.NAME, widget.supported_run_extensions
+        )
+        run.destroy_run_button(RunContext.Cell)
+        run.destroy_run_button(
+            RunContext.Cell,
+            extra_action_name=ExtraAction.Advance
+        )
+        run.destroy_run_button(RunContext.Cell, re_run=True)
+        run.destroy_run_button(
+            RunContext.Selection,
+            context_modificator=SelectionContextModificator.Advance
+        )
+        run.destroy_run_button(
+            RunContext.Selection,
+            context_modificator=SelectionContextModificator.ToLine
+        )
+        run.destroy_run_button(
+            RunContext.Selection,
+            context_modificator=SelectionContextModificator.FromLine
+        )
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -724,20 +745,20 @@ class Editor(SpyderDockablePlugin):
             *args, **kwargs
         )
 
-    def save_open_files(self, *args, **kwargs):  # projects plugin
-        return self.get_widget().save_open_files(*args, **kwargs)
-
     def get_current_editor(self, *args, **kwargs):  # debugger plugin
         return self.get_widget().get_current_editor(*args, **kwargs)
 
     def get_current_editorstack(self, *args, **kwargs):
         return self.get_widget().get_current_editorstack()
 
+    def get_focus_widget(self):
+        return self.get_widget().get_focus_widget()
+
     def setup_open_files(self, *args, **kwargs):  # mainwindow?
         return self.get_widget().setup_open_files(*args, **kwargs)
 
-    def close_file_from_name(self, *args, **kwargs):
-        return self.get_widget().close_file_from_name(*args, **kwargs)
+    def save_open_files(self, *args, **kwargs):  # projects plugin
+        return self.get_widget().save_open_files(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         return self.get_widget().save(*args, **kwargs)
@@ -751,11 +772,23 @@ class Editor(SpyderDockablePlugin):
     def edit_template(self):
         return self.get_widget().edit_template()
 
-    def get_filenames(self, *args, **kwargs):
-        return self.get_widget().get_filenames(*args, **kwargs)
+    def get_current_filename(self):
+        return self.get_widget().get_current_filename()
 
-    def get_current_filename(self, *args, **kwargs):
-        return self.get_widget().get_current_filename(*args, **kwargs)
+    def get_filenames(self):
+        return self.get_widget().get_filenames()
+
+    def get_open_filenames(self):
+        return self.get_widget().get_open_filenames()
+
+    def close_file(self):
+        return self.get_widget().close_file()
+
+    def close_file_from_name(self, *args, **kwargs):
+        return self.get_widget().close_file_from_name(*args, **kwargs)
+
+    def close_all_files(self):
+        return self.get_widget().close_all_files()
 
     # ---- Private API
     # ------------------------------------------------------------------------

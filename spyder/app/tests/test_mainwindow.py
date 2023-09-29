@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import QCoreApplication, Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -74,6 +74,9 @@ from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
+
+# Prevent `AA_UseSoftwareOpenGL` warning message
+QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 
 
 @pytest.mark.order(1)
@@ -809,6 +812,7 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
+
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(
@@ -1698,7 +1702,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
     # Create a new editor window
     # Note: editor.load() uses the current editorstack by default
-    main_window.editor.create_new_window()
+    main_window.editor.get_widget().create_new_window()
     main_window.editor.load()
 
     # Perform the test
@@ -4835,7 +4839,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: editors_filled(treewidget), timeout=25000)
 
     # Create editor window and check Outline editors there have symbols info
-    editorwindow = main_window.editor.create_new_window()
+    editorwindow = main_window.editor.get_widget().create_new_window()
     treewidget_on_window = editorwindow.editorwidget.outlineexplorer.treewidget
     qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
                     timeout=25000)
@@ -4982,7 +4986,7 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     assert not any(trees_update_state(treewidget))
 
     # Create editor window and wait until its trees are updated
-    editorwindow = main_window.editor.create_new_window()
+    editorwindow = main_window.editor.get_widget().create_new_window()
     editorwidget = editorwindow.editorwidget
     treewidget_on_window = editorwidget.outlineexplorer.treewidget
     qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
