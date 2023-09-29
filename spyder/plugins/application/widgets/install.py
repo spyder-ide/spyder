@@ -161,7 +161,6 @@ class UpdateInstallerDialog(QDialog):
         self.download_thread = None
         self.download_worker = None
         self.latest_release = None
-        self.update_from_github = None
         self.installer_path = None
 
         super().__init__(parent)
@@ -200,9 +199,14 @@ class UpdateInstallerDialog(QDialog):
         self._download_widget.setVisible(True)
         self.adjustSize()
 
-    def save_latest_release(self, latest_release, update_from_github):
+    def start_update(self, latest_release, download=False):
         self.latest_release = latest_release
-        self.update_from_github = update_from_github
+        if download:
+            # Start download
+            self.start_download()
+        else:
+            # Confirm installation
+            self.confirm_installation()
 
     def start_download(self):
         """Start downloading the update and set downloading status."""
@@ -320,17 +324,10 @@ class UpdateInstallerDialog(QDialog):
 
         # Sub command
         sub_cmd = [script, '-p', sys.prefix]
-        if (
-            self.update_from_github
-            and self.installer_path is not None
-            and os.path.exists(self.installer_path)
-        ):
+        if self.installer_path and os.path.exists(self.installer_path):
             # Run downloaded installer
             sub_cmd.extend(['-i', self.installer_path])
-        elif (
-            not self.update_from_github
-            and self.latest_release is not None
-        ):
+        elif self.latest_release is not None:
             # Update with conda
             sub_cmd.extend(['-c', find_conda(), '-v', self.latest_release])
 

@@ -17,6 +17,7 @@ import sys
 import glob
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
@@ -259,15 +260,13 @@ class ApplicationContainer(PluginMainContainer):
         # Get results from worker
         update_available = self.worker_updates.update_available
         latest_release = self.worker_updates.latest_release
-        update_from_github = self.worker_updates.update_from_github
+        major_update = parse(__version__).major < parse(latest_release).major
         error_msg = self.worker_updates.error
 
         # Always set the following if update available, even if there is an
         # error, DEV, or at startup
         if update_available:
             self.application_update_status.set_status_pending()
-            self.application_update_status.save_latest_release(
-                latest_release, update_from_github)
         else:
             self.application_update_status.set_no_status()
 
@@ -310,18 +309,19 @@ class ApplicationContainer(PluginMainContainer):
             box.exec_()
 
         elif update_available and is_conda_based_app():
-            if update_from_github:
+            if major_update:
                 # Update using our installers
                 box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 box.setDefaultButton(QMessageBox.Yes)
 
-                msg = header + _("Would you like to automatically download it?")
+                msg = header + _("Would you like to download and install it?")
 
                 box.setText(msg)
                 box.exec_()
 
             if box.result() != QMessageBox.No:
-                self.application_update_status.start_update()
+                self.application_update_status.start_update(
+                    latest_release, download=major_update)
 
         elif update_available:
             # Not conda-based, nudge installers
@@ -343,7 +343,8 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(msg)
             box.exec_()
             if box.result() == QMessageBox.Yes:
-                self.application_update_status.start_update()
+                self.application_update_status.start_update(
+                    latest_release, download=True)
 
             else:
                 # Manual update

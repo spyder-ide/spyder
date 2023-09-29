@@ -18,13 +18,11 @@ from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError, HTTPError
 
 # Third party imports
-from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (_, is_stable_version, is_conda_based_app,
-                                running_under_pytest)
+from spyder.config.base import _, is_stable_version, running_under_pytest
 from spyder.py3compat import is_text_string
 from spyder.utils.conda import is_conda_env
 from spyder.utils.programs import check_version
@@ -63,7 +61,6 @@ class WorkerUpdates(QObject):
 
         self.update_available = None
         self.latest_release = None
-        self.update_from_github = True
 
     def check_update_available(self):
         """Checks if there is an update available from releases."""
@@ -131,23 +128,10 @@ class WorkerUpdates(QObject):
         """Main method of the WorkerUpdates worker"""
         logger.debug("Starting WorkerUpdates.")
 
-        # First check major version update for conda-based app
-        self.update_from_github = True
         self.get_releases()
         self.check_update_available()
-        current_major = parse(self.version).major
-        latest_major = parse(self.latest_release).major
-        download = is_conda_based_app() and current_major < latest_major
-        if self.update_available and not download:
-            # Check for available update from conda
-            self.update_from_github = False
-            self.get_releases()
-            self.check_update_available()
 
-        try:
-            self.sig_ready.emit()
-        except RuntimeError:
-            pass
+        self.sig_ready.emit()
 
 
 class WorkerDownloadInstaller(QObject):

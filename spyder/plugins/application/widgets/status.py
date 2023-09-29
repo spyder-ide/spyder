@@ -126,16 +126,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def get_icon(self):
         return ima.icon('spyder_about')
 
-    def save_latest_release(self, latest_release, update_from_github):
-        self.installer.save_latest_release(latest_release, update_from_github)
-
-    def start_update(self):
-        if self.installer.update_from_github:
-            # Start download
-            self.installer.start_download()
-        else:
-            # Confirm installation
-            self.installer.confirm_installation()
+    def start_update(self, *args, **kwargs):
+        self.installer.start_update(*args, **kwargs)
 
     def start_download(self):
         self.installer.start_download()
