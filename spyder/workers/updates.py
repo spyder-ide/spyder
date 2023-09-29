@@ -26,8 +26,7 @@ from spyder import __version__
 from spyder.config.base import (_, is_stable_version, is_conda_based_app,
                                 running_under_pytest)
 from spyder.py3compat import is_text_string
-from spyder.utils.conda import find_conda
-from spyder.utils.programs import check_version, run_shell_command
+from spyder.utils.programs import check_version
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -95,27 +94,16 @@ class WorkerUpdates(QObject):
             if self.update_from_github:
                 # Get releases from GitHub
                 url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-                logger.debug(f"Getting releases from {url}.")
-                data = urlopen(url, **context).read()
             else:
-                # Get releases from conda
-                logger.debug("Getting releases from conda-forge.")
-                if os.name == "nt":
-                    platform = "win-64"
-                elif sys.platform == "darwin":
-                    platform = "osx-64"
-                else:
-                    platform = "linux-64"
-                cmd = f"{find_conda()} search "
-                cmd += f"'spyder[channel=conda-forge, subdir={platform}]'"
-                cmd += " --json"
-                proc = run_shell_command(cmd)
-                data, err = proc.communicate(timeout=20)
+                # Get releases from conda-forge
+                url = 'https://conda.anaconda.org/conda-forge/channeldata.json'
+            logger.debug(f"Getting releases from {url}.")
+            data = urlopen(url, **context).read()
         except URLError as exc:
             logger.debug(exc)
             self.error = _('Unable to connect to the internet. <br><br>Make '
                            'sure the connection is working properly.')
-        except (HTTPError, TimeoutError, Exception) as exc:
+        except (HTTPError, Exception) as exc:
             logger.debug(exc)
             self.error = _('Unable to retrieve Spyder version information.')
 
@@ -132,7 +120,7 @@ class WorkerUpdates(QObject):
                 releases = set(item['tag_name'].replace('v', '')
                                for item in data)
             else:
-                releases = set(v['version'] for v in data['spyder'])
+                releases = [data['packages']['spyder']['version']]
 
         # Always reset self.releases
         self.releases = sorted(releases)
