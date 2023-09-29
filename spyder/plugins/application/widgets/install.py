@@ -50,6 +50,8 @@ INSTALL_INFO_MESSAGES = {
     CANCELLED: _("Spyder update cancelled")
 }
 
+header = _("<b>Spyder {} is available!</b> "
+           "<i>(you&nbsp;have&nbsp;{})</i><br><br>")
 
 class UpdateDownload(QWidget):
     """Update progress installation widget."""
@@ -239,11 +241,15 @@ class UpdateInstallerDialog(QDialog):
 
         Download the installer if needed or prompt to install.
         """
-        reply = QMessageBox(icon=QMessageBox.Question,
-                            text=_("Would you like to update Spyder to "
-                                   "the latest version?"
-                                   "<br><br>"),
-                            parent=self._parent)
+        msg = (
+            header.format(self.latest_release, __version__) +
+            _("Would you like to update Spyder to the latest version?<br><br>")
+        )
+        reply = QMessageBox(
+            icon=QMessageBox.Question,
+            text=msg,
+            parent=self._parent
+        )
         reply.setWindowTitle("Spyder")
         reply.setAttribute(Qt.WA_ShowWithoutActivating)
         reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -260,9 +266,14 @@ class UpdateInstallerDialog(QDialog):
         if self.cancelled:
             return
 
+        msg = (
+            header.format(self.latest_release, __version__) +
+            _("Would you like to proceed with the installation?<br><br>")
+        )
+
         msg_box = QMessageBox(
             icon=QMessageBox.Question,
-            text=_("Would you like to proceed with the installation?<br><br>"),
+            text=msg,
             parent=self._parent
         )
         msg_box.setWindowTitle(_("Spyder update"))
