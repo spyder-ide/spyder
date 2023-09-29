@@ -279,8 +279,6 @@ class ApplicationContainer(PluginMainContainer):
         box.setWindowTitle(_("New Spyder version"))
         box.setAttribute(Qt.WA_ShowWithoutActivating)
         box.set_checkbox_text(_("Check for updates at startup"))
-        box.setStandardButtons(QMessageBox.Ok)
-        box.setDefaultButton(QMessageBox.Ok)
         box.setTextFormat(Qt.RichText)
 
         # Adjust the checkbox depending on the stored configuration
@@ -305,52 +303,56 @@ class ApplicationContainer(PluginMainContainer):
             pass
 
         elif error_msg is not None:
+            box.setStandardButtons(QMessageBox.Ok)
+            box.setDefaultButton(QMessageBox.Ok)
             box.setText(error_msg)
             box.set_check_visible(False)
             box.exec_()
 
-        elif update_available:
-            # Update using our installers
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.Yes)
+        elif update_available and is_conda_based_app():
+            if update_from_github:
+                # Update using our installers
+                box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                box.setDefaultButton(QMessageBox.Yes)
 
-            if not is_conda_based_app():
-                installers_url = url_i + "#standalone-installers"
-                msg = (
-                    header +
-                    _("Would you like to automatically download and "
-                      "install it using Spyder's installer?"
-                      "<br><br>"
-                      "We <a href='{}'>recommend our own installer</a> "
-                      "because it's more stable and makes updating easy. "
-                      "This will leave your existing Spyder installation "
-                      "untouched.").format(installers_url)
-                )
-            else:
                 msg = (
                     header +
                     _("Would you like to automatically download "
                       "and install it?")
                 )
 
+                box.setText(msg)
+                box.exec_()
+
+            if box.result() != QMessageBox.No:
+                self.application_update_status.start_update()
+
+        elif update_available:
+            # Not conda-based, nudge installers
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
+
+            installers_url = url_i + "#standalone-installers"
+            msg = (
+                header +
+                _("Would you like to automatically download and "
+                  "install it using Spyder's installer?"
+                  "<br><br>"
+                  "We <a href='{}'>recommend our own installer</a> "
+                  "because it's more stable and makes updating easy. "
+                  "This will leave your existing Spyder installation "
+                  "untouched.").format(installers_url)
+            )
+
             box.setText(msg)
             box.exec_()
             if box.result() == QMessageBox.Yes:
-                if update_from_github:
-                    # Start download
-                    self.application_update_status.start_download()
-                else:
-                    # Confirm installation
-                    self.application_update_status.confirm_installation()
+                self.application_update_status.start_update()
 
-            # Manual update
-            if box.result() == QMessageBox.No and not is_conda_based_app():
+            else:
+                # Manual update
                 box.setStandardButtons(QMessageBox.Ok)
                 box.setDefaultButton(QMessageBox.Ok)
-
-                msg = _("")
-                if not box.result():
-                    msg += header
 
                 terminal = _("terminal")
                 if os.name == "nt":
@@ -358,8 +360,8 @@ class ApplicationContainer(PluginMainContainer):
                         terminal = "Anaconda prompt"
                     else:
                         terminal = _("cmd prompt")
-                msg += _("Run the following commands in the {} to update "
-                         "manually:<br><br>").format(terminal)
+                msg = _("Run the following commands in the {} to update "
+                        "manually:<br><br>").format(terminal)
 
                 if is_anaconda():
                     if is_anaconda_pkg():
@@ -381,6 +383,7 @@ class ApplicationContainer(PluginMainContainer):
 
                 box.setText(msg)
                 box.exec_()
+
         else:
             box.setText(_("Spyder is up to date."))
             box.exec_()
