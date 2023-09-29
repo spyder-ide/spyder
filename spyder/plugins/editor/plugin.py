@@ -652,12 +652,15 @@ class Editor(SpyderDockablePlugin):
         widget.restore_scrollbar_position()
         # TODO: Something else?. Move setup_other_windows to plugin?
 
+    def can_close(self):
+        editorstack = self.get_widget().editorstacks[0]
+        return editorstack.save_if_changed(cancelable=True)
+
     def on_close(self, cancellable=True):
         # TODO: See `closing_plugin`
         widget = self.get_widget()
         state = widget.splitter.saveState()
         self.set_conf('splitter_state', qbytearray_to_str(state))
-        editorstack = widget.editorstacks[0]
 
         if not self.get_active_project_path():
             filenames = widget.get_open_filenames()
@@ -676,15 +679,15 @@ class Editor(SpyderDockablePlugin):
         # Stop autosave timer before closing windows
         widget.autosave.stop_autosave_timer()
 
-        try:
-            if not editorstack.save_if_changed(cancellable) and cancellable:
-                return False
-            else:
-                for win in widget.editorwindows[:]:
-                    win.close()
-                return True
-        except IndexError:
-            return True
+        # try:
+        #     if not editorstack.save_if_changed(cancellable) and cancellable:
+        #         return False
+        #     else:
+        #       for win in widget.editorwindows[:]:
+        #           win.close()
+        #     return True
+        # except IndexError:
+        #     return True
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -695,6 +698,8 @@ class Editor(SpyderDockablePlugin):
         self.get_widget().refresh()
 
     # TODO: Add all possible methods other plugins are calling or connecting to
+    # should a `__getattr__` be implemented that connects all methods
+    # without `_` from the main_widget to the plugin?
     def load(self, *args, **kwargs):
         return self.get_widget().load(*args, **kwargs)
 

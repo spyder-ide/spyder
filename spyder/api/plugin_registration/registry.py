@@ -411,8 +411,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         can_delete = True
         if isinstance(plugin_instance, SpyderPluginV2):
             can_delete = plugin_instance.can_close()
-        elif isinstance(plugin_instance, SpyderPlugin):
-            can_delete = plugin_instance.closing_plugin(True)
+        # elif isinstance(plugin_instance, SpyderPlugin):
+        #     can_delete = plugin_instance.closing_plugin(True)
 
         return can_delete
 
@@ -598,11 +598,11 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         for plugin_name in (
                 set(self.external_plugins) | set(self.internal_plugins)):
             if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.can_delete_plugin(plugin_name)
-                    if not can_close:
-                        break
+                # plugin_instance = self.plugin_registry[plugin_name]
+                # if isinstance(plugin_instance, SpyderPlugin):
+                can_close &= self.can_delete_plugin(plugin_name)
+                if not can_close:
+                    break
 
         return can_close
 

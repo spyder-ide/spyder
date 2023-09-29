@@ -1040,7 +1040,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""
-        if self.closing(True):
+        if self.closing(cancelable=True):
             event.accept()
         else:
             event.ignore()
