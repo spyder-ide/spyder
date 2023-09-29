@@ -226,7 +226,7 @@ class UpdateInstallerDialog(QDialog):
         """Cancel the installation in progress."""
         reply = QMessageBox.critical(
             self._parent, 'Spyder',
-            _('Do you really want to cancel the Spyder update installation?'),
+            _('Do you really want to cancel the download?'),
             QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.cancelled = True
