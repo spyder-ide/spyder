@@ -293,10 +293,10 @@ class ApplicationContainer(PluginMainContainer):
         # given. self.startup = False is used after startup when using the menu
         # action, and gives feeback if updates are, or are not found.
         if (
-            self.startup and                       # startup and...
-            ('dev' in self.worker_updates.version  # current version is dev
-             or error_msg is not None              # or there is an error
-             or not update_available)              # or no updates available
+            self.startup and           # startup and...
+            ('dev' in __version__      # current version is dev
+             or error_msg is not None  # or there is an error
+             or not update_available)  # or no updates available
         ):
             # Do not show QMessageBox
             pass
