@@ -80,6 +80,7 @@ DEFAULTS = [
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
               'check_updates_on_startup': True,
+              'check_stable_only': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,

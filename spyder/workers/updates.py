@@ -52,12 +52,13 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent, stable_only):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.releases = []
         self.version = __version__
+        self.stable_only = stable_only
 
         self.update_available = None
         self.latest_release = None
@@ -70,8 +71,8 @@ class WorkerUpdates(QObject):
 
         # Filter releases
         releases = self.releases
-        if is_stable_version(self.version):
-            # If current version is stable, only use stable releases
+        if self.stable_only:
+            # Only use stable releases
             releases = [r for r in releases if is_stable_version(r)]
         logger.debug(f"Available versions: {releases}")
 
@@ -88,7 +89,7 @@ class WorkerUpdates(QObject):
         releases = []
         self.error = None
 
-        if is_conda_env(pyexec=sys.executable):
+        if False:  # is_conda_env(pyexec=sys.executable):
             # Any conda env, including conda-based installer, use conda-forge
             url = 'https://conda.anaconda.org/conda-forge/channeldata.json'
         else:

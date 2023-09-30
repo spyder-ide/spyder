@@ -67,6 +67,8 @@ class ApplicationConfigPage(PluginConfigPage):
                                     "them to Github"), 'show_internal_errors')
         check_updates = newcb(_("Check for updates on startup"),
                               'check_updates_on_startup')
+        stable_only = newcb(_("Check for stable releases only"),
+                            'check_stable_only')
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -89,6 +91,7 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(prompt_box)
         advanced_layout.addWidget(popup_console_box)
         advanced_layout.addWidget(check_updates)
+        advanced_layout.addWidget(stable_only)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)

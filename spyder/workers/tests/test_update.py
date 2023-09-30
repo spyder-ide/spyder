@@ -12,7 +12,7 @@ from spyder.workers.updates import WorkerUpdates
 
 @pytest.fixture
 def worker():
-    return WorkerUpdates(None)
+    return WorkerUpdates(None, stable_only=False)
 
 
 def test_update(qtbot, worker):

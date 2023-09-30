@@ -13,7 +13,7 @@ done
 shift $(($OPTIND - 1))
 
 update_spyder(){
-    $conda install -p $prefix -c conda-forge --override-channels -y spyder=$spy_ver
+    $conda install -p $prefix -c conda-forge --override-channels spyder=$spy_ver
     read -p "Press any key to exit..."
 }
 
@@ -33,7 +33,7 @@ install_spyder(){
     uninstall_script="$prefix/../../uninstall-spyder.sh"
     if [[ -f "$uninstall_script" ]]; then
         echo "Uninstalling Spyder..."
-        $uninstall_script
+        $uninstall_script || true
     fi
 
     # Run installer

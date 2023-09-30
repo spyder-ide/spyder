@@ -318,8 +318,10 @@ class ApplicationContainer(PluginMainContainer):
             self.thread_updates.quit()
             self.thread_updates.wait()
 
+        stable_only = self.get_conf('check_stable_only')
+
         self.thread_updates = QThread(None)
-        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates = WorkerUpdates(self, stable_only)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.sig_ready.connect(
@@ -334,7 +336,7 @@ class ApplicationContainer(PluginMainContainer):
         # Fixes spyder-ide/spyder#15839
         if self.startup:
             self.updates_timer = QTimer(self)
-            self.updates_timer.setInterval(60000)
+            self.updates_timer.setInterval(10000)
             self.updates_timer.setSingleShot(True)
             self.application_update_status.blockSignals(True)
             self.updates_timer.timeout.connect(
