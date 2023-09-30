@@ -19,10 +19,9 @@ from qtpy.QtWidgets import QMenu, QLabel
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import is_conda_based_app
 from spyder.plugins.application.widgets.install import (
     UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
-    PENDING, CHECKING)
+    PENDING, CHECKING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
@@ -126,8 +125,8 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def get_icon(self):
         return ima.icon('spyder_about')
 
-    def start_update(self, *args, **kwargs):
-        self.installer.start_update(*args, **kwargs)
+    def start_update(self):
+        self.installer.start_update()
 
     def start_download(self):
         self.installer.start_download()
@@ -144,8 +143,9 @@ class ApplicationUpdateStatus(StatusBarWidget):
             percentage_progress = round((current_value / total) * 100)
         self.custom_widget.setText(f"{percentage_progress}%")
 
-    def set_status_pending(self):
+    def set_status_pending(self, latest_release):
         self.set_value(PENDING)
+        self.installer.set_latest_release(latest_release)
 
     def set_status_checking(self):
         self.set_value(CHECKING)
@@ -161,17 +161,12 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def show_installation_dialog_or_menu(self):
         """Show installation dialog or menu."""
         value = self.value.split(":")[-1].strip()
-        if (
-            self.tooltip != self.BASE_TOOLTIP
-            and value != PENDING
-            and is_conda_based_app()
-        ):
+        if self.tooltip != self.BASE_TOOLTIP and value != PENDING:
             self.installer.show()
-        elif value == PENDING and is_conda_based_app():
-            if self.installer.update_from_github:
-                self.installer.continue_installation()
-            else:
-                self.installer.confirm_installation()
+        elif value == PENDING:
+            self.installer.start_update()
+        elif value in (DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
+            self.installer.confirm_installation()
         elif value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(

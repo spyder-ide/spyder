@@ -14,6 +14,7 @@ import subprocess
 from tempfile import gettempdir
 
 # Third-party imports
+from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, Signal
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
@@ -21,10 +22,13 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
 
 # Local imports
 from spyder import __version__
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
-from spyder.utils.conda import find_conda
+from spyder.config.utils import is_anaconda
+from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.icon_manager import ima
+from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.workers.updates import WorkerDownloadInstaller
 
 # Logger setup
@@ -39,6 +43,7 @@ FINISHED = _("Installation finished")
 PENDING = _("Update available")
 CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled update")
+INSTALL_ON_CLOSE = _("Install on close")
 
 INSTALL_INFO_MESSAGES = {
     DOWNLOADING_INSTALLER: _("Downloading Spyder {version}"),
@@ -47,11 +52,13 @@ INSTALL_INFO_MESSAGES = {
     FINISHED: _("Finished installing Spyder {version}"),
     PENDING: _("Spyder {version} available to download"),
     CHECKING: _("Checking for new Spyder version"),
-    CANCELLED: _("Spyder update cancelled")
+    CANCELLED: _("Spyder update cancelled"),
+    INSTALL_ON_CLOSE: _("Install Spyder {version} on close")
 }
 
 header = _("<b>Spyder {} is available!</b> "
            "<i>(you&nbsp;have&nbsp;{})</i><br><br>")
+
 
 class UpdateDownload(QWidget):
     """Update progress installation widget."""
@@ -113,7 +120,7 @@ class UpdateDownload(QWidget):
         self._progress_bar.setValue(current_value)
 
 
-class UpdateInstallerDialog(QDialog):
+class UpdateInstallerDialog(QDialog, SpyderConfigurationAccessor):
     """Update installer dialog."""
 
     sig_download_progress = Signal(int, int)
@@ -156,11 +163,13 @@ class UpdateInstallerDialog(QDialog):
     """
 
     def __init__(self, parent):
+        self.CONF_SECTION = parent.CONF_SECTION
         self.cancelled = False
         self.status = NO_STATUS
         self.download_thread = None
         self.download_worker = None
         self.latest_release = None
+        self.major_update = None
         self.installer_path = None
 
         super().__init__(parent)
@@ -199,14 +208,98 @@ class UpdateInstallerDialog(QDialog):
         self._download_widget.setVisible(True)
         self.adjustSize()
 
-    def start_update(self, latest_release, download=False):
+    def set_latest_release(self, latest_release):
         self.latest_release = latest_release
-        if download:
-            # Start download
+        self.major_update = (
+            parse(__version__).major < parse(latest_release).major
+        )
+
+    def start_update(self):
+        # Define the custom QMessageBox
+        box = MessageCheckBox(icon=QMessageBox.Information,
+                              parent=self)
+        box.setWindowTitle(_("New Spyder version"))
+        box.setAttribute(Qt.WA_ShowWithoutActivating)
+        box.set_checkbox_text(_("Check for updates at startup"))
+        box.setTextFormat(Qt.RichText)
+
+        # Adjust the checkbox depending on the stored configuration
+        option = 'check_updates_on_startup'
+        box.set_checked(self.get_conf(option))
+
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        box.setDefaultButton(QMessageBox.Yes)
+
+        # ---- conda-based application
+        if is_conda_based_app():
+            if not self.major_update:
+                # Update with conda
+                self.confirm_installation()
+                return
+
+            # Update using our installers
+            box.setText(
+                header.format(self.latest_release, __version__) +
+                _("Would you like to download and install it?<br><br>")
+            )
+            box.exec_()
+            if box.result() == QMessageBox.Yes:
+                self.start_download()
+            return
+
+        # ---- Not conda-based, nudge installers
+        url_i = 'https://docs.spyder-ide.org/current/installation.html'
+
+        installers_url = url_i + "#standalone-installers"
+        msg = (
+            header.format(self.latest_release, __version__) +
+            _("Would you like to automatically download and "
+              "install it using Spyder's installer?"
+              "<br><br>"
+              "We <a href='{}'>recommend our own installer</a> "
+              "because it's more stable and makes updating easy. "
+              "This will leave your existing Spyder installation "
+              "untouched.").format(installers_url)
+        )
+        box.setText(msg)
+        box.exec_()
+        if box.result() == QMessageBox.Yes:
             self.start_download()
+            return
+
+        # ---- Not conda-based, manual update
+        box.setStandardButtons(QMessageBox.Ok)
+        box.setDefaultButton(QMessageBox.Ok)
+
+        terminal = _("terminal")
+        if os.name == "nt":
+            if is_anaconda():
+                terminal = "Anaconda prompt"
+            else:
+                terminal = _("cmd prompt")
+        msg = _("Run the following commands in the {} to update "
+                "manually:<br><br>").format(terminal)
+
+        if is_anaconda():
+            if is_anaconda_pkg():
+                msg += _("<code>conda update anaconda</code><br>")
+            msg += _("<code>conda install spyder={}"
+                     "</code><br><br>").format(self.latest_release)
+            msg += _("<b>Important note:</b> Since you installed "
+                     "Spyder with Anaconda, please <b>don't</b> use "
+                     "<code>pip</code> to update it as that will "
+                     "break your installation.")
         else:
-            # Confirm installation
-            self.confirm_installation()
+            msg += _("<code>pip install --upgrade spyder"
+                     "</code>")
+
+        msg += _(
+            "<br><br>For more information, visit our "
+            "<a href=\"{}\">installation guide</a>."
+        ).format(url_i)
+
+        box.setText(msg)
+        box.exec_()
 
     def start_download(self):
         """Start downloading the update and set downloading status."""
@@ -239,30 +332,6 @@ class UpdateInstallerDialog(QDialog):
             return True
         return False
 
-    def continue_installation(self):
-        """
-        Continue the installation in progress.
-
-        Download the installer if needed or prompt to install.
-        """
-        msg = (
-            header.format(self.latest_release, __version__) +
-            _("Would you like to update Spyder to the latest version?<br><br>")
-        )
-        reply = QMessageBox(
-            icon=QMessageBox.Question,
-            text=msg,
-            parent=self._parent
-        )
-        reply.setWindowTitle("Spyder")
-        reply.setAttribute(Qt.WA_ShowWithoutActivating)
-        reply.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        reply.exec_()
-        if reply.result() == QMessageBox.Yes:
-            self.start_download()
-        else:
-            self._change_update_download_status(status=PENDING)
-
     def confirm_installation(self):
         """
         Ask users if they want to proceed with the installer execution.
@@ -292,15 +361,10 @@ class UpdateInstallerDialog(QDialog):
                 msg_box.setText(self.download_worker.error)
                 msg_box.addButton(QMessageBox.Ok)
                 msg_box.exec_()
-                self._change_update_download_status(status=PENDING)
                 return
             self.installer_path = self.download_worker.installer_path
 
-        if is_conda_based_app():
-            # Only add yes button for conda-based installers
-            yes_button = msg_box.addButton(QMessageBox.Yes)
-        else:
-            yes_button = None
+        yes_button = msg_box.addButton(QMessageBox.Yes)
         after_closing_button = msg_box.addButton(
             _("After closing"), QMessageBox.YesRole)
         msg_box.addButton(QMessageBox.No)
@@ -311,9 +375,7 @@ class UpdateInstallerDialog(QDialog):
             self.sig_quit_requested.emit()
         elif msg_box.clickedButton() == after_closing_button:
             self.sig_install_on_close_requested.emit(True)
-            self._change_update_download_status(status=PENDING)
-        else:
-            self._change_update_download_status(status=PENDING)
+            self._change_update_download_status(INSTALL_ON_CLOSE)
 
     def start_installation(self):
         """Install from downloaded installer or update through conda."""
