@@ -228,28 +228,33 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             EditorStackActions.CopyAbsolutePath,
             text=_("Copy absolute path"),
             icon=self.create_icon('editcopy'),
-            triggered=lambda: self.copy_absolute_path()
+            triggered=lambda: self.copy_absolute_path(),
+            register_action=False
         )
         copy_relative_path_action = self.create_action(
             EditorStackActions.CopyRelativePath,
             text=_("Copy relative path"),
             icon=self.create_icon('editcopy'),
-            triggered=lambda: self.copy_relative_path()
+            triggered=lambda: self.copy_relative_path(),
+            register_action=False
         )
         close_right = self.create_action(
             EditorStackActions.CloseAllRight,
             text=_("Close all to the right"),
-            triggered=self.close_all_right
+            triggered=self.close_all_right,
+            register_action=False
         )
         close_all_but_this = self.create_action(
             EditorStackActions.CloseAllButThis,
             text=_("Close all but this"),
-            triggered=self.close_all_but_this
+            triggered=self.close_all_but_this,
+            register_action=False
         )
         sort_tabs = self.create_action(
             EditorStackActions.SortTabs,
             text=_("Sort tabs alphabetically"),
-            triggered=self.sort_file_tabs_alphabetically
+            triggered=self.sort_file_tabs_alphabetically,
+            register_action=False
         )
 
         if sys.platform == 'darwin':
@@ -261,7 +266,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             text=text,
             triggered=self.show_in_external_file_explorer,
             context=Qt.WidgetShortcut,
-            register_shortcut=True
+            register_shortcut=True,
+            register_action=False
         )
 
         self.menu_actions = actions + [
@@ -1293,7 +1299,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 text=_("New window"),
                 icon=self.create_icon('newwindow'),
                 tip=_("Create a new editor window"),
-                triggered=main_widget.create_new_window
+                triggered=main_widget.create_new_window,
+                register_action=False
             )
 
         # Splitting
@@ -1304,7 +1311,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             tip=_("Split vertically this editor window"),
             triggered=self.sig_split_vertically,
             context=Qt.WidgetShortcut,
-            register_shortcut=True
+            register_shortcut=True,
+            register_action=False
         )
         self.horsplit_action = self.create_action(
             EditorStackActions.SplitHorizontally,
@@ -1313,7 +1321,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             tip=_("Split horizontally this editor window"),
             triggered=self.sig_split_horizontally,
             context=Qt.WidgetShortcut,
-            register_shortcut=True
+            register_shortcut=True,
+            register_action=False
         )
         self.close_split_action = self.create_action(
             EditorStackActions.CloseSplitPanel,
@@ -1321,7 +1330,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             icon=self.create_icon('close_panel'),
             triggered=self.close_split,
             context=Qt.WidgetShortcut,
-            register_shortcut=True
+            register_shortcut=True,
+            register_action=False
         )
 
         # Regular actions
@@ -1334,7 +1344,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 EditorStackActions.CloseWindow,
                 text=_("Close window"),
                 icon=self.create_icon('close_pane'),
-                triggered=window.close
+                triggered=window.close,
+                register_action=False
             )
             actions += [MENU_SEPARATOR, self.new_window_action,
                         close_window_action]

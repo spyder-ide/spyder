@@ -35,7 +35,6 @@ from spyder.utils import encoding
 from spyder.utils.environ import (get_user_env, set_user_env,
                                   amend_user_shell_init)
 
-
 # =============================================================================
 # ---- Constants
 # =============================================================================

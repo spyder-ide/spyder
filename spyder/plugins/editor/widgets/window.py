@@ -204,7 +204,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                  outline_plugin, parent=None):
         # Parent needs to be `None` if the the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        super(EditorMainWindow, self).__init__(parent)
+        super().__init__(parent, class_parent=main_widget)
         # QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 

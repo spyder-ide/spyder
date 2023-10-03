@@ -361,6 +361,30 @@ class Editor(SpyderDockablePlugin):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # TODO: See `get_plugin_actions`
         # ---- File menu ----
+        # Print
+        print_actions = [
+            widget.print_preview_action,
+            widget.print_action,
+        ]
+        for print_action in print_actions:
+            mainmenu.add_item_to_application_menu(
+                print_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Print,
+                before_section=FileMenuSections.Close
+            )
+        # Close
+        close_actions = [
+            widget.close_action,
+            widget.close_all_action
+        ]
+        for close_action in close_actions:
+            mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Restart#Switcher
+            )
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -374,29 +398,18 @@ class Editor(SpyderDockablePlugin):
                     section=FileMenuSections.Navigation,
                     before_section=FileMenuSections.Restart
                 )
-        # Close
-        close_actions = [
-            widget.close_action,
-            widget.close_all_action
+        # Open section
+        open_actions = [
+            widget.open_action,
+            widget.open_last_closed_action,
+            widget.recent_file_menu,
         ]
-        for close_action in close_actions:
+        for open_action in open_actions:
             mainmenu.add_item_to_application_menu(
-                close_action,
+                open_action,
                 menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Close,
-                before_section=FileMenuSections.Switcher
-            )
-        # Print
-        print_actions = [
-            widget.print_preview_action,
-            widget.print_action,
-        ]
-        for print_action in print_actions:
-            mainmenu.add_item_to_application_menu(
-                print_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Print,
-                before_section=FileMenuSections.Close
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Save
             )
         # Save section
         save_actions = [
@@ -412,19 +425,6 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
                 before_section=FileMenuSections.Print
-            )
-        # Open section
-        open_actions = [
-            widget.open_action,
-            widget.open_last_closed_action,
-            widget.recent_file_menu,
-        ]
-        for open_action in open_actions:
-            mainmenu.add_item_to_application_menu(
-                open_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Open,
-                before_section=FileMenuSections.Save
             )
         # New Section
         mainmenu.add_item_to_application_menu(
@@ -668,8 +668,8 @@ class Editor(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         widget = self.get_widget()
-        outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
-        widget.setup_other_windows(self._main, outline)
+        # outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
+        # widget.setup_other_windows(self._main, outline)
         widget.restore_scrollbar_position()
         # TODO: Something else?. Move setup_other_windows to plugin?
 
@@ -755,6 +755,10 @@ class Editor(SpyderDockablePlugin):
         return self.get_widget().get_focus_widget()
 
     def setup_open_files(self, *args, **kwargs):  # mainwindow?
+        # TODO: `setup_other_windows` called here to ensure is called after toolbar `on_mainwindow_visible`
+        widget = self.get_widget()
+        outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
+        widget.setup_other_windows(self._main, outline)
         return self.get_widget().setup_open_files(*args, **kwargs)
 
     def save_open_files(self, *args, **kwargs):  # projects plugin

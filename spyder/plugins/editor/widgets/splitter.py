@@ -55,7 +55,7 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
                         unregister the EditorStack with the EditorMainWidget.
         """
         # QSplitter.__init__(self, parent)
-        super().__init__(parent, class_parent=parent)
+        super().__init__(parent, class_parent=main_widget)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
 

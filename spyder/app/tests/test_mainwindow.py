@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import QCoreApplication, Qt, QTimer
+from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -74,9 +74,6 @@ from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
-
-# Prevent `AA_UseSoftwareOpenGL` warning message
-QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 
 
 @pytest.mark.order(1)

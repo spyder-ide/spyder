@@ -1923,7 +1923,6 @@ class EditorMainWidget(PluginMainWidget):
                               run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
                               debug_toolbar_actions))
-
         self.menu_list = ((_("&File"), file_menu_actions),
                           (_("&Edit"), edit_menu_actions),
                           (_("&Search"), search_menu_actions),
