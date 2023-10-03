@@ -25,6 +25,7 @@ from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
@@ -78,7 +79,8 @@ def editor_bot(base_editor_bot, request):
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
     EditorSplitter.CONF_SECTION = "Editor"
-    es = EditorSplitter(None, Mock(), [], first=True)
+    main_widget = Mock(wraps=EditorMainWidgetExample())
+    es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
     es.show()
     yield es

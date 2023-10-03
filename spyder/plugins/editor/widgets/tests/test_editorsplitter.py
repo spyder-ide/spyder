@@ -23,6 +23,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 
 
 # ---- Qt Test Fixtures
@@ -39,7 +40,8 @@ def editor_stack():
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
     EditorSplitter.CONF_SECTION = "Editor"
-    es = EditorSplitter(None, Mock(), [], first=True)
+    main_widget = Mock(wraps=EditorMainWidgetExample())
+    es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
     es.resize(640, 480)
     es.show()

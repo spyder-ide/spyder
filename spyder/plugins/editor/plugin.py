@@ -194,7 +194,9 @@ class Editor(SpyderDockablePlugin):
         widget.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
 
         # ---- Plugin related signals
-        widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
+        widget.sig_switch_to_plugin_requested.connect(
+            lambda: self.switch_to_plugin(force_focus=True)
+        )
 
         # ---- Run plugin config definitions
         widget.supported_run_extensions = [
