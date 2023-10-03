@@ -565,6 +565,23 @@ def test_collectioneditor_refresh_when_variable_deleted(qtbot):
     mock_critical.assert_called_once()
 
 
+def test_collectioneditor_refresh_nested():
+    """
+    Open an editor for a list with a tuple nested inside, and then open another
+    editor for the nested tuple. Test that refreshing the second editor works.
+    """
+    old_list = [1, 2, 3, (4, 5)]
+    new_list = [1, 2, 3, (4,)]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    view = editor.widget.editor
+    view.edit(view.model.index(3, 3))
+    nested_editor = list(view.delegate._editors.values())[0]['editor']
+    assert nested_editor.get_value() == (4, 5)
+    nested_editor.widget.refresh_action.trigger()
+    assert nested_editor.get_value() == (4,)
+
+
 def test_edit_datetime(monkeypatch):
     """
     Test datetimes are editable and NaT values are correctly handled.

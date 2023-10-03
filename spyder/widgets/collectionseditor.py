@@ -1317,6 +1317,7 @@ class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
     def __init__(self, parent, data, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
                  readonly=False, title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
@@ -1333,7 +1334,8 @@ class CollectionsEditorTableView(BaseTableView):
         )
         self.model = self.source_model
         self.setModel(self.source_model)
-        self.delegate = CollectionsDelegate(self, namespacebrowser)
+        self.delegate = CollectionsDelegate(
+            self, namespacebrowser, data_function)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1456,7 +1458,7 @@ class CollectionsEditorWidget(QWidget):
                 self, data, readonly)
         else:
             self.editor = CollectionsEditorTableView(
-                self, data, namespacebrowser, readonly, title)
+                self, data, namespacebrowser, data_function, readonly, title)
 
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -1602,7 +1604,7 @@ class CollectionsEditor(BaseDialog):
 
         try:
             new_value = self.data_function()
-        except KeyError:
+        except (IndexError, KeyError):
             QMessageBox.critical(self, _('Collection editor'),
                                  _('The variable no longer exists.'))
             self.reject()
@@ -1610,7 +1612,8 @@ class CollectionsEditor(BaseDialog):
 
         self.widget.set_data(new_value)
         self.data_copy = new_value
-        self.btn_save_and_close.setEnabled(False)
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(False)
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
 

@@ -1101,7 +1101,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         try:
             data = self.data_function()
-        except KeyError:
+        except (IndexError, KeyError):
             self.error(_('The variable no longer exists.'))
             return
 

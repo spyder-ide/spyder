@@ -45,9 +45,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
-    def __init__(self, parent=None, namespacebrowser=None):
+    def __init__(self, parent=None, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None):
         QItemDelegate.__init__(self, parent)
         self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
         self._editors = {}  # keep references on opened editors
 
     def get_value(self, index):
@@ -64,6 +66,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         Construct function which returns current value of data.
 
         This is used to refresh editors created from this piece of data.
+        For instance, if `self` is the delegate for an editor that displays
+        the dict `xxx` and the user opens another editor for `xxx["aaa"]`,
+        then to refresh the data of the second editor, the nested function
+        `datafun` first gets the refreshed data for `xxx` and then gets the
+        item with key "aaa".
 
         Parameters
         ----------
@@ -77,9 +84,21 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             Function which returns the current value of the data, or None if
             such a function cannot be constructed.
         """
-        # TODO: Implement this to handle refreshing editors opened from other
-        # editors, e.g., arrays nested inside a list.
-        return None
+        if self.data_function is None:
+            return None
+        key = index.model().keys[index.row()]
+
+        def datafun():
+            data = self.data_function()
+            if isinstance(data, (tuple, list, dict, set)):
+                return data[key]
+            try:
+                return getattr(data, key)
+            except (NotImplementedError, AttributeError,
+                    TypeError, ValueError):
+                return None
+
+        return datafun
 
     def show_warning(self, index):
         """
