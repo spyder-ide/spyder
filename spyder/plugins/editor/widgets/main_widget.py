@@ -1650,6 +1650,8 @@ class EditorMainWidget(PluginMainWidget):
             self.get_current_editorstack,
             section=self.get_title()
         )
+        for editorstack in self.editorstacks:
+            editorstack.set_switcher(switcher)
 
     # ---- Focus tabwidget (public)
     def set_last_focused_editorstack(self, editorwindow, editorstack):

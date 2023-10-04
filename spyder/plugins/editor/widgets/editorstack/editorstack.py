@@ -214,16 +214,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Actions
         # TODO: Use self.create_action
-        switcher_action = None
-        symbolfinder_action = None
+        self.switcher_action = None
+        self.symbolfinder_action = None
         # TODO: Change access to main and plugin/main_widget
         if use_switcher and self.get_plugin()._plugin.main:
-            self.switcher_plugin = self.get_plugin()._plugin.main.switcher
-            if self.switcher_plugin:
-                switcher_action = self.switcher_plugin.get_action(
-                    "file switcher")
-                symbolfinder_action = self.switcher_plugin.get_action(
-                    "symbol finder")
+            self.set_switcher(self.get_plugin()._plugin.main.switcher)
         copy_absolute_path_action = self.create_action(
             EditorStackActions.CopyAbsolutePath,
             text=_("Copy absolute path"),
@@ -273,8 +268,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.menu_actions = actions + [
             external_fileexp_action,
             MENU_SEPARATOR,
-            switcher_action,
-            symbolfinder_action,
+            self.switcher_action,
+            self.symbolfinder_action,
             copy_absolute_path_action,
             copy_relative_path_action,
             MENU_SEPARATOR,
@@ -837,6 +832,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
+
+    def set_switcher(self, switcher):
+        if switcher:
+            self.switcher_plugin = switcher
+            self.switcher_action = switcher.get_action("file switcher")
+            self.symbolfinder_action = switcher.get_action("symbol finder")
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path

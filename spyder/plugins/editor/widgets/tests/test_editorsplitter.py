@@ -79,16 +79,16 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         # Emulate "cloning"
         editorstack.new('test.py', 'utf-8', text)
 
-    mock_plugin = Mock()
+    mock_main_widget = Mock(wraps=EditorMainWidgetExample())
     EditorSplitter.CONF_SECTION = "Editor"
     editorsplitter = EditorSplitter(
-        None, mock_plugin, [], register_editorstack_cb=register_editorstack)
+        None, mock_main_widget, [], register_editorstack_cb=register_editorstack)
 
     editorsplitter.editorstack.set_find_widget(Mock())
     editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorsplitter.editorstack.new('test.py', 'utf-8', text)
 
-    mock_plugin.clone_editorstack.side_effect = partial(
+    mock_main_widget.clone_editorstack.side_effect = partial(
         clone, template=editorsplitter.editorstack)
     qtbot_module.addWidget(editorsplitter)
     editorsplitter.resize(640, 480)

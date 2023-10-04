@@ -1782,22 +1782,22 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize editor
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
 
     # Don't call switch_to_plugin when the IPython console is undocked
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
     ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
     ipyconsole.create_window()
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
 
     # Unmaximize when docking back the IPython console
     ipyconsole.close_window()
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
 
     # Maximize a plugin and check that it's unmaximized after clicking the
     # debug button
@@ -1820,7 +1820,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         debug_next_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_next_button, Qt.LeftButton)
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
     assert not max_action.isChecked()
 
     # Check that other debugging actions unmaximize the debugger plugin
@@ -2524,6 +2524,7 @@ def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_plugin
     editorstack.switcher_plugin.open_switcher()
     assert editorstack.switcher_plugin
     assert editorstack.switcher_plugin.is_visible()
@@ -2990,7 +2991,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
     # Create a editor split
-    main_window.editor.editorsplitter.split(orientation=Qt.Vertical)
+    main_window.editor.get_widget().editorsplitter.split(orientation=Qt.Vertical)
     qtbot.wait(500)
 
     # Open other files
@@ -3003,7 +3004,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
     # Close split panel
-    for editorstack in reversed(main_window.editor.editorstacks):
+    for editorstack in reversed(main_window.editor.get_widget().editorstacks):
         editorstack.close_split()
         break
     qtbot.wait(1000)

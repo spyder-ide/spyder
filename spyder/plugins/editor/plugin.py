@@ -192,6 +192,7 @@ class Editor(SpyderDockablePlugin):
         widget.sig_codeeditor_created.connect(self.sig_codeeditor_created)
         widget.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
         widget.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
+        widget.sig_editor_focus_changed.connect(self.sig_editor_focus_changed)
 
         # ---- Plugin related signals
         widget.sig_switch_to_plugin_requested.connect(
