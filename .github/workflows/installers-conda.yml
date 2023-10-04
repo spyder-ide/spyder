@@ -202,6 +202,16 @@ jobs:
           CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
           echo "CNAME=$CNAME" >> $GITHUB_ENV
 
+      - name: Load signing certificate (Windows)
+        if: runner.os == 'Windows' && env.NOTARIZE == 'true'
+        run: |
+          echo "${MACOS_CERTIFICATE}" > "${{ runner.temp }}/certificate.b64.txt"
+          certutil.exe -decode "${{ runner.temp }}/certificate.b64.txt" "${{ runner.temp }}/certificate.pfx"
+
+          echo "CONSTRUCTOR_SIGNING_CERTIFICATE=${{ runner.temp }}/certificate.pfx" >> $GITHUB_ENV
+          echo "CONSTRUCTOR_PFX_CERTIFICATE_PASSWORD=${MACOS_CERTIFICATE_PWD}" >> $GITHUB_ENV
+          echo "CONSTRUCTOR_SIGNTOOL_PATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" >> $GITHUB_ENV
+
       - name: Build Package Installer
         run: |
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
