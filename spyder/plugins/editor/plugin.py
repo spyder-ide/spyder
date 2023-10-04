@@ -797,6 +797,12 @@ class Editor(SpyderDockablePlugin):
     def close_all_files(self):
         return self.get_widget().close_all_files()
 
+    def go_to_line(self, *args, **kwargs):
+        return self.get_widget().go_to_line(*args, **kwargs)
+
+    def set_current_filename(self, *args, **kwargs):
+        return self.get_widget().set_current_filename(*args, **kwargs)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods

@@ -1487,12 +1487,13 @@ class EditorMainWidget(PluginMainWidget):
         named_options = dict(zip(option_names, options))
         for name, action in self.checkable_actions.items():
             if name in named_options:
-                if name == 'underline_errors':
+                opt = named_options[name]
+                section = 'editor'
+                completions_options = ['pycodestyle', 'pydocstyle']
+                if name in completions_options:
                     section = 'completions'
-                    opt = 'underline_errors'
-                else:
-                    section = 'editor'
-                    opt = named_options[name]
+                if name == 'underline_errors':
+                    opt = name
 
                 state = self.get_conf(opt, section=section)
 

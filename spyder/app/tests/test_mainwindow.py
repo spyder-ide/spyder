@@ -5445,7 +5445,7 @@ if __name__ == "__main__":
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Click the run button
@@ -5484,7 +5484,7 @@ crash_func()
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Click the run button
@@ -5636,7 +5636,7 @@ def test_debug_unsaved_function(main_window, qtbot):
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Set breakpoint
