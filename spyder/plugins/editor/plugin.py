@@ -721,8 +721,8 @@ class Editor(SpyderDockablePlugin):
         """
         self.get_widget().refresh()
 
-    # TODO: Add all possible methods other plugins are calling or connecting to
-    # should a `__getattr__` be implemented that connects all methods
+    # TODO: Add all possible methods other plugins are calling or connecting to.
+    # Should a `__getattr__` be implemented that connects all methods
     # without `_` from the main_widget to the plugin?
     def load(self, *args, **kwargs):
         return self.get_widget().load(*args, **kwargs)
@@ -802,6 +802,9 @@ class Editor(SpyderDockablePlugin):
 
     def set_current_filename(self, *args, **kwargs):
         return self.get_widget().set_current_filename(*args, **kwargs)
+
+    def set_current_project_path(self, *args, **kwargs):
+        return self.get_widget().set_current_project_path(*args, **kwargs)
 
     # ---- Private API
     # ------------------------------------------------------------------------

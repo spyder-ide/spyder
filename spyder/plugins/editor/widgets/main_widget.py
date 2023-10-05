@@ -2379,7 +2379,7 @@ class EditorMainWidget(PluginMainWidget):
             35
         )
         if valid:
-            self.set_option('max_recent_files', mrf)
+            self.set_conf('max_recent_files', mrf)
 
     @Slot()
     @Slot(str)
@@ -3925,7 +3925,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def save_open_files(self):
         """Save the list of open files"""
-        self.set_option('filenames', self.get_open_filenames())
+        self.set_conf('filenames', self.get_open_filenames())
 
     def set_create_new_file_if_empty(self, value):
         """Change the value of create_new_file_if_empty"""
