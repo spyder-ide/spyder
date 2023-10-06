@@ -1611,34 +1611,31 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.layout = None
         self.glayout = None
         self.menu_header_v = None
+        self.dataTable = None
 
-    def setup_and_check(self, data, title=''):
+    def setup_and_check(self, data, title='') -> bool:
         """
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise.
         Supported types for data are DataFrame, Series and Index.
         """
-        self._selection_rec = False
-        self._model = None
+        if title:
+            title = to_text_string(title) + " - %s" % data.__class__.__name__
+        else:
+            title = _("%s editor") % data.__class__.__name__
+        self.setup_ui(title)
+        return self.set_data_and_check(data)
+
+    def setup_ui(self, title: str) -> None:
+        """
+        Create user interface
+        """
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
         self.glayout = QGridLayout()
         self.glayout.setSpacing(0)
         self.glayout.setContentsMargins(0, 12, 0, 0)
         self.setLayout(self.layout)
-
-        if title:
-            title = to_text_string(title) + " - %s" % data.__class__.__name__
-        else:
-            title = _("%s editor") % data.__class__.__name__
-
-        if isinstance(data, pd.Series):
-            self.is_series = True
-            data = data.to_frame()
-        elif isinstance(data, pd.Index):
-            data = pd.DataFrame(data)
-
-        self.setWindowTitle(title)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -1655,21 +1652,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         # Create menu to allow edit index
         self.menu_header_v = self.setup_menu_header(self.table_index)
 
-        # Create the model and view of the data
-        self.dataModel = DataFrameModel(data, parent=self)
-        self.dataModel.dataChanged.connect(self.save_and_close_enable)
-        self.create_data_table()
-
         self.glayout.addWidget(self.hscroll, 2, 0, 1, 2)
         self.glayout.addWidget(self.vscroll, 0, 2, 2, 1)
-
-        # autosize columns on-demand
-        self._autosized_cols = set()
-
-        # Set limit time to calculate column sizeHint to 300ms,
-        # See spyder-ide/spyder#11060
-        self._max_autosize_ms = 300
-        self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
         self.min_trunc = avg_width * 12  # Minimum size for columns
@@ -1681,7 +1665,6 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         btn_layout.setSpacing(5)
 
         btn_format = QPushButton(_("Format"))
-        # disable format button for int type
         btn_layout.addWidget(btn_format)
         btn_format.clicked.connect(self.change_format)
 
@@ -1689,23 +1672,16 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         btn_layout.addWidget(btn_resize)
         btn_resize.clicked.connect(self.resize_to_contents)
 
-        bgcolor = QCheckBox(_('Background color'))
-        bgcolor.setChecked(self.dataModel.bgcolor_enabled)
-        bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
-        bgcolor.stateChanged.connect(self.change_bgcolor_enable)
-        btn_layout.addWidget(bgcolor)
+        self.bgcolor = QCheckBox(_('Background color'))
+        self.bgcolor.stateChanged.connect(self.change_bgcolor_enable)
+        btn_layout.addWidget(self.bgcolor)
 
         self.bgcolor_global = QCheckBox(_('Column min/max'))
-        self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global.setEnabled(not self.is_series and
-                                       self.dataModel.bgcolor_enabled)
-        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
 
         self.btn_save_and_close = QPushButton(_('Save and Close'))
-        self.btn_save_and_close.setDisabled(True)
         self.btn_save_and_close.clicked.connect(self.accept)
         btn_layout.addWidget(self.btn_save_and_close)
 
@@ -1717,23 +1693,71 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         btn_layout.setContentsMargins(0, 16, 0, 16)
         self.glayout.addLayout(btn_layout, 4, 0, 1, 2)
+
+        self.toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
+        self.toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.layout.addWidget(self.toolbar)
+        self.layout.addLayout(self.glayout)
+
+        self.setWindowTitle(title)
+
+    def set_data_and_check(self, data) -> bool:
+        """
+        Checks whether data is suitable and display it in the editor
+
+        This function returns False if data is not supported (though in fact,
+        it always returns True).
+        """
+        self._selection_rec = False
+        self._model = None
+
+        if isinstance(data, pd.Series):
+            self.is_series = True
+            data = data.to_frame()
+        elif isinstance(data, pd.Index):
+            data = pd.DataFrame(data)
+
+        # Create the model and view of the data
+        self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
+        self.create_data_table()
+
+        # autosize columns on-demand
+        self._autosized_cols = set()
+
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
+        self.dataTable.installEventFilter(self)
+
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
+        self.bgcolor.setChecked(self.dataModel.bgcolor_enabled)
+        self.bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
+
+        try:
+            self.bgcolor_global.stateChanged.disconnect()
+        except TypeError:
+            # Raised when no slots are connected to the signal
+            pass
+
+        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
+        self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
+        self.bgcolor_global.setEnabled(not self.is_series and
+                                       self.dataModel.bgcolor_enabled)
+
+        self.btn_save_and_close.setDisabled(True)
         self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
         if self.table_header.rowHeight(0) == 0:
             self.table_header.setRowHeight(0, self.table_header.height())
 
-        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
-        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.toolbar.clear()
         for item in self.dataTable.menu_actions:
             if item is not None:
                 if item.text() != 'Convert to':
-                    toolbar.addAction(item)
-
-        self.layout.addWidget(toolbar)
-        self.layout.addLayout(self.glayout)
+                    self.toolbar.addAction(item)
 
         return True
 
@@ -1833,6 +1857,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
+        if self.dataTable:
+            self.layout.removeWidget(self.dataTable)
+            self.dataTable.deleteLater()
+            self.dataTable = None
+
         self.dataTable = DataFrameView(self, self.dataModel,
                                        self.table_header.horizontalHeader(),
                                        self.hscroll, self.vscroll)
