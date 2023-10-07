@@ -173,3 +173,31 @@ def is_anaconda_pkg(prefix=sys.prefix):
             return True
 
     return False
+
+
+def get_spyder_conda_channel():
+    """Get the conda channel from which Spyder was installed."""
+    conda = find_conda()
+
+    if conda is None:
+        return None
+
+    env = get_conda_env_path(sys.executable)
+    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+
+    try:
+        out, __ = run_shell_command(cmdstr, env={}).communicate()
+        out = out.decode()
+        out = json.loads(out)
+    except Exception:
+        return None
+
+    for package_info in out:
+        if package_info["name"] == 'spyder':
+            channel = package_info["channel"]
+            channel_url = package_info["base_url"]
+
+    if "<develop>" in channel_url:
+        channel_url = None
+
+    return channel, channel_url
