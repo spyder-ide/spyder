@@ -24,6 +24,10 @@ from spyder_kernels.comms.commbase import CommBase, CommError
 from spyder_kernels.py3compat import TimeoutError, PY2
 
 
+if PY2:
+    import thread
+
+
 def get_free_port():
     """Find a free port on the local machine."""
     sock = socket.socket()
@@ -264,7 +268,7 @@ class FrontendComm(CommBase):
             current_stderr = sys.stderr
             saved_stdout_write = current_stdout.write
             saved_stderr_write = current_stderr.write
-            thread_id = threading.get_ident()
+            thread_id = thread.get_ident() if PY2 else threading.get_ident()
             current_stdout.write = WriteWrapper(
                 saved_stdout_write, call_name, thread_id)
             current_stderr.write = WriteWrapper(
@@ -300,7 +304,8 @@ class WriteWrapper(object):
 
     def __call__(self, string):
         """Print warning once."""
-        if self._thread_id != threading.get_ident():
+        thread_id = thread.get_ident() if PY2 else threading.get_ident()
+        if self._thread_id != thread_id:
             return self._write(string)
 
         if not self.is_benign_message(string):

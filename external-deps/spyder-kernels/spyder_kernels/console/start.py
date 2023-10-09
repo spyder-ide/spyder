@@ -239,7 +239,8 @@ def kernel_config():
 
     # Disable the new mechanism to capture and forward low-level output
     # in IPykernel 6. For that we have Wurlitzer.
-    spy_cfg.IPKernelApp.capture_fd_output = False
+    if not PY2:
+        spy_cfg.IPKernelApp.capture_fd_output = False
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
