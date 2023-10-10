@@ -48,7 +48,7 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     find_desired_tab_in_window, LOCATION, open_file_in_editor,
-    preferences_dialog_helper, PY37, read_asset_file, reset_run_code,
+    preferences_dialog_helper, read_asset_file, reset_run_code,
     SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
@@ -2727,7 +2727,6 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10284 regression.
@@ -3295,7 +3294,6 @@ def test_runcell_pdb(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("debug", [False, True])
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
 def test_runcell_cache(main_window, qtbot, debug):
     """Test the runcell command cache."""
     # Write code with a cell to a file

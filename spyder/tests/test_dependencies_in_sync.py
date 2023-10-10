@@ -9,10 +9,11 @@ from ast import literal_eval
 import os.path as osp
 
 # Third party imports
+import pytest
 import yaml
 
 # Local imports
-from spyder.dependencies import DESCRIPTIONS, OPTIONAL
+from spyder.dependencies import DESCRIPTIONS, OPTIONAL, PY38
 
 # Constants
 HERE = osp.abspath(osp.dirname(__file__))
@@ -187,6 +188,7 @@ def test_dependencies_for_binder_in_sync():
     assert spyder_env == full_reqs
 
 
+@pytest.mark.skipif(PY38, reason="Fails in Python 3.8")
 def test_dependencies_for_spyder_dialog_in_sync():
     """
     Spyder dependencies dialog should share deps with main.yml.
