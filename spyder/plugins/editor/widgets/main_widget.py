@@ -30,20 +30,17 @@ from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QFileDialog, QInputDialog, QMenu, QSplitter,
-                            QToolBar, QVBoxLayout, QWidget)
+                            QFileDialog, QInputDialog, QSplitter, QToolBar,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-# from spyder.api.config.mixins import SpyderConfigurationObserver
-from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import qbytearray_to_str, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
@@ -66,14 +63,11 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, EditMenuSections, SearchMenuSections, SourceMenuSections
-)
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
-# from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -167,21 +161,8 @@ class EditorMainWidget(PluginMainWidget):
     """
     Multi-file Editor widget
     """
-    # CONF_SECTION = 'editor'
-    # CONFIGWIDGET_CLASS = EditorConfigPage
-    # CONF_FILE = False
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
-    # DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
-
-    # This is required for the new API
-    # NAME = 'editor'
-    # REQUIRES = [Plugins.Console]
-    # OPTIONAL = [Plugins.Completions, Plugins.OutlineExplorer]
-
-    # Signals
-    # TODO: Replace with `sig_redirect_stdio_requested`
-    # redirect_stdio = Signal(bool)
 
     sig_dir_opened = Signal(str)
     """
@@ -321,8 +302,8 @@ class EditorMainWidget(PluginMainWidget):
         self.id_per_file = {}
         self.metadata_per_id: Dict[str, RunConfigurationMetadata] = {}
 
-        # self.projects = None
-        self.outline_plugin = None  # TODO: Remove. See setup_other_windows
+        # TODO: Is there any other way to do this. See `setup_other_windows`
+        self.outline_plugin = None
         self.outlineexplorer = None
 
         self.file_dependent_actions = []
@@ -339,12 +320,6 @@ class EditorMainWidget(PluginMainWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        # We need to call this here to create self.dock_toolbar_actions,
-        # which is used below.
-        # self._setup()
-        # self.setup()
-        # self.options_button.hide()
-
         # Configuration dialog size
         self.dialog_size = None
 
@@ -354,106 +329,6 @@ class EditorMainWidget(PluginMainWidget):
         self.eol_status = EOLStatus(self)
         self.readwrite_status = ReadWriteStatus(self)
 
-        # TODO: temporal fix while editor uses new API
-        # statusbar = self.main.get_plugin(Plugins.StatusBar, error=False)
-        # if statusbar:
-        #     statusbar.add_status_widget(self.readwrite_status)
-        #     statusbar.add_status_widget(self.eol_status)
-        #     statusbar.add_status_widget(self.encoding_status)
-        #     statusbar.add_status_widget(self.cursorpos_status)
-        #     statusbar.add_status_widget(self.vcs_status)
-
-        # TODO: Move to plugin.initialize
-        # self.supported_run_extensions = [
-        #     {
-        #         'input_extension': ['py', 'ipy'],
-        #         'contexts': [
-        #             {'context': {'name': 'File'}, 'is_super': True},
-        #             {'context': {'name': 'Selection'}, 'is_super': False},
-        #             {'context': {'name': 'Cell'}, 'is_super': False}
-        #         ]
-        #     },
-        # ]
-
-        # run = self.main.get_plugin(Plugins.Run, error=False)
-        # if run:
-        #     self.sig_editor_focus_changed_uuid.connect(
-        #         run.switch_focused_run_configuration)
-
-        #     run.register_run_configuration_provider(
-        #         self.NAME, self.supported_run_extensions)
-
-        #     run.create_run_button(
-        #         RunContext.Cell,
-        #         _("Run cell"),
-        #         icon=ima.icon('run_cell'),
-        #         tip=_("Run current cell\n[Use #%% to create cells]"),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_toolbar=True,
-        #         add_to_menu=True
-        #     )
-
-        #     run.create_run_button(
-        #         RunContext.Cell,
-        #         _("Run cell and advance"),
-        #         icon=ima.icon('run_cell_advance'),
-        #         tip=_("Run current cell and go to the next one"),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_toolbar=True,
-        #         add_to_menu=True,
-        #         extra_action_name=ExtraAction.Advance
-        #     )
-
-        #     run.create_run_button(
-        #         RunContext.Cell,
-        #         _("Re-run last cell"),
-        #         tip=_("Re run last cell "),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_menu=True,
-        #         re_run=True
-        #     )
-
-        #     run.create_run_button(
-        #         RunContext.Selection,
-        #         _("Run &selection or current line"),
-        #         icon=ima.icon('run_selection'),
-        #         tip=_("Run selection or current line"),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_toolbar=True,
-        #         add_to_menu=True,
-        #         extra_action_name=ExtraAction.Advance,
-        #     )
-
-        #     run.create_run_button(
-        #         RunContext.Selection,
-        #         _("Run &to line"),
-        #         tip=_("Run selection up to the current line"),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_toolbar=False,
-        #         add_to_menu=True,
-        #         context_modificator=SelectionContextModificator.ToLine
-        #     )
-
-        #     run.create_run_button(
-        #         RunContext.Selection,
-        #         _("Run &from line"),
-        #         tip=_("Run selection from the current line"),
-        #         shortcut_context=self.NAME,
-        #         register_shortcut=True,
-        #         add_to_toolbar=False,
-        #         add_to_menu=True,
-        #         context_modificator=SelectionContextModificator.FromLine
-        #     )
-
-        # layout = QVBoxLayout()
-        # self.dock_toolbar = QToolBar(self)
-        # layout.addWidget(self.dock_toolbar)
-
         self.last_edit_cursor_pos = None
         self.cursor_undo_history = []
         self.cursor_redo_history = []
@@ -462,22 +337,10 @@ class EditorMainWidget(PluginMainWidget):
         # Completions setup
         self.completion_capabilities = {}
 
-        # TODO: part of on_mainwindow_visible
-        # Setup new windows:
-        # self.main.sig_setup_finished.connect(self.setup_other_windows)
-
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         # self.register_widget_shortcuts(self.find_widget)
-
-        # TODO: This is a hack! Remove it after migrating to the new API
-        #  self.find_widget.layout().setContentsMargins(
-        #     2 * AppStyle.MarginSize,
-        #     AppStyle.MarginSize,
-        #     2 * AppStyle.MarginSize,
-        #     AppStyle.MarginSize
-        # )
 
         # Start autosave component
         # (needs to be done before EditorSplitter)
@@ -491,58 +354,6 @@ class EditorMainWidget(PluginMainWidget):
         # SimpleCodeEditor instance used to print file contents
         self._print_editor = self._create_print_editor()
         self._print_editor.hide()
-
-        # # Tabbed editor widget + Find/Replace widget
-        # editor_widgets = QWidget(self)
-        # editor_layout = QVBoxLayout()
-        # editor_layout.setSpacing(0)
-        # editor_layout.setContentsMargins(0, 0, 0, 0)
-        # editor_widgets.setLayout(editor_layout)
-        # self.editorsplitter = EditorSplitter(
-        #     self,
-        #     self,
-        #     # self.stack_menu_actions,
-        #     first=True
-        # )
-        # editor_layout.addWidget(self.editorsplitter)
-        # editor_layout.addWidget(self.find_widget)
-        # editor_layout.addWidget(self._print_editor)
-
-        # # Splitter: editor widgets (see above) + outline explorer
-        # self.splitter = QSplitter(self)
-        # self.splitter.setContentsMargins(0, 0, 0, 0)
-        # self.splitter.addWidget(editor_widgets)
-        # self.splitter.setStretchFactor(0, 5)
-        # self.splitter.setStretchFactor(1, 1)
-        # layout.addWidget(self.splitter)
-        # self.setLayout(layout)
-        # self.setFocusPolicy(Qt.ClickFocus)
-
-        # # Editor's splitter state
-        # state = self.get_conf('splitter_state', None)
-        # if state is not None:
-        #     self.splitter.restoreState(
-        #         QByteArray().fromHex(str(state).encode('utf-8'))
-        #     )
-
-        # self.recent_files = self.get_conf('recent_files', [])
-        # self.untitled_num = 0
-
-        # # Parameters of last file execution:
-        # self.__last_ic_exec = None  # internal console
-        # self.__last_ec_exec = None  # external console
-
-        # # File types and filters used by the Open dialog
-        # self.edit_filetypes = None
-        # self.edit_filters = None
-
-        # self.__ignore_cursor_history = False
-        # current_editor = self.get_current_editor()
-        # if current_editor is not None:
-        #     filename = self.get_current_filename()
-        #     cursor = current_editor.textCursor()
-        #     self.add_cursor_to_history(filename, cursor)
-        # self.update_cursorpos_actions()
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -561,7 +372,6 @@ class EditorMainWidget(PluginMainWidget):
         return self.get_current_editor()
 
     def setup(self):
-        # TODO: Move `get_plugin_actions` here
         # ---- File operations ----
         self.new_action = self.create_action(
             EditorWidgetActions.NewFile,
@@ -684,7 +494,6 @@ class EditorMainWidget(PluginMainWidget):
         )
         # Fixes spyder-ide/spyder#6055.
         # See: https://bugreports.qt.io/browse/QTBUG-8596
-        # self.tab_navigation_actions = []
         if sys.platform == 'darwin':
             self.go_to_next_file_action = self.create_action(
                 EditorWidgetActions.GoToNextFile,
@@ -698,11 +507,6 @@ class EditorMainWidget(PluginMainWidget):
                 triggered=self.go_to_previous_file,
                 register_shortcut=True
             )
-            # self.tab_navigation_actions = [
-            #     MENU_SEPARATOR,
-            #     self.go_to_previous_file_action,
-            #     self.go_to_next_file_action,
-            # ]
 
         # ---- Find/Search operations ----
         self.find_action = self.create_action(
@@ -816,7 +620,7 @@ class EditorMainWidget(PluginMainWidget):
             'indent_guides': self.showindentguides_action,
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
-            # TODO: Should this actions be created from the completions plugin?
+            # TODO: Should these actions be created from the completion plugin?
             'pycodestyle': self.show_codestyle_warnings_action,
             'pydocstyle': self.show_docstring_warnings_action,
             'underline_errors': self.underline_errors
@@ -1187,7 +991,6 @@ class EditorMainWidget(PluginMainWidget):
                 except RuntimeError:
                     pass
 
-    # _visibility_changed
     def change_visibility(self, state, force_focus=None):
         """DockWidget visibility has changed"""
         super().change_visibility(state)
@@ -1199,7 +1002,7 @@ class EditorMainWidget(PluginMainWidget):
             self.dock_toolbar.hide()
         if state:
             self.refresh()
-        self.update_title()  # sig_update_plugin_title.emit()
+        self.update_title()
 
     def update_actions(self):
         pass
@@ -1207,6 +1010,7 @@ class EditorMainWidget(PluginMainWidget):
     # ---- Private API
     # ------------------------------------------------------------------------
     def get_color_scheme(self):
+        # TODO: Workaround to get color scheme
         return self._plugin.get_color_scheme()
 
     def restore_scrollbar_position(self):
@@ -1252,9 +1056,7 @@ class EditorMainWidget(PluginMainWidget):
         self.id_per_file[filename] = file_id
         self.metadata_per_id[file_id] = metadata
 
-        # run = self.main.get_plugin(Plugins.Run, error=False)
-        # if run:
-        #     run.register_run_configuration_metadata(self, metadata)
+        # TODO: main_widget calling run plugin
         self._plugin.register_run_configuration_metadata(metadata)
 
     def deregister_file_run_metadata(self, filename):
@@ -1265,9 +1067,7 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.pop(filename)
         self.file_per_id.pop(file_id)
         self.metadata_per_id.pop(file_id)
-        # run = self.main.get_plugin(Plugins.Run, error=False)
-        # if run is not None:
-        #     run.deregister_run_configuration_metadata(file_id)
+        # TODO: main_widget calling run plugin
         self._plugin.deregister_run_configuration_metadata(file_id)
 
     def change_register_file_run_metadata(self, old_filename, new_filename):
@@ -1294,7 +1094,6 @@ class EditorMainWidget(PluginMainWidget):
     @Slot(dict)
     def report_open_file(self, options):
         """Report that a file was opened to other plugins."""
-        # TODO: Move to completion plugin calls to plugin method
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
@@ -1315,15 +1114,11 @@ class EditorMainWidget(PluginMainWidget):
         if not able_to_run_file:
             self.pending_run_files |= {(filename, filename_ext)}
 
+        # TODO: main_widget logic calling things from the completions plugin
         status, fallback_only = self._plugin.register_file_completions(
             language.lower(), filename, codeeditor
         )
-        # if self.main.get_plugin(Plugins.Completions, error=False):
-        #     status = (
-        #         self.main.completions.start_completion_services_for_language(
-        #             language.lower()))
-        #     self.main.completions.register_file(
-        #         language.lower(), filename, codeeditor)
+
         if status:
             if language.lower() in self.completion_capabilities:
                 # When this condition is True, it means there's a server
@@ -1361,10 +1156,7 @@ class EditorMainWidget(PluginMainWidget):
         # This is required to start workspace before completion
         # services when Spyder starts with an open project.
         # TODO: Find a better solution for it in the future!!
-        # TODO: Handle this call over the plugin side with a method
-        # projects = self.main.get_plugin(Plugins.Projects, error=False)
-        # if projects:
-        #     projects.start_workspace_services()
+        # TODO: main_widget calling logic fro the projects plugin
         self._plugin.start_project_workspace_services()
 
         self.completion_capabilities[language] = dict(capabilities)
@@ -1385,9 +1177,10 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.stop_completion_services(language)
 
     def send_completion_request(self, language, request, params):
-        # TODO: Use signal to send request?
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
+        # TODO: main_widget calling logic from the completions plugin
+        # Maybe use signal to send request?
         self._plugin.send_completions_request(language, request, params)
 
     @Slot(str, tuple, dict)
@@ -1395,7 +1188,7 @@ class EditorMainWidget(PluginMainWidget):
         meth = getattr(self, method)
         meth(*args, **kwargs)
 
-    def refresh(self):  # refresh_plugin
+    def refresh(self):
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
         editorstack.refresh()
@@ -1462,13 +1255,6 @@ class EditorMainWidget(PluginMainWidget):
         """
         Enable search related actions only when the Editor has focus.
         """
-        # search_menu_actions = [
-        #     self.find_action,
-        #     self.find_next_action,
-        #     self.find_previous_action,
-        #     self.replace_action,
-        #     self.gotoline_action
-        # ]
         editor = self.get_current_editor()
         if editor:
             editor_focus = (
@@ -1894,9 +1680,11 @@ class EditorMainWidget(PluginMainWidget):
                                                             filename)
 
     # ---- Handling editor windows
-    def setup_other_windows(self, main, outline_plugin):  # TODO: Remove args
+    # TODO: args added as a workaround, should be removed. Maybe
+    # this should be moved to the plugin?
+    def setup_other_windows(self, main, outline_plugin):
         """Setup toolbars and menus for 'New window' instances"""
-        # TODO: Move to the plugin?
+        # Menus
         file_menu_actions = main.mainmenu.get_application_menu(
             ApplicationMenus.File).get_actions()
         edit_menu_actions = main.mainmenu.get_application_menu(
@@ -1912,7 +1700,16 @@ class EditorMainWidget(PluginMainWidget):
         help_menu_actions = main.mainmenu.get_application_menu(
             ApplicationMenus.Help).get_actions()
 
-        # --- TODO: Rewrite when the editor is moved to the new API
+        self.menu_list = ((_("&File"), file_menu_actions),
+                          (_("&Edit"), edit_menu_actions),
+                          (_("&Search"), search_menu_actions),
+                          (_("Sour&ce"), source_menu_actions),
+                          (_("&Run"), run_menu_actions),
+                          (_("&Tools"), tools_menu_actions),
+                          (_("&View"), []),
+                          (_("&Help"), help_menu_actions))
+
+        # Toolbars
         file_toolbar_actions = main.toolbar.get_application_toolbar(
             ApplicationToolbars.File).actions()
         debug_toolbar_actions = main.toolbar.get_application_toolbar(
@@ -1926,15 +1723,8 @@ class EditorMainWidget(PluginMainWidget):
                               run_toolbar_actions),
                              (_("Debug toolbar"), "debug_toolbar",
                               debug_toolbar_actions))
-        self.menu_list = ((_("&File"), file_menu_actions),
-                          (_("&Edit"), edit_menu_actions),
-                          (_("&Search"), search_menu_actions),
-                          (_("Sour&ce"), source_menu_actions),
-                          (_("&Run"), run_menu_actions),
-                          (_("&Tools"), tools_menu_actions),
-                          (_("&View"), []),
-                          (_("&Help"), help_menu_actions))
 
+        # Outline setup
         self.outline_plugin = outline_plugin
 
         # Create pending new windows:
@@ -1949,11 +1739,10 @@ class EditorMainWidget(PluginMainWidget):
         """
         if not self.editorwindows:
             self.sig_switch_to_plugin_requested.emit()
-            # super(Editor, self).switch_to_plugin()
 
+    # TODO: Move to the plugin?
     def create_new_window(self):
         """Create a new editor window."""
-        # TODO: Move to the plugin?
         window = EditorMainWindow(
             self,
             self.stack_menu_actions,
@@ -2167,11 +1956,6 @@ class EditorMainWidget(PluginMainWidget):
         if state is not None:
             self.todo_list_action.setEnabled(state)
 
-    # @Slot(set)
-    # def update_active_languages(self, languages):
-    #     if self.main.get_plugin(Plugins.Completions, error=False):
-    #         self.main.completions.update_client_status(languages)
-
     # ---- Bookmarks
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
@@ -2227,8 +2011,7 @@ class EditorMainWidget(PluginMainWidget):
         Cloning from the first editorstack in which every single new editor
         is created (when loading or creating a new file)"""
         for editorstack in self.editorstacks[1:]:
-            editor = editorstack.clone_editor_from(finfo, set_current=False)
-            # self.register_widget_shortcuts(editor)
+            editorstack.clone_editor_from(finfo, set_current=False)
 
     @Slot()
     @Slot(str)
@@ -2305,9 +2088,7 @@ class EditorMainWidget(PluginMainWidget):
                     break
             basedir = getcwd_or_home()
 
-            # projects = self.main.get_plugin(Plugins.Projects, error=False)
-            # if projects and projects.get_active_project() is not None:
-            #     basedir = projects.get_active_project_path()
+            # TODO: main_widget call logic from the projects plugin
             active_project_path = self._plugin.get_active_project_path()
             if active_project_path is not None:
                 basedir = active_project_path
@@ -2332,8 +2113,8 @@ class EditorMainWidget(PluginMainWidget):
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
         self._clone_file_everywhere(finfo)
-        current_editor = current_es.set_current_filename(finfo.filename)
-        # self.register_widget_shortcuts(current_editor)
+        current_es.set_current_filename(finfo.filename)
+
         if not created_from_here:
             self.save(force=True)
 
@@ -2489,9 +2270,7 @@ class EditorMainWidget(PluginMainWidget):
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
             editorwindow.raise_()
-            # TODO: Is this the correct way to replace?
         elif (self.dockwidget and not self._is_maximized
-              # and not self._ismaximized
               and not self.dockwidget.isAncestorOf(focus_widget)
               and not isinstance(focus_widget, CodeEditor)):
             self.switch_to_plugin()
@@ -3198,10 +2977,6 @@ class EditorMainWidget(PluginMainWidget):
                 input_extension=extension, contexts=ext_contexts)
             self.supported_run_extensions.append(supported_extension)
 
-            # run = self.main.get_plugin(Plugins.Run, error=False)
-            # if run:
-            #     run.register_run_configuration_provider(
-            #         self.NAME, [supported_extension])
             self.sig_register_run_configuration_provider_requested.emit(
                 [supported_extension]
             )
@@ -3243,10 +3018,6 @@ class EditorMainWidget(PluginMainWidget):
         unsupported_extension = SupportedExtensionContexts(
             input_extension=extension, contexts=contexts)
 
-        # run = self.main.get_plugin(Plugins.Run, error=False)
-        # if run:
-        #     run.deregister_run_configuration_provider(
-        #         self.NAME, [unsupported_extension])
         self.sig_deregister_run_configuration_provider_requested.emit(
             [unsupported_extension]
         )
@@ -3301,6 +3072,7 @@ class EditorMainWidget(PluginMainWidget):
         self, context, extra_action_name, context_modificator,
         re_run=False
     ) -> Optional[RunConfiguration]:
+        # TODO: Should be moved over the plugin?
         editorstack = self.get_current_editorstack()
         if self.get_conf('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
@@ -3427,9 +3199,9 @@ class EditorMainWidget(PluginMainWidget):
         editor.update_tab_stop_width_spaces()
 
     # ---- Options
-    # TODO: Use mapping general mapping for all the settings and set methods
-    # to change config with decorator
-    # Should this @on_conf_change be moved to the EditorStack class itself?
+    # TODO: Use general mapping for all the settings and set methods
+    # to use in these methods instead of local `option_to_method` variable?
+    # Should these `@on_conf_change` be moved to the EditorStack class itself?
     @on_conf_change(
         option=[
             'highlight_current_line',
@@ -3444,7 +3216,7 @@ class EditorMainWidget(PluginMainWidget):
             'highlight_current_line': 'set_highlight_current_line_enabled',
             'highlight_current_cell': 'set_highlight_current_cell_enabled',
             'occurrence_highlighting': 'set_occurrence_highlighting_enabled',
-            'occurrence_highlighting/timeout': 'set_occurrence_highlighting_timeout'
+            'occurrence_highlighting/timeout': 'set_occurrence_highlighting_timeout'  # noqa
         }
         if self.editorstacks is not None:
             for editorstack in self.editorstacks:
@@ -3508,7 +3280,7 @@ class EditorMainWidget(PluginMainWidget):
             'tab_always_indent': 'set_tabmode_enabled',
             'strip_trailing_spaces_on_modify': 'set_stripmode_enabled',
             'intelligent_backspace': 'set_intelligent_backspace_enabled',
-            'always_remove_trailing_spaces': 'set_always_remove_trailing_spaces',
+            'always_remove_trailing_spaces': 'set_always_remove_trailing_spaces',  # noqa
             'add_newline': 'set_add_newline',
             'always_remove_trailing_newlines': 'set_remove_trailing_newlines',
             'convert_eol_on_save': 'set_convert_eol_on_save',
@@ -3562,168 +3334,6 @@ class EditorMainWidget(PluginMainWidget):
         if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 editorstack.set_help_enabled(help_option_value)
-
-    # def apply_plugin_settings(self, options):
-    #     """Apply configuration file's plugin settings"""
-    #     if self.editorstacks is not None:
-            # # ---- syntax highlight and text rendering settings
-            # currentline_n = 'highlight_current_line'
-            # currentline_o = self.get_conf(currentline_n)
-            # currentcell_n = 'highlight_current_cell'
-            # currentcell_o = self.get_conf(currentcell_n)
-            # occurrence_n = 'occurrence_highlighting'
-            # occurrence_o = self.get_conf(occurrence_n)
-            # occurrence_timeout_n = 'occurrence_highlighting/timeout'
-            # occurrence_timeout_o = self.get_conf(occurrence_timeout_n)
-
-            # for editorstack in self.editorstacks:
-            #     if currentline_n in options:
-            #         editorstack.set_highlight_current_line_enabled(
-            #                                                     currentline_o)
-            #     if currentcell_n in options:
-            #         editorstack.set_highlight_current_cell_enabled(
-            #                                                     currentcell_o)
-            #     if occurrence_n in options:
-            #         editorstack.set_occurrence_highlighting_enabled(
-            #             occurrence_o
-            #         )
-            #     if occurrence_timeout_n in options:
-            #         editorstack.set_occurrence_highlighting_timeout(
-            #             occurrence_timeout_o
-            #         )
-
-            # ---- everything else
-            # tabbar_n = 'show_tab_bar'
-            # tabbar_o = self.get_conf(tabbar_n)
-            # classfuncdropdown_n = 'show_class_func_dropdown'
-            # classfuncdropdown_o = self.get_conf(classfuncdropdown_n)
-            # linenb_n = 'line_numbers'
-            # linenb_o = self.get_conf(linenb_n)
-            # blanks_n = 'blank_spaces'
-            # blanks_o = self.get_conf(blanks_n)
-            # scrollpastend_n = 'scroll_past_end'
-            # scrollpastend_o = self.get_conf(scrollpastend_n)
-            # wrap_n = 'wrap'
-            # wrap_o = self.get_conf(wrap_n)
-            # indentguides_n = 'indent_guides'
-            # indentguides_o = self.get_conf(indentguides_n)
-            # codefolding_n = 'code_folding'
-            # codefolding_o = self.get_conf(codefolding_n)
-            # tabindent_n = 'tab_always_indent'
-            # tabindent_o = self.get_conf(tabindent_n)
-            # stripindent_n = 'strip_trailing_spaces_on_modify'
-            # stripindent_o = self.get_conf(stripindent_n)
-            # ibackspace_n = 'intelligent_backspace'
-            # ibackspace_o = self.get_conf(ibackspace_n)
-            # removetrail_n = 'always_remove_trailing_spaces'
-            # removetrail_o = self.get_conf(removetrail_n)
-            # add_newline_n = 'add_newline'
-            # add_newline_o = self.get_conf(add_newline_n)
-            # removetrail_newlines_n = 'always_remove_trailing_newlines'
-            # removetrail_newlines_o = self.get_conf(removetrail_newlines_n)
-            # converteol_n = 'convert_eol_on_save'
-            # converteol_o = self.get_conf(converteol_n)
-            # converteolto_n = 'convert_eol_on_save_to'
-            # converteolto_o = self.get_conf(converteolto_n)
-            # closepar_n = 'close_parentheses'
-            # closepar_o = self.get_conf(closepar_n)
-            # close_quotes_n = 'close_quotes'
-            # close_quotes_o = self.get_conf(close_quotes_n)
-            # add_colons_n = 'add_colons'
-            # add_colons_o = self.get_conf(add_colons_n)
-            # autounindent_n = 'auto_unindent'
-            # autounindent_o = self.get_conf(autounindent_n)
-            # indent_chars_n = 'indent_chars'
-            # indent_chars_o = self.get_conf(indent_chars_n)
-            # tab_stop_width_spaces_n = 'tab_stop_width_spaces'
-            # tab_stop_width_spaces_o = self.get_conf(tab_stop_width_spaces_n)
-            # help_n = 'connect_to_oi'
-            # help_o = self.get_conf('connect/editor', section='help')
-            # todo_n = 'todo_list'
-            # todo_o = self.get_conf(todo_n)
-
-            # finfo = self.get_current_finfo()
-
-            # for editorstack in self.editorstacks:
-                # # Checkable options
-                # if blanks_n in options:
-                #     editorstack.set_blanks_enabled(blanks_o)
-                # if scrollpastend_n in options:
-                #     editorstack.set_scrollpastend_enabled(scrollpastend_o)
-                # if indentguides_n in options:
-                #     editorstack.set_indent_guides(indentguides_o)
-                # if codefolding_n in options:
-                #     editorstack.set_code_folding_enabled(codefolding_o)
-                # if classfuncdropdown_n in options:
-                #     editorstack.set_classfunc_dropdown_visible(
-                #         classfuncdropdown_o)
-                # if tabbar_n in options:
-                #     editorstack.set_tabbar_visible(tabbar_o)
-                # if linenb_n in options:
-                #     editorstack.set_linenumbers_enabled(linenb_o,
-                #                                         current_finfo=finfo)
-                # if wrap_n in options:
-                #     editorstack.set_wrap_enabled(wrap_o)
-                # if tabindent_n in options:
-                #     editorstack.set_tabmode_enabled(tabindent_o)
-                # if stripindent_n in options:
-                #     editorstack.set_stripmode_enabled(stripindent_o)
-                # if ibackspace_n in options:
-                #     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
-                # if removetrail_n in options:
-                #     editorstack.set_always_remove_trailing_spaces(
-                #         removetrail_o
-                #     )
-                # if add_newline_n in options:
-                #     editorstack.set_add_newline(add_newline_o)
-                # if removetrail_newlines_n in options:
-                #     editorstack.set_remove_trailing_newlines(
-                #         removetrail_newlines_o)
-                # if converteol_n in options:
-                #     editorstack.set_convert_eol_on_save(converteol_o)
-                # if converteolto_n in options:
-                #     editorstack.set_convert_eol_on_save_to(converteolto_o)
-                # if closepar_n in options:
-                #     editorstack.set_close_parentheses_enabled(closepar_o)
-                # if close_quotes_n in options:
-                #     editorstack.set_close_quotes_enabled(close_quotes_o)
-                # if add_colons_n in options:
-                #     editorstack.set_add_colons_enabled(add_colons_o)
-                # if autounindent_n in options:
-                #     editorstack.set_auto_unindent_enabled(autounindent_o)
-                # if indent_chars_n in options:
-                #     editorstack.set_indent_chars(indent_chars_o)
-                # if tab_stop_width_spaces_n in options:
-                #     editorstack.set_tab_stop_width_spaces(
-                #         tab_stop_width_spaces_o
-                #     )
-                # if help_n in options:
-                #     editorstack.set_help_enabled(help_o)
-                # if todo_n in options:
-                #     editorstack.set_todolist_enabled(todo_o,
-                #                                      current_finfo=finfo)
-
-            # for name, action in self.checkable_actions.items():
-            #     if name in options:
-            #         # Avoid triggering the action when this action
-            #         # changes state
-            #         action.blockSignals(True)
-            #         state = self.get_conf(name)
-            #         action.setChecked(state)
-            #         action.blockSignals(False)
-            #         # See: spyder-ide/spyder#9915
-
-            # # Multiply by 1000 to convert seconds to milliseconds
-            # self.autosave.interval = (
-            #         self.get_conf('autosave_interval') * 1000)
-            # self.autosave.enabled = self.get_conf('autosave_enabled')
-
-            # # We must update the current editor after the others:
-            # # (otherwise, code analysis buttons state would correspond to the
-            # #  last editor instead of showing the one of the current editor)
-            # if finfo is not None:
-            #     if todo_n in options and todo_o:
-            #         finfo.run_todo_finder()
 
     @on_conf_change(option='edge_line')
     def set_edgeline_enabled(self, value):
@@ -3831,14 +3441,7 @@ class EditorMainWidget(PluginMainWidget):
         Also open any files that the user selected in the recovery dialog.
         """
         self.set_create_new_file_if_empty(False)
-        # active_project_path = None
-        # if self.projects is not None:
-        #     active_project_path = self.projects.get_active_project_path()
-
-        # if active_project_path:
-        #     filenames = self.projects.get_project_filenames()
-        # else:
-        #     filenames = self.get_option('filenames', default=[])
+        # TODO: main_widget calling projects plugin logic
         active_project_path = self._plugin.get_active_project_path()
 
         if active_project_path:
@@ -3963,7 +3566,3 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks:
             editorstack.register_panel(
                 panel_class, *args, position=position, **kwargs)
-
-    # TODO: To be updated after migration
-    # def on_mainwindow_visible(self):
-    #     return

@@ -16,8 +16,9 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.config.base import _
 from spyder.plugins.editor.api.run import (
-    EditorRunConfiguration, FileRun, SelectionRun, CellRun,
-    SelectionContextModificator, ExtraAction)
+    SelectionContextModificator,
+    ExtraAction
+)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.widgets.main_widget import (
     EditorMainWidget
@@ -30,9 +31,7 @@ from spyder.plugins.mainmenu.api import (
     SourceMenuSections
 )
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.plugins.run.api import (
-    RunContext, RunConfigurationMetadata, RunConfiguration,
-    SupportedExtensionContexts, ExtendedContext)
+from spyder.plugins.run.api import RunContext
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.icon_manager import ima
 
@@ -176,7 +175,7 @@ class Editor(SpyderDockablePlugin):
     def on_initialize(self):
         widget = self.get_widget()
 
-        # ---- Help related signals(?)
+        # ---- Help related signals
         widget.sig_help_requested.connect(self.sig_help_requested)
 
         # ---- General signals
@@ -213,13 +212,11 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
-        # Register conf page
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
-        # Register conf page
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
@@ -362,7 +359,6 @@ class Editor(SpyderDockablePlugin):
     def on_mainmenu_available(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # TODO: See `get_plugin_actions`
         # ---- File menu ----
         # Print
         print_actions = [
@@ -386,7 +382,7 @@ class Editor(SpyderDockablePlugin):
                 close_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart#Switcher
+                before_section=FileMenuSections.Restart
             )
         # Navigation
         if sys.platform == 'darwin':
@@ -539,7 +535,7 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # TODO:
+        # TODO: Remove actions from menus
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
@@ -571,6 +567,11 @@ class Editor(SpyderDockablePlugin):
 
         self.sig_file_opened_closed_or_updated.connect(
             completions.file_opened_closed_or_updated)
+        # TODO: Seems like `update_client_status` is only avaialbel from the
+        # LSP provider?
+        # widget.sig_update_active_languages_requested.connect(
+        #     completions.update_client_status
+        # )
         # TODO: Should this be moved to the Completions plugin
         # as done with the console/internal console plugin connections?
         completions.sig_language_completions_available.connect(
@@ -584,10 +585,7 @@ class Editor(SpyderDockablePlugin):
     def on_completions_teardown(self):
         widget = self.get_widget()
         completions = self.get_plugin(Plugins.Completions)
-        # TODO: Completions capabilities file registration?
-        widget.sig_update_active_languages_requested.connect(
-            completions.update_client_status
-        )
+        # TODO:
 
     @on_plugin_available(plugin=Plugins.OutlineExplorer)
     def on_outlineexplorer_available(self):
@@ -621,7 +619,7 @@ class Editor(SpyderDockablePlugin):
     def on_ipyconsole_available(self):
         widget = self.get_widget()
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        # TODO: See `register_plugin` method
+
         ipyconsole.register_spyder_kernel_call_handler(
             'cell_count', widget.handle_cell_count
         )
@@ -671,17 +669,15 @@ class Editor(SpyderDockablePlugin):
 
     def on_mainwindow_visible(self):
         widget = self.get_widget()
-        # outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
-        # widget.setup_other_windows(self._main, outline)
         widget.restore_scrollbar_position()
-        # TODO: Something else?. Move setup_other_windows to plugin?
+        # TODO: Something else?. The `setup_other_windows` needed to be done as
+        # part of `setup_open_files` to prevent errors
 
     def can_close(self):
         editorstack = self.get_widget().editorstacks[0]
         return editorstack.save_if_changed(cancelable=True)
 
-    def on_close(self, cancellable=True):
-        # TODO: See `closing_plugin`
+    def on_close(self, cancelable=True):
         widget = self.get_widget()
         state = widget.splitter.saveState()
         self.set_conf('splitter_state', qbytearray_to_str(state))
@@ -703,16 +699,6 @@ class Editor(SpyderDockablePlugin):
         # Stop autosave timer before closing windows
         widget.autosave.stop_autosave_timer()
 
-        # try:
-        #     if not editorstack.save_if_changed(cancellable) and cancellable:
-        #         return False
-        #     else:
-        #       for win in widget.editorwindows[:]:
-        #           win.close()
-        #     return True
-        # except IndexError:
-        #     return True
-
     # ---- Public API
     # ------------------------------------------------------------------------
     def refresh(self):
@@ -721,8 +707,7 @@ class Editor(SpyderDockablePlugin):
         """
         self.get_widget().refresh()
 
-    # TODO: Add all possible methods other plugins are calling or connecting to.
-    # Should a `__getattr__` be implemented that connects all methods
+    # TODO: Should a `__getattr__` be implemented that connects all methods
     # without `_` from the main_widget to the plugin?
     def load(self, *args, **kwargs):
         return self.get_widget().load(*args, **kwargs)
@@ -757,8 +742,9 @@ class Editor(SpyderDockablePlugin):
     def get_focus_widget(self):
         return self.get_widget().get_focus_widget()
 
-    def setup_open_files(self, *args, **kwargs):  # mainwindow?
-        # TODO: `setup_other_windows` called here to ensure is called after toolbar `on_mainwindow_visible`
+    def setup_open_files(self, *args, **kwargs):  # on_mainwindow_visible?
+        # TODO: `setup_other_windows` called here to ensure is called after
+        # toolbar `on_mainwindow_visible`
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
         widget.setup_other_windows(self._main, outline)
@@ -809,7 +795,7 @@ class Editor(SpyderDockablePlugin):
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
-    # TODO: Is there other way to do this?
+    # TODO: Is there any other way to do this?
     def register_run_configuration_metadata(self, metadata):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
@@ -833,7 +819,7 @@ class Editor(SpyderDockablePlugin):
             run.switch_focused_run_configuration(file_id)
 
     # ---- Completions related methods
-    # TODO: Is there other way to do this?
+    # TODO: Is there any other way to do this?
     def register_file_completions(self, language, filename, codeeditor):
         completions = self.get_plugin(Plugins.Completions, error=False)
         status = None

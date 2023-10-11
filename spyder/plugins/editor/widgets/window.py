@@ -70,7 +70,6 @@ class EditorWidget(QSplitter):
         self.main_widget = main_widget
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        # self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
 
         # Set up an outline but only if its corresponding plugin is available.
@@ -205,7 +204,6 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
         # Parent needs to be `None` if the the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
         super().__init__(parent, class_parent=main_widget)
-        # QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.main_widget = main_widget
@@ -505,10 +503,7 @@ class EditorMainWidgetExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    # def register_widget_shortcuts(self, widget):
-    #     """Fake!"""
-    #     pass
-
+    # TODO: Should the main_widget have this?
     def get_color_scheme(self):
         pass
 

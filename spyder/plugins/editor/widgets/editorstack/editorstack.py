@@ -48,7 +48,6 @@ from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
-from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions,  # create_action,
@@ -76,7 +75,6 @@ class EditorStackActions:
     CloseWindow = "close_window_action"
 
 
-# TODO: Make it a SpyderWidgetMixin?
 class EditorStack(QWidget, SpyderWidgetMixin):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
@@ -117,7 +115,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     sig_perform_completion_request = Signal(str, str, dict)
-    # sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
@@ -179,7 +176,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        # QWidget.__init__(self, parent)
         super().__init__(parent, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -213,7 +209,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.data = []
 
         # Actions
-        # TODO: Use self.create_action
         self.switcher_action = None
         self.symbolfinder_action = None
         # TODO: Change access to main and plugin/main_widget
@@ -751,6 +746,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
 
+    # TODO: Change from `get_plugin` to `get_main_widget`?
     def get_plugin(self):
         """Get the plugin of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
@@ -761,7 +757,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.get_plugin().get_plugin_title()
+        return self.get_plugin().get_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
