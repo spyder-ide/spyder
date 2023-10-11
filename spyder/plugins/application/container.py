@@ -23,7 +23,7 @@ from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
@@ -33,7 +33,7 @@ from spyder.config.base import (get_conf_path, get_debug_level, is_pynsist,
                                 running_in_mac_app)
 from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
 from spyder.plugins.console.api import ConsoleActions
-from spyder.utils.conda import is_anaconda_pkg
+from spyder.utils.conda import is_anaconda_pkg, get_spyder_conda_channel
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.about import AboutDialog
@@ -283,15 +283,13 @@ class ApplicationContainer(PluginMainContainer):
         box.set_checked(self.get_conf(option))
 
         header = _(
-            "<b>Spyder {} is available!</b> "
-            "<i>(you&nbsp;have&nbsp;{})</i><br><br>"
-        ).format(latest_release, __version__)
+            "<h3>Spyder {} is available!</h3><br>"
+        ).format(latest_release)
 
         if error_msg is not None:
             box.setText(error_msg)
             box.set_check_visible(False)
-            box.exec_()
-
+            box.show()
         elif update_available:
             # Update using our installers
             if (
@@ -341,31 +339,64 @@ class ApplicationContainer(PluginMainContainer):
                 box.setStandardButtons(QMessageBox.Ok)
                 box.setDefaultButton(QMessageBox.Ok)
 
-                msg = _("")
+                msg = ""
                 if not box.result():
                     msg += header
 
-                terminal = _("terminal")
                 if os.name == "nt":
                     if is_anaconda():
-                        terminal = "Anaconda prompt"
+                        msg += _("Run the following commands in the Anaconda "
+                                 "prompt to update manually:<br><br>")
                     else:
-                        terminal = _("cmd prompt")
-                msg += _("Run the following commands in the {} to update "
-                         "manually:<br><br>").format(terminal)
+                        msg += _("Run the following commands in a cmd prompt "
+                                 "to update manually:<br><br>")
+                else:
+                    msg += _("Run the following commands in a terminal to "
+                             "update manually:<br><br>")
 
                 if is_anaconda():
-                    if is_anaconda_pkg():
-                        msg += _("<code>conda update anaconda</code><br>")
-                    msg += _("<code>conda install spyder={}"
-                             "</code><br><br>").format(latest_release)
-                    msg += _("<b>Important note:</b> Since you installed "
-                             "Spyder with Anaconda, please <b>don't</b> use "
-                             "<code>pip</code> to update it as that will "
-                             "break your installation.")
+                    channel, __ = get_spyder_conda_channel()
+                    is_pypi = channel == 'pypi'
+
+                    if is_anaconda_pkg() and not is_pypi:
+                        msg += "<code>conda update anaconda</code><br>"
+
+                    if is_pypi:
+                        dont_mix_pip_conda_video = (
+                            "https://youtu.be/Ul79ihg41Rs"
+                        )
+
+                        msg += (
+                            "<code>pip install --upgrade spyder</code>"
+                            "<br><br><br>"
+                        )
+
+                        msg += _(
+                            "<b>Important note:</b> You installed Spyder with "
+                            "pip in a Conda environment, which is not a good "
+                            "idea. See <a href=\"{}\">our video</a> for more "
+                            "details about it."
+                        ).format(dont_mix_pip_conda_video)
+                    else:
+                        if channel == 'pkgs/main':
+                            channel = ''
+                        else:
+                            channel = f'-c {channel}'
+
+                        msg += (
+                            f"<code>conda install {channel} "
+                            f"spyder={latest_release}"
+                            f"</code><br><br><br>"
+                        )
+
+                        msg += _(
+                            "<b>Important note:</b> Since you installed "
+                            "Spyder with Anaconda, please don't use pip "
+                            "to update it as that will break your "
+                            "installation."
+                        )
                 else:
-                    msg += _("<code>pip install --upgrade spyder"
-                             "</code>")
+                    msg += "<code>pip install --upgrade spyder</code><br>"
 
                 msg += _(
                     "<br><br>For more information, visit our "
@@ -373,11 +404,10 @@ class ApplicationContainer(PluginMainContainer):
                 ).format(url_i)
 
                 box.setText(msg)
-                box.exec_()
-
+                box.show()
         elif feedback:
             box.setText(_("Spyder is up to date."))
-            box.exec_()
+            box.show()
             if self.application_update_status:
                 self.application_update_status.set_no_status()
         else:

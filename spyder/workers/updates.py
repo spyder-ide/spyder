@@ -9,10 +9,9 @@ import json
 import logging
 import os
 import os.path as osp
-import re
 import ssl
-import sys
 import tempfile
+import traceback
 from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError, HTTPError
 
@@ -21,9 +20,11 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version
+from spyder.config.base import (
+    _, is_stable_version, is_pynsist, running_in_mac_app)
 from spyder.py3compat import is_text_string
 from spyder.config.utils import is_anaconda
+from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version, is_module_installed
 
 # Logger setup
@@ -58,14 +59,16 @@ class WorkerUpdates(QObject):
             self.version = version
 
     def check_update_available(self):
-        """Checks if there is an update available.
+        """
+        Check if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
         valid cleaned releases in chronological order.
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
-        # Don't perform any check for development versions
-        if 'dev' in self.version:
+        # Don't perform any check for development versions or we were unable to
+        # detect releases.
+        if 'dev' in self.version or not self.releases:
             return (False, self.latest_release)
 
         # Filter releases
@@ -81,22 +84,27 @@ class WorkerUpdates(QObject):
                 latest_release)
 
     def start(self):
-        """Main method of the WorkerUpdates worker"""
-        if is_anaconda():
-            self.url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                self.url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                self.url += '/osx-64/repodata.json'
-            else:
-                self.url += '/linux-64/repodata.json'
-        else:
-            self.url = ('https://api.github.com/repos/'
-                        'spyder-ide/spyder/releases')
+        """Main method of the worker."""
         self.update_available = False
         self.latest_release = __version__
 
         error_msg = None
+        pypi_url = "https://pypi.org/pypi/spyder/json"
+
+        if is_pynsist() or running_in_mac_app():
+            self.url = ('https://api.github.com/repos/'
+                        'spyder-ide/spyder/releases')
+        elif is_anaconda():
+            channel, channel_url = get_spyder_conda_channel()
+
+            if channel_url is None:
+                return
+            elif channel == "pypi":
+                self.url = pypi_url
+            else:
+                self.url = channel_url + '/channeldata.json'
+        else:
+            self.url = pypi_url
 
         try:
             if hasattr(ssl, '_create_unverified_context'):
@@ -107,39 +115,48 @@ class WorkerUpdates(QObject):
                 page = urlopen(self.url, context=context)
             else:
                 page = urlopen(self.url)
-            try:
-                data = page.read()
 
-                # Needed step for python3 compatibility
-                if not is_text_string(data):
-                    data = data.decode()
-                data = json.loads(data)
+            data = page.read()
 
-                if is_anaconda():
-                    if self.releases is None:
-                        self.releases = []
-                        for item in data['packages']:
-                            if ('spyder' in item and
-                                    not re.search(r'spyder-[a-zA-Z]', item)):
-                                self.releases.append(item.split('-')[1])
-                    result = self.check_update_available()
-                else:
-                    if self.releases is None:
-                        self.releases = [item['tag_name'].replace('v', '')
-                                         for item in data]
-                        self.releases = list(reversed(self.releases))
+            # Needed step for python3 compatibility
+            if not is_text_string(data):
+                data = data.decode()
+            data = json.loads(data)
 
-                result = self.check_update_available()
-                self.update_available, self.latest_release = result
-            except Exception:
-                error_msg = _('Unable to retrieve information.')
-        except HTTPError:
-            error_msg = _('Unable to retrieve information.')
+            if is_pynsist() or running_in_mac_app():
+                if self.releases is None:
+                    self.releases = [
+                        item['tag_name'].replace('v', '') for item in data
+                    ]
+                    self.releases = list(reversed(self.releases))
+            elif is_anaconda() and self.url != pypi_url:
+                if self.releases is None:
+                    spyder_data = data['packages'].get('spyder')
+                    if spyder_data:
+                        self.releases = [spyder_data["version"]]
+            else:
+                if self.releases is None:
+                    self.releases = [data['info']['version']]
+
+            result = self.check_update_available()
+            self.update_available, self.latest_release = result
         except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
+            error_msg = _(
+                'It was not possible to connect to the internet to check for '
+                'Spyder updates.'
+                '.<br><br>'
+                'Make sure the connection is working properly.'
+            )
         except Exception:
-            error_msg = _('Unable to check for updates.')
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
+
+            error_msg = _(
+                'It was not possible to check for Spyder updates due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
