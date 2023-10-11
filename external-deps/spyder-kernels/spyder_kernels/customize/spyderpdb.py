@@ -320,20 +320,32 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         If this is from sigint, break on the upper frame.
         If the frame is in spydercustomize.py, quit.
         Notifies spyder and print current code.
-
         """
         if self._pdb_breaking:
             self._pdb_breaking = False
             if frame and frame.f_back:
                 return self.interaction(frame.f_back, traceback)
 
+        # This is necessary to handle chained exceptions in Pdb, support for
+        # which was added in IPython 8.15 and will be the default in Python
+        # 3.13 (see ipython/ipython#14146).
+        if isinstance(traceback, BaseException):
+            _chained_exceptions, tb = self._get_tb_and_exceptions(traceback)
+
+            with self._hold_exceptions(_chained_exceptions):
+                self.interaction(frame, tb)
+
+            return
+
         self.setup(frame, traceback)
         self.print_stack_entry(self.stack[self.curindex])
+
         if self._frontend_notified:
             self._cmdloop()
         else:
             with DebugWrapper(self):
                 self._cmdloop()
+
         self.forget()
 
     def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
