@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 7):
-    error = "ERROR: Spyder requires Python version 3.7 and above."
+if v[0] >= 3 and v[:2] < (3, 8):
+    error = "ERROR: Spyder requires Python version 3.8 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -179,16 +179,18 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -208,7 +210,8 @@ install_requires = [
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
-    'ipython>=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1',
+    'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
+    'ipython>=8.13.0,<9.0.0; python_version>"3.8"',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',

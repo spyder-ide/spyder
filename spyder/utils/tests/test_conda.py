@@ -19,7 +19,7 @@ from spyder.config.base import running_in_ci
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import (
     add_quotes, find_conda, get_conda_env_path, get_conda_root_prefix,
-    get_list_conda_envs, get_list_conda_envs_cache)
+    get_list_conda_envs, get_list_conda_envs_cache, get_spyder_conda_channel)
 
 
 if not is_anaconda():
@@ -79,6 +79,13 @@ def test_get_list_conda_envs_cache():
 
     assert output != {}
     assert (time1 - time0) < 0.01
+
+
+@pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
+def test_get_spyder_conda_channel():
+    channel, channel_url = get_spyder_conda_channel()
+    assert channel == "pypi"
+    assert channel_url == "https://conda.anaconda.org/pypi"
 
 
 if __name__ == "__main__":

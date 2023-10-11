@@ -15,7 +15,12 @@ import sys
 from spyder.config.base import _, running_in_ci, is_conda_based_app
 from spyder.utils import programs
 
+
 HERE = osp.dirname(osp.abspath(__file__))
+
+# Python 3.8
+PY38 = sys.version_info[:2] == (3, 8)
+
 
 # =============================================================================
 # Kind of dependency
@@ -36,8 +41,7 @@ CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = (
-    ">=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1")
+IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'

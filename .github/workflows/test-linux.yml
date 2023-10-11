@@ -60,6 +60,10 @@ jobs:
         INSTALL_TYPE: ['pip', 'conda']
         PYTHON_VERSION: ['3.8', '3.10']
         TEST_TYPE: ['fast', 'slow']
+        exclude:
+          # Only test Python 3.8 with pip because Conda-forge will drop it soon
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '3.8'
     timeout-minutes: 90
     steps:
       - name: Checkout Pull Requests
