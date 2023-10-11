@@ -5,24 +5,22 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-import json
 import logging
 import os
 import os.path as osp
-import ssl
 import tempfile
 import traceback
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlretrieve
 from urllib.error import URLError, HTTPError
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
+import requests
 
 # Local imports
 from spyder import __version__
 from spyder.config.base import (
     _, is_stable_version, is_pynsist, running_in_mac_app)
-from spyder.py3compat import is_text_string
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version, is_module_installed
@@ -107,21 +105,9 @@ class WorkerUpdates(QObject):
             self.url = pypi_url
 
         try:
-            if hasattr(ssl, '_create_unverified_context'):
-                # Fix for spyder-ide/spyder#2685.
-                # [Works only with Python >=2.7.9]
-                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-                context = ssl._create_unverified_context()
-                page = urlopen(self.url, context=context)
-            else:
-                page = urlopen(self.url)
-
-            data = page.read()
-
-            # Needed step for python3 compatibility
-            if not is_text_string(data):
-                data = data.decode()
-            data = json.loads(data)
+            logger.debug(f"Checking for updates from {self.url}")
+            page = requests.get(self.url)
+            data = page.json()
 
             if is_pynsist() or running_in_mac_app():
                 if self.releases is None:
@@ -140,14 +126,13 @@ class WorkerUpdates(QObject):
 
             result = self.check_update_available()
             self.update_available, self.latest_release = result
-        except URLError:
+        except requests.adapters.SSLError as err:
             error_msg = _(
-                'It was not possible to connect to the internet to check for '
-                'Spyder updates.'
-                '.<br><br>'
-                'Make sure the connection is working properly.'
+                'SSL certificate verification failed.<br><br>'
+                'Please contact your network administrator for assistance.'
             )
-        except Exception:
+            logger.debug(err, stack_info=True)
+        except Exception as err:
             error = traceback.format_exc()
             formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
 
@@ -157,6 +142,7 @@ class WorkerUpdates(QObject):
                 '<br><br>'
                 '<tt>{}</tt>'
             ).format(formatted_error)
+            logger.debug(err, stack_info=True)
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
