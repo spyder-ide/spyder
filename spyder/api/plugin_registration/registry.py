@@ -794,6 +794,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             # Omit failures if there are no slots connected
             pass
 
+        dependencies.DEPENDENCIES = []
+
     def set_all_internal_plugins(
             self, all_plugins: Dict[str, Type[SpyderPluginClass]]):
         self.all_internal_plugins = all_plugins

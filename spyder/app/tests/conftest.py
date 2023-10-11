@@ -23,6 +23,7 @@ import psutil
 import pytest
 
 # Spyder imports
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.config.base import get_home_dir, running_in_ci
@@ -280,9 +281,12 @@ def cleanup(request, qapp):
         if hasattr(main_window, 'window') and main_window.window is not None:
             window = main_window.window
             main_window.window = None
+            window.closing(close_immediately=True)
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
+            CONF.reset_manager()
+            PLUGIN_REGISTRY.reset()
         if qapp.instance():
             qapp.quit()
 
@@ -369,9 +373,6 @@ def main_window(request, tmpdir, qtbot):
     QApplication.processEvents()
 
     if not hasattr(main_window, 'window') or main_window.window is None:
-        from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-        PLUGIN_REGISTRY.reset()
-
         # Start the window
         window = start.main()
         main_window.window = window
@@ -443,9 +444,13 @@ def main_window(request, tmpdir, qtbot):
                 print('info_page')
                 print(client.info_page)
             main_window.window = None
+            window.closing(close_immediately=True)
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
+            CONF.reset_manager()
+            PLUGIN_REGISTRY.reset()
+
         else:
             # Try to close used mainwindow directly on fixture
             # after running test that uses the fixture
@@ -456,9 +461,12 @@ def main_window(request, tmpdir, qtbot):
                 'close_main_window')
             if close_main_window:
                 main_window.window = None
+                window.closing(close_immediately=True)
                 window.close()
                 window = None
                 CONF.reset_to_defaults(notification=False)
+                CONF.reset_manager()
+                PLUGIN_REGISTRY.reset()
             else:
                 try:
                     # Close or hide everything we can think of
@@ -500,9 +508,12 @@ def main_window(request, tmpdir, qtbot):
                     window.ipyconsole.restart()
                 except Exception:
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     return
 
                 if os.name == 'nt':
@@ -549,9 +560,12 @@ def main_window(request, tmpdir, qtbot):
                                 "\nThread " + str(threads) + ":\n")
                             traceback.print_stack(frame)
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
                 try:
@@ -562,9 +576,12 @@ def main_window(request, tmpdir, qtbot):
                     subprocesses = [repr(f) for f in proc.children()]
                     show_diff(init_subprocesses, subprocesses, "processes")
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
                 try:
@@ -578,9 +595,12 @@ def main_window(request, tmpdir, qtbot):
                 except Exception:
                     show_diff(init_files, files, "files")
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
 
