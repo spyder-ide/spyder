@@ -54,9 +54,6 @@ EVAL_TIMEOUT = 3000
 # Time to wait for the completion services to be up or give a response
 COMPLETION_TIMEOUT = 30000
 
-# Python 3.7
-PY37 = sys.version_info[:2] == (3, 7)
-
 
 # =============================================================================
 # ---- Auxiliary functions

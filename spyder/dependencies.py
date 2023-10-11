@@ -15,7 +15,12 @@ import sys
 from spyder.config.base import _, is_pynsist, running_in_ci, running_in_mac_app
 from spyder.utils import programs
 
+
 HERE = osp.dirname(osp.abspath(__file__))
+
+# Python 3.8
+PY38 = sys.version_info[:2] == (3, 8)
+
 
 # =============================================================================
 # Kind of dependency
@@ -38,8 +43,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
-IPYTHON_REQVER = (
-    ">=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1")
+IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
