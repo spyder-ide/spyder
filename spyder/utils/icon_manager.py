@@ -454,7 +454,14 @@ class IconManager():
 
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
-        mime_type, __ = mime.guess_type(basename)
+
+        # Catch error when it's not possible to access the Windows registry to
+        # check for this.
+        # Fixes spyder-ide/spyder#21304
+        try:
+            mime_type, __ = mime.guess_type(basename)
+        except PermissionError:
+            mime_type = None
 
         if osp.isdir(fname):
             extension = "Folder"
