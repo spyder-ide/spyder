@@ -200,7 +200,6 @@ class WorkerDownloadInstaller(QObject):
 
     def _download_installer(self):
         """Donwload latest Spyder standalone installer executable."""
-        logger.debug("Downloading installer executable")
         tmpdir = tempfile.gettempdir()
         is_full_installer = (is_module_installed('numpy') or
                              is_module_installed('pandas'))
@@ -224,13 +223,38 @@ class WorkerDownloadInstaller(QObject):
 
         installer_path = osp.join(installer_dir_path, name)
         self.installer_path = installer_path
-        if not osp.isfile(installer_path):
-            logger.debug(
-                f"Downloading installer from {url} to {installer_path}")
-            urlretrieve(
-                url, installer_path, reporthook=self._progress_reporter)
-        else:
-            self._progress_reporter(1, 1)
+
+        if osp.isfile(installer_path):
+            # Installer already downloaded
+            logger.info(f"{installer_path} already downloaded")
+            self._progress_reporter(1, 1, 1)
+            return
+
+        logger.debug(f"Downloading installer from {url} to {installer_path}")
+        with (
+            requests.get(url, stream=True) as r,
+            open(installer_path, 'wb') as f
+        ):
+            chunk_size = 8 * 1024
+            size = -1
+            size_read = 0
+            chunk_num = 0
+
+            if "content-length" in r.headers:
+                size = int(r.headers["content-length"])
+
+            self._progress_reporter(chunk_num, chunk_size, size)
+
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                size_read += len(chunk)
+                f.write(chunk)
+                chunk_num += 1
+                self._progress_reporter(chunk_num, chunk_size, size)
+
+            if size >= 0 and size_read < size:
+                # !!! Use better exception
+                raise Exception("Download incomplete: retrieved only "
+                                f"{size_read} out of {size} bytes.")
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
