@@ -10,12 +10,11 @@ import os
 import os.path as osp
 import tempfile
 import traceback
-from urllib.request import urlretrieve
-from urllib.error import URLError, HTTPError
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
 import requests
+from requests.adapters import SSLError, ConnectionError
 
 # Local imports
 from spyder import __version__
@@ -28,9 +27,23 @@ from spyder.utils.programs import check_version, is_module_installed
 # Logger setup
 logger = logging.getLogger(__name__)
 
+ssl_error_msg = _(
+    'SSL certificate verification failed.<br><br>'
+    'Please contact your network administrator for assistance.'
+)
+connect_error_msg = _(
+    'Unable to connect to the internet. <br><br>'
+    'Make sure the connection is working properly.'
+)
+
 
 class UpdateDownloadCancelledException(Exception):
     """Download for installer to update was cancelled."""
+    pass
+
+
+class UpdateDownloadIncompleteError(Exception):
+    """Error occured while downloading file"""
     pass
 
 
@@ -126,11 +139,11 @@ class WorkerUpdates(QObject):
 
             result = self.check_update_available()
             self.update_available, self.latest_release = result
-        except requests.adapters.SSLError as err:
-            error_msg = _(
-                'SSL certificate verification failed.<br><br>'
-                'Please contact your network administrator for assistance.'
-            )
+        except SSLError as err:
+            error_msg = ssl_error_msg
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = connect_error_msg
             logger.debug(err, stack_info=True)
         except Exception as err:
             error = traceback.format_exc()
@@ -252,9 +265,10 @@ class WorkerDownloadInstaller(QObject):
                 self._progress_reporter(chunk_num, chunk_size, size)
 
             if size >= 0 and size_read < size:
-                # !!! Use better exception
-                raise Exception("Download incomplete: retrieved only "
-                                f"{size_read} out of {size} bytes.")
+                raise UpdateDownloadIncompleteError(
+                    "Download incomplete: retrieved only "
+                    f"{size_read} out of {size} bytes."
+                )
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
@@ -263,15 +277,25 @@ class WorkerDownloadInstaller(QObject):
             self._download_installer()
         except UpdateDownloadCancelledException:
             if self.installer_path:
-               os.remove(self.installer_path)
+                os.remove(self.installer_path)
             return
-        except HTTPError:
-            error_msg = _('Unable to retrieve installer information.')
-        except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>'
-                          'Make sure the connection is working properly.')
-        except Exception:
-            error_msg = _('Unable to download the installer.')
+        except SSLError as err:
+            error_msg = ssl_error_msg
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = connect_error_msg
+            logger.debug(err, stack_info=True)
+        except Exception as err:
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
+
+            error_msg = _(
+                'It was not possible to download the installer due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
+            logger.debug(err, stack_info=True)
         self.error = error_msg
         try:
             self.sig_ready.emit(self.installer_path)
