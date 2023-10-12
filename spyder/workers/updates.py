@@ -244,31 +244,29 @@ class WorkerDownloadInstaller(QObject):
             return
 
         logger.debug(f"Downloading installer from {url} to {installer_path}")
-        with (
-            requests.get(url, stream=True) as r,
-            open(installer_path, 'wb') as f
-        ):
-            chunk_size = 8 * 1024
-            size = -1
-            size_read = 0
-            chunk_num = 0
+        with requests.get(url, stream=True) as r:
+            with open(installer_path, 'wb') as f:
+                chunk_size = 8 * 1024
+                size = -1
+                size_read = 0
+                chunk_num = 0
 
-            if "content-length" in r.headers:
-                size = int(r.headers["content-length"])
+                if "content-length" in r.headers:
+                    size = int(r.headers["content-length"])
 
-            self._progress_reporter(chunk_num, chunk_size, size)
-
-            for chunk in r.iter_content(chunk_size=chunk_size):
-                size_read += len(chunk)
-                f.write(chunk)
-                chunk_num += 1
                 self._progress_reporter(chunk_num, chunk_size, size)
 
-            if size >= 0 and size_read < size:
-                raise UpdateDownloadIncompleteError(
-                    "Download incomplete: retrieved only "
-                    f"{size_read} out of {size} bytes."
-                )
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    size_read += len(chunk)
+                    f.write(chunk)
+                    chunk_num += 1
+                    self._progress_reporter(chunk_num, chunk_size, size)
+
+                if size >= 0 and size_read < size:
+                    raise UpdateDownloadIncompleteError(
+                        "Download incomplete: retrieved only "
+                        f"{size_read} out of {size} bytes."
+                    )
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
