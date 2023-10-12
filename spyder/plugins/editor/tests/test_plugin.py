@@ -200,14 +200,6 @@ def test_autosave_component_do_autosave(editor_plugin, mocker):
     assert editorStack.autosave.autosave_all.called
 
 
-# def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
-#     editor = editor_plugin
-#     editorStack = editor.get_current_editorstack()
-#     with qtbot.waitSignal(editor.sig_option_changed) as blocker:
-#         editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
-#     assert blocker.args == ['autosave_mapping', {1: 2}]
-
-
 def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
     """Check that two EditorStacks share the same autosave data."""
     editor = editor_plugin.get_widget()
@@ -415,9 +407,6 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     # Set options
     editor_plugin.set_conf('convert_eol_on_save', True)
     editor_plugin.set_conf('convert_eol_on_save_to', eol_lookup[os_name])
-    # editor_plugin.get_widget().apply_plugin_settings(
-    #     {'convert_eol_on_save', 'convert_eol_on_save_to'}
-    # )
 
     # Load a test file
     fname = filenames[0]

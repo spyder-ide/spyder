@@ -239,10 +239,7 @@ class MainWindow(
         self.paste_action = None
         self.selectall_action = None
 
-        # TODO: Move to corresponding Plugins
-        # self.file_toolbar = None
-        # self.file_toolbar_actions = []
-
+        # TODO: Is this being used somewhere?
         self.menus = []
 
         if running_under_pytest():
@@ -805,14 +802,6 @@ class MainWindow(
 
         # Set window title
         self.set_window_title()
-        self.set_splash("")
-
-        # Toolbars
-        # TODO: Remove after finishing the migration
-        # logger.info("Creating toolbars...")
-        # toolbar = self.toolbar
-        # self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
-
         self.set_splash(_("Setting up main window..."))
 
     def __getattr__(self, attr):

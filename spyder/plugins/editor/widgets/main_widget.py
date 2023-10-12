@@ -49,7 +49,6 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
     SelectionContextModificator, ExtraAction)
-# from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -1417,16 +1416,10 @@ class EditorMainWidget(PluginMainWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
     def set_outlineexplorer(self, outlineexplorer_widget):
+        # TODO: Is there another way to do this?
         self.outlineexplorer = outlineexplorer_widget
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
-        # self.outlineexplorer.get_widget().edit_goto.connect(
-        #                    lambda filenames, goto, word:
-        #               self.load(filenames=filenames, goto=goto, word=word,
-        #                         editorwindow=self))
-        # self.outlineexplorer.get_widget().edit.connect(
-        #                      lambda filenames:
-        #               self.load(filenames=filenames, editorwindow=self))
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?
@@ -1466,7 +1459,6 @@ class EditorMainWidget(PluginMainWidget):
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
-        # self.register_widget_shortcuts(editorstack)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1574,7 +1566,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
-        # editorstack.sig_option_changed.connect(self.sig_option_changed)
         editorstack.redirect_stdio.connect(self.sig_redirect_stdio_requested)
         editorstack.update_plugin_title.connect(self.update_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
@@ -1651,8 +1642,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
-        # for finfo in editorstack.data:
-        #     self.register_widget_shortcuts(finfo.editor)
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):

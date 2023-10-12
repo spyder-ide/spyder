@@ -132,8 +132,6 @@ class Projects(SpyderDockablePlugin):
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        # editor.set_projects(self)
-
         treewidget.sig_open_file_requested.connect(editor.load)
         treewidget.sig_removed.connect(editor.removed)
         treewidget.sig_tree_removed.connect(editor.removed_tree)

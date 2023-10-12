@@ -28,7 +28,6 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QSizePolicy, QToolBar)
 
 # Local imports
-# from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
@@ -1530,9 +1529,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
-            # if self.parent():
-            #     # Can be None in tests
-            #     self.get_plugin().unregister_widget_shortcuts(editor)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing

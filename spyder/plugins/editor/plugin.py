@@ -567,7 +567,7 @@ class Editor(SpyderDockablePlugin):
 
         self.sig_file_opened_closed_or_updated.connect(
             completions.file_opened_closed_or_updated)
-        # TODO: Seems like `update_client_status` is only avaialbel from the
+        # TODO: Seems like `update_client_status` is only availabel from the
         # LSP provider?
         # widget.sig_update_active_languages_requested.connect(
         #     completions.update_client_status

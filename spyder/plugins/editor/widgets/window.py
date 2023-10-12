@@ -31,9 +31,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.py3compat import qbytearray_to_str, to_text_string
-# from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions,  # create_action,
-                                    create_toolbutton)
+from spyder.utils.qthelpers import add_actions, create_toolbutton
 from spyder.utils.stylesheet import APP_STYLESHEET, APP_TOOLBAR_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
 
