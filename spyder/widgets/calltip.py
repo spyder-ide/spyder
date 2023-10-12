@@ -31,6 +31,8 @@ from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
 
 # Local imports
 from spyder.py3compat import to_text_string
+
+
 class TipWidget(QLabel):
     """
     Shows tooltips that can be styled with the different themes.
@@ -169,6 +171,7 @@ class TipWidget(QLabel):
         if state != Qt.ApplicationActive:
             self.hide()
 
+
 class ToolTipWidget(TipWidget):
     """
     Shows tooltips that can be styled with the different themes.
@@ -236,7 +239,7 @@ class ToolTipWidget(TipWidget):
         self.completion_doc = completion_doc
         if cursor:
             cursor_rect = self._text_edit.cursorRect(cursor)
-            
+
         else:
             cursor_rect = text_edit.cursorRect(cursor)
         return cursor_rect, None
@@ -270,13 +273,14 @@ class ToolTipWidget(TipWidget):
         super().hide()
         self._timer_hide.stop()
 
+
 class CallTipWidget(TipWidget):
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
     """
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'QObject' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def __init__(self, parent, hide_timer_on=False, as_tooltip=False):
         """ Create a call tip manager that is attached to the specified Qt
@@ -291,9 +295,7 @@ class CallTipWidget(TipWidget):
 
         self.setFont(parent.document().defaultFont())
         self.setMargin(1 + self.style().pixelMetric(
-                QStyle.PM_ToolTipLabelFrameWidth, None, self))
-
-        
+            QStyle.PM_ToolTipLabelFrameWidth, None, self))
 
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
@@ -321,7 +323,7 @@ class CallTipWidget(TipWidget):
 
             elif etype == QEvent.Enter:
                 if (self._hide_timer.isActive() and
-                  self.app.topLevelAt(QCursor.pos()) == self):
+                        self.app.topLevelAt(QCursor.pos()) == self):
                     self._hide_timer.stop()
 
             elif etype == QEvent.Leave:
@@ -339,9 +341,9 @@ class CallTipWidget(TipWidget):
             self._hide_timer.stop()
             self.hide()
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'QWidget' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def enterEvent(self, event):
         """ Reimplemented to cancel the hide timer.
@@ -351,7 +353,7 @@ class CallTipWidget(TipWidget):
             self.hide()
 
         if (self._hide_timer.isActive() and
-          self.app.topLevelAt(QCursor.pos()) == self):
+                self.app.topLevelAt(QCursor.pos()) == self):
             self._hide_timer.stop()
 
     def hideEvent(self, event):
@@ -390,9 +392,9 @@ class CallTipWidget(TipWidget):
             self._cursor_position_changed)
         self._text_edit.installEventFilter(self)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # 'CallTipWidget' interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def show_tip_custom(self, point, tip, cursor, wrapped_tiplines=[]):
         # Don't attempt to show it if it's already visible and the text
@@ -434,9 +436,9 @@ class CallTipWidget(TipWidget):
             self._hide_timer.start(hide_time, self)
         return cursor_rect, None
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Protected interface
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def _find_parenthesis(self, position, forward=True):
         """ If 'forward' is True (resp. False), proceed forwards
@@ -475,10 +477,10 @@ class CallTipWidget(TipWidget):
             # If Enter events always came after Leave events, we wouldn't need
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
-            self.app.topLevelAt(QCursor.pos()) != self):
+                self.app.topLevelAt(QCursor.pos()) != self):
             self._hide_timer.start(800, self)
 
-    #------ Signal handlers ----------------------------------------------------
+    # ------ Signal handlers -------------------------------------------------
 
     def _cursor_position_changed(self):
         """ Updates the tip based on user cursor movement.
