@@ -14,7 +14,7 @@ import traceback
 # Third party imports
 from qtpy.QtCore import QObject, Signal
 import requests
-from requests.adapters import SSLError, ConnectionError
+from requests.adapters import ConnectionError, SSLError
 
 # Local imports
 from spyder import __version__
@@ -27,13 +27,14 @@ from spyder.utils.programs import check_version, is_module_installed
 # Logger setup
 logger = logging.getLogger(__name__)
 
-ssl_error_msg = _(
-   'SSL certificate verification failed while checking for Spyder updates.<br><br>'
-    'Please contact your network administrator for assistance.'
+SSL_ERROR_MSG = _(
+    'SSL certificate verification failed while checking for Spyder updates.'
+    '<br><br>Please contact your network administrator for assistance.'
 )
-connect_error_msg = _(
-    'Unable to connect to the internet while checking for Spyder updates. <br><br>'
-    'Make sure the connection is working properly.'
+
+CONNECT_ERROR_MSG = _(
+    'Unable to connect to the internet while checking for Spyder updates.'
+    '<br><br>Make sure the connection is working properly.'
 )
 
 
@@ -140,10 +141,10 @@ class WorkerUpdates(QObject):
             result = self.check_update_available()
             self.update_available, self.latest_release = result
         except SSLError as err:
-            error_msg = ssl_error_msg
+            error_msg = SSL_ERROR_MSG
             logger.debug(err, stack_info=True)
         except ConnectionError as err:
-            error_msg = connect_error_msg
+            error_msg = CONNECT_ERROR_MSG
             logger.debug(err, stack_info=True)
         except Exception as err:
             error = traceback.format_exc()
@@ -278,10 +279,10 @@ class WorkerDownloadInstaller(QObject):
                 os.remove(self.installer_path)
             return
         except SSLError as err:
-            error_msg = ssl_error_msg
+            error_msg = SSL_ERROR_MSG
             logger.debug(err, stack_info=True)
         except ConnectionError as err:
-            error_msg = connect_error_msg
+            error_msg = CONNECT_ERROR_MSG
             logger.debug(err, stack_info=True)
         except Exception as err:
             error = traceback.format_exc()
