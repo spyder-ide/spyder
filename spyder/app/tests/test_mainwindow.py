@@ -6428,17 +6428,21 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     find_widget.find_previous()
 
     # Position mouse on top of that line
+    # Position in two movements to decrease the chance of the cursor being
+    # shown as the text cursor (`I`)
+    cursor_point = control.cursorRect(control.textCursor()).topLeft()
+    qtbot.mouseMove(control, cursor_point)
     cursor_point = control.cursorRect(control.textCursor()).center()
     qtbot.mouseMove(control, cursor_point)
-    qtbot.wait(500)
 
     # Check cursor shape is the right one
+    qtbot.waitUntil(lambda: QApplication.overrideCursor() is not None)
     assert QApplication.overrideCursor().shape() == Qt.PointingHandCursor
 
     # Click on the line and check that that sends us to the editor
     qtbot.mouseClick(control.viewport(), Qt.LeftButton, pos=cursor_point,
                      delay=300)
-    assert QApplication.focusWidget() is code_editor
+    qtbot.waitUntil(lambda: QApplication.focusWidget() is code_editor)
 
     # Check we are in the right line
     cursor = code_editor.textCursor()
