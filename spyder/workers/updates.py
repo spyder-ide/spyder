@@ -28,11 +28,11 @@ from spyder.utils.programs import check_version, is_module_installed
 logger = logging.getLogger(__name__)
 
 ssl_error_msg = _(
-    'SSL certificate verification failed.<br><br>'
+   'SSL certificate verification failed while checking for Spyder updates.<br><br>'
     'Please contact your network administrator for assistance.'
 )
 connect_error_msg = _(
-    'Unable to connect to the internet. <br><br>'
+    'Unable to connect to the internet while checking for Spyder updates. <br><br>'
     'Make sure the connection is working properly.'
 )
 
