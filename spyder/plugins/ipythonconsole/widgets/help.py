@@ -16,7 +16,6 @@ import re
 from pickle import UnpicklingError
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtpy.QtCore import QEventLoop
 
 # Local imports
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
@@ -42,23 +41,29 @@ class HelpWidget(RichJupyterWidget):
         """Get documentation from inspect reply content."""
         data = content.get('data', {})
         text = data.get('text/plain', '')
+
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
+            if (
+                self.language_name is not None
+                and self.language_name == 'python'
+            ):
                 text = re.compile(ANSI_PATTERN).sub('', text)
                 signature = self.get_signature(content).split('(')[-1]
 
                 # Base value for the documentation
-                documentation = (text.split('Docstring:')[-1].
-                                 split('Type:')[0].split('File:')[0])
+                documentation = (
+                    text.split('Docstring:')[-1].split('Type:')[0].
+                    split('File:')[0]
+                )
 
                 if signature:
                     # Check if the signature is in the Docstring
                     doc_from_signature = documentation.split(signature)
                     if len(doc_from_signature) > 1:
-                        return (doc_from_signature[-1].split('Docstring:')[-1].
-                                split('Type:')[0].
-                                split('File:')[0]).strip('\r\n')
+                        return (
+                            doc_from_signature[-1].split('Docstring:')[-1].
+                            split('Type:')[0].split('File:')[0]
+                        ).strip('\r\n')
 
                 return documentation.strip('\r\n')
             else:
@@ -71,6 +76,7 @@ class HelpWidget(RichJupyterWidget):
         """Get signature from text using a given function name."""
         signature = ''
         argspec = getargspecfromtext(text)
+
         if argspec:
             # This covers cases like np.abs, whose docstring is
             # the same as np.absolute and because of that a proper
@@ -78,15 +84,19 @@ class HelpWidget(RichJupyterWidget):
             signature = name + argspec
         else:
             signature = getsignaturefromtext(text, name)
+
         return signature
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""
         data = content.get('data', {})
         text = data.get('text/plain', '')
+
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
+            if (
+                self.language_name is not None
+                and self.language_name == 'python'
+            ):
                 self._control.current_prompt_pos = self._prompt_pos
                 line = self._control.get_current_line_to_cursor()
                 name = line[:-1].split('(')[-1]   # Take last token after a (
@@ -156,14 +166,19 @@ class HelpWidget(RichJupyterWidget):
         """
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
-        if (info and info.id == rep['parent_header']['msg_id'] and
-                info.pos == cursor.position()):
+
+        if (
+            info
+            and info.id == rep['parent_header']['msg_id']
+            and info.pos == cursor.position()
+        ):
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
                 documentation = self.get_documentation(content)
                 new_line = (self.language_name is not None
                             and self.language_name == 'python')
+
                 self._control.show_calltip(
                     signature,
                     documentation=documentation,
