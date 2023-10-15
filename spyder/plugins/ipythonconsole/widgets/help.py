@@ -37,37 +37,39 @@ class HelpWidget(RichJupyterWidget):
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
-    def get_documentation(self, content):
+    def get_documentation(self, content, signature):
         """Get documentation from inspect reply content."""
         data = content.get('data', {})
         text = data.get('text/plain', '')
 
         if text:
+            # Remove ANSI characters from text
+            text = re.compile(ANSI_PATTERN).sub('', text)
+
             if (
                 self.language_name is not None
                 and self.language_name == 'python'
             ):
-                text = re.compile(ANSI_PATTERN).sub('', text)
-                signature = self.get_signature(content).split('(')[-1]
-
                 # Base value for the documentation
                 documentation = (
-                    text.split('Docstring:')[-1].split('Type:')[0].
+                    text.split('Docstring:')[-1].
+                    split('Type:')[0].
                     split('File:')[0]
-                )
+                ).strip()
 
+                # Check if the signature is at the beginning of the docstring
+                # to remove it
                 if signature:
-                    # Check if the signature is in the docstring
-                    doc_from_signature = documentation.split(signature)
-                    if len(doc_from_signature) > 1:
-                        return (
-                            doc_from_signature[-1].split('Docstring:')[-1].
-                            split('Type:')[0].split('File:')[0]
-                        ).strip('\r\n')
+                    signature_and_doc = documentation.split("\n\n")
+
+                    if (
+                        len(signature_and_doc) > 1
+                        and signature_and_doc[0].replace('\n', '') == signature
+                    ):
+                        return "\n\n".join(signature_and_doc[1:]).strip('\r\n')
 
                 return documentation.strip('\r\n')
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text.strip('\r\n')
         else:
             return ''
@@ -189,7 +191,7 @@ class HelpWidget(RichJupyterWidget):
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
-                documentation = self.get_documentation(content)
+                documentation = self.get_documentation(content, signature)
                 new_line = (self.language_name is not None
                             and self.language_name == 'python')
 
