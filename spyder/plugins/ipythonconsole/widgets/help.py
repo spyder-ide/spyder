@@ -14,7 +14,7 @@ import re
 
 # Third party imports
 from pickle import UnpicklingError
-from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
+from qtconsole.ansi_code_processor import ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 # Local imports
@@ -57,7 +57,7 @@ class HelpWidget(RichJupyterWidget):
                 )
 
                 if signature:
-                    # Check if the signature is in the Docstring
+                    # Check if the signature is in the docstring
                     doc_from_signature = documentation.split(signature)
                     if len(doc_from_signature) > 1:
                         return (
@@ -83,7 +83,7 @@ class HelpWidget(RichJupyterWidget):
             # signature can't be obtained correctly
             signature = name + argspec
         else:
-            signature = getsignaturefromtext(text, name)
+            signature = name + getsignaturefromtext(text, name)
 
         return signature
 
@@ -93,11 +93,17 @@ class HelpWidget(RichJupyterWidget):
         text = data.get('text/plain', '')
 
         if text:
+            # Remove ANSI characters from text
+            text = re.compile(ANSI_PATTERN).sub('', text)
+
             if (
                 self.language_name is not None
                 and self.language_name == 'python'
             ):
+                signature = ''
                 self._control.current_prompt_pos = self._prompt_pos
+
+                # Get object's name
                 line = self._control.get_current_line_to_cursor()
                 name = line[:-1].split('(')[-1]   # Take last token after a (
                 name = name.split('.')[-1]   # Then take last token after a .
@@ -108,29 +114,37 @@ class HelpWidget(RichJupyterWidget):
                 except Exception:
                     pass
 
-                text = text.split('Docstring:')
-
-                # Try signature from text before 'Docstring:'
-                before_text = text[0]
-                before_signature = self._get_signature(name, before_text)
-
-                # Try signature from text after 'Docstring:'
-                after_text = text[-1]
-                after_signature = self._get_signature(name, after_text)
-
-                # Stay with the longest signature
-                if len(before_signature) > len(after_signature):
-                    signature = before_signature
+                # Split between docstring and text before it
+                if 'Docstring:' in text:
+                    before_text, after_text = text.split('Docstring:')
                 else:
-                    signature = after_signature
+                    before_text, after_text = '', text
 
-                # Prevent special characters. Applied here to ensure
-                # recognizing the signature in the logic above.
-                signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
+                if before_text:
+                    # This is the case for objects for which IPython was able
+                    # to get a signature (e.g. np.vectorize)
+                    before_text = before_text.strip().replace('\n', '')
+                    signature = self._get_signature(name, before_text)
+
+                # Default signatures returned by IPython
+                default_sigs = [
+                    name + '(*args, **kwargs)',
+                    name + '(self, /, *args, **kwargs)'
+                ]
+
+                # This is the case for objects without signature (e.g.
+                # np.where). For them, we try to find it from their docstrings.
+                if not signature or signature in default_sigs:
+                    after_signature = self._get_signature(
+                        name, after_text.strip()
+                    )
+                    if after_signature:
+                        signature = after_signature
+
+                    signature = signature.replace('\n', '')
 
                 return signature.strip('\r\n')
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text.strip('\r\n')
         else:
             return ''
