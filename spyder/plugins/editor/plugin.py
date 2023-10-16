@@ -534,14 +534,158 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
+        widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # TODO: Remove actions from menus
+        # ---- File menu ----
+        # Print
+        print_actions = [
+            widget.print_preview_action,
+            widget.print_action,
+        ]
+        for print_action in print_actions:
+            mainmenu.remove_item_from_application_menu(
+                print_action,
+                menu_id=ApplicationMenus.File
+            )
+        # Close
+        close_actions = [
+            widget.close_action,
+            widget.close_all_action
+        ]
+        for close_action in close_actions:
+            mainmenu.remove_item_from_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File
+            )
+        # Navigation
+        if sys.platform == 'darwin':
+            tab_navigation_actions = [
+                widget.go_to_previous_file_action,
+                widget.go_to_next_file_action
+            ]
+            for tab_navigation_action in tab_navigation_actions:
+                mainmenu.remove_item_from_application_menu(
+                    tab_navigation_action,
+                    menu_id=ApplicationMenus.File
+                )
+        # Open section
+        open_actions = [
+            widget.open_action,
+            widget.open_last_closed_action,
+            widget.recent_file_menu,
+        ]
+        for open_action in open_actions:
+            mainmenu.remove_item_from_application_menu(
+                open_action,
+                menu_id=ApplicationMenus.File
+            )
+        # Save section
+        save_actions = [
+            widget.save_action,
+            widget.save_all_action,
+            widget.save_as_action,
+            widget.save_copy_as_action,
+            widget.revert_action,
+        ]
+        for save_action in save_actions:
+            mainmenu.remove_item_from_application_menu(
+                save_action,
+                menu_id=ApplicationMenus.File
+            )
+        # New Section
+        mainmenu.remove_item_from_application_menu(
+            widget.new_action,
+            menu_id=ApplicationMenus.File
+        )
+
+        # ---- Edit menu ----
+        edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
+        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
+
+        # UndoRedo section
+        for action in [widget.undo_action, widget.redo_action]:
+            mainmenu.remove_item_from_application_menu(
+                action,
+                menu_id=ApplicationMenus.Edit
+            )
+        # Copy section
+        for action in [
+                widget.cut_action, widget.copy_action, widget.paste_action,
+                widget.selectall_action]:
+            mainmenu.remove_item_from_application_menu(
+                action,
+                menu_id=ApplicationMenus.Edit
+            )
+        # Editor section
+        for edit_item in widget.edit_menu_actions:
+            mainmenu.remove_item_from_application_menu(
+                edit_item,
+                menu_id=ApplicationMenus.Edit
+            )
+
+        # ---- Search menu ----
+        search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
+        search_menu.aboutToShow.disconnect(widget.update_search_menu)
+
+        for search_item in widget.search_menu_actions:
+            mainmenu.remove_item_from_application_menu(
+                search_item,
+                menu_id=ApplicationMenus.Search
+            )
+
+        # ---- Source menu ----
+        source_menu = mainmenu.get_application_menu(
+            ApplicationMenus.Source
+        )
+        source_menu.aboutToShow.disconnect(widget.refresh_formatter_name)
+
+        # Cursor section
+        source_menu_cursor_actions = [
+            widget.previous_edit_cursor_action,
+            widget.previous_cursor_action,
+            widget.next_cursor_action,
+        ]
+        for cursor_item in source_menu_cursor_actions:
+            mainmenu.remove_item_from_application_menu(
+                cursor_item,
+                menu_id=ApplicationMenus.Source
+            )
+        # Formatting section
+        source_menu_formatting_actions = [
+            widget.eol_menu,
+            widget.trailingspaces_action,
+            widget.fixindentation_action,
+            widget.formatting_action
+        ]
+        for formatting_item in source_menu_formatting_actions:
+            mainmenu.remove_item_from_application_menu(
+                formatting_item,
+                menu_id=ApplicationMenus.Source
+            )
+        # Options section
+        source_menu_option_actions = widget.checkable_actions.values()
+        for option_item in source_menu_option_actions:
+            mainmenu.remove_item_from_application_menu(
+                option_item,
+                menu_id=ApplicationMenus.Source
+            )
+        # Linting section
+        source_menu_linting_actions = [
+            widget.todo_list_action,
+            widget.warning_list_action,
+            widget.previous_warning_action,
+            widget.next_warning_action,
+        ]
+        for linting_item in source_menu_linting_actions:
+            mainmenu.remove_item_from_application_menu(
+                linting_item,
+                menu_id=ApplicationMenus.Source
+            )
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        # TODO: Check changes to toolbar plugin
         file_toolbar_actions = [
             widget.new_action,
             widget.open_action,
@@ -557,8 +701,20 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
+        widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        # TODO: Check toolbar teardown
+        file_toolbar_actions = [
+            widget.new_action,
+            widget.open_action,
+            widget.save_action,
+            widget.save_all_action,
+            widget.create_new_cell
+        ]
+        for file_toolbar_action in file_toolbar_actions:
+            toolbar.remove_item_from_application_toolbar(
+                file_toolbar_action,
+                toolbar_id=ApplicationToolbars.File,
+            )
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -585,7 +741,21 @@ class Editor(SpyderDockablePlugin):
     def on_completions_teardown(self):
         widget = self.get_widget()
         completions = self.get_plugin(Plugins.Completions)
-        # TODO:
+        self.sig_file_opened_closed_or_updated.disconnect(
+            completions.file_opened_closed_or_updated)
+        # TODO: Seems like `update_client_status` is only availabel from the
+        # LSP provider?
+        # widget.sig_update_active_languages_requested.disconnect(
+        #     completions.update_client_status
+        # )
+        # TODO: Should this be moved to the Completions plugin
+        # as done with the console/internal console plugin connections?
+        completions.sig_language_completions_available.disconnect(
+            widget.register_completion_capabilities)
+        completions.sig_open_file.disconnect(widget.load)
+        completions.sig_editor_rpc.disconnect(widget._rpc_call)
+        completions.sig_stop_completions.disconnect(
+            widget.stop_completion_services)
 
     @on_plugin_available(plugin=Plugins.OutlineExplorer)
     def on_outlineexplorer_available(self):
@@ -636,11 +806,16 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        # TODO: Check ipython consle teardown
+
+        ipyconsole.unregister_spyder_kernel_call_handler('cell_count')
+        ipyconsole.unregister_spyder_kernel_call_handler('current_filename')
+        ipyconsole.unregister_spyder_kernel_call_handler('get_file_code')
+        ipyconsole.unregister_spyder_kernel_call_handler('run_cell')
 
     @on_plugin_available(plugin=Plugins.Switcher)
     def on_switcher_available(self):
         switcher = self.get_plugin(Plugins.Switcher)
+        # TODO: Seems like the switcher for symbols is failing? Missing a check
         self.get_widget().set_switcher(switcher)
 
     @on_plugin_teardown(plugin=Plugins.Switcher)
@@ -651,7 +826,7 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        # TODO: See handling of active project path done by IPython console
+        # TODO: Should this work as is done in the IPython console?
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -696,6 +871,7 @@ class Editor(SpyderDockablePlugin):
         )
         self.set_conf('recent_files', widget.recent_files)
 
+        # TODO: Should this be done inside the main_widget `on_close`?
         # Stop autosave timer before closing windows
         widget.autosave.stop_autosave_timer()
 
