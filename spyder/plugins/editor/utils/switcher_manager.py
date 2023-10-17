@@ -195,7 +195,7 @@ class EditorSwitcherManager(object):
             # should do this?
             if item.get_section() == self._section:
                 self.editor_switcher_handler(data)
-                self._main_widget.switch_to_main_widget()
+                self._main_widget.switch_to_plugin()
 
     def handle_switcher_text(self, search_text):
         """Handle switcher search text for line mode."""
@@ -221,6 +221,7 @@ class EditorSwitcherManager(object):
         """Handle item selection change."""
         editorstack = self._editorstack()
         mode = self._switcher.get_mode()
+
         if mode == '@' and current is not None:
             line_number = int(current.get_data()['line_number'])
             editorstack.go_to_line(line_number)

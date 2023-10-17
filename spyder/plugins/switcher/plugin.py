@@ -236,7 +236,7 @@ class Switcher(SpyderPluginV2):
 
     def get_mode(self):
         """Get the current mode the switcher is in."""
-        self._switcher.get_mode()
+        return self._switcher.get_mode()
 
     def remove_mode(self, token):
         """Remove mode by token key."""
