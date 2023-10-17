@@ -93,6 +93,12 @@ def test_banners(ipyconsole, qtbot):
      ("np.where",  # Python gives an error when getting its signature
       ["condition", "/"],
       ["Return elements chosen from `x`"]),
+     ("np.array",  # Signature is splitted into several lines
+      ["object", "dtype=None"],
+      ["Create an array.<br><br>", "Parameters"]),
+     ("np.linalg.norm",  # Includes IPython default signature in inspect reply
+      ["x", "ord=None"],
+      ["Matrix or vector norm"]),
      ("range",  # Check we display the first signature among several
       ["stop"],
       ["range(stop) -> range object"]),
