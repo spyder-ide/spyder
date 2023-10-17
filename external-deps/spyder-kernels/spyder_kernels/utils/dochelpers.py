@@ -207,12 +207,38 @@ def getsignaturefromtext(text, objname):
             # first match.
             sig = sigs[0] if objname else sigs[0][1]
         else:
+            # Default signatures returned by IPython.
+            # Notes:
+            # * These are not real signatures but only used to provide a
+            #   placeholder.
+            # * We skip them if we can find other signatures in `text`.
+            # * This is necessary because we also use this function in Spyder
+            #   to parse the content of inspect replies that come from the
+            #   kernel, which can include these signatures.
+            default_ipy_sigs = [
+                '(*args, **kwargs)',
+                '(self, /, *args, **kwargs)'
+            ]
+
             if objname:
-                sig = sigs[0]
+                real_sigs = [s for s in sigs if s not in default_ipy_sigs]
+
+                if real_sigs:
+                    sig = real_sigs[0]
+                else:
+                    sig = sigs[0]
             else:
                 valid_sigs = [s for s in sigs if s[0].isidentifier()]
+
                 if valid_sigs:
-                    sig = valid_sigs[0][1]
+                    real_sigs = [
+                        s for s in valid_sigs if s[1] not in default_ipy_sigs
+                    ]
+
+                    if real_sigs:
+                        sig = real_sigs[0][1]
+                    else:
+                        sig = valid_sigs[0][1]
 
     return sig
 
@@ -225,7 +251,7 @@ def getargspecfromtext(text):
     This will return something like `(x, y, k=1)`.
     """
     blocks = text.split("\n\n")
-    first_block = blocks[0].strip()
+    first_block = blocks[0].strip().replace('\n', '')
     return getsignaturefromtext(first_block, '')
 
 

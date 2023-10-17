@@ -139,5 +139,22 @@ def test_multisignature():
     assert signature == "(x, y)"
 
 
+def test_multiline_signature():
+    """
+    Test that we can get signatures splitted into multiple lines in a
+    docstring.
+    """
+    def foo():
+        """
+        foo(x,
+            y)
+
+        This is a docstring.
+        """
+
+    signature = getargspecfromtext(foo.__doc__)
+    assert signature.startswith("(x, ")
+
+
 if __name__ == "__main__":
     pytest.main()
