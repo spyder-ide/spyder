@@ -342,14 +342,19 @@ class ApplicationContainer(PluginMainContainer):
 
                 if os.name == "nt":
                     if is_anaconda():
-                        msg += _("Run the following commands in the Anaconda "
-                                 "prompt to update manually:<br><br>")
+                        msg += _("Run the following command or commands in "
+                                 "the Anaconda prompt to update manually:"
+                                 "<br><br>")
                     else:
-                        msg += _("Run the following commands in a cmd prompt "
+                        msg += _("Run the following command in a cmd prompt "
                                  "to update manually:<br><br>")
                 else:
-                    msg += _("Run the following commands in a terminal to "
-                             "update manually:<br><br>")
+                    if is_anaconda():
+                        msg += _("Run the following command or commands in a "
+                                 "terminal to update manually:<br><br>")
+                    else:
+                        msg += _("Run the following command in a terminal to "
+                                 "update manually:<br><br>")
 
                 if is_anaconda():
                     channel, __ = get_spyder_conda_channel()
