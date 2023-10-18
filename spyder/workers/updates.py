@@ -5,24 +5,21 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-import json
 import logging
 import os
 import os.path as osp
-import ssl
 import tempfile
 import traceback
-from urllib.request import urlopen, urlretrieve
-from urllib.error import URLError, HTTPError
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
+import requests
+from requests.adapters import ConnectionError, SSLError
 
 # Local imports
 from spyder import __version__
 from spyder.config.base import (
     _, is_stable_version, is_pynsist, running_in_mac_app)
-from spyder.py3compat import is_text_string
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version, is_module_installed
@@ -30,9 +27,24 @@ from spyder.utils.programs import check_version, is_module_installed
 # Logger setup
 logger = logging.getLogger(__name__)
 
+SSL_ERROR_MSG = _(
+    'SSL certificate verification failed while checking for Spyder updates.'
+    '<br><br>Please contact your network administrator for assistance.'
+)
+
+CONNECT_ERROR_MSG = _(
+    'Unable to connect to the internet while checking for Spyder updates.'
+    '<br><br>Make sure the connection is working properly.'
+)
+
 
 class UpdateDownloadCancelledException(Exception):
     """Download for installer to update was cancelled."""
+    pass
+
+
+class UpdateDownloadIncompleteError(Exception):
+    """Error occured while downloading file"""
     pass
 
 
@@ -107,21 +119,9 @@ class WorkerUpdates(QObject):
             self.url = pypi_url
 
         try:
-            if hasattr(ssl, '_create_unverified_context'):
-                # Fix for spyder-ide/spyder#2685.
-                # [Works only with Python >=2.7.9]
-                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-                context = ssl._create_unverified_context()
-                page = urlopen(self.url, context=context)
-            else:
-                page = urlopen(self.url)
-
-            data = page.read()
-
-            # Needed step for python3 compatibility
-            if not is_text_string(data):
-                data = data.decode()
-            data = json.loads(data)
+            logger.debug(f"Checking for updates from {self.url}")
+            page = requests.get(self.url)
+            data = page.json()
 
             if is_pynsist() or running_in_mac_app():
                 if self.releases is None:
@@ -140,14 +140,13 @@ class WorkerUpdates(QObject):
 
             result = self.check_update_available()
             self.update_available, self.latest_release = result
-        except URLError:
-            error_msg = _(
-                'It was not possible to connect to the internet to check for '
-                'Spyder updates.'
-                '.<br><br>'
-                'Make sure the connection is working properly.'
-            )
-        except Exception:
+        except SSLError as err:
+            error_msg = SSL_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = CONNECT_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except Exception as err:
             error = traceback.format_exc()
             formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
 
@@ -157,6 +156,7 @@ class WorkerUpdates(QObject):
                 '<br><br>'
                 '<tt>{}</tt>'
             ).format(formatted_error)
+            logger.debug(err, stack_info=True)
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
@@ -214,7 +214,6 @@ class WorkerDownloadInstaller(QObject):
 
     def _download_installer(self):
         """Donwload latest Spyder standalone installer executable."""
-        logger.debug("Downloading installer executable")
         tmpdir = tempfile.gettempdir()
         is_full_installer = (is_module_installed('numpy') or
                              is_module_installed('pandas'))
@@ -238,13 +237,37 @@ class WorkerDownloadInstaller(QObject):
 
         installer_path = osp.join(installer_dir_path, name)
         self.installer_path = installer_path
-        if not osp.isfile(installer_path):
-            logger.debug(
-                f"Downloading installer from {url} to {installer_path}")
-            urlretrieve(
-                url, installer_path, reporthook=self._progress_reporter)
-        else:
-            self._progress_reporter(1, 1)
+
+        if osp.isfile(installer_path):
+            # Installer already downloaded
+            logger.info(f"{installer_path} already downloaded")
+            self._progress_reporter(1, 1, 1)
+            return
+
+        logger.debug(f"Downloading installer from {url} to {installer_path}")
+        with requests.get(url, stream=True) as r:
+            with open(installer_path, 'wb') as f:
+                chunk_size = 8 * 1024
+                size = -1
+                size_read = 0
+                chunk_num = 0
+
+                if "content-length" in r.headers:
+                    size = int(r.headers["content-length"])
+
+                self._progress_reporter(chunk_num, chunk_size, size)
+
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    size_read += len(chunk)
+                    f.write(chunk)
+                    chunk_num += 1
+                    self._progress_reporter(chunk_num, chunk_size, size)
+
+                if size >= 0 and size_read < size:
+                    raise UpdateDownloadIncompleteError(
+                        "Download incomplete: retrieved only "
+                        f"{size_read} out of {size} bytes."
+                    )
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
@@ -253,15 +276,25 @@ class WorkerDownloadInstaller(QObject):
             self._download_installer()
         except UpdateDownloadCancelledException:
             if self.installer_path:
-               os.remove(self.installer_path)
+                os.remove(self.installer_path)
             return
-        except HTTPError:
-            error_msg = _('Unable to retrieve installer information.')
-        except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>'
-                          'Make sure the connection is working properly.')
-        except Exception:
-            error_msg = _('Unable to download the installer.')
+        except SSLError as err:
+            error_msg = SSL_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = CONNECT_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except Exception as err:
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
+
+            error_msg = _(
+                'It was not possible to download the installer due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
+            logger.debug(err, stack_info=True)
         self.error = error_msg
         try:
             self.sig_ready.emit(self.installer_path)
