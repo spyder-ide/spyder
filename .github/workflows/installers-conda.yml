@@ -45,7 +45,7 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-name: Create conda-based installers for Windows, macOS, and Linux
+name: Nightly conda-based installers
 
 env:
   IS_RELEASE: ${{ github.event_name == 'release' }}
