@@ -29,7 +29,7 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-name: Conda-based installers
+name: Nightly conda-based installers
 
 env:
   IS_STANDARD_PR: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
