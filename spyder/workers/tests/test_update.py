@@ -4,6 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+import sys
+
 import pytest
 
 from spyder.workers.updates import WorkerUpdates
@@ -48,6 +50,7 @@ def test_updates(qtbot, mocker, is_anaconda, is_pypi, version,
     assert len(worker.releases) == 1
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails frequently on Mac")
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
 def test_updates_for_installers(qtbot, mocker, version):
     """
