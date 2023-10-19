@@ -34,7 +34,8 @@ CONNECT_ERROR_MSG = _(
 
 HTTP_ERROR_MSG = _(
     'HTTP error {status_code} when checking for updates.'
-    '<br><br>Make sure your connection is working properly.'
+    '<br><br>Make sure your connection is working properly,'
+    'and try again later.'
 )
 
 SSL_ERROR_MSG = _(
