@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
-    '<br><br>Make sure the connection is working properly.'
+    '<br><br>Make sure your connection is working properly.'
 )
 
 HTTP_ERROR_MSG = _(
