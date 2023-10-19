@@ -290,7 +290,14 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(error_msg)
             box.set_check_visible(False)
             box.show()
+            if self.application_update_status:
+                self.application_update_status.set_no_status()
+
         elif update_available:
+            if self.application_update_status:
+                self.application_update_status.set_status_pending(
+                    latest_release)
+
             # Update using our installers
             if (
                 not sys.platform.startswith("linux")
