@@ -1845,7 +1845,7 @@ class EditorMainWidget(PluginMainWidget):
                 self.create_icon('warning')
             )
             slot = (
-                lambda _checked, _l=line_number: self.load(filename, goto=_l)
+                lambda _checked, _l=line_number: self.load(filename, goto=_l)  # noqa
             )
             action = create_action(self, text=text, icon=icon)
             action.triggered[bool].connect(slot)
@@ -2044,7 +2044,7 @@ class EditorMainWidget(PluginMainWidget):
             enc = 'utf-8'
             default_content = True
 
-        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
+        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)  # noqa
         # Creating editor widget
         if editorstack is None:
             current_es = self.get_current_editorstack()

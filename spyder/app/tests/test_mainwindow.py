@@ -2205,10 +2205,11 @@ def test_plots_scroll(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    # Generate a plot inline.
+    # Generate a plot inline and switch focus to Plots pane.
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+    main_window.plots.switch_to_plugin()
 
     # Make sure the plot is selected
     sb = figbrowser.thumbnails_sb
@@ -2425,6 +2426,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
         for grandchild in child.children():
             if isinstance(grandchild, CollectionsEditor):
                 collections_editor = grandchild
+                qtbot.addWidget(collections_editor)
 
     # Plot item 0 in collection editor
     collections_editor.widget.editor.plot(0, 'plot')
@@ -2649,22 +2651,19 @@ def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
     # Assert searching text in the switcher works as expected
     switcher.open_switcher()
     switcher.set_search_text('0')
-    qtbot.wait(500)
-    assert switcher.count() == 1
+    qtbot.waitUntil(lambda: switcher.count() == 1)
     switcher.on_close()
 
     # Assert searching for a non-existent file leaves the switcher empty
     switcher.open_switcher()
     switcher.set_search_text('foo')
-    qtbot.wait(500)
-    assert switcher.count() == 0
+    qtbot.waitUntil(lambda: switcher.count() == 0)
     switcher.on_close()
 
     # Assert searching for a binary file leaves the switcher empty
     switcher.open_switcher()
     switcher.set_search_text('windows')
-    qtbot.wait(500)
-    assert switcher.count() == 0
+    qtbot.waitUntil(lambda: switcher.count() == 0)
     switcher.on_close()
 
     # Remove project file and check the switcher is updated
@@ -2695,8 +2694,7 @@ def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
 
     switcher.open_switcher()
     switcher.set_search_text('0')
-    qtbot.wait(500)
-    assert switcher.count() == 1
+    qtbot.waitUntil(lambda: switcher.count() == 1)
     switcher.on_close()
 
     projects.get_widget()._fzf = fzf

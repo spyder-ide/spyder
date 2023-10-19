@@ -485,6 +485,7 @@ class Projects(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         if editor is not None:
             return editor.get_open_filenames()
+        return []
 
     def _is_invalid_active_project(self):
         """Handle an invalid active project."""

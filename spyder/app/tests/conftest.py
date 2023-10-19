@@ -277,7 +277,6 @@ def cleanup(request, qapp):
     """Cleanup the testing setup once we are finished."""
 
     def close_window():
-        qapp.processEvents()
         # Close last used mainwindow and QApplication if needed
         if hasattr(main_window, 'window') and main_window.window is not None:
             window = main_window.window
@@ -289,6 +288,11 @@ def cleanup(request, qapp):
             CONF.reset_manager()
             PLUGIN_REGISTRY.reset()
         if qapp.instance():
+            for widget in qapp.allWidgets():
+                try:
+                    widget.close()
+                except RuntimeError:
+                    pass
             qapp.quit()
 
     request.addfinalizer(close_window)
