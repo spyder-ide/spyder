@@ -806,9 +806,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 # Aborting!
                 return
 
-            # Start autorestart mechanism
-            sw.kernel_manager.autorestart = True
-            sw.kernel_manager.start_restarter()
+            # Start autorestart mechanism.
+            # Note: We need to check for kernel_manager in case the kernel is
+            # not managed by us.
+            # Fixes spyder-ide/spyder#21165
+            if sw.kernel_manager:
+                sw.kernel_manager.autorestart = True
+                sw.kernel_manager.start_restarter()
 
             # For spyder-ide/spyder#6235, IPython was changing the
             # setting of %colors on windows by assuming it was using a
