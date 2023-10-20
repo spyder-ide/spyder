@@ -578,6 +578,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.remove_col_action = None
         self.duplicate_row_action = None
         self.duplicate_col_action = None
+        self.convert_to_action = None
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -597,6 +598,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+        self.selectionModel().selectionChanged.connect(self.refresh_menu)
+        self.refresh_menu()
 
     def _load_more_columns(self, value):
         """Load more columns to display."""
@@ -670,6 +673,33 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         add_actions(menu, header_menu)
         return menu
 
+    def refresh_menu(self):
+        """Refresh context menu"""
+        index = self.currentIndex()
+        # Enable/disable actions
+        condition_edit = (
+            index.isValid() and
+            (len(self.selectedIndexes()) == 1)
+        )
+
+        self.edit_action.setEnabled(condition_edit)
+        self.insert_action_above.setEnabled(condition_edit)
+        self.insert_action_below.setEnabled(condition_edit)
+        self.insert_action_after.setEnabled(condition_edit)
+        self.insert_action_before.setEnabled(condition_edit)
+        self.duplicate_row_action.setEnabled(condition_edit)
+        self.duplicate_col_action.setEnabled(condition_edit)
+        self.convert_to_action.setEnabled(condition_edit)
+
+        # Enable/disable actions for remove col/row and copy
+        condition_edit = (
+            index.isValid() and
+            (len(self.selectedIndexes()) > 0)
+        )
+        self.copy_action.setEnabled(condition_edit)
+        self.remove_row_action.setEnabled(condition_edit)
+        self.remove_col_action.setEnabled(condition_edit)
+
     def setup_menu(self):
         """Setup context menu."""
         resize_action = create_action(
@@ -728,7 +758,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             icon=ima.icon('duplicate_column'),
             triggered=self.duplicate_row_col
         )
-        copy_action = create_action(
+        self.copy_action = create_action(
             self, _('Copy'),
             shortcut=keybinding('Copy'),
             icon=ima.icon('editcopy'),
@@ -736,10 +766,10 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             context=Qt.WidgetShortcut
         )
 
-        convert_to_action = create_action(self, _('Convert to'))
+        self.convert_to_action = create_action(self, _('Convert to'))
         menu_actions = [
             self.edit_action,
-            copy_action,
+            self.copy_action,
             self.remove_row_action,
             self.remove_col_action,
             MENU_SEPARATOR,
@@ -750,7 +780,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             self.duplicate_row_action,
             self.duplicate_col_action,
             MENU_SEPARATOR,
-            convert_to_action,
+            self.convert_to_action,
             MENU_SEPARATOR,
             resize_action,
             resize_columns_action
@@ -765,12 +795,12 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             (_("Str"), to_text_string)
         )
         convert_to_menu = QMenu(self)
-        convert_to_action.setMenu(convert_to_menu)
-        convert_to_actions = []
+        self.convert_to_action.setMenu(convert_to_menu)
+        self.convert_to_actions = []
         for name, func in functions:
             def slot():
                 self.change_type(func)
-            convert_to_actions += [
+            self.convert_to_actions += [
                 create_action(
                     self,
                     name,
@@ -780,7 +810,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             ]
 
         menu = QMenu(self)
-        add_actions(convert_to_menu, convert_to_actions)
+        add_actions(convert_to_menu, self.convert_to_actions)
         add_actions(menu, menu_actions)
 
         return menu
