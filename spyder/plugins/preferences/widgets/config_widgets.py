@@ -144,6 +144,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     """Plugin configuration dialog box page widget"""
     CONF_SECTION = None
     MAX_WIDTH = 620
+    MIN_HEIGHT = 550
 
     def __init__(self, parent):
         ConfigPage.__init__(
@@ -170,12 +171,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.main = parent.main
         self.tabs = None
 
-        # Maximum width
+        # Set dimensions
         self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumHeight(self.MIN_HEIGHT)
 
     def sizeHint(self):
         """Default page size."""
-        return QSize(self.MAX_WIDTH, 400)
+        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
 
     def _apply_settings_tabs(self, options):
         if self.tabs is not None:

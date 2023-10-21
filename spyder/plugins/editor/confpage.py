@@ -32,6 +32,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         SpyderConfigurationObserver.__init__(self)
+
         self.removetrail_box = None
         self.add_newline_box = None
         self.remove_trail_newline_box = None
@@ -43,6 +44,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         return ima.icon('edit')
 
     def setup_page(self):
+        # We need to set this so that the text of some options is not clipped
+        self.setMinimumHeight(670)
+
         newcb = self.create_checkbox
 
         # --- Display tab ---
@@ -306,7 +310,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                              "mixed end-of-line characters (this may "
                              "raise syntax errors in the consoles "
                              "on Windows platforms), Spyder may fix the "
-                             "file automatically.<br><br>"))
+                             "file automatically."))
         eol_label.setWordWrap(True)
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
