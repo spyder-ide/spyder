@@ -121,7 +121,7 @@ def global_config_dialog(qtbot):
     qtbot.addWidget(mainwindow)
 
     preferences = Preferences(mainwindow, CONF)
-    preferences.open_dialog(None)
+    preferences.open_dialog()
     container = preferences.get_container()
     dlg = container.dialog
 
@@ -140,7 +140,7 @@ def config_dialog(qtbot, request, mocker):
     qtbot.addWidget(main_ref)
 
     preferences = main_ref._main.get_plugin(Plugins.Preferences)
-    preferences.open_dialog(None)
+    preferences.open_dialog()
     container = preferences.get_container()
     dlg = container.dialog
 

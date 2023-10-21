@@ -28,7 +28,7 @@ from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PreferencesAdapter
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
@@ -281,7 +281,9 @@ class Preferences(SpyderPluginV2):
 
         self.before_long_process('')
 
-        self._reorder_config_pages()
+        if not running_under_pytest():
+            self._reorder_config_pages()
+
         container.create_dialog(
             self.config_pages, self.config_tabs, self.get_main()
         )

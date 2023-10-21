@@ -152,13 +152,17 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     def get_index_by_name(self, name):
         """Return page index by CONF_SECTION name."""
         for idx in range(self.pages_widget.count()):
-            widget = self.pages_widget.widget(idx)
-            widget = widget.widget()
+            page = self.get_page(idx)
+
+            # This is the case for separators
+            if page is None:
+                continue
+
             try:
                 # New API
-                section = widget.plugin.NAME
+                section = page.plugin.NAME
             except AttributeError:
-                section = widget.CONF_SECTION
+                section = page.CONF_SECTION
 
             if section == name:
                 return idx
