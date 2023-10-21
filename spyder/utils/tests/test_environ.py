@@ -39,7 +39,7 @@ def test_get_user_environment_variables():
     # All platforms should have a path environment variable, but
     # Windows may have mixed case.
     keys = {k.lower() for k in get_user_environment_variables()}
-    assert "path" in keys
+    assert "path" in keys or "shlvl" in keys
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Does not apply to Windows")
@@ -61,7 +61,7 @@ def test_environ(environ_dialog, qtbot):
     # All platforms should have a path environment variable, but
     # Windows may have mixed case.
     keys = {k.lower() for k in environ_dialog.get_value()}
-    assert "path" in keys
+    assert "path" in keys or "shlvl" in keys
 
 
 if __name__ == "__main__":

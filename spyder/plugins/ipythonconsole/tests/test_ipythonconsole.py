@@ -74,21 +74,40 @@ def test_banners(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-    "function,signature,documentation",
-    [("arange",
+    "function, signature, documentation",
+    [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
        "open interval ..."]),
-     ("vectorize",
+     ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
       ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
        "<br>",
        "Define a vectorized function which takes a nested sequence ..."]),
-     ("absolute",
+     ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
-      ["Parameters<br>", "x : array_like ..."])]
-    )
-@pytest.mark.skipif(not os.name == 'nt',
+      ["Calculate the absolute value"]),
+     ("np.where",  # Python gives an error when getting its signature
+      ["condition", "/"],
+      ["Return elements chosen from `x`"]),
+     ("np.array",  # Signature is splitted into several lines
+      ["object", "dtype=None"],
+      ["Create an array.<br><br>", "Parameters"]),
+     ("np.linalg.norm",  # Includes IPython default signature in inspect reply
+      ["x", "ord=None"],
+      ["Matrix or vector norm"]),
+     ("range",  # Check we display the first signature among several
+      ["stop"],
+      ["range(stop) -> range object"]),
+     ("dict",  # Check we skip an empty signature
+      ["mapping"],
+      ["dict() -> new empty dictionary"]),
+     ("foo",  # Check we display the right tooltip for interactive objects
+      ["x", "y"],
+      ["My function"])
+    ]
+)
+@pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
 @pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
                     reason="Documentation for np.vectorize is different")
@@ -101,10 +120,22 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import numpy as np')
 
+    if function == "foo":
+        with qtbot.waitSignal(shell.executed):
+            code = dedent('''
+            def foo(x, y):
+                """
+                My function
+                """
+                return x + y
+            ''')
+
+            shell.execute(code)
+
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'np.' + function + '(')
+        qtbot.keyClicks(control, function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.waitUntil(lambda: control.calltip_widget.isVisible())
