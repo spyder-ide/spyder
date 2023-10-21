@@ -62,27 +62,19 @@ class Run(SpyderPluginV2):
         focused `RunConfigurationProvider`
     """
 
-    sig_switch_run_configuration_focus = Signal(str)
-    """
-    Change the current run configuration to the one that is focused.
-
-    Arguments
-    ---------
-    uuid: str
-        The run configuration identifier.
-    """
-
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Run")
 
-    def get_description(self):
-        return _("Manage run configuration.")
+    @staticmethod
+    def get_description():
+        return _("Manage run configuration for executing files.")
 
-    def get_icon(self):
-        return self.create_icon('run')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('run')
 
     def on_initialize(self):
         self.pending_toolbar_actions = []
@@ -93,9 +85,6 @@ class Run(SpyderPluginV2):
         self.toolbar_actions = set({})
         self.shortcut_actions = {}
         self.action_lock = Lock()
-
-        self.sig_switch_run_configuration_focus.connect(
-            self.switch_focused_run_configuration)
 
         container = self.get_container()
         container.sig_run_action_created.connect(
@@ -274,6 +263,12 @@ class Run(SpyderPluginV2):
         """
         self.get_container().register_run_configuration_metadata(
             provider, metadata)
+        
+    def get_currently_selected_configuration(self):
+        """
+        Get currently selected configuration
+        """
+        return self.get_container().currently_selected_configuration
 
     def deregister_run_configuration_metadata(self, uuid: str):
         """

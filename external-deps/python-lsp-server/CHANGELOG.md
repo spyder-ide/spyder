@@ -1,5 +1,99 @@
 # History of changes
 
+## Version 1.8.0 (2023/09/08)
+
+### New features
+
+* Add notebooks suppport and make go-to-definition work for them.
+* Add support for Pyflakes 3.1, Pycodestyle 2.11 and Jedi 0.19.
+* Drop support for Python 3.7.
+
+### Issues Closed
+
+* [Issue 429](https://github.com/python-lsp/python-lsp-server/issues/429) - Error in Pyflakes plugin: 'NoneType' has no len() ([PR 433](https://github.com/python-lsp/python-lsp-server/pull/433) by [@smacke](https://github.com/smacke))
+* [Issue 414](https://github.com/python-lsp/python-lsp-server/issues/414) - Support Jedi 0.19 ([PR 416](https://github.com/python-lsp/python-lsp-server/pull/416) by [@bnavigator](https://github.com/bnavigator))
+* [Issue 412](https://github.com/python-lsp/python-lsp-server/issues/412) - Add support for pyflakes 3.1 ([PR 415](https://github.com/python-lsp/python-lsp-server/pull/415) by [@yan12125](https://github.com/yan12125))
+* [Issue 406](https://github.com/python-lsp/python-lsp-server/issues/406) - flake8_lint plugin: Popen fails when no workspace given by language server client on Windows ([PR 434](https://github.com/python-lsp/python-lsp-server/pull/434) by [@smacke](https://github.com/smacke))
+* [Issue 392](https://github.com/python-lsp/python-lsp-server/issues/392) - Using black as an autoformatter ([PR 419](https://github.com/python-lsp/python-lsp-server/pull/419) by [@tkrabel-db](https://github.com/tkrabel-db))
+* [Issue 384](https://github.com/python-lsp/python-lsp-server/issues/384) - Replace `setuptools`/`pkg_resources` with `importlib(.|_)metadata` ([PR 385](https://github.com/python-lsp/python-lsp-server/pull/385) by [@bollwyvl](https://github.com/bollwyvl))
+* [Issue 314](https://github.com/python-lsp/python-lsp-server/issues/314) - Failed to handle requests after exit ([PR 432](https://github.com/python-lsp/python-lsp-server/pull/432) by [@smacke](https://github.com/smacke))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 434](https://github.com/python-lsp/python-lsp-server/pull/434) - Don't set cwd in Popen kwargs when document root is empty (flake8), by [@smacke](https://github.com/smacke) ([406](https://github.com/python-lsp/python-lsp-server/issues/406))
+* [PR 433](https://github.com/python-lsp/python-lsp-server/pull/433) - Fix null reference for syntax errors due to invalid encodings (Pyflakes), by [@smacke](https://github.com/smacke) ([429](https://github.com/python-lsp/python-lsp-server/issues/429), [429](https://github.com/python-lsp/python-lsp-server/issues/429))
+* [PR 432](https://github.com/python-lsp/python-lsp-server/pull/432) - Use invalid request handler rather than raising key error for requests after shutdown, by [@smacke](https://github.com/smacke) ([314](https://github.com/python-lsp/python-lsp-server/issues/314))
+* [PR 419](https://github.com/python-lsp/python-lsp-server/pull/419) - Format the whole repo with Black, by [@tkrabel-db](https://github.com/tkrabel-db) ([392](https://github.com/python-lsp/python-lsp-server/issues/392))
+* [PR 418](https://github.com/python-lsp/python-lsp-server/pull/418) - Converge unit tests for test_language_server and test_notebook_document, by [@tkrabel-db](https://github.com/tkrabel-db)
+* [PR 417](https://github.com/python-lsp/python-lsp-server/pull/417) - Drop support for Python 3.7, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 416](https://github.com/python-lsp/python-lsp-server/pull/416) - Bump Jedi upper pin to <0.20, by [@bnavigator](https://github.com/bnavigator) ([414](https://github.com/python-lsp/python-lsp-server/issues/414))
+* [PR 415](https://github.com/python-lsp/python-lsp-server/pull/415) - Add support for pyflakes 3.1 and pycodestyle 2.11, by [@yan12125](https://github.com/yan12125) ([412](https://github.com/python-lsp/python-lsp-server/issues/412))
+* [PR 408](https://github.com/python-lsp/python-lsp-server/pull/408) - Notebook protocol go-to-definition support, by [@jasongrout](https://github.com/jasongrout)
+* [PR 389](https://github.com/python-lsp/python-lsp-server/pull/389) - Add notebooks suppport to pylsp, by [@tkrabel-db](https://github.com/tkrabel-db)
+* [PR 385](https://github.com/python-lsp/python-lsp-server/pull/385) - Find `entry_points` with `importlib(.|_)metadata`, drop `setuptools` from `dependencies`, by [@bollwyvl](https://github.com/bollwyvl) ([384](https://github.com/python-lsp/python-lsp-server/issues/384))
+
+In this release 11 pull requests were closed.
+
+----
+
+## Version 1.7.4 (2023/06/29)
+
+### Issues Closed
+
+* [Issue 393](https://github.com/python-lsp/python-lsp-server/issues/393) - Environment path doesn't expand user directory
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 394](https://github.com/python-lsp/python-lsp-server/pull/394) - Resolve homedir references in Jedi environment path, by [@odiroot](https://github.com/odiroot)
+* [PR 381](https://github.com/python-lsp/python-lsp-server/pull/381) - Report progress even when initialization fails, by [@syphar](https://github.com/syphar)
+* [PR 380](https://github.com/python-lsp/python-lsp-server/pull/380) - Fix pylint hang on file with many errors, by [@hetmankp](https://github.com/hetmankp)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 1.7.3 (2023/05/15)
+
+### Issues Closed
+
+* [Issue 369](https://github.com/python-lsp/python-lsp-server/issues/369) - Failed to load hook pylsp_lint: [Errno 2] No such file or directory: '' ([PR 371](https://github.com/python-lsp/python-lsp-server/pull/371) by [@Ultimator14](https://github.com/Ultimator14))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 377](https://github.com/python-lsp/python-lsp-server/pull/377) - Update yapf requirement to 0.33+, by [@bnavigator](https://github.com/bnavigator)
+* [PR 371](https://github.com/python-lsp/python-lsp-server/pull/371) - Fix empty cwd value for pylint, by [@Ultimator14](https://github.com/Ultimator14) ([369](https://github.com/python-lsp/python-lsp-server/issues/369))
+* [PR 364](https://github.com/python-lsp/python-lsp-server/pull/364) - Add Arch Linux installation command to Readme, by [@GNVageesh](https://github.com/GNVageesh)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 1.7.2 (2023/04/02)
+
+### Issues Closed
+
+* [Issue 325](https://github.com/python-lsp/python-lsp-server/issues/325) - WorkDoneProgress tokens not initialized properly by the server ([PR 328](https://github.com/python-lsp/python-lsp-server/pull/328) by [@syphar](https://github.com/syphar))
+* [Issue 260](https://github.com/python-lsp/python-lsp-server/issues/260) - yapf formatting fails when pyproject.toml is in the workspace ([PR 346](https://github.com/python-lsp/python-lsp-server/pull/346) by [@bnavigator](https://github.com/bnavigator))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 346](https://github.com/python-lsp/python-lsp-server/pull/346) - Add toml dependency for yapf and constrain yapf to be less than 0.32, by [@bnavigator](https://github.com/bnavigator) ([260](https://github.com/python-lsp/python-lsp-server/issues/260))
+* [PR 345](https://github.com/python-lsp/python-lsp-server/pull/345) - Raise upper bound of autopep8, by [@bnavigator](https://github.com/bnavigator)
+* [PR 340](https://github.com/python-lsp/python-lsp-server/pull/340) - Bump pydocstyle to 6.3, by [@bnavigator](https://github.com/bnavigator)
+* [PR 328](https://github.com/python-lsp/python-lsp-server/pull/328) - Initialize LSP progress token before using it and remove progress for sync plugins, by [@syphar](https://github.com/syphar) ([325](https://github.com/python-lsp/python-lsp-server/issues/325))
+
+In this release 4 pull requests were closed.
+
+----
+
 ## Version 1.7.1 (2023/01/17)
 
 ### Issues Closed

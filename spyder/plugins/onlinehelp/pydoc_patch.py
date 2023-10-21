@@ -6,6 +6,7 @@
 # (see spyder/__init__.py for details)
 
 """PyDoc patch"""
+
 # Standard libray
 import builtins
 import io
@@ -13,23 +14,23 @@ import inspect
 import os
 import pkgutil
 import platform
+from pydoc import (
+    classname, classify_class_attrs, describe, Doc, format_exception_only,
+    Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
+    visiblename, isdata, getdoc, deque, _split_list)
 import re
 import sys
 import tokenize
 import warnings
 
-
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, DEV
-from spyder.config.gui import is_dark_interface, get_font
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 
-from pydoc import (
-    classname, classify_class_attrs, describe, Doc, format_exception_only,
-    Helper, HTMLRepr, _is_bound_method, ModuleScanner, locate, replace,
-    visiblename, isdata, getdoc, deque, _split_list)
 
-class CustomHTMLDoc(Doc):
+class CustomHTMLDoc(Doc, SpyderFontsMixin):
     """
     Formatter class for HTML documentation.
 
@@ -42,6 +43,15 @@ class CustomHTMLDoc(Doc):
     _repr_instance = HTMLRepr()
     repr = _repr_instance.repr
     escape = _repr_instance.escape
+
+    def __init__(self):
+        super().__init__()
+        self.app_font = self.get_font(SpyderFontType.Interface)
+        self.plain_font = self.get_font(SpyderFontType.Monospace)
+
+        # The increased value used below is necessary to make the font size on
+        # this plugin match the one used in the rest of the app.
+        self.app_font_size = self.app_font.pointSize() + 2
 
     def page(self, title, contents):
         """Format an HTML page."""
@@ -60,17 +70,17 @@ class CustomHTMLDoc(Doc):
 <tr><td>{}</td><td class="align_right normal">{}</td></tr></table>
     '''.format(title, extras or '&nbsp;')
 
-    def html_section(
-            self, title, contents, width=6,
-            prelude='', marginalia=None, gap='&nbsp;',
-            css_class=''):
+    def html_section(self, title, contents, width=6,
+                     prelude='', marginalia=None, gap='&nbsp;',
+                     css_class=''):
         """Format a section with a heading."""
         result = '''
-<table class="{}">
+<table class="{}" style="font-size: {}pt">
 <tr>
 <td colspan="3">
 {}</td></tr>
-    '''.format(css_class, title)
+    '''.format(css_class, self.app_font_size, title)
+
         if prelude:
             result = result + '''
 <tr><td rowspan="2">{}</td>
@@ -106,7 +116,10 @@ class CustomHTMLDoc(Doc):
                 if i < len(list):
                     result = result + format(list[i]) + '<br>\n'
             result = result + '</td>'
-        return '<table style="width:100%%"><tr>%s</tr></table>' % result
+        return (
+            '<table style="width:100%; font-size: {}pt">'
+            '<tr>{}</tr></table>'
+        ).format(self.app_font_size, result)
 
     def grey(self, text):
         """Grey span."""
@@ -189,6 +202,7 @@ class CustomHTMLDoc(Doc):
             else:
                 results.append(self.namelink(name, classes))
             here = end
+
         results.append(escape(text[here:]))
         return ''.join(results)
 
@@ -218,10 +232,12 @@ class CustomHTMLDoc(Doc):
     def docmodule(self, object, name=None, mod=None, *ignored):
         """Produce HTML documentation for a module object."""
         name = object.__name__  # ignore the passed-in name
+
         try:
             all = object.__all__
         except AttributeError:
             all = None
+
         parts = name.split('.')
         links = []
         for i in range(len(parts)-1):
@@ -229,6 +245,7 @@ class CustomHTMLDoc(Doc):
                 '<a href="{}.html" class="docmodule_link">{}</a>'.format(
                      '.'.join(parts[:i+1]), parts[i]))
         head = '.'.join(links + parts[-1:])
+
         try:
             path = inspect.getabsfile(object)
             url = path
@@ -238,6 +255,7 @@ class CustomHTMLDoc(Doc):
             filelink = self.filelink(url, path)
         except TypeError:
             filelink = '(built-in)'
+
         info = []
         if hasattr(object, '__version__'):
             version = str(object.__version__)
@@ -248,6 +266,7 @@ class CustomHTMLDoc(Doc):
             info.append(self.escape(str(object.__date__)))
         if info:
             head = head + ' (%s)' % ', '.join(info)
+
         docloc = self.getdocloc(object)
         if docloc is not None:
             docloc = (
@@ -267,6 +286,7 @@ class CustomHTMLDoc(Doc):
                 if visiblename(key, all, object):
                     classes.append((key, value))
                     cdict[key] = cdict[value] = '#' + key
+
         for key, value in classes:
             for base in value.__bases__:
                 key, modname = base.__name__, base.__module__
@@ -276,6 +296,7 @@ class CustomHTMLDoc(Doc):
                         if key not in cdict:
                             cdict[key] = cdict[base] = (
                                 modname + '.html#' + key)
+
         funcs, fdict = [], {}
         for key, value in inspect.getmembers(object, inspect.isroutine):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
@@ -287,6 +308,7 @@ class CustomHTMLDoc(Doc):
                     fdict[key] = '#-' + key
                     if inspect.isfunction(value):
                         fdict[value] = fdict[key]
+
         data = []
         for key, value in inspect.getmembers(object, isdata):
             if visiblename(key, all, object):
@@ -320,6 +342,7 @@ class CustomHTMLDoc(Doc):
                     self.document(value, key, name, fdict, cdict))
             result = result + self.bigsection(
                 'Classes', ' '.join(contents), css_class="classes")
+
         if funcs:
             contents = []
             for key, value in funcs:
@@ -327,16 +350,19 @@ class CustomHTMLDoc(Doc):
                     self.document(value, key, name, fdict, cdict))
             result = result + self.bigsection(
                 'Functions', ' '.join(contents), css_class="functions")
+
         if data:
             contents = []
             for key, value in data:
                 contents.append(self.document(value, key))
             result = result + self.bigsection(
                 'Data', '<br>\n'.join(contents), css_class="data")
+
         if hasattr(object, '__author__'):
             contents = self.markup(str(object.__author__), self.preformat)
             result = result + self.bigsection(
                 'Author', contents, css_class="author")
+
         if hasattr(object, '__credits__'):
             contents = self.markup(str(object.__credits__), self.preformat)
             result = result + self.bigsection(
@@ -473,6 +499,8 @@ class CustomHTMLDoc(Doc):
                           lambda t: t[1] == 'class method')
             attrs = spill('Static methods %s' % tag, attrs,
                           lambda t: t[1] == 'static method')
+            attrs = spilldescriptors("Readonly properties %s" % tag, attrs,
+                                     lambda t: t[1] == 'readonly property')
             attrs = spilldescriptors('Data descriptors %s' % tag, attrs,
                                      lambda t: t[1] == 'data descriptor')
             attrs = spilldata('Data and other attributes %s' % tag, attrs,
@@ -629,8 +657,6 @@ def _url_handler(url, content_type="text/html"):
 
         def page(self, title, contents):
             """Format an HTML page."""
-            rich_text_font = get_font(option="rich_font").family()
-            plain_text_font = get_font(option="font").family()
 
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
@@ -638,20 +664,22 @@ def _url_handler(url, content_type="text/html"):
                 css_path = "static/css/light_pydoc.css"
 
             css_link = (
-                '<link rel="stylesheet" type="text/css" href="/%s">' %
-                css_path)
+                f'<link rel="stylesheet" type="text/css" href="/{css_path}">'
+            )
 
             code_style = (
-                '<style>code {font-family: "%s"}</style>' % plain_text_font)
+                '<style>code {{font-family: "{}"; font-size: {}pt}}</style>'
+            ).format(self.plain_font.family(), self.app_font_size)
 
             html_page = '''\
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html><head><title>Pydoc: %s</title>
+<html><head><title>Pydoc: {}</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s%s</head><body style="clear:both;font-family:'%s'">
-%s<div style="clear:both;padding-top:.7em;">%s</div>
-</body></html>''' % (title, css_link, code_style, rich_text_font,
-                     html_navbar(), contents)
+{}{}</head><body style="clear: both; font-family: '{}'; font-size: {}pt">
+{}<div style="clear:both;padding-top:.7em;">{}</div>
+</body></html>'''.format(
+    title, css_link, code_style, self.app_font.family(),
+    self.app_font_size, html_navbar(), contents)
 
             return html_page
 
@@ -697,12 +725,8 @@ def _url_handler(url, content_type="text/html"):
 
         seen = {}
         for dir in sys.path:
-
             contents.append(html.index(dir, seen))
 
-        contents.append(
-            '<p class="ka_ping_yee"><strong>pydoc</strong> by Ka-Ping Yee'
-            '&lt;ping@lfw.org&gt;</p>')
         return 'Index of Modules', ''.join(contents)
 
     def html_search(key):
@@ -717,7 +741,9 @@ def _url_handler(url, content_type="text/html"):
 
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore')  # ignore problems during import
-            ModuleScanner().run(callback, key)
+            def onerror(modname):
+                pass
+            ModuleScanner().run(callback, key, onerror=onerror)
 
         # format page
         def bltinlink(name):

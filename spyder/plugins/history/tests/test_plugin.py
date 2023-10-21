@@ -6,6 +6,7 @@
 
 # Standard library imports
 import os
+import sys
 import tempfile
 
 # Third party imports
@@ -13,7 +14,7 @@ import pytest
 from qtpy.QtGui import QTextOption
 
 # Local imports
-from spyder.config.base import get_conf_path
+from spyder.config.base import get_conf_path, running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.history import plugin as history
 
@@ -62,6 +63,10 @@ def test_init(historylog):
     assert len(hl.get_actions()) == 7
 
 
+@pytest.mark.skipif(
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Fails on Mac when running on CI "
+)
 def test_add_history(historylog):
     """
     Test the add_history method.

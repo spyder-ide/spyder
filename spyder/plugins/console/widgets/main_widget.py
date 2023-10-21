@@ -23,6 +23,7 @@ import sys
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QAction, QInputDialog, QLineEdit, QVBoxLayout
+from qtpy import PYSIDE2
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -349,7 +350,7 @@ class ConsoleWidget(PluginMainWidget):
     @Slot(dict)
     def handle_exception(self, error_data, sender=None):
         """
-        Exception ocurred in the internal console.
+        Exception occurred in the internal console.
 
         Show a QDialog or the internal console to warn the user.
 
@@ -465,7 +466,10 @@ class ConsoleWidget(PluginMainWidget):
         if self.error_dlg.dismiss_box.isChecked():
             self.dismiss_error = True
 
-        self.error_dlg.disconnect()
+        if PYSIDE2:
+            self.error_dlg.disconnect(None, None, None)
+        else:
+            self.error_dlg.disconnect()
         self.error_dlg = None
 
     @Slot()
@@ -519,7 +523,8 @@ class ConsoleWidget(PluginMainWidget):
         logger.debug("Running script with %s", args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
-        command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))
+        command = '%runfile {} --args {}'.format(
+            repr(rbs(filename)), repr(rbs(args)))
 
         self.change_visibility(True, True)
 

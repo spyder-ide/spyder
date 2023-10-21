@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QVBoxLayout, QWidget)
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
-                                running_in_mac_app, save_lang_conf)
+                                is_conda_based_app, save_lang_conf)
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
 
@@ -69,7 +69,8 @@ class ApplicationConfigPage(PluginConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app():
+        # ??? Should we allow multiple instances for macOS?
+        if sys.platform == 'darwin' and is_conda_based_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
@@ -96,13 +97,13 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Panes"))
 
         verttabs_box = newcb(_("Vertical tabs in panes"),
-                             'vertical_tabs')
+                             'vertical_tabs', restart=True)
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           default=0, min_=0, max_=30)
-        margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
-        margin_box.toggled.connect(margin_spin.slabel.setEnabled)
+        margin_box.checkbox.toggled.connect(margin_spin.spinbox.setEnabled)
+        margin_box.checkbox.toggled.connect(margin_spin.slabel.setEnabled)
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
         margin_spin.slabel.setEnabled(self.get_option('use_custom_margin'))
 
@@ -113,8 +114,8 @@ class ApplicationConfigPage(PluginConfigPage):
             'custom_cursor_blinking',
             default=QApplication.cursorFlashTime(),
             min_=0, max_=5000, step=100)
-        cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
-        cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
+        cursor_box.checkbox.toggled.connect(cursor_spin.spinbox.setEnabled)
+        cursor_box.checkbox.toggled.connect(cursor_spin.slabel.setEnabled)
         cursor_spin.spinbox.setEnabled(
             self.get_option('use_custom_cursor_blinking'))
         cursor_spin.slabel.setEnabled(
@@ -135,7 +136,7 @@ class ApplicationConfigPage(PluginConfigPage):
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
-        if sys.platform == "darwin" and not running_in_mac_app():
+        if sys.platform == "darwin" and not is_conda_based_app():
             # To open files from Finder directly in Spyder.
             from spyder.utils.qthelpers import (register_app_launchservices,
                                                 restore_launchservices)
@@ -152,7 +153,7 @@ class ApplicationConfigPage(PluginConfigPage):
                 _("Open files from Finder with Spyder"),
                 'mac_open_file',
                 tip=_("Register Spyder with the Launch Services"))
-            mac_open_file_box.toggled.connect(set_open_file)
+            mac_open_file_box.checkbox.toggled.connect(set_open_file)
             macOS_layout = QVBoxLayout()
             macOS_layout.addWidget(mac_open_file_box)
             if als.get_bundle_identifier() is None:
@@ -206,10 +207,12 @@ class ApplicationConfigPage(PluginConfigPage):
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
 
-        normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        custom_scaling_radio.toggled.connect(
-            self.custom_scaling_edit.setEnabled)
+        normal_radio.radiobutton.toggled.connect(
+            self.custom_scaling_edit.textbox.setDisabled)
+        auto_scale_radio.radiobutton.toggled.connect(
+            self.custom_scaling_edit.textbox.setDisabled)
+        custom_scaling_radio.radiobutton.toggled.connect(
+            self.custom_scaling_edit.textbox.setEnabled)
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
@@ -217,14 +220,23 @@ class ApplicationConfigPage(PluginConfigPage):
 
         screen_resolution_inner_layout = QGridLayout()
         screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
-        screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
-        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
         screen_resolution_inner_layout.addWidget(
-            self.custom_scaling_edit, 2, 1)
+            auto_scale_radio.radiobutton, 1, 0)
+        screen_resolution_inner_layout.addWidget(
+            auto_scale_radio.radiobutton.help_label, 1, 1)
+        screen_resolution_inner_layout.addWidget(
+            custom_scaling_radio.radiobutton, 2, 0)
+        screen_resolution_inner_layout.addWidget(
+            custom_scaling_radio.radiobutton.help_label, 2, 1)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit.textbox, 2, 2)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_edit.help_label, 2, 3)
+        screen_resolution_inner_layout.setColumnStretch(2, 1)
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
-        if sys.platform == "darwin" and not running_in_mac_app():
+        if sys.platform == "darwin" and not is_conda_based_app():
             interface_tab = self.create_tab(screen_resolution_group,
                                             interface_group, macOS_group)
         else:

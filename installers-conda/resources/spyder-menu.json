@@ -7,26 +7,25 @@
             "name": "Spyder",
             "description": "Scientific PYthon Development EnviRonment",
             "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
-            "command": ["spyder", "$@"],
-            "activate": true,
+            "activate": false,
             "terminal": false,
             "platforms": {
                 "win": {
                     "desktop": true,
-                    "precommand": "set SPY_BRANCH=__SPY_BRANCH__\nset SPY_COMMIT=__SPY_COMMIT__"
+                    "app_user_model_id": "spyder.Spyder",
+                    "command": ["{{ PREFIX }}/pythonw.exe", "{{ PREFIX }}/Scripts/spyder-script.py"]
                 },
                 "linux": {
                     "Categories": [
                         "Graphics",
                         "Science"
                     ],
-                    "precommand": "export SPY_BRANCH=__SPY_BRANCH__ && export SPY_COMMIT=__SPY_COMMIT__",
+                    "command": ["{{ PREFIX }}/bin/spyder", "$@"],
                     "StartupWMClass": "Spyder"
                 },
                 "osx": {
-                    "precommand": "eval \"$($SHELL -l -c \"declare -x\")\"",
                     "command": [
-                        "{{ MENU_ITEM_LOCATION }}/Contents/MacOS/python",
+                        "$(dirname $0)/python",
                         "{{ PREFIX }}/bin/spyder",
                         "$@"
                     ],
@@ -36,12 +35,7 @@
                     "CFBundleName": "Spyder",
                     "CFBundleDisplayName": "Spyder",
                     "CFBundleIdentifier": "org.spyder-ide.Spyder",
-                    "CFBundleVersion": "__PKG_VERSION__",
-                    "LSEnvironment": {
-                        "SPYDER_APP": "True",
-                        "SPY_BRANCH": "__SPY_BRANCH__",
-                        "SPY_COMMIT": "__SPY_COMMIT__"
-                    }
+                    "CFBundleVersion": "__PKG_VERSION__"
                 }
             }
         }

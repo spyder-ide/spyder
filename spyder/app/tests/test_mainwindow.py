@@ -14,6 +14,7 @@ Tests for the main window.
 import gc
 import os
 import os.path as osp
+from pathlib import Path
 import random
 import re
 import shutil
@@ -49,14 +50,14 @@ from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
     COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
     generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, PY37, read_asset_file,
+    open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
-from spyder.plugins.externalconsole.api import ExtConsoleShConfiguration
+from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
@@ -69,7 +70,7 @@ from spyder.plugins.run.api import (
     WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
-from spyder.utils.misc import remove_backslashes
+from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
@@ -511,13 +512,13 @@ def test_get_help_ipython_console(main_window, qtbot):
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write some object in the console
-    qtbot.keyClicks(control, 'runfile')
+    qtbot.keyClicks(control, 'get_ipython')
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "SpyderShell"), timeout=6000)
 
 
 @flaky(max_runs=3)
@@ -674,10 +675,10 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    # Wait until continue and stop on the breakpoint
-    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
+    # Check we went to the first breakpoint
+    assert "2---> 2 a = 10" in control.toPlainText()
 
-    # Verify that we are still on debugging
+    # Verify that we are still debugging
     assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
@@ -884,12 +885,12 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     test_file = osp.join(LOCATION, script)
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
-    external_console = main_window.external_console
+    external_terminal = main_window.external_terminal
 
     temp_dir = str(tmpdir.mkdir("test_dir"))
 
     # --- Set run options for the executor ---
-    ext_conf = ExtConsoleShConfiguration(
+    ext_conf = ExtTerminalShConfiguration(
         interpreter=interpreter, interpreter_opts_enabled=False,
         interpreter_opts=opts, script_opts_enabled=True, script_opts=temp_dir,
         close_after_exec=True)
@@ -904,14 +905,14 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     ext_exec_conf = ExtendedRunExecutionParameters(
         uuid=exec_uuid, name='TestConf', params=exec_conf)
 
-    ipy_dict = {external_console.NAME: {
+    ipy_dict = {external_terminal.NAME: {
         (ext, RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
     }}
     CONF.set('run', 'parameters', ipy_dict)
 
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(
-        main_window, test_file, exec_uuid, external_console.NAME)
+        main_window, test_file, exec_uuid, external_terminal.NAME)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
     # --- Run test file and assert that the script gets executed ---
@@ -1259,7 +1260,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select notebook in the project explorer
     idx = projects.get_widget().treewidget.get_index(
@@ -1314,7 +1315,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.create_project(project_dir)
 
     # Select file in the project explorer
     idx = projects.get_widget().treewidget.get_index(
@@ -1612,7 +1613,7 @@ def test_run_code(main_window, qtbot, tmpdir):
         shell.execute('%reset -f')
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runcell(0)')
+        shell.execute('%runcell -i 0')
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -2387,13 +2388,57 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
-@pytest.mark.skip
+def test_plot_from_collectioneditor(main_window, qtbot):
+    """
+    Create a variable with value `[[1, 2, 3], [4, 5, 6]]`, use the variable
+    explorer to open a collection editor and plot the first sublist. Check
+    that a plot is displayed in the Plots pane.
+    """
+    CONF.set('plots', 'mute_inline_plotting', True)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    figbrowser = main_window.plots.current_widget()
+    nsb = main_window.variableexplorer.current_widget()
+
+    # Check that we start with no plots
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 0
+
+    # Wait until the window console is fully up
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Create variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('nested_list = [[1, 2, 3], [4, 5, 6]]')
+
+    # Edit `nested_list` in Variable Explorer
+    main_window.variableexplorer.change_visibility(True)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    nsb.editor.setFocus()
+    nsb.editor.edit_item()
+
+    # Find the collection editor
+    from spyder.widgets.collectionseditor import CollectionsEditor
+    for child in nsb.editor.children():
+        for grandchild in child.children():
+            if isinstance(grandchild, CollectionsEditor):
+                collections_editor = grandchild
+
+    # Plot item 0 in collection editor
+    collections_editor.widget.editor.plot(0, 'plot')
+
+    # Check that we now have one plot
+    assert len(figbrowser.thumbnails_sb._thumbnails) == 1
+
+
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
+    switcher_widget = switcher._switcher
 
     # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
@@ -2406,11 +2451,11 @@ def example_def_2():
 ''')
     main_window.editor.load(str(file_a))
 
-    main_window.open_switcher()
-    switcher_paths = [switcher.model.item(item_idx).get_description()
-                      for item_idx in range(switcher.model.rowCount())]
+    switcher.open_switcher()
+    switcher_paths = [switcher_widget.model.item(item_idx).get_description()
+                      for item_idx in range(switcher_widget.model.rowCount())]
     assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
-    switcher.close()
+    switcher.on_close()
 
     # Assert that long paths are shortened in the switcher
     dir_b = tmpdir
@@ -2420,21 +2465,21 @@ def example_def_2():
     file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.open_switcher()
-    file_b_text = switcher.model.item(
-        switcher.model.rowCount() - 1).get_description()
+    switcher.open_switcher()
+    file_b_text = switcher_widget.model.item(
+        switcher_widget.model.rowCount() - 1).get_description()
     assert '...' in file_b_text
-    switcher.close()
+    switcher.on_close()
 
     # Assert search works correctly
     search_texts = ['test_file_a', 'file_b', 'foo_spam']
     expected_paths = [file_a, file_b, None]
     for search_text, expected_path in zip(search_texts, expected_paths):
-        main_window.open_switcher()
-        qtbot.keyClicks(switcher.edit, search_text)
-        qtbot.wait(200)
-        assert switcher.count() == bool(expected_path)
-        switcher.close()
+        switcher.open_switcher()
+        qtbot.keyClicks(switcher_widget.edit, search_text)
+        qtbot.wait(500)
+        assert switcher_widget.count() == bool(expected_path)
+        switcher.on_close()
 
     # Assert symbol switcher works
     main_window.editor.set_current_filename(str(file_a))
@@ -2450,15 +2495,15 @@ def example_def_2():
 
     qtbot.wait(9000)
 
-    main_window.open_switcher()
-    qtbot.keyClicks(switcher.edit, '@')
-    qtbot.wait(200)
-    assert switcher.count() == 2
-    switcher.close()
+    switcher.open_switcher()
+    qtbot.keyClicks(switcher_widget.edit, '@')
+    qtbot.wait(500)
+    assert switcher_widget.count() == 2
+    switcher.on_close()
 
 
 @flaky(max_runs=3)
-def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
+def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
     """
     Test that the file switcher is working as expected when called from the
     editorstack.
@@ -2473,16 +2518,15 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Add a file to the editor.
     file = tmpdir.join('test_file_open_switcher_dlg.py')
-    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    file.write("a test file for test_editorstack_open_switcher_dlg")
     main_window.editor.load(str(file))
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_switcher_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert (editorstack.switcher_dlg.count() ==
+    editorstack.switcher_plugin.open_switcher()
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.is_visible()
+    assert (editorstack.switcher_plugin.count() ==
             len(main_window.editor.get_filenames()))
 
 
@@ -2507,12 +2551,12 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     # Add a file to the editor.
     file = tmpdir.join('test_file.py')
     file.write('''
-               def example_def():
-                   pass
+def example_def():
+    pass
 
-               def example_def_2():
-                   pass
-               ''')
+def example_def_2():
+    pass
+''')
     main_window.editor.load(str(file))
 
     code_editor = main_window.editor.get_focus_widget()
@@ -2528,11 +2572,136 @@ def test_editorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_dlg is None
-    editorstack.open_symbolfinder_dlg()
-    assert editorstack.switcher_dlg
-    assert editorstack.switcher_dlg.isVisible()
-    assert editorstack.switcher_dlg.count() == 2
+    editorstack.switcher_plugin.open_symbolfinder()
+    qtbot.wait(500)
+    assert editorstack.switcher_plugin
+    assert editorstack.switcher_plugin.is_visible()
+    assert editorstack.switcher_plugin.count() == 2
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(running_in_ci(), reason="Can't run on CI")
+def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
+                                       tmp_path):
+    """Test integration between the Switcher and Projects plugins."""
+    # Disable pytest stdin capture to make calls to fzf work. Idea taken from:
+    # https://github.com/pytest-dev/pytest/issues/2189#issuecomment-449512764
+    capmanager = pytestconfig.pluginmanager.getplugin('capturemanager')
+    capmanager.suspend_global_capture(in_=True)
+
+    # Wait until the console is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    switcher = main_window.switcher
+    switcher_widget = switcher._switcher
+    projects = main_window.projects
+    projects.toggle_view_action.setChecked(True)
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = tmp_path / 'test-projects-switcher'
+    project_dir.mkdir()
+
+    # Create some empty files in the project dir
+    n_files_project = 3
+    for i in range(n_files_project):
+        fpath = project_dir / f"test_file{i}.py"
+        fpath.touch()
+
+    # Copy binary file from our source tree to the project to check it's not
+    # displayed in the switcher.
+    binary_file = Path(LOCATION).parents[1] / 'images' / 'windows_app_icon.ico'
+    binary_file_copy = project_dir / 'windows.ico'
+    shutil.copyfile(binary_file, binary_file_copy)
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects.create_project(str(project_dir))
+
+    # Check that the switcher has been populated in Projects
+    qtbot.waitUntil(
+        lambda: projects.get_widget()._default_switcher_paths != [],
+        timeout=1000
+    )
+
+    # Assert that the number of items in the switcher is correct
+    switcher.open_switcher()
+    n_files_open = editorstack.get_stack_count()
+    assert switcher.count() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Assert only two items have visible sections
+    switcher.open_switcher()
+
+    sections = []
+    for row in range(switcher.count()):
+        item = switcher_widget.model.item(row)
+        if item._section_visible:
+            sections.append(item.get_section())
+
+    assert len(sections) == 2
+    switcher.on_close()
+
+    # Assert searching text in the switcher works as expected
+    switcher.open_switcher()
+    switcher.set_search_text('0')
+    qtbot.wait(500)
+    assert switcher.count() == 1
+    switcher.on_close()
+
+    # Assert searching for a non-existent file leaves the switcher empty
+    switcher.open_switcher()
+    switcher.set_search_text('foo')
+    qtbot.wait(500)
+    assert switcher.count() == 0
+    switcher.on_close()
+
+    # Assert searching for a binary file leaves the switcher empty
+    switcher.open_switcher()
+    switcher.set_search_text('windows')
+    qtbot.wait(500)
+    assert switcher.count() == 0
+    switcher.on_close()
+
+    # Remove project file and check the switcher is updated
+    n_files_project -= 1
+    os.remove(str(project_dir / 'test_file1.py'))
+    qtbot.wait(500)
+    switcher.open_switcher()
+    assert switcher.count() == n_files_open + n_files_project
+    switcher.on_close()
+
+    # Check that a project file opened in the editor is not shown twice in the
+    # switcher
+    idx = projects.get_widget().treewidget.get_index(
+        str(project_dir / 'test_file0.py')
+    )
+    projects.get_widget().treewidget.setCurrentIndex(idx)
+    qtbot.keyClick(projects.get_widget().treewidget, Qt.Key_Enter)
+
+    switcher.open_switcher()
+    n_files_open = editorstack.get_stack_count()
+    assert switcher.count() == n_files_open + n_files_project - 1
+    switcher.on_close()
+
+    # Check the switcher works without fzf
+    fzf = projects.get_widget()._fzf
+    projects.get_widget()._fzf = None
+    projects.get_widget()._default_switcher_paths = []
+
+    switcher.open_switcher()
+    switcher.set_search_text('0')
+    qtbot.wait(500)
+    assert switcher.count() == 1
+    switcher.on_close()
+
+    projects.get_widget()._fzf = fzf
+
+    # Resume capturing
+    capmanager.resume_global_capture()
 
 
 @flaky(max_runs=3)
@@ -2783,7 +2952,7 @@ def test_save_on_runfile(main_window, qtbot):
     qtbot.keyClicks(code_editor, 'test_var = 123', delay=100)
     filename = code_editor.filename
     with qtbot.waitSignal(shell.sig_prompt_ready):
-        shell.execute('runfile("{}")'.format(remove_backslashes(filename)))
+        shell.execute('%runfile {}'.format(repr(remove_backslashes(filename))))
 
     assert shell.get_value('test_var') == 123
     main_window.editor.close_file()
@@ -2976,7 +3145,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         check_name = tab_widgets[tabname]
         check = getattr(tab, check_name)
         page.tabs.setCurrentIndex(idx)
-        check.animateClick()
+        check.checkbox.animateClick()
         qtbot.wait(500)
     dlg.ok_btn.animateClick()
 
@@ -3014,10 +3183,11 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
 
-@pytest.mark.skipif(PY37, reason="Segfaults too much on Python 3.7")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Makes other tests hang on Linux")
 def test_preferences_change_font_regression(main_window, qtbot):
     """
-    Test for spyder-ide/spyder/#10284 regression.
+    Test for spyder-ide/spyder#10284 regression.
 
     Changing font resulted in error.
     """
@@ -3027,19 +3197,33 @@ def test_preferences_change_font_regression(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
+    # Open Preferences and select monospace font combobox
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'appearance')
-    for fontbox in [page.plain_text_font.fontbox,
-                    page.rich_text_font.fontbox]:
-        fontbox.setFocus()
-        idx = fontbox.currentIndex()
-        fontbox.setCurrentIndex(idx + 1)
+    fontbox = page.plain_text_font.fontbox
 
+    # Get current font family
+    current_family = fontbox.currentFont().family()
+
+    # Change font
+    fontbox.setFocus()
+    idx = fontbox.currentIndex()
+    fontbox.setCurrentIndex(idx + 1)
+
+    dlg.apply_btn.animateClick()
+    qtbot.wait(1000)
+
+    new_family = fontbox.currentFont().family()
+    assert new_family != current_family
+
+    # Check that the new font was applied
+    ipyconsole = main_window.ipyconsole
+    assert ipyconsole.get_current_shellwidget().font.family() == new_family
+
+    # Close Preferences
     preferences = main_window.preferences
     container = preferences.get_container()
-
     dlg.ok_btn.animateClick()
-
     qtbot.waitUntil(lambda: container.dialog is None, timeout=5000)
 
 
@@ -3150,7 +3334,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'main_interpreter')
-    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_radio.radiobutton.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
 
     mi_container = main_window.main_interpreter.get_container()
@@ -3282,13 +3466,14 @@ def test_debug_unsaved_file(main_window, qtbot):
     qtbot.wait(500)
 
     # Start debugging
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # There is a breakpoint, so it should continue
-    qtbot.waitUntil(
-        lambda: '!continue' in shell._control.toPlainText())
-    qtbot.waitUntil(
-        lambda: "1---> 2 print(1)" in control.toPlainText())
+    assert "1---> 2 print(1)" in control.toPlainText()
+
+    # Verify that we are still debugging
+    assert shell.is_waiting_pdb_input()
 
 
 @flaky(max_runs=3)
@@ -3313,7 +3498,7 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         function = 'runcell'
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
+        shell.execute("%{} -i 0 {}".format(function, repr(to_text_string(p))))
 
     if debug:
         # Reach the 'name' input
@@ -3351,7 +3536,7 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("runcell(1, r'{}')".format(to_text_string(p)))
+        shell.execute("%runcell -i 1 {}".format(repr(to_text_string(p))))
 
     assert "1234" in shell._control.toPlainText()
     assert "This is not valid Python code" not in shell._control.toPlainText()
@@ -3549,17 +3734,17 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_and_advance_button,
                          Qt.LeftButton)
-    qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText(),
+    qtbot.waitUntil(lambda: '%runcell -i 0' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'runcell(0' in shell._control.toPlainText()
+    assert '%runcell -i 0' in shell._control.toPlainText()
     assert 'cell is empty' not in shell._control.toPlainText()
 
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_and_advance_button,
                          Qt.LeftButton)
-    qtbot.waitUntil(lambda: 'runcell(1' in shell._control.toPlainText(),
+    qtbot.waitUntil(lambda: '%runcell -i 1' in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'runcell(1' in shell._control.toPlainText()
+    assert '%runcell -i 1' in shell._control.toPlainText()
     assert 'Error' not in shell._control.toPlainText()
     assert 'cell is empty' in shell._control.toPlainText()
 
@@ -3739,8 +3924,8 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
-                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+        shell.execute('%runfile ' + repr(str(test_file2).replace("\\", "/")) +
+                      ' --wdir ' + repr(str(folder).replace("\\", "/")))
     assert '1/0' in control.toPlainText()
 
     # Replace QApplication.processEvents to make sure it is not called
@@ -3802,8 +3987,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
-                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+        shell.execute('%runfile ' + repr(str(test_file2).replace("\\", "/")) +
+                      ' --wdir ' + repr(str(folder).replace("\\", "/")))
     qtbot.wait(1000)
     assert '1/0' in control.toPlainText()
 
@@ -3940,7 +4125,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+        shell.execute("%runcell -i 0 {}".format(repr(to_text_string(p))))
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     error_text = 'save this file with the .ipy extension'
@@ -4046,7 +4231,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     main_window.debugger.clear_all_breakpoints()
 
     shell.execute(
-        "runfile(" + repr(str(file2)) + ")"
+        "%runfile " + repr(str(file2))
     )
 
     # Check nothing is in the variableexplorer
@@ -4070,7 +4255,7 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "debugfile(" + repr(str(file1)) + ")"
+            "%debugfile " + repr(str(file1))
         )
 
     # continue
@@ -4114,11 +4299,10 @@ def test_debug_namespace(main_window, qtbot, tmpdir):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute(
-            "debugfile(" +
+            "%debugfile " +
             repr(str(file2)) +
-            ", wdir=" +
-            repr(str(tmpdir)) +
-            ")"
+            " --wdir " +
+            repr(str(tmpdir))
         )
 
     # Check nothing is in the variableexplorer
@@ -4160,8 +4344,7 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     test_file.write('raise RuntimeError\n')
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute(
-            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
+        shell.execute("%runfile " + repr(str(test_file)) + " --post-mortem")
 
     assert "IPdb [" in control.toPlainText()
 
@@ -4586,6 +4769,39 @@ def test_update_outline(main_window, qtbot, tmpdir):
     root_1 = treewidget.editor_items[treewidget.current_editor.get_id()]
     assert root_1.node.childCount() == 2
 
+    # Check that class/function selector of cloned editor is populated
+    editorstack_1.set_stack_index(idx)
+    editor_1 = editorstack_1.get_current_editor()
+    editor_2 = editorstack_2.get_current_editor()
+    assert editor_2.is_cloned
+    # one class + "<None>" entry
+    assert editor_2.classfuncdropdown.class_cb.count() == 2
+    # one function + two methods + "<None>" entry
+    assert editor_2.classfuncdropdown.method_cb.count() == 4
+    assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
+
+    def get_cb_list(cb):
+        return [cb.itemText(i) for i in range(cb.count())]
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
+
+    # Check that class/function selector of cloned editor is updated
+    with qtbot.waitSignal(editor_2.oe_proxy.sig_outline_explorer_data_changed,
+                          timeout=5000):
+        editor_2.set_text('def baz(x):\n    return x')
+    assert editor_2.is_cloned
+    # "<None>" entry
+    assert editor_2.classfuncdropdown.class_cb.count() == 1
+    # one function + "<None>" entry
+    assert editor_2.classfuncdropdown.method_cb.count() == 2
+    assert editor_1.classfuncdropdown._data == editor_2.classfuncdropdown._data
+    assert get_cb_list(editor_1.classfuncdropdown.class_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.class_cb)
+    assert get_cb_list(editor_1.classfuncdropdown.method_cb) == \
+           get_cb_list(editor_2.classfuncdropdown.method_cb)
+
     # Hide outline from view
     outline_explorer.toggle_view_action.setChecked(False)
 
@@ -4962,12 +5178,10 @@ def test_pdb_ipykernel(main_window, qtbot):
     control = ipyconsole.get_widget().get_focus_widget()
 
     shell.execute("%debug print()")
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [1]:" in control.toPlainText())
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: "IPdb [2]:" in control.toPlainText())
 
     assert "Two: 2" in control.toPlainText()
 
@@ -5101,8 +5315,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     # Test copy
     cursor = code_editor.textCursor()
     cursor.setPosition(69)
-    cursor.movePosition(QTextCursor.End,
-                        QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
     code_editor.setTextCursor(cursor)
     qtbot.keyClick(code_editor, "c", modifier=Qt.ControlModifier)
     assert QApplication.clipboard().text() == (
@@ -5153,6 +5366,50 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
             external_names.append(name)
 
     assert 'spyder-boilerplate' in external_names
+
+
+def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
+    """Test that the debugger can handle variables named globals and locals."""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Test code
+    code = (
+        "globals = 10\n"
+        "def fun():\n"
+        "    locals = 15\n"
+        "    return\n"
+        "fun()"
+    )
+    p = tmpdir.join("test_gl.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+
+    # Run file inside a debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debugfile " + repr(str(p)))
+
+    # Add breakpoint on line 4 and go there
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("b 4")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("c")
+
+    # Make sure we can look at the variables
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("globals")
+    assert "Out  [3]: 10" in shell._control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("locals")
+    assert "Out  [4]: 15" in shell._control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    # No errors
+    assert "error" not in shell._control.toPlainText().lower()
 
 
 @flaky(max_runs=3)
@@ -6122,6 +6379,257 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
         shell.execute("import sys; sys_path = sys.path")
 
     assert str(new_dir) in shell.get_value("sys_path")
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
+def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
+    """
+    Test that file names in IPython console tracebacks are clickable.
+
+    This is a regression test for issue spyder-ide/spyder#20407.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Copy test file to a temporary location to avoid modifying it.
+    # See spyder-ide/spyder#21186 for the details
+    test_file_orig = osp.join(LOCATION, 'script.py')
+    test_file = str(tmp_path / 'script.py')
+    shutil.copyfile(test_file_orig, test_file)
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Introduce an error at the end of the file. This only works if the last
+    # line is empty.
+    text = code_editor.toPlainText()
+    assert text.splitlines(keepends=True)[-1].endswith('\n')
+
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    code_editor.setTextCursor(cursor)
+    qtbot.keyClicks(code_editor, '1/0')
+
+    # Run test file
+    run_parameters = generate_run_parameters(main_window, test_file)
+    CONF.set('run', 'last_used_parameters', run_parameters)
+    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+    qtbot.wait(500)
+
+    # Find last 'File' line in traceback, which corresponds to the file we
+    # opened.
+    control.setFocus()
+    find_widget = main_window.ipyconsole.get_widget().find_widget
+    find_widget.show()
+    find_widget.search_text.lineEdit().setText('  File')
+    find_widget.find_previous()
+
+    # Position mouse on top of that line
+    cursor_point = control.cursorRect(control.textCursor()).center()
+    qtbot.mouseMove(control, cursor_point)
+    qtbot.wait(500)
+
+    # Check cursor shape is the right one
+    assert QApplication.overrideCursor().shape() == Qt.PointingHandCursor
+
+    # Click on the line and check that that sends us to the editor
+    qtbot.mouseClick(control.viewport(), Qt.LeftButton, pos=cursor_point,
+                     delay=300)
+    assert QApplication.focusWidget() is code_editor
+
+    # Check we are in the right line
+    cursor = code_editor.textCursor()
+    assert cursor.blockNumber() == code_editor.blockCount() - 1
+
+
+def test_recursive_debug_exception(main_window, qtbot):
+    """
+    Test that an exception in a recursive debug does not break the debugger.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    # Create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code = 'print("res", 1 + 2)\nprint("res", 2 + 4)'
+    code_editor.set_text(code)
+
+    # Debug line
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debugfile " + remove_backslashes(str(
+            main_window.editor.get_current_filename())))
+
+    assert shell.is_debugging()
+    assert '----> 1 print("res", 1 + 2)' in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("debug 1/0")
+
+    assert "Entering recursive debugger" in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("c")
+
+    assert "ZeroDivisionError" in control.toPlainText()
+    assert "Leaving recursive debugger" in control.toPlainText()
+    assert "IPdb [2]:" in control.toPlainText()
+    assert shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+
+    assert "res 3" in control.toPlainText()
+    assert shell.is_debugging()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    assert not shell.is_debugging()
+
+
+@flaky(max_runs=3)
+def test_runfile_namespace(main_window, qtbot, tmpdir):
+    """Test that namespaces behave correctly when using runfile."""
+    baba_file = tmpdir.join("baba.py")
+    baba_file.write("baba = 1")
+    baba_path = to_text_string(baba_file)
+
+    # Create code
+    code = "\n".join([
+        "def fun():",
+        "    %runfile {}".format(repr(baba_path)),
+        '    print("test_locals", "baba" in locals(), "baba" in globals())',
+        "fun()",
+
+        "def fun():",
+        "    ns = {}",
+        "    %runfile {} --namespace ns".format(repr(baba_path)),
+        '    print("test_locals_namespace", "baba" in ns, "baba" in locals(), "baba" in globals())',
+        "fun()",
+
+        "ns = {}",
+        "%runfile {} --namespace ns".format(repr(baba_path)),
+        'print("test_globals_namespace", "baba" in ns, "baba" in globals())',
+
+        "%runfile {}".format(repr(baba_path)),
+        'print("test_globals", "baba" in globals())',
+    ])
+
+    p = tmpdir.join("test.ipy")
+    p.write(code)
+    test_file = to_text_string(p)
+
+    # Run file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+        shell.execute('%runfile {}'.format(repr(test_file)))
+
+    # Check results
+    control = shell._control
+    assert "test_locals True False" in control.toPlainText()
+    assert "test_locals_namespace True False False" in control.toPlainText()
+    assert "test_globals_namespace True False" in control.toPlainText()
+    assert "test_globals True" in control.toPlainText()
+
+
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason="No quotes on Windows file paths"
+)
+def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+    """
+    Test that we can run files with quotes in name, renamed files,
+    and ipy files.
+    """
+    # create a file with a funky name
+    path = "a'b\"c\\.py"
+    file = tmpdir.join(path)
+    file.write("print(23 + 780)")
+    path = to_text_string(file)
+    main_window.editor.load(path)
+
+    # Run file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "803" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(22 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "802" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+
+    # Make sure this works with ipy and renamed files too
+
+    # Rename the file to IPython and emit the signal for that
+    rename_file(path, path[:-2] + "ipy")
+    explorer = main_window.get_plugin(Plugins.Explorer)
+    explorer.sig_file_renamed.emit(path, path[:-2] + "ipy")
+
+    code_editor.set_text("print(21 + 780)")
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+
+    assert "801" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "\\.ipy" in control.toPlainText()
+    
+    # Create an untitled file
+    main_window.editor.new()
+    
+    assert "untitled" in main_window.editor.get_current_filename()
+    
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text("print(20 + 780)")
+    
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+
+    assert "800" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "untitled" in control.toPlainText()
+    
+    # Save file in a new folder
+    code_editor.set_text("print(19 + 780)")
+    
+    with tempfile.TemporaryDirectory() as td:
+    
+        editorstack = main_window.editor.get_current_editorstack()
+        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
+        main_window.editor.save()
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    
+        assert "799" in control.toPlainText()
+        assert "error" not in control.toPlainText()
+        assert "fn.ipy" in control.toPlainText()
+        main_window.editor.close_file()
 
 
 if __name__ == "__main__":

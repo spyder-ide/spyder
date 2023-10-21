@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
@@ -57,7 +59,7 @@ jobs:
         INSTALL_TYPE: ['conda']
         PYTHON_VERSION: ['3.9']
         TEST_TYPE: ['fast', 'slow']
-    timeout-minutes: 120
+    timeout-minutes: 90
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -83,13 +85,12 @@ jobs:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
-          extra-specs: |
-            python=${{ matrix.PYTHON_VERSION }}
+          create-args: python=${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
@@ -109,10 +110,12 @@ jobs:
         shell: bash -l {0}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh || \
-          bash -l .github/scripts/run_tests.sh
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh
       - name: Coverage
-        shell: bash -l {0}
-        run: codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
+          verbose: true

@@ -138,7 +138,6 @@ class IconManager():
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],
             'breakpoints':             [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
             'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 1.5}],
-            'debug':                   [('mdi.step-forward-2',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-over':         [('mdi.debug-step-over',), {'color': SpyderPalette.ICON_2}],
             'arrow-continue':          [('mdi.fast-forward',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-in':           [('mdi.debug-step-into',), {'color': SpyderPalette.ICON_2}],
@@ -166,22 +165,24 @@ class IconManager():
             'ipython_console':         [('mdi.console',), {'color': self.MAIN_FG_COLOR}],
             'python':                  [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
             'pythonpath':              [('spyder.python-logo-up', 'spyder.python-logo-down'), {'options': [{'color': SpyderPalette.PYTHON_LOGO_UP}, {'color': SpyderPalette.PYTHON_LOGO_DOWN}]}],
-            'findf':                   [('mdi.file-find',), {'color': self.MAIN_FG_COLOR}],
+            'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
+            'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
+            'help_gray':               [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_OCCURRENCE_4}],            
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
+            'online_help':             [('mdi.help-rhombus-outline',), {'color': self.MAIN_FG_COLOR}],
             'lock':                    [('mdi.lock',), {'color': self.MAIN_FG_COLOR}],
             'lock_open':               [('mdi.lock-open',), {'color': self.MAIN_FG_COLOR}],
             'outline_explorer':        [('mdi.file-tree',), {'color': self.MAIN_FG_COLOR}],
-            'dictedit':                [('mdi.view-list',), {'color': self.MAIN_FG_COLOR}],
+            'switcher':                [('mdi.arrow-left-right-bold',), {'color': self.MAIN_FG_COLOR}],
+            'variable_explorer':       [('mdi.telescope',), {'color': self.MAIN_FG_COLOR}],
+            'dictedit':                [('mdi.view-list-outline',), {'color': self.MAIN_FG_COLOR}],
             'previous':                [('mdi.arrow-left-bold',), {'color': self.MAIN_FG_COLOR}],
             'next':                    [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'up':                      [('mdi.arrow-up-bold',), {'color': self.MAIN_FG_COLOR}],
             'spyder':                  [('spyder.spyder-logo-background', 'spyder.spyder-logo-web', 'spyder.spyder-logo-snake'),  {'options': [{'color': SpyderPalette.SPYDER_LOGO_BACKGROUND}, {'color': SpyderPalette.SPYDER_LOGO_WEB}, {'color': SpyderPalette.SPYDER_LOGO_SNAKE}]}],
             'find':                    [('mdi.magnify',), {'color': self.MAIN_FG_COLOR}],
             'replace':                 [('mdi.find-replace',), {'color': self.MAIN_FG_COLOR}],
-            'replace_next':            [('mdi6.arrow-right-bottom',), {'color': self.MAIN_FG_COLOR}],
-            'replace_all':             [('mdi.file-replace-outline',), {'color': self.MAIN_FG_COLOR}],
-            'replace_selection':       [('ph.rectangle-bold',), {'color': self.MAIN_FG_COLOR}],
             'number_matches':          [('mdi.pound-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'undo':                    [('mdi.undo',), {'color': self.MAIN_FG_COLOR}],
             'redo':                    [('mdi.redo',), {'color': self.MAIN_FG_COLOR}],
@@ -200,7 +201,7 @@ class IconManager():
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'plot':                    [('mdi.chart-line',), {'color': self.MAIN_FG_COLOR}],
+            'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
@@ -323,7 +324,7 @@ class IconManager():
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
-            'tour':                    [('mdi.map-outline',), {'color': self.MAIN_FG_COLOR}],
+            'tour':                    [('mdi.compass',), {'color': self.MAIN_FG_COLOR}],
             'tour.close':              [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'tour.home':               [('mdi.skip-backward',), {'color': self.MAIN_FG_COLOR}],
             'tour.previous':           [('mdi.skip-previous',), {'color': self.MAIN_FG_COLOR}],
@@ -444,9 +445,6 @@ class IconManager():
                 # Load custom icons
                 icon = QIcon(self.get_icon(name))
                 return icon if icon is not None else QIcon()
-        elif theme == 'spyder 2':
-            icon = self.get_icon(name, resample=resample)
-            return icon if icon is not None else QIcon()
 
     def get_icon_by_extension_or_type(self, fname, scale_factor):
         """Return the icon depending on the file extension"""
@@ -456,7 +454,14 @@ class IconManager():
 
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
-        mime_type, __ = mime.guess_type(basename)
+
+        # Catch error when it's not possible to access the Windows registry to
+        # check for this.
+        # Fixes spyder-ide/spyder#21304
+        try:
+            mime_type, __ = mime.guess_type(basename)
+        except PermissionError:
+            mime_type = None
 
         if osp.isdir(fname):
             extension = "Folder"

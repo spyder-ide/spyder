@@ -25,13 +25,13 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QVBoxLayout)
+                            QStackedWidget, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, is_pynsist
+from spyder.config.base import get_conf_path, is_conda_based_app
 from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
@@ -42,6 +42,7 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # --- Constants
@@ -58,7 +59,6 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 # is easier to use
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
-
 
 
 class PylintWidgetActions:
@@ -316,6 +316,14 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "code-analysis",
+            _("Code not analyzed yet"),
+            _("Run an analysis using Pylint to get feedback on "
+              "style issues, bad practices, potential bugs, "
+              "and suggested improvements in your code.")
+        )
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -333,8 +341,12 @@ class PylintWidget(PluginMainWidget):
             self.set_filename(fname)
 
         # Layout
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.addWidget(self.pane_empty)
+        self.stacked_widget.addWidget(self.treewidget)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.treewidget)
+        layout.addWidget(self.stacked_widget)
         self.setLayout(layout)
 
         # Signals
@@ -372,7 +384,7 @@ class PylintWidget(PluginMainWidget):
             processEnvironment.insert("USERPROFILE", user_profile)
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
-            if not is_pynsist() and not is_anaconda():
+            if not is_conda_based_app() and not is_anaconda():
                 processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         process.setProcessEnvironment(processEnvironment)
@@ -781,14 +793,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
+            self.stacked_widget.setCurrentWidget(self.pane_empty)
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
+                self.stacked_widget.setCurrentWidget(self.treewidget)
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
+                self.stacked_widget.setCurrentWidget(self.treewidget)
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"

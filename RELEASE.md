@@ -113,7 +113,7 @@ To release a new version of Spyder you need to follow these steps:
   - `binder/environment.yml`
   - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
-**Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
+      **Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package or when doing alphas for Spyder. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
 * Commit with
 
@@ -130,20 +130,18 @@ To release a new version of Spyder you need to follow these steps:
 
 ### Check release candidate
 
-* Update version in `__init__.py` (set release version, remove 'dev0', add 'preX'), then
+* Update version in `__init__.py` (set release version, remove '.dev0', add 'rcX'), then
 
       git add .
-      git commit -m "Release X.X.XpreX [ci skip]"
+      git commit -m "Release X.X.XrcX [ci skip]"
       git push upstream 5.x
 
 * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
-    - Create Windows Installer
-    - Create macOS App Bundle and DMG
     - Create conda-based installers for Windows, macOS, and Linux
 
 * Download and test the installation of the resulting artifacts.
 
-* If either of the previous two steps fail merge a fix PR and begin again with incremented 'preX'.
+* If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
 ## To do the release
 
@@ -151,13 +149,16 @@ To release a new version of Spyder you need to follow these steps:
 
 * git pull or git fetch/merge
 
-* Update `changelogs/Spyder-5.md` with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-6.md` with `loghub spyder-ide/spyder -m vX.X.X`
+
+    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-7.md` to the tree.
+    - After that, add `changelogs/Spyder-7.md` to `MANIFEST.in`, remove `changelogs/Spyder-6.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-5.md`. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
-* Update Announcements.md (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
+* Update [Announcements.md](Announcements.md) (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
 

@@ -20,15 +20,15 @@ from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QSize, Qt, Slot)
 from qtpy.QtWidgets import (
     QApplication, QStyle, QStyledItemDelegate, QStyleOptionViewItem,
-    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
+    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget, QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
-from spyder.config.gui import get_font
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
 class FramesBrowserState:
@@ -88,7 +88,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, shellwidget, color_scheme):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.shellwidget = shellwidget
         self.results_browser = None
         self.color_scheme = color_scheme
@@ -132,6 +132,12 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             return False
         return self.finder.isVisible()
 
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.container)
+
     def setup(self):
         """
         Setup the frames browser with provided settings.
@@ -149,13 +155,33 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
 
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "debugger",
+            _("Debugging is not active"),
+            _("Start a debugging session with the ⏯ button, allowing you to "
+              "step through your code and see the functions here that "
+              "Python has run.")
+        )
+
         # Setup layout.
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
+        self.setContentsMargins(0, 0, 0, 0)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.results_browser)
-        layout.addSpacing(1)
         layout.addWidget(self.finder)
-        self.setLayout(layout)
+
+        self.container = QWidget(self)
+        self.container.setLayout(layout)
+        self.stack_layout.addWidget(self.container)
 
     def _show_namespace(self, namespace):
         """
@@ -171,12 +197,16 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pdb_curindex = None
 
         if self.results_browser is not None:
+            if frames is not None:
+                self.set_pane_empty(False)
+            else:
+                self.set_pane_empty(True)
             self.results_browser.set_frames(frames)
             self.results_browser.set_title(title)
             try:
                 self.results_browser.sig_activated.disconnect(
                     self.set_pdb_index)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
     def set_pdb_index(self, index):
@@ -454,7 +484,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
+class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
+                     SpyderFontsMixin):
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
@@ -462,7 +493,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
         self.color_scheme = color_scheme
@@ -497,8 +528,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor):
             self.sig_edit_goto.emit(filename, lineno, '')
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
-        if self.get_conf("show_locals_on_click"):
-            self.view_item_locals()
 
     def view_item_locals(self):
         """View item locals."""

@@ -19,7 +19,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.editor.widgets import editor as editor_module
+from spyder.plugins.editor.widgets.editorstack import editorstack as editor_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
 

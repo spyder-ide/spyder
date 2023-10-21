@@ -45,7 +45,7 @@ class StatusBar(SpyderPluginV2):
     INTERNAL_WIDGETS_IDS = {
         'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
         'eol_status', 'encoding_status', 'cursor_position_status',
-        'vcs_status', 'lsp_status', 'kite_status', 'completion_status',
+        'vcs_status', 'lsp_status', 'completion_status',
         'interpreter_status', 'application_update_status'}
 
     # ---- SpyderPluginV2 API
@@ -53,11 +53,13 @@ class StatusBar(SpyderPluginV2):
     def get_name():
         return _('Status bar')
 
-    def get_icon(self):
-        return self.create_icon('statusbar')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('statusbar')
 
-    def get_description(self):
-        return _('Provide Core user interface management')
+    @staticmethod
+    def get_description():
+        return _("Display the main window status bar.")
 
     def on_initialize(self):
         # --- Status widgets
@@ -213,7 +215,7 @@ class StatusBar(SpyderPluginV2):
         internal_layout = [
             'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
             'eol_status', 'encoding_status', 'cursor_position_status',
-            'vcs_status', 'lsp_status', 'kite_status', 'completion_status',
+            'vcs_status', 'lsp_status', 'completion_status',
             'interpreter_status', 'application_update_status']
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 

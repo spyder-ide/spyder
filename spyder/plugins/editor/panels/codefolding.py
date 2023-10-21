@@ -31,7 +31,7 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
 # Local imports
 from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
@@ -239,7 +239,7 @@ class FoldingPanel(Panel):
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
         painter = QPainter(self)
-
+        self.paint_cell(painter)
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
                 for info in self.editor.visible_blocks:
@@ -248,6 +248,7 @@ class FoldingPanel(Panel):
                         line_number, top_position, block,
                         painter, mouse_hover=True)
             return
+
         # Draw background over the selected non collapsed fold region
         if self._mouse_over_line is not None:
             block = self.editor.document().findBlockByNumber(

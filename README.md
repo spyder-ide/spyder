@@ -17,12 +17,14 @@
 [![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 
 ## Build status
+
 [![Win](https://github.com/spyder-ide/spyder/workflows/Win%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Win+tests%22)
 [![Mac](https://github.com/spyder-ide/spyder/workflows/Mac%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Mac+tests%22)
 [![Linux](https://github.com/spyder-ide/spyder/workflows/Linux%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%Linux+tests%22)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
+[![Nightly conda-based installers](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml/badge.svg)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml?query=branch%3Amaster)
 
 ## Try Spyder online
 
@@ -200,13 +202,13 @@ to install them separately in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version equal or greater than 3.7.
+a Python version equal or greater than 3.8.
 
 ### Runtime dependencies
 
 The basic dependencies to run Spyder are:
 
-* **Python** 3.7+: The core language Spyder is written in and for.
+* **Python** 3.8+: The core language Spyder is written in and for.
 * **PyQt5** 5.9+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in

@@ -43,12 +43,10 @@ requirements.check_qt()
 #==============================================================================
 # Third-party imports
 #==============================================================================
-from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
-                            QShortcut, QStyleFactory)
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QShortcut
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -65,7 +63,6 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import __version__
-from spyder import dependencies
 from spyder.app.find_plugins import (
     find_external_plugins, find_internal_plugins)
 from spyder.app.utils import (
@@ -74,22 +71,21 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_pynsist, running_in_mac_app,
+                                get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
-from spyder.otherplugins import get_spyderplugins_mods
+from spyder.config.utils import IMPORT_EXT
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import (select_port, getcwd_or_home,
                                get_python_executable)
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (create_action, add_actions, file_uri,
-                                    qapplication, start_file)
+from spyder.utils.qthelpers import file_uri, qapplication, start_file
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
@@ -123,7 +119,11 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderConfigurationAccessor):
+class MainWindow(
+    QMainWindow,
+    SpyderMainWindowMixin,
+    SpyderConfigurationAccessor
+):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -222,12 +222,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             'projects': Plugins.Projects,
             'findinfiles': Plugins.Find,
             'layouts': Plugins.Layout,
+            'switcher': Plugins.Switcher,
         }
 
         self.thirdparty_plugins = []
-
-        # File switcher
-        self.switcher = None
 
         # Preferences
         self.prefs_dialog_size = None
@@ -363,17 +361,32 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if status_bar.isVisible():
             status_bar.showMessage(message, timeout)
 
-    def show_plugin_compatibility_message(self, message):
+    def show_plugin_compatibility_message(self, plugin_name, message):
         """
         Show a compatibility message.
         """
         messageBox = QMessageBox(self)
+
+        # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Compatibility Check'))
-        messageBox.setText(message)
+        messageBox.setWindowTitle(_('Plugin compatibility check'))
+        messageBox.setText(
+            _("It was not possible to load the {} plugin. The problem "
+              "was:<br><br>{}").format(plugin_name, message)
+        )
         messageBox.setStandardButtons(QMessageBox.Ok)
+
+        # Show message.
+        # Note: All adjustments that require graphical properties of the widget
+        # need to be done after this point.
         messageBox.show()
+
+        # Center message
+        screen_geometry = QApplication.desktop().screenGeometry()
+        x = (screen_geometry.width() - messageBox.width()) / 2
+        y = (screen_geometry.height() - messageBox.height()) / 2
+        messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
@@ -390,7 +403,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         plugin.get_description()
 
         if not is_compatible:
-            self.show_plugin_compatibility_message(message)
+            self.show_plugin_compatibility_message(plugin.get_name(), message)
             return
 
         # Connect plugin signals to main window methods
@@ -658,11 +671,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
         color_scheme = self.get_conf('selected', section='appearance')
+        qapp = QApplication.instance()
 
         if ui_theme == 'dark':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             dark_qss = str(APP_STYLESHEET)
             self.setStyleSheet(dark_qss)
@@ -672,7 +685,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         elif ui_theme == 'light':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
                 qapp.setStyle(self._proxy_style)
             light_qss = str(APP_STYLESHEET)
             self.setStyleSheet(light_qss)
@@ -683,7 +695,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             if not is_dark_font_color(color_scheme):
                 if not running_under_pytest():
                     # Set style proxy to fix combobox popup on mac and qdark
-                    qapp = QApplication.instance()
                     qapp.setStyle(self._proxy_style)
                 dark_qss = str(APP_STYLESHEET)
                 self.setStyleSheet(dark_qss)
@@ -695,6 +706,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                 self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
 
+        # This needs to done after applying the stylesheet to the window
+        logger.info("Set color for links in Qt widgets")
+        set_links_color(qapp)
+
         # Set css_path as a configuration to be used by the plugins
         self.set_conf('css_path', css_path, section='appearance')
 
@@ -703,40 +718,53 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        # Switcher instance
-        logger.info("Loading switcher...")
-        self.create_switcher()
-
         # Load and register internal and external plugins
         external_plugins = find_external_plugins()
         internal_plugins = find_internal_plugins()
         all_plugins = external_plugins.copy()
         all_plugins.update(internal_plugins.copy())
 
-        # Determine 'enable' config for the plugins that have it
+        # Determine 'enable' config for plugins that have it.
         enabled_plugins = {}
         registry_internal_plugins = {}
         registry_external_plugins = {}
+
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable panes that use web widgets (currently Help and Online
+            # Disable plugins that use web widgets (currently Help and Online
             # Help) if the user asks for it.
             # See spyder-ide/spyder#16518
             if self._cli_options.no_web_widgets:
                 if "help" in plugin_name:
                     continue
+
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+
             if plugin_name in internal_plugins:
                 registry_internal_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+                enable_option = "enable"
+                enable_section = plugin_main_attribute_name
             else:
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+
+                # This is a workaround to allow disabling external plugins.
+                # Because of the way the current config implementation works,
+                # an external plugin config option (e.g. 'enable') can only be
+                # read after the plugin is loaded. But here we're trying to
+                # decide if the plugin should be loaded if it's enabled. So,
+                # for now we read (and save, see the config page associated to
+                # PLUGIN_REGISTRY) that option in our internal config options.
+                # See spyder-ide/spyder#17464 for more details.
+                enable_option = f"{plugin_main_attribute_name}/enable"
+                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
+
             try:
-                if self.get_conf("enable", section=plugin_main_attribute_name):
+                if self.get_conf(enable_option, section=enable_section):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
@@ -775,80 +803,8 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
 
-        self.set_splash(_("Loading old third-party plugins..."))
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = PLUGIN_REGISTRY.register_plugin(self, mod,
-                                                         external=True)
-                if plugin.check_compatibility()[0]:
-                    if hasattr(plugin, 'CONFIGWIDGET_CLASS'):
-                        self.preferences.register_plugin_preferences(plugin)
-
-                    if not hasattr(plugin, 'COMPLETION_PROVIDER_NAME'):
-                        self.thirdparty_plugins.append(plugin)
-
-                    # Add to dependencies dialog
-                    module = mod.__name__
-                    name = module.replace('_', '-')
-                    if plugin.DESCRIPTION:
-                        description = plugin.DESCRIPTION
-                    else:
-                        description = plugin.get_plugin_title()
-
-                    dependencies.add(module, name, description,
-                                     '', None, kind=dependencies.PLUGIN)
-            except TypeError:
-                # Fixes spyder-ide/spyder#13977
-                pass
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
         # Set window title
         self.set_window_title()
-
-        # Menus
-        # TODO: Remove when all menus are migrated to use the Main Menu Plugin
-        logger.info("Creating Menus...")
-        from spyder.plugins.mainmenu.api import (
-            ApplicationMenus, FileMenuSections
-        )
-        mainmenu = self.mainmenu
-
-        # Switcher shortcuts
-        self.file_switcher_action = create_action(
-            self,
-            _('File switcher...'),
-            icon=ima.icon('filelist'),
-            tip=_('Fast switch between files'),
-            triggered=self.open_switcher,
-            context=Qt.ApplicationShortcut,
-            id_='file_switcher'
-        )
-        self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher")
-        self.symbol_finder_action = create_action(
-            self, _('Symbol finder...'),
-            icon=ima.icon('symbol_find'),
-            tip=_('Fast symbol search in file'),
-            triggered=self.open_symbolfinder,
-            context=Qt.ApplicationShortcut,
-            id_='symbol_finder'
-        )
-        self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_shortcut_to_tip=True)
-
-        switcher_actions = [
-            self.file_switcher_action,
-            self.symbol_finder_action
-        ]
-        for switcher_action in switcher_actions:
-            mainmenu.add_item_to_application_menu(
-                switcher_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Switcher,
-                before_section=FileMenuSections.Restart
-            )
         self.set_splash("")
 
         # Toolbars
@@ -885,6 +841,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         The actions here are related with setting up the main window.
         """
         logger.info("Setting up window...")
+
+        if self.get_conf('vertical_tabs'):
+            self.DOCKOPTIONS = self.DOCKOPTIONS | QMainWindow.VerticalTabs
+        self.setDockOptions(self.DOCKOPTIONS)
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
@@ -933,6 +893,16 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.splash is not None:
             self.splash.hide()
 
+        # Move the window to the primary screen if the previous location is not
+        # visible to the user.
+        self.move_to_primary_screen()
+
+        # To avoid regressions. We shouldn't have loaded the modules below at
+        # this point.
+        if DEV is not None:
+            assert 'pandas' not in sys.modules
+            assert 'matplotlib' not in sys.modules
+
         # Call on_mainwindow_visible for all plugins, except Layout because it
         # needs to be called first (see above).
         for plugin_name in PLUGIN_REGISTRY:
@@ -972,12 +942,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
-
-        # To avoid regressions. We shouldn't have loaded the modules
-        # below at this point.
-        if DEV is not None:
-            assert 'pandas' not in sys.modules
-            assert 'matplotlib' not in sys.modules
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
@@ -1027,7 +991,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             title = u"Spyder %s (Python %s.%s)" % (__version__,
                                                    sys.version_info[0],
                                                    sys.version_info[1])
-        elif running_in_mac_app() or is_pynsist():
+        elif is_conda_based_app():
             title = "Spyder"
         else:
             title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
@@ -1135,66 +1099,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
-
-    def show_shortcuts(self, menu):
-        """Show action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(action._shown_shortcut)
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.show_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_shortcuts(self, menu):
-        """Hide action shortcuts in menu."""
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(QKeySequence())
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self.hide_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def hide_options_menus(self):
-        """Hide options menu when menubar is pressed in macOS."""
-        for plugin in self.widgetlist + self.thirdparty_plugins:
-            if plugin.CONF_SECTION == 'editor':
-                editorstack = self.editor.get_current_editorstack()
-                editorstack.menu.hide()
-            else:
-                try:
-                    # New API
-                    plugin.options_menu.hide()
-                except AttributeError:
-                    # Old API
-                    plugin._options_menu.hide()
-
-    def get_focus_widget_properties(self):
-        """Get properties of focus widget
-        Returns tuple (widget, properties) where properties is a tuple of
-        booleans: (is_console, not_readonly, readwrite_editor)"""
-        from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-        from spyder.plugins.ipythonconsole.widgets import ControlWidget
-        widget = QApplication.focusWidget()
-
-        textedit_properties = None
-        if isinstance(widget, (TextEditBaseWidget, ControlWidget)):
-            console = isinstance(widget, ControlWidget)
-            not_readonly = not widget.isReadOnly()
-            readwrite_editor = not_readonly and not console
-            textedit_properties = (console, not_readonly, readwrite_editor)
-        return widget, textedit_properties
 
     def set_splash(self, message):
         """Set splash message"""
@@ -1379,21 +1283,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Apply main window settings."""
         qapp = QApplication.instance()
 
-        # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes spyder-ide/spyder#2036.
-        if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
-            try:
-                qapp.setStyle('gtk+')
-            except:
-                pass
-
-        default = self.DOCKOPTIONS
-        if self.get_conf('vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
-        self.setDockOptions(default)
-
         self.apply_panes_settings()
-
         if self.get_conf('use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
                 self.get_conf('custom_cursor_blinking'))
@@ -1475,43 +1365,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Wrapper to handle plugins request to restart Spyder."""
         self.application.restart(
             reset=reset, close_immediately=close_immediately)
-
-    # ---- Global Switcher
-    # -------------------------------------------------------------------------
-    def open_switcher(self, symbol=False):
-        """Open switcher dialog box."""
-        if self.switcher is not None and self.switcher.isVisible():
-            self.switcher.clear()
-            self.switcher.hide()
-            return
-        if symbol:
-            self.switcher.set_search_text('@')
-        else:
-            self.switcher.set_search_text('')
-            self.switcher.setup()
-        self.switcher.show()
-
-        # Note: The +6 pixel on the top makes it look better
-        # FIXME: Why is this using the toolbars menu? A: To not be on top of
-        # the toolbars.
-        # Probably toolbars should be taken into account for this 'delta' only
-        # when are visible
-        delta_top = (self.toolbar.toolbars_menu.geometry().height() +
-                     self.menuBar().geometry().height() + 6)
-
-        self.switcher.set_position(delta_top)
-
-    def open_symbolfinder(self):
-        """Open symbol list management dialog box."""
-        self.open_switcher(symbol=True)
-
-    def create_switcher(self):
-        """Create switcher dialog instance."""
-        if self.switcher is None:
-            from spyder.widgets.switcher import Switcher
-            self.switcher = Switcher(self)
-
-        return self.switcher
 
     # --- For OpenGL
     def _test_setting_opengl(self, option):
@@ -1614,9 +1467,6 @@ def main(options, args):
             pass
     CONF.set('main', 'previous_crash', previous_crash)
 
-    # **** Set color for links ****
-    set_links_color(app)
-
     # **** Create main window ****
     mainwindow = None
     try:
@@ -1632,12 +1482,15 @@ def main(options, args):
     except FontError:
         QMessageBox.information(
             None, "Spyder",
-            "Spyder was unable to load the <i>Spyder 3</i> "
-            "icon theme. That's why it's going to fallback to the "
-            "theme used in Spyder 2.<br><br>"
-            "For that, please close this window and start Spyder again."
+            "It was not possible to load Spyder's icon theme, so Spyder "
+            "cannot start on your system. The most probable causes for this "
+            "are either that you are using a Windows version earlier than "
+            "Windows 10 1803/Windows Server 2019, which is no longer "
+            "supported by Spyder or Microsoft, or your system administrator "
+            "has disabled font installation for non-admin users. Please "
+            "upgrade Windows or ask your system administrator for help to "
+            "allow Spyder to start."
         )
-        CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
         if splash is not None:

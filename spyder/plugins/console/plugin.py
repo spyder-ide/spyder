@@ -16,6 +16,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QIcon
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -81,11 +82,13 @@ class Console(SpyderDockablePlugin):
     def get_name():
         return _('Internal console')
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         return QIcon()
 
-    def get_description(self):
-        return _('Internal console running Spyder.')
+    @staticmethod
+    def get_description():
+        return _('An internal Python console running Spyder itself.')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -133,7 +136,7 @@ class Console(SpyderDockablePlugin):
             menu_id=ApplicationMenus.File)
 
     def update_font(self):
-        font = self.get_font()
+        font = self.get_font(SpyderFontType.Monospace)
         self.get_widget().set_font(font)
 
     def on_close(self, cancelable=False):

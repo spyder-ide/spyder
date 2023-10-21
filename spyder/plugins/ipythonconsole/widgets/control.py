@@ -7,9 +7,9 @@
 """Control widgets used by ShellWidget"""
 
 # Third-party imports
-from qtpy.QtCore import Qt, QUrl, Signal
-from qtpy.QtGui import QColor, QDesktopServices, QTextFrameFormat
-from qtpy.QtWidgets import QApplication, QTextEdit
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtGui import QColor, QTextFrameFormat
+from qtpy.QtWidgets import QTextEdit
 
 # Local imports
 from spyder.utils.palette import QStylePalette
@@ -49,9 +49,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
 
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
-
-        # To detect anchors and make them clickable
-        self.anchor = None
 
     # ---- Public methods ----------------------------------------------------
     def insert_horizontal_ruler(self):
@@ -106,24 +103,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super(ControlWidget, self).focusOutEvent(event)
-
-    def mouseMoveEvent(self, event):
-        """Detect anchors and change cursor shape accordingly."""
-        self.anchor = self.anchorAt(event.pos())
-        if self.anchor:
-            QApplication.setOverrideCursor(Qt.PointingHandCursor)
-        else:
-            QApplication.restoreOverrideCursor()
-        super(ControlWidget, self).mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        """Ooen anchors when clicked."""
-        if self.anchor:
-            QDesktopServices.openUrl(QUrl(self.anchor))
-            QApplication.setOverrideCursor(Qt.ArrowCursor)
-            self.anchor = None
-        else:
-            super(ControlWidget, self).mouseReleaseEvent(event)
 
 
 class PageControlWidget(QTextEdit, BaseEditMixin):

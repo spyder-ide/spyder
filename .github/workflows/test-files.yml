@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
@@ -51,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.8', '3.10']
+        PYTHON_VERSION: ['3.9', '3.10']
     timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
@@ -84,13 +86,12 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
-          extra-specs: |
-            python=${{ matrix.PYTHON_VERSION }}
+          create-args: python=${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh

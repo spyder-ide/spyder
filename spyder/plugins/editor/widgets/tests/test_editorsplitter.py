@@ -5,7 +5,7 @@
 #
 
 """
-Tests for EditorSplitter class in editor.py
+Tests for EditorSplitter class in splitter.py
 """
 
 # Standard library imports
@@ -21,13 +21,14 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
 
 
 # ---- Qt Test Fixtures
 
 def editor_stack():
-    editor_stack = EditorStack(None, [])
+    editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack

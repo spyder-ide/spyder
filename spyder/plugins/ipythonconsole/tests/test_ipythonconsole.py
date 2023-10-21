@@ -23,6 +23,7 @@ import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
+import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy.QtCore import Qt
@@ -31,8 +32,7 @@ from spyder_kernels import __version__ as spyder_kernels_version
 import sympy
 
 # Local imports
-from spyder.config.base import (
-    running_in_ci, running_in_ci_with_conda)
+from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
@@ -74,21 +74,43 @@ def test_banners(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-    "function,signature,documentation",
-    [("arange",
+    "function, signature, documentation",
+    [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
        "open interval ..."]),
-     ("vectorize",
+     ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
-      ["Generalized function class.<br>",
+      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+       "<br>",
        "Define a vectorized function which takes a nested sequence ..."]),
-     ("absolute",
+     ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
-      ["Parameters<br>", "x : array_like ..."])]
-    )
-@pytest.mark.skipif(not os.name == 'nt',
+      ["Calculate the absolute value"]),
+     ("np.where",  # Python gives an error when getting its signature
+      ["condition", "/"],
+      ["Return elements chosen from `x`"]),
+     ("np.array",  # Signature is splitted into several lines
+      ["object", "dtype=None"],
+      ["Create an array.<br><br>", "Parameters"]),
+     ("np.linalg.norm",  # Includes IPython default signature in inspect reply
+      ["x", "ord=None"],
+      ["Matrix or vector norm"]),
+     ("range",  # Check we display the first signature among several
+      ["stop"],
+      ["range(stop) -> range object"]),
+     ("dict",  # Check we skip an empty signature
+      ["mapping"],
+      ["dict() -> new empty dictionary"]),
+     ("foo",  # Check we display the right tooltip for interactive objects
+      ["x", "y"],
+      ["My function"])
+    ]
+)
+@pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
+@pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
+                    reason="Documentation for np.vectorize is different")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -98,10 +120,22 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import numpy as np')
 
+    if function == "foo":
+        with qtbot.waitSignal(shell.executed):
+            code = dedent('''
+            def foo(x, y):
+                """
+                My function
+                """
+                return x + y
+            ''')
+
+            shell.execute(code)
+
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'np.' + function + '(')
+        qtbot.keyClicks(control, function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.waitUntil(lambda: control.calltip_widget.isVisible())
@@ -248,6 +282,35 @@ def test_cython_client(ipyconsole, qtbot):
     # Assert there are no errors after restting the console
     control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.order(1)
+@pytest.mark.environment_client
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
+@pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
+def test_environment_client(ipyconsole, qtbot):
+    """
+    Test that when creating a console for a specific conda environment, the
+    environment is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+
+    # Check console name
+    client = ipyconsole.get_current_client()
+    client.get_name() == "spytest-ž 1/A"
+
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')"
+        )
+
+    expected_output = get_conda_test_env()[0].replace('\\', '/')
+    output = shell.get_value('conda_prefix').replace('\\', '/')
+    assert expected_output == output
 
 
 @flaky(max_runs=3)
@@ -753,7 +816,9 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out frequently")
+@pytest.mark.skipif(
+    not os.name == 'nt' and running_in_ci(),
+    reason="Fails on Linux/Mac and CIs")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
@@ -1501,18 +1566,20 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("%debug print()")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("abab = 10")
-    # Check that we can't use magic twice
+    # Check that we can use magic to enter recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("%debug print()")
-    assert "Please don't use '%debug'" in control.toPlainText()
+    assert "(IPdb [1]):" in control.toPlainText()
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "(IPdb [1]):" in control.toPlainText()
+    assert "((IPdb [1])):" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "((IPdb [1])):" in control.toPlainText()
-    # quit one layer
+    assert "(((IPdb [1]))):" in control.toPlainText()
+    # Quit two layers
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
     assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
@@ -1524,7 +1591,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[4]:"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[3]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1664,7 +1731,7 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"runfile(filename=r'{str(file)}')")
+        shell.execute(f"%runfile {repr(str(file))}")
 
     # Assert we entered debugging after the print statement
     qtbot.wait(5000)
@@ -1772,7 +1839,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
     # Run file
     with qtbot.waitSignal(shell.executed):
-        shell.execute(f"debugfile(filename=r'{str(file)}')")
+        shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps 4 times
     for i in range(4):
@@ -1796,7 +1863,8 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
      'excluded_names': [],
      'minmax': False,
      'show_callable_attributes': True,
-     'show_special_attributes': False}
+     'show_special_attributes': False,
+     'filter_on': True}
 
     shell.call_kernel(
             interrupt=True
@@ -2001,7 +2069,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     control = client.get_control()
     qtbot.waitUntil(
         lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "conda install spyder" in control.toPlainText()
+    assert "pip install spyder" in control.toPlainText()
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):

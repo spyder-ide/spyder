@@ -7,13 +7,14 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+from glob import glob
 import json
 import os
 import os.path as osp
 import sys
 
 from spyder.utils.programs import find_program, run_program, run_shell_command
-from spyder.config.base import get_spyder_umamba_path
+from spyder.config.base import is_conda_based_app
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
@@ -64,36 +65,6 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(quote=False):
-    """
-    Return full path to conda activation script.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    # Use micromamba bundled with Spyder installers or find conda exe
-    standalone_exe = get_spyder_umamba_path()
-    exe = standalone_exe or find_conda()
-
-    if osp.basename(exe) in ('micromamba.exe', 'conda.exe') and standalone_exe:
-        # For standalone conda, use the executable
-        script_path = exe
-    else:
-        # Conda activation script is relative to executable
-        conda_exe_root = osp.dirname(osp.dirname(exe))
-        if WINDOWS:
-            activate = 'Scripts/activate'
-        else:
-            activate = 'bin/activate'
-        script_path = osp.join(conda_exe_root, activate)
-
-    script_path = script_path.replace('\\', '/')
-
-    if quote:
-        script_path = add_quotes(script_path)
-
-    return script_path
-
-
 def get_conda_env_path(pyexec, quote=False):
     """
     Return the full path to the conda environment from give python executable.
@@ -114,12 +85,22 @@ def get_conda_env_path(pyexec, quote=False):
 
 def find_conda():
     """Find conda executable."""
-    # First try the environment variables
-    conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+    conda = None
+
+    # First try Spyder's conda executable
+    if is_conda_based_app():
+        root = osp.dirname(os.environ['CONDA_EXE'])
+        conda = osp.join(root, 'mamba.exe' if WINDOWS else 'mamba')
+
+    # Next try the environment variables
     if conda is None:
-        # Try searching for the executable
+        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+
+    # Next try searching for the executable
+    if conda is None:
         conda_exec = 'conda.bat' if WINDOWS else 'conda'
         conda = find_program(conda_exec)
+
     return conda
 
 
@@ -163,3 +144,41 @@ def get_list_conda_envs():
 def get_list_conda_envs_cache():
     """Return a cache of envs to avoid computing them again."""
     return CONDA_ENV_LIST_CACHE
+
+
+def is_anaconda_pkg(prefix=sys.prefix):
+    """Detect if the anaconda meta package is installed."""
+    if is_conda_env(prefix):
+        conda_meta = osp.join(prefix, "conda-meta")
+        if glob(f"{conda_meta}{os.sep}anaconda-[0-9]*.json"):
+            return True
+
+    return False
+
+
+def get_spyder_conda_channel():
+    """Get the conda channel from which Spyder was installed."""
+    conda = find_conda()
+
+    if conda is None:
+        return None
+
+    env = get_conda_env_path(sys.executable)
+    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+
+    try:
+        out, __ = run_shell_command(cmdstr, env={}).communicate()
+        out = out.decode()
+        out = json.loads(out)
+    except Exception:
+        return None
+
+    for package_info in out:
+        if package_info["name"] == 'spyder':
+            channel = package_info["channel"]
+            channel_url = package_info["base_url"]
+
+    if "<develop>" in channel_url:
+        channel_url = None
+
+    return channel, channel_url

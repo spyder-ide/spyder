@@ -99,7 +99,11 @@ class StdThread(QThread):
         while txt:
             txt = self._std_buffer.read1()
             if txt:
-                self.sig_out.emit(txt.decode())
+                try:
+                    txt = txt.decode()
+                except UnicodeDecodeError:
+                    txt = str(txt)
+                self.sig_out.emit(txt)
 
 
 class KernelHandler(QObject):
@@ -183,7 +187,7 @@ class KernelHandler(QObject):
         self.kernel_client.start_channels()
         self.check_kernel_info()
 
-    def connect(self):
+    def connect_(self):
         """Connect to shellwidget."""
         self._shellwidget_connected = True
         # Emit signal in case the connection is already made

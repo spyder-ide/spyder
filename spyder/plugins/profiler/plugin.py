@@ -20,6 +20,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.editor.api.run import FileRun
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.profiler.api import ProfilerPyConfiguration
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (
@@ -29,7 +30,6 @@ from spyder.plugins.profiler.widgets.run_conf import (
 from spyder.plugins.run.api import (
     RunExecutor, run_execute, RunContext, RunConfiguration,
     ExtendedRunExecutionParameters, PossibleRunResult)
-
 
 
 class Profiler(SpyderDockablePlugin, RunExecutor):
@@ -60,11 +60,13 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     def get_name():
         return _("Profiler")
 
-    def get_description(self):
-        return _("Profile your scripts and find bottlenecks.")
+    @staticmethod
+    def get_description():
+        return _("Profile Python files to find execution bottlenecks.")
 
-    def get_icon(self):
-        return self.create_icon('profiler')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('profiler')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -73,7 +75,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -81,7 +83,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 'configuration_widget': ProfilerPyConfigurationGroup,
                 'requires_cwd': True,
                 'priority': 3
-            }
+            },
         ]
 
     @on_plugin_available(plugin=Plugins.Editor)
@@ -109,7 +111,10 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 icon=self.create_icon('profiler'),
                 shortcut_context='profiler',
                 register_shortcut=True,
-                add_to_menu=True
+                add_to_menu={
+                    "menu": ApplicationMenus.Run,
+                    "section": RunMenuSections.RunInExecutors
+                }
             )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

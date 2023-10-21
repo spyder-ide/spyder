@@ -27,9 +27,10 @@ from spyder.app.cli_options import get_options
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 import spyder.plugins.base
-from spyder.plugins.projects.api import BaseProjectType
-from spyder.plugins.projects.plugin import Projects, QMessageBox
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
+from spyder.plugins.projects.api import BaseProjectType
+from spyder.plugins.projects.plugin import Projects
+from spyder.plugins.projects.widgets.main_widget import QMessageBox
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.py3compat import to_text_string
 
@@ -66,6 +67,12 @@ def projects(qtbot, mocker, request, tmpdir):
         def get_initial_working_directory(self):
             return str(tmpdir)
 
+        def get_plugin(self, plugin_name, error=True):
+            if plugin_name == 'editor':
+                return EditorMock()
+            else:
+                return None
+
     # Main window mock
     main_window = MainWindowProjectsMock(None)
     if use_cli_project:
@@ -75,10 +82,8 @@ def projects(qtbot, mocker, request, tmpdir):
         main_window._cli_options.project = 'cli_project_dir'
 
     # Create plugin
-    projects = Projects(configuration=CONF)
+    projects = Projects(parent=None, configuration=CONF)
     projects.initialize()
-
-    projects.editor = EditorMock()
 
     projects.sig_switch_to_plugin_requested.connect(
         lambda x, y: projects.change_visibility(True))
@@ -108,7 +113,7 @@ def create_projects(projects, mocker):
         projects.open_project(path=path)
 
         # Mock the opening of files in the Editor while the project is open.
-        projects.editor.get_open_filenames = lambda *args, **kwargs: files
+        projects._get_open_filenames = lambda *args, **kwargs: files
         return projects
 
     return _create_projects
@@ -159,7 +164,7 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     projects.set_conf('visible_if_project_open', not value)
     projects.open_project(path=to_text_string(tmpdir))
     if value:
-        projects.show_explorer()
+        projects._show_main_widget()
     else:
         projects.get_widget().hide()
     projects.close_project()
@@ -178,7 +183,7 @@ def test_on_close_sets_visible_config(projects, tmpdir, value):
 
     projects.open_project(path=to_text_string(tmpdir))
     if value:
-        projects.show_explorer()
+        projects._show_main_widget()
     else:
         projects.get_widget().hide()
     projects.close_project()
@@ -332,7 +337,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     Regression test for spyder-ide/spyder#8455.
     """
     qtbot.addWidget(projects.get_widget())
-    projects.show_explorer()
+    projects._show_main_widget()
 
     ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
     ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
@@ -346,7 +351,7 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     # Open the projects.
     for ppath in [ppath1, ppath2]:
         projects.open_project(path=ppath)
-        projects.update_explorer()
+        projects.get_widget()._setup_project(ppath)
 
         # Check that the root path of the project explorer tree widget is
         # set correctly.
@@ -386,7 +391,7 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
     projects.open_project(path=to_text_string(project_root))
 
     # Get a reference to the filesystem event handler
-    fs_handler = projects.watcher.event_handler
+    fs_handler = projects.get_widget().watcher.event_handler
 
     # Test file creation
     with qtbot.waitSignal(fs_handler.sig_file_created,
@@ -479,7 +484,8 @@ def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
     projects._project_types = {}
     # Switch to another project.
     with qtbot.waitSignals(
-            [projects.sig_project_loaded, projects.sig_project_closed]):
+        [projects.sig_project_loaded, projects.sig_project_closed]
+    ):
         projects.open_project(path=path2)
 
 
@@ -529,7 +535,7 @@ def test_recreate_project_config(projects, tmpdir):
     projects.open_project(path=path)
 
     # Get project's config path
-    config_path = projects.current_active_project.config._path
+    config_path = projects.get_widget().current_active_project.config._path
 
     # Close project
     projects.close_project()

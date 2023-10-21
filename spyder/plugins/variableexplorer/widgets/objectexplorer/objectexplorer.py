@@ -13,18 +13,17 @@ import logging
 import traceback
 
 # Third-party imports
-from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import Signal, Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
-                            QDialog, QGroupBox, QHBoxLayout, QHeaderView,
+                            QGroupBox, QHBoxLayout, QHeaderView,
                             QMenu, QPushButton, QRadioButton, QSplitter,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
@@ -43,7 +42,7 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
+class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
     """Object explorer main widget window."""
     CONF_SECTION = 'variable_explorer'
 
@@ -53,6 +52,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
                  expanded=False,
                  resize_to_contents=True,
                  parent=None,
+                 namespacebrowser=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  readonly=None,
@@ -60,11 +60,13 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         """
         Constructor
 
+        :param obj: any Python object or variable
         :param name: name of the object as it will appear in the root node
         :param expanded: show the first visible root element expanded
         :param resize_to_contents: resize columns to contents ignoring width
             of the attributes
-        :param obj: any Python object or variable
+        :param namespacebrowser: the NamespaceBrowser that the object
+            originates from, if any
         :param attribute_columns: list of AttributeColumn objects that
             define which columns are present in the table and their defaults
         :param attribute_details: list of AttributeDetails objects that define
@@ -101,7 +103,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView()
+        self.obj_tree = ToggleColumnTreeView(namespacebrowser)
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -407,7 +409,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor):
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
             self.editor.setup_editor(
-                font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
+                font=self.get_font(SpyderFontType.MonospaceInterface),
                 show_blanks=False,
                 color_scheme=CONF.get('appearance', 'selected'),
                 scroll_past_end=False,

@@ -12,6 +12,7 @@ IPython Console main widget based on QtConsole.
 import logging
 import os
 import os.path as osp
+import shlex
 import sys
 
 # Third-party imports
@@ -37,11 +38,14 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget)
+    KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
+from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
@@ -63,6 +67,7 @@ class IPythonConsoleWidgetActions:
     CreateCythonClient = 'create cython client'
     CreateSymPyClient = 'create cympy client'
     CreatePyLabClient = 'create pylab client'
+    CreateNewClientEnvironment = 'create environment client'
 
     # Current console actions
     ClearConsole = 'Clear shell'
@@ -93,6 +98,7 @@ class IPythonConsoleWidgetActions:
 class IPythonConsoleWidgetOptionsMenus:
     SpecialConsoles = 'special_consoles_submenu'
     Documentation = 'documentation_submenu'
+    EnvironmentConsoles = 'environment_consoles_submenu'
 
 
 class IPythonConsoleWidgetOptionsMenuSections:
@@ -209,6 +215,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         The shellwigdet.
     """
 
+    sig_shellwidget_errored = Signal(object)
+    """
+    This signal is emitted when the current shellwidget failed to start.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -267,6 +283,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.interrupt_action = None
         self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
+        self.envs = {}
+        self.default_interpreter = sys.executable
 
         # Disable infowidget if requested by the user
         self.enable_infowidget = True
@@ -325,9 +343,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         pager_label_css.setValues(**{
             'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
             'color': f'{QStylePalette.COLOR_TEXT_1}',
-            'margin': '0px 1px 4px 1px',
+            'margin': '2px 1px 1px 1px',
             'padding': '5px',
-            'qproperty-alignment': 'AlignCenter'
+            'qproperty-alignment': 'AlignCenter',
+            'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
         })
         self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()
@@ -336,7 +355,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
+
+        # Manually adjust margins for the find/replace widget
+        if not self.get_conf('vertical_tabs', section='main'):
+            # Remove an extra pixel that it's not present in other plugins
+            layout.addSpacing(-1)
+
+            # Align close button with the one in other plugins
+            self.find_widget.setStyleSheet("margin-left: 1px")
+        else:
+            self.find_widget.setStyleSheet("margin-bottom: 1px")
+
         layout.addWidget(self.find_widget)
+
+        # Manually adjust pane margins, don't know why this is necessary.
+        # Note: Do this before setting the layout.
+        if not self.get_conf('vertical_tabs', section='main'):
+            self._margin_left = self._margin_right = AppStyle.MarginSize - 1
+        else:
+            self._margin_right = self._margin_bottom = AppStyle.MarginSize - 1
 
         self.setLayout(layout)
 
@@ -347,8 +384,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
+        # Create MatplotlibStatus
+        self.matplotlib_status = MatplotlibStatus(self)
+
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
+
+        # Worker to compute envs in a thread
+        self._worker_manager = WorkerManager(max_threads=1)
+
+        # Update the list of envs at startup
+        self.get_envs()
 
     def on_close(self):
         self.mainwindow_close = True
@@ -487,12 +533,22 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
+
+        self.console_environment_menu = self.create_menu(
+            IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
+            _('New console in environment')
+        )
+        stylesheet = qstylizer.style.StyleSheet()
+        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
+        self.console_environment_menu.setStyleSheet(stylesheet.toString())
+
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
-            _('Special consoles'))
+            _('New special console'))
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -541,6 +597,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.create_cython_client,
         )
 
+        self.console_environment_menu.aboutToShow.connect(
+            self.update_environment_menu)
+
         for item in [
                 create_pylab_action,
                 create_sympy_action,
@@ -578,6 +637,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         for item in [
                 self.create_client_action,
+                self.console_environment_menu,
                 self.special_console_menu,
                 self.connect_to_kernel_action]:
             self.add_item_to_menu(
@@ -648,6 +708,49 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
+
+    def get_envs(self):
+        """
+        Get the list of environments/interpreters in a worker.
+        """
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(get_list_envs)
+        worker.sig_finished.connect(self.update_envs)
+        worker.start()
+
+    def update_envs(self, worker, output, error):
+        """Update the list of environments in the system."""
+        if output is not None:
+            self.envs.update(**output)
+
+    def update_environment_menu(self):
+        """
+        Update context menu submenu with entries for available interpreters.
+        """
+        self.get_envs()
+        self.console_environment_menu.clear_actions()
+        for env_key, env_info in self.envs.items():
+            env_name = env_key.split()[-1]
+            path_to_interpreter, python_version = env_info
+            action = self.create_action(
+                name=env_key,
+                text=f'{env_key} ({python_version})',
+                icon=self.create_icon('ipython_console'),
+                triggered=(
+                    lambda checked, env_name=env_name,
+                    path_to_interpreter=path_to_interpreter:
+                    self.create_environment_client(
+                        env_name,
+                        path_to_interpreter
+                    )
+                ),
+                overwrite=True
+            )
+            self.add_item_to_menu(
+                action,
+                menu=self.console_environment_menu
+            )
+        self.console_environment_menu._render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -1037,12 +1140,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- General
     # -------------------------------------------------------------------------
-    def update_font(self, font, rich_font):
+    def update_font(self, font, app_font):
         self._font = font
-        self._rich_font = rich_font
+        self._app_font = app_font
 
         if self.enable_infowidget:
-            self.infowidget.set_font(rich_font)
+            self.infowidget.set_font(app_font)
 
         for client in self.clients:
             client.set_font(font)
@@ -1129,6 +1232,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Register client
         self.register_client(client)
+
+    def select_tab(self, shellwidget):
+        """
+        Select tab with given shellwidget.
+        """
+        for client in self.clients:
+            if client.shellwidget == shellwidget:
+                self.tabwidget.setCurrentWidget(client)
+                return
 
     def move_tab(self, index_from, index_to):
         """
@@ -1268,9 +1380,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def interpreter_versions(self):
+    def interpreter_versions(self, path_to_custom_interpreter=None):
         """Python and IPython versions used by clients"""
-        if self.get_conf('default', section='main_interpreter'):
+        if (
+            self.get_conf('default', section='main_interpreter')
+            and not path_to_custom_interpreter
+        ):
             from IPython.core import release
             versions = dict(
                 python_version=sys.version,
@@ -1280,6 +1395,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
+            if path_to_custom_interpreter:
+                pyexec = path_to_custom_interpreter
             py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
                 u'%s -c "import IPython.core.release as r; print(r.version)"'
@@ -1345,11 +1462,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
+    @Slot(bool, str, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
                           is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None):
+                          cache=True, initial_cwd=None,
+                          path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
@@ -1362,12 +1481,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(
                     is_pylab=is_pylab,
                     is_sympy=is_sympy),
-            interpreter_versions=self.interpreter_versions(),
+            interpreter_versions=self.interpreter_versions(
+                path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
+            forcing_custom_interpreter=path_to_custom_interpreter is not None
         )
 
         # Add client to widget
@@ -1379,7 +1500,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         kernel_spec = SpyderKernelSpec(
             is_cython=is_cython,
             is_pylab=is_pylab,
-            is_sympy=is_sympy
+            is_sympy=is_sympy,
+            path_to_custom_interpreter=path_to_custom_interpreter
         )
 
         try:
@@ -1480,6 +1602,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Force creation of Cython client"""
         self.create_new_client(is_cython=True, given_name="Cython")
 
+    def create_environment_client(
+        self, environment, path_to_custom_interpreter
+    ):
+        """Create a client for a Python environment."""
+        self.create_new_client(
+            given_name=environment,
+            path_to_custom_interpreter=path_to_custom_interpreter
+        )
+
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
@@ -1556,11 +1687,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         shellwidget.sig_exception_occurred.connect(
             self.sig_exception_occurred)
 
-        # Closing Shellwidget
+        # Signals
         shellwidget.sig_shellwidget_deleted.connect(
             self.sig_shellwidget_deleted)
         shellwidget.sig_shellwidget_created.connect(
             self.sig_shellwidget_created)
+        shellwidget.sig_shellwidget_errored.connect(
+            self.sig_shellwidget_errored)
         shellwidget.sig_restart_kernel.connect(self.restart_kernel)
 
     def close_client(self, index=None, client=None, ask_recursive=True):
@@ -1837,15 +1970,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             is_spyder_kernel = client.shellwidget.is_spyder_kernel
 
             if is_spyder_kernel:
-                # Use custom function
-                line = (str(
-                        "{}({}, '{}')").format(
-                                str(method),
-                                repr(cell_name),
-                                norm(filename).replace("'", r"\'")))
+                magic_arguments = []
+                if isinstance(cell_name, int):
+                    magic_arguments.append("-i")
+                else:
+                    magic_arguments.append("-n")
+                magic_arguments.append(str(cell_name))
+                magic_arguments.append(norm(filename))
+                line = "%" + method + " " + shlex.join(magic_arguments)
             elif method == 'runcell':
                 # Use copy of cell
                 line = code.strip()
+            elif method == 'debugcell':
+                line = "%%debug\n" + code.strip()
             else:
                 # Can not use custom function on non-spyder kernels
                 client.shellwidget.append_html_message(
@@ -1899,31 +2036,37 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                line = method + "('%s'" % (norm(filename))
+                
+                magic_arguments = [norm(filename)]
                 if args:
-                    line += ", args='%s'" % norm(args)
-                if (
-                    wdir and client.shellwidget.is_external_kernel
-                    and os.path.samefile(wdir, os.path.dirname(filename))
-                ):
-                    # No working directory for external kernels
-                    wdir = ""
+                    magic_arguments.append("--args")
+                    magic_arguments.append(norm(args))
                 if wdir:
-                    line += ", wdir='%s'" % norm(wdir)
+                    if wdir == os.path.dirname(filename):
+                        # No working directory for external kernels
+                        # if it has not been explicitly given.
+                        if not client.shellwidget.is_external_kernel:
+                            magic_arguments.append("--wdir")
+                    else:
+                        magic_arguments.append("--wdir")
+                        magic_arguments.append(norm(wdir))
                 if post_mortem:
-                    line += ", post_mortem=True"
+                    magic_arguments.append("--post-mortem")
                 if console_namespace:
-                    line += ", current_namespace=True"
-                line += ")"
+                    magic_arguments.append("--current-namespace")
+                
+                line = "%{} {}".format(method, shlex.join(magic_arguments))
 
             elif method in ["runfile", "debugfile"]:
                 # External, non spyder-kernels, use %run
-                line = "%run "
+                magic_arguments = []
+                
                 if method == "debugfile":
-                    line += "-d "
-                line += "\"%s\"" % str(filename)
+                    magic_arguments.append("-d")
+                magic_arguments.append(filename)
                 if args:
-                    line += " %s" % norm(args)
+                    magic_arguments.append(norm(args))
+                line = "%run " + shlex.join(magic_arguments)
             else:
                 client.shellwidget.append_html_message(
                     _("The console is not running a Spyder-kernel, so it "
@@ -2063,9 +2206,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
-            if ("<ipython-input-" in fname and
-                    self.run_cell_filename is not None):
+            if (
+                "<ipython-input-" in fname
+                and self.run_cell_filename is not None
+            ):
                 fname = self.run_cell_filename
+
+            # For IPython 8+ tracebacks.
+            # Fixes spyder-ide/spyder#20407
+            if '~' in fname:
+                fname = osp.expanduser(fname)
+
             # This is needed to fix issue spyder-ide/spyder#9217.
             try:
                 self.sig_edit_goto_requested.emit(

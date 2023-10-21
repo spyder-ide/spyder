@@ -17,8 +17,8 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
-from spyder.config.gui import get_font
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
@@ -79,9 +79,17 @@ class FileMatchItem(QTreeWidgetItem):
 
         # Get relative dirname according to the path we're searching in.
         dirname = osp.dirname(filename)
-        rel_dirname = dirname.split(path)[1]
-        if rel_dirname.startswith(osp.sep):
-            rel_dirname = rel_dirname[1:]
+
+        # Catch errors when it's not possible to get the relative directory
+        # name. This happens when the user is searching in a single file.
+        # Fixes spyder-ide/spyder#17443 and spyder-ide/spyder#20964
+        try:
+            rel_dirname = dirname.split(path)[1]
+            if rel_dirname.startswith(osp.sep):
+                rel_dirname = rel_dirname[1:]
+        except IndexError:
+            rel_dirname = dirname
+
         self.rel_dirname = rel_dirname
 
         title = (
@@ -176,7 +184,7 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(OneColumnTree):
+class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
     sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
@@ -189,7 +197,7 @@ class ResultsBrowser(OneColumnTree):
         self.error_flag = None
         self.completed = None
         self.sorting = {}
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.files = None
         self.root_items = None
@@ -241,7 +249,7 @@ class ResultsBrowser(OneColumnTree):
             self.activated(item)
 
     def clear_title(self, search_text):
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.clear()
         self.setSortingEnabled(False)
         self.num_files = 0
@@ -257,18 +265,13 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            # Catch any error while creating file items.
-            # Fixes spyder-ide/spyder#17443
-            try:
-                item = FileMatchItem(
-                    self,
-                    self.path,
-                    filename,
-                    self.sorting,
-                    self.text_color
-                )
-            except Exception:
-                return
+            item = FileMatchItem(
+                self,
+                self.path,
+                filename,
+                self.sorting,
+                self.text_color
+            )
 
             self.files[filename] = item
 

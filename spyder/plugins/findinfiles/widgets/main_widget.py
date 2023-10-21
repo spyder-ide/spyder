@@ -6,12 +6,14 @@
 
 # Standard library imports
 import fnmatch
+import math
 import os.path as osp
 import re
 
 # Third party imports
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QHBoxLayout, QInputDialog, QLabel
+from qtpy.QtGui import QFontMetricsF
+from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -24,12 +26,15 @@ from spyder.plugins.findinfiles.widgets.combobox import (
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # ---- Constants
 # -----------------------------------------------------------------------------
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
+MAX_COMBOBOX_WIDTH = AppStyle.FindMinWidth + 80  # In pixels
 
 
 # ---- Enums
@@ -71,6 +76,7 @@ class FindInFilesWidgetToolbarItems:
     ExcludePatternCombo = 'exclude_pattern_combo'
     Stretcher1 = 'stretcher_1'
     SearchInCombo = 'search_in_combo'
+    Stretcher2 = 'stretcher_2'
 
 
 # ---- Main widget
@@ -80,7 +86,11 @@ class FindInFilesWidget(PluginMainWidget):
     Find in files main widget.
     """
 
+    # PluginMainWidget constants
     ENABLE_SPINNER = True
+    MARGIN_TOP = AppStyle.MarginSize + 5
+
+    # Other constants
     REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
     REGEX_ERROR = _("Regular expression error")
 
@@ -127,6 +137,9 @@ class FindInFilesWidget(PluginMainWidget):
         self.running = False
         self.more_options_action = None
         self.extras_toolbar = None
+        self._search_in_label_width = None
+        self._exclude_label_width = None
+        self._is_shown = False
 
         search_text = self.get_conf('search_text', '')
         path_history = self.get_conf('path_history', [])
@@ -142,12 +155,20 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "find_empty",
+            _("Nothing searched for yet"),
+            _("Search the content of text files in any directory using the "
+              "search box.")
+        )
+        
         self.search_text_edit = PatternComboBox(
             self,
-            search_text,
+            items=search_text,
+            adjust_to_minimum=False,
             id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
         )
-
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
 
@@ -158,8 +179,14 @@ class FindInFilesWidget(PluginMainWidget):
         self.exclude_label.ID = FindInFilesWidgetToolbarItems.ExcludeLabel
 
         self.path_selection_combo = SearchInComboBox(
-            path_history, self,
-            id_=FindInFilesWidgetToolbarItems.SearchInCombo)
+            path_history,
+            self,
+            id_=FindInFilesWidgetToolbarItems.SearchInCombo
+        )
+        self.path_selection_combo.setMinimumSize(
+            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+        )
+        self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.exclude_pattern_edit = PatternComboBox(
             self,
@@ -167,6 +194,10 @@ class FindInFilesWidget(PluginMainWidget):
             _("Exclude pattern"),
             id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
         )
+        self.exclude_pattern_edit.setMinimumSize(
+            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+        )
+        self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.result_browser = ResultsBrowser(
             self,
@@ -175,7 +206,6 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
         # Setup
-        self.exclude_label.setBuddy(self.exclude_pattern_edit)
         exclude_idx = self.get_conf('exclude_index', None)
         if (exclude_idx is not None and exclude_idx >= 0
                 and exclude_idx < self.exclude_pattern_edit.count()):
@@ -186,8 +216,12 @@ class FindInFilesWidget(PluginMainWidget):
             search_in_index)
 
         # Layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.result_browser)
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.addWidget(self.result_browser)
+        self.stacked_widget.addWidget(self.pane_empty)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
         self.setLayout(layout)
 
         # Signals
@@ -201,9 +235,8 @@ class FindInFilesWidget(PluginMainWidget):
             self.sig_max_results_reached)
         self.result_browser.sig_max_results_reached.connect(
             self._stop_and_reset_thread)
-        self.search_text_edit.sig_resized.connect(self._update_size)
 
-    # --- PluginMainWidget API
+    # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
         return _("Find")
@@ -287,10 +320,10 @@ class FindInFilesWidget(PluginMainWidget):
         self.extras_toolbar = self.create_toolbar(
             FindInFilesWidgetToolbars.Exclude)
 
-        stretcher = self.create_stretcher()
-        stretcher.ID = FindInFilesWidgetToolbarItems.Stretcher1
+        stretcher1 = self.create_stretcher(
+            FindInFilesWidgetToolbarItems.Stretcher1)
         for item in [self.exclude_label, self.exclude_pattern_edit,
-                     self.exclude_regexp_action, stretcher]:
+                     self.exclude_regexp_action, stretcher1]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=self.extras_toolbar,
@@ -300,7 +333,10 @@ class FindInFilesWidget(PluginMainWidget):
         # Location toolbar
         location_toolbar = self.create_toolbar(
             FindInFilesWidgetToolbars.Location)
-        for item in [self.search_in_label, self.path_selection_combo]:
+        stretcher2 = self.create_stretcher(
+            FindInFilesWidgetToolbarItems.Stretcher2)
+        for item in [self.search_in_label, self.path_selection_combo,
+                     stretcher2]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=location_toolbar,
@@ -312,6 +348,13 @@ class FindInFilesWidget(PluginMainWidget):
             self.set_max_results_action,
             menu=menu,
         )
+        self.set_pane_empty()
+
+    def set_pane_empty(self):
+        if self.result_browser.data:
+            self.stacked_widget.setCurrentWidget(self.result_browser)
+        else:
+            self.stacked_widget.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(
@@ -320,12 +363,10 @@ class FindInFilesWidget(PluginMainWidget):
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
+        self.set_pane_empty()
 
     @on_conf_change(option='more_options')
     def on_more_options_update(self, value):
-        self.exclude_pattern_edit.setMinimumWidth(
-            self.search_text_edit.width())
-
         if value:
             icon = self.create_icon('options_less')
             tip = _('Hide advanced options')
@@ -336,6 +377,34 @@ class FindInFilesWidget(PluginMainWidget):
         if self.extras_toolbar:
             self.extras_toolbar.setVisible(value)
 
+        # These adjustments can only be done when the widget is visible.
+        if self._is_shown:
+            if value:
+                # Resize either the search_in or exclude label so that their
+                # comboboxes are aligned to the left.
+                if self._search_in_label_width > self._exclude_label_width:
+                    self.exclude_label.setMinimumSize(
+                        self._exclude_label_width +
+                        (self._search_in_label_width -
+                         self._exclude_label_width),
+                        AppStyle.FindHeight
+                    )
+                else:
+                    self.search_in_label.setMinimumSize(
+                        self._search_in_label_width +
+                        (self._exclude_label_width -
+                         self._search_in_label_width),
+                        AppStyle.FindHeight
+                    )
+            else:
+                # Restore initial search_in label width when it's shorter than
+                # exclude_label to not show an empty space next to it.
+                if self._search_in_label_width < self._exclude_label_width:
+                    self.search_in_label.setMinimumSize(
+                        self._search_in_label_width,
+                        AppStyle.FindHeight
+                    )
+
         if self.more_options_action:
             self.more_options_action.setIcon(icon)
             self.more_options_action.setToolTip(tip)
@@ -344,11 +413,31 @@ class FindInFilesWidget(PluginMainWidget):
     def on_max_results_update(self, value):
         self.result_browser.set_max_results(value)
 
-    # --- Private API
+    # ---- Qt methods
     # ------------------------------------------------------------------------
-    def _update_size(self, size, old_size):
-        self.exclude_pattern_edit.setMinimumWidth(size.width())
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            # Save default widths of search_in and exclude labels
+            self._search_in_label_width = self.search_in_label.size().width()
 
+            if not self.extras_toolbar.isVisible():
+                # This correctly computes the exclude label width when the
+                # extras_toolbar is not visible.
+                metrics = QFontMetricsF(self.font())
+                exclude_text_width = metrics.width(self.exclude_label.text())
+                self._exclude_label_width = (
+                    math.ceil(exclude_text_width) + self.font().pointSize()
+                )
+            else:
+                self._exclude_label_width = self.exclude_label.size().width()
+
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    # ---- Private API
+    # ------------------------------------------------------------------------
     def _get_options(self):
         """
         Get search options.
@@ -462,7 +551,7 @@ class FindInFilesWidget(PluginMainWidget):
             if self.search_thread.isRunning():
                 if ignore_results:
                     self.search_thread.sig_finished.disconnect(
-                        self.search_complete)
+                        self._handle_search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
 
@@ -473,7 +562,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.stop_spinner()
         self.update_actions()
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     @property
     def path(self):

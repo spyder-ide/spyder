@@ -1,5 +1,246 @@
 # History of changes for Spyder 5
 
+## Version 5.4.5 (2023-08-29)
+
+### Important fixes
+
+* Fix Editor scrollflags error on Python 3.7
+
+### Issues Closed
+
+* [Issue 21293](https://github.com/spyder-ide/spyder/issues/21293) - Spyder 5.4.5 release
+* [Issue 21286](https://github.com/spyder-ide/spyder/issues/21286) - `TypeError: 'dict' object is not reversible` in Python 3.7 ([PR 21290](https://github.com/spyder-ide/spyder/pull/21290) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21290](https://github.com/spyder-ide/spyder/pull/21290) - PR: Don't try to reverse the dict of scroll flags in Python 3.7 (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([21286](https://github.com/spyder-ide/spyder/issues/21286))
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 5.4.4 (2023-07-17)
+
+### New features
+
+* Add new shortcuts to switch Editor tabs for macOS (`Cmd + 8` and `Cmd + 9`)
+* Add syntax highlighting for Python 3.10 missing statements (`match` and `case`)
+* Improve compatibility with PySide2
+* Improve Editor scrollflags painting (find matches flags painted above errors and warnings flags)
+
+### Important fixes
+
+* Fix crash when plugins fail their compatibility checks
+* Fix LSP status bar error when cliking it
+* Fix IPython console font size setting
+* Prevent IPython console `This version of python seems to be incorrectly compiled` warning message in Python 3.11
+* Skip some IPython versions with somes bugs and add some error catching for the IPython console
+* Fix Editor found results rehighlighting when switching between files
+* Fix Editor class/function dropdown widget when using splited editors
+* Fix Editor line numbers and autoformat cursor position when the wrap lines option is enabled
+* Fix Editor error when removing unsaved files from Projects/Files explorer while open in the Editor
+* Prevent Editor `QTextCursor::setPosition: Position '-1' out of range` warning message
+* Fix Find functionality for a single file
+* Fix PYTHONPATH manager focus issues after adding a path
+* Fix Online Help issues when searching for `numpy` or `pandas`
+* Fix Windows installer being launched with admin rights after installation/autoupdate
+* Fix Windows installer conda environments activation logic when there are spaces in the installation path
+* Fix macOS standalone installer workflow and notarization process with new certificate
+
+### Issues Closed
+
+* [Issue 21127](https://github.com/spyder-ide/spyder/issues/21127) - LSP status crashes after reset, code logic error ([PR 21128](https://github.com/spyder-ide/spyder/pull/21128) by [@dpizetta](https://github.com/dpizetta))
+* [Issue 21074](https://github.com/spyder-ide/spyder/issues/21074) - Spyder crashes when launching after Windows standalone installation ([PR 21082](https://github.com/spyder-ide/spyder/pull/21082) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21063](https://github.com/spyder-ide/spyder/issues/21063) - Spyder 5.4.4 release ([PR 21155](https://github.com/spyder-ide/spyder/pull/21155) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21028](https://github.com/spyder-ide/spyder/issues/21028) - Minor bug with empty files: `QTextCursor::setPosition: Position '-1' out of range` ([PR 21031](https://github.com/spyder-ide/spyder/pull/21031) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21017](https://github.com/spyder-ide/spyder/issues/21017) - Invoking `warnings.simplefilter` in the console results in an exception ([PR 21056](https://github.com/spyder-ide/spyder/pull/21056) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21012](https://github.com/spyder-ide/spyder/issues/21012) - `psutil.NoSuchProcess` is raised when killing kernel ([PR 21020](https://github.com/spyder-ide/spyder/pull/21020) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20998](https://github.com/spyder-ide/spyder/issues/20998) - Error when deleting several unsaved files from project while open in editor ([PR 21003](https://github.com/spyder-ide/spyder/pull/21003) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20964](https://github.com/spyder-ide/spyder/issues/20964) - Find in files gives error when searching in just one file ([PR 20971](https://github.com/spyder-ide/spyder/pull/20971) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20963](https://github.com/spyder-ide/spyder/issues/20963) - Syntax highlight new Python 3.10 statements is missing ([PR 21042](https://github.com/spyder-ide/spyder/pull/21042) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20907](https://github.com/spyder-ide/spyder/issues/20907) - App association error ([PR 20948](https://github.com/spyder-ide/spyder/pull/20948) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20871](https://github.com/spyder-ide/spyder/issues/20871) - Autocomplete fails at second level (IPython console) ([PR 21019](https://github.com/spyder-ide/spyder/pull/21019) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20866](https://github.com/spyder-ide/spyder/issues/20866) - Error when searching numpy and pandas in Online Help widget ([PR 20870](https://github.com/spyder-ide/spyder/pull/20870) by [@mrclary](https://github.com/mrclary))
+* [Issue 20852](https://github.com/spyder-ide/spyder/issues/20852) - Auto-format sometimes jumps to a different position if Editor > Display > Wrap lines is set ([PR 21038](https://github.com/spyder-ide/spyder/pull/21038) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20834](https://github.com/spyder-ide/spyder/issues/20834) - Spyder standalone bundle workflow fails ([PR 20835](https://github.com/spyder-ide/spyder/pull/20835) by [@mrclary](https://github.com/mrclary))
+* [Issue 20816](https://github.com/spyder-ide/spyder/issues/20816) - `ValueError: The truth value of a DataFrame is ambiguous` when working with Dataframes ([PR 21019](https://github.com/spyder-ide/spyder/pull/21019) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20808](https://github.com/spyder-ide/spyder/issues/20808) - PYTHONPATH manager just closes after upgrade to 5.4.3 in the Mac app ([PR 20812](https://github.com/spyder-ide/spyder/pull/20812) by [@mrclary](https://github.com/mrclary))
+* [Issue 20802](https://github.com/spyder-ide/spyder/issues/20802) - Incorrect line numbers displayed after line wrapping in the source code editor ([PR 21037](https://github.com/spyder-ide/spyder/pull/21037) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20800](https://github.com/spyder-ide/spyder/issues/20800) - `This version of python seems to be incorrectly compiled` message with Python 3.11 from Anaconda ([PR 20947](https://github.com/spyder-ide/spyder/pull/20947) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20798](https://github.com/spyder-ide/spyder/issues/20798) - Some errors that occur when using the Find plugin
+* [Issue 20774](https://github.com/spyder-ide/spyder/issues/20774) - Spyder 5.4.3 launched with administrative rights through auto-updater
+* [Issue 20716](https://github.com/spyder-ide/spyder/issues/20716) - The text size in the IPython console changes depending on the code run on it ([PR 21059](https://github.com/spyder-ide/spyder/pull/21059) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20639](https://github.com/spyder-ide/spyder/issues/20639) - Error debugging Plotly code in Spyder 5.4.1 ([PR 21018](https://github.com/spyder-ide/spyder/pull/21018) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20602](https://github.com/spyder-ide/spyder/issues/20602) - Code analysis doesn't work if there are multiple symlinks to python directory in lib folder ([PR 21034](https://github.com/spyder-ide/spyder/pull/21034) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16562](https://github.com/spyder-ide/spyder/issues/16562) - Cannot activate conda env when created in a path ([PR 20758](https://github.com/spyder-ide/spyder/pull/20758) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 1741](https://github.com/spyder-ide/spyder/issues/1741) - Provide better keyboard shortcuts to switch editor tabs on Mac ([PR 21111](https://github.com/spyder-ide/spyder/pull/21111) by [@ryohei22](https://github.com/ryohei22))
+
+In this release 25 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21155](https://github.com/spyder-ide/spyder/pull/21155) - PR: Update core dependencies for 5.4.4, by [@dalthviz](https://github.com/dalthviz) ([21063](https://github.com/spyder-ide/spyder/issues/21063))
+* [PR 21154](https://github.com/spyder-ide/spyder/pull/21154) - PR: Fix notarizing for 5.x branch, by [@mrclary](https://github.com/mrclary)
+* [PR 21140](https://github.com/spyder-ide/spyder/pull/21140) - PR: Prevent failures when Codecov action fails and switch to `setup-micromamba` (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21128](https://github.com/spyder-ide/spyder/pull/21128) - PR: Fix LSP status widget logic when it is `None` using early return, by [@dpizetta](https://github.com/dpizetta) ([21127](https://github.com/spyder-ide/spyder/issues/21127))
+* [PR 21111](https://github.com/spyder-ide/spyder/pull/21111) - PR: Add better shortcuts to switch editor tabs for macOS, by [@ryohei22](https://github.com/ryohei22) ([1741](https://github.com/spyder-ide/spyder/issues/1741))
+* [PR 21085](https://github.com/spyder-ide/spyder/pull/21085) - PR: Rehighlight found results in the editor when switching between files, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21082](https://github.com/spyder-ide/spyder/pull/21082) - PR: Fix crash at startup when plugins fail their compatibility checks, by [@ccordoba12](https://github.com/ccordoba12) ([21074](https://github.com/spyder-ide/spyder/issues/21074))
+* [PR 21061](https://github.com/spyder-ide/spyder/pull/21061) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 21060](https://github.com/spyder-ide/spyder/pull/21060) - PR: Update translations for 5.4.4, by [@dalthviz](https://github.com/dalthviz)
+* [PR 21059](https://github.com/spyder-ide/spyder/pull/21059) - PR: Save fonts with delta in our font cache (Config), by [@ccordoba12](https://github.com/ccordoba12) ([20716](https://github.com/spyder-ide/spyder/issues/20716))
+* [PR 21056](https://github.com/spyder-ide/spyder/pull/21056) - PR: Fix showing a PyZMQ warning when filtering warnings, by [@ccordoba12](https://github.com/ccordoba12) ([21017](https://github.com/spyder-ide/spyder/issues/21017))
+* [PR 21042](https://github.com/spyder-ide/spyder/pull/21042) - PR: Make `match` and `case` be highlighted as Python keywords (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([20963](https://github.com/spyder-ide/spyder/issues/20963))
+* [PR 21038](https://github.com/spyder-ide/spyder/pull/21038) - PR: Use cursor `position` instead of `blockNumber` when restoring cursor after format (Editor), by [@dalthviz](https://github.com/dalthviz) ([20852](https://github.com/spyder-ide/spyder/issues/20852))
+* [PR 21037](https://github.com/spyder-ide/spyder/pull/21037) - PR: Fix line number painting when wrap text option is active (Editor), by [@dalthviz](https://github.com/dalthviz) ([20802](https://github.com/spyder-ide/spyder/issues/20802))
+* [PR 21034](https://github.com/spyder-ide/spyder/pull/21034) - PR: Increase minimal required version of pylint-venv (Code analysis), by [@ccordoba12](https://github.com/ccordoba12) ([20602](https://github.com/spyder-ide/spyder/issues/20602))
+* [PR 21031](https://github.com/spyder-ide/spyder/pull/21031) - PR: Prevent setting cursor in a negative position (Editor), by [@dalthviz](https://github.com/dalthviz) ([21028](https://github.com/spyder-ide/spyder/issues/21028))
+* [PR 21020](https://github.com/spyder-ide/spyder/pull/21020) - PR: Catch an error when trying to kill the kernel children processes (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([21012](https://github.com/spyder-ide/spyder/issues/21012))
+* [PR 21019](https://github.com/spyder-ide/spyder/pull/21019) - PR: Skip more buggy IPython versions, by [@ccordoba12](https://github.com/ccordoba12) ([20871](https://github.com/spyder-ide/spyder/issues/20871), [20816](https://github.com/spyder-ide/spyder/issues/20816))
+* [PR 21018](https://github.com/spyder-ide/spyder/pull/21018) - PR: Disable IPython's debugger skip functionality by default (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([20639](https://github.com/spyder-ide/spyder/issues/20639))
+* [PR 21003](https://github.com/spyder-ide/spyder/pull/21003) - PR: Prevent error when removing several unsaved files from Projects or Files (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([20998](https://github.com/spyder-ide/spyder/issues/20998))
+* [PR 20971](https://github.com/spyder-ide/spyder/pull/20971) - PR: Fix searching in a single file (Find), by [@ccordoba12](https://github.com/ccordoba12) ([20964](https://github.com/spyder-ide/spyder/issues/20964))
+* [PR 20970](https://github.com/spyder-ide/spyder/pull/20970) - PR: Paint find matches above errors and warnings in scrollflags, by [@athompson673](https://github.com/athompson673)
+* [PR 20961](https://github.com/spyder-ide/spyder/pull/20961) - PR: Fix class/function selector for split editors (Editor), by [@rear1019](https://github.com/rear1019)
+* [PR 20954](https://github.com/spyder-ide/spyder/pull/20954) - PR: Backport PR 20952 (Add support for the future `python-lsp-black` 2.0 version), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20948](https://github.com/spyder-ide/spyder/pull/20948) - PR: Catch `PermissionsError` when trying to get applications executables (Files), by [@dalthviz](https://github.com/dalthviz) ([20907](https://github.com/spyder-ide/spyder/issues/20907))
+* [PR 20947](https://github.com/spyder-ide/spyder/pull/20947) - PR: Add `-Xfrozen_modules` flag to prevent Python incorrectly compiled message (IPython Console), by [@dalthviz](https://github.com/dalthviz) ([20800](https://github.com/spyder-ide/spyder/issues/20800))
+* [PR 20870](https://github.com/spyder-ide/spyder/pull/20870) - PR: Fix errors with OnlineHelp plugin regarding readonly properties and ModuleScanner errors, by [@mrclary](https://github.com/mrclary) ([20866](https://github.com/spyder-ide/spyder/issues/20866))
+* [PR 20838](https://github.com/spyder-ide/spyder/pull/20838) - PR: Remove installer option to initialize the conda environment and misc improvements, by [@mrclary](https://github.com/mrclary)
+* [PR 20835](https://github.com/spyder-ide/spyder/pull/20835) - PR: Install wheel in macOS build environment, by [@mrclary](https://github.com/mrclary) ([20834](https://github.com/spyder-ide/spyder/issues/20834))
+* [PR 20830](https://github.com/spyder-ide/spyder/pull/20830) - PR: Don't treat warnings as errors when installing Spyder and subrepos (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20823](https://github.com/spyder-ide/spyder/pull/20823) - PR: Change reporting of macOS system from Darwin to macOS and include machine type, by [@mrclary](https://github.com/mrclary)
+* [PR 20817](https://github.com/spyder-ide/spyder/pull/20817) - PR: Update codecov coverage upload to use GitHub Action (CI), by [@dalthviz](https://github.com/dalthviz)
+* [PR 20812](https://github.com/spyder-ide/spyder/pull/20812) - PR: Ensure Pythonpath Manager widget is in front and has focus after adding path on macOS, by [@mrclary](https://github.com/mrclary) ([20808](https://github.com/spyder-ide/spyder/issues/20808))
+* [PR 20811](https://github.com/spyder-ide/spyder/pull/20811) - PR: Keep `PYTHONHOME` in `get_user_environment_variables` for macOS standalone app, by [@mrclary](https://github.com/mrclary)
+* [PR 20781](https://github.com/spyder-ide/spyder/pull/20781) - PR: Update `RELEASE.md` following 5.4.3 release experience, by [@dalthviz](https://github.com/dalthviz)
+* [PR 20764](https://github.com/spyder-ide/spyder/pull/20764) - PR: Various fixes to improve compatibility with PySide2. , by [@rear1019](https://github.com/rear1019)
+* [PR 20758](https://github.com/spyder-ide/spyder/pull/20758) - PR: Remove quotes from `conda-activate.bat` params and fix `micromamba.exe` detection (Installers), by [@dalthviz](https://github.com/dalthviz) ([16562](https://github.com/spyder-ide/spyder/issues/16562))
+
+In this release 37 pull requests were closed.
+
+
+----
+
+
+## Version 5.4.3 (2023-04-05)
+
+### New features
+
+* Add support for QDarkstyle 3.1
+* Add support for Jupyter-client 8
+* Add mambaforge and miniforge when searching for conda environments
+
+### Important fixes
+
+* Fix IPython Console completions, traceback handling and other issues to better support IPython 8.x
+* Fix compatibility issues with PyZMQ 25.x
+* Add warning message before loading spydata files 
+* Fix web based widgets display by adding the `--no-sandbox` argument for `QtApplication`
+* Fix copy and paste shortcuts for the Files and Projects explorer panes
+* Fix Windows standalone installer restart mechanism
+* Fix keyring backends for the Mac standalone installer
+* Fix Editor issues related with handling LSP server failed starts
+* Fix Editor issues related with restoring previous session and file changes outside Spyder
+* Fix PYTHONPATH manager showing extra paths and other related errors
+* Fix update available notification with pip based installations
+* Fix some UX/UI issues for the find replace widget when the Editor has a small width
+* Removal of Python 2 related code
+
+### Issues Closed
+
+* [Issue 20742](https://github.com/spyder-ide/spyder/issues/20742) - Release Spyder 5.4.3 ([PR 20772](https://github.com/spyder-ide/spyder/pull/20772) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20681](https://github.com/spyder-ide/spyder/issues/20681) - ModuleNotFoundError when clicking on "Connect to an existing kernel" in the Mac app ([PR 20686](https://github.com/spyder-ide/spyder/pull/20686) by [@mrclary](https://github.com/mrclary))
+* [Issue 20679](https://github.com/spyder-ide/spyder/issues/20679) - TypeError when saving file with a different name in the editor and the LSP server failed to start ([PR 20685](https://github.com/spyder-ide/spyder/pull/20685) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20670](https://github.com/spyder-ide/spyder/issues/20670) - TimeoutError and crash at startup when restoring files in the editor if OneDrive is not started ([PR 20674](https://github.com/spyder-ide/spyder/pull/20674) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20643](https://github.com/spyder-ide/spyder/issues/20643) - AttributeError after closing all files in a new editor window ([PR 20664](https://github.com/spyder-ide/spyder/pull/20664) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20637](https://github.com/spyder-ide/spyder/issues/20637) - Extra path shown in Pythonpath manager when using the Mac app ([PR 20106](https://github.com/spyder-ide/spyder/pull/20106) by [@mrclary](https://github.com/mrclary))
+* [Issue 20619](https://github.com/spyder-ide/spyder/issues/20619) - Mambaforge environment not automatically detected ([PR 20498](https://github.com/spyder-ide/spyder/pull/20498) by [@mrclary](https://github.com/mrclary))
+* [Issue 20599](https://github.com/spyder-ide/spyder/issues/20599) - Profiler process needs to remove `PYTHONEXECUTABLE` to run in conda env ([PR 20612](https://github.com/spyder-ide/spyder/pull/20612) by [@battaglia01](https://github.com/battaglia01))
+* [Issue 20597](https://github.com/spyder-ide/spyder/issues/20597) - Crash with seaborn objects (version 0.12.2) Python 3.10 and QtConsole 5.4.0 ([PR 20644](https://github.com/spyder-ide/spyder/pull/20644) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20539](https://github.com/spyder-ide/spyder/issues/20539) - TypeError when trying to update environments in status bar widget ([PR 20690](https://github.com/spyder-ide/spyder/pull/20690) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20506](https://github.com/spyder-ide/spyder/issues/20506) - Error when trying to add directories in PythonPath Manager ([PR 20541](https://github.com/spyder-ide/spyder/pull/20541) by [@rear1019](https://github.com/rear1019))
+* [Issue 20504](https://github.com/spyder-ide/spyder/issues/20504) - Pane tabs in macOS are center-aligned rather than left-aligned ([PR 20515](https://github.com/spyder-ide/spyder/pull/20515) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20496](https://github.com/spyder-ide/spyder/issues/20496) - Viewer of dataframes uses `iteritems` but shouldn't for Pandas >= 1.5.0 ([PR 20650](https://github.com/spyder-ide/spyder/pull/20650) by [@dan123456-eng](https://github.com/dan123456-eng))
+* [Issue 20476](https://github.com/spyder-ide/spyder/issues/20476) - Buttons in find and replace widget jump around for small editor widths ([PR 20593](https://github.com/spyder-ide/spyder/pull/20593) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20462](https://github.com/spyder-ide/spyder/issues/20462) - ndarray subclasses with a member called 'dtype' crashes Spyder if dtype.name doesn't exist ([PR 20464](https://github.com/spyder-ide/spyder/pull/20464) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20430](https://github.com/spyder-ide/spyder/issues/20430) - `spyder-line-profiler` fails silently with latest 5.x due to missing import in `py3compat` ([PR 20450](https://github.com/spyder-ide/spyder/pull/20450) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20417](https://github.com/spyder-ide/spyder/issues/20417) - Small inconsistency in license file ([PR 20420](https://github.com/spyder-ide/spyder/pull/20420) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20407](https://github.com/spyder-ide/spyder/issues/20407) - IPython console does not link to the file and row that caused the error anymore ([PR 20725](https://github.com/spyder-ide/spyder/pull/20725) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20406](https://github.com/spyder-ide/spyder/issues/20406) - Error when checking for updates finishes with pip installations ([PR 20492](https://github.com/spyder-ide/spyder/pull/20492) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20398](https://github.com/spyder-ide/spyder/issues/20398) - TypeError when running files in external terminal ([PR 20405](https://github.com/spyder-ide/spyder/pull/20405) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20393](https://github.com/spyder-ide/spyder/issues/20393) - Pressing `Tab` key for code completion repeats previous text with IPython 8.8+ ([PR 20656](https://github.com/spyder-ide/spyder/pull/20656) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20392](https://github.com/spyder-ide/spyder/issues/20392) - Remove QDarkstyle subrepo ([PR 20442](https://github.com/spyder-ide/spyder/pull/20442) by [@mrclary](https://github.com/mrclary))
+* [Issue 20390](https://github.com/spyder-ide/spyder/issues/20390) - Online Help Crash ([PR 20596](https://github.com/spyder-ide/spyder/pull/20596) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 20381](https://github.com/spyder-ide/spyder/issues/20381) - ZMQError when running code in the console ([PR 20735](https://github.com/spyder-ide/spyder/pull/20735) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20358](https://github.com/spyder-ide/spyder/issues/20358) - Help pane doesn't show anything in rich text mode ([PR 20482](https://github.com/spyder-ide/spyder/pull/20482) by [@tlunet](https://github.com/tlunet))
+* [Issue 20242](https://github.com/spyder-ide/spyder/issues/20242) - Error when running Numpy, Scipy, Pandas code with Windows installer ([PR 20106](https://github.com/spyder-ide/spyder/pull/20106) by [@mrclary](https://github.com/mrclary))
+* [Issue 20068](https://github.com/spyder-ide/spyder/issues/20068) - Copy and paste shortcuts for Files and Projects don't work in 5.3.3 ([PR 20707](https://github.com/spyder-ide/spyder/pull/20707) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 18838](https://github.com/spyder-ide/spyder/issues/18838) - Crash after switching git branch that removes open files ([PR 20586](https://github.com/spyder-ide/spyder/pull/20586) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11754](https://github.com/spyder-ide/spyder/issues/11754) - Unable to load .spydata files containing numpy object arrays 
+
+In this release 29 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 20772](https://github.com/spyder-ide/spyder/pull/20772) - PR: Update core dependencies for 5.4.3, by [@dalthviz](https://github.com/dalthviz) ([20742](https://github.com/spyder-ide/spyder/issues/20742))
+* [PR 20766](https://github.com/spyder-ide/spyder/pull/20766) - PR: Add support for QDarkstyle 3.1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20763](https://github.com/spyder-ide/spyder/pull/20763) - PR: Sync latest changes in PyLSP, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20751](https://github.com/spyder-ide/spyder/pull/20751) - PR: Remove constraint for PyZMQ < 25 (Installers), by [@dalthviz](https://github.com/dalthviz)
+* [PR 20749](https://github.com/spyder-ide/spyder/pull/20749) - PR: Check if the `iopub` channel is not closed before flushing it (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20735](https://github.com/spyder-ide/spyder/pull/20735) - PR: Add support for Jupyter-client 8, by [@ccordoba12](https://github.com/ccordoba12) ([20381](https://github.com/spyder-ide/spyder/issues/20381))
+* [PR 20729](https://github.com/spyder-ide/spyder/pull/20729) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 20727](https://github.com/spyder-ide/spyder/pull/20727) - PR: Update translations for 5.4.3, by [@dalthviz](https://github.com/dalthviz)
+* [PR 20725](https://github.com/spyder-ide/spyder/pull/20725) - PR: Fix clicking on file names in tracebacks for IPython 8 and minor fixes for messages shown in the console, by [@ccordoba12](https://github.com/ccordoba12) ([20407](https://github.com/spyder-ide/spyder/issues/20407))
+* [PR 20707](https://github.com/spyder-ide/spyder/pull/20707) - PR: Fix copy/paste shortcuts in Files and Projects, by [@ccordoba12](https://github.com/ccordoba12) ([20068](https://github.com/spyder-ide/spyder/issues/20068))
+* [PR 20699](https://github.com/spyder-ide/spyder/pull/20699) - PR: Fix restart mechanism for the Windows standalone installer (Installers), by [@dalthviz](https://github.com/dalthviz)
+* [PR 20690](https://github.com/spyder-ide/spyder/pull/20690) - PR: Avoid error when updating environments (Main interpreter), by [@ccordoba12](https://github.com/ccordoba12) ([20539](https://github.com/spyder-ide/spyder/issues/20539))
+* [PR 20686](https://github.com/spyder-ide/spyder/pull/20686) - PR: Fix issue where keyring backends are not found in macOS standalone app, by [@mrclary](https://github.com/mrclary) ([20681](https://github.com/spyder-ide/spyder/issues/20681))
+* [PR 20685](https://github.com/spyder-ide/spyder/pull/20685) - PR: Fix error in `document_did_open` when the LSP failed to start (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([20679](https://github.com/spyder-ide/spyder/issues/20679))
+* [PR 20674](https://github.com/spyder-ide/spyder/pull/20674) - PR: Avoid crash at startup when trying to restore the previous session (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([20670](https://github.com/spyder-ide/spyder/issues/20670))
+* [PR 20664](https://github.com/spyder-ide/spyder/pull/20664) - PR: Add validations before doing operations with the current editor (Editor), by [@dalthviz](https://github.com/dalthviz) ([20643](https://github.com/spyder-ide/spyder/issues/20643))
+* [PR 20656](https://github.com/spyder-ide/spyder/pull/20656) - PR: Skip IPython versions that give buggy code completions and other fixes for dependencies, by [@ccordoba12](https://github.com/ccordoba12) ([20393](https://github.com/spyder-ide/spyder/issues/20393))
+* [PR 20650](https://github.com/spyder-ide/spyder/pull/20650) - PR: Change usage of `iteritems` for `items` in dataframe editor (Variable Explorer), by [@dan123456-eng](https://github.com/dan123456-eng) ([20496](https://github.com/spyder-ide/spyder/issues/20496))
+* [PR 20644](https://github.com/spyder-ide/spyder/pull/20644) - PR: Fix displaying images that have float width or height (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([20597](https://github.com/spyder-ide/spyder/issues/20597))
+* [PR 20612](https://github.com/spyder-ide/spyder/pull/20612) - PR: Remove `PYTHONEXECUTABLE` for process that runs the profiler, by [@battaglia01](https://github.com/battaglia01) ([20599](https://github.com/spyder-ide/spyder/issues/20599))
+* [PR 20596](https://github.com/spyder-ide/spyder/pull/20596) - PR: Set `PYDEVD_DISABLE_FILE_VALIDATION` to prevent errors when searching for numpy docs (Online Help), by [@dalthviz](https://github.com/dalthviz) ([20390](https://github.com/spyder-ide/spyder/issues/20390))
+* [PR 20593](https://github.com/spyder-ide/spyder/pull/20593) - PR: Show icon instead of text for small widths and clear found results correctly in Find/Replace widget, by [@ccordoba12](https://github.com/ccordoba12) ([20476](https://github.com/spyder-ide/spyder/issues/20476))
+* [PR 20588](https://github.com/spyder-ide/spyder/pull/20588) - PR: Remove macOS and Windows conda-based installers from 5.x branch, by [@mrclary](https://github.com/mrclary)
+* [PR 20586](https://github.com/spyder-ide/spyder/pull/20586) - PR: Fix segfault when closing files removed outside Spyder (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([18838](https://github.com/spyder-ide/spyder/issues/18838))
+* [PR 20582](https://github.com/spyder-ide/spyder/pull/20582) - PR: Make translation object a singleton, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 20558](https://github.com/spyder-ide/spyder/pull/20558) - PR: Drop bytes encodings for translations, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 20543](https://github.com/spyder-ide/spyder/pull/20543) - PR: Fix “Last edit location” for unsaved files, by [@rear1019](https://github.com/rear1019)
+* [PR 20542](https://github.com/spyder-ide/spyder/pull/20542) - PR: Fix error in public API of Python Path Manager, by [@rear1019](https://github.com/rear1019)
+* [PR 20541](https://github.com/spyder-ide/spyder/pull/20541) - PR: Fix error when Python Path Manager is reopened, by [@rear1019](https://github.com/rear1019) ([20506](https://github.com/spyder-ide/spyder/issues/20506))
+* [PR 20538](https://github.com/spyder-ide/spyder/pull/20538) - PR: Fix reinstalling Spyder in editable mode when switching from 5.x to master and viceversa (Development), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20515](https://github.com/spyder-ide/spyder/pull/20515) - PR: Make pane tabs to be left aligned on macOS again, by [@ccordoba12](https://github.com/ccordoba12) ([20504](https://github.com/spyder-ide/spyder/issues/20504))
+* [PR 20498](https://github.com/spyder-ide/spyder/pull/20498) - PR: Update conda search paths to include mambaforge and miniforge, by [@mrclary](https://github.com/mrclary) ([20619](https://github.com/spyder-ide/spyder/issues/20619))
+* [PR 20492](https://github.com/spyder-ide/spyder/pull/20492) - PR: Initialize `content` variable for update available message (Application), by [@dalthviz](https://github.com/dalthviz) ([20406](https://github.com/spyder-ide/spyder/issues/20406))
+* [PR 20482](https://github.com/spyder-ide/spyder/pull/20482) - PR: Add `--no-sandbox` argument for QtApplication, by [@tlunet](https://github.com/tlunet) ([20358](https://github.com/spyder-ide/spyder/issues/20358))
+* [PR 20466](https://github.com/spyder-ide/spyder/pull/20466) - PR: Fix installer triggers, by [@mrclary](https://github.com/mrclary)
+* [PR 20464](https://github.com/spyder-ide/spyder/pull/20464) - PR: Prevent error when trying to show arrays without an actual `dtype` (Variable Explorer), by [@ccordoba12](https://github.com/ccordoba12) ([20462](https://github.com/spyder-ide/spyder/issues/20462))
+* [PR 20456](https://github.com/spyder-ide/spyder/pull/20456) - PR: Skip `test_tk_backend` on Windows with IPykernel 6.21.0, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20452](https://github.com/spyder-ide/spyder/pull/20452) - PR: Update GitHub actions, by [@mrclary](https://github.com/mrclary)
+* [PR 20450](https://github.com/spyder-ide/spyder/pull/20450) - PR: Restore `pickle` import in `py3compat.py` and some fixes to the main window tests, by [@ccordoba12](https://github.com/ccordoba12) ([20430](https://github.com/spyder-ide/spyder/issues/20430))
+* [PR 20442](https://github.com/spyder-ide/spyder/pull/20442) - PR: Remove qdarkstyle subrepo, by [@mrclary](https://github.com/mrclary) ([20392](https://github.com/spyder-ide/spyder/issues/20392))
+* [PR 20425](https://github.com/spyder-ide/spyder/pull/20425) - PR: Better split test suite between slow and fast slots in CIs and other improvements for CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 20420](https://github.com/spyder-ide/spyder/pull/20420) - PR: Make Readme and License files to match, by [@ccordoba12](https://github.com/ccordoba12) ([20417](https://github.com/spyder-ide/spyder/issues/20417))
+* [PR 20405](https://github.com/spyder-ide/spyder/pull/20405) - PR: Fix check for UNC working directory path when running code in external terminals, by [@ccordoba12](https://github.com/ccordoba12) ([20398](https://github.com/spyder-ide/spyder/issues/20398))
+* [PR 20396](https://github.com/spyder-ide/spyder/pull/20396) - PR: Add workflow triggers for release candidates and fix tag normalization, by [@mrclary](https://github.com/mrclary)
+* [PR 20366](https://github.com/spyder-ide/spyder/pull/20366) - PR: Remove Python 2 support (part I), by [@oscargus](https://github.com/oscargus)
+* [PR 20272](https://github.com/spyder-ide/spyder/pull/20272) - PR: Display warning message before loading spydata files, by [@nkleinbaer](https://github.com/nkleinbaer) ([11754](https://github.com/[/issues/11754))
+* [PR 20106](https://github.com/spyder-ide/spyder/pull/20106) - PR: Fix issue where user environment variables with line endings were not parsed correctly on Unix platforms, by [@mrclary](https://github.com/mrclary) ([20637](https://github.com/spyder-ide/spyder/issues/20637), [20242](https://github.com/spyder-ide/spyder/issues/20242), [20097](https://github.com/spyder-ide/spyder/issues/20097))
+
+In this release 47 pull requests were closed.
+
+
+----
+
+
 ## Version 5.4.2 (2023-01-18)
 
 ### New features

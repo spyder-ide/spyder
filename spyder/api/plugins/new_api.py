@@ -26,10 +26,10 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
-from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -148,8 +148,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     IMG_PATH = None
 
     # Control the font size relative to the global fonts defined in Spyder
-    FONT_SIZE_DELTA = 0
-    RICH_FONT_SIZE_DELTA = 0
+    MONOSPACE_FONT_SIZE_DELTA = 0
+    INTERFACE_FONT_SIZE_DELTA = 0
 
     # Define context to store actions, toolbars, toolbuttons and menus.
     CONTEXT_NAME = None
@@ -687,15 +687,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         return ima.icon(name)
 
     @classmethod
-    def get_font(cls, rich_text=False):
+    def get_font(cls, font_type):
         """
-        Return plain or rich text font used in Spyder.
+        Return one of font types used in Spyder.
 
         Parameters
         ----------
-        rich_text: bool
-            Return rich text font (i.e. the one used in the Help pane)
-            or plain text one (i.e. the one used in the Editor).
+        font_type: str
+            There are three types of font types in Spyder:
+            SpyderFontType.Monospace, used in the Editor, IPython console,
+            and History; SpyderFontType.Interface, used by the entire Spyder
+            app; and SpyderFontType.MonospaceInterface, used by the Variable
+            Explorer, Find, Debugger and others.
 
         Returns
         -------
@@ -704,19 +707,20 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        All plugins in Spyder use the same, global font. This is a convenience
-        method in case some plugins want to use a delta size based on the
-        default one. That can be controlled by using FONT_SIZE_DELTA or
-        RICH_FONT_SIZE_DELTA (declared in `SpyderPlugin`).
+        All plugins in Spyder use the same, global fonts. In case some a plugin
+        wants to use a delta font size based on the default one, they can set
+        the MONOSPACE_FONT_SIZE_DELTA or INTERFACE_FONT_SIZE_DELTA class
+        constants.
         """
-        if rich_text:
-            option = 'rich_font'
-            font_size_delta = cls.RICH_FONT_SIZE_DELTA
+        if font_type == SpyderFontType.Monospace:
+            font_size_delta = cls.MONOSPACE_FONT_SIZE_DELTA
+        elif font_type in [SpyderFontType.Interface,
+                           SpyderFontType.MonospaceInterface]:
+            font_size_delta = cls.INTERFACE_FONT_SIZE_DELTA
         else:
-            option = 'font'
-            font_size_delta = cls.FONT_SIZE_DELTA
+            raise SpyderAPIError("Unrecognized font type")
 
-        return get_font(option=option, font_size_delta=font_size_delta)
+        return get_font(option=font_type, font_size_delta=font_size_delta)
 
     def get_command_line_options(self):
         """
@@ -746,11 +750,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        This is a method to be able to update localization without a restart.
+        This method needs to be decorated with `staticmethod`.
         """
         raise NotImplementedError('A plugin name must be defined!')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         """
         Return the plugin localized description.
 
@@ -761,11 +766,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         Notes
         -----
-        This is a method to be able to update localization without a restart.
+        This method needs to be decorated with `staticmethod`.
         """
         raise NotImplementedError('A plugin description must be defined!')
 
-    def get_icon(self):
+    @classmethod
+    def get_icon(cls):
         """
         Return the plugin associated icon.
 
@@ -773,6 +779,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -------
         QIcon
             QIcon instance
+
+        Notes
+        -----
+        This method needs to be decorated with `classmethod` or `staticmethod`.
         """
         raise NotImplementedError('A plugin icon must be defined!')
 

@@ -9,7 +9,6 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
-import ast
 import os
 import os.path as osp
 import time
@@ -22,11 +21,10 @@ from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
 
 # Local imports
-from spyder.config.base import (
-    _, is_pynsist, running_in_mac_app, running_under_pytest)
-from spyder.config.gui import get_color_scheme
+from spyder.config.base import _, is_conda_based_app, running_under_pytest
+from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.py3compat import to_text_string
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import (
@@ -119,9 +117,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
-    # To notify of kernel connection / disconnection
+    # To notify of kernel connection, disconnection and kernel errors
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
+    sig_shellwidget_errored = Signal(object)
 
     # To request restart
     sig_restart_kernel = Signal()
@@ -129,7 +128,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_state_arrived = Signal(dict)
     """
     A new kernel state, which needs to be processed.
-    
+
     Parameters
     ----------
     state: dict
@@ -166,8 +165,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._init_kernel_setup = False
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
-            'set_debug_state': self.set_debug_state,
-            'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
         })
@@ -178,7 +175,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
-        self.show_modules_message = is_pynsist() or running_in_mac_app()
+        self.show_modules_message = is_conda_based_app()
 
     # ---- Public API ---------------------------------------------------------
     @property
@@ -191,7 +188,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def spyder_kernel_ready(self):
         """
         Check if Spyder kernel is ready.
-        
+
         Notes
         -----
         This is used for our tests.
@@ -225,7 +222,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
-        kernel_handler.connect()
+        kernel_handler.connect_()
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
@@ -352,7 +349,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self._init_kernel_setup:
             # Only do this setup once
             self._init_kernel_setup = True
-            
+
             # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(
                 self.sig_exception_occurred)
@@ -901,7 +898,7 @@ the sympy module (e.g. plot)
             Type of message to be showm. Possible values are
             'warning' and 'error'.
         """
-        # The message is displayed in a table with a single cell.
+        # The message is displayed in a table with a header and a single cell.
         table_properties = (
             "border='0.5'" +
             "width='90%'" +
@@ -913,14 +910,27 @@ the sympy module (e.g. plot)
             header = _("Error")
             bgcolor = SpyderPalette.COLOR_ERROR_2
         else:
-            header = _("Warning")
+            header = _("Important")
             bgcolor = SpyderPalette.COLOR_WARN_1
 
+        # This makes the header text have good contrast against its background
+        # for the light theme.
+        if is_dark_interface():
+            font_color = QStylePalette.COLOR_TEXT_1
+        else:
+            font_color = 'white'
+
         self._append_html(
-            f"<div align='center'><table {table_properties}>" +
-            f"<tr><th bgcolor='{bgcolor}'>{header}</th></tr>" +
-            "<tr><td>" + html + "</td></tr>" +
-            "</table></div>",
+            f"<div align='center'>"
+            f"<table {table_properties}>"
+            # Header
+            f"<tr><th bgcolor='{bgcolor}'><font color='{font_color}'>"
+            f"{header}"
+            f"</th></tr>"
+            # Cell with html message
+            f"<tr><td>{html}</td></tr>"
+            f"</table>"
+            f"</div>",
             before_prompt=before_prompt
         )
 

@@ -13,9 +13,9 @@ from qtpy.QtCore import QSize, Qt, Slot
 from qtpy.QtWidgets import QComboBox, QHBoxLayout
 
 # Local imports
-from spyder.api.panel import Panel
 from spyder.config.base import _
 from spyder.plugins.completion.api import SymbolKind
+from spyder.plugins.editor.api.panel import Panel
 from spyder.utils.icon_manager import ima
 
 

@@ -16,6 +16,7 @@ from datetime import datetime
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import sys
 import time
@@ -34,13 +35,12 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
-from spyder.api.panel import Panel
 from spyder.api.plugins import Plugins, SpyderPluginWidget
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
+from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
@@ -52,15 +52,15 @@ from spyder.plugins.editor.api.run import (
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
+from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
-                                                  EditorSplitter,
-                                                  EditorStack)
+from spyder.plugins.editor.widgets.editorstack import EditorStack
+from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWindow
 from spyder.plugins.editor.widgets.printer import (
     SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
-                                                   save_bookmarks)
+                                                   update_bookmarks)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
@@ -71,6 +71,7 @@ from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -154,7 +155,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     sig_open_files_finished = Signal()
@@ -264,13 +265,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         self.supported_run_extensions = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'contexts': [
                     {'context': {'name': 'File'}, 'is_super': True},
                     {'context': {'name': 'Selection'}, 'is_super': False},
                     {'context': {'name': 'Cell'}, 'is_super': False}
                 ]
-            }
+            },
         ]
 
         run = self.main.get_plugin(Plugins.Run, error=False)
@@ -368,6 +369,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         self.register_widget_shortcuts(self.find_widget)
+
+        # TODO: This is a hack! Remove it after migrating to the new API
+        self.find_widget.layout().setContentsMargins(
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize
+        )
 
         # Start autosave component
         # (needs to be done before EditorSplitter)
@@ -474,12 +483,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
-    def register_file_run_metadata(self, filename, filename_ext):
+    def register_file_run_metadata(self, filename):
         """Register opened files with the Run plugin."""
-        all_uuids = CONF.get('editor', 'file_uuids', default={})
+        all_uuids = self.get_conf('file_uuids', default={})
         file_id = all_uuids.get(filename, str(uuid.uuid4()))
         all_uuids[filename] = file_id
-        CONF.set('editor', 'file_uuids', all_uuids)
+        self.set_conf('file_uuids', all_uuids)
 
         metadata: RunConfigurationMetadata = {
             'name': filename,
@@ -490,7 +499,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             'context': {
                 'name': 'File'
             },
-            'input_extension': filename_ext
+            'input_extension': osp.splitext(filename)[1][1:]
         }
 
         self.file_per_id[file_id] = filename
@@ -500,6 +509,41 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         run = self.main.get_plugin(Plugins.Run, error=False)
         if run:
             run.register_run_configuration_metadata(self, metadata)
+    
+    def deregister_file_run_metadata(self, filename):
+        """Unregister files with the Run plugin."""
+        if filename not in self.id_per_file:
+            return
+
+        file_id = self.id_per_file.pop(filename)
+        self.file_per_id.pop(file_id)
+        self.metadata_per_id.pop(file_id)
+        
+        run = self.main.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.deregister_run_configuration_metadata(file_id)
+    
+    def change_register_file_run_metadata(self, old_filename, new_filename):
+        """Change registered run metadata when renaming files."""
+        is_selected = False
+        run = self.main.get_plugin(Plugins.Run, error=False)
+
+        if run is not None:
+            is_selected = (
+                run.get_currently_selected_configuration() 
+                == self.id_per_file.get(old_filename, None)
+            )
+
+        self.deregister_file_run_metadata(old_filename)
+
+        # This avoids to register the run metadata of new_filename twice, which
+        # can happen for some rename operations.
+        if not self.id_per_file.get(new_filename):
+            self.register_file_run_metadata(new_filename)
+
+        if is_selected:
+            run.switch_focused_run_configuration(
+                self.id_per_file[new_filename])
 
     @Slot(dict)
     def report_open_file(self, options):
@@ -518,7 +562,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 filename not in self.id_per_file
                 and RunContext.File in ext_contexts
             ):
-                self.register_file_run_metadata(filename, filename_ext)
+                self.register_file_run_metadata(filename)
                 able_to_run_file = True
 
         if not able_to_run_file:
@@ -612,9 +656,22 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         title = _('Editor')
         return title
 
-    def get_plugin_icon(self):
+    # TODO: Remove when the editor is migrated to the new API
+    get_name = get_plugin_title
+
+    @staticmethod
+    def get_description():
+        return _(
+            "Edit Python, Markdown, Cython and many other types of text files."
+        )
+
+    @classmethod
+    def get_plugin_icon(cls):
         """Return widget icon."""
         return ima.icon('edit')
+
+    # TODO: Remove when the editor is migrated to the new API
+    get_icon = get_plugin_icon
 
     def get_focus_widget(self):
         """
@@ -796,6 +853,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                name="Replace text")
 
         # --- Run toolbar ---
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -863,6 +921,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                add_shortcut_to_tip=True)
 
         # --- Edit Toolbar ---
+        create_new_cell = create_action(self, _("Create new cell at the "
+                                                "current line"),
+                                        icon=ima.icon('new_cell'),
+                                        tip=_("Create new cell"),
+                                        triggered=self.create_cell,
+                                        context=Qt.WidgetShortcut)
+        self.register_shortcut(create_new_cell, context="Editor",
+                               name="create_new_cell")
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
                 tip=_("Comment current line or selection"),
@@ -939,15 +1005,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            '')
+            default='',
+            section='completions'
+        )
         self.formatting_action = create_action(
             self,
             _('Format file or selection with {0}').format(
                 formatter.capitalize()),
-            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            shortcut=self.get_shortcut('autoformatting'),
             context=Qt.WidgetShortcut,
             triggered=self.format_document_or_selection)
         self.formatting_action.setEnabled(False)
@@ -1024,13 +1091,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.go_to_next_file_action = create_action(
                 self,
                 _("Go to next file"),
-                shortcut=CONF.get_shortcut('editor', 'go to previous file'),
+                shortcut=self.get_shortcut('go to previous file'),
                 triggered=self.go_to_next_file,
             )
             self.go_to_previous_file_action = create_action(
                 self,
                 _("Go to previous file"),
-                shortcut=CONF.get_shortcut('editor', 'go to next file'),
+                shortcut=self.get_shortcut('go to next file'),
                 triggered=self.go_to_previous_file,
             )
             self.register_shortcut(
@@ -1055,25 +1122,37 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         from spyder.plugins.mainmenu.api import (
             ApplicationMenus, FileMenuSections)
-        # New Section
-        self.main.mainmenu.add_item_to_application_menu(
-            self.new_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.New,
-            before_section=FileMenuSections.Restart,
-            omit_id=True)
-        # Open section
-        open_actions = [
-            self.open_action,
-            self.open_last_closed_action,
-            self.recent_file_menu,
-        ]
-        for open_action in open_actions:
+        # Navigation
+        if sys.platform == 'darwin':
             self.main.mainmenu.add_item_to_application_menu(
-                open_action,
+                self.tab_navigation_actions,
                 menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Open,
+                section=FileMenuSections.Navigation,
                 before_section=FileMenuSections.Restart,
+                omit_id=True)
+        # Close
+        close_actions = [
+            self.close_action,
+            self.close_all_action
+        ]
+        for close_action in close_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Switcher,
+                omit_id=True)
+        # Print
+        print_actions = [
+            print_preview_action,
+            self.print_action,
+        ]
+        for print_action in print_actions:
+            self.main.mainmenu.add_item_to_application_menu(
+                print_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Print,
+                before_section=FileMenuSections.Close,
                 omit_id=True)
         # Save section
         save_actions = [
@@ -1088,43 +1167,32 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 save_action,
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Save,
-                before_section=FileMenuSections.Restart,
+                before_section=FileMenuSections.Print,
                 omit_id=True)
-        # Print
-        print_actions = [
-            print_preview_action,
-            self.print_action,
+        # Open section
+        open_actions = [
+            self.open_action,
+            self.open_last_closed_action,
+            self.recent_file_menu,
         ]
-        for print_action in print_actions:
+        for open_action in open_actions:
             self.main.mainmenu.add_item_to_application_menu(
-                print_action,
+                open_action,
                 menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Print,
-                before_section=FileMenuSections.Restart,
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Save,
                 omit_id=True)
-        # Close
-        close_actions = [
-            self.close_action,
-            self.close_all_action
-        ]
-        for close_action in close_actions:
-            self.main.mainmenu.add_item_to_application_menu(
-                close_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart,
-                omit_id=True)
-        # Navigation
-        if sys.platform == 'darwin':
-            self.main.mainmenu.add_item_to_application_menu(
-                self.tab_navigation_actions,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Navigation,
-                before_section=FileMenuSections.Restart,
-                omit_id=True)
+        # New Section
+        self.main.mainmenu.add_item_to_application_menu(
+            self.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open,
+            omit_id=True)
 
         file_toolbar_actions = ([self.new_action, self.open_action,
                                 self.save_action, self.save_all_action] +
+                                [create_new_cell] +
                                 self.main.file_toolbar_actions)
 
         self.main.file_toolbar_actions += file_toolbar_actions
@@ -1351,14 +1419,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'run_cell', self.handle_run_cell)
 
         self.add_dockwidget()
-
-        # Add modes to switcher
-        self.switcher_manager = EditorSwitcherManager(
-            self,
-            self.main.switcher,
-            self.get_current_editor,
-            self.get_current_editorstack,
-            section=self.get_plugin_title())
+        if self.main.switcher is not None:
+            self.switcher_manager = EditorSwitcherManager(
+                self,
+                self.main.switcher,
+                self.get_current_editor,
+                self.get_current_editorstack,
+                section=self.get_plugin_title())
 
     def base_edit_actions_callback(self):
         """Callback for base edit actions of text based widgets."""
@@ -1465,7 +1532,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         color_scheme = self.get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
-            completion_size = CONF.get('main', 'completion/size')
+            completion_size = self.get_conf('completion/size', section='main')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
@@ -1512,10 +1579,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
-            opt = CONF.get(
-                'completions',
+            opt = self.get_conf(
                 ('provider_configuration', 'lsp', 'values', conf_name),
-                False
+                default=False,
+                section='completions'
             )
             action.setChecked(opt)
 
@@ -1548,10 +1615,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.set_option(conf_name, checked)
         else:
             if conf_name in ('pycodestyle', 'pydocstyle'):
-                CONF.set(
-                    'completions',
+                self.set_conf(
                     ('provider_configuration', 'lsp', 'values', conf_name),
-                    checked)
+                    checked,
+                    section='completions'
+                )
             if self.main.get_plugin(Plugins.Completions, error=False):
                 completions = self.main.completions
                 completions.after_configuration_update([])
@@ -1665,26 +1733,27 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
 
-        editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
-
-        hover_hints = CONF.get(
-            'completions',
-            ('provider_configuration', 'lsp', 'values',
-                'enable_hover_hints'),
-            True
+        editorstack.set_help_enabled(
+            self.get_conf('connect/editor', section='help')
         )
 
-        format_on_save = CONF.get(
-            'completions',
+        hover_hints = self.get_conf(
+            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'),
+            default=True,
+            section='completions'
+        )
+
+        format_on_save = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'format_on_save'),
-            False
+            default=False,
+            section='completions'
         )
 
-        edge_line_columns = CONF.get(
-            'completions',
+        edge_line_columns = self.get_conf(
             ('provider_configuration', 'lsp', 'values',
              'pycodestyle/max_line_length'),
-            79
+            default=79,
+            section='completions'
         )
 
         editorstack.set_hover_hints_enabled(hover_hints)
@@ -1713,10 +1782,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
-        editorstack.file_renamed_in_data.connect(
-                                      self.file_renamed_in_data_in_editorstack)
+        editorstack.file_renamed_in_data.connect(self.renamed)
         editorstack.opened_files_list_changed.connect(
-                                                self.opened_files_list_changed)
+            self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
             self.update_active_languages)
         editorstack.sig_go_to_definition.connect(
@@ -1730,7 +1798,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editorstack.sig_update_code_analysis_actions.connect(
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
-                                           self.refresh_file_dependent_actions)
+            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
@@ -1778,13 +1846,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot(str, str)
     def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
-        run = self.main.get_plugin(Plugins.Run, error=False)
         if filename in self.id_per_file:
-            file_id = self.id_per_file.pop(filename)
-            self.file_per_id.pop(file_id)
-            self.metadata_per_id.pop(file_id)
-            if run is not None:
-                run.deregister_run_configuration_metadata(file_id)
+            self.deregister_file_run_metadata(filename)
         else:
             _, filename_ext = osp.splitext(filename)
             filename_ext = filename_ext[1:]
@@ -1805,14 +1868,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(original_filename,
                                                             filename)
-
-    @Slot(str, str, str)
-    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            original_filename, filename):
-        """A file was renamed in data in editorstack, this notifies others"""
-        for editorstack in self.editorstacks:
-            if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(original_filename, filename)
 
     #------ Handling editor windows
     def setup_other_windows(self):
@@ -2027,10 +2082,11 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
-        formatter = CONF.get(
-            'completions',
+        formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
-            '')
+            default='',
+            section='completions'
+        )
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
@@ -2088,7 +2144,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         bookmarks = to_text_string(bookmarks)
         filename = osp.normpath(osp.abspath(filename))
         bookmarks = eval(bookmarks)
-        save_bookmarks(filename, bookmarks)
+        old_slots = self.get_conf('bookmarks', default={})
+        new_slots = update_bookmarks(filename, bookmarks, old_slots)
+        if new_slots:
+            self.set_conf('bookmarks', new_slots)
 
     #------ File I/O
     def __load_temp_file(self):
@@ -2394,7 +2453,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
 
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
+            fname = encoding.to_unicode_from_fs(fname)
+            if os.name == 'nt':
+                # Try to get the correct capitalization and absolute path
+                try:
+                    # This should correctly capitalize the path on Windows
+                    fname = str(Path(fname).resolve())
+                except OSError:
+                    # On Windows, "<string>" is not a valid path
+                    # But it can be used as filename while debugging
+                    fname = osp.abspath(fname)
+            else:
+                fname = osp.abspath(fname)
+
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
@@ -2440,7 +2511,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.set_bookmarks(load_bookmarks(filename))
+                slots = self.get_conf('bookmarks', default={})
+                current_editor.set_bookmarks(load_bookmarks(filename, slots))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -2643,7 +2715,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
 
-    def renamed(self, source, dest):
+    @Slot(str, str)
+    @Slot(str, str, str)
+    def renamed(self, source, dest, editorstack_id_str=None):
         """
         Propagate file rename to editor stacks and autosave component.
 
@@ -2653,12 +2727,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         filename = osp.abspath(to_text_string(source))
         index = self.get_filename_index(filename)
-        if index is not None:
+
+        if index is not None or editorstack_id_str is not None:
+            self.change_register_file_run_metadata(filename, dest)
+
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(filename,
-                                           new_filename=to_text_string(dest))
-            self.editorstacks[0].autosave.file_renamed(
-                filename, to_text_string(dest))
+                if (
+                    editorstack_id_str is None or
+                    str(id(editorstack)) != editorstack_id_str
+                ):
+                    editorstack.rename_in_data(
+                        filename, new_filename=str(dest)
+                    )
+
+            self.editorstacks[0].autosave.file_renamed(filename, str(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
@@ -2953,6 +3035,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.update_cursorpos_actions()
 
     @Slot()
+    def create_cell(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.create_new_cell()
+
+    @Slot()
     def go_to_previous_cursor_position(self):
         self.__ignore_cursor_history = True
         self.switch_to_plugin()
@@ -3053,48 +3141,52 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     # ------ Run files
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
-        extension = config['extension']
+        extensions = config['extension']
         contexts = config['contexts']
-
-        ext_contexts = []
-        for context in contexts:
-            is_super = RunContext[context['name']] == RunContext.File
-            ext_contexts.append(
-                ExtendedContext(context=context, is_super=is_super))
-        supported_extension = SupportedExtensionContexts(
-            input_extension=extension, contexts=ext_contexts)
-        self.supported_run_extensions.append(supported_extension)
-
-        run = self.main.get_plugin(Plugins.Run, error=False)
-        if run:
-            run.register_run_configuration_provider(
-                self.NAME, [supported_extension])
-
-        actual_contexts = set({})
-        ext_origins = self.run_configurations_per_origin.get(extension, {})
-
-        file_enabled = False
-        for context in contexts:
-            context_name = context['name']
-            context_id = getattr(RunContext, context_name)
-            actual_contexts |= {context_id}
-            context_origins = ext_origins.get(context_id, set({}))
-            context_origins |= {origin}
-            ext_origins[context_id] = context_origins
-            if context_id == RunContext.File:
-                file_enabled = True
-
-        ext_contexts = self.supported_run_configurations.get(
-            extension, set({}))
-        ext_contexts |= actual_contexts
-        self.supported_run_configurations[extension] = ext_contexts
-        self.run_configurations_per_origin[extension] = ext_origins
-
-        for filename, filename_ext in list(self.pending_run_files):
-            if filename_ext == extension and file_enabled:
-                self.register_file_run_metadata(filename, filename_ext)
-            else:
-                self.pending_run_files -= {(filename, filename_ext)}
+        
+        if not isinstance(extensions, list):
+            extensions = [extensions]
+        
+        for extension in extensions:
+            ext_contexts = []
+            for context in contexts:
+                is_super = RunContext[context['name']] == RunContext.File
+                ext_contexts.append(
+                    ExtendedContext(context=context, is_super=is_super))
+            supported_extension = SupportedExtensionContexts(
+                input_extension=extension, contexts=ext_contexts)
+            self.supported_run_extensions.append(supported_extension)
+    
+            run = self.main.get_plugin(Plugins.Run, error=False)
+            if run:
+                run.register_run_configuration_provider(
+                    self.NAME, [supported_extension])
+    
+            actual_contexts = set({})
+            ext_origins = self.run_configurations_per_origin.get(extension, {})
+    
+            file_enabled = False
+            for context in contexts:
+                context_name = context['name']
+                context_id = getattr(RunContext, context_name)
+                actual_contexts |= {context_id}
+                context_origins = ext_origins.get(context_id, set({}))
+                context_origins |= {origin}
+                ext_origins[context_id] = context_origins
+                if context_id == RunContext.File:
+                    file_enabled = True
+    
+            ext_contexts = self.supported_run_configurations.get(
+                extension, set({}))
+            ext_contexts |= actual_contexts
+            self.supported_run_configurations[extension] = ext_contexts
+            self.run_configurations_per_origin[extension] = ext_origins
+    
+            for filename, filename_ext in list(self.pending_run_files):
+                if filename_ext == extension and file_enabled:
+                    self.register_file_run_metadata(filename)
+                else:
+                    self.pending_run_files -= {(filename, filename_ext)}
 
     def remove_supported_run_configuration(
         self,
@@ -3236,7 +3328,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot(int)
     def save_bookmark(self, slot_num):
         """Save current line and position as bookmark."""
-        bookmarks = CONF.get('editor', 'bookmarks')
+        bookmarks = self.get_conf('bookmarks')
         editorstack = self.get_current_editorstack()
         if slot_num in bookmarks:
             filename, line_num, column = bookmarks[slot_num]
@@ -3253,7 +3345,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     @Slot(int)
     def load_bookmark(self, slot_num):
         """Set cursor to bookmarked file and position."""
-        bookmarks = CONF.get('editor', 'bookmarks')
+        bookmarks = self.get_conf('bookmarks')
         if slot_num in bookmarks:
             filename, line_num, column = bookmarks[slot_num]
         else:
@@ -3360,7 +3452,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             tab_stop_width_spaces_n = 'tab_stop_width_spaces'
             tab_stop_width_spaces_o = self.get_option(tab_stop_width_spaces_n)
             help_n = 'connect_to_oi'
-            help_o = CONF.get('help', 'connect/editor')
+            help_o = self.get_conf('connect/editor', section='help')
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
 
@@ -3619,7 +3711,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             # have been loaded.
             editorstack = self.get_current_editorstack()
             if editorstack:
-                self.get_current_editorstack().refresh()
+                editorstack.refresh()
+
+            # This is necessary to paint correctly the editorstack tabbars.
+            for editorstack in self.editorstacks:
+                if editorstack:
+                    editorstack.tabs.refresh_style()
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)

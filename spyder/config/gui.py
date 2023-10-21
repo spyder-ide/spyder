@@ -64,7 +64,7 @@ FONT_CACHE = {}
 
 def get_font(section='appearance', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
-    font = FONT_CACHE.get((section, option))
+    font = FONT_CACHE.get((section, option, font_size_delta))
 
     if font is None:
         families = CONF.get(section, option+"/family", None)
@@ -82,7 +82,7 @@ def get_font(section='appearance', option='font', font_size_delta=0):
         size = CONF.get(section, option+'/size', 9) + font_size_delta
         font = QFont(family, size, weight)
         font.setItalic(italic)
-        FONT_CACHE[(section, option)] = font
+        FONT_CACHE[(section, option, font_size_delta)] = font
 
     size = CONF.get(section, option+'/size', 9) + font_size_delta
     font.setPointSize(size)
@@ -90,12 +90,17 @@ def get_font(section='appearance', option='font', font_size_delta=0):
 
 
 def set_font(font, section='appearance', option='font'):
-    """Set font"""
+    """Set font properties in our config system."""
     CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
-    FONT_CACHE[(section, option)] = font
+
+    # This function is only used to set fonts that were changed through
+    # Preferences. And in that case it's not possible to set a delta.
+    font_size_delta = 0
+
+    FONT_CACHE[(section, option, font_size_delta)] = font
 
 
 def _config_shortcut(action, context, name, keystr, parent):
@@ -105,7 +110,8 @@ def _config_shortcut(action, context, name, keystr, parent):
     The data contained in this tuple will be registered in our shortcuts
     preferences page.
     """
-    qsc = QShortcut(QKeySequence(keystr), parent, action)
+    qsc = QShortcut(QKeySequence(keystr), parent)
+    qsc.activated.connect(action)
     qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc

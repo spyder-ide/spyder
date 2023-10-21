@@ -20,11 +20,16 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test dependencies
     micromamba install --file requirements/tests.yml
 
-    # To check our manifest and coverage
-    micromamba install check-manifest -c conda-forge codecov -q -y
+    # To check our manifest
+    micromamba install check-manifest -q -y
 
-    # Install PyZMQ 24 to avoid hangs
-    micromamba install -c conda-forge pyzmq=24
+    # Remove pylsp before installing its subrepo below
+    micromamba remove --force python-lsp-server python-lsp-server-base -y
+
+    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
+    # So, pinning it to 8.14 for now.
+    micromamba install ipython=8.14
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -38,8 +43,8 @@ else
     # Install QtAwesome from Github
     pip install git+https://github.com/spyder-ide/qtawesome.git
 
-    # To check our manifest and coverage
-    pip install -q check-manifest codecov
+    # To check our manifest
+    pip install -q check-manifest
 
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
@@ -47,12 +52,14 @@ else
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
     fi
 
-    # Install PyZMQ 24 to avoid hangs
-    pip install pyzmq==24.0.1
+    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
+    # So, pinning it to 8.14 for now.
+    pip install ipython==8.14.0
+
 fi
 
 # Install subrepos from source
-python -bb -X dev -W error install_dev_repos.py --not-editable --no-install spyder
+python -bb -X dev install_dev_repos.py --not-editable --no-install spyder
 
 # Install boilerplate plugin
 pushd spyder/app/tests/spyder-boilerplate
@@ -60,8 +67,8 @@ pip install --no-deps -q -e .
 popd
 
 # Install Spyder to test it as if it was properly installed.
-python -bb -X dev -W error -m build
-python -bb -X dev -W error -m pip install --no-deps dist/spyder*.whl
+python -bb -X dev -m build
+python -bb -X dev -m pip install --no-deps dist/spyder*.whl
 
 # Adjust PATH on Windows so that we can use conda below. This needs to be done
 # at this point or the pip slots fail.

@@ -18,7 +18,13 @@ from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
-GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html"
+GOOGLEDOC = (
+    "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/"
+    "example_google.html"
+)
+SPHINXDOC = (
+    "https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html"
+)
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
@@ -48,7 +54,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                                      'indent_guides')
         showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
-        breakpoints_box = newcb(_("Show breakpoints"), 'breakpoints_panel',
+        breakpoints_box = newcb(_("Show breakpoints"), 'editor_debugger_panel',
                                 section='debugger')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
@@ -65,8 +71,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             "", _(" ms"),
             'occurrence_highlighting/timeout',
             min_=100, max_=1000000, step=100)
-        occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
-        occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.spinbox.setEnabled)
+        occurrence_box.checkbox.toggled.connect(
+            occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
                 self.get_option('occurrence_highlighting'))
         occurrence_spin.slabel.setEnabled(
@@ -220,7 +228,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _('seconds'),
             'autosave_interval',
             min_=1, max_=3600)
-        autosave_checkbox.toggled.connect(autosave_spinbox.setEnabled)
+        autosave_checkbox.checkbox.toggled.connect(autosave_spinbox.setEnabled)
 
         autosave_layout = QVBoxLayout()
         autosave_layout.addWidget(autosave_checkbox)
@@ -232,12 +240,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
+        sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Here you can select the type of docstrings ({} or {}) you "
+            _("Here you can select the type of docstrings ({}, {} or {}) you "
               "want the editor to automatically introduce when pressing "
-              "<tt>{}</tt> after a function/method/class "
+              "<tt>{}</tt> after a function, method or class "
               "declaration.").format(
-                  numpy_url, googledoc_url, DOCSTRING_SHORTCUT))
+                  numpy_url, googledoc_url, sphinx_url, DOCSTRING_SHORTCUT)
+        )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
 
@@ -247,7 +257,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_combo = self.create_combobox(
             _("Type:"),
             docstring_combo_choices,
-            'docstring_type')
+            'docstring_type'
+        )
 
         docstring_layout = QVBoxLayout()
         docstring_layout.addWidget(docstring_label)
@@ -297,7 +308,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             eol_combo_choices,
             'convert_eol_on_save_to',
         )
-        convert_eol_on_save_box.toggled.connect(
+        convert_eol_on_save_box.checkbox.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
                 self.get_option('convert_eol_on_save'))

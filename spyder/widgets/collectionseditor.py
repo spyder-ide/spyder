@@ -43,11 +43,10 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
@@ -128,7 +127,7 @@ class ProxyObject(object):
                 raise
 
 
-class ReadOnlyCollectionsModel(QAbstractTableModel):
+class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()
@@ -197,6 +196,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
+
         if not isinstance(self._data, ProxyObject):
             if len(self.keys) > 1:
                 elements = _("elements")
@@ -206,17 +206,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             data_type = get_type_string(data)
             self.title += data_type
+
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
+
         self.sig_setting_data.emit()
         self.set_size_and_type()
+
         if len(self.keys):
             # Needed to update search scores when
             # adding values to the namespace
             self.update_search_letters()
+
         self.reset()
 
     def set_size_and_type(self, start=None, stop=None):
@@ -420,6 +424,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 display = to_text_string(value)
             else:
                 display = value
+        if role == Qt.ToolTipRole:
+            return display
         if role == Qt.UserRole:
             if isinstance(value, NUMERIC_TYPES):
                 return to_qvariant(value)
@@ -440,7 +446,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
-            return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+            return to_qvariant(
+                self.get_font(SpyderFontType.MonospaceInterface)
+            )
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -617,6 +625,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         self.setHorizontalHeader(BaseHeaderView(parent=self))
         self.horizontalHeader().sig_user_resized_section.connect(
             self.user_resize_columns)
+
+        # There is no need for us to show this header because we're not using
+        # it to show any information on it.
+        self.verticalHeader().hide()
 
     def setup_table(self):
         """Setup table"""
@@ -900,6 +912,10 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
                and index_clicked in self.selectedIndexes():
                 self.clearSelection()
             else:
+                row = index_clicked.row()
+                # TODO: Remove hard coded "Value" column number (3 here)
+                index_clicked = index_clicked.child(row, 3)
+                self.edit(index_clicked)
                 QTableView.mousePressEvent(self, event)
         else:
             self.clearSelection()
@@ -915,6 +931,13 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.edit(index_clicked)
         else:
             event.accept()
+
+    def mouseMoveEvent(self, event):
+        """Change cursor shape."""
+        if self.rowAt(event.y()) != -1:
+            self.setCursor(Qt.PointingHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
 
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
@@ -963,6 +986,17 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
+
+    def showEvent(self, event):
+        """Resize columns when the widget is shown."""
+        # This is probably the best we can do to adjust the columns width to
+        # their header contents at startup. However, it doesn't work for all
+        # fonts and font sizes and perhaps it depends on the user's screen dpi
+        # as well. See the discussion in
+        # https://github.com/spyder-ide/spyder/pull/20933#issuecomment-1585474443
+        # and the comments below for more details.
+        self.adjust_columns()
+        super().showEvent(event)
 
     def _deselect_index(self, index):
         """
@@ -1281,10 +1315,11 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
-    def __init__(self, parent, data, readonly=False, title="",
-                 names=False):
+    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
+                 title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
+        self.namespacebrowser = namespacebrowser
         self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
                                  else CollectionsModel)
@@ -1297,7 +1332,7 @@ class CollectionsEditorTableView(BaseTableView):
         )
         self.model = self.source_model
         self.setModel(self.source_model)
-        self.delegate = CollectionsDelegate(self)
+        self.delegate = CollectionsDelegate(self, namespacebrowser)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1385,10 +1420,7 @@ class CollectionsEditorTableView(BaseTableView):
     def plot(self, key, funcname):
         """Plot item"""
         data = self.source_model.get_data()
-        import spyder.pyplot as plt
-        plt.figure()
-        getattr(plt, funcname)(data[key])
-        plt.show()
+        self.namespacebrowser.plot(data[key], funcname)
 
     def imshow(self, key):
         """Show item's image"""
@@ -1412,14 +1444,15 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
 
-    def __init__(self, parent, data, readonly=False, title="", remote=False):
+    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
+                 title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteCollectionsEditorTableView(self, data,
-                                                           readonly)
+            self.editor = RemoteCollectionsEditorTableView(
+                self, data, readonly)
         else:
-            self.editor = CollectionsEditorTableView(self, data, readonly,
-                                                     title)
+            self.editor = CollectionsEditorTableView(
+                self, data, namespacebrowser, readonly, title)
 
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -1447,7 +1480,7 @@ class CollectionsEditorWidget(QWidget):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, namespacebrowser=None):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1456,6 +1489,7 @@ class CollectionsEditor(BaseDialog):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.namespacebrowser = namespacebrowser
         self.data_copy = None
         self.widget = None
         self.btn_save_and_close = None
@@ -1486,9 +1520,9 @@ class CollectionsEditor(BaseDialog):
         if type(self.data_copy) != type(data):
             readonly = True
 
-        self.widget = CollectionsEditorWidget(self, self.data_copy,
-                                              title=title, readonly=readonly,
-                                              remote=remote)
+        self.widget = CollectionsEditorWidget(
+            self, self.data_copy, self.namespacebrowser, title=title,
+            readonly=readonly, remote=remote)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
         layout = QVBoxLayout()
@@ -1546,8 +1580,8 @@ class CollectionsEditor(BaseDialog):
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
 
-    def __init__(self, parent=None):
-        CollectionsDelegate.__init__(self, parent)
+    def __init__(self, parent=None, namespacebrowser=None):
+        CollectionsDelegate.__init__(self, parent, namespacebrowser)
 
     def get_value(self, index):
         if index.isValid():
@@ -1596,7 +1630,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.hideColumn(4)  # Column 4 for Score
 
-        self.delegate = RemoteCollectionsDelegate(self)
+        self.delegate = RemoteCollectionsDelegate(self, self.namespacebrowser)
         self.delegate.sig_free_memory_requested.connect(
             self.sig_free_memory_requested)
         self.delegate.sig_editor_creation_started.connect(

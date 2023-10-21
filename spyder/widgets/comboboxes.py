@@ -20,15 +20,14 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QAction, QComboBox, QCompleter, QLineEdit,
-                            QSizePolicy, QToolButton, QToolTip)
+from qtpy.QtWidgets import (
+    QComboBox, QCompleter, QLineEdit, QSizePolicy, QToolTip)
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import APP_STYLESHEET
-from spyder.widgets.helperwidgets import IconLineEdit
+from spyder.widgets.helperwidgets import ClearLineEdit, IconLineEdit
 
 
 class BaseComboBox(QComboBox):
@@ -166,48 +165,10 @@ class PatternComboBox(BaseComboBox):
         if id_ is not None:
             self.ID = id_
 
-        # Add button to clear text inside the line edit.
+        # Use a line edit with a clear button inside it.
         # Note: The method Qt offers for this (setClearButtonEnabled) adds a
         # button whose icon can't be easily stylized.
-        self.clear_action = QAction(self)
-        self.clear_action.setIcon(ima.icon('clear_text'))
-        self.clear_action.setToolTip(_('Clear text'))
-        self.clear_action.triggered.connect(self.lineEdit().clear)
-        self.lineEdit().addAction(
-            self.clear_action, QLineEdit.TrailingPosition
-        )
-
-        # Button that corresponds to the clear_action above
-        self.clear_button = self.lineEdit().findChildren(QToolButton)[0]
-
-        # Hide clear_action by default because lineEdit is empty when the
-        # combobox is created, so it doesn't make sense to show it.
-        self.clear_action.setVisible(False)
-
-        self.lineEdit().textChanged.connect(self._on_text_changed)
-        self.installEventFilter(self)
-
-    def _on_text_changed(self, text):
-        """Actions to take when text has changed on the line edit widget."""
-        if text:
-            self.clear_action.setVisible(True)
-        else:
-            self.clear_action.setVisible(False)
-
-    def eventFilter(self, widget, event):
-        """
-        Event filter for this combobox.
-
-        Notes
-        -----
-        * Reduce space between clear_action and the right border of lineEdit.
-        """
-        if event.type() == QEvent.Paint:
-            self.clear_button.move(
-                self.lineEdit().width() - 22, self.clear_button.y()
-            )
-
-        return super().eventFilter(widget, event)
+        self.setLineEdit(ClearLineEdit(self, reposition_button=True))
 
 
 class EditableComboBox(BaseComboBox):
@@ -324,10 +285,13 @@ class PathComboBox(EditableComboBox):
         If there is a single option available one tab completes the option.
         """
         opts = self._complete_options()
+        if len(opts) == 0:
+            return
         if len(opts) == 1:
             self.set_current_text(opts[0] + os.sep)
             self.hide_completer()
         else:
+            self.set_current_text(osp.commonprefix(opts))
             self.completer().complete()
 
     def is_valid(self, qstr=None):
