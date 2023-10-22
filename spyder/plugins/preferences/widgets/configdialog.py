@@ -45,7 +45,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     # Constants
     ITEMS_MARGIN = 2 * AppStyle.MarginSize
     ITEMS_PADDING = AppStyle.MarginSize
-    CONTENTS_MAX_WIDTH = 230
+    CONTENTS_WIDTH = 230
     ICON_SIZE = 20
 
     def __init__(self, parent=None):
@@ -57,6 +57,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
             SpyderFontType.Interface, font_size_delta=1
         )
         self._is_shown = False
+        self._separators = []
 
         # Widgets
         self.pages_widget = QStackedWidget(self)
@@ -84,7 +85,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.contents_widget.setCurrentRow(0)
         self.contents_widget.setObjectName('configdialog-contents')
         self.contents_widget.setIconSize(QSize(self.ICON_SIZE, self.ICON_SIZE))
-        self.contents_widget.setFixedWidth(self.CONTENTS_MAX_WIDTH)
+        self.contents_widget.setFixedWidth(self.CONTENTS_WIDTH)
 
         # Don't show horizontal scrollbar because it doesn't look good. Instead
         # we show tooltips if the text doesn't fit in contents_widget width.
@@ -197,6 +198,9 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # This is necessary to keep in sync the contents_widget and
         # pages_widget indexes.
         self.pages_widget.addWidget(QWidget(self))
+
+        # Save separators to perform certain operations only on them
+        self._separators.append(hline)
 
     def add_page(self, page):
         # Signals
@@ -353,6 +357,34 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
             self.setStyleSheet(self._css.toString())
 
+    def _adjust_separators_width(self):
+        """
+        Adjust the width of separators present in contents_widget depending on
+        if its vertical scrollbar is visible.
+
+        Notes
+        -----
+        We need to do this only in Mac because Qt doesn't set the widths
+        correctly when there are elided items.
+        """
+        if sys.platform == 'darwin':
+            scrollbar = self.contents_widget.verticalScrollBar()
+            for sep in self._separators:
+                if self.CONTENTS_WIDTH != 230:
+                    raise ValueError(
+                        "The values used here for the separators' width were "
+                        "the ones reported by Qt for a contents_widget width "
+                        "of 230px. Since this value changed, you need to "
+                        "update them."
+                    )
+
+                # These are the values reported by Qt when CONTENTS_WIDTH = 230
+                # and the interface language is English.
+                if scrollbar.isVisible():
+                    sep.setFixedWidth(188)
+                else:
+                    sep.setFixedWidth(204)
+
     def _generate_stylesheet(self):
         """Generate stylesheet for this widget as qstylizer object."""
         # Use special tabbar stylesheet for as the base one and then extend it.
@@ -424,4 +456,5 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         """Method to run when Qt emits a resize event."""
         self._add_tooltips()
         self._adjust_items_margin()
+        self._adjust_separators_width()
         self.sig_size_changed.emit(self.size())
