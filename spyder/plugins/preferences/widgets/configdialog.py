@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (
     QDialog, QDialogButtonBox, QFrame, QGridLayout, QHBoxLayout, QListView,
     QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
     QVBoxLayout, QWidget)
+from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -276,19 +277,17 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
         # This is necessary to paint the separators as expected when there
         # are elided items in contents_widget.
-        self.blockSignals(True)
-        height = self.height()
-        self.resize(self.width(), height + 1)
-        self.resize(self.width(), height - 1)
-        self.blockSignals(False)
+        with signals_blocked(self):
+            height = self.height()
+            self.resize(self.width(), height + 1)
+            self.resize(self.width(), height - 1)
 
     def resizeEvent(self, event):
         """
-        Reimplement Qt method to be able to save the widget's size from the
-        main application
+        Reimplement Qt method to perform several operations when resizing.
         """
         QDialog.resizeEvent(self, event)
-        self.sig_size_changed.emit(self.size())
+        self._on_resize_event()
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -419,3 +418,10 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         )
 
         return css
+
+    @qdebounced(timeout=40)
+    def _on_resize_event(self):
+        """Method to run when Qt emits a resize event."""
+        self._add_tooltips()
+        self._adjust_items_margin()
+        self.sig_size_changed.emit(self.size())
