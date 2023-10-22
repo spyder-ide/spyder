@@ -43,6 +43,7 @@ dependencies:
   - setuptools >=49.6.0
   - sphinx >=0.6.6
   - spyder-kernels >=3.0.0b2,<3.0.0b3
+  - superqt >=0.6.1,<1.0.0
   - textdistance >=4.2.0
   - three-merge >=0.1.1
   - watchdog >=0.10.3
