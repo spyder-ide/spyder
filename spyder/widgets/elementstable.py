@@ -18,6 +18,7 @@ import qstylizer.style
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -333,6 +334,18 @@ class ElementsTable(HoverRowsTableView):
         # changes row heights in unpredictable ways.
         self.resizeRowsToContents()
 
+    _set_layout_debounced = qdebounced(_set_layout, timeout=40)
+    """
+    Debounced version of _set_layout.
+
+    Notes
+    -----
+    * We need a different version of _set_layout so that we can use the regular
+      one in showEvent. That way users won't experience a visual glitch when
+      the widget is rendered for the first time.
+    * We use this version in resizeEvent, where that is not a problem.
+    """
+
     def _with_feature(self, feature_name: str) -> bool:
         """Check if it's necessary to build the table with `feature_name`."""
         return len([e for e in self.elements if e.get(feature_name)]) > 0
@@ -369,7 +382,7 @@ class ElementsTable(HoverRowsTableView):
     def resizeEvent(self, event):
         # This is necessary to readjust the layout when the parent widget is
         # resized.
-        self._set_layout()
+        self._set_layout_debounced()
         super().resizeEvent(event)
 
 
