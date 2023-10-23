@@ -294,7 +294,9 @@ DEFAULTS = [
             ('preferences',
              {
               'enable': True,
-              'dialog_size': (990, 715),
+              'dialog_size': (
+                  (1010, 725) if MAC else ((900, 670) if WIN else (950, 690))
+              ),
               }),
             ('project_explorer',
              {

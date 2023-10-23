@@ -6,6 +6,9 @@
 
 """Editor config page."""
 
+import os
+import sys
+
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout)
 
@@ -37,6 +40,19 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.add_newline_box = None
         self.remove_trail_newline_box = None
 
+        # *********************** IMPORTANT NOTES *****************************
+        # * This value needs to be ajusted if we add new options to the
+        #   "Advanced settings" tab.
+        # * We need to do this so that the text of some options is not clipped.
+        if os.name == "nt":
+            min_height = 620
+        elif sys.platform == "darwin":
+            min_height = 760
+        else:
+            min_height = 670
+
+        self.setMinimumHeight(min_height)
+
     def get_name(self):
         return _("Editor")
 
@@ -44,9 +60,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         return ima.icon('edit')
 
     def setup_page(self):
-        # We need to set this so that the text of some options is not clipped
-        self.setMinimumHeight(670)
-
         newcb = self.create_checkbox
 
         # --- Display tab ---

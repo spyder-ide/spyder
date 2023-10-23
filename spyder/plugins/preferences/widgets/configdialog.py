@@ -4,9 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-# Standard library imports
-import sys
-
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetricsF
@@ -44,9 +41,13 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
     # Constants
     ITEMS_MARGIN = 2 * AppStyle.MarginSize
-    ITEMS_PADDING = AppStyle.MarginSize
-    CONTENTS_WIDTH = 230
+    ITEMS_PADDING = (
+        AppStyle.MarginSize if (MAC or WIN) else 2 * AppStyle.MarginSize
+    )
+    CONTENTS_WIDTH = 230 if MAC else (200 if WIN else 240)
     ICON_SIZE = 20
+    MIN_WIDTH = 940 if MAC else (875 if WIN else 920)
+    MIN_HEIGHT = 700 if MAC else (660 if WIN else 670)
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -58,6 +59,10 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         )
         self._is_shown = False
         self._separators = []
+
+        # Size
+        self.setMinimumWidth(self.MIN_WIDTH)
+        self.setMinimumHeight(self.MIN_HEIGHT)
 
         # Widgets
         self.pages_widget = QStackedWidget(self)
@@ -189,7 +194,12 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Solution taken from https://stackoverflow.com/a/24819554/438386
         item = QListWidgetItem(self.contents_widget)
         item.setFlags(Qt.NoItemFlags)
-        item.setSizeHint(QSize(9, 9))
+
+        size = (
+            AppStyle.MarginSize * 3 if (MAC or WIN)
+            else AppStyle.MarginSize * 5
+        )
+        item.setSizeHint(QSize(size, size))
 
         hline = QFrame(self.contents_widget)
         hline.setFrameShape(QFrame.HLine)
@@ -318,7 +328,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
                 scrollbar = self.contents_widget.verticalScrollBar()
 
                 if scrollbar.isVisible():
-                    if sys.platform == 'darwin':
+                    if MAC:
                         # This is a crude heuristic to detect if we need to add
                         # tooltips on Mac. However, it's the best we can do
                         # (the approach for other OSes below ends up adding
@@ -341,7 +351,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         We need to do this only in Mac because Qt doesn't account for the
         scrollbar width in most widgets.
         """
-        if sys.platform == 'darwin':
+        if MAC:
             scrollbar = self.contents_widget.verticalScrollBar()
             extra_margin = (
                 AppStyle.MacScrollBarWidth if scrollbar.isVisible() else 0
@@ -367,7 +377,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         We need to do this only in Mac because Qt doesn't set the widths
         correctly when there are elided items.
         """
-        if sys.platform == 'darwin':
+        if MAC:
             scrollbar = self.contents_widget.verticalScrollBar()
             for sep in self._separators:
                 if self.CONTENTS_WIDTH != 230:
