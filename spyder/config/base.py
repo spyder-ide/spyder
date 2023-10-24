@@ -360,11 +360,15 @@ LANGUAGE_CODES = {
     'zh_CN': u'简体中文',
     'ja': u'日本語',
     'de': u'Deutsch',
-    'pl': u'Polski'
+    'pl': u'Polski',
+    'fa': u'Persian',
+    'hr': u'Croatian',
+    'te': u'Telugu',
+    'uk': u'Ukrainian',
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['hu', 'pl']
+DISABLED_LANGUAGES = ['fa', 'hr', 'hu', 'pl', 'te', 'uk']
 
 
 def get_available_translations():
