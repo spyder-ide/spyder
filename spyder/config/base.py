@@ -385,14 +385,18 @@ def get_available_translations():
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
+    retlangs = []
     for lang in langs:
         if lang not in LANGUAGE_CODES:
             if DEV:
                 error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
-                         'new translation has been added to Spyder')
+                         'new translation has been added to Spyder. '
+                         'Currently missing ' + lang)
                 print(error)  # spyder: test-skip
-            return ['en']
-    return langs
+                return ['en']
+        else:
+            retlangs.append(lang)
+    return retlangs
 
 
 def get_interface_language():
