@@ -16,8 +16,8 @@ from spyder.api.plugins import Plugins
 MOST_IMPORTANT_PAGES = [
     Plugins.Appearance,
     Plugins.Application,
-    Plugins.Shortcuts,
     Plugins.MainInterpreter,
+    Plugins.Shortcuts,
 ]
 
 

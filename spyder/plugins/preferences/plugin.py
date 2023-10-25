@@ -295,9 +295,10 @@ class Preferences(SpyderPluginV2):
         answer = QMessageBox.warning(
             self.main,
             _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No
+            _("Spyder will restart and reset to default settings:"
+              "<br><br>"
+              "Do you want to continue?"),
+            QMessageBox.Yes | QMessageBox.No
         )
 
         if answer == QMessageBox.Yes:
