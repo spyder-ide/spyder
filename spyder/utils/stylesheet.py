@@ -57,15 +57,27 @@ class AppStyle:
 class SpyderStyleSheet:
     """Base class for Spyder stylesheets."""
 
-    def __init__(self, set_stylesheet=True):
+    SET_STYLESHEET_AT_INIT = True
+    """
+    Decide if the stylesheet must be set when the class is initialized.
+
+    Notes
+    -----
+    There are some stylesheets for which this is not possible (e.g. the ones
+    that need to access our fonts).
+    """
+
+    def __init__(self):
         self._stylesheet = qstylizer.style.StyleSheet()
-        if set_stylesheet:
+        if self.SET_STYLESHEET_AT_INIT:
             self.set_stylesheet()
 
     def get_stylesheet(self):
         return self._stylesheet
 
     def to_string(self):
+        if self._stylesheet.toString() == "":
+            self.set_stylesheet()
         return self._stylesheet.toString()
 
     def get_copy(self):
@@ -74,6 +86,8 @@ class SpyderStyleSheet:
 
         This allows it to be modified for specific widgets.
         """
+        if self._stylesheet.toString() == "":
+            self.set_stylesheet()
         return copy.deepcopy(self)
 
     def set_stylesheet(self):
@@ -99,17 +113,19 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
     application.
     """
 
+    # Don't create the stylesheet here so that Spyder gets the app font from
+    # the system when it starts for the first time. This also allows us to
+    # display the splash screen more quickly because the stylesheet is then
+    # computed only when it's going to be applied to the app, not when this
+    # object is imported.
+    SET_STYLESHEET_AT_INIT = False
+
     def __init__(self):
-        # Don't create the stylesheet here so that Spyder gets the app font
-        # from the system when it starts for the first time. This also allows
-        # us to display the splash screen more quickly because the stylesheet
-        # is then computed only when it's going to be applied to the app, not
-        # when this object is imported.
-        super().__init__(set_stylesheet=False)
+        super().__init__()
         self._stylesheet_as_string = None
 
     def to_string(self):
-        "Save stylesheet as a string for quick access."
+        """Save stylesheet as a string for quick access."""
         if self._stylesheet_as_string is None:
             self.set_stylesheet()
             self._stylesheet_as_string = self._stylesheet.toString()
@@ -280,7 +296,7 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
     BUTTON_MARGIN_RIGHT = '3px'
 
     def set_stylesheet(self):
-        css = self._stylesheet
+        css = self.get_stylesheet()
 
         # Main background color
         css.QToolBar.setValues(
@@ -320,7 +336,7 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
     BUTTON_HEIGHT = '37px'
 
     def set_stylesheet(self):
-        css = self._stylesheet
+        css = self.get_stylesheet()
 
         css.QToolBar.setValues(
             spacing='4px'
@@ -531,7 +547,14 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
 
 
 class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
-    """Style for special horizontal tabbars."""
+    """
+    Style for special tab bars.
+
+    Notes
+    -----
+    This is the base class for horizontal tab bars that follow the design
+    discussed on issue spyder-ide/ux-improvements#4.
+    """
 
     SCROLL_BUTTONS_BORDER_POS = 'right'
 
@@ -599,11 +622,45 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
         )
 
 
+class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
+    """Style for tab bars in our Preferences dialog."""
+
+    # This is necessary because this class needs to access fonts
+    SET_STYLESHEET_AT_INIT = False
+
+    def set_stylesheet(self):
+        super().set_stylesheet()
+
+        # Main constants
+        css = self.get_stylesheet()
+        font = self.get_font(SpyderFontType.Interface, font_size_delta=1)
+
+        # Set font size to be one point bigger than the regular text.
+        css.QTabBar.setValues(
+            fontSize=f'{font.pointSize()}pt',
+        )
+
+        # Make scroll buttons a bit bigger on Windows and Mac (this has no
+        # effect on Linux).
+        if WIN or MAC:
+            css['QTabBar QToolButton'].setValues(
+                padding=f'{self.SCROLL_BUTTONS_PADDING - 1}px',
+            )
+
+        # Increase padding around text because we're using a larger font.
+        css['QTabBar::tab'].setValues(
+            padding='6px 10px',
+        )
+
+        # Remove border and add padding for content inside tabs
+        css['QTabWidget::pane'].setValues(
+            border='0px',
+            padding='15px',
+        )
+
+
 class HorizontalDockTabBarStyleSheet(SpecialTabBarStyleSheet):
-    """
-    This implements the design for dockwidget tabs discussed on issue
-    spyder-ide/ux-improvements#4.
-    """
+    """Style for horizontal dockwidget tab bars."""
 
     def set_stylesheet(self):
         super().set_stylesheet()
@@ -646,9 +703,7 @@ class HorizontalDockTabBarStyleSheet(SpecialTabBarStyleSheet):
 
 
 class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
-    """
-    Vertical implementation for the design on spyder-ide/ux-improvements#4.
-    """
+    """Style for vertical dockwidget tab bars."""
 
     SCROLL_BUTTONS_BORDER_POS = 'bottom'
 
@@ -723,7 +778,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 PANES_TABBAR_STYLESHEET = PanesTabBarStyleSheet()
 HORIZONTAL_DOCK_TABBAR_STYLESHEET = HorizontalDockTabBarStyleSheet()
 VERTICAL_DOCK_TABBAR_STYLESHEET = VerticalDockTabBarStyleSheet()
-SPECIAL_TABBAR_STYLESHEET = SpecialTabBarStyleSheet()
+PREFERENCES_TABBAR_STYLESHEET = PreferencesTabBarStyleSheet()
 
 
 # =============================================================================

@@ -20,7 +20,7 @@ from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import (
-    AppStyle, MAC, SPECIAL_TABBAR_STYLESHEET, WIN)
+    AppStyle, MAC, PREFERENCES_TABBAR_STYLESHEET, WIN)
 
 
 class PageScrollArea(QScrollArea):
@@ -396,33 +396,10 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
                     sep.setFixedWidth(204)
 
     def _generate_stylesheet(self):
-        """Generate stylesheet for this widget as qstylizer object."""
-        # Use special tabbar stylesheet for as the base one and then extend it.
-        tabs_stylesheet = SPECIAL_TABBAR_STYLESHEET.get_copy()
+        """Generate stylesheet for this widget as a qstylizer object."""
+        # Use the tabbar stylesheet as the base one and extend it.
+        tabs_stylesheet = PREFERENCES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
-
-        # Set tabs font size to be the same as the one for items
-        css.QTabBar.setValues(
-            fontSize=f'{self.items_font.pointSize()}pt',
-        )
-
-        # Make tabbar scroll button a bit bigger on Windows and Mac (this has
-        # no effect on Linux).
-        if WIN or MAC:
-            css['QTabBar QToolButton'].setValues(
-                padding=f'{tabs_stylesheet.SCROLL_BUTTONS_PADDING - 1}px',
-            )
-
-        # Increase padding around text a bit because we're using an larger font
-        css['QTabBar::tab'].setValues(
-            padding='6px 10px',
-        )
-
-        # Remove border and add padding for content inside tabs
-        css['QTabWidget::pane'].setValues(
-            border='0px',
-            padding='15px',
-        )
 
         # Set style of contents area
         css['QListView#configdialog-contents'].setValues(
