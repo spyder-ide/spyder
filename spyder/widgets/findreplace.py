@@ -671,12 +671,19 @@ class FindReplace(QWidget):
         """Replace and find all matching occurrences"""
         if self.editor is None:
             return
-        replace_text = to_text_string(self.replace_text.currentText())
-        search_text = to_text_string(self.search_text.currentText())
+
+        replace_text = str(self.replace_text.currentText())
+        search_text = str(self.search_text.currentText())
         re_pattern = None
         case = self.case_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         re_enabled = self.re_button.isChecked()
+
+        # Escape backslashes present in replace_text to avoid an error when
+        # using the regexp pattern below to perform the substitution.
+        # Fixes spyder-ide/spyder#21007.
+        replace_text = replace_text.replace('\\', r'\\')
+
         # Check regexp before proceeding
         if re_enabled:
             try:
