@@ -562,18 +562,22 @@ class ConfigurationManager(object):
         if isinstance(option, tuple):
             # The actual option saved in the config
             base_option = option[0]
+
             # Keys of the nested dicts where the option to remove is contained
             intermediate_options = option[1:-1]
+
             # Key of the option to remove
             last_option = option[-1]
 
             # Get config value (which is a dictionary)
             base_conf = self.get(section, base_option)
+
             # Get reference to the actual dictionary containing the option
             # that needs to be removed
             conf_ptr = base_conf
             for opt in intermediate_options:
                 conf_ptr = conf_ptr[opt]
+
             # Remove option and set updated config values for the actual option
             # while checking that the option to be removed is actually a value
             # available in the config.
