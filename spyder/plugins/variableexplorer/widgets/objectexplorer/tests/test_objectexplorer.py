@@ -230,5 +230,53 @@ def test_objectexplorer_refresh_when_variable_deleted(qtbot):
     mock_critical.assert_called_once()
 
 
+@dataclass
+class Box:
+    contents: object
+
+
+def test_objectexplorer_refresh_nested():
+    """
+    Open an editor for an `Box` object containing a list, and then open another
+    editor for the nested list. Test that refreshing the second editor works.
+    """
+    old_data = Box([1, 2, 3])
+    new_data = Box([4, 5])
+    editor = ObjectExplorer(
+        old_data, name='data', data_function=lambda: new_data)
+    model = editor.obj_tree.model()
+    root_index = model.index(0, 0)
+    contents_index = model.index(0, 0, root_index)
+    editor.obj_tree.edit(contents_index)
+    delegate = editor.obj_tree.delegate
+    nested_editor = list(delegate._editors.values())[0]['editor']
+    assert nested_editor.get_value() == [1, 2, 3]
+    nested_editor.widget.refresh_action.trigger()
+    assert nested_editor.get_value() == [4, 5]
+
+
+def test_objectexplorer_refresh_doubly_nested():
+    """
+    Open an editor for an `Box` object containing another `Box` object which
+    in turn contains a list. Then open a second editor for the nested list.
+    Test that refreshing the second editor works.
+    """
+    old_data = Box(Box([1, 2, 3]))
+    new_data = Box(Box([4, 5]))
+    editor = ObjectExplorer(
+        old_data, name='data', data_function=lambda: new_data)
+    model = editor.obj_tree.model()
+    root_index = model.index(0, 0)
+    inner_box_index = model.index(0, 0, root_index)
+    editor.obj_tree.expand(inner_box_index)
+    contents_index = model.index(0, 0, inner_box_index)
+    editor.obj_tree.edit(contents_index)
+    delegate = editor.obj_tree.delegate
+    nested_editor = list(delegate._editors.values())[0]['editor']
+    assert nested_editor.get_value() == [1, 2, 3]
+    nested_editor.widget.refresh_action.trigger()
+    assert nested_editor.get_value() == [4, 5]
+
+
 if __name__ == "__main__":
     pytest.main()

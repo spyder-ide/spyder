@@ -462,8 +462,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
 class ToggleColumnDelegate(CollectionsDelegate):
     """ToggleColumn Item Delegate"""
-    def __init__(self, parent=None, namespacebrowser=None):
-        CollectionsDelegate.__init__(self, parent, namespacebrowser)
+
+    def __init__(self, parent=None, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None):
+        CollectionsDelegate.__init__(
+            self, parent, namespacebrowser, data_function)
         self.current_index = None
         self.old_obj = None
 
@@ -482,6 +485,49 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
+
+    def make_data_function(self, index: QModelIndex
+                           ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        This is used to refresh editors created from this piece of data.
+        For instance, if `self` is the delegate for an editor displays the
+        object `obj` and the user opens another editor for `obj.xxx.yyy`,
+        then to refresh the data of the second editor, the nested function
+        `datafun` first gets the refreshed data for `obj` and then gets the
+        `xxx` attribute and then the `yyy` attribute.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        if self.data_function is None:
+            return None
+
+        obj_path = index.model().get_key(index).obj_path
+        path_elements = obj_path.split('.')
+        del path_elements[0]  # first entry is variable name
+
+        def datafun():
+            data = self.data_function()
+            try:
+                for attribute_name in path_elements:
+                    data = getattr(data, attribute_name)
+                return data
+            except (NotImplementedError, AttributeError,
+                    TypeError, ValueError):
+                return None
+
+        return datafun
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
@@ -519,7 +565,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         if isinstance(value, (list, set, tuple, dict)):
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
-                parent=parent, namespacebrowser=self.namespacebrowser)
+                parent=parent, namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index))
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -528,7 +575,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # ArrayEditor for a Numpy array
         elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
                 np.ndarray is not FakeObject):
-            editor = ArrayEditor(parent=parent)
+            editor = ArrayEditor(
+                parent=parent, data_function=self.make_data_function(index))
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -549,7 +597,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject):
-            editor = DataFrameEditor(parent=parent)
+            editor = DataFrameEditor(
+                parent=parent, data_function=self.make_data_function(index))
             if not editor.setup_and_check(value, title=key):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,

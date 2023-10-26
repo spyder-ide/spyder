@@ -10,9 +10,10 @@
 
 # Standard library imports
 import logging
+from typing import Any, Callable, Optional
 
 # Third-party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
                             QHeaderView, QTableWidget, QTreeView, QTreeWidget)
 
@@ -155,12 +156,15 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     show/hide columns.
     """
 
-    def __init__(self, namespacebrowser=None, readonly=False):
+    def __init__(self, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
+                 readonly=False):
         QTreeView.__init__(self)
         self.readonly = readonly
         from spyder.plugins.variableexplorer.widgets.collectionsdelegate \
             import ToggleColumnDelegate
-        self.delegate = ToggleColumnDelegate(self, namespacebrowser)
+        self.delegate = ToggleColumnDelegate(
+            self, namespacebrowser, data_function)
         self.setItemDelegate(self.delegate)
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
         self.expanded.connect(self.resize_columns_to_contents)

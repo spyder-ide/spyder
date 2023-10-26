@@ -150,7 +150,8 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
 
         # Tree widget
         old_obj_tree = self.obj_tree
-        self.obj_tree = ToggleColumnTreeView(self.namespacebrowser)
+        self.obj_tree = ToggleColumnTreeView(
+            self.namespacebrowser, self.data_function)
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
