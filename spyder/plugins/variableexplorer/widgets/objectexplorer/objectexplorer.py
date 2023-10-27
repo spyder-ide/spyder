@@ -274,7 +274,6 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         self.show_cols_submenu = QMenu(self)
-        self.show_cols_submenu.setObjectName('checkbox-padding')
         self.options_button.setMenu(self.show_cols_submenu)
         self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)

@@ -21,7 +21,7 @@ import qstylizer.style
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
-from spyder.config.gui import is_dark_interface, OLD_PYQT
+from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import QStylePalette
 
 
@@ -231,19 +231,10 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Set menu item properties
         css["QMenu::item"].setValues(
             height='1.25em',
-            padding='4px 24px 4px 8px',
+            padding=f'{AppStyle.MarginSize + 1}px {3 * AppStyle.MarginSize}px',
             fontFamily=font_family,
             fontSize=f'{font_size}pt',
             backgroundColor='transparent'
-        )
-
-        if OLD_PYQT:
-            css["QMenu::item"].setValues(
-                padding='4px 24px 4px 28px',
-            )
-
-        css["QMenu#checkbox-padding::item"].setValues(
-            padding='4px 24px 4px 28px',
         )
 
         # Set hover and pressed state of items in menus and the menu bar
@@ -457,11 +448,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
             )
 
         # Set width for scroll buttons
-        # This makes one button huge and the other very small in PyQt 5.9
-        if not OLD_PYQT:
-            css['QTabBar::scroller'].setValues(
-                width='66px',
-            )
+        css['QTabBar::scroller'].setValues(
+            width='66px',
+        )
 
 
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):

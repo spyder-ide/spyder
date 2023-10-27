@@ -997,7 +997,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
         eol_menu = SpyderMenu(parent=self, title=_("Convert end-of-line characters"))
-        eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
         trailingspaces_action = create_action(

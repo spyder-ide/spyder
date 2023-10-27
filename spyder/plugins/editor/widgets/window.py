@@ -258,7 +258,6 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
         # that you can find in plugins/editor.py setup_other_windows.
         if self.menus:
             view_menu = self.menus[6]
-            view_menu.setObjectName('checkbox-padding')
             if actions == self.toolbars and view_menu:
                 toolbars = []
                 for toolbar in self.toolbars:
