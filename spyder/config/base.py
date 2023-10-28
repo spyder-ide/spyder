@@ -360,20 +360,24 @@ DEFAULT_LANGUAGE = 'en'
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
 LANGUAGE_CODES = {
-    'en': u'English',
-    'fr': u'Français',
-    'es': u'Español',
-    'hu': u'Magyar',
-    'pt_BR': u'Português',
-    'ru': u'Русский',
-    'zh_CN': u'简体中文',
-    'ja': u'日本語',
-    'de': u'Deutsch',
-    'pl': u'Polski'
+    'en': 'English',
+    'fr': 'Français',
+    'es': 'Español',
+    'hu': 'Magyar',
+    'pt_BR': 'Português',
+    'ru': 'Русский',
+    'zh_CN': '简体中文',
+    'ja': '日本語',
+    'de': 'Deutsch',
+    'pl': 'Polski',
+    'fa': 'Persian',
+    'hr': 'Croatian',
+    'te': 'Telugu',
+    'uk': 'Ukrainian',
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['hu', 'pl']
+DISABLED_LANGUAGES = ['fa', 'hr', 'hu', 'pl', 'te', 'uk']
 
 
 def get_available_translations():
@@ -394,14 +398,19 @@ def get_available_translations():
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
+    retlangs = []
     for lang in langs:
         if lang not in LANGUAGE_CODES:
             if DEV:
                 error = ('Update LANGUAGE_CODES (inside config/base.py) if a '
-                         'new translation has been added to Spyder')
+                         'new translation has been added to Spyder. '
+                         'Currently missing ' + lang)
                 print(error)  # spyder: test-skip
-            return ['en']
-    return langs
+                return ['en']
+        else:
+            retlangs.append(lang)
+
+    return retlangs
 
 
 def get_interface_language():
@@ -411,10 +420,10 @@ def get_interface_language():
     otherwise it will return DEFAULT_LANGUAGE.
 
     Example:
-    1.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
+    1.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'en_US' or 'en' or 'en_UK', this function will return 'en'
 
-    2.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
+    2.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
 
