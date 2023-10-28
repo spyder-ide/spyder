@@ -351,20 +351,20 @@ DEFAULT_LANGUAGE = 'en'
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
 LANGUAGE_CODES = {
-    'en': u'English',
-    'fr': u'Français',
-    'es': u'Español',
-    'hu': u'Magyar',
-    'pt_BR': u'Português',
-    'ru': u'Русский',
-    'zh_CN': u'简体中文',
-    'ja': u'日本語',
-    'de': u'Deutsch',
-    'pl': u'Polski',
-    'fa': u'Persian',
-    'hr': u'Croatian',
-    'te': u'Telugu',
-    'uk': u'Ukrainian',
+    'en': 'English',
+    'fr': 'Français',
+    'es': 'Español',
+    'hu': 'Magyar',
+    'pt_BR': 'Português',
+    'ru': 'Русский',
+    'zh_CN': '简体中文',
+    'ja': '日本語',
+    'de': 'Deutsch',
+    'pl': 'Polski',
+    'fa': 'Persian',
+    'hr': 'Croatian',
+    'te': 'Telugu',
+    'uk': 'Ukrainian',
 }
 
 # Disabled languages because their translations are outdated or incomplete
@@ -400,6 +400,7 @@ def get_available_translations():
                 return ['en']
         else:
             retlangs.append(lang)
+
     return retlangs
 
 
@@ -410,10 +411,10 @@ def get_interface_language():
     otherwise it will return DEFAULT_LANGUAGE.
 
     Example:
-    1.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
+    1.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'en_US' or 'en' or 'en_UK', this function will return 'en'
 
-    2.) Spyder provides ('en',  'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
+    2.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
 
