@@ -948,7 +948,15 @@ class CompletionPlugin(SpyderPluginV2):
         """Start a given provider."""
         provider_info = self.providers[provider_name]
         if provider_info['status'] == self.STOPPED:
-            provider_info['instance'].start()
+            provider_instance = provider_info['instance']
+            provider_instance.start()
+            for language in self.language_status:
+                language_providers = self.language_status[language]
+                language_providers[provider_name] = (
+                    provider_instance.start_completion_services_for_language(
+                        language
+                    )
+                )
 
     def shutdown_provider_instance(self, provider_name: str):
         """Shutdown a given provider."""
@@ -956,6 +964,10 @@ class CompletionPlugin(SpyderPluginV2):
         if provider_info['status'] == self.RUNNING:
             provider_info['instance'].shutdown()
             provider_info['status'] = self.STOPPED
+            for language in self.language_status:
+                language_providers = self.language_status[language]
+                if provider_name in language_providers:
+                    language_providers[provider_name] = False
 
     # ---------- Methods to create/access graphical elements -----------
     def create_action(self, *args, **kwargs):
