@@ -16,9 +16,10 @@ from uuid import uuid4
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
-from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit, QLayout,
-                            QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QCheckBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QLayout, QRadioButton, QStackedWidget, QVBoxLayout,
+    QWidget)
 import qstylizer.style
 
 # Local imports
@@ -444,23 +445,34 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.configuration_combo = SpyderComboBox(self)
         self.configuration_combo.hide()
 
-        executor_label = QLabel(_("Select an executor:"))
+        executor_label = QLabel(_("Run this file in:"))
         self.executor_combo = SpyderComboBox(self)
-
-        parameters_label = QLabel(_("Select the run parameters:"))
+        parameters_label = QLabel(_("Preset run parameters:"))
         self.parameters_combo = SpyderComboBox(self)
+
+        self.executor_combo.setMinimumWidth(250)
+        self.parameters_combo.setMinimumWidth(250)
+
+        executor_g_layout = QGridLayout()
+        executor_g_layout.addWidget(executor_label, 0, 0)
+        executor_g_layout.addWidget(self.executor_combo, 0, 1)
+        executor_g_layout.addWidget(parameters_label, 1, 0)
+        executor_g_layout.addWidget(self.parameters_combo, 1, 1)
+
+        executor_layout = QHBoxLayout()
+        executor_layout.addLayout(executor_g_layout)
+        executor_layout.addStretch(1)
+
         self.stack = QStackedWidget()
-        executor_layout = QVBoxLayout()
-        executor_layout.addWidget(parameters_label)
-        executor_layout.addWidget(self.parameters_combo)
-        executor_layout.addWidget(self.stack)
+        parameters_layout = QVBoxLayout()
+        parameters_layout.addWidget(self.stack)
 
         self.executor_group = QGroupBox(_("Executor parameters"))
-        self.executor_group.setLayout(executor_layout)
+        self.executor_group.setLayout(parameters_layout)
 
         # --- Working directory ---
         self.wdir_group = QGroupBox(_("Working directory settings"))
-        executor_layout.addWidget(self.wdir_group)
+        parameters_layout.addWidget(self.wdir_group)
 
         wdir_layout = QVBoxLayout(self.wdir_group)
 
@@ -492,7 +504,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         store_params_layout = QHBoxLayout()
         store_params_layout.addWidget(self.store_params_cb)
         store_params_layout.addWidget(self.store_params_text)
-        executor_layout.addLayout(store_params_layout)
+        parameters_layout.addLayout(store_params_layout)
 
         self.store_params_cb.toggled.connect(self.store_params_text.setEnabled)
         self.store_params_text.setPlaceholderText(_('My configuration name'))
@@ -500,10 +512,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         layout = self.add_widgets(
             self.header_label,
-            5,
-            self.configuration_combo,
-            executor_label,
-            self.executor_combo,
+            10,
+            self.configuration_combo,  # Hidden for simplicity
+            executor_layout,
             10,
             self.executor_group,
         )
