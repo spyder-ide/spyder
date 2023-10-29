@@ -249,7 +249,6 @@ def generate_run_parameters(mainwindow, filename, selected=None,
     file_run_params = StoredRunConfigurationExecutor(
         executor=executor,
         selected=selected,
-        display_dialog=False
     )
 
     return {file_uuid: file_run_params}

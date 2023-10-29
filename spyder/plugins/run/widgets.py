@@ -53,9 +53,6 @@ WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
 WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
 WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
-ALWAYS_OPEN_FIRST_RUN = _("Always show %s for this run configuration")
-ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
-
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
 POST_MORTEM = _("Directly enter debugging when errors appear")
@@ -501,8 +498,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.store_params_text.setPlaceholderText(_('My configuration name'))
         self.store_params_text.setEnabled(False)
 
-        self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
-
         layout = self.add_widgets(
             self.header_label,
             5,
@@ -511,7 +506,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.executor_combo,
             10,
             self.executor_group,
-            self.firstrun_cb
         )
 
         # Settings
@@ -640,16 +634,12 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)
-        all_selected_params = (
-            self.run_conf_model.get_last_used_executor_parameters(uuid))
-        re_open_dialog = all_selected_params['display_dialog']
         index = self.parameter_model.get_parameters_index(selected_params)
 
         if self.parameters_combo.count() == 0:
             self.index_to_select = index
 
         self.parameters_combo.setCurrentIndex(index)
-        self.firstrun_cb.setChecked(re_open_dialog)
         self.adjustSize()
 
     def select_executor(self, executor_name: str):
@@ -708,10 +698,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.configuration_combo.currentIndex()
         )
 
-        open_dialog = self.firstrun_cb.isChecked()
-
         self.saved_conf = (metadata_info['uuid'], executor_name,
-                           ext_exec_params, open_dialog)
+                           ext_exec_params)
+
         return super().accept()
 
     def get_configuration(

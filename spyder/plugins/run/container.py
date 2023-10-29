@@ -200,13 +200,8 @@ class RunContainer(PluginMainContainer):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
-        exec_params = self.get_last_used_executor_parameters(
-            self.currently_selected_configuration)
-
-        display_dialog = exec_params['display_dialog']
-
         self.edit_run_configurations(
-            display_dialog=display_dialog,
+            display_dialog=False,
             selected_executor=selected_executor)
 
     def edit_run_configurations(
@@ -216,8 +211,13 @@ class RunContainer(PluginMainContainer):
         selected_executor=None
     ):
         self.dialog = RunDialog(
-            self, self.metadata_model, self.executor_model,
-            self.parameter_model, disable_run_btn=disable_run_btn)
+            self,
+            self.metadata_model,
+            self.executor_model,
+            self.parameter_model,
+            disable_run_btn=disable_run_btn
+        )
+
         self.dialog.setup()
         self.dialog.finished.connect(self.process_run_dialog_result)
 
@@ -235,8 +235,7 @@ class RunContainer(PluginMainContainer):
         if status == RunDialogStatus.Close:
             return
 
-        (uuid, executor_name,
-         ext_params, open_dialog) = self.dialog.get_configuration()
+        uuid, executor_name, ext_params = self.dialog.get_configuration()
 
         if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
             exec_uuid = ext_params['uuid']
@@ -254,8 +253,8 @@ class RunContainer(PluginMainContainer):
                     executor_name, ext, context_id, all_exec_params)
 
             last_used_conf = StoredRunConfigurationExecutor(
-                executor=executor_name, selected=ext_params['uuid'],
-                display_dialog=open_dialog)
+                executor=executor_name, selected=ext_params['uuid']
+            )
 
             self.set_last_used_execution_params(uuid, last_used_conf)
 
@@ -949,8 +948,7 @@ class RunContainer(PluginMainContainer):
             uuid,
             StoredRunConfigurationExecutor(
                 executor=None,
-                selected=None,
-                display_dialog=False,
+                selected=None
             )
         )
 
@@ -987,8 +985,7 @@ class RunContainer(PluginMainContainer):
 
         default = StoredRunConfigurationExecutor(
             executor=executor_name,
-            selected=None,
-            display_dialog=False
+            selected=None
         )
         params = mru_executors_uuids.get(uuid, default)
 

@@ -267,10 +267,6 @@ class StoredRunConfigurationExecutor(TypedDict):
     # if using default or transient settings.
     selected: Optional[str]
 
-    # If True, then the run dialog will displayed every time the run
-    # configuration is executed. Otherwise not.
-    display_dialog: bool
-
 
 class RunConfigurationProvider(QObject):
     """
