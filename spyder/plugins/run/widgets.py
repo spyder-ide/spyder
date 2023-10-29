@@ -15,12 +15,15 @@ from uuid import uuid4
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
                             QGroupBox, QHBoxLayout, QLabel, QLineEdit, QLayout,
                             QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
+import qstylizer.style
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
@@ -28,7 +31,9 @@ from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, SupportedExecutionRunConfiguration)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.stylesheet import AppStyle
 
 
 
@@ -413,7 +418,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         return self.saved_conf
 
 
-class RunDialog(BaseRunConfigDialog):
+class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     """Run dialog used to configure run executors."""
 
     def __init__(
@@ -430,12 +435,19 @@ class RunDialog(BaseRunConfigDialog):
         self.parameter_model = parameter_model
         self.current_widget = None
         self.status = RunDialogStatus.Close
+        self._is_shown = False
 
+    # ---- Public methods
     def setup(self):
-        combo_label = QLabel(_("Select a run configuration:"))
-        executor_label = QLabel(_("Select a run executor:"))
+        # Header
+        self.header_label = QLabel(self)
+        self.header_label.setObjectName("header-label")
 
+        # Hide this combobox to decrease the dialog complexity
         self.configuration_combo = SpyderComboBox(self)
+        self.configuration_combo.hide()
+
+        executor_label = QLabel(_("Select an executor:"))
         self.executor_combo = SpyderComboBox(self)
 
         parameters_label = QLabel(_("Select the run parameters:"))
@@ -464,7 +476,7 @@ class RunDialog(BaseRunConfigDialog):
         fixed_dir_layout = QHBoxLayout()
         self.fixed_dir_radio = QRadioButton(FIXED_DIR)
         fixed_dir_layout.addWidget(self.fixed_dir_radio)
-        self.wd_edit = QLineEdit()
+        self.wd_edit = QLineEdit(self)
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         fixed_dir_layout.addWidget(self.wd_edit)
@@ -479,7 +491,7 @@ class RunDialog(BaseRunConfigDialog):
 
         # --- Store new custom configuration
         self.store_params_cb = QCheckBox(STORE_PARAMS)
-        self.store_params_text = QLineEdit()
+        self.store_params_text = QLineEdit(self)
         store_params_layout = QHBoxLayout()
         store_params_layout.addWidget(self.store_params_cb)
         store_params_layout.addWidget(self.store_params_text)
@@ -491,10 +503,18 @@ class RunDialog(BaseRunConfigDialog):
 
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
 
-        layout = self.add_widgets(combo_label, self.configuration_combo,
-                                  executor_label, self.executor_combo,
-                                  10, self.executor_group, self.firstrun_cb)
+        layout = self.add_widgets(
+            self.header_label,
+            5,
+            self.configuration_combo,
+            executor_label,
+            self.executor_combo,
+            10,
+            self.executor_group,
+            self.firstrun_cb
+        )
 
+        # Settings
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
         self.executor_combo.setModel(self.executors_model)
@@ -504,10 +524,7 @@ class RunDialog(BaseRunConfigDialog):
         self.configuration_combo.setModel(self.run_conf_model)
         self.configuration_combo.setCurrentIndex(
             self.run_conf_model.get_initial_index())
-
-        self.configuration_combo.setMaxVisibleItems(20)
-        self.configuration_combo.view().setVerticalScrollBarPolicy(
-            Qt.ScrollBarAsNeeded)
+        self.configuration_combo.setMaxVisibleItems(1)
 
         self.executor_combo.setMaxVisibleItems(20)
         self.executor_combo.view().setVerticalScrollBarPolicy(
@@ -517,7 +534,7 @@ class RunDialog(BaseRunConfigDialog):
             self.update_parameter_set)
         self.parameters_combo.setModel(self.parameter_model)
 
-        widget_dialog = QWidget()
+        widget_dialog = QWidget(self)
         widget_dialog.setMinimumWidth(600)
         widget_dialog.setLayout(layout)
         scroll_layout = QVBoxLayout(self)
@@ -526,6 +543,8 @@ class RunDialog(BaseRunConfigDialog):
 
         self.setWindowTitle(_("Run configuration per file"))
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
+
+        self.setStyleSheet(self._stylesheet)
 
     def select_directory(self):
         """Select directory"""
@@ -700,3 +719,42 @@ class RunDialog(BaseRunConfigDialog):
     ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
 
         return self.saved_conf
+
+    # ---- Qt methods
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            # Set file name as the header
+            fname = self.configuration_combo.currentText()
+            header_font = (
+                self.get_font(SpyderFontType.Interface, font_size_delta=1)
+            )
+
+            # Elide fname in case fname is too long
+            fm = QFontMetrics(header_font)
+            text = fm.elidedText(
+                fname, Qt.ElideLeft, self.header_label.width()
+            )
+
+            self.header_label.setFont(header_font)
+            self.header_label.setAlignment(Qt.AlignCenter)
+            self.header_label.setText(text)
+            if text != fname:
+                self.header_label.setToolTip(fname)
+
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    # ---- Private methods
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        css["QLabel#header-label"].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            padding=f"{2 * AppStyle.MarginSize} {4 * AppStyle.MarginSize}",
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+        )
+
+        return css.toString()
