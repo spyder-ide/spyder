@@ -11,14 +11,15 @@
 # Standard library imports
 import logging
 import traceback
+from typing import Any, Callable, Optional
 
 # Third-party imports
 from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
-from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
-                            QGroupBox, QHBoxLayout, QHeaderView,
-                            QMenu, QPushButton, QRadioButton, QSplitter,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView, QAction, QButtonGroup, QGroupBox, QHBoxLayout,
+    QHeaderView, QMenu, QMessageBox, QPushButton, QRadioButton, QSplitter,
+    QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -62,6 +63,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
                  resize_to_contents=True,
                  parent=None,
                  namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  readonly=None,
@@ -94,6 +96,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.name = name
         self.expanded = expanded
         self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
         self._attr_cols = attribute_columns
         self._attr_details = attribute_details
         self.readonly = readonly
@@ -258,6 +261,14 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.tools_layout.addSpacing(5)
         self.tools_layout.addWidget(special_attributes)
 
+        self.refresh_button = create_toolbutton(
+            self, icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh_editor)
+        self.refresh_button.setEnabled(self.data_function is not None)
+        self.tools_layout.addSpacing(5)
+        self.tools_layout.addWidget(self.refresh_button)
+
         self.tools_layout.addStretch()
 
         self.options_button = create_toolbutton(
@@ -405,6 +416,22 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         button = self.button_group.button(details_button_idx)
         if button is not None:
             button.setChecked(True)
+
+    def refresh_editor(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        try:
+            data = self.data_function()
+        except (IndexError, KeyError):
+            QMessageBox.critical(self, _('Collection editor'),
+                                 _('The variable no longer exists.'))
+            self.reject()
+            return
+
+        self.set_value(data)
 
     @Slot()
     def save_and_close_enable(self):

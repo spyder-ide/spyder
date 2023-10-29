@@ -319,6 +319,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 name=key,
                 parent=parent,
                 namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index),
                 readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,

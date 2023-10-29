@@ -11,12 +11,15 @@ Tests for the array editor.
 """
 
 # Standard library imports
+from dataclasses import dataclass
 import datetime
+from unittest.mock import patch
 
 # Third party imports
-from qtpy.QtCore import Qt
 import numpy as np
 import pytest
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.manager import CONF
@@ -170,6 +173,61 @@ def test_objectexplorer_types(objectexplorer, params):
     # Rows from the object attributes
     assert model.rowCount(model.index(0, 0)) in row_count
     assert model.columnCount() == 11
+
+
+@dataclass
+class DataclassForTesting:
+    name: str
+    price: float
+    quantity: int
+
+
+def test_objectexplorer_refreshbutton_disabled():
+    """
+    Test that the Refresh button is disabled by default.
+    """
+    data = DataclassForTesting('lemon', 0.15, 5)
+    editor = ObjectExplorer(data, name='data')
+    assert not editor.refresh_button.isEnabled()
+
+
+def test_objectexplorer_refresh():
+    """
+    Test that after pressing the refresh button, the value of the Array Editor
+    is replaced by the return value of the data_function.
+    """
+    data_old = DataclassForTesting('lemon', 0.15, 5)
+    data_new = range(1, 42, 3)
+    editor = ObjectExplorer(data_old, name='data',
+                            data_function=lambda: data_new)
+    model = editor.obj_tree.model()
+    root = model.index(0, 0)
+    assert model.data(model.index(0, 0, root), Qt.DisplayRole) == 'name'
+    assert model.data(model.index(0, 3, root), Qt.DisplayRole) == 'lemon'
+    assert editor.refresh_button.isEnabled()
+    editor.refresh_editor()
+    model = editor.obj_tree.model()
+    root = model.index(0, 0)
+    row = model.rowCount(root) - 1
+    assert model.data(model.index(row, 0, root), Qt.DisplayRole) == 'stop'
+    assert model.data(model.index(row, 3, root), Qt.DisplayRole) == '42'
+
+
+def test_objectexplorer_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the object editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    data = DataclassForTesting('lemon', 0.15, 5)
+    editor = ObjectExplorer(data, name='data', data_function=datafunc)
+    with patch('spyder.plugins.variableexplorer.widgets.objectexplorer'
+               '.objectexplorer.QMessageBox.critical') as mock_critical:
+        with qtbot.waitSignal(editor.rejected, timeout=0):
+            editor.refresh_button.click()
+    mock_critical.assert_called_once()
 
 
 if __name__ == "__main__":
