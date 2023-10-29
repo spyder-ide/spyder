@@ -351,6 +351,7 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
             marginLeft=self.BUTTON_MARGIN_RIGHT,
             marginRight=self.BUTTON_MARGIN_RIGHT,
             border='0px',
+            borderRadius='0px',
             padding='0px',
         )
 
@@ -387,6 +388,7 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
+            borderRadius='0px',
             margin='0px'
         )
 
@@ -532,6 +534,11 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             right='-3px' if WIN else '-1px'
+        )
+
+        # Make scroll buttons height match the one of tabs
+        css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+            marginTop=self.TOP_MARGIN,
         )
 
         # Make scroll button icons smaller on Windows and Mac
