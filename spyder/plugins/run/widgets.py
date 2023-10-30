@@ -17,9 +17,8 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QCheckBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QLayout, QRadioButton, QStackedWidget, QVBoxLayout,
-    QWidget)
+    QDialog, QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QLayout, QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
 import qstylizer.style
 
 # Local imports
@@ -62,8 +61,6 @@ INTERACT = _("Interact with the Python console after execution")
 FILE_DIR = _("The directory of the configuration being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
-
-STORE_PARAMS = _('Store current configuration as:')
 
 
 class RunDialogStatus:
@@ -447,7 +444,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         executor_label = QLabel(_("Run this file in:"))
         self.executor_combo = SpyderComboBox(self)
-        parameters_label = QLabel(_("Preset run parameters:"))
+        parameters_label = QLabel(_("Preset configuration:"))
         self.parameters_combo = SpyderComboBox(self)
 
         self.executor_combo.setMinimumWidth(250)
@@ -499,16 +496,12 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         wdir_layout.addLayout(fixed_dir_layout)
 
         # --- Store new custom configuration
-        self.store_params_cb = QCheckBox(STORE_PARAMS)
-        self.store_params_text = QLineEdit(self)
-        store_params_layout = QHBoxLayout()
-        store_params_layout.addWidget(self.store_params_cb)
-        store_params_layout.addWidget(self.store_params_text)
-        parameters_layout.addLayout(store_params_layout)
-
-        self.store_params_cb.toggled.connect(self.store_params_text.setEnabled)
-        self.store_params_text.setPlaceholderText(_('My configuration name'))
-        self.store_params_text.setEnabled(False)
+        name_params_label = QLabel(_("Save current configuration as:"))
+        self.name_params_text = QLineEdit(self)
+        name_params_layout = QHBoxLayout()
+        name_params_layout.addWidget(name_params_label)
+        name_params_layout.addWidget(self.name_params_text)
+        parameters_layout.addLayout(name_params_layout)
 
         layout = self.add_widgets(
             self.header_label,
@@ -638,14 +631,22 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         if uuid not in self.run_conf_model:
             return
 
-        stored_param = self.run_conf_model.get_run_configuration_parameters(
-            uuid, executor_name)
+        stored_params = self.run_conf_model.get_run_configuration_parameters(
+            uuid, executor_name)['params']
 
-        self.parameter_model.set_parameters(stored_param['params'])
+        # Only show global parameters (i.e. those with file_uuid = None) or
+        # those that correspond to the current file.
+        stored_params = {
+            k:v for (k, v) in stored_params.items()
+            if v.get("file_uuid") in [None, uuid]
+        }
 
+        self.parameter_model.set_parameters(stored_params)
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)
-        index = self.parameter_model.get_parameters_index(selected_params)
+        index = self.parameter_model.get_parameters_index_by_uuid(
+            selected_params
+        )
 
         if self.parameters_combo.count() == 0:
             self.index_to_select = index
@@ -661,17 +662,49 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.parameters_combo.setCurrentIndex(-1)
         index = self.executor_combo.currentIndex()
         self.display_executor_configuration(index)
-        self.store_params_text.setText('')
-        self.store_params_cb.setChecked(False)
+        self.name_params_text.setText('')
 
     def run_btn_clicked(self):
         self.status |= RunDialogStatus.Run
         self.accept()
 
+    def get_configuration(
+        self
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
+
+        return self.saved_conf
+
+    # ---- Qt methods
     def accept(self) -> None:
         self.status |= RunDialogStatus.Save
 
+        default_conf = self.current_widget.get_default_configuration()
         widget_conf = self.current_widget.get_configuration()
+
+        # Check if config is named
+        given_name = self.name_params_text.text()
+        if not given_name and widget_conf != default_conf:
+            # If parameters are not named and are different from the default
+            # ones, we always save them in a config named "Custom". This avoids
+            # the hassle of asking users to provide a name when they want to
+            # customize the config.
+            given_name = _("Custom")
+
+        # Get index associated with config
+        if given_name:
+            idx = self.parameter_model.get_parameters_index_by_name(given_name)
+        else:
+            idx = self.parameters_combo.currentIndex()
+
+        # Get uuid and name from index
+        if idx == -1:
+            # This means that there are no saved parameters for given_name, so
+            # we need to generate a new uuid for them.
+            uuid = str(uuid4())
+            name = given_name
+        else:
+            # Retrieve uuid and name from our config system
+            uuid, name = self.parameter_model.get_parameters_uuid_name(idx)
 
         path = None
         source = None
@@ -688,25 +721,19 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         exec_params = RunExecutionParameters(
             working_dir=cwd_opts, executor_params=widget_conf)
 
-        uuid, name = self.parameter_model.get_parameters_uuid_name(
-            self.parameters_combo.currentIndex()
-        )
-
-        if self.store_params_cb.isChecked():
-            uuid = str(uuid4())
-            name = self.store_params_text.text()
-            if name == '':
-                date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-                name = f'Configuration-{date_str}'
-
-        ext_exec_params = ExtendedRunExecutionParameters(
-            uuid=uuid, name=name, params=exec_params
-        )
-        executor_name, _ = self.executors_model.get_selected_run_executor(
-            self.executor_combo.currentIndex()
-        )
         metadata_info = self.run_conf_model.get_metadata(
             self.configuration_combo.currentIndex()
+        )
+
+        ext_exec_params = ExtendedRunExecutionParameters(
+            uuid=uuid,
+            name=name,
+            params=exec_params,
+            file_uuid=metadata_info['uuid']
+        )
+
+        executor_name, __ = self.executors_model.get_selected_run_executor(
+            self.executor_combo.currentIndex()
         )
 
         self.saved_conf = (metadata_info['uuid'], executor_name,
@@ -714,13 +741,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         return super().accept()
 
-    def get_configuration(
-        self
-    ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
-
-        return self.saved_conf
-
-    # ---- Qt methods
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
         if not self._is_shown:

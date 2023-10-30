@@ -248,6 +248,10 @@ class ExtendedRunExecutionParameters(TypedDict):
     # The run execution parameters.
     params: RunExecutionParameters
 
+    # The unique identifier for the file to which these parameters correspond
+    # to, if any.
+    file_uuid: Optional[str]
+
 
 class StoredRunExecutorParameters(TypedDict):
     """Per run executor configuration parameters."""

@@ -284,13 +284,10 @@ class RunExecutorParameters(QAbstractListModel):
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         pos = index.row()
         total_saved_params = len(self.executor_conf_params)
+
         if pos == total_saved_params:
             if role == Qt.DisplayRole:
-                return _("Default/Transient")
-            elif role == Qt.ToolTipRole:
-                return _(
-                    "This configuration will not be saved after execution"
-                )
+                return _("Default")
         else:
             params_id = self.params_index[pos]
             params = self.executor_conf_params[params_id]
@@ -341,13 +338,28 @@ class RunExecutorParameters(QAbstractListModel):
         self.beginResetModel()
         self.executor_conf_params = parameters
         self.params_index = dict(enumerate(self.executor_conf_params))
-        self.inverse_index = {self.params_index[k]: k
-                              for k in self.params_index}
+        self.inverse_index = {
+            self.params_index[k]: k for k in self.params_index
+        }
         self.endResetModel()
 
-    def get_parameters_index(self, parameters_name: Optional[str]) -> int:
-        index = self.inverse_index.get(parameters_name,
-                                       len(self.executor_conf_params))
+    def get_parameters_index_by_uuid(
+        self,
+        parameters_uuid: Optional[str]
+    ) -> int:
+        index = self.inverse_index.get(
+            parameters_uuid, len(self.executor_conf_params)
+        )
+
+        return index
+
+    def get_parameters_index_by_name(self, parameters_name: str) -> int:
+        index = -1
+        for id_, idx in self.inverse_index.items():
+            if self.executor_conf_params[id_]['name'] == parameters_name:
+                index = idx
+                break
+
         return index
 
     def __len__(self) -> int:

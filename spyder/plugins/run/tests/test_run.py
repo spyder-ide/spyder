@@ -597,9 +597,9 @@ def test_run_plugin(qtbot, run_mock):
     assert test_executor_name == executor_name
     assert handler == 'both'
 
-    # Ensure that the executor run configuration is transient
-    assert exec_conf['uuid'] is None
-    assert exec_conf['name'] is None
+    # Ensure that the executor run configuration was saved
+    assert exec_conf['uuid'] is not None
+    assert exec_conf['name'] == "Custom"
 
     # Check that the configuration parameters are the ones defined by the
     # dialog
@@ -612,23 +612,37 @@ def test_run_plugin(qtbot, run_mock):
     # Assert that the run_exec dispatcher works for the specific combination
     assert handler_name == f'{ext}_{context["identifier"]}'
 
-    # Assert that the run configuration gets registered without executor params
+    # Assert that the run configuration gets registered
     stored_run_params = run.get_last_used_executor_parameters(run_conf_uuid)
+    current_exec_uuid = exec_conf['uuid']
     assert stored_run_params['executor'] == test_executor_name
-    assert stored_run_params['selected'] is None
+    assert stored_run_params['selected'] == current_exec_uuid
 
-    # The configuration gets run again
-    with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
-        run_act.trigger()
+    # Spawn the configuration dialog
+    run_act = run.get_action(RunActions.Run)
+    run_act.trigger()
 
-    # Assert that the transient run executor parameters reverted to the
-    # default ones
+    dialog = container.dialog
+    with qtbot.waitSignal(dialog.finished, timeout=200000):
+        # Select the first configuration again
+        conf_combo.setCurrentIndex(0)
+
+        # Change some options
+        conf_widget = dialog.current_widget
+        conf_widget.widgets['opt1'].setChecked(False)
+
+        # Execute the configuration
+        buttons = dialog.bbox.buttons()
+        run_btn = buttons[2]
+        with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+            qtbot.mouseClick(run_btn, Qt.LeftButton)
+
+    # Assert that changes took effect and that the run executor parameters were
+    # saved in the Custom config
     _, _, _, exec_conf = sig.args[0]
     params = exec_conf['params']
-    working_dir = params['working_dir']
-    assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
-    assert working_dir['path'] == ''
-    assert params['executor_params'] == default_conf
+    assert params['executor_params']['opt1'] == False
+    assert exec_conf['uuid'] == current_exec_uuid
 
     # Focus into another configuration
     exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
@@ -737,8 +751,7 @@ def test_run_plugin(qtbot, run_mock):
     with qtbot.waitSignal(dialog.finished, timeout=200000):
         conf_combo = dialog.configuration_combo
         exec_combo = dialog.executor_combo
-        store_params_cb = dialog.store_params_cb
-        store_params_text = dialog.store_params_text
+        name_params_text = dialog.name_params_text
 
         # Modify some options
         conf_widget = dialog.current_widget
@@ -746,8 +759,7 @@ def test_run_plugin(qtbot, run_mock):
         conf_widget.widgets['name_2'].setChecked(False)
 
         # Make sure that the custom configuration is stored
-        store_params_cb.setChecked(True)
-        store_params_text.setText('CustomParams')
+        name_params_text.setText('CustomParams')
 
         # Execute the configuration
         buttons = dialog.bbox.buttons()
