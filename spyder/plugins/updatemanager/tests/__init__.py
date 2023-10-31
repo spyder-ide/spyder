@@ -6,4 +6,4 @@
 # (see LICENSE.txt for details)
 # -----------------------------------------------------------------------------
 
-"""Tests for workers."""
+"""Tests for Update Manager Plugin."""

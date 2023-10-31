@@ -4,108 +4,144 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-import sys
+import os
+import logging
 
 import pytest
 
-from spyder.workers.updates import WorkerUpdates
+from spyder.config.base import running_in_ci
+from spyder.plugins.updatemanager import workers
+from spyder.plugins.updatemanager.workers import WorkerUpdate
+from spyder.plugins.updatemanager.widgets import update
+from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
+
+logging.basicConfig()
 
 
-@pytest.mark.parametrize("is_anaconda", [True, False])
-@pytest.mark.parametrize("is_pypi", [True, False])
+@pytest.fixture(autouse=True)
+def capture_logging(caplog):
+    caplog.set_level(10, "spyder.plugins.updatemanager")
+
+
+@pytest.fixture
+def worker():
+    return WorkerUpdate(None)
+
+
+# ---- Test WorkerUpdate
+
+@pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
+def test_updates_appenv(qtbot, mocker, version):
+    """
+    Test whether or not we offer updates for our installers according to the
+    current Spyder version.
+
+    Uses UpdateManagerWidget in order to also test QThread.
+    """
+    mocker.patch.object(update, "__version__", new=version)
+    # Do not execute start_update after check_update completes.
+    mocker.patch.object(
+        UpdateManagerWidget, "start_update", new=lambda x: None)
+    mocker.patch.object(workers, "__version__", new=version)
+    mocker.patch.object(workers, "is_anaconda", return_value=True)
+    mocker.patch.object(workers, "is_conda_based_app", return_value=True)
+    mocker.patch.object(
+        workers, "get_spyder_conda_channel",
+        return_value=("conda-forge", "https://conda.anaconda.org/conda-forge"))
+
+    um = UpdateManagerWidget(None)
+    um.start_check_update()
+    qtbot.waitUntil(um.update_thread.isFinished)
+
+    _update = um.update_worker.update_available
+    assert _update if version.split('.')[0] == '1' else not _update
+    # assert len(worker.releases) > 1
+    assert len(um.update_worker.releases) > 1
+
+
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
 @pytest.mark.parametrize(
-    "spyder_conda_channel", [
+    "channel", [
         ("pkgs/main", "https://repo.anaconda.com/pkgs/main"),
-        ("conda-forge", "https://conda.anaconda.org/conda-forge")
+        ("conda-forge", "https://conda.anaconda.org/conda-forge"),
+        ("pypi", "https://conda.anaconda.org/pypi")
     ]
 )
-def test_updates(qtbot, mocker, is_anaconda, is_pypi, version,
-                 spyder_conda_channel):
-    """
-    Test whether or not we offer updates for Anaconda and PyPI according to the
-    current Spyder version.
-    """
-    mocker.patch(
-        "spyder.workers.updates.is_anaconda",
-        return_value=is_anaconda
-    )
-
-    if is_anaconda:
-        if is_pypi:
-            channel = ("pypi", "https://conda.anaconda.org/pypi")
-        else:
-            channel = spyder_conda_channel
-
-        mocker.patch(
-            "spyder.workers.updates.get_spyder_conda_channel",
-            return_value=channel
-        )
-
-    worker = WorkerUpdates(None, False, version=version)
-    worker.start()
-
-    update = worker.update_available
-    assert update if version.split('.')[0] == '1' else not update
-    assert len(worker.releases) == 1
-
-
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails frequently on Mac")
-@pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-def test_updates_for_installers(qtbot, mocker, version):
+def test_updates_condaenv(qtbot, worker, mocker, version, channel):
     """
     Test whether or not we offer updates for our installers according to the
     current Spyder version.
     """
-    mocker.patch("spyder.workers.updates.is_anaconda", return_value=False)
-    mocker.patch("spyder.workers.updates.is_conda_based_app",
-                 return_value=True)
+    mocker.patch.object(workers, "__version__", new=version)
+    mocker.patch.object(workers, "is_anaconda", return_value=True)
+    mocker.patch.object(workers, "is_conda_based_app", return_value=False)
+    mocker.patch.object(
+        workers, "get_spyder_conda_channel", return_value=channel
+    )
 
-    worker = WorkerUpdates(None, False, version=version)
-    worker.start()
+    with qtbot.waitSignal(worker.sig_ready, timeout=5000):
+        worker.start()
 
-    update = worker.update_available
-    assert update if version.split('.')[0] == '1' else not update
-    assert len(worker.releases) > 1
+    _update = worker.update_available
+    assert _update if version.split('.')[0] == '1' else not _update
+    assert len(worker.releases) == 1
 
 
-def test_no_update_development(qtbot, mocker):
-    """Test we don't offer updates for development versions."""
-    mocker.patch(
-        "spyder.workers.updates.get_spyder_conda_channel",
+@pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
+def test_updates_pipenv(qtbot, worker, mocker, version):
+    """
+    Test updates for pip installed Spyder
+    """
+    mocker.patch.object(workers, "__version__", new=version)
+    mocker.patch.object(workers, "is_anaconda", return_value=False)
+    mocker.patch.object(workers, "is_conda_based_app", return_value=False)
+    mocker.patch.object(
+        workers, "get_spyder_conda_channel",
         return_value=("pypi", "https://conda.anaconda.org/pypi")
     )
 
-    worker = WorkerUpdates(None, False, version="3.3.2.dev0",
-                           releases=['3.3.1'])
-    worker.start()
-    assert not worker.update_available
+    with qtbot.waitSignal(worker.sig_ready, timeout=5000):
+        worker.start()
+
+    _update = worker.update_available
+    assert _update if version.split('.')[0] == '1' else not _update
+    assert len(worker.releases) == 1
 
 
-def test_update_pre_to_pre(qtbot, mocker):
-    """Test we offer updates between prereleases."""
-    mocker.patch(
-        "spyder.workers.updates.get_spyder_conda_channel",
-        return_value=("pypi", "https://conda.anaconda.org/pypi")
-    )
+@pytest.mark.parametrize("release", ["4.0.1", "4.0.1a1"])
+@pytest.mark.parametrize("version", ["4.0.0a1", "4.0.0"])
+@pytest.mark.parametrize("stable_only", [True, False])
+def test_update_non_stable(qtbot, mocker, version, release, stable_only):
+    """Test we offer unstable updates."""
+    mocker.patch.object(workers, "__version__", new=version)
 
-    worker = WorkerUpdates(None, False, version="4.0.0a1",
-                           releases=['4.0.0b5'])
-    worker.start()
-    assert worker.update_available
+    worker = WorkerUpdate(stable_only)
+    worker.releases = [release]
+    worker._check_update_available()
+
+    _update = worker.update_available
+    assert not _update if "a" in release and stable_only else _update
 
 
-def test_update_pre_to_final(qtbot, mocker):
-    """Test we offer updates from prereleases to the final versions."""
-    mocker.patch(
-        "spyder.workers.updates.get_spyder_conda_channel",
-        return_value=("pypi", "https://conda.anaconda.org/pypi")
-    )
+# ---- Test WorkerDownloadInstaller
 
-    worker = WorkerUpdates(None, False, version="4.0.0b3",
-                           releases=['4.0.0'])
-    worker.start()
-    assert worker.update_available
+@pytest.mark.skipif(not running_in_ci(), reason="Download only in CI")
+def test_download(qtbot, mocker):
+    """
+    Test download spyder installer.
+    Uses UpdateManagerWidget in order to also test QThread.
+    """
+    um = UpdateManagerWidget(None)
+    um.latest_release = "6.0.0a2"
+    um._set_installer_path()
+    # Do not execute _start_install after download completes.
+    mocker.patch.object(
+        UpdateManagerWidget, "_confirm_install", new=lambda x: None)
+
+    um._start_download()
+    qtbot.waitUntil(um.download_thread.isFinished, timeout=60000)
+
+    assert os.path.exists(um.installer_path)
 
 
 if __name__ == "__main__":

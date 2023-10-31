@@ -41,6 +41,7 @@ class Plugins:
     Switcher = 'switcher'
     Toolbar = "toolbar"
     Tours = 'tours'
+    UpdateManager = 'update_manager'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 

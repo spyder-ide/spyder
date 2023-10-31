@@ -83,6 +83,11 @@ DEFAULTS = [
               'report_error/remember_token': False,
               'show_dpi_message': True,
               }),
+            ('update_manager',
+             {
+              'check_updates_on_startup': True,
+              'check_stable_only': True,
+              }),
             ('toolbar',
              {
               'enable': True,

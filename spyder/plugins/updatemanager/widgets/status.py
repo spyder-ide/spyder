@@ -20,10 +20,9 @@ from qtpy.QtWidgets import QLabel
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import is_conda_based_app
-from spyder.plugins.application.widgets.install import (
-    UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
-    PENDING, CHECKING)
+from spyder.plugins.updatemanager.widgets.update import (
+    NO_STATUS, DOWNLOADING_INSTALLER, PENDING,
+    CHECKING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
@@ -32,24 +31,25 @@ from spyder.utils.qthelpers import add_actions, create_action
 logger = logging.getLogger(__name__)
 
 
-class ApplicationUpdateStatus(StatusBarWidget):
-    """Status bar widget for application update status."""
-    BASE_TOOLTIP = _("Application update status")
-    ID = 'application_update_status'
+class UpdateManagerStatus(StatusBarWidget):
+    """Status bar widget for update manager."""
+    BASE_TOOLTIP = _("Update manager status")
+    ID = 'update_manager_status'
 
-    sig_check_for_updates_requested = Signal()
-    """
-    Signal to request checking for updates.
-    """
+    sig_check_update = Signal()
+    """Signal to request checking for updates."""
 
-    sig_install_on_close_requested = Signal(str)
+    sig_start_update = Signal()
+    """Signal to start update process"""
+
+    sig_show_progress_dialog = Signal(bool)
     """
-    Signal to request running the downloaded installer on close.
+    Signal to show progress dialog
 
     Parameters
     ----------
-    installer_path: str
-        Path to instal
+    show: bool
+        True to show, False to hide
     """
 
     CUSTOM_WIDGET_CLASS = QLabel
@@ -59,9 +59,6 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.tooltip = self.BASE_TOOLTIP
         super().__init__(parent, show_spinner=True)
 
-        # Installation dialog
-        self.installer = UpdateInstallerDialog(self)
-
         # Check for updates action menu
         self.menu = SpyderMenu(self)
 
@@ -70,32 +67,24 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         # Signals
-        self.sig_clicked.connect(self.show_installation_dialog_or_menu)
-
-        # Installer widget signals
-        self.installer.sig_download_progress.connect(
-            self.set_download_progress)
-        self.installer.sig_installation_status.connect(
-            self.set_value)
-        self.installer.sig_install_on_close_requested.connect(
-            self.sig_install_on_close_requested)
+        self.sig_clicked.connect(self.show_dialog_or_menu)
 
     def set_value(self, value):
-        """Return update installation state."""
-        if value == DOWNLOADING_INSTALLER or value == INSTALLING:
-            self.tooltip = _("Update installation will continue in the "
-                             "background.\n"
-                             "Click here to show the installation "
-                             "dialog again.")
-            if value == DOWNLOADING_INSTALLER:
-                self.spinner.hide()
-                self.spinner.stop()
-                self.custom_widget.show()
-            else:
+        """Set update manager status."""
+        if value == DOWNLOADING_INSTALLER:
+            self.tooltip = _(
+                "Downloading update will continue in the background.\n"
+                "Click here to show the download dialog again."
+            )
+            self.spinner.hide()
+            self.spinner.stop()
+            self.custom_widget.show()
+        elif value == CHECKING:
+            self.tooltip = self.BASE_TOOLTIP
+            if self.custom_widget:
                 self.custom_widget.hide()
-                self.spinner.show()
-                self.spinner.start()
-            self.installer.show()
+            self.spinner.show()
+            self.spinner.start()
         elif value == PENDING:
             self.tooltip = value
             self.custom_widget.hide()
@@ -111,7 +100,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.setVisible(True)
         self.update_tooltip()
         value = f"Spyder: {value}"
-        logger.debug(f"Application Update Status: {value}")
+        logger.debug(f"Update manager status: {value}")
         super().set_value(value)
 
     def get_tooltip(self):
@@ -121,47 +110,24 @@ class ApplicationUpdateStatus(StatusBarWidget):
     def get_icon(self):
         return ima.icon('spyder_about')
 
-    def start_installation(self, latest_release):
-        self.installer.start_installation(latest_release)
-
-    def set_download_progress(self, current_value, total):
-        percentage_progress = 0
-        if total > 0:
-            percentage_progress = round((current_value/total) * 100)
-        self.custom_widget.setText(f"{percentage_progress}%")
-
-    def set_status_pending(self, latest_release):
-        self.set_value(PENDING)
-        self.installer.save_latest_release(latest_release)
-
-    def set_status_checking(self):
-        self.set_value(CHECKING)
-        self.spinner.show()
-        self.spinner.start()
-
-    def set_no_status(self):
-        self.set_value(NO_STATUS)
-        self.spinner.hide()
-        self.spinner.stop()
+    def set_download_progress(self, percent_progress):
+        """Set download progress in status bar"""
+        self.custom_widget.setText(f"{percent_progress}%")
 
     @Slot()
-    def show_installation_dialog_or_menu(self):
-        """Show installation dialog or menu."""
+    def show_dialog_or_menu(self):
+        """Show download dialog or status bar menu."""
         value = self.value.split(":")[-1].strip()
-        if (
-            self.tooltip != self.BASE_TOOLTIP
-            and value != PENDING
-            and is_conda_based_app()
-        ):
-            self.installer.show()
-        elif value == PENDING and is_conda_based_app():
-            self.installer.continue_installation()
+        if value == DOWNLOADING_INSTALLER:
+            self.sig_show_progress_dialog.emit(True)
+        elif value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
+            self.sig_start_update.emit()
         elif value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(
                 self,
                 text=_("Check for updates..."),
-                triggered=self.sig_check_for_updates_requested.emit
+                triggered=self.sig_check_update.emit
             )
             add_actions(self.menu, [check_for_updates_action])
             rect = self.contentsRect()
