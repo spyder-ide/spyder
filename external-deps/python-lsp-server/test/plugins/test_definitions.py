@@ -12,7 +12,7 @@ DOC_URI = uris.from_fs_path(__file__)
 DOC = """def a():
     pass
 
-print a()
+print(a())
 
 
 class Directory(object):
@@ -21,6 +21,24 @@ class Directory(object):
 
     def add_member(self, id, name):
         self.members[id] = name
+        
+        
+subscripted_before_reference = {}
+subscripted_before_reference[0] = 0
+subscripted_before_reference
+
+
+def my_func():
+    print('called')
+
+alias = my_func
+my_list = [1, None, alias]
+inception = my_list[2]
+
+inception()
+
+import numpy
+numpy.ones
 """
 
 
@@ -38,6 +56,49 @@ def test_definitions(config, workspace):
     assert [{"uri": DOC_URI, "range": def_range}] == pylsp_definitions(
         config, doc, cursor_pos
     )
+
+
+def test_indirect_definitions(config, workspace):
+    # Over 'subscripted_before_reference'
+    cursor_pos = {"line": 16, "character": 0}
+
+    # The definition of 'subscripted_before_reference',
+    # skipping intermediate writes to the most recent definition
+    def_range = {
+        "start": {"line": 14, "character": 0},
+        "end": {"line": 14, "character": len("subscripted_before_reference")},
+    }
+
+    doc = Document(DOC_URI, workspace, DOC)
+    assert [{"uri": DOC_URI, "range": def_range}] == pylsp_definitions(
+        config, doc, cursor_pos
+    )
+
+
+def test_definition_with_multihop_inference_goto(config, workspace):
+    # Over 'inception()'
+    cursor_pos = {"line": 26, "character": 0}
+
+    # The most recent definition of 'inception',
+    # ignoring alias hops
+    def_range = {
+        "start": {"line": 24, "character": 0},
+        "end": {"line": 24, "character": len("inception")},
+    }
+
+    doc = Document(DOC_URI, workspace, DOC)
+    assert [{"uri": DOC_URI, "range": def_range}] == pylsp_definitions(
+        config, doc, cursor_pos
+    )
+
+
+def test_numpy_definition(config, workspace):
+    # Over numpy.ones
+    cursor_pos = {"line": 29, "character": 8}
+
+    doc = Document(DOC_URI, workspace, DOC)
+    defns = pylsp_definitions(config, doc, cursor_pos)
+    assert len(defns) > 0, defns
 
 
 def test_builtin_definition(config, workspace):

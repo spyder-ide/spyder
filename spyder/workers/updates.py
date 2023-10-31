@@ -14,7 +14,7 @@ import traceback
 # Third party imports
 from qtpy.QtCore import QObject, Signal
 import requests
-from requests.adapters import ConnectionError, SSLError
+from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
@@ -26,14 +26,20 @@ from spyder.utils.programs import check_version, is_module_installed
 # Logger setup
 logger = logging.getLogger(__name__)
 
+CONNECT_ERROR_MSG = _(
+    'Unable to connect to the Spyder update service.'
+    '<br><br>Make sure your connection is working properly.'
+)
+
+HTTP_ERROR_MSG = _(
+    'HTTP error {status_code} when checking for updates.'
+    '<br><br>Make sure your connection is working properly,'
+    'and try again later.'
+)
+
 SSL_ERROR_MSG = _(
     'SSL certificate verification failed while checking for Spyder updates.'
     '<br><br>Please contact your network administrator for assistance.'
-)
-
-CONNECT_ERROR_MSG = _(
-    'Unable to connect to the internet while checking for Spyder updates.'
-    '<br><br>Make sure the connection is working properly.'
 )
 
 
@@ -120,6 +126,7 @@ class WorkerUpdates(QObject):
         try:
             logger.debug(f"Checking for updates from {self.url}")
             page = requests.get(self.url)
+            page.raise_for_status()
             data = page.json()
 
             if is_conda_based_app():
@@ -144,6 +151,9 @@ class WorkerUpdates(QObject):
             logger.debug(err, stack_info=True)
         except ConnectionError as err:
             error_msg = CONNECT_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except HTTPError as err:
+            error_msg = HTTP_ERROR_MSG.format(page.status_code)
             logger.debug(err, stack_info=True)
         except Exception as err:
             error = traceback.format_exc()

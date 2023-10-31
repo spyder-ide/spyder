@@ -413,9 +413,8 @@ class IconManager():
             normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
-            # This is the color GammaRay reports for icons in disabled
-            # buttons, both for the dark and light themes
-            disabled_color = QColor(150, 150, 150)
+            # Disabled color from qdarkstyle
+            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
 
             # Paint icon with the previous color to get the disabled state.
             # Taken from https://stackoverflow.com/a/65618075/438386
@@ -440,6 +439,7 @@ class IconManager():
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:
                     kwargs['scale_factor'] = scale_factor
+                kwargs['color_disabled'] = QStylePalette.COLOR_DISABLED
                 return qta.icon(*args, **kwargs)
             except KeyError:
                 # Load custom icons
