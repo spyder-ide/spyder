@@ -4,6 +4,7 @@ Requirements:
 
 1. install `python-lsp-server[rope]`
 2. set `pylsp.plugins.rope_autoimport.enabled` to `true`
+3. This enables both completions and code actions. You can switch them off by setting `pylsp.plugins.rope_autoimport.completions.enabled` and/or `pylsp.plugins.rope_autoimport.code_actions.enabled` to `false`
 
 ## Startup
 
