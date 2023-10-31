@@ -608,8 +608,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if not must_update:
             # Compare with current tree to check if it's necessary to update
             # it.
-            changes = tree - current_tree
-            if tree and len(changes) == 0:
+            if tree and tree == current_tree:
                 logger.debug(
                     f"Current and new trees for file {editor.fname} are the "
                     f"same, so no update is necessary"
