@@ -6,12 +6,71 @@ import os
 import sys
 from threading import Thread
 import time
+from typing import Any, Dict, List
 from unittest import mock
 
 from flaky import flaky
+from docstring_to_markdown import UnknownFormatError
 
 from pylsp import _utils
+from pylsp.lsp import NotebookCellKind
 from pylsp.python_lsp import PythonLSPServer, start_io_lang_server
+
+
+CALL_TIMEOUT_IN_SECONDS = 30
+
+
+def send_notebook_did_open(client, cells: List[str]):
+    """
+    Sends a notebookDocument/didOpen notification with the given python cells.
+
+    The notebook has the uri "notebook_uri" and the cells have the uris
+    "cell_1_uri", "cell_2_uri", etc.
+    """
+    client._endpoint.notify(
+        "notebookDocument/didOpen", notebook_with_python_cells(cells)
+    )
+
+
+def notebook_with_python_cells(cells: List[str]):
+    """
+    Create a notebook document with the given python cells.
+
+    The notebook has the uri "notebook_uri" and the cells have the uris
+    "cell_1_uri", "cell_2_uri", etc.
+    """
+    return {
+        "notebookDocument": {
+            "uri": "notebook_uri",
+            "notebookType": "jupyter-notebook",
+            "cells": [
+                {
+                    "kind": NotebookCellKind.Code,
+                    "document": f"cell_{i+1}_uri",
+                }
+                for i in range(len(cells))
+            ],
+        },
+        "cellTextDocuments": [
+            {
+                "uri": f"cell_{i+1}_uri",
+                "languageId": "python",
+                "text": cell,
+            }
+            for i, cell in enumerate(cells)
+        ],
+    }
+
+
+def send_initialize_request(client, initialization_options: Dict[str, Any] = None):
+    return client._endpoint.request(
+        "initialize",
+        {
+            "processId": 1234,
+            "rootPath": os.path.dirname(__file__),
+            "initializationOptions": initialization_options,
+        },
+    ).result(timeout=CALL_TIMEOUT_IN_SECONDS)
 
 
 def start(obj):
@@ -154,3 +213,53 @@ def test_clip_column():
     assert _utils.clip_column(2, ["123\n", "123"], 0) == 2
     assert _utils.clip_column(3, ["123\n", "123"], 0) == 3
     assert _utils.clip_column(4, ["123\n", "123"], 1) == 3
+
+
+@mock.patch("docstring_to_markdown.convert")
+def test_format_docstring_valid_rst_signature(mock_convert):
+    """Test that a valid RST docstring includes the function signature."""
+    docstring = """A function docstring.
+
+    Parameters
+    ----------
+    a : str, something
+    """
+
+    # Mock the return value to avoid depedency on the real thing
+    mock_convert.return_value = """A function docstring.
+
+    #### Parameters
+
+    - `a`: str, something
+    """
+
+    markdown = _utils.format_docstring(
+        docstring,
+        "markdown",
+        ["something(a: str) -> str"],
+    )["value"]
+
+    assert markdown.startswith(
+        _utils.wrap_signature("something(a: str) -> str"),
+    )
+
+
+@mock.patch("docstring_to_markdown.convert", side_effect=UnknownFormatError)
+def test_format_docstring_invalid_rst_signature(_):
+    """Test that an invalid RST docstring includes the function signature."""
+    docstring = """A function docstring.
+
+    Parameters
+    ----------
+    a : str, something
+    """
+
+    markdown = _utils.format_docstring(
+        docstring,
+        "markdown",
+        ["something(a: str) -> str"],
+    )["value"]
+
+    assert markdown.startswith(
+        _utils.wrap_signature("something(a: str) -> str"),
+    )

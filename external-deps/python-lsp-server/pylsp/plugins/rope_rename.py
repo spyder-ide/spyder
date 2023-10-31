@@ -6,7 +6,7 @@ import logging
 from rope.base import libutils
 from rope.refactor.rename import Rename
 
-from pylsp import hookimpl, uris
+from pylsp import hookimpl, uris, _utils
 
 log = logging.getLogger(__name__)
 
@@ -59,4 +59,8 @@ def pylsp_rename(config, workspace, document, position, new_name):
 
 def _num_lines(resource):
     "Count the number of lines in a `File` resource."
-    return len(resource.read().splitlines())
+    text = resource.read()
+
+    if _utils.get_eol_chars(text):
+        return len(text.splitlines())
+    return 0
