@@ -73,6 +73,9 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         editorstack.sig_open_file.connect(report_file_open)
         editorstack.register_completion_capabilities(capabilities, 'python')
 
+    def unregister_editorstack(editorstack):
+        pass
+
     def clone(editorstack, template=None):
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -82,7 +85,10 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     mock_main_widget = Mock(wraps=EditorMainWidgetExample())
     EditorSplitter.CONF_SECTION = "Editor"
     editorsplitter = EditorSplitter(
-        None, mock_main_widget, [], register_editorstack_cb=register_editorstack)
+        None, mock_main_widget, [],
+        register_editorstack_cb=register_editorstack,
+        unregister_editorstack_cb=unregister_editorstack
+    )
 
     editorsplitter.editorstack.set_find_widget(Mock())
     editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
