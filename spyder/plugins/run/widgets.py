@@ -7,7 +7,6 @@
 """Run dialogs and widgets and data models."""
 
 # Standard library imports
-from datetime import datetime
 import os.path as osp
 from typing import Optional, Tuple, List, Dict
 from uuid import uuid4
@@ -36,32 +35,10 @@ from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle
 
 
-
 # Main constants
-RUN_DEFAULT_CONFIG = _("Run file with default configuration")
-RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
-CURRENT_INTERPRETER = _("Execute in current console")
-DEDICATED_INTERPRETER = _("Execute in a dedicated console")
-SYSTERM_INTERPRETER = _("Execute in an external system terminal")
-
-CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
-DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
-SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
-
-WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
-WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
-WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
-WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
-
-CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
-CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
-POST_MORTEM = _("Directly enter debugging when errors appear")
-INTERACT = _("Interact with the Python console after execution")
-
 FILE_DIR = _("The directory of the configuration being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
-
 
 class RunDialogStatus:
     Close = 0
@@ -152,21 +129,25 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
     def __init__(
         self,
         parent,
+        executor_name,
         executor_params: Dict[Tuple[str, str], SupportedExecutionRunConfiguration],
         extensions: Optional[List[str]] = None,
         contexts: Optional[Dict[str, List[str]]] = None,
         default_params: Optional[ExtendedRunExecutionParameters] = None,
         extension: Optional[str] = None,
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        new_config: bool = False
     ):
         super().__init__(parent, True)
 
+        self.executor_name = executor_name
         self.executor_params = executor_params
         self.default_params = default_params
         self.extensions = extensions or []
         self.contexts = contexts or {}
         self.extension = extension
         self.context = context
+        self.new_config = new_config
 
         self.parameters_name = None
         if default_params is not None:
@@ -174,8 +155,12 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         self.current_widget = None
         self.status = RunDialogStatus.Close
+        self.saved_conf = None
 
+    # ---- Public methods
+    # -------------------------------------------------------------------------
     def setup(self):
+        # Widgets
         ext_combo_label = QLabel(_("Select a file extension:"))
         context_combo_label = QLabel(_("Select a run context:"))
 
@@ -185,6 +170,19 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         self.context_combo = SpyderComboBox(self)
         self.context_combo.currentIndexChanged.connect(self.context_changed)
+
+        self.extension_combo.setMinimumWidth(150)
+        self.context_combo.setMinimumWidth(150)
+
+        ext_context_g_layout = QGridLayout()
+        ext_context_g_layout.addWidget(ext_combo_label, 0, 0)
+        ext_context_g_layout.addWidget(self.extension_combo, 0, 1)
+        ext_context_g_layout.addWidget(context_combo_label, 1, 0)
+        ext_context_g_layout.addWidget(self.context_combo, 1, 1)
+
+        ext_context_layout = QHBoxLayout()
+        ext_context_layout.addLayout(ext_context_g_layout)
+        ext_context_layout.addStretch(1)
 
         self.stack = QStackedWidget()
         self.executor_group = QGroupBox(_("Executor parameters"))
@@ -205,7 +203,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.fixed_dir_radio = QRadioButton(FIXED_DIR)
         fixed_dir_layout.addWidget(self.fixed_dir_radio)
 
-        self.wd_edit = QLineEdit()
+        self.wd_edit = QLineEdit(self)
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         fixed_dir_layout.addWidget(self.wd_edit)
@@ -214,35 +212,47 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             triggered=self.select_directory,
             icon=ima.icon('DirOpenIcon'),
             tip=_("Select directory")
-            )
+        )
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
-        params_name_label = QLabel(_('Configuration name:'))
-        self.store_params_text = QLineEdit()
+        if self.new_config:
+            params_name_text = _("Save configuration as:")
+        else:
+            params_name_text = _("Configuration name:")
+
+        params_name_label = QLabel(params_name_text)
+        self.store_params_text = QLineEdit(self)
+        self.store_params_text.setMinimumWidth(300)
         store_params_layout = QHBoxLayout()
         store_params_layout.addWidget(params_name_label)
         store_params_layout.addWidget(self.store_params_text)
-
-        self.store_params_text.setPlaceholderText(_('My configuration name'))
+        store_params_layout.addStretch(1)
 
         all_group = QVBoxLayout()
         all_group.addWidget(self.executor_group)
         all_group.addWidget(self.wdir_group)
-        all_group.addLayout(store_params_layout)
 
-        layout = self.add_widgets(ext_combo_label, self.extension_combo,
-                                  context_combo_label, self.context_combo,
-                                  10, all_group)
+        # Final layout
+        layout = self.add_widgets(
+            store_params_layout,
+            15,
+            ext_context_layout,
+            10,
+            all_group
+        )
 
-        widget_dialog = QWidget()
+        widget_dialog = QWidget(self)
         widget_dialog.setMinimumWidth(600)
         widget_dialog.setLayout(layout)
         scroll_layout = QVBoxLayout(self)
         scroll_layout.addWidget(widget_dialog)
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
-        self.setWindowTitle(_("Run parameters"))
+        # Set title
+        self.setWindowTitle(
+            _("New run configuration for: {}").format(self.executor_name)
+        )
 
         self.extension_combo.addItems(self.extensions)
 
@@ -370,6 +380,14 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
     def ok_btn_clicked(self):
         self.status |= RunDialogStatus.Save
 
+    def get_configuration(
+            self
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
+
+        return self.saved_conf
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def accept(self) -> None:
         self.status |= RunDialogStatus.Save
         widget_conf = self.current_widget.get_configuration()
@@ -393,24 +411,25 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             uuid = self.default_params['uuid']
         else:
             uuid = str(uuid4())
+
         name = self.store_params_text.text()
         if name == '':
-            date_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            name = f'Configuration-{date_str}'
+            self.store_params_text.setPlaceholderText(
+                _("Set a name here to proceed!")
+            )
+            return
 
         ext_exec_params = ExtendedRunExecutionParameters(
-            uuid=uuid, name=name, params=exec_params
+            uuid=uuid,
+            name=name,
+            params=exec_params,
+            file_uuid=None
         )
 
         self.saved_conf = (self.selected_extension, self.selected_context,
                            ext_exec_params)
+
         super().accept()
-
-    def get_configuration(
-            self
-    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
-
-        return self.saved_conf
 
 
 class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
@@ -433,6 +452,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self._is_shown = False
 
     # ---- Public methods
+    # -------------------------------------------------------------------------
     def setup(self):
         # Header
         self.header_label = QLabel(self)
@@ -675,6 +695,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         return self.saved_conf
 
     # ---- Qt methods
+    # -------------------------------------------------------------------------
     def accept(self) -> None:
         self.status |= RunDialogStatus.Save
 
@@ -767,6 +788,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         super().showEvent(event)
 
     # ---- Private methods
+    # -------------------------------------------------------------------------
     @property
     def _stylesheet(self):
         css = qstylizer.style.StyleSheet()

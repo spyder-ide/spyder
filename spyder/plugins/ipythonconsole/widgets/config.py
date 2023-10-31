@@ -22,19 +22,11 @@ from spyder.utils.misc import getcwd_or_home
 
 
 # Main constants
-RUN_DEFAULT_CONFIG = _("Run file with default configuration")
-RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
-SYSTERM_INTERPRETER = _("Execute in an external system terminal")
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
 POST_MORTEM = _("Directly enter debugging when errors appear")
-INTERACT = _("Interact with the Python console after execution")
-FILE_DIR = _("The directory of the file being executed")
-CW_DIR = _("The current working directory")
-FIXED_DIR = _("The following directory:")
-ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 
 
 class IPythonConfigOptions(RunExecutorConfigurationGroup):

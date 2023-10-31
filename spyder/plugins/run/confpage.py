@@ -85,8 +85,9 @@ class RunParametersTableView(QTableView):
 
     def show_editor(self, new=False, clone=False):
         extension, context, params = None, None, None
-        extensions, contexts, executor_params = (
-            self._parent.get_executor_configurations())
+        extensions, contexts, plugin_name, executor_params = (
+            self._parent.get_executor_configurations()
+        )
 
         if not new:
             index = self.currentIndex().row()
@@ -94,13 +95,24 @@ class RunParametersTableView(QTableView):
             (extension, context, params) = model[index]
 
         self.dialog = ExecutionParametersDialog(
-            self, executor_params, extensions, contexts, params,
-            extension, context)
+            self,
+            plugin_name,
+            executor_params,
+            extensions,
+            contexts,
+            params,
+            extension,
+            context,
+            new
+        )
 
         self.dialog.setup()
         self.dialog.finished.connect(
-            functools.partial(self.process_run_dialog_result,
-                              new=new, clone=clone, params=params))
+            functools.partial(
+                self.process_run_dialog_result,
+                new=new, clone=clone, params=params
+            )
+        )
 
         if not clone:
             self.dialog.open()
@@ -113,8 +125,11 @@ class RunParametersTableView(QTableView):
         if status == RunDialogStatus.Close:
             return
 
-        (extension, context,
-         new_executor_params) = self.dialog.get_configuration()
+        conf = self.dialog.get_configuration()
+        if conf is None:
+            return
+        else:
+            extension, context, new_executor_params = conf
 
         if not new and clone:
             new_executor_params["uuid"] = str(uuid4())
@@ -254,19 +269,29 @@ class RunConfigPage(PluginConfigPage):
         executor, available_inputs = self.executor_model.selected_executor(
             index)
         container = self.plugin_container
+
         executor_conf_params = self.all_executor_model.get(executor, {})
         if executor_conf_params == {}:
             for (ext, context) in available_inputs:
-                params = (
-                    container.get_executor_configuration_parameters(
-                        executor, ext, context))
+                params = container.get_executor_configuration_parameters(
+                    executor, ext, context
+                )
                 params = params["params"]
                 for exec_params_id in params:
                     exec_params = params[exec_params_id]
-                    executor_conf_params[
-                        (ext, context, exec_params_id)] = exec_params
+
+                    # Don't display configs set for specific files. Here
+                    # users are allowed to configure global configs, i.e. those
+                    # that can be used by any file.
+                    if exec_params["file_uuid"] is not None:
+                        continue
+
+                    params_key = (ext, context, exec_params_id)
+                    executor_conf_params[params_key] = exec_params
+
             self.default_executor_conf_params[executor] = deepcopy(
                 executor_conf_params)
+
             self.all_executor_model[executor] = deepcopy(executor_conf_params)
 
         self.table_model.set_parameters(executor_conf_params)
@@ -286,14 +311,16 @@ class RunConfigPage(PluginConfigPage):
             str, SupportedExecutionRunConfiguration]:
         exec_index = self.executor_combo.currentIndex()
         executor_name, available_inputs = (
-            self.executor_model.selected_executor(exec_index))
+            self.executor_model.selected_executor(exec_index)
+        )
 
         executor_params: Dict[str, SupportedExecutionRunConfiguration] = {}
         extensions: Set[str] = set({})
         contexts: Dict[str, List[str]] = {}
 
         conf_indices = (
-            self.plugin_container.executor_model.executor_configurations)
+            self.plugin_container.executor_model.executor_configurations
+        )
 
         for _input in available_inputs:
             extension, context = _input
@@ -306,9 +333,19 @@ class RunConfigPage(PluginConfigPage):
             conf = executors[executor_name]
             executor_params[_input] = conf
 
-        contexts = {ext: move_file_to_front(ctx)
-                    for ext, ctx in contexts.items()}
-        return list(sorted(extensions)), contexts, executor_params
+        contexts = {
+            ext: move_file_to_front(ctx) for ext, ctx in contexts.items()
+        }
+
+        # Localized version of the executor
+        executor_loc_name = self.main.get_plugin(executor_name).get_name()
+
+        return (
+            list(sorted(extensions)),
+            contexts,
+            executor_loc_name,
+            executor_params
+        )
 
     def create_new_configuration(self):
         self.params_table.show_editor(new=True)
