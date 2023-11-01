@@ -213,6 +213,8 @@ class IconManager():
             'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
             'collapse_row':            [('mdi.arrow-collapse-vertical',), {'color': self.MAIN_FG_COLOR}],
             'edit_remove':             [('mdi.minus',), {'color': self.MAIN_FG_COLOR}],
+            'format_float':            [('mdi.decimal-increase',), {'color': self.MAIN_FG_COLOR}],
+            'background_color':        [('mdi.format-color-fill',), {'color': self.MAIN_FG_COLOR}],
             'browse_tab':              [('mdi.tab',), {'color': self.MAIN_FG_COLOR}],
             'filelist':                [('mdi.view-list',), {'color': self.MAIN_FG_COLOR}],
             'newwindow':               [('mdi.window-maximize',), {'color': self.MAIN_FG_COLOR}],
