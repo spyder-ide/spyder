@@ -676,29 +676,28 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
-        # Enable/disable actions
+
+        # Enable/disable edit actions
         condition_edit = (
             index.isValid() and
             (len(self.selectedIndexes()) == 1)
         )
 
-        self.edit_action.setEnabled(condition_edit)
-        self.insert_action_above.setEnabled(condition_edit)
-        self.insert_action_below.setEnabled(condition_edit)
-        self.insert_action_after.setEnabled(condition_edit)
-        self.insert_action_before.setEnabled(condition_edit)
-        self.duplicate_row_action.setEnabled(condition_edit)
-        self.duplicate_col_action.setEnabled(condition_edit)
-        self.convert_to_action.setEnabled(condition_edit)
+        for action in [self.edit_action, self.insert_action_above,
+                       self.insert_action_below, self.insert_action_after,
+                       self.insert_action_before, self.duplicate_row_action,
+                       self.duplicate_col_action, self.convert_to_action]:
+            action.setEnabled(condition_edit)
 
         # Enable/disable actions for remove col/row and copy
-        condition_edit = (
+        condition_copy_remove = (
             index.isValid() and
             (len(self.selectedIndexes()) > 0)
         )
-        self.copy_action.setEnabled(condition_edit)
-        self.remove_row_action.setEnabled(condition_edit)
-        self.remove_col_action.setEnabled(condition_edit)
+
+        for action in [self.copy_action, self.remove_row_action,
+                       self.remove_col_action]:
+            action.setEnabled(condition_copy_remove)
 
     def setup_menu(self):
         """Setup context menu."""
@@ -873,8 +872,10 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         if index >= 0:
             model_index = self.header_class.model().index(0, index)
             index_number_rows = 1
+
             if type(self.model().df.columns[0]) is tuple:
                 index_number_rows = len(self.model().df.columns[0])
+
             if index_number_rows > 1:
                 dialog = QInputDialog()
                 dialog.setWindowTitle("Enter the values")
@@ -907,14 +908,21 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                         n_cols = len(self.model().df.columns)
                         cols = self.model().df.columns
                         names = cols.names
-                        cols = self.model().df.columns.tolist()[0:index] + \
-                            [value] + \
-                            self.model().df.columns.tolist()[index+1:n_cols]
-                        self.model().df.columns = \
+                        cols = (
+                            self.model().df.columns.tolist()[0:index]
+                            + [value]
+                            + self.model().df.columns.tolist()[index+1:n_cols]
+                        )
+                        self.model().df.columns = (
                             pd.MultiIndex.from_tuples(cols, names=names)
+                        )
                     else:
-                        self.header_class.model().setData(model_index, value,
-                                                          Qt.EditRole)
+                        self.header_class.model().setData(
+                            model_index,
+                            value,
+                            Qt.EditRole
+                        )
+
                     self.parent()._reload()
                     self.model().dataChanged.emit(pos, pos)
                 else:
@@ -971,18 +979,24 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             new_name = 'new_col'
             if type(indexes[column]) != str:
                 new_name = indexes[column]
+
             if new_name in indexes:
                 if type(new_name) is tuple:
                     tuple_idx = []
                     new_tuple = []
+
                     for idx in indexes:
                         tuple_idx = tuple_idx + list(idx)
+
                     for idx in range(len(new_name)):
-                        new_tuple.append(self.next_index_name(tuple_idx,
-                                                              new_name[idx]))
+                        new_tuple.append(
+                            self.next_index_name(tuple_idx, new_name[idx])
+                        )
+
                     new_name = tuple(new_tuple)
                 else:
                     new_name = self.next_index_name(indexes, new_name)
+
             item_value = eval(eval_type)
             if item_value == ():
                 item_value = ('')
@@ -993,6 +1007,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 value=item_value,
                 allow_duplicates=True
             )
+
             self.model().max_min_col_update()
             if before_above:
                 column = column + 1
@@ -1034,6 +1049,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                     )
 
                 new_row.iat[0, col] = eval(eval_type)
+
             self.model().df = pd.concat([df1, new_row, df2])
             if before_above:
                 row = row + 1
@@ -1072,17 +1088,22 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             indexes = df.axes[1].tolist()
             label = indexes[column]
             indexes.remove(label)
+
             if type(label) is tuple:
                 tuple_idx = []
                 new_tuple = []
+
                 for idx in indexes:
                     tuple_idx = tuple_idx + list(idx)
+
                 for idx in range(len(label)):
-                    new_tuple.append(self.next_index_name(tuple_idx,
-                                                          label[idx]))
+                    new_tuple.append(
+                        self.next_index_name(tuple_idx, label[idx])
+                    )
                 new_name = tuple(new_tuple)
             else:
                 new_name = self.next_index_name(indexes, label)
+
             df.insert(loc=column, column=new_name, value='',
                       allow_duplicates=True)
             df[new_name] = df.iloc[:, column + 1]
@@ -1100,8 +1121,12 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         """
         ind = -1
         name = ''
-        acceptable_types = [str, float, int, complex, bool] + \
-            list(REAL_NUMBER_TYPES) + list(COMPLEX_NUMBER_TYPES)
+        acceptable_types = (
+            [str, float, int, complex, bool]
+            + list(REAL_NUMBER_TYPES)
+            + list(COMPLEX_NUMBER_TYPES)
+        )
+
         if type(label) not in acceptable_types:
             # Case receiving a different type of acceptable_type,
             # treat as string
@@ -1203,13 +1228,15 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         df = self.model().df
         if not indexes:
             return
-        # keep focus on the item before the deleted one
+
+        # Keep focus on the item before the deleted one
         focus_row = indexes[0].row()
         focus_col = indexes[0].column()
         if axis == 0 and focus_row > 0:
             focus_row = focus_row - 1
         if axis == 1 and focus_col > 0:
             focus_col = focus_col - 1
+
         for index in indexes:
             if not index.isValid():
                 return
@@ -1432,9 +1459,11 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
                         rows = df.index
                         names = rows.names
                         old_value_list[index.column()] = value
-                        rows = (df.index.tolist()[0:index.row()] +
-                                [tuple(old_value_list)] +
-                                df.index.tolist()[index.row()+1:])
+                        rows = (
+                            df.index.tolist()[0:index.row()]
+                            + [tuple(old_value_list)]
+                            + df.index.tolist()[index.row()+1:]
+                        )
                         df.index = pd.MultiIndex.from_tuples(rows, names=names)
                     else:
                         try:
