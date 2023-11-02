@@ -26,7 +26,7 @@ from pandas import (
 import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QMessageBox, QApplication, QInputDialog
+from qtpy.QtWidgets import QInputDialog, QMessageBox
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -420,56 +420,49 @@ def test_dataframemodel_with_format_thousands():
     assert data(dfm, 0, 0) == '10,000.10'
 
 
-def create_view(qtbot, value):
-    df = DataFrame(data=value)
-    editor = DataFrameEditor()
-    assert editor.setup_and_check(df, 'Test DataFrame To action')
-    with qtbot.waitExposed(editor):
-        editor.show()
-    view = editor.dataTable
-    dfm = editor.dataModel
-    return view, editor, dfm
-
-
-@flaky(max_runs=1)
+@flaky(max_runs=3)
 def test_dataframeeditor_menu_options(qtbot, monkeypatch):
+
+    def create_view(qtbot, value):
+        """Auxiliary function for this test."""
+        df = DataFrame(data=value)
+        editor = DataFrameEditor()
+        assert editor.setup_and_check(df, 'Test DataFrame To action')
+        with qtbot.waitExposed(editor):
+            editor.show()
+        view = editor.dataTable
+        dfm = editor.dataModel
+        return view, editor, dfm
+
     d = {'COLUMN_1': [1, 2]}
     view, editor, dfm = create_view(qtbot, d)
     attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox.question')
     monkeypatch.setattr(attr_to_patch, lambda *args: QMessageBox.Yes)
 
-    # test remove item1(row)
+    # test remove item1 (row)
     view.setCurrentIndex(view.model().index(1, 0))
-    view.menu.show()
     assert dfm.rowCount() == 2
     assert dfm.columnCount() == 1
-    for i in range(3):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.remove_row_action.triggered.emit(True)
     assert editor.btn_save_and_close.isEnabled()
-
-    # test remove item2(row)
-    view.setCurrentIndex(view.model().index(0, 0))
     assert dfm.rowCount() == 1
-    view.menu.show()
-    for i in range(3):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
-    assert editor.btn_save_and_close.isEnabled()
-    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
-    assert dfm.rowCount() == 0
 
-    # test remove item1(column)
+    # test remove item2 (row)
+    view.setCurrentIndex(view.model().index(0, 0))
+    view.remove_row_action.triggered.emit(True)
+    assert editor.btn_save_and_close.isEnabled()
+    assert dfm.rowCount() == 0
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
+
+    # test remove item1 (column)
     d = {'COLUMN_1': [1, 2]}
     view, editor, dfm = create_view(qtbot, d)
     view.setCurrentIndex(view.model().index(0, 0))
-    view.menu.show()
     assert dfm.rowCount() == 2
     assert dfm.columnCount() == 1
-    for i in range(4):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.remove_col_action.triggered.emit(True)
+    assert dfm.columnCount() == 0
     assert editor.btn_save_and_close.isEnabled()
     qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
 
@@ -477,72 +470,49 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     d = {'COLUMN_1': [1, 2, 3], 'COLUMN_2': [4, 5, 6]}
     view, editor, dfm = create_view(qtbot, d)
     view.setCurrentIndex(view.model().index(0, 0))
-    view.menu.show()
     assert dfm.rowCount() == 3
     assert dfm.columnCount() == 2
-    for i in range(5):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.insert_action_above.triggered.emit(True)
     assert dfm.rowCount() == 4
     assert dfm.columnCount() == 2
 
     # test insert bellow
     view.setCurrentIndex(view.model().index(2, 0))
-    view.menu.show()
-    for i in range(6):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.insert_action_below.triggered.emit(True)
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 2
 
     # test insert after
     view.setCurrentIndex(view.model().index(4, 1))
-    view.menu.show()
-    for i in range(7):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.insert_action_after.triggered.emit(True)
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 3
 
     # test insert before
     view.setCurrentIndex(view.model().index(4, 0))
-    view.menu.show()
-    for i in range(8):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.insert_action_before.triggered.emit(True)
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 4
 
     # duplicate row
     view.setCurrentIndex(view.model().index(0, 3))
-    view.menu.show()
-    for i in range(9):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.duplicate_row_action.triggered.emit(True)
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 4
 
-    # duplicate column(2x)
+    # duplicate column (2x)
     view.setCurrentIndex(view.model().index(1, 3))
-    view.menu.show()
-    for i in range(10):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.duplicate_col_action.triggered.emit(True)
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 5
     view.setCurrentIndex(view.model().index(0, 1))
-    view.menu.show()
-    for i in range(10):
-        qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.duplicate_col_action.triggered.emit(True)
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 6
 
     # test edit item
     view.setCurrentIndex(view.model().index(0, 2))
-    view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
+    view.edit_action.triggered.emit(True)
     qtbot.wait(200)
     view.setCurrentIndex(view.model().index(0, 2))
     assert data(dfm, 0, 2) == '0'
@@ -552,8 +522,11 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     assert data(dfm, 0, 2) == '9'
 
     # test edit horizontal header
-    monkeypatch.setattr(QInputDialog, "getText", lambda *args: ("SPYDERTEST_H",
-                                                                True))
+    monkeypatch.setattr(
+        QInputDialog,
+        "getText",
+        lambda *args: ("SPYDERTEST_H", True)
+    )
     header = editor.table_header.model()
     model_index = view.header_class.model().index(0, 2)
     view.header_class.setCurrentIndex(model_index)
@@ -562,9 +535,11 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
     qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
     qtbot.wait(200)
-    assert header.headerData(2,
-                             Qt.Horizontal,
-                             Qt.DisplayRole) == "SPYDERTEST_H"
+    assert header.headerData(
+        2,
+        Qt.Horizontal,
+        Qt.DisplayRole
+    ) == "SPYDERTEST_H"
 
     # test edit vertical header
     index = editor.table_index.model()

@@ -756,7 +756,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.duplicate_col_action = create_action(
             self, _("Duplicate column"),
             icon=ima.icon('duplicate_column'),
-            triggered=self.duplicate_row_col
+            triggered=lambda: self.duplicate_row_col(dup_row=False)
         )
         self.copy_action = create_action(
             self, _('Copy'),
