@@ -15,8 +15,8 @@ from uuid import uuid4
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout,
-                            QTableView, QAbstractItemView, QPushButton,
-                            QGridLayout, QHeaderView, QWidget)
+                            QAbstractItemView, QPushButton, QGridLayout,
+                            QHeaderView, QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
@@ -29,7 +29,7 @@ from spyder.plugins.run.models import (
     RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.plugins.run.widgets import (
     ExecutionParametersDialog, RunDialogStatus)
-
+from spyder.widgets.helperwidgets import HoverRowsTableView
 
 
 def move_file_to_front(contexts: List[str]) -> List[str]:
@@ -38,7 +38,7 @@ def move_file_to_front(contexts: List[str]) -> List[str]:
     return contexts
 
 
-class RunParametersTableView(QTableView):
+class RunParametersTableView(HoverRowsTableView):
     def __init__(self, parent, model):
         super().__init__(parent)
         self._parent = parent
@@ -184,8 +184,9 @@ class RunConfigPage(PluginConfigPage):
             ExtendedRunExecutionParameters]] = {}
 
         about_label = QLabel(
-            _("The following are the per-executor configuration settings used "
-              "for running. These options may be overriden using the "
+            _("The following are the global configuration settings of the "
+              "different plugins that can run files, cells or selections in "
+              "Spyder. These options can be overridden in the "
               "<b>Configuration per file</b> entry of the <b>Run</b> menu.")
         )
         about_label.setWordWrap(True)

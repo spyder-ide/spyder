@@ -74,7 +74,7 @@ class RunContainer(PluginMainContainer):
 
         self.configure_action = self.create_action(
             RunActions.Configure,
-            _('&Open run settings'),
+            _('&Configuration per file'),
             self.create_icon('run_settings'),
             tip=_('Run settings'),
             triggered=functools.partial(
