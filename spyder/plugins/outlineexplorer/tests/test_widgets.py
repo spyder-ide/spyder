@@ -234,23 +234,12 @@ def test_display_variables(create_outlineexplorer, qtbot):
 
     initial_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
 
-    # Click on the 'Display variables and attributes' button of the outline explorer's
-    # toolbar :
-    # qtbot.mouseClick(
-    #     TODO,
-    #     Qt.LeftButton)
-
     outlineexplorer.treewidget.toggle_variables(not state)
 
     first_toggle_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
 
     assert first_toggle_tree != initial_tree
 
-    # Click on the 'Display variables and attributes' button of the outline explorer's
-    # toolbar :
-    # qtbot.mouseClick(
-    #     TODO,
-    #     Qt.LeftButton)
     outlineexplorer.treewidget.toggle_variables(state)
 
     second_toggle_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
