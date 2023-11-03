@@ -646,7 +646,7 @@ class ShortcutsModel(QAbstractTableModel):
 
 class ShortcutsTable(HoverRowsTableView):
     def __init__(self, parent=None):
-        HoverRowsTableView.__init__(self, parent)
+        HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self._parent = parent
         self.finder = None
         self.shortcut_data = None
@@ -671,6 +671,7 @@ class ShortcutsTable(HoverRowsTableView):
 
         self.verticalHeader().hide()
 
+        # To highlight the entire row on hover
         self.sig_hover_index_changed.connect(
             self.itemDelegate().on_hover_index_changed
         )
