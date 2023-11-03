@@ -246,11 +246,18 @@ class RunContainer(PluginMainContainer):
                 context_name = context['name']
                 context_id = getattr(RunContext, context_name)
                 all_exec_params = self.get_executor_configuration_parameters(
-                    executor_name, ext, context_id)
+                    executor_name,
+                    ext,
+                    context_id
+                )
                 exec_params = all_exec_params['params']
                 exec_params[exec_uuid] = ext_params
                 self.set_executor_configuration_parameters(
-                    executor_name, ext, context_id, all_exec_params)
+                    executor_name,
+                    ext,
+                    context_id,
+                    all_exec_params,
+                )
 
             last_used_conf = StoredRunConfigurationExecutor(
                 executor=executor_name, selected=ext_params['uuid']
@@ -874,15 +881,16 @@ class RunContainer(PluginMainContainer):
             run configuration.
         """
 
-        all_executor_params: Dict[
+        all_execution_params: Dict[
             str,
-            Dict[Tuple[str, str],
-            StoredRunExecutorParameters]
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
         ] = self.get_conf('parameters', default={})
 
-        executor_params = all_executor_params.get(executor_name, {})
+        executor_params = all_execution_params.get(executor_name, {})
         params = executor_params.get(
-            (extension, context_id), StoredRunExecutorParameters(params={}))
+            (extension, context_id),
+            StoredRunExecutorParameters(params={})
+        )
 
         return params
 
@@ -909,16 +917,56 @@ class RunContainer(PluginMainContainer):
             A dictionary containing the run configuration parameters for the
             given executor.
         """
-        all_executor_params: Dict[
+        all_execution_params: Dict[
             str,
-            Dict[Tuple[str, str],
-            StoredRunExecutorParameters]
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
         ] = self.get_conf('parameters', default={})
 
-        executor_params = all_executor_params.get(executor_name, {})
+        executor_params = all_execution_params.get(executor_name, {})
         executor_params[(extension, context_id)] = params
-        all_executor_params[executor_name] = executor_params
-        self.set_conf('parameters', all_executor_params)
+        all_execution_params[executor_name] = executor_params
+
+        self.set_conf('parameters', all_execution_params)
+
+    def delete_executor_configuration_parameters(
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str,
+        uuid: str
+    ):
+        """
+        Delete an executor parameter set from our config system.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
+        uuid: str
+            The run configuration identifier.
+        """
+        all_execution_params: Dict[
+            str,
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
+        ] = self.get_conf('parameters', default={})
+
+        executor_params = all_execution_params[executor_name]
+        ext_ctx_params = executor_params[(extension, context_id)]['params']
+
+        for params_id in ext_ctx_params:
+            if params_id == uuid:
+                ext_ctx_params.pop(params_id, None)
+                break
+
+        executor_params[(extension, context_id)]['params'] = ext_ctx_params
+        all_execution_params[executor_name] = executor_params
+
+        self.set_conf('parameters', all_execution_params)
+
 
     def get_last_used_executor_parameters(
         self,

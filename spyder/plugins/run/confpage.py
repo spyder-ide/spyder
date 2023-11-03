@@ -53,7 +53,8 @@ class RunParametersTableView(QTableView):
 
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.Stretch)
+            1, QHeaderView.Stretch
+        )
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
     def focusInEvent(self, e):
@@ -164,12 +165,15 @@ class RunConfigPage(PluginConfigPage):
     """Default Run Settings configuration page."""
 
     def setup_page(self):
+        self._params_to_delete = {}
+
         self.plugin_container: RunContainer = self.plugin.get_container()
         self.executor_model = RunExecutorNamesListModel(
             self, self.plugin_container.executor_model)
         self.table_model = ExecutorRunParametersTableModel(self)
         self.table_model.sig_data_changed.connect(
-            lambda: self.set_modified(True))
+            lambda: self.set_modified(True)
+        )
 
         self.all_executor_model: Dict[
             str, Dict[Tuple[str, str, str],
@@ -186,13 +190,14 @@ class RunConfigPage(PluginConfigPage):
         )
         about_label.setWordWrap(True)
 
-        self.executor_combo = SpyderComboBox(self)
-        self.executor_combo.currentIndexChanged.connect(
-            self.executor_index_changed)
-        self.executor_combo.setModel(self.executor_model)
-
         self.params_table = RunParametersTableView(self, self.table_model)
         self.params_table.setMaximumHeight(180)
+
+        self.executor_combo = SpyderComboBox(self)
+        self.executor_combo.currentIndexChanged.connect(
+            self.executor_index_changed
+        )
+        self.executor_combo.setModel(self.executor_model)
 
         params_group = QGroupBox(_('Available execution parameters'))
         params_layout = QVBoxLayout(params_group)
@@ -299,12 +304,16 @@ class RunConfigPage(PluginConfigPage):
         self.set_clone_delete_btn_status()
 
     def set_clone_delete_btn_status(self):
-        status = self.table_model.rowCount() != 0
+        status = (
+            self.table_model.rowCount() != 0
+            and self.params_table.currentIndex().isValid()
+        )
+
         try:
             self.delete_configuration_btn.setEnabled(status)
             self.clone_configuration_btn.setEnabled(status)
         except AttributeError:
-            # Buttons might not exist yet
+            # Buttons might not be created yet
             pass
 
     def get_executor_configurations(self) -> Dict[
@@ -355,19 +364,28 @@ class RunConfigPage(PluginConfigPage):
 
     def delete_configuration(self):
         executor_name, _ = self.executor_model.selected_executor(
-            self.previous_executor_index)
+            self.previous_executor_index
+        )
         index = self.params_table.currentIndex().row()
         conf_index = self.table_model.get_tuple_index(index)
+
         executor_params = self.all_executor_model[executor_name]
         executor_params.pop(conf_index, None)
+
+        if executor_name not in self._params_to_delete:
+            self._params_to_delete[executor_name] = []
+        self._params_to_delete[executor_name].append(conf_index)
+
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
+        self.set_modified(True)
         self.set_clone_delete_btn_status()
 
     def reset_to_default(self):
         self.all_executor_model = deepcopy(self.default_executor_conf_params)
         executor_name, _ = self.executor_model.selected_executor(
-            self.previous_executor_index)
+            self.previous_executor_index
+        )
         executor_params = self.all_executor_model[executor_name]
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
@@ -377,9 +395,11 @@ class RunConfigPage(PluginConfigPage):
     def apply_settings(self):
         prev_executor_info = self.table_model.get_current_view()
         previous_executor_name, _ = self.executor_model.selected_executor(
-            self.previous_executor_index)
+            self.previous_executor_index
+        )
         self.all_executor_model[previous_executor_name] = prev_executor_info
 
+        # Save new parameters
         for executor in self.all_executor_model:
             executor_params = self.all_executor_model[executor]
             stored_execution_params: Dict[
@@ -399,5 +419,17 @@ class RunConfigPage(PluginConfigPage):
                 self.plugin_container.set_executor_configuration_parameters(
                     executor, extension, context, {'params': ext_ctx_list}
                 )
+
+        # Delete removed parameters
+        for executor in self._params_to_delete:
+            executor_params_to_delete = self._params_to_delete[executor]
+
+            for key in executor_params_to_delete:
+                (extension, context, params_id) = key
+                self.plugin_container.delete_executor_configuration_parameters(
+                    executor, extension, context, params_id
+                )
+
+        self._params_to_delete = {}
 
         return {'parameters'}

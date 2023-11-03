@@ -790,6 +790,23 @@ def test_run_plugin(qtbot, run_mock):
     assert stored_run_params['executor'] == executor_name
     assert stored_run_params['selected'] == exec_conf_uuid
 
+    # Check deleting a parameters config
+    current_exec_params = container.get_conf('parameters')[executor_name]
+    current_ext_ctx_params = (
+        current_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
+    )
+    assert current_ext_ctx_params != {}  # Check params to delete are present
+
+    container.delete_executor_configuration_parameters(
+        executor_name, 'ext3', RunContext.AnotherSuperContext, exec_conf_uuid
+    )
+
+    new_exec_params = container.get_conf('parameters')[executor_name]
+    new_ext_ctx_params = (
+        new_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
+    )
+    assert new_ext_ctx_params == {}
+
     # Test teardown functions
     executor_1.on_run_teardown(run)
     executor_2.on_run_teardown(run)
