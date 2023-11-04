@@ -8,7 +8,7 @@ import os
 import re
 import uuid
 import functools
-from typing import Optional, Generator, Callable, List
+from typing import Literal, Optional, Generator, Callable, List
 from threading import RLock
 
 import jedi
@@ -58,16 +58,30 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
-        self.__rope_autoimport = None
 
-    def _rope_autoimport(self, rope_config: Optional, memory: bool = False):
+        # We have a sperate AutoImport object for each feature to avoid sqlite errors
+        # from accessing the same database from multiple threads.
+        # An upstream fix discussion is here: https://github.com/python-rope/rope/issues/713
+        self.__rope_autoimport = (
+            {}
+        )  # Type: Dict[Literal["completions", "code_actions"], rope.contrib.autoimport.sqlite.AutoImport]
+
+    def _rope_autoimport(
+        self,
+        rope_config: Optional,
+        memory: bool = False,
+        feature: Literal["completions", "code_actions"] = "completions",
+    ):
         # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
 
-        if self.__rope_autoimport is None:
+        if feature not in ["completions", "code_actions"]:
+            raise ValueError(f"Unknown feature {feature}")
+
+        if self.__rope_autoimport.get(feature, None) is None:
             project = self._rope_project_builder(rope_config)
-            self.__rope_autoimport = AutoImport(project, memory=memory)
-        return self.__rope_autoimport
+            self.__rope_autoimport[feature] = AutoImport(project, memory=memory)
+        return self.__rope_autoimport[feature]
 
     def _rope_project_builder(self, rope_config):
         # pylint: disable=import-outside-toplevel
@@ -167,7 +181,11 @@ class Workspace:
     def update_config(self, settings):
         self._config.update((settings or {}).get("pylsp", {}))
         for doc_uri in self.documents:
-            self.get_document(doc_uri).update_config(settings)
+            if isinstance(document := self.get_document(doc_uri), Notebook):
+                # Notebook documents don't have a config. The config is
+                # handled at the cell level.
+                return
+            document.update_config(settings)
 
     def apply_edit(self, edit):
         return self._endpoint.request(self.M_APPLY_EDIT, {"edit": edit})
@@ -370,8 +388,8 @@ class Workspace:
         )
 
     def close(self):
-        if self.__rope_autoimport is not None:
-            self.__rope_autoimport.close()
+        for _, autoimport in self.__rope_autoimport.items():
+            autoimport.close()
 
 
 class Document:
@@ -591,6 +609,7 @@ class Notebook:
         self.version = version
         self.cells = cells or []
         self.metadata = metadata or {}
+        self._lock = RLock()
 
     def __str__(self):
         return "Notebook with URI '%s'" % str(self.uri)
@@ -620,6 +639,31 @@ class Notebook:
             }
             offset += num_lines
         return cell_data
+
+    @lock
+    def jedi_names(
+        self,
+        up_to_cell_uri: Optional[str] = None,
+        all_scopes=False,
+        definitions=True,
+        references=False,
+    ):
+        """
+        Get the names in the notebook up to a certain cell.
+
+        Parameters
+        ----------
+        up_to_cell_uri: str, optional
+            The cell uri to stop at. If None, all cells are considered.
+        """
+        names = set()
+        for cell in self.cells:
+            cell_uri = cell["document"]
+            cell_document = self.workspace.get_cell_document(cell_uri)
+            names.update(cell_document.jedi_names(all_scopes, definitions, references))
+            if cell_uri == up_to_cell_uri:
+                break
+        return set(name.name for name in names)
 
 
 class Cell(Document):

@@ -209,7 +209,6 @@ def format_docstring(
     if markup_kind == "markdown":
         try:
             value = docstring_to_markdown.convert(contents)
-            return {"kind": "markdown", "value": value}
         except docstring_to_markdown.UnknownFormatError:
             # try to escape the Markdown syntax instead:
             value = escape_markdown(contents)

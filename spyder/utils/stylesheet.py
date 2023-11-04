@@ -162,6 +162,11 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             margin='0px'
         )
 
+        # Set the same color as the one used for the app toolbar
+        css.QMenuBar.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+        )
+
         # Remove padding when pressing main menus
         css['QMenuBar::item:pressed'].setValues(
             padding='0px'

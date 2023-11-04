@@ -5,7 +5,7 @@ import os
 import time
 import sys
 
-from test.test_utils import ClientServerPair
+from test.test_utils import ClientServerPair, send_initialize_request
 
 from flaky import flaky
 from pylsp_jsonrpc.exceptions import JsonRpcMethodNotFound
@@ -73,14 +73,7 @@ def test_not_exit_without_check_parent_process_flag(
     client_server_pair,
 ):
     client, _ = client_server_pair
-    response = client._endpoint.request(
-        "initialize",
-        {
-            "processId": 1234,
-            "rootPath": os.path.dirname(__file__),
-            "initializationOptions": {},
-        },
-    ).result(timeout=CALL_TIMEOUT_IN_SECONDS)
+    response = send_initialize_request(client)
     assert "capabilities" in response
 
 

@@ -295,7 +295,7 @@ class PythonLSPServer(MethodDispatcher):
                 "openClose": True,
             },
             "notebookDocumentSync": {
-                "notebookSelector": {"cells": [{"language": "python"}]}
+                "notebookSelector": [{"cells": [{"language": "python"}]}]
             },
             "workspace": {
                 "workspaceFolders": {"supported": True, "changeNotifications": True}
@@ -385,7 +385,7 @@ class PythonLSPServer(MethodDispatcher):
     def m_initialized(self, **_kwargs):
         self._hook("pylsp_initialized")
 
-    def code_actions(self, doc_uri, range, context):
+    def code_actions(self, doc_uri: str, range: Dict, context: Dict):
         return flatten(
             self._hook("pylsp_code_actions", doc_uri, range=range, context=context)
         )
@@ -394,7 +394,16 @@ class PythonLSPServer(MethodDispatcher):
         return flatten(self._hook("pylsp_code_lens", doc_uri))
 
     def completions(self, doc_uri, position):
-        completions = self._hook("pylsp_completions", doc_uri, position=position)
+        workspace = self._match_uri_to_workspace(doc_uri)
+        document = workspace.get_document(doc_uri)
+        ignored_names = None
+        if isinstance(document, Cell):
+            # We need to get the ignored names from the whole notebook document
+            notebook_document = workspace.get_maybe_document(document.notebook_uri)
+            ignored_names = notebook_document.jedi_names(doc_uri)
+        completions = self._hook(
+            "pylsp_completions", doc_uri, position=position, ignored_names=ignored_names
+        )
         return {"isIncomplete": False, "items": flatten(completions)}
 
     def completion_item_resolve(self, completion_item):
@@ -766,6 +775,7 @@ class PythonLSPServer(MethodDispatcher):
             self.config.update((settings or {}).get("pylsp", {}))
         for workspace in self.workspaces.values():
             workspace.update_config(settings)
+            self._hook("pylsp_workspace_configuration_changed")
             for doc_uri in workspace.documents:
                 self.lint(doc_uri, is_saved=False)
 

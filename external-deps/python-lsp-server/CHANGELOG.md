@@ -1,5 +1,45 @@
 # History of changes
 
+## Version 1.8.2 (2023/10/09)
+
+### Issues Closed
+
+* [Issue 453](https://github.com/python-lsp/python-lsp-server/issues/453) - notebookDocumentSync notebookSelector type error ([PR 454](https://github.com/python-lsp/python-lsp-server/pull/454) by [@smacke](https://github.com/smacke))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 454](https://github.com/python-lsp/python-lsp-server/pull/454) - Fix notebook document selector not being a list in capabilities, by [@smacke](https://github.com/smacke) ([453](https://github.com/python-lsp/python-lsp-server/issues/453))
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 1.8.1 (2023/10/05)
+
+### Issues Closed
+
+* [Issue 439](https://github.com/python-lsp/python-lsp-server/issues/439) - `includeDeclaration` is no longer respected in `textDocument/references` ([PR 440](https://github.com/python-lsp/python-lsp-server/pull/440) by [@krassowski](https://github.com/krassowski))
+* [Issue 438](https://github.com/python-lsp/python-lsp-server/issues/438) - flake8 can error out when deleting lines ([PR 441](https://github.com/python-lsp/python-lsp-server/pull/441) by [@krassowski](https://github.com/krassowski))
+* [Issue 413](https://github.com/python-lsp/python-lsp-server/issues/413) - textDocument/rename reports positions outside of the document ([PR 450](https://github.com/python-lsp/python-lsp-server/pull/450) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 450](https://github.com/python-lsp/python-lsp-server/pull/450) - Fix renaming when file has no EOLs, by [@ccordoba12](https://github.com/ccordoba12) ([413](https://github.com/python-lsp/python-lsp-server/issues/413))
+* [PR 449](https://github.com/python-lsp/python-lsp-server/pull/449) - Increase minimal required version of autopep8 to `>=2.0.4,<2.1.0`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 447](https://github.com/python-lsp/python-lsp-server/pull/447) - Fix numpy go-to-definition by taking it off autoimport list for this case, by [@smacke](https://github.com/smacke)
+* [PR 443](https://github.com/python-lsp/python-lsp-server/pull/443) - Allow Jedi "goto" to perform multiple hops for "go to definition", by [@smacke](https://github.com/smacke)
+* [PR 441](https://github.com/python-lsp/python-lsp-server/pull/441) - Pass a single copy of the document's source around for flake8, by [@krassowski](https://github.com/krassowski) ([438](https://github.com/python-lsp/python-lsp-server/issues/438))
+* [PR 440](https://github.com/python-lsp/python-lsp-server/pull/440) - Fix `include_declaration` handling in references request, by [@krassowski](https://github.com/krassowski) ([439](https://github.com/python-lsp/python-lsp-server/issues/439))
+* [PR 436](https://github.com/python-lsp/python-lsp-server/pull/436) - Add black reformatting commit to `.git-blame-ignore-revs`, by [@krassowski](https://github.com/krassowski)
+
+In this release 7 pull requests were closed.
+
+----
+
 ## Version 1.8.0 (2023/09/08)
 
 ### New features
