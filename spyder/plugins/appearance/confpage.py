@@ -20,6 +20,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -77,6 +78,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.reset_button = QPushButton(_("Reset to defaults"))
 
         self.preview_editor = SimpleCodeEditor(self)
+        self.preview_editor.setMinimumWidth(210)
         self.stacked_widget = QStackedWidget(self)
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
@@ -132,12 +134,10 @@ class AppearanceConfigPage(PluginConfigPage):
         fonts_grid_layout = QGridLayout()
         fonts_grid_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
         fonts_grid_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
-        fonts_grid_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
-        fonts_grid_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
+        fonts_grid_layout.addWidget(self.plain_text_font.sizebox, 0, 2)
         fonts_grid_layout.addWidget(self.app_font.fontlabel, 2, 0)
         fonts_grid_layout.addWidget(self.app_font.fontbox, 2, 1)
-        fonts_grid_layout.addWidget(self.app_font.sizelabel, 2, 2)
-        fonts_grid_layout.addWidget(self.app_font.sizebox, 2, 3)
+        fonts_grid_layout.addWidget(self.app_font.sizebox, 2, 2)
         fonts_grid_layout.setRowStretch(fonts_grid_layout.rowCount(), 1)
 
         fonts_layout = QVBoxLayout()
@@ -161,8 +161,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Combined layout
         combined_layout = QGridLayout()
-        combined_layout.setRowStretch(0, 1)
-        combined_layout.setColumnStretch(1, 100)
+        combined_layout.setHorizontalSpacing(AppStyle.MarginSize * 5)
         combined_layout.addLayout(options_layout, 0, 0)
         combined_layout.addWidget(preview_group, 0, 1)
 
@@ -349,7 +348,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def update_app_font_group(self, state):
         """Update app font group enabled state."""
-        subwidgets = ['fontlabel', 'sizelabel', 'fontbox', 'sizebox']
+        subwidgets = ['fontlabel', 'fontbox', 'sizebox']
 
         if state:
             for widget in subwidgets:

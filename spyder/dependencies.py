@@ -71,10 +71,10 @@ RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=3.0.0b2,<3.0.0b3'
+SUPERQT_REQVER = '>=0.6.1,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = '>=0.10.3'
-
 
 # Optional dependencies
 CYTHON_REQVER = '>=0.21'
@@ -234,11 +234,11 @@ DESCRIPTIONS = [
      'required_version': QTPY_REQVER},
     {'modname': "rtree",
      'package_name': "rtree",
-     'features': _("Fast access to code snippets regions"),
+     'features': _("Fast access to code snippet regions"),
      'required_version': RTREE_REQVER},
     {'modname': "setuptools",
      'package_name': "setuptools",
-     'features': _("Determine package version"),
+     'features': _("Determine package versions"),
      'required_version': SETUPTOOLS_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
@@ -248,6 +248,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+     {'modname': "superqt",
+     'package_name': "superqt",
+     'features': _("Special widgets and utilities for PyQt applications"),
+     'required_version': SUPERQT_REQVER},
     {'modname': 'textdistance',
      'package_name': "textdistance",
      'features': _('Compute distances between strings'),
