@@ -13,10 +13,8 @@ from qtpy import PYSIDE2
 from spyder.api.plugin_registration.registry import PreferencesAdapter
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.plugins.preferences.api import (
-    MOST_IMPORTANT_PAGES,
-    PreferencesActions
-)
+from spyder.plugins.preferences import MOST_IMPORTANT_PAGES
+from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
 
 

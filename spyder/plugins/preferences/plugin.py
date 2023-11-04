@@ -32,7 +32,7 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
-from spyder.plugins.preferences.api import MOST_IMPORTANT_PAGES
+from spyder.plugins.preferences import MOST_IMPORTANT_PAGES
 from spyder.plugins.preferences.widgets.container import (
     PreferencesActions, PreferencesContainer)
 from spyder.plugins.pythonpath.api import PythonpathActions
