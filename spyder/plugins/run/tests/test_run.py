@@ -25,10 +25,10 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.plugins.run.api import (
     RunExecutor, RunConfigurationProvider, RunConfigurationMetadata, Context,
-    RunConfiguration, SupportedExtensionContexts,
+    RunConfiguration, SupportedExtensionContexts, RunExecutionParameters,
     RunExecutorConfigurationGroup, ExtendedRunExecutionParameters,
     PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute,
-    WorkingDirSource)
+    WorkingDirOpts, WorkingDirSource, StoredRunExecutorParameters)
 from spyder.plugins.run.plugin import Run
 
 
@@ -806,6 +806,40 @@ def test_run_plugin(qtbot, run_mock):
         new_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
     )
     assert new_ext_ctx_params == {}
+
+    # Check that adding new parameters preserves the previous ones
+    current_exec_params = container.get_conf('parameters')[executor_name]
+    assert (
+        len(current_exec_params[('ext1', RunContext.RegisteredContext)]
+            ['params']
+        ) == 1
+    )  # Check that we have one config in this context
+
+    new_exec_conf_uuid = str(uuid4())
+    new_params = StoredRunExecutorParameters(
+        params={
+            new_exec_conf_uuid: ExtendedRunExecutionParameters(
+                uuid=new_exec_conf_uuid,
+                name='Foo',
+                params=RunExecutionParameters(
+                    WorkingDirOpts(source=WorkingDirSource.CurrentDirectory)
+                ),
+                file_uuid=None
+            )
+        }
+    )
+
+    container.set_executor_configuration_parameters(
+        executor_name, 'ext1', RunContext.RegisteredContext, new_params
+    )
+
+    new_exec_params = container.get_conf('parameters')[executor_name]
+
+    assert (
+        len(
+            new_exec_params[('ext1', RunContext.RegisteredContext)]['params']
+        ) == 2
+    )  # Now we should have two configs in the same context
 
     # Test teardown functions
     executor_1.on_run_teardown(run)

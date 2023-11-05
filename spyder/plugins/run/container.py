@@ -923,7 +923,16 @@ class RunContainer(PluginMainContainer):
         ] = self.get_conf('parameters', default={})
 
         executor_params = all_execution_params.get(executor_name, {})
-        executor_params[(extension, context_id)] = params
+        ext_ctx_params = executor_params.get((extension, context_id), {})
+
+        if ext_ctx_params:
+            # Update current parameters in case the user has already saved some
+            # before.
+            ext_ctx_params['params'].update(params['params'])
+        else:
+            # Create a new entry of executor parameters in case there isn't any
+            executor_params[(extension, context_id)] = params
+
         all_execution_params[executor_name] = executor_params
 
         self.set_conf('parameters', all_execution_params)
