@@ -45,7 +45,7 @@ REQUIREMENTS = [
     'ipython<6; python_version<"3"',
     'ipython>=7.31.1,<8; python_version<"3.8"',
     'ipython>=8.12.2,<8.13; python_version=="3.8"',
-    'ipython>=8.13.0,<9; python_version>"3.8"',
+    'ipython>=8.13.0,<9,!=8.17.1; python_version>"3.8"',
     'jupyter-client>=5.3.4,<6; python_version<"3"',
     'jupyter-client>=7.4.9,<9; python_version>="3"',
     'pyzmq>=17,<20; python_version<"3"',
