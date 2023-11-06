@@ -14,7 +14,7 @@ import os
 import sys
 
 # Third-part imports
-from pylsp._utils import get_eol_chars as _get_eol_chars
+from pylsp.utils import get_eol_chars as _get_eol_chars
 
 
 # Order is important:
