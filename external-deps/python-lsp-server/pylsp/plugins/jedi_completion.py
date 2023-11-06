@@ -6,7 +6,7 @@ import os
 
 import parso
 
-from pylsp import _utils, hookimpl, lsp
+from pylsp import utils, hookimpl, lsp
 from pylsp.plugins._resolvers import LABEL_RESOLVER, SNIPPET_RESOLVER
 
 log = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ def pylsp_completions(config, document, position):
     # pylint: disable=too-many-locals
     settings = config.plugin_settings("jedi_completion", document_path=document.path)
     resolve_eagerly = settings.get("eager", False)
-    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    code_position = utils.position_to_jedi_linecolumn(document, position)
 
     code_position["fuzzy"] = settings.get("fuzzy", False)
     completions = document.jedi_script(use_document_path=True).complete(**code_position)
@@ -55,7 +55,7 @@ def pylsp_completions(config, document, position):
     item_capabilities = completion_capabilities.get("completionItem", {})
     snippet_support = item_capabilities.get("snippetSupport")
     supported_markup_kinds = item_capabilities.get("documentationFormat", ["markdown"])
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     should_include_params = settings.get("include_params")
     should_include_class_objects = settings.get("include_class_objects", False)
@@ -146,7 +146,7 @@ def pylsp_completion_item_resolve(config, completion_item, document):
     )
     item_capabilities = completion_capabilities.get("completionItem", {})
     supported_markup_kinds = item_capabilities.get("documentationFormat", ["markdown"])
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     if shared_data:
         completion, data = shared_data
@@ -209,7 +209,7 @@ def _resolve_completion(completion, d, markup_kind: str):
     # pylint: disable=broad-except
     completion["detail"] = _detail(d)
     try:
-        docs = _utils.format_docstring(
+        docs = utils.format_docstring(
             d.docstring(raw=True),
             signatures=[signature.to_string() for signature in d.get_signatures()],
             markup_kind=markup_kind,

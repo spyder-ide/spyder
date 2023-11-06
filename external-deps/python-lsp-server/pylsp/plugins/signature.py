@@ -3,7 +3,7 @@
 
 import logging
 import re
-from pylsp import hookimpl, _utils
+from pylsp import hookimpl, utils
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ DOC_REGEX = [SPHINX, EPYDOC, GOOGLE]
 
 @hookimpl
 def pylsp_signature_help(config, document, position):
-    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    code_position = utils.position_to_jedi_linecolumn(document, position)
     signatures = document.jedi_script().get_signatures(**code_position)
 
     if not signatures:
@@ -31,7 +31,7 @@ def pylsp_signature_help(config, document, position):
     supported_markup_kinds = signature_information_support.get(
         "documentationFormat", ["markdown"]
     )
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     s = signatures[0]
 
@@ -42,7 +42,7 @@ def pylsp_signature_help(config, document, position):
     function_sig = " ".join([line.strip() for line in function_sig_lines])
     sig = {
         "label": function_sig,
-        "documentation": _utils.format_docstring(
+        "documentation": utils.format_docstring(
             s.docstring(raw=True), markup_kind=preferred_markup_kind
         ),
     }
@@ -52,7 +52,7 @@ def pylsp_signature_help(config, document, position):
         sig["parameters"] = [
             {
                 "label": p.name,
-                "documentation": _utils.format_docstring(
+                "documentation": utils.format_docstring(
                     _param_docs(docstring, p.name), markup_kind=preferred_markup_kind
                 ),
             }

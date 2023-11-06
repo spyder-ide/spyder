@@ -7,7 +7,7 @@ import pycodestyle
 from autopep8 import fix_code, continued_indentation as autopep8_c_i
 
 from pylsp import hookimpl
-from pylsp._utils import get_eol_chars
+from pylsp.utils import get_eol_chars
 
 log = logging.getLogger(__name__)
 

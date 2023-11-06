@@ -2,14 +2,14 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
-from pylsp import hookimpl, uris, _utils
+from pylsp import hookimpl, uris, utils
 
 log = logging.getLogger(__name__)
 
 
 @hookimpl
 def pylsp_references(document, position, exclude_declaration):
-    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    code_position = utils.position_to_jedi_linecolumn(document, position)
     usages = document.jedi_script().get_references(**code_position)
 
     if exclude_declaration:

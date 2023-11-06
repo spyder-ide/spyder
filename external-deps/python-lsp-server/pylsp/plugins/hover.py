@@ -3,14 +3,14 @@
 
 import logging
 
-from pylsp import hookimpl, _utils
+from pylsp import hookimpl, utils
 
 log = logging.getLogger(__name__)
 
 
 @hookimpl
 def pylsp_hover(config, document, position):
-    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    code_position = utils.position_to_jedi_linecolumn(document, position)
     definitions = document.jedi_script(use_document_path=True).infer(**code_position)
     word = document.word_at_position(position)
 
@@ -28,7 +28,7 @@ def pylsp_hover(config, document, position):
 
     hover_capabilities = config.capabilities.get("textDocument", {}).get("hover", {})
     supported_markup_kinds = hover_capabilities.get("contentFormat", ["markdown"])
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     # Find first exact matching signature
     signature = next(
@@ -41,7 +41,7 @@ def pylsp_hover(config, document, position):
     )
 
     return {
-        "contents": _utils.format_docstring(
+        "contents": utils.format_docstring(
             # raw docstring returns only doc, without signature
             definition.docstring(raw=True),
             preferred_markup_kind,

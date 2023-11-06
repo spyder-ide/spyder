@@ -3,7 +3,7 @@
 
 import logging
 
-from pylsp import hookimpl, uris, _utils
+from pylsp import hookimpl, uris, utils
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ def pylsp_rename(
     log.debug(
         "Executing rename of %s to %s", document.word_at_position(position), new_name
     )
-    kwargs = _utils.position_to_jedi_linecolumn(document, position)
+    kwargs = utils.position_to_jedi_linecolumn(document, position)
     kwargs["new_name"] = new_name
     try:
         refactoring = document.jedi_script().rename(**kwargs)
@@ -54,6 +54,6 @@ def pylsp_rename(
 
 def _num_lines(file_contents):
     "Count the number of lines in the given string."
-    if _utils.get_eol_chars(file_contents):
+    if utils.get_eol_chars(file_contents):
         return len(file_contents.splitlines())
     return 0

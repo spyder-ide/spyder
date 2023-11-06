@@ -13,7 +13,7 @@ from threading import RLock
 
 import jedi
 
-from . import lsp, uris, _utils
+from . import lsp, uris, utils
 
 log = logging.getLogger(__name__)
 
@@ -339,7 +339,7 @@ class Workspace:
     def source_roots(self, document_path):
         """Return the source roots for the given document."""
         files = (
-            _utils.find_parents(
+            utils.find_parents(
                 self._root_path, document_path, ["setup.py", "pyproject.toml"]
             )
             or []
@@ -406,7 +406,7 @@ class Document:
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
-        self.dot_path = _utils.path_to_dot_name(self.path)
+        self.dot_path = utils.path_to_dot_name(self.path)
         self.filename = os.path.basename(self.path)
         self.shared_data = {}
 
@@ -567,7 +567,7 @@ class Document:
 
         if position:
             # Deprecated by Jedi to use in Script() constructor
-            kwargs += _utils.position_to_jedi_linecolumn(self, position)
+            kwargs += utils.position_to_jedi_linecolumn(self, position)
 
         return jedi.Script(**kwargs)
 

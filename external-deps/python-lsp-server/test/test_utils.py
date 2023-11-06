@@ -12,7 +12,7 @@ from unittest import mock
 from flaky import flaky
 from docstring_to_markdown import UnknownFormatError
 
-from pylsp import _utils
+from pylsp import utils
 from pylsp.lsp import NotebookCellKind
 from pylsp.python_lsp import PythonLSPServer, start_io_lang_server
 
@@ -128,7 +128,7 @@ def test_debounce():
     interval = 0.1
     obj = mock.Mock()
 
-    @_utils.debounce(0.1)
+    @utils.debounce(0.1)
     def call_m():
         obj()
 
@@ -152,7 +152,7 @@ def test_debounce_keyed_by():
     interval = 0.1
     obj = mock.Mock()
 
-    @_utils.debounce(0.1, keyed_by="key")
+    @utils.debounce(0.1, keyed_by="key")
     def call_m(key):
         obj(key)
 
@@ -182,8 +182,8 @@ def test_debounce_keyed_by():
 
 
 def test_list_to_string():
-    assert _utils.list_to_string("string") == "string"
-    assert _utils.list_to_string(["a", "r", "r", "a", "y"]) == "a,r,r,a,y"
+    assert utils.list_to_string("string") == "string"
+    assert utils.list_to_string(["a", "r", "r", "a", "y"]) == "a,r,r,a,y"
 
 
 def test_find_parents(tmpdir):
@@ -191,28 +191,28 @@ def test_find_parents(tmpdir):
     path = subsubdir.ensure("path.py")
     test_cfg = tmpdir.ensure("test.cfg")
 
-    assert _utils.find_parents(tmpdir.strpath, path.strpath, ["test.cfg"]) == [
+    assert utils.find_parents(tmpdir.strpath, path.strpath, ["test.cfg"]) == [
         test_cfg.strpath
     ]
 
 
 def test_merge_dicts():
-    assert _utils.merge_dicts(
+    assert utils.merge_dicts(
         {"a": True, "b": {"x": 123, "y": {"hello": "world"}}},
         {"a": False, "b": {"y": [], "z": 987}},
     ) == {"a": False, "b": {"x": 123, "y": [], "z": 987}}
 
 
 def test_clip_column():
-    assert _utils.clip_column(0, [], 0) == 0
-    assert _utils.clip_column(2, ["123"], 0) == 2
-    assert _utils.clip_column(3, ["123"], 0) == 3
-    assert _utils.clip_column(5, ["123"], 0) == 3
-    assert _utils.clip_column(0, ["\n", "123"], 0) == 0
-    assert _utils.clip_column(1, ["\n", "123"], 0) == 0
-    assert _utils.clip_column(2, ["123\n", "123"], 0) == 2
-    assert _utils.clip_column(3, ["123\n", "123"], 0) == 3
-    assert _utils.clip_column(4, ["123\n", "123"], 1) == 3
+    assert utils.clip_column(0, [], 0) == 0
+    assert utils.clip_column(2, ["123"], 0) == 2
+    assert utils.clip_column(3, ["123"], 0) == 3
+    assert utils.clip_column(5, ["123"], 0) == 3
+    assert utils.clip_column(0, ["\n", "123"], 0) == 0
+    assert utils.clip_column(1, ["\n", "123"], 0) == 0
+    assert utils.clip_column(2, ["123\n", "123"], 0) == 2
+    assert utils.clip_column(3, ["123\n", "123"], 0) == 3
+    assert utils.clip_column(4, ["123\n", "123"], 1) == 3
 
 
 @mock.patch("docstring_to_markdown.convert")
@@ -233,14 +233,14 @@ def test_format_docstring_valid_rst_signature(mock_convert):
     - `a`: str, something
     """
 
-    markdown = _utils.format_docstring(
+    markdown = utils.format_docstring(
         docstring,
         "markdown",
         ["something(a: str) -> str"],
     )["value"]
 
     assert markdown.startswith(
-        _utils.wrap_signature("something(a: str) -> str"),
+        utils.wrap_signature("something(a: str) -> str"),
     )
 
 
@@ -254,12 +254,12 @@ def test_format_docstring_invalid_rst_signature(_):
     a : str, something
     """
 
-    markdown = _utils.format_docstring(
+    markdown = utils.format_docstring(
         docstring,
         "markdown",
         ["something(a: str) -> str"],
     )["value"]
 
     assert markdown.startswith(
-        _utils.wrap_signature("something(a: str) -> str"),
+        utils.wrap_signature("something(a: str) -> str"),
     )

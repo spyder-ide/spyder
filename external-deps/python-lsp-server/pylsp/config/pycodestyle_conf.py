@@ -2,7 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import pycodestyle
-from pylsp._utils import find_parents
+from pylsp.utils import find_parents
 from .source import ConfigSource
 
 

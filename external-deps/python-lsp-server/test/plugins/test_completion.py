@@ -17,7 +17,7 @@ from pylsp.plugins.jedi_completion import (
     pylsp_completion_item_resolve as pylsp_jedi_completion_item_resolve,
 )
 from pylsp.plugins.rope_completion import pylsp_completions as pylsp_rope_completions
-from pylsp._utils import JEDI_VERSION
+from pylsp.utils import JEDI_VERSION
 
 
 PY2 = sys.version[0] == "2"

@@ -14,7 +14,7 @@ from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
 from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
-from . import lsp, _utils, uris
+from . import lsp, utils, uris
 from .config import config
 from .workspace import Workspace, Document, Notebook, Cell
 from ._version import __version__
@@ -250,7 +250,7 @@ class PythonLSPServer(MethodDispatcher):
             self._jsonrpc_stream_writer.close()
 
     def _match_uri_to_workspace(self, uri):
-        workspace_uri = _utils.match_uri_to_workspace(uri, self.workspaces)
+        workspace_uri = utils.match_uri_to_workspace(uri, self.workspaces)
         return self.workspaces.get(workspace_uri, self.workspace)
 
     def _hook(self, hook_name, doc_uri=None, **kwargs):
@@ -360,7 +360,7 @@ class PythonLSPServer(MethodDispatcher):
 
             def watch_parent_process(pid):
                 # exit when the given pid is not alive
-                if not _utils.is_process_alive(pid):
+                if not utils.is_process_alive(pid):
                     log.info("parent process %s is not alive, exiting!", pid)
                     self.m_exit()
                 else:
@@ -439,7 +439,7 @@ class PythonLSPServer(MethodDispatcher):
     def hover(self, doc_uri, position):
         return self._hook("pylsp_hover", doc_uri, position=position) or {"contents": ""}
 
-    @_utils.debounce(LINT_DEBOUNCE_S, keyed_by="doc_uri")
+    @utils.debounce(LINT_DEBOUNCE_S, keyed_by="doc_uri")
     def lint(self, doc_uri, is_saved):
         # Since we're debounced, the document may no longer be open
         workspace = self._match_uri_to_workspace(doc_uri)

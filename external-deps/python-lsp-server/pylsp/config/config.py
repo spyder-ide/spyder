@@ -10,7 +10,7 @@ from typing import List, Mapping, Sequence, Union
 import pluggy
 from pluggy._hooks import HookImpl
 
-from pylsp import _utils, hookspecs, uris, PYLSP
+from pylsp import utils, hookspecs, uris, PYLSP
 
 # See compatibility note on `group` keyword:
 #   https://docs.python.org/3/library/importlib.metadata.html#entry-points
@@ -94,11 +94,11 @@ class Config:
                 log.info("Loaded pylsp plugin %s from %s", name, plugin)
 
         for plugin_conf in self._pm.hook.pylsp_settings(config=self):
-            self._plugin_settings = _utils.merge_dicts(
+            self._plugin_settings = utils.merge_dicts(
                 self._plugin_settings, plugin_conf
             )
 
-        self._plugin_settings = _utils.merge_dicts(
+        self._plugin_settings = utils.merge_dicts(
             self._plugin_settings, self._init_opts.get("pylsp", {})
         )
 
@@ -144,10 +144,10 @@ class Config:
         sources = self._settings.get("configurationSources", DEFAULT_CONFIG_SOURCES)
 
         # Plugin configuration
-        settings = _utils.merge_dicts(settings, self._plugin_settings)
+        settings = utils.merge_dicts(settings, self._plugin_settings)
 
         # LSP configuration
-        settings = _utils.merge_dicts(settings, self._settings)
+        settings = utils.merge_dicts(settings, self._settings)
 
         # User configuration
         for source_name in reversed(sources):
@@ -158,7 +158,7 @@ class Config:
             log.debug(
                 "Got user config from %s: %s", source.__class__.__name__, source_conf
             )
-            settings = _utils.merge_dicts(settings, source_conf)
+            settings = utils.merge_dicts(settings, source_conf)
 
         # Project configuration
         for source_name in reversed(sources):
@@ -169,7 +169,7 @@ class Config:
             log.debug(
                 "Got project config from %s: %s", source.__class__.__name__, source_conf
             )
-            settings = _utils.merge_dicts(settings, source_conf)
+            settings = utils.merge_dicts(settings, source_conf)
 
         log.debug("With configuration: %s", settings)
 
@@ -177,7 +177,7 @@ class Config:
 
     def find_parents(self, path, names):
         root_path = uris.to_fs_path(self._root_uri)
-        return _utils.find_parents(root_path, path, names)
+        return utils.find_parents(root_path, path, names)
 
     def plugin_settings(self, plugin, document_path=None):
         return (

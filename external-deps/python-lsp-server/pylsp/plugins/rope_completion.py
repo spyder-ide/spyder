@@ -4,7 +4,7 @@
 import logging
 from rope.contrib.codeassist import code_assist, sorted_proposals
 
-from pylsp import _utils, hookimpl, lsp
+from pylsp import utils, hookimpl, lsp
 
 
 log = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def pylsp_settings():
 def _resolve_completion(completion, data, markup_kind):
     # pylint: disable=broad-except
     try:
-        doc = _utils.format_docstring(data.get_doc(), markup_kind=markup_kind)
+        doc = utils.format_docstring(data.get_doc(), markup_kind=markup_kind)
     except Exception as e:
         log.debug("Failed to resolve Rope completion: %s", e)
         doc = ""
@@ -57,7 +57,7 @@ def pylsp_completions(config, workspace, document, position):
     )
     item_capabilities = completion_capabilities.get("completionItem", {})
     supported_markup_kinds = item_capabilities.get("documentationFormat", ["markdown"])
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     try:
         definitions = code_assist(
@@ -104,7 +104,7 @@ def pylsp_completion_item_resolve(config, completion_item, document):
     )
     item_capabilities = completion_capabilities.get("completionItem", {})
     supported_markup_kinds = item_capabilities.get("documentationFormat", ["markdown"])
-    preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
+    preferred_markup_kind = utils.choose_markup_kind(supported_markup_kinds)
 
     if shared_data:
         completion, data = shared_data

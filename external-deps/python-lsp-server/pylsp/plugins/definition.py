@@ -6,7 +6,7 @@ from typing import Any, Dict, List, TYPE_CHECKING
 
 import jedi
 
-from pylsp import hookimpl, uris, _utils
+from pylsp import hookimpl, uris, utils
 
 if TYPE_CHECKING:
     from jedi.api import Script
@@ -44,7 +44,7 @@ def pylsp_definitions(
     config: Config, document: Document, position: Dict[str, int]
 ) -> List[Dict[str, Any]]:
     settings = config.plugin_settings("jedi_definition")
-    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    code_position = utils.position_to_jedi_linecolumn(document, position)
     script = document.jedi_script(use_document_path=True)
     auto_import_modules = jedi.settings.auto_import_modules
 
