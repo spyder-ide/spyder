@@ -4,7 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from qtpy import QtCore, QtGui, QtWidgets
-import ipython_genutils.text as text
+
+from .util import columnize
 
 
 class CompletionPlain(QtWidgets.QWidget):
@@ -53,7 +54,7 @@ class CompletionPlain(QtWidgets.QWidget):
         if not items :
             return
         self.cancel_completion()
-        strng = text.columnize(items)
+        strng = columnize(items)
         # Move cursor to start of the prefix to replace it
         # when a item is selected
         cursor.movePosition(QtGui.QTextCursor.Left, n=prefix_length)
