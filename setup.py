@@ -211,7 +211,7 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
-    'ipython>=8.13.0,<9.0.0; python_version>"3.8"',
+    'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
@@ -238,7 +238,7 @@ install_requires = [
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.2.1',
-    'qtconsole>=5.4.2,<5.5.0',
+    'qtconsole>=5.5.0,<5.6.0',
     'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
@@ -256,7 +256,7 @@ if 'dev' in __version__:
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
     install_requires.append('python-lsp-server[all]>=1.8.0,<1.10.0')
-    install_requires.append('qtconsole>=5.4.2,<5.6.0')
+    install_requires.append('qtconsole>=5.5.0,<5.7.0')
     install_requires.append('spyder-kernels>=3.0.0b2,<3.1.0')
 
 extras_require = {
