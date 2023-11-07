@@ -1,5 +1,28 @@
 # History of changes
 
+## Version 2.5.0 (2023-11-06)
+
+### New features
+
+* Add support for chained exceptions to the debugger.
+* Improve getting signatures from docstrings.
+* Restore compatibility with Python 2.
+
+### Pull Requests Merged
+
+* [PR 475](https://github.com/spyder-ide/spyder-kernels/pull/475) - PR: Skip IPython 8.17.1 in our dependencies for Python 3.9+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 474](https://github.com/spyder-ide/spyder-kernels/pull/474) - PR: More improvements to getting signatures from text, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 473](https://github.com/spyder-ide/spyder-kernels/pull/473) - PR: Improve getting signatures from docstrings and catch error when trying to get the signature of some objects, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 472](https://github.com/spyder-ide/spyder-kernels/pull/472) - PR: Add support for chained exceptions to the debugger, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 471](https://github.com/spyder-ide/spyder-kernels/pull/471) - PR: Improve the way we depend on IPython and IPykernel per Python version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 469](https://github.com/spyder-ide/spyder-kernels/pull/469) - PR: Restore compatibility with Python 2, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 6 pull requests were closed.
+
+
+---
+
+
 ## Version 2.4.4 (2023-06-29)
 
 ### Issues Closed
