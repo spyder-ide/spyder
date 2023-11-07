@@ -977,7 +977,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
             indexes = df.axes[1].tolist()
             new_name = 'new_col'
-            if type(indexes[column]) != str:
+            if type(indexes[column]) is not str:
                 new_name = indexes[column]
 
             if new_name in indexes:
@@ -1016,7 +1016,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             # insert row
             indexes = df.axes[0].tolist()
             new_name = 'new_row'
-            if type(indexes[row]) != str:
+            if type(indexes[row]) is not str:
                 new_name = indexes[row]
             if new_name in indexes:
                 new_name = self.next_index_name(indexes, new_name)
@@ -1104,11 +1104,10 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             else:
                 new_name = self.next_index_name(indexes, label)
 
-            df.insert(loc=column, column=new_name, value='',
+            df.insert(loc=column+1, column=new_name, value='',
                       allow_duplicates=True)
-            df[new_name] = df.iloc[:, column + 1]
+            df[new_name] = df.iloc[:, column]
             self.model().max_min_col_update()
-            column = column + 1
 
         self.parent()._reload()
         self.model().dataChanged.emit(current_index, current_index)
@@ -1132,10 +1131,10 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             # treat as string
             label = str(label)
 
-        if type(label) == str:
+        if type(label) is str:
             # Make all indexes strings to compare
             for i in range(len(indexes)):
-                if type(indexes[i]) != str:
+                if type(indexes[i]) is not str:
                     indexes[i] = str(indexes[i])
 
             # Verify if find '_copy(' in the label
