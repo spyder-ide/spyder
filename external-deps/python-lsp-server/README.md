@@ -48,7 +48,7 @@ pip install -U setuptools
 If you use Anaconda/Miniconda, you can install `python-lsp-server` using this conda command
 
 ```
-conda install -c conda-forge python-lsp-server 
+conda install -c conda-forge python-lsp-server
 ```
 
 Python-lsp-server is available in the repos of every major Linux distribution, and it is usually called `python-lsp-server` or `python3-pylsp`.
@@ -164,25 +164,25 @@ pip install 'python-lsp-server[websockets]'
 Dev install
 
 ```
-# create conda env
-conda create --name python-lsp-server python=3.8 -y
+# (optional) create conda env
+conda create --name python-lsp-server python=3.11 -y
 conda activate python-lsp-server
 
-pip install ".[all]"
-pip install ".[websockets]"
+pip install -e ".[all,websockets,test]"
 ```
 
 Run server with ws
 
 ```
-pylsp --ws -v    # Info level logging
-pylsp --ws -v -v # Debug level logging
+pylsp --ws -v  # Info level logging
+pylsp --ws -vv # Debug level logging
 ```
 
 To run the test suite:
 
 ```sh
-pip install ".[test]" && pytest
+# requires: pip install ".[test]" (see above)
+pytest
 ```
 
 After adding configuration options to `schema.json`, refresh the `CONFIGURATION.md` file with

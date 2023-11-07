@@ -1,5 +1,34 @@
 # History of changes
 
+## Version 1.9.0 (2023/11/06)
+
+### Issues Closed
+
+* [Issue 460](https://github.com/python-lsp/python-lsp-server/issues/460) - rope_autoimport doesn't initialize after `workspace/didChangeConfiguration` message ([PR 461](https://github.com/python-lsp/python-lsp-server/pull/461) by [@tkrabel-db](https://github.com/tkrabel-db))
+* [Issue 403](https://github.com/python-lsp/python-lsp-server/issues/403) - Add code action for implementing auto-import ([PR 471](https://github.com/python-lsp/python-lsp-server/pull/471) by [@tkrabel-db](https://github.com/tkrabel-db))
+* [Issue 195](https://github.com/python-lsp/python-lsp-server/issues/195) - Maybe use initializationOptions as additional source of settings ([PR 459](https://github.com/python-lsp/python-lsp-server/pull/459) by [@tkrabel-db](https://github.com/tkrabel-db))
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 481](https://github.com/python-lsp/python-lsp-server/pull/481) - Revert "Rename `_utils` module to `utils`", by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 480](https://github.com/python-lsp/python-lsp-server/pull/480) - Rename `_utils` module to `utils`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 475](https://github.com/python-lsp/python-lsp-server/pull/475) - Raise supported Pylint upper version, by [@bnavigator](https://github.com/bnavigator)
+* [PR 473](https://github.com/python-lsp/python-lsp-server/pull/473) - Improve/simplify README Development section, by [@tkrabel](https://github.com/tkrabel)
+* [PR 471](https://github.com/python-lsp/python-lsp-server/pull/471) - Add code completions to `rope_autoimport` plugin, by [@tkrabel-db](https://github.com/tkrabel-db) ([403](https://github.com/python-lsp/python-lsp-server/issues/403))
+* [PR 469](https://github.com/python-lsp/python-lsp-server/pull/469) - Pass argument `extendIgnore` to flake8, by [@UnkwUsr](https://github.com/UnkwUsr)
+* [PR 466](https://github.com/python-lsp/python-lsp-server/pull/466) - Ignore notebook names on cell completion for autoimport, by [@tkrabel-db](https://github.com/tkrabel-db)
+* [PR 464](https://github.com/python-lsp/python-lsp-server/pull/464) - Minor bug fix in Rope autoimport plugin, by [@tkrabel-db](https://github.com/tkrabel-db)
+* [PR 462](https://github.com/python-lsp/python-lsp-server/pull/462) - Make workspace/didChangeConfig work with notebook documents, by [@tkrabel-db](https://github.com/tkrabel-db)
+* [PR 461](https://github.com/python-lsp/python-lsp-server/pull/461) - Load `rope_autoimport` cache on `workspace/didChangeConfiguration`, by [@tkrabel-db](https://github.com/tkrabel-db) ([460](https://github.com/python-lsp/python-lsp-server/issues/460))
+* [PR 459](https://github.com/python-lsp/python-lsp-server/pull/459) - Support `initializationOptions` to configure the server, by [@tkrabel-db](https://github.com/tkrabel-db) ([195](https://github.com/python-lsp/python-lsp-server/issues/195))
+* [PR 457](https://github.com/python-lsp/python-lsp-server/pull/457) - Fix missing signatures for docstrings in Markdown, by [@staticf0x](https://github.com/staticf0x)
+
+In this release 12 pull requests were closed.
+
+----
+
 ## Version 1.8.2 (2023/10/09)
 
 ### Issues Closed
