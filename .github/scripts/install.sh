@@ -79,7 +79,8 @@ conda create -n jedi-test-env -q -y python=3.9 flask
 conda list -n jedi-test-env
 
 # Create environment to test conda env activation before launching a kernel
-conda create -n spytest-ž -q -y -c conda-forge python=3.9 spyder-kernels
+kernelVer="`cat requirements/main.yml | grep spyder-kernels | grep -o '[^>=]*$' | grep -o '^[^,<]*'`"
+conda create -n spytest-ž -q -y -c conda-forge python=3.9 spyder-kernels="${kernelVer}"
 conda list -n spytest-ž
 
 # Install pyenv on Linux systems
