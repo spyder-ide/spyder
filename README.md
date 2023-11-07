@@ -207,7 +207,7 @@ a Python version equal or greater than 3.8.
 The basic dependencies to run Spyder are:
 
 * **Python** 3.8+: The core language Spyder is written in and for.
-* **PyQt5** 5.9+: Python bindings for Qt, used for Spyder's GUI.
+* **PyQt5** 5.10+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in
 [this file](https://github.com/spyder-ide/spyder/blob/master/spyder/dependencies.py).
