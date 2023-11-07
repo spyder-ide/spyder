@@ -231,7 +231,7 @@ install_requires = [
     'pyqt5>=5.10,<5.16',
     'pyqtwebengine>=5.10,<5.16',
     'python-lsp-black>=1.2.0,<3.0.0',
-    'python-lsp-server[all]>=1.8.0,<1.9.0',
+    'python-lsp-server[all]>=1.8.0,<=1.9.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=22.1.0',
