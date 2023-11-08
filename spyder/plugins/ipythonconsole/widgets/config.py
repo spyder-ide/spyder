@@ -12,7 +12,7 @@ import os.path as osp
 # Third-party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtWidgets import (
-    QRadioButton, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
+    QCheckBox, QGroupBox, QHBoxLayout, QLineEdit, QRadioButton, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -51,24 +51,26 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
-
-        common_layout = QGridLayout(common_group)
+        common_layout = QVBoxLayout(common_group)
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
-        common_layout.addWidget(self.clear_var_cb, 0, 0)
+        common_layout.addWidget(self.clear_var_cb)
 
         self.console_ns_cb = QCheckBox(CONSOLE_NAMESPACE)
-        common_layout.addWidget(self.console_ns_cb, 1, 0)
+        common_layout.addWidget(self.console_ns_cb)
 
         self.post_mortem_cb = QCheckBox(POST_MORTEM)
-        common_layout.addWidget(self.post_mortem_cb, 2, 0)
+        common_layout.addWidget(self.post_mortem_cb)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 3, 0)
-        self.clo_edit = QLineEdit()
+        self.clo_edit = QLineEdit(self)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 3, 1)
+
+        cli_layout = QHBoxLayout()
+        cli_layout.addWidget(self.clo_cb)
+        cli_layout.addWidget(self.clo_edit)
+        common_layout.addLayout(cli_layout)
 
         layout = QVBoxLayout(self)
         layout.addWidget(interpreter_group)

@@ -32,17 +32,16 @@ class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):
 
         # --- General settings ----
         common_group = QGroupBox(_("Script settings"))
-
         common_layout = QGridLayout(common_group)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
-        self.clo_edit = QLineEdit()
+        self.clo_edit = QLineEdit(self)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
 
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
         layout.addWidget(common_group)
         layout.addStretch(100)
 

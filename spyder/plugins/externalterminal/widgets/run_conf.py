@@ -26,10 +26,6 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
 
 
-# Main constants
-INTERACT = _("Interact with the Python terminal after execution")
-
-
 class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
     """External terminal Python run configuration options."""
 
@@ -40,36 +36,38 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         self.dir = None
 
         # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Terminal"))
+        interpreter_group = QGroupBox(_("Python interpreter"))
         interpreter_layout = QVBoxLayout(interpreter_group)
 
         # --- System terminal ---
-        external_group = QWidget()
-
+        external_group = QWidget(self)
         external_layout = QGridLayout()
         external_group.setLayout(external_layout)
-        self.interact_cb = QCheckBox(INTERACT)
+
+        self.interact_cb = QCheckBox(
+            _("Interact with the interpreter after execution")
+        )
         external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
 
-        self.pclo_cb = QCheckBox(_("Command line options:"))
+        self.pclo_cb = QCheckBox(_("Interpreter options:"))
         external_layout.addWidget(self.pclo_cb, 3, 0)
-        self.pclo_edit = QLineEdit()
+        self.pclo_edit = QLineEdit(self)
         self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
-        self.pclo_edit.setToolTip(_("<b>-u<_b> is added to the "
-                                    "other options you set here"))
+        self.pclo_edit.setToolTip(
+            _("<b>-u</b> is added to the other options you set here")
+        )
         external_layout.addWidget(self.pclo_edit, 3, 1)
 
         interpreter_layout.addWidget(external_group)
 
         # --- General settings ----
-        common_group = QGroupBox(_("Script settings"))
-
+        common_group = QGroupBox(_("Bash/Batch script settings"))
         common_layout = QGridLayout(common_group)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
-        self.clo_edit = QLineEdit()
+        self.clo_edit = QLineEdit(self)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
