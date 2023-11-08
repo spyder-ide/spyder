@@ -436,6 +436,11 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
             border='0px',
         )
 
+        # Add more spacing between QGroupBoxes than normal.
+        css.QGroupBox.setValues(
+            marginBottom='15px',
+        )
+
         return css
 
     @qdebounced(timeout=40)

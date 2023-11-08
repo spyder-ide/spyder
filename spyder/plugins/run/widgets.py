@@ -33,6 +33,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle
+from spyder.widgets.collapsible import CollapsibleWidget
 
 
 # Main constants
@@ -444,9 +445,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         disable_run_btn=False
     ):
         super().__init__(parent, disable_run_btn=disable_run_btn)
+
         self.run_conf_model = run_conf_model
         self.executors_model = executors_model
         self.parameter_model = parameter_model
+
         self.current_widget = None
         self.status = RunDialogStatus.Close
         self._is_shown = False
@@ -454,14 +457,16 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     # ---- Public methods
     # -------------------------------------------------------------------------
     def setup(self):
-        # Header
+        # --- Header
         self.header_label = QLabel(self)
-        self.header_label.setObjectName("header-label")
+        self.header_label.setObjectName("run-header-label")
 
-        # Hide this combobox to decrease the dialog complexity
+        # --- File combobox
+        # It's hidden by default to decrease the complexity of this dialog
         self.configuration_combo = SpyderComboBox(self)
         self.configuration_combo.hide()
 
+        # --- Executor and parameters widgets
         executor_label = QLabel(_("Run this file in:"))
         self.executor_combo = SpyderComboBox(self)
         parameters_label = QLabel(_("Preset configuration:"))
@@ -478,19 +483,44 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         executor_layout = QHBoxLayout()
         executor_layout.addLayout(executor_g_layout)
-        executor_layout.addStretch(1)
+        executor_layout.addStretch()
 
+        # --- Configuration properties
+        config_props_group = QGroupBox(_("Configuration properties"))
+        config_props_layout = QVBoxLayout(config_props_group)
+
+        # Increase margin between title and line edit below so this looks good
+        config_props_margins = config_props_layout.contentsMargins()
+        config_props_margins.setTop(12)
+        config_props_layout.setContentsMargins(config_props_margins)
+
+        # Name to save custom configuration
+        name_params_label = QLabel(_("Name:"))
+        self.name_params_text = QLineEdit(self)
+        self.name_params_text.setMinimumWidth(250)
+
+        name_params_layout = QHBoxLayout()
+        name_params_layout.addWidget(name_params_label)
+        name_params_layout.addWidget(self.name_params_text)
+        name_params_layout.addStretch()
+        config_props_layout.addLayout(name_params_layout)
+
+        # --- Runner settings
         self.stack = QStackedWidget()
-        parameters_layout = QVBoxLayout()
+        self.executor_group = QGroupBox(_("Runner settings"))
+        self.executor_group.setObjectName("run-executor-group")
+
+        parameters_layout = QVBoxLayout(self.executor_group)
         parameters_layout.addWidget(self.stack)
 
-        self.executor_group = QGroupBox(_("Executor parameters"))
-        self.executor_group.setLayout(parameters_layout)
+        # Remove bottom margin because it adds unnecessary space
+        parameters_layout_margins = parameters_layout.contentsMargins()
+        parameters_layout_margins.setBottom(0)
+        parameters_layout.setContentsMargins(parameters_layout_margins)
 
-        # --- Working directory ---
+        # --- Working directory settings
         self.wdir_group = QGroupBox(_("Working directory settings"))
-        parameters_layout.addWidget(self.wdir_group)
-
+        self.wdir_group.setObjectName("run-wdir-group")
         wdir_layout = QVBoxLayout(self.wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
@@ -515,24 +545,31 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
-        # --- Store new custom configuration
-        name_params_label = QLabel(_("Save current configuration as:"))
-        self.name_params_text = QLineEdit(self)
-        name_params_layout = QHBoxLayout()
-        name_params_layout.addWidget(name_params_label)
-        name_params_layout.addWidget(self.name_params_text)
-        parameters_layout.addLayout(name_params_layout)
+        # --- Group all customization widgets into a collapsible one
+        custom_config = CollapsibleWidget(self, _("Custom configuration"))
+        custom_config.addWidget(config_props_group)
+        custom_config.addWidget(self.executor_group)
+        custom_config.addWidget(self.wdir_group)
 
+        # Remove unnecessary margin at the bottom.
+        custom_config.set_content_bottom_margin(0)
+
+        # --- Final layout
         layout = self.add_widgets(
             self.header_label,
-            10,
             self.configuration_combo,  # Hidden for simplicity
             executor_layout,
-            10,
-            self.executor_group,
+            custom_config
         )
 
-        # Settings
+        widget_dialog = QWidget(self)
+        widget_dialog.setMinimumWidth(600)
+        widget_dialog.setLayout(layout)
+        scroll_layout = QVBoxLayout(self)
+        scroll_layout.addWidget(widget_dialog)
+        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        # --- Settings
         self.executor_combo.currentIndexChanged.connect(
             self.display_executor_configuration)
         self.executor_combo.setModel(self.executors_model)
@@ -551,13 +588,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.parameters_combo.currentIndexChanged.connect(
             self.update_parameter_set)
         self.parameters_combo.setModel(self.parameter_model)
-
-        widget_dialog = QWidget(self)
-        widget_dialog.setMinimumWidth(600)
-        widget_dialog.setLayout(layout)
-        scroll_layout = QVBoxLayout(self)
-        scroll_layout.addWidget(widget_dialog)
-        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
@@ -793,10 +823,39 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     def _stylesheet(self):
         css = qstylizer.style.StyleSheet()
 
-        css["QLabel#header-label"].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+        # --- Style for the header
+        css["QLabel#run-header-label"].setValues(
+            # Give it a background color to make it highlight over the other
+            # widgets.
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
+            # The left and right margins are a bit bigger to prevent the file
+            # name from being too close to the borders in case it's too long.
             padding=f"{2 * AppStyle.MarginSize} {4 * AppStyle.MarginSize}",
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            # Add good enough margin with the widgets below it.
+            marginBottom=f"{AppStyle.InnerContentPadding}px"
+        )
+
+
+        # --- Style for the collapsible
+        css["CollapsibleWidget"].setValues(
+            # Separate it from the widgets above it with the same margin as the
+            # one between the header and those widgets.
+            marginTop=f"{AppStyle.InnerContentPadding}px"
+        )
+
+        # --- Style for QGroupBoxes
+        # This makes the spacing between this group and the one above it (i.e.
+        # "Configuration properties") to be almost the same as the one between
+        # it and the group below (i.e. "Working directory settings").
+        css["QGroupBox#run-executor-group::title"].setValues(
+            marginTop="7px"
+        )
+
+        # Reduce extra top margin for this group to make the spacing between
+        # groups uniform.
+        css["QGroupBox#run-wdir-group::title"].setValues(
+            marginTop="-5px"
         )
 
         return css.toString()

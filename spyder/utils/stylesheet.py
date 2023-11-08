@@ -259,14 +259,16 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
         )
 
-        # Change QGroupBox style to avoid the "boxes within boxes" antipattern
-        # in Preferences
+        # Remove border in QGroupBox to avoid the "boxes within boxes"
+        # antipattern. Also, increase its title font in one point to make it
+        # more relevant.
         css.QGroupBox.setValues(
             border='0px',
-            marginBottom='15px',
             fontSize=f'{font_size + 1}pt',
         )
 
+        # Increase separation between title and content of QGroupBoxes and fix
+        # its alignment.
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
