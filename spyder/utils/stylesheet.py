@@ -64,6 +64,9 @@ class AppStyle(SpyderFontsMixin):
 
         return min_height
 
+    # Padding for content inside an element of higher hierarchy
+    InnerContentPadding = 5 * MarginSize
+
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -506,7 +509,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
-        self.color_tabs_separator = f'{Gray.B70}'
+        self.color_tabs_separator = Gray.B70
 
         if is_dark_interface():
             self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
@@ -648,7 +651,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='15px',
+            padding=f'{AppStyle.InnerContentPadding}px',
         )
 
 
