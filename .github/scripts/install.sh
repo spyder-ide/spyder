@@ -30,9 +30,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # So, pinning it to 8.14 for now.
     micromamba install ipython=8.14
 
-    # Install Pylint 3 to run our tests with it
-    micromamba install pylint=3 -q -y
-
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -48,9 +45,6 @@ else
 
     # To check our manifest
     pip install -q check-manifest
-
-    # Install Pylint 3 to run our tests with it
-    pip install -U pylint
 
     # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
