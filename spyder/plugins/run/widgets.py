@@ -16,8 +16,9 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QDialog, QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QLayout, QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
+    QApplication, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QLineEdit, QLayout, QRadioButton, QStackedWidget,
+    QVBoxLayout, QWidget)
 import qstylizer.style
 
 # Local imports
@@ -554,6 +555,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # Remove unnecessary margin at the bottom.
         custom_config.set_content_bottom_margin(0)
 
+        # Center dialog after custom_config is expanded/collapsed
+        custom_config._animation.finished.connect(self._center_dialog)
+
         # --- Final layout
         layout = self.add_widgets(
             self.header_label,
@@ -859,3 +863,25 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         )
 
         return css.toString()
+
+    def _center_dialog(self):
+        """
+        Center dialog relative to the main window after collapsing/expanding
+        the custom configuration widget.
+        """
+        # main_window is usually not available in our tests, so we need to
+        # check for this.
+        main_window = getattr(QApplication.instance(), 'main_window', None)
+
+        if main_window:
+            x = (
+                main_window.pos().x()
+                + ((main_window.width() - self.width()) / 2)
+            )
+
+            y = (
+                main_window.pos().y()
+                + ((main_window.height() - self.height()) / 2)
+            )
+
+            self.move(x, y)
