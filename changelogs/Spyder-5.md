@@ -7,7 +7,7 @@
 * Drop support for Python 3.7
 * Drop support for PyQt < 5.10
 * Improvements to the logic that checks available updates and the update messages
-* Improvements to the syntax higlighting for `match`/`case` keywords
+* Improvements to the syntax highlighting for `match`/`case` keywords
 * Improved compatibility for the standalone installer with Windows Server 2016
 * Additional information about Spyder available through `spyder.appdata.xml`
 
@@ -22,8 +22,8 @@
 * Fix error when using the Online help with Python 3.11
 * Fix debugging after errors via the `%debug` magic
 * Fix compatibility with Python 2 environments/custom interpreters
-* Fix application window disapearing when changing monitors
-* Fix PYTHONPATH manager logic to get user environemt variables and detect possible `site-packages` directories
+* Fix application window disappearing when changing monitors
+* Fix PYTHONPATH manager logic to get user environment variables and detect possible `site-packages` directories
 
 ### Issues Closed
 
