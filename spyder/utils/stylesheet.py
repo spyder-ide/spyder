@@ -211,9 +211,13 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             padding='0px'
         )
 
-        # Add padding around menus to follow modern standards
+        # Add padding and border radius to menus to follow modern standards
         css.QMenu.setValues(
             padding=f'{2 * AppStyle.MarginSize}px',
+            # Add more radius than normal to make it more visible.
+            borderRadius=(
+                f'{2 * int(QStylePalette.SIZE_BORDER_RADIUS.split("px")[0])}px'
+            )
         )
 
         # Set the right background color for menus. This is the only way to do

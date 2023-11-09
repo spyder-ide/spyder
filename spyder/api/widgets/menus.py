@@ -9,14 +9,17 @@ Spyder API menu widgets.
 """
 
 # Standard library imports
+import os
 import sys
 from typing import Optional, Union, TypeVar
 
 # Third party imports
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
 from spyder.utils.qthelpers import add_actions, SpyderAction
+from spyder.utils.stylesheet import AppStyle
 
 
 # ---- Constants
@@ -76,6 +79,16 @@ class SpyderMenu(QMenu):
 
         # Signals
         self.aboutToShow.connect(self._render)
+
+        # This line is necessary to have rounded borders in menu corners.
+        # Solution taken from https://stackoverflow.com/a/65576117/438386
+        #
+        # Notes
+        # -----
+        # * This requires composition on Linux, but it's not possible to detect
+        #   if that's available in Qt 6 and requires extra libraries in Qt 5.
+        #   Hopefully it's a minor inconvenience to users without it.
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -293,7 +306,7 @@ class SpyderMenu(QMenu):
             and self._is_submenu
             and not self._is_shown
         ):
-            self.move(self.pos().x(), self.pos().y() - 6)
+            self.move(self.pos().x(), self.pos().y() - 2 * AppStyle.MarginSize)
             self._is_shown = True
 
         super().showEvent(event)
