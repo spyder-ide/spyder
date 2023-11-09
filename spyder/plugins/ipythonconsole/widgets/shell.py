@@ -16,10 +16,9 @@ from textwrap import dedent
 
 # Third party imports
 from qtconsole.svg import save_svg, svg_to_clipboard
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QMessageBox
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QClipboard, QKeySequence, QTextCursor, QTextFormat
+from qtpy.QtWidgets import QApplication, QMessageBox
 from traitlets import observe
 
 # Local imports
@@ -1052,7 +1051,7 @@ the sympy module (e.g. plot)
         self._control.insert_horizontal_ruler()
 
     # ---- Public methods (overrode by us)
-    def paste(self, mode=QtGui.QClipboard.Clipboard):
+    def paste(self, mode=QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
 
         Parameters
@@ -1063,14 +1062,14 @@ the sympy module (e.g. plot)
             used to access the selection clipboard in X11 and the Find buffer
             in Mac OS. By default, the regular clipboard is used.
         """
-        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+        if self._control.textInteractionFlags() & Qt.TextEditable:
             # Make sure the paste is safe.
             self._keep_cursor_in_buffer()
             cursor = self._control.textCursor()
 
             # Remove any trailing newline, which confuses the GUI and forces
             # the user to backspace.
-            text = QtWidgets.QApplication.clipboard().text(mode).rstrip()
+            text = QApplication.clipboard().text(mode).rstrip()
 
             # Adjust indentation of multilines pastes
             if len(text.splitlines()) > 1:
@@ -1130,8 +1129,7 @@ the sympy module (e.g. plot)
             return ""
         first_line_selection = text.splitlines()[0]
         cursor.setPosition(cursor.selectionStart())
-        cursor.setPosition(cursor.block().position(),
-                           QtGui.QTextCursor.KeepAnchor)
+        cursor.setPosition(cursor.block().position(), QTextCursor.KeepAnchor)
         preceding_text = cursor.selection().toPlainText()
         first_line = preceding_text + first_line_selection
         len_with_prompt = len(first_line)
@@ -1235,7 +1233,7 @@ the sympy module (e.g. plot)
         """Filter events to send to qtconsole code."""
         key = event.key()
         if self._control_key_down(event.modifiers(), include_command=False):
-            if key == QtCore.Qt.Key_Period:
+            if key == Qt.Key_Period:
                 # Do not use ctrl + . to restart kernel
                 # Handled by IPythonConsoleWidget
                 return False
@@ -1293,7 +1291,7 @@ the sympy module (e.g. plot)
         self.context_menu.clear_actions()
 
         fmt = self._control.cursorForPosition(pos).charFormat()
-        name = fmt.stringProperty(QtGui.QTextFormat.ImageName)
+        name = fmt.stringProperty(QTextFormat.ImageName)
 
         if name:
             for action in [self.copy_image_action, self.save_image_action]:
