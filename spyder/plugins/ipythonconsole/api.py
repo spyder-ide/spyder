@@ -99,20 +99,24 @@ class IPythonConsoleWidgetTabsContextMenuSections:
 
 
 class ShellWidgetContextMenuActions:
+    Cut = 'cut'
+    Copy = 'copy'
+    CopyRaw = 'copy_raw'
+    Paste = 'paste'
+    SelectAll = 'select_all'
     CopyImage = 'copy_image'
     SaveImage = 'save_image'
     CopySvg = 'copy_svg'
     SaveSvg = 'save_svg'
-    CopyRaw = 'copy_raw'
     Export = 'export'
-    SelectAll = 'select_all'
     Print = 'print'
 
 
 class ShellWidgetContextMenuSections:
+    Edit = 'edit'
+    Inspect = 'inspect'
+    Array = 'array'
+    Export = 'export'
     Image = 'image'
     SVG = 'svg'
-    Inspect = 'inspect'
     Clear = 'clear'
-    Array = 'array'
-    Edit = 'edit'

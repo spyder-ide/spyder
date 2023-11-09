@@ -17,6 +17,7 @@ from textwrap import dedent
 # Third party imports
 from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
+from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QMessageBox
 from qtpy import QtCore, QtWidgets, QtGui
 from traitlets import observe
@@ -1153,26 +1154,56 @@ the sympy module (e.g. plot)
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
     def _setup_context_menu_actions(self):
-        """Set actions for the context menu."""
-        # The Qtconsole shortcuts for the actions below don't work in Spyder
+        """Set actions for the widget's context menu."""
+        client_id = self.ipyclient.id_['int_id']
+
+        # The default Qtconsole shortcuts for the actions below don't work
+        # in Spyder, so we disable them.
         self._copy_raw_action.setText(_("Copy (raw text)"))
-        self._copy_raw_action.action_id = ShellWidgetContextMenuActions.CopyRaw
+        self._copy_raw_action.action_id = (
+            ShellWidgetContextMenuActions.CopyRaw + '_' + client_id
+        )
         self._copy_raw_action.setShortcut('')
 
         self.export_action.setText(_("Save as html"))
-        self.export_action.action_id = ShellWidgetContextMenuActions.Export
+        self.export_action.action_id = (
+            ShellWidgetContextMenuActions.Export + '_' + client_id
+        )
         self.export_action.setShortcut('')
 
         self.select_all_action.setText(_("Select all"))
         self.select_all_action.action_id = (
-            ShellWidgetContextMenuActions.SelectAll)
+            ShellWidgetContextMenuActions.SelectAll + '_' + client_id
+        )
         self.select_all_action.setShortcut('')
 
         self.print_action.setText(_("Print"))
-        self.print_action.action_id = ShellWidgetContextMenuActions.Print
+        self.print_action.action_id = (
+            ShellWidgetContextMenuActions.Print + '_' + client_id
+        )
         self.print_action.setShortcut('')
 
-        client_id = self.ipyclient.id_['int_id']
+        # Reimplement actions below with our API
+        self.cut_action = self.create_action(
+            ShellWidgetContextMenuActions.Cut + '_' + client_id,
+            text=_("Cut"),
+            triggered=self.cut
+        )
+        self.cut_action.setShortcut(QKeySequence.Cut)
+
+        self.copy_action = self.create_action(
+            ShellWidgetContextMenuActions.Copy + '_' + client_id,
+            text=_("Copy"),
+            triggered=self.copy
+        )
+        self.copy_action.setShortcut(QKeySequence.Copy)
+
+        self.paste_action = self.create_action(
+            ShellWidgetContextMenuActions.Paste + '_' + client_id,
+            text=_("Paste"),
+            triggered=self.paste
+        )
+        self.paste_action.setShortcut(QKeySequence.Paste)
 
         self.copy_image_action = self.create_action(
             ShellWidgetContextMenuActions.CopyImage + '_' + client_id,
@@ -1283,19 +1314,24 @@ the sympy module (e.g. plot)
                         section=ShellWidgetContextMenuSections.SVG
                     )
         else:
+            self.cut_action.setEnabled(self.can_cut())
+            self.copy_action.setEnabled(self.can_copy())
+            self.paste_action.setEnabled(self.can_paste())
+
+            for action in [self.cut_action, self.copy_action,
+                           self._copy_raw_action, self.paste_action,
+                           self.select_all_action]:
+                self.add_item_to_menu(
+                    action,
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Edit
+                )
+
             self.add_item_to_menu(
                 self.get_action(IPythonConsoleWidgetActions.InspectObject),
                 self.context_menu,
                 section=ShellWidgetContextMenuSections.Inspect
             )
-
-            for name in [IPythonConsoleWidgetActions.ClearConsole,
-                         IPythonConsoleWidgetActions.ClearLine]:
-                self.add_item_to_menu(
-                    self.get_action(name),
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Clear
-                )
 
             for name in [IPythonConsoleWidgetActions.ArrayTable,
                          IPythonConsoleWidgetActions.ArrayInline]:
@@ -1305,12 +1341,19 @@ the sympy module (e.g. plot)
                     section=ShellWidgetContextMenuSections.Array
                 )
 
-            for action in [self._copy_raw_action, self.export_action,
-                           self.select_all_action, self.print_action]:
+            for action in [self.export_action, self.print_action]:
                 self.add_item_to_menu(
                     action,
                     self.context_menu,
-                    section=ShellWidgetContextMenuSections.Edit
+                    section=ShellWidgetContextMenuSections.Export
+                )
+
+            for name in [IPythonConsoleWidgetActions.ClearConsole,
+                         IPythonConsoleWidgetActions.ClearLine]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    self.context_menu,
+                    section=ShellWidgetContextMenuSections.Clear
                 )
 
         return self.context_menu
