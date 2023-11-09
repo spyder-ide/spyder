@@ -203,8 +203,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         css.setValues(
             borderTopLeftRadius='0px',
             borderBottomLeftRadius='0px',
-            borderTopRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
-            borderBottomRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+            borderTopRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
         )
         self.setStyleSheet(css.toString())
 

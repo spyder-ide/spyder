@@ -253,7 +253,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
                 css[f"{widget}::item:{state}"].setValues(
                     backgroundColor=bg_color,
-                    borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}px'
+                    borderRadius=QStylePalette.SIZE_BORDER_RADIUS
                 )
 
         # Increase padding for QPushButton's
