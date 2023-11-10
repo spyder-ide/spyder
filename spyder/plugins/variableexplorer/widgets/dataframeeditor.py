@@ -35,6 +35,7 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 # Standard library imports
 import io
 from time import perf_counter
+from typing import Any, Callable, Optional
 
 # Third party imports
 from packaging.version import parse
@@ -44,9 +45,9 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QCheckBox, QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-    QMenu, QMessageBox, QPushButton, QTableView, QScrollBar, QTableWidget,
-    QFrame, QItemDelegate, QVBoxLayout, QLabel, QDialog)
+    QApplication, QCheckBox, QDialog, QFrame, QGridLayout, QHBoxLayout,
+    QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu, QMessageBox,
+    QPushButton, QScrollBar, QTableView, QTableWidget, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -571,10 +572,12 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
     sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
+    sig_refresh_requested = Signal()
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent, model, header, hscroll, vscroll):
+    def __init__(self, parent, model, header, hscroll, vscroll,
+                 data_function: Optional[Callable[[], Any]] = None):
         """Constructor."""
         QTableView.__init__(self, parent)
 
@@ -594,6 +597,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.duplicate_row_action = None
         self.duplicate_col_action = None
         self.convert_to_action = None
+        self.refresh_action = None
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -607,6 +611,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.header_class.customContextMenuRequested.connect(
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
+        self.data_function = data_function
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
         self.config_shortcut(self.copy, 'copy', self)
@@ -779,6 +784,12 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             triggered=self.copy,
             context=Qt.WidgetShortcut
         )
+        self.refresh_action = create_action(
+            self, _('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=lambda: self.sig_refresh_requested.emit())
+        self.refresh_action.setEnabled(self.data_function is not None)
 
         self.convert_to_action = create_action(self, _('Convert to'))
         menu_actions = [
@@ -797,7 +808,9 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             self.convert_to_action,
             MENU_SEPARATOR,
             resize_action,
-            resize_columns_action
+            resize_columns_action,
+            MENU_SEPARATOR,
+            self.refresh_action
         ]
         self.menu_actions = menu_actions.copy()
 
@@ -1599,8 +1612,10 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     """
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None,
+                 data_function: Optional[Callable[[], Any]] = None):
         super().__init__(parent)
+        self.data_function = data_function
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1705,9 +1720,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """
         Checks whether data is suitable and display it in the editor
 
-        This function returns False if data is not supported (though in fact,
-        it always returns True).
+        This function returns False if data is not supported.
         """
+        if not isinstance(data, (pd.DataFrame, pd.Series, pd.Index)):
+            return False
+
         self._selection_rec = False
         self._model = None
 
@@ -1864,7 +1881,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
         self.dataTable = DataFrameView(self, self.dataModel,
                                        self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll)
+                                       self.hscroll, self.vscroll,
+                                       self.data_function)
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -1878,6 +1896,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.dataTable.sig_sort_by_column.connect(self._sort_update)
         self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
         self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
+        self.dataTable.sig_refresh_requested.connect(self.refresh_editor)
 
     def sortByIndex(self, index):
         """Implement a Index sort."""
@@ -2077,6 +2096,46 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         """
         self.dataModel.bgcolor(state)
         self.bgcolor_global.setEnabled(not self.is_series and state > 0)
+
+    def refresh_editor(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        if self.btn_save_and_close.isEnabled():
+            if not self.ask_for_refresh_confirmation():
+                return
+
+        try:
+            data = self.data_function()
+        except (IndexError, KeyError):
+            self.error(_('The variable no longer exists.'))
+            return
+
+        if not self.set_data_and_check(data):
+            self.error(
+                _('The new value cannot be displayed in the dataframe '
+                  'editor.'))
+
+    def ask_for_refresh_confirmation(self) -> bool:
+        """
+        Ask user to confirm refreshing the editor.
+
+        This function is to be called if refreshing the editor would overwrite
+        changes that the user made previously. The function returns True if
+        the user confirms that they want to refresh and False otherwise.
+        """
+        message = _('Refreshing the editor will overwrite the changes that '
+                    'you made. Do you want to proceed?')
+        result = QMessageBox.question(
+            self, _('Refresh dataframe editor?'), message)
+        return result == QMessageBox.Yes
+
+    def error(self, message):
+        """An error occurred, closing the dialog box"""
+        QMessageBox.critical(self, _("Dataframe editor"), message)
+        self.reject()
 
     @Slot()
     def change_format(self):

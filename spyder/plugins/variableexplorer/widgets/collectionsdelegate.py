@@ -251,7 +251,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 and pd.DataFrame is not FakeObject and not object_explorer):
             # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
-            editor = DataFrameEditor(parent=parent)
+            editor = DataFrameEditor(
+                parent=parent, data_function=self.make_data_function(index))
             if not editor.setup_and_check(value, title=key):
                 self.sig_editor_shown.emit()
                 return
