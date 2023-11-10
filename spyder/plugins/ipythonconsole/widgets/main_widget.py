@@ -23,6 +23,7 @@ import qstylizer.style
 from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -53,6 +54,7 @@ from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
+from spyder.widgets.printer import SpyderPrinter
 
 
 # Logging
@@ -1849,7 +1851,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def _current_client_print(self):
         client = self.get_current_client()
         if client:
-            client.shellwidget.print_()
+            # This makes the print dialog have the same style as the rest of
+            # the app.
+            printer = SpyderPrinter(mode=QPrinter.HighResolution)
+            if(QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
+                return
+            client.shellwidget._control.print_(printer)
 
     def _current_client_clear_line(self):
         client = self.get_current_client()
