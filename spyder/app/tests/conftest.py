@@ -223,14 +223,14 @@ def preferences_dialog_helper(qtbot, main_window, section):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     main_window.show_preferences()
     preferences = main_window.preferences
     container = preferences.get_container()
 
-    qtbot.waitUntil(lambda: container.dialog is not None,
-                    timeout=5000)
+    qtbot.waitUntil(lambda: container.dialog is not None, timeout=5000)
     dlg = container.dialog
     index = dlg.get_index_by_name(section)
     page = dlg.get_page(index)

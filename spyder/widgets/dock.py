@@ -38,6 +38,7 @@ class TabFilter(QObject, SpyderConfigurationAccessor):
 
         self._set_tabbar_stylesheet()
         self.dock_tabbar.setElideMode(Qt.ElideNone)
+        self.dock_tabbar.setUsesScrollButtons(True)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.

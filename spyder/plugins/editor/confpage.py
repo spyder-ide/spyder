@@ -6,8 +6,11 @@
 
 """Editor config page."""
 
+import os
+import sys
+
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout, QWidget)
+                            QVBoxLayout)
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -18,7 +21,13 @@ from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
-GOOGLEDOC = "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html"
+GOOGLEDOC = (
+    "https://sphinxcontrib-napoleon.readthedocs.io/en/latest/"
+    "example_google.html"
+)
+SPHINXDOC = (
+    "https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html"
+)
 DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
@@ -26,9 +35,23 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         SpyderConfigurationObserver.__init__(self)
+
         self.removetrail_box = None
         self.add_newline_box = None
         self.remove_trail_newline_box = None
+
+        # *********************** IMPORTANT NOTES *****************************
+        # * This value needs to be ajusted if we add new options to the
+        #   "Advanced settings" tab.
+        # * We need to do this so that the text of some options is not clipped.
+        if os.name == "nt":
+            min_height = 620
+        elif sys.platform == "darwin":
+            min_height = 760
+        else:
+            min_height = 670
+
+        self.setMinimumHeight(min_height)
 
     def get_name(self):
         return _("Editor")
@@ -74,15 +97,16 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         occurrence_spin.slabel.setEnabled(
                 self.get_option('occurrence_highlighting'))
 
-        display_g_layout = QGridLayout()
-        display_g_layout.addWidget(occurrence_box, 0, 0)
-        display_g_layout.addWidget(occurrence_spin.spinbox, 0, 1)
-        display_g_layout.addWidget(occurrence_spin.slabel, 0, 2)
+        occurrence_glayout = QGridLayout()
+        occurrence_glayout.addWidget(occurrence_box, 0, 0)
+        occurrence_glayout.addWidget(occurrence_spin.spinbox, 0, 1)
+        occurrence_glayout.addWidget(occurrence_spin.slabel, 0, 2)
 
-        display_h_layout = QHBoxLayout()
-        display_h_layout.addLayout(display_g_layout)
-        display_h_layout.addStretch(1)
+        occurrence_layout = QHBoxLayout()
+        occurrence_layout.addLayout(occurrence_glayout)
+        occurrence_layout.addStretch(1)
 
+        display_group = QGroupBox(_("Display"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(showclassfuncdropdown_box)
@@ -91,14 +115,20 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(breakpoints_box)
         display_layout.addWidget(blanks_box)
-        display_layout.addWidget(currentline_box)
-        display_layout.addWidget(currentcell_box)
-        display_layout.addWidget(wrap_mode_box)
-        display_layout.addWidget(scroll_past_end_box)
-        display_layout.addLayout(display_h_layout)
+        display_group.setLayout(display_layout)
 
-        display_widget = QWidget()
-        display_widget.setLayout(display_layout)
+        highlight_group = QGroupBox(_("Highlight"))
+        highlight_layout = QVBoxLayout()
+        highlight_layout.addWidget(currentline_box)
+        highlight_layout.addWidget(currentcell_box)
+        highlight_layout.addLayout(occurrence_layout)
+        highlight_group.setLayout(highlight_layout)
+
+        other_group = QGroupBox(_("Other"))
+        other_layout = QVBoxLayout()
+        other_layout.addWidget(wrap_mode_box)
+        other_layout.addWidget(scroll_past_end_box)
+        other_group.setLayout(other_layout)
 
         # --- Source code tab ---
         closepar_box = newcb(
@@ -122,7 +152,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                   "completion may be triggered using the alternate\n"
                   "shortcut: Ctrl+Space)"))
         strip_mode_box = newcb(
-            _("Automatically strip trailing spaces on changed lines"),
+            _("Automatic stripping of trailing spaces on changed lines"),
             'strip_trailing_spaces_on_modify', default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
                   "will have their trailing whitespace stripped when leaving them.\n"
@@ -130,9 +160,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
+            tip=_("Make the backspace key automatically remove the amount of "
+                  "indentation characters set above."),
             default=True)
         self.removetrail_box = newcb(
-            _("Automatically remove trailing spaces when saving files"),
+            _("Automatic removal of trailing spaces when saving files"),
             'always_remove_trailing_spaces',
             default=False)
         self.add_newline_box = newcb(
@@ -191,26 +223,35 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indent_tab_layout.addLayout(indent_tab_grid_layout)
         indent_tab_layout.addStretch(1)
 
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(closepar_box)
-        sourcecode_layout.addWidget(autounindent_box)
-        sourcecode_layout.addWidget(add_colons_box)
-        sourcecode_layout.addWidget(close_quotes_box)
-        sourcecode_layout.addWidget(tab_mode_box)
-        sourcecode_layout.addWidget(ibackspace_box)
-        sourcecode_layout.addWidget(self.removetrail_box)
-        sourcecode_layout.addWidget(self.add_newline_box)
-        sourcecode_layout.addWidget(self.remove_trail_newline_box)
-        sourcecode_layout.addWidget(strip_mode_box)
-        sourcecode_layout.addLayout(indent_tab_layout)
+        automatic_group = QGroupBox(_("Automatic changes"))
+        automatic_layout = QVBoxLayout()
+        automatic_layout.addWidget(closepar_box)
+        automatic_layout.addWidget(autounindent_box)
+        automatic_layout.addWidget(add_colons_box)
+        automatic_layout.addWidget(close_quotes_box)
+        automatic_layout.addWidget(self.removetrail_box)
+        automatic_layout.addWidget(strip_mode_box)
+        automatic_layout.addWidget(self.add_newline_box)
+        automatic_layout.addWidget(self.remove_trail_newline_box)
+        automatic_group.setLayout(automatic_layout)
 
-        sourcecode_widget = QWidget()
-        sourcecode_widget.setLayout(sourcecode_layout)
+        indentation_group = QGroupBox(_("Indentation"))
+        indentation_layout = QVBoxLayout()
+        indentation_layout.addLayout(indent_tab_layout)
+        indentation_layout.addWidget(ibackspace_box)
+        indentation_layout.addWidget(tab_mode_box)
+        indentation_group.setLayout(indentation_layout)
 
         # --- Advanced tab ---
         # -- Templates
+        templates_group = QGroupBox(_('Templates'))
         template_btn = self.create_button(_("Edit template for new files"),
                                           self.plugin.edit_template)
+
+        templates_layout = QVBoxLayout()
+        templates_layout.addSpacing(3)
+        templates_layout.addWidget(template_btn)
+        templates_group.setLayout(templates_layout)
 
         # -- Autosave
         autosave_group = QGroupBox(_('Autosave'))
@@ -234,12 +275,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
+        sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Here you can select the type of docstrings ({} or {}) you "
+            _("Here you can select the type of docstrings ({}, {} or {}) you "
               "want the editor to automatically introduce when pressing "
-              "<tt>{}</tt> after a function/method/class "
+              "<tt>{}</tt> after a function, method or class "
               "declaration.").format(
-                  numpy_url, googledoc_url, DOCSTRING_SHORTCUT))
+                  numpy_url, googledoc_url, sphinx_url, DOCSTRING_SHORTCUT)
+        )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
 
@@ -249,7 +292,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_combo = self.create_combobox(
             _("Type:"),
             docstring_combo_choices,
-            'docstring_type')
+            'docstring_type'
+        )
 
         docstring_layout = QVBoxLayout()
         docstring_layout.addWidget(docstring_label)
@@ -315,17 +359,18 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_group.setLayout(eol_layout)
 
         # --- Tabs ---
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(display_widget), _("Display"))
-        self.tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        self.tabs.addTab(self.create_tab(template_btn, autosave_group,
-                                         docstring_group, annotations_group,
-                                         eol_group),
-                         _("Advanced settings"))
+        self.create_tab(
+            _("Interface"),
+            [display_group, highlight_group, other_group]
+        )
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)
+        self.create_tab(_("Source code"), [automatic_group, indentation_group])
+
+        self.create_tab(
+            _("Advanced settings"),
+            [templates_group, autosave_group, docstring_group,
+             annotations_group, eol_group]
+        )
 
     @on_conf_change(
         option=('provider_configuration', 'lsp', 'values', 'format_on_save'),

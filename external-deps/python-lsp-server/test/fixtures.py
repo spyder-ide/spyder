@@ -5,9 +5,10 @@ import os
 from io import StringIO
 from unittest.mock import MagicMock
 
-from test.test_utils import ClientServerPair
+from test.test_utils import ClientServerPair, CALL_TIMEOUT_IN_SECONDS
 
 import pytest
+
 from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
 from pylsp_jsonrpc.exceptions import JsonRpcException
@@ -24,7 +25,6 @@ DOC = """import sys
 def main():
     print sys.stdin.read()
 """
-CALL_TIMEOUT_IN_SECONDS = 30
 
 
 class FakeEditorMethodsMixin:

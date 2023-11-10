@@ -26,6 +26,7 @@ from pandas import (
 import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtWidgets import QInputDialog, QMessageBox
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -49,19 +50,25 @@ def colorclose(color, hsva_expected):
     Compares HSV values which are stored as 16-bit integers.
     """
     hsva_actual = color.getHsvF()
-    return all(abs(a-b) <= 2**(-16) for (a,b) in zip(hsva_actual, hsva_expected))
+    return all(abs(a-b) <= 2**(-16)
+               for (a, b) in zip(hsva_actual, hsva_expected))
+
 
 def data(dfm, i, j):
     return dfm.data(dfm.createIndex(i, j))
 
+
 def bgcolor(dfm, i, j):
     return dfm.get_bgcolor(dfm.createIndex(i, j))
+
 
 def data_header(dfh, i, j, role=Qt.DisplayRole):
     return dfh.data(dfh.createIndex(i, j), role)
 
+
 def data_index(dfi, i, j, role=Qt.DisplayRole):
     return dfi.data(dfi.createIndex(i, j), role)
+
 
 def generate_pandas_indexes():
     """Creates a dictionary of many possible pandas indexes."""
@@ -123,9 +130,13 @@ def test_dataframe_to_type(qtbot):
 
     # Show context menu and select option `To bool`
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Down)
-    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
+    qtbot.keyPress(view.menu, Qt.Key_Up)
     qtbot.keyPress(view.menu, Qt.Key_Return)
+    submenu = view.menu.activeAction().menu()
+    qtbot.keyPress(submenu, Qt.Key_Return)
+    qtbot.wait(1000)
 
     # Check that changes where made from the editor
     assert editor.btn_save_and_close.isEnabled()
@@ -243,6 +254,7 @@ def test_dataframemodel_basic():
     assert data(dfm, 1, 0) == '3'
     assert data(dfm, 1, 1) == 'a'
 
+
 def test_dataframemodel_sort():
     """Validate the data in the model."""
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
@@ -256,9 +268,9 @@ def test_dataframemodel_sort():
 
 def test_dataframemodel_sort_is_stable():   # cf. spyder-ide/spyder#3010.
     """Validate the sort function."""
-    df = DataFrame([[2,14], [2,13], [2,16], [1,3], [2,9], [1,15], [1,17],
-                    [2,2], [2,10], [1,6], [2,5], [2,8], [1,11], [1,1],
-                    [1,12], [1,4], [2,7]])
+    df = DataFrame([[2, 14], [2, 13], [2, 16], [1, 3], [2, 9], [1, 15],
+                    [1, 17], [2, 2], [2, 10], [1, 6], [2, 5], [2, 8],
+                    [1, 11], [1, 1], [1, 12], [1, 4], [2, 7]])
     dfm = DataFrameModel(df)
     dfm.sort(1)
     dfm.sort(0)
@@ -266,10 +278,12 @@ def test_dataframemodel_sort_is_stable():   # cf. spyder-ide/spyder#3010.
     assert col2 == [str(x) for x in [1, 3, 4, 6, 11, 12, 15, 17,
                                      2, 5, 7, 8, 9, 10, 13, 14, 16]]
 
+
 def test_dataframemodel_max_min_col_update():
     df = DataFrame([[1, 2.0], [2, 2.5], [3, 9.0]])
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [[3, 1], [9.0, 2.0]]
+
 
 def test_dataframemodel_max_min_col_update_constant():
     df = DataFrame([[1, 2.0], [1, 2.0], [1, 2.0]])
@@ -291,6 +305,7 @@ def test_dataframemodel_with_categories():  # cf. spyder-ide/spyder#3308.
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [[6, 1], None, None]
 
+
 def test_dataframemodel_get_bgcolor_with_numbers():
     df = DataFrame([[0, 10], [1, 20], [2, 40]])
     dfm = DataFrameModel(df)
@@ -305,6 +320,7 @@ def test_dataframemodel_get_bgcolor_with_numbers():
     assert colorclose(bgcolor(dfm, 0, 1), (h0 + dh,         s, v, a))
     assert colorclose(bgcolor(dfm, 1, 1), (h0 + 2 / 3 * dh, s, v, a))
     assert colorclose(bgcolor(dfm, 2, 1), (h0,              s, v, a))
+
 
 def test_dataframemodel_get_bgcolor_with_numbers_using_global_max():
     df = DataFrame([[0, 10], [1, 20], [2, 40]])
@@ -322,18 +338,22 @@ def test_dataframemodel_get_bgcolor_with_numbers_using_global_max():
     assert colorclose(bgcolor(dfm, 1, 1), (h0 + 20 / 40 * dh, s, v, a))
     assert colorclose(bgcolor(dfm, 2, 1), (h0,                s, v, a))
 
+
 def test_dataframemodel_get_bgcolor_with_string():
     """Validate the color of the cell when a string is the data."""
     df = DataFrame([['xxx']])
     dfm = DataFrameModel(df)
-    h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
+    h, s, v, dummy = \
+        QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_STRING_ALPHA
     assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
+
 
 def test_dataframemodel_get_bgcolor_with_object():
     df = DataFrame([[None]])
     dfm = DataFrameModel(df)
-    h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
+    h, s, v, dummy = \
+        QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
 
@@ -406,10 +426,15 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
 
+
 def test_change_format(qtbot, monkeypatch):
     mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('10.3e', True)
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog', mockQInputDialog)
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: (
+        '10.3e',
+        True)
+    monkeypatch.setattr(
+        'spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog',
+        mockQInputDialog)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
@@ -428,6 +453,144 @@ def test_dataframemodel_with_format_thousands():
     dataframe = DataFrame([10000.1])
     dfm = DataFrameModel(dataframe, format_spec=',.2f')
     assert data(dfm, 0, 0) == '10,000.10'
+
+
+@flaky(max_runs=3)
+def test_dataframeeditor_menu_options(qtbot, monkeypatch):
+
+    def create_view(qtbot, value):
+        """Auxiliary function for this test."""
+        df = DataFrame(data=value)
+        editor = DataFrameEditor()
+        assert editor.setup_and_check(df, 'Test DataFrame To action')
+        with qtbot.waitExposed(editor):
+            editor.show()
+        view = editor.dataTable
+        dfm = editor.dataModel
+        return view, editor, dfm
+
+    d = {'COLUMN_1': [1, 2]}
+    view, editor, dfm = create_view(qtbot, d)
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
+                     '.dataframeeditor.QMessageBox.question')
+    monkeypatch.setattr(attr_to_patch, lambda *args: QMessageBox.Yes)
+
+    # test remove item1 (row)
+    view.setCurrentIndex(view.model().index(1, 0))
+    assert dfm.rowCount() == 2
+    assert dfm.columnCount() == 1
+    view.remove_row_action.triggered.emit(True)
+    assert editor.btn_save_and_close.isEnabled()
+    assert dfm.rowCount() == 1
+
+    # test remove item2 (row)
+    view.setCurrentIndex(view.model().index(0, 0))
+    view.remove_row_action.triggered.emit(True)
+    assert editor.btn_save_and_close.isEnabled()
+    assert dfm.rowCount() == 0
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
+
+    # test remove item1 (column)
+    d = {'COLUMN_1': [1, 2]}
+    view, editor, dfm = create_view(qtbot, d)
+    view.setCurrentIndex(view.model().index(0, 0))
+    assert dfm.rowCount() == 2
+    assert dfm.columnCount() == 1
+    view.remove_col_action.triggered.emit(True)
+    assert dfm.columnCount() == 0
+    assert editor.btn_save_and_close.isEnabled()
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
+
+    # test insert above
+    d = {'COLUMN_1': [1, 2, 3], 'COLUMN_2': [4, 5, 6]}
+    view, editor, dfm = create_view(qtbot, d)
+    view.setCurrentIndex(view.model().index(0, 0))
+    assert dfm.rowCount() == 3
+    assert dfm.columnCount() == 2
+    view.insert_action_above.triggered.emit(True)
+    assert dfm.rowCount() == 4
+    assert dfm.columnCount() == 2
+
+    # test insert bellow
+    view.setCurrentIndex(view.model().index(2, 0))
+    view.insert_action_below.triggered.emit(True)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 2
+
+    # test insert after
+    view.setCurrentIndex(view.model().index(4, 1))
+    view.insert_action_after.triggered.emit(True)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 3
+
+    # test insert before
+    view.setCurrentIndex(view.model().index(4, 0))
+    view.insert_action_before.triggered.emit(True)
+    assert dfm.rowCount() == 5
+    assert dfm.columnCount() == 4
+
+    # duplicate row
+    view.setCurrentIndex(view.model().index(0, 3))
+    view.duplicate_row_action.triggered.emit(True)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 4
+
+    # duplicate column (2x)
+    view.setCurrentIndex(view.model().index(1, 3))
+    view.duplicate_col_action.triggered.emit(True)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 5
+    view.setCurrentIndex(view.model().index(0, 1))
+    view.duplicate_col_action.triggered.emit(True)
+    assert dfm.rowCount() == 6
+    assert dfm.columnCount() == 6
+
+    # test edit item
+    view.setCurrentIndex(view.model().index(0, 2))
+    view.edit_action.triggered.emit(True)
+    qtbot.wait(200)
+    view.setCurrentIndex(view.model().index(0, 2))
+    assert data(dfm, 0, 2) == '0'
+    qtbot.keyPress(view.focusWidget(), Qt.Key_9)
+    qtbot.keyPress(view.focusWidget(), Qt.Key_Return)
+    qtbot.wait(200)
+    assert data(dfm, 0, 2) == '9'
+
+    # test edit horizontal header
+    monkeypatch.setattr(
+        QInputDialog,
+        "getText",
+        lambda *args: ("SPYDERTEST_H", True)
+    )
+    header = editor.table_header.model()
+    model_index = view.header_class.model().index(0, 2)
+    view.header_class.setCurrentIndex(model_index)
+    qtbot.wait(200)
+    view.menu_header_h.show()
+    qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
+    qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
+    qtbot.wait(200)
+    assert header.headerData(
+        2,
+        Qt.Horizontal,
+        Qt.DisplayRole
+    ) == "SPYDERTEST_H"
+
+    # test edit vertical header
+    index = editor.table_index.model()
+    model_index = editor.table_index.model().index(5, 0)
+    editor.table_index.setCurrentIndex(model_index)
+    editor.menu_header_v.show()
+    qtbot.wait(200)
+    qtbot.keyPress(editor.menu_header_v, Qt.Key_Down)
+    qtbot.keyPress(editor.menu_header_v, Qt.Key_Return)
+    qtbot.wait(200)
+    qtbot.keyPress(editor.focusWidget(), Qt.Key_9)
+    qtbot.keyPress(editor.focusWidget(), Qt.Key_Return)
+    qtbot.wait(200)
+    assert data_index(index, 5, 0) == '9'
+    assert editor.btn_save_and_close.isEnabled()
+    qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
 
 
 def test_dataframeeditor_with_various_indexes():
@@ -482,6 +645,7 @@ def test_dataframeeditor_with_OutOfBoundsDatetime():
         model.get_value(0, 0)
     except Exception:
         assert False
+
 
 @pytest.mark.skipif(not os.name == 'nt',
                     reason="It segfaults too much on Linux")
