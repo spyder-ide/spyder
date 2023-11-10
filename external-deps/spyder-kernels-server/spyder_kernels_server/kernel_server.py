@@ -13,7 +13,6 @@ import os
 import os.path as osp
 from subprocess import PIPE
 import uuid
-import sys
 
 from threading import Thread, Event
 
