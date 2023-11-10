@@ -76,7 +76,9 @@ class MainMenu(SpyderPluginV2):
         if self.is_plugin_enabled(Plugins.IPythonConsole):
             create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
         if self.is_plugin_enabled(Plugins.Projects):
-            create_app_menu(ApplicationMenus.Projects, _("&Projects"))
+            create_app_menu(
+                ApplicationMenus.Projects, _("&Projects"), min_width=170
+            )
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
@@ -170,7 +172,12 @@ class MainMenu(SpyderPluginV2):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def create_application_menu(self, menu_id: str, title: str):
+    def create_application_menu(
+        self,
+        menu_id: str,
+        title: str,
+        min_width: Optional[int] = None
+    ):
         """
         Create a Spyder application menu.
 
@@ -180,14 +187,17 @@ class MainMenu(SpyderPluginV2):
             The menu unique identifier string.
         title: str
             The localized menu title to be displayed.
+        min_width: int
+            Minimum width for the menu in pixels.
         """
         if menu_id in self._APPLICATION_MENUS:
             raise SpyderAPIError(
-                'Menu with id "{}" already added!'.format(menu_id))
+                'Menu with id "{}" already added!'.format(menu_id)
+            )
 
-        menu = ApplicationMenu(self.main, title)
-        menu.menu_id = menu_id
-
+        menu = ApplicationMenu(
+            self.main, title, menu_id=menu_id, min_width=min_width
+        )
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
 

@@ -49,7 +49,8 @@ class SpyderMenu(QMenu):
     """
     MENUS = []
 
-    def __init__(self, parent=None, title=None, dynamic=True, menu_id=None):
+    def __init__(self, parent=None, title=None, dynamic=True, menu_id=None,
+                 min_width=None):
         self._parent = parent
         self._title = title
         self.menu_id = menu_id
@@ -71,10 +72,14 @@ class SpyderMenu(QMenu):
 
         self.MENUS.append((parent, title, self))
 
+        # Set min width
+        if min_width is not None:
+            self.setMinimumWidth(min_width)
+
+        # Needed to enable the dynamic population of actions in menus in the
+        # aboutToShow signal
+        # See spyder-ide/spyder#14612
         if sys.platform == 'darwin' and dynamic:
-            # Needed to enable the dynamic population of actions in menus
-            # in the aboutToShow signal
-            # See spyder-ide/spyder#14612
             self.addAction(QAction(self))
 
         # Signals
