@@ -20,8 +20,9 @@ import sys
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir
 import qstylizer.style
+from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QColor
+from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -35,7 +36,7 @@ from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
     IPythonConsoleWidgetOptionsMenus, IPythonConsoleWidgetOptionsMenuSections,
-    IPythonConsoleWidgetTabsContextMenuSections)
+    IPythonConsoleWidgetTabsContextMenuSections, ClientContextMenuActions)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
@@ -429,37 +430,113 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Context menu actions
         # TODO: Shortcut registration not working
-        self.inspect_action = self.create_action(
-            IPythonConsoleWidgetActions.InspectObject,
+        cut_action = self.create_action(
+            ClientContextMenuActions.Cut,
+            text=_("Cut"),
+            triggered=self._current_client_cut
+        )
+        cut_action.setShortcut(QKeySequence.Cut)
+
+        copy_action = self.create_action(
+            ClientContextMenuActions.Copy,
+            text=_("Copy"),
+            triggered=self._current_client_copy
+        )
+        copy_action.setShortcut(QKeySequence.Copy)
+
+        self.create_action(
+            ClientContextMenuActions.CopyRaw,
+            text=_("Copy (raw text)"),
+            triggered=self._current_client_copy_raw
+        )
+
+        paste_action = self.create_action(
+            ClientContextMenuActions.Paste,
+            text=_("Paste"),
+            triggered=self._current_client_paste
+        )
+        paste_action.setShortcut(QKeySequence.Paste)
+
+        self.create_action(
+            ClientContextMenuActions.SelectAll,
+            text=_("Select all"),
+            triggered=self._current_client_select_all
+        )
+
+        self.create_action(
+            ClientContextMenuActions.InspectObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.current_client_inspect_object,
-            register_shortcut=True)
+            triggered=self._current_client_inspect_object,
+            register_shortcut=True
+        )
 
-        self.clear_line_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearLine,
-            text=_("Clear line or block"),
-            triggered=self.current_client_clear_line,
-            register_shortcut=True)
-
-        self.clear_console_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearConsole,
-            text=_("Clear console"),
-            triggered=self.current_client_clear_console,
-            register_shortcut=True)
-
-        # --- Other actions with shortcuts
-        self.array_table_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayTable,
+        self.create_action(
+            ClientContextMenuActions.ArrayTable,
             text=_("Enter array table"),
-            triggered=self.current_client_enter_array_table,
-            register_shortcut=True)
+            triggered=self._current_client_enter_array_table,
+            register_shortcut=True
+        )
 
-        self.array_inline_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayInline,
+        self.create_action(
+            ClientContextMenuActions.ArrayInline,
             text=_("Enter array inline"),
-            triggered=self.current_client_enter_array_inline,
-            register_shortcut=True)
+            triggered=self._current_client_enter_array_inline,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.Export,
+            text=_("Save as html"),
+            triggered=self._current_client_export
+        )
+
+        self.create_action(
+            ClientContextMenuActions.Print,
+            text=_("Print"),
+            triggered=self._current_client_print
+        )
+
+        self.create_action(
+            ClientContextMenuActions.ClearLine,
+            text=_("Clear line or block"),
+            triggered=self._current_client_clear_line,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.ClearConsole,
+            text=_("Clear console"),
+            triggered=self._current_client_clear_console,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.CopyImage,
+            text=_("Copy image"),
+            triggered=self._current_client_copy_image
+        )
+
+        self.create_action(
+            ClientContextMenuActions.SaveImage,
+            text=_("Save image as..."),
+            triggered=self._current_client_save_image
+        )
+
+        self.create_action(
+            ClientContextMenuActions.CopySvg,
+            text=_("Copy SVG"),
+            triggered=self._current_client_copy_svg
+        )
+
+        self.create_action(
+            ClientContextMenuActions.SaveSvg,
+            text=_("Save SVG as..."),
+            triggered=self._current_client_save_svg
+        )
+
+        # --- Context menu
+        self.create_menu(IPythonConsoleWidgetMenus.ClientContextMenu)
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
@@ -1724,35 +1801,89 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
-    def current_client_inspect_object(self):
+    def _current_client_cut(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.cut()
+
+    def _current_client_copy(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.copy()
+
+    def _current_client_copy_raw(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.copy_raw()
+
+    def _current_client_paste(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.paste()
+
+    def _current_client_select_all(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.select_all_smart()
+
+    def _current_client_inspect_object(self):
         client = self.get_current_client()
         if client:
             client.inspect_object()
 
-    def current_client_clear_line(self):
-        client = self.get_current_client()
-        if client:
-            client.clear_line()
-
-    def current_client_clear_console(self):
-        client = self.get_current_client()
-        if client:
-            client.clear_console()
-
-    def current_client_quit(self):
-        client = self.get_current_client()
-        if client:
-            client.exit_callback()
-
-    def current_client_enter_array_inline(self):
+    def _current_client_enter_array_inline(self):
         client = self.get_current_client()
         if client:
             client.enter_array_inline()
 
-    def current_client_enter_array_table(self):
+    def _current_client_enter_array_table(self):
         client = self.get_current_client()
         if client:
             client.enter_array_table()
+
+    def _current_client_export(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.export_html()
+
+    def _current_client_print(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.print_()
+
+    def _current_client_clear_line(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_line()
+
+    def _current_client_clear_console(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_console()
+
+    def _current_client_copy_image(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.CopyImage)
+            client.shellwidget._copy_image(action.data())
+
+    def _current_client_save_image(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.SaveImage)
+            client.shellwidget._save_image(action.data())
+
+    def _current_client_copy_svg(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.CopySvg)
+            svg_to_clipboard(action.data())
+
+    def _current_client_save_svg(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.SaveSvg)
+            save_svg(action.data(), client.shellwidget._control)
 
     # ---- For kernels
     # -------------------------------------------------------------------------

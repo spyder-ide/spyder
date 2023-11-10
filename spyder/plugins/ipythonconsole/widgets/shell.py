@@ -15,9 +15,8 @@ import time
 from textwrap import dedent
 
 # Third party imports
-from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtGui import QClipboard, QKeySequence, QTextCursor, QTextFormat
+from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from traitlets import observe
 
@@ -27,8 +26,10 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
-    IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
-    ShellWidgetContextMenuActions, ShellWidgetContextMenuSections)
+    IPythonConsoleWidgetMenus,
+    ClientContextMenuActions,
+    ClientContextMenuSections
+)
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
@@ -191,12 +192,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # modules that don't come with them.
         self.show_modules_message = is_conda_based_app()
 
-        # For the context menu
-        self.context_menu = self.create_menu(
-            IPythonConsoleWidgetMenus.ShellContextMenu + '_' +
-            ipyclient.id_['int_id']
-        )
-        self._setup_context_menu_actions()
+        # The Qtconsole shortcuts for the actions below don't work in Spyder,
+        # so we disable them.
+        self._copy_raw_action.setShortcut('')
+        self.export_action.setShortcut('')
+        self.select_all_action.setShortcut('')
+        self.print_action.setShortcut('')
 
     # ---- Public API
     @property
@@ -1151,83 +1152,6 @@ the sympy module (e.g. plot)
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
-    def _setup_context_menu_actions(self):
-        """Set actions for the widget's context menu."""
-        client_id = self.ipyclient.id_['int_id']
-
-        # The default Qtconsole shortcuts for the actions below don't work
-        # in Spyder, so we disable them.
-        self._copy_raw_action.setText(_("Copy (raw text)"))
-        self._copy_raw_action.action_id = (
-            ShellWidgetContextMenuActions.CopyRaw + '_' + client_id
-        )
-        self._copy_raw_action.setShortcut('')
-
-        self.export_action.setText(_("Save as html"))
-        self.export_action.action_id = (
-            ShellWidgetContextMenuActions.Export + '_' + client_id
-        )
-        self.export_action.setShortcut('')
-
-        self.select_all_action.setText(_("Select all"))
-        self.select_all_action.action_id = (
-            ShellWidgetContextMenuActions.SelectAll + '_' + client_id
-        )
-        self.select_all_action.setShortcut('')
-
-        self.print_action.setText(_("Print"))
-        self.print_action.action_id = (
-            ShellWidgetContextMenuActions.Print + '_' + client_id
-        )
-        self.print_action.setShortcut('')
-
-        # Reimplement actions below with our API
-        self.cut_action = self.create_action(
-            ShellWidgetContextMenuActions.Cut + '_' + client_id,
-            text=_("Cut"),
-            triggered=self.cut
-        )
-        self.cut_action.setShortcut(QKeySequence.Cut)
-
-        self.copy_action = self.create_action(
-            ShellWidgetContextMenuActions.Copy + '_' + client_id,
-            text=_("Copy"),
-            triggered=self.copy
-        )
-        self.copy_action.setShortcut(QKeySequence.Copy)
-
-        self.paste_action = self.create_action(
-            ShellWidgetContextMenuActions.Paste + '_' + client_id,
-            text=_("Paste"),
-            triggered=self.paste
-        )
-        self.paste_action.setShortcut(QKeySequence.Paste)
-
-        self.copy_image_action = self.create_action(
-            ShellWidgetContextMenuActions.CopyImage + '_' + client_id,
-            text=_("Copy image"),
-            triggered=lambda: self._copy_image(self.copy_image_action.data())
-        )
-
-        self.save_image_action = self.create_action(
-            ShellWidgetContextMenuActions.SaveImage + '_' + client_id,
-            text=_("Save image as..."),
-            triggered=lambda: self._save_image(self.save_image_action.data())
-        )
-
-        self.copy_svg_action = self.create_action(
-            ShellWidgetContextMenuActions.CopySvg + '_' + client_id,
-            text=_("Copy SVG"),
-            triggered=lambda: svg_to_clipboard(self.copy_svg_action.data())
-        )
-
-        self.save_svg_action = self.create_action(
-            ShellWidgetContextMenuActions.SaveSvg + '_' + client_id,
-            text=_("Save SVG as..."),
-            triggered=lambda: save_svg(
-                self.save_svg_action.data(), self._control)
-        )
-
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
         """Filter events to send to qtconsole code."""
@@ -1287,74 +1211,94 @@ the sympy module (e.g. plot)
         self._process_execute_error(msg)
 
     def _context_menu_make(self, pos):
-        """Reimplement the QtConsole context menu using our API for menus."""
-        self.context_menu.clear_actions()
+        """Reimplement the Qtconsole context menu using our API for menus."""
+        context_menu = self.get_menu(
+            IPythonConsoleWidgetMenus.ClientContextMenu
+        )
+        context_menu.clear_actions()
 
         fmt = self._control.cursorForPosition(pos).charFormat()
-        name = fmt.stringProperty(QTextFormat.ImageName)
+        img_name = fmt.stringProperty(QTextFormat.ImageName)
 
-        if name:
-            for action in [self.copy_image_action, self.save_image_action]:
-                action.setData(name)
+        if img_name:
+            # Add image/svg actions to menu
+            for name in [ClientContextMenuActions.CopyImage,
+                         ClientContextMenuActions.SaveImage]:
+                action = self.get_action(name)
+                action.setData(img_name)
                 self.add_item_to_menu(
                     action,
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Image
+                    context_menu,
+                    section=ClientContextMenuSections.Image
                 )
 
-            svg = self._name_to_svg_map.get(name, None)
+            svg = self._name_to_svg_map.get(img_name, None)
             if svg is not None:
-                for action in [self.copy_svg_action, self.save_svg_action]:
+                for name in [ClientContextMenuActions.CopySvg,
+                             ClientContextMenuActions.SaveSvg]:
+                    action = self.get_action(name)
                     action.setData(svg)
                     self.add_item_to_menu(
                         action,
-                        self.context_menu,
-                        section=ShellWidgetContextMenuSections.SVG
+                        context_menu,
+                        section=ClientContextMenuSections.SVG
                     )
         else:
-            self.cut_action.setEnabled(self.can_cut())
-            self.copy_action.setEnabled(self.can_copy())
-            self.paste_action.setEnabled(self.can_paste())
+            # Enable/disable edit actions
+            cut_action = self.get_action(ClientContextMenuActions.Cut)
+            cut_action.setEnabled(self.can_cut())
 
-            for action in [self.cut_action, self.copy_action,
-                           self._copy_raw_action, self.paste_action,
-                           self.select_all_action]:
+            for name in [ClientContextMenuActions.Copy,
+                         ClientContextMenuActions.CopyRaw]:
+                action = self.get_action(name)
+                action.setEnabled(self.can_copy())
+
+            paste_action = self.get_action(ClientContextMenuActions.Paste)
+            paste_action.setEnabled(self.can_paste())
+
+            # Add regular actions to menu
+            for name in [ClientContextMenuActions.Cut,
+                         ClientContextMenuActions.Copy,
+                         ClientContextMenuActions.CopyRaw,
+                         ClientContextMenuActions.Paste,
+                         ClientContextMenuActions.SelectAll]:
                 self.add_item_to_menu(
-                    action,
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Edit
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Edit
                 )
 
             self.add_item_to_menu(
-                self.get_action(IPythonConsoleWidgetActions.InspectObject),
-                self.context_menu,
-                section=ShellWidgetContextMenuSections.Inspect
+                self.get_action(ClientContextMenuActions.InspectObject),
+                context_menu,
+                section=ClientContextMenuSections.Inspect
             )
 
-            for name in [IPythonConsoleWidgetActions.ArrayTable,
-                         IPythonConsoleWidgetActions.ArrayInline]:
+            for name in [ClientContextMenuActions.ArrayTable,
+                         ClientContextMenuActions.ArrayInline]:
                 self.add_item_to_menu(
                     self.get_action(name),
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Array
+                    context_menu,
+                    section=ClientContextMenuSections.Array
                 )
 
-            for action in [self.export_action, self.print_action]:
-                self.add_item_to_menu(
-                    action,
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Export
-                )
-
-            for name in [IPythonConsoleWidgetActions.ClearConsole,
-                         IPythonConsoleWidgetActions.ClearLine]:
+            for name in [ClientContextMenuActions.Export,
+                         ClientContextMenuActions.Print]:
                 self.add_item_to_menu(
                     self.get_action(name),
-                    self.context_menu,
-                    section=ShellWidgetContextMenuSections.Clear
+                    context_menu,
+                    section=ClientContextMenuSections.Export
                 )
 
-        return self.context_menu
+            for name in [ClientContextMenuActions.ClearConsole,
+                         ClientContextMenuActions.ClearLine]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Clear
+                )
+
+        return context_menu
 
     def _banner_default(self):
         """

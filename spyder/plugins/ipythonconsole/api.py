@@ -52,24 +52,16 @@ class IPythonConsoleWidgetActions:
     CreateNewClientEnvironment = 'create environment client'
 
     # Current console actions
-    ClearConsole = 'Clear shell'
-    ClearLine = 'clear line'
     ConnectToKernel = 'connect to kernel'
     Interrupt = 'interrupt kernel'
-    InspectObject = 'Inspect current object'
     Restart = 'Restart kernel'
     ResetNamespace = 'reset namespace'
     ShowEnvironmentVariables = 'Show environment variables'
     ShowSystemPath = 'show system path'
     ToggleElapsedTime = 'toggle elapsed time'
-    Quit = 'exit'
 
     # Tabs
     RenameTab = 'rename tab'
-
-    # Variables display
-    ArrayInline = 'enter array inline'
-    ArrayTable = 'enter array table'
 
     # Documentation and help
     IPythonDocumentation = 'ipython documentation'
@@ -89,7 +81,7 @@ class IPythonConsoleWidgetOptionsMenuSections:
 
 
 class IPythonConsoleWidgetMenus:
-    ShellContextMenu = 'shell_context_menu'
+    ClientContextMenu = 'client_context_menu'
     TabsContextMenu = 'tabs_context_menu'
 
 
@@ -98,25 +90,43 @@ class IPythonConsoleWidgetTabsContextMenuSections:
     Edit = 'tabs_edit_section'
 
 
-class ShellWidgetContextMenuActions:
+class ClientContextMenuSections:
+    Edit = 'edit'
+    Inspect = 'inspect'
+    Array = 'array'
+    Export = 'export'
+    Clear = 'clear'
+    Image = 'image'
+    SVG = 'svg'
+
+
+class ClientContextMenuActions:
+    # Edit section
     Cut = 'cut'
     Copy = 'copy'
     CopyRaw = 'copy_raw'
     Paste = 'paste'
     SelectAll = 'select_all'
-    CopyImage = 'copy_image'
-    SaveImage = 'save_image'
-    CopySvg = 'copy_svg'
-    SaveSvg = 'save_svg'
+
+    # Inspect section
+    InspectObject = 'Inspect current object'
+
+    # Array section
+    ArrayInline = 'enter array inline'
+    ArrayTable = 'enter array table'
+
+    # Export section
     Export = 'export'
     Print = 'print'
 
+    # Clear section
+    ClearConsole = 'Clear shell'
+    ClearLine = 'clear line'
 
-class ShellWidgetContextMenuSections:
-    Edit = 'edit'
-    Inspect = 'inspect'
-    Array = 'array'
-    Export = 'export'
-    Image = 'image'
-    SVG = 'svg'
-    Clear = 'clear'
+    # Image section
+    CopyImage = 'copy_image'
+    SaveImage = 'save_image'
+
+    # Svg section
+    CopySvg = 'copy_svg'
+    SaveSvg = 'save_svg'
