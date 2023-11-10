@@ -414,24 +414,28 @@ class IconManager():
                 icon.addPixmap(wrapping_icon.pixmap(size, size))
             return icon
         else:
-            # Normal state
+            # These are the necessary adjustments for our SVG icons.
+
+            # -- Normal state
             # NOTE: We take pixmaps as large as the ones below to not have
             # pixelated icons on high dpi screens.
             # Fixes spyder-ide/spyder#19520
             normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
-            # Disabled color from qdarkstyle
-            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
-
-            # Paint icon with the previous color to get the disabled state.
+            # -- Disabled state
             # Taken from https://stackoverflow.com/a/65618075/438386
+            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
             disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
             qp.fillRect(disabled_state.rect(), disabled_color)
             qp.end()
             icon.addPixmap(disabled_state, QIcon.Disabled)
+
+            # -- Selected state
+            # We use the normal state pixmap for the selected state as well.
+            icon.addPixmap(normal_state, QIcon.Selected)
 
             return icon
 
