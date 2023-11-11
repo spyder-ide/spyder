@@ -88,7 +88,9 @@ def start_new_kernel(ipyconsole, startup_timeout=60, kernel_name='python',
     """Start a new kernel, and return its Manager and Client"""
     km = KernelManager(kernel_name=kernel_name)
     if spykernel:
-        km._kernel_spec = get_kernel_spec(ipyconsole.get_kernel_spec_dict())
+        km._kernel_spec = get_kernel_spec(
+            ipyconsole.get_widget().get_kernel_spec_dict()
+        )
     km.start_kernel(**kwargs)
     kc = km.client()
     kc.start_channels()
