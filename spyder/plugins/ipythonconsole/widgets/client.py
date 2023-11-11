@@ -329,6 +329,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.kernel_handler = kernel_handler
 
         # Connect standard streams.
+        kernel_handler.sig_error.connect(self.print_error)
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
@@ -345,6 +346,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if not kernel_handler:
             return
 
+        kernel_handler.sig_error.disconnect(self.print_error)
         kernel_handler.sig_stderr.disconnect(self.print_stderr)
         kernel_handler.sig_stdout.disconnect(self.print_stdout)
         kernel_handler.sig_fault.disconnect(self.print_fault)
@@ -353,8 +355,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.kernel_handler = None
 
     @Slot(str)
-    def print_stderr(self, stderr):
-        """Print stderr written in PIPE."""
+    def print_error(self, stderr):
+        """Print crash infos."""
         if not stderr:
             return
 
@@ -369,6 +371,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     # Append to error text
                     error_text = self.error_text + error_text
                 self.show_kernel_error(error_text)
+
+        self.shellwidget._append_plain_text(stderr, before_prompt=True)
+
+    @Slot(str)
+    def print_stderr(self, stderr):
+        """Print stderr written in PIPE."""
+        if not stderr:
+            return
 
         self.shellwidget._append_plain_text(stderr, before_prompt=True)
 

@@ -97,6 +97,11 @@ class KernelHandler(QObject):
     A stderr message was received on the process stderr.
     """
 
+    sig_error = Signal(str)
+    """
+    The process crashed with a message.
+    """
+
     sig_fault = Signal(str)
     """
     A fault message was received.
@@ -151,6 +156,7 @@ class KernelHandler(QObject):
 
         # Internal
         self._fault_args = None
+        self._init_error = ""
         self._init_stderr = ""
         self._init_stdout = ""
         self._shellwidget_connected = False
@@ -160,6 +166,14 @@ class KernelHandler(QObject):
         # Start kernel
         if self.kernel_client:
             self.start_channels()
+
+    @Slot(str, str)
+    def handle_error(self, err):
+        """Handle crash"""
+        if self._shellwidget_connected:
+            self.sig_error.emit(err)
+        else:
+            self._init_error += err
 
     @Slot(str, str)
     def handle_stderr(self, err):
@@ -189,6 +203,9 @@ class KernelHandler(QObject):
             self.sig_kernel_connection_error.emit()
 
         # Show initial io
+        if self._init_error:
+            self.sig_error.emit(self._init_error)
+        self._init_error = None
         if self._init_stderr:
             self.sig_stderr.emit(self._init_stderr)
         self._init_stderr = None

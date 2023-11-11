@@ -240,7 +240,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
             kernel_handler = self.kernel_handler_waitlist.pop(0)
             if connection_file == "error":
-                kernel_handler.handle_stderr(str(connection_info))
+                kernel_handler.handle_error(str(connection_info))
             else:
                 kernel_handler.set_connection(
                     connection_file,
