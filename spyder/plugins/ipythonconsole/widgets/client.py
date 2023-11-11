@@ -381,6 +381,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return
 
         self.shellwidget._append_plain_text(stderr, before_prompt=True)
+        self._hide_loading_page()
 
     @Slot(str)
     def print_stdout(self, stdout):
@@ -389,6 +390,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return
 
         self.shellwidget._append_plain_text(stdout, before_prompt=True)
+        self._hide_loading_page()
 
     def connect_shellwidget_signals(self):
         """Configure shellwidget after kernel is connected."""
