@@ -12,7 +12,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout)
+                            QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -24,36 +24,45 @@ class IPythonConsoleConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # Interface Group
-        interface_group = QGroupBox(_("Interface"))
+        # Display group
+        display_group = QGroupBox(_("Display"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
                            tip=_("This option lets you hide the message "
                                  "shown at\nthe top of the console when "
                                  "it's opened."))
         calltips_box = newcb(_("Show calltips"), 'show_calltips')
-        ask_box = newcb(_("Ask for confirmation before closing"),
-                        'ask_before_closing')
-        reset_namespace_box = newcb(
-                _("Ask for confirmation before removing all user-defined "
-                  "variables"),
-                'show_reset_namespace_warning',
-                tip=_("This option lets you hide the warning message shown\n"
-                      "when resetting the namespace from Spyder."))
         show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
-        ask_restart_box = newcb(
-                _("Ask for confirmation before restarting"),
-                'ask_before_restart',
-                tip=_("This option lets you hide the warning message shown\n"
-                      "when restarting the kernel."))
 
-        interface_layout = QVBoxLayout()
-        interface_layout.addWidget(banner_box)
-        interface_layout.addWidget(calltips_box)
-        interface_layout.addWidget(ask_box)
-        interface_layout.addWidget(reset_namespace_box)
-        interface_layout.addWidget(show_time_box)
-        interface_layout.addWidget(ask_restart_box)
-        interface_group.setLayout(interface_layout)
+        display_layout = QVBoxLayout()
+        display_layout .addWidget(banner_box)
+        display_layout .addWidget(calltips_box)
+        display_layout.addWidget(show_time_box)
+        display_group.setLayout(display_layout)
+
+        # Confirmations group
+        confirmations_group = QGroupBox(_("Confirmations"))
+        ask_box = newcb(
+            _("Ask for confirmation before closing"), 'ask_before_closing'
+        )
+        reset_namespace_box = newcb(
+            _("Ask for confirmation before removing all user-defined "
+              "variables"),
+            'show_reset_namespace_warning',
+            tip=_("This option lets you hide the warning message shown\n"
+                  "when resetting the namespace from Spyder.")
+        )
+        ask_restart_box = newcb(
+            _("Ask for confirmation before restarting"),
+            'ask_before_restart',
+            tip=_("This option lets you hide the warning message shown\n"
+                  "when restarting the kernel.")
+        )
+
+        confirmations_layout = QVBoxLayout()
+        confirmations_layout.addWidget(ask_box)
+        confirmations_layout.addWidget(reset_namespace_box)
+        confirmations_layout.addWidget(ask_restart_box)
+        confirmations_group.setLayout(confirmations_layout)
 
         comp_group = QGroupBox(_("Completion type"))
         comp_label = QLabel(_("Decide what type of completion to use"))
@@ -61,6 +70,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         completers = [(_("Graphical"), 0), (_("Terminal"), 1), (_("Plain"), 2)]
         comp_box = self.create_combobox(_("Completion:")+"   ", completers,
                                         'completion_type')
+
         comp_layout = QVBoxLayout()
         comp_layout.addWidget(comp_label)
         comp_layout.addWidget(comp_box)
@@ -78,6 +88,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 tip=_("Set the maximum number of lines of text shown in the\n"
                       "console before truncation. Specifying -1 disables it\n"
                       "(not recommended!)"))
+
         source_code_layout = QVBoxLayout()
         source_code_layout.addWidget(buffer_spin)
         source_code_group.setLayout(source_code_layout)
@@ -262,7 +273,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "<tt>&lt;Space&gt;</tt> for some completions; "
                                 "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
                                 "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
-                                "</tt> doesn't."))
+                                "</tt> doesn't.<br><br>"))
         greedy_label.setWordWrap(True)
         greedy_box = newcb(_("Use greedy completion in the IPython console"),
                            "greedy_completer",
@@ -363,8 +374,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
               '%i&lt;/span&gt;]:'),
             alignment=Qt.Horizontal)
 
-        prompts_layout = QVBoxLayout()
-        prompts_layout.addWidget(prompts_label)
         prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
@@ -372,6 +381,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
         prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
         prompts_g_layout.addWidget(out_prompt_edit.help_label, 1, 2)
+
+        prompts_layout = QVBoxLayout()
+        prompts_layout.addWidget(prompts_label)
         prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 
@@ -386,18 +398,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group.setLayout(windows_layout)
 
         # --- Tabs organization ---
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(interface_group, comp_group,
-                                         source_code_group), _("Display"))
-        self.tabs.addTab(self.create_tab(
-            pylab_group, backend_group, inline_group), _("Graphics"))
-        self.tabs.addTab(self.create_tab(
-            run_lines_group, run_file_group), _("Startup"))
-        self.tabs.addTab(self.create_tab(
-            jedi_group, greedy_group, autocall_group, autoreload_group,
-            sympy_group, prompts_group,
-            windows_group), _("Advanced settings"))
+        self.create_tab(
+            _("Interface"),
+            [display_group, confirmations_group, comp_group, source_code_group]
+        )
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)
+        self.create_tab(
+            _("Graphics"),
+            [pylab_group, backend_group, inline_group]
+        )
+
+        self.create_tab(
+            _("Startup"),
+            [run_lines_group, run_file_group]
+        )
+
+        self.create_tab(
+            _("Advanced settings"),
+            [jedi_group, greedy_group, autocall_group, autoreload_group,
+             sympy_group, prompts_group, windows_group]
+        )

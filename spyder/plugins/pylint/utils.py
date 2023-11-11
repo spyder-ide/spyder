@@ -24,7 +24,9 @@ except Exception:
 def _find_pylintrc_path(path):
     if pylint_config is not None:
         os.chdir(path)
-        return pylint_config.find_pylintrc()
+        for p in pylint_config.find_default_config_files():
+            # return the first config found as str
+            return str(p)
 
 
 def get_pylintrc_path(search_paths=None, home_path=None):

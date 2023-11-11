@@ -217,6 +217,37 @@ def test_go_to_last_item(create_outlineexplorer, qtbot):
     assert outlineexplorer.treewidget.currentItem().text(0) == 'method1'
 
 
+@flaky(max_runs=10)
+def test_display_variables(create_outlineexplorer, qtbot):
+    """
+    Test that clicking on the 'Display variables and attributes' button located in the
+    toolbar of the outline explorer is working as expected by updating the tree widget.
+
+    Regression test for spyder-ide/spyder#21456.
+    """
+    outlineexplorer, _ = create_outlineexplorer('text')
+
+    editor = outlineexplorer.treewidget.current_editor
+    state = outlineexplorer.treewidget.display_variables
+
+    editor_id = editor.get_id()
+
+    initial_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
+
+    outlineexplorer.treewidget.toggle_variables(not state)
+
+    first_toggle_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
+
+    assert first_toggle_tree != initial_tree
+
+    outlineexplorer.treewidget.toggle_variables(state)
+
+    second_toggle_tree = outlineexplorer.treewidget.editor_tree_cache[editor_id]
+
+    assert (second_toggle_tree != first_toggle_tree) and (
+        second_toggle_tree == initial_tree)
+
+
 if __name__ == "__main__":
     import os
     pytest.main(['-x', os.path.basename(__file__), '-v', '-rw'])

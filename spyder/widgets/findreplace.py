@@ -679,8 +679,8 @@ class FindReplace(QWidget):
         if self.editor is None:
             return
 
-        replace_text = to_text_string(self.replace_text.currentText())
-        search_text = to_text_string(self.search_text.currentText())
+        replace_text = str(self.replace_text.currentText())
+        search_text = str(self.search_text.currentText())
         case = self.case_button.isChecked()
         word = self.words_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
@@ -690,6 +690,7 @@ class FindReplace(QWidget):
         else:
             pattern = re.escape(search_text)
             # re.sub processes backslashes so they must be escaped
+            # See spyder-ide/spyder#21007.
             replace_text = replace_text.replace('\\', r'\\')
 
         # Match whole words only

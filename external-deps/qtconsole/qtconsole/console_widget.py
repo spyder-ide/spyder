@@ -19,7 +19,6 @@ from qtpy import QtCore, QtGui, QtPrintSupport, QtWidgets
 from qtconsole.rich_text import HtmlExporter
 from qtconsole.util import MetaQObjectHasTraits, get_font, superQ
 
-from ipython_genutils.text import columnize
 from traitlets.config.configurable import LoggingConfigurable
 from traitlets import Bool, Enum, Integer, Unicode
 
@@ -28,6 +27,7 @@ from .completion_widget import CompletionWidget
 from .completion_html import CompletionHtml
 from .completion_plain import CompletionPlain
 from .kill_ring import QtKillRing
+from .util import columnize
 
 
 def is_letter_or_number(char):
@@ -1679,28 +1679,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         self._pending_text_flush_interval.setInterval(
             int(max(100, (time.time() - t) * 1000))
         )
-
-    def _format_as_columns(self, items, separator='  '):
-        """ Transform a list of strings into a single string with columns.
-
-        Parameters
-        ----------
-        items : sequence of strings
-            The strings to process.
-
-        separator : str, optional [default is two spaces]
-            The string that separates columns.
-
-        Returns
-        -------
-        The formatted string.
-        """
-        # Calculate the number of characters available.
-        width = self._control.document().textWidth()
-        char_width = self._get_font_width()
-        displaywidth = max(10, (width / char_width) - 1)
-
-        return columnize(items, separator, displaywidth)
 
     def _get_cursor(self):
         """ Get a cursor at the current insert position.

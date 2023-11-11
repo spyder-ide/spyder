@@ -87,6 +87,7 @@ class CompletionConfigPage(PluginConfigPage):
             disable_completion_after_characters)
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.completions_group)
         layout.addWidget(self.providers_group)
         layout.addStretch(1)

@@ -5,7 +5,6 @@ dependencies:
 - pyqt
 - qtpy >=2.0.1
 - traitlets
-- ipython_genutils
 - jupyter_core
 - jupyter_client
 - pygments

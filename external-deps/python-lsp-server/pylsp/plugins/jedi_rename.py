@@ -54,4 +54,6 @@ def pylsp_rename(
 
 def _num_lines(file_contents):
     "Count the number of lines in the given string."
-    return len(file_contents.splitlines())
+    if _utils.get_eol_chars(file_contents):
+        return len(file_contents.splitlines())
+    return 0

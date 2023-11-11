@@ -98,6 +98,10 @@ class Config:
                 self._plugin_settings, plugin_conf
             )
 
+        self._plugin_settings = _utils.merge_dicts(
+            self._plugin_settings, self._init_opts.get("pylsp", {})
+        )
+
         self._update_disabled_plugins()
 
     @property

@@ -15,8 +15,10 @@ Spyder API Mixins.
 from typing import Any, Optional, Dict
 
 # Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QSizePolicy, QToolBar, QWidget, QToolButton
+from qtpy.QtCore import QPoint, Qt
+from qtpy.QtWidgets import (
+    QApplication, QMainWindow, QSizePolicy, QToolBar, QWidget, QToolButton
+)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -609,3 +611,39 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
         change.
         """
         pass
+
+
+class SpyderMainWindowMixin:
+    """
+    Mixin with additional functionality for the QMainWindow's used in Spyder.
+    """
+
+    def _is_on_visible_screen(self: QMainWindow):
+        """Detect if the window is placed on a visible screen."""
+        x, y = self.geometry().x(), self.geometry().y()
+        qapp = QApplication.instance()
+        current_screen = qapp.screenAt(QPoint(x, y))
+
+        if current_screen is None:
+            return False
+        else:
+            return True
+
+    def move_to_primary_screen(self: QMainWindow):
+        """Move the window to the primary screen if necessary."""
+        if self._is_on_visible_screen():
+            return
+
+        qapp = QApplication.instance()
+        primary_screen_geometry = qapp.primaryScreen().availableGeometry()
+        x, y = primary_screen_geometry.x(), primary_screen_geometry.y()
+
+        if self.isMaximized():
+            self.showNormal()
+
+        self.move(QPoint(x, y))
+
+        # With this we want to maximize only the Spyder main window and not the
+        # plugin ones, which usually are not maximized.
+        if not hasattr(self, 'is_window_widget'):
+            self.showMaximized()

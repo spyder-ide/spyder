@@ -58,6 +58,7 @@ def pylsp_lint(workspace, document):
         opts = {
             "config": settings.get("config"),
             "exclude": settings.get("exclude"),
+            "extend-ignore": settings.get("extendIgnore"),
             "filename": settings.get("filename"),
             "hang-closing": settings.get("hangClosing"),
             "ignore": ignores or None,

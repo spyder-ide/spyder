@@ -5,33 +5,51 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-import json
 import logging
 import os
 import os.path as osp
-import re
-import ssl
-import sys
 import tempfile
-from urllib.request import urlopen, urlretrieve
-from urllib.error import URLError, HTTPError
+import traceback
 
 # Third party imports
 from qtpy.QtCore import QObject, Signal
+import requests
+from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version
-from spyder.py3compat import is_text_string
+from spyder.config.base import _, is_conda_based_app, is_stable_version
 from spyder.config.utils import is_anaconda
+from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version, is_module_installed
 
 # Logger setup
 logger = logging.getLogger(__name__)
 
+CONNECT_ERROR_MSG = _(
+    'Unable to connect to the Spyder update service.'
+    '<br><br>Make sure your connection is working properly.'
+)
+
+HTTP_ERROR_MSG = _(
+    'HTTP error {status_code} when checking for updates.'
+    '<br><br>Make sure your connection is working properly,'
+    'and try again later.'
+)
+
+SSL_ERROR_MSG = _(
+    'SSL certificate verification failed while checking for Spyder updates.'
+    '<br><br>Please contact your network administrator for assistance.'
+)
+
 
 class UpdateDownloadCancelledException(Exception):
     """Download for installer to update was cancelled."""
+    pass
+
+
+class UpdateDownloadIncompleteError(Exception):
+    """Error occured while downloading file"""
     pass
 
 
@@ -58,14 +76,16 @@ class WorkerUpdates(QObject):
             self.version = version
 
     def check_update_available(self):
-        """Checks if there is an update available.
+        """
+        Check if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
         valid cleaned releases in chronological order.
         Example: ['2.3.2', '2.3.3' ...] or with github ['2.3.4', '2.3.3' ...]
         """
-        # Don't perform any check for development versions
-        if 'dev' in self.version:
+        # Don't perform any check for development versions or we were unable to
+        # detect releases.
+        if 'dev' in self.version or not self.releases:
             return (False, self.latest_release)
 
         # Filter releases
@@ -81,65 +101,71 @@ class WorkerUpdates(QObject):
                 latest_release)
 
     def start(self):
-        """Main method of the WorkerUpdates worker"""
-        if is_anaconda():
-            self.url = 'https://repo.anaconda.com/pkgs/main'
-            if os.name == 'nt':
-                self.url += '/win-64/repodata.json'
-            elif sys.platform == 'darwin':
-                self.url += '/osx-64/repodata.json'
-            else:
-                self.url += '/linux-64/repodata.json'
-        else:
-            self.url = ('https://api.github.com/repos/'
-                        'spyder-ide/spyder/releases')
+        """Main method of the worker."""
         self.update_available = False
         self.latest_release = __version__
 
         error_msg = None
+        pypi_url = "https://pypi.org/pypi/spyder/json"
+
+        if is_conda_based_app():
+            self.url = ('https://api.github.com/repos/'
+                        'spyder-ide/spyder/releases')
+        elif is_anaconda():
+            channel, channel_url = get_spyder_conda_channel()
+
+            if channel_url is None:
+                return
+            elif channel == "pypi":
+                self.url = pypi_url
+            else:
+                self.url = channel_url + '/channeldata.json'
+        else:
+            self.url = pypi_url
 
         try:
-            if hasattr(ssl, '_create_unverified_context'):
-                # Fix for spyder-ide/spyder#2685.
-                # [Works only with Python >=2.7.9]
-                # More info: https://www.python.org/dev/peps/pep-0476/#opting-out
-                context = ssl._create_unverified_context()
-                page = urlopen(self.url, context=context)
+            logger.debug(f"Checking for updates from {self.url}")
+            page = requests.get(self.url)
+            page.raise_for_status()
+            data = page.json()
+
+            if is_conda_based_app():
+                if self.releases is None:
+                    self.releases = [
+                        item['tag_name'].replace('v', '') for item in data
+                    ]
+                    self.releases = list(reversed(self.releases))
+            elif is_anaconda() and self.url != pypi_url:
+                if self.releases is None:
+                    spyder_data = data['packages'].get('spyder')
+                    if spyder_data:
+                        self.releases = [spyder_data["version"]]
             else:
-                page = urlopen(self.url)
-            try:
-                data = page.read()
+                if self.releases is None:
+                    self.releases = [data['info']['version']]
 
-                # Needed step for python3 compatibility
-                if not is_text_string(data):
-                    data = data.decode()
-                data = json.loads(data)
+            result = self.check_update_available()
+            self.update_available, self.latest_release = result
+        except SSLError as err:
+            error_msg = SSL_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = CONNECT_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except HTTPError as err:
+            error_msg = HTTP_ERROR_MSG.format(page.status_code)
+            logger.debug(err, stack_info=True)
+        except Exception as err:
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
 
-                if is_anaconda():
-                    if self.releases is None:
-                        self.releases = []
-                        for item in data['packages']:
-                            if ('spyder' in item and
-                                    not re.search(r'spyder-[a-zA-Z]', item)):
-                                self.releases.append(item.split('-')[1])
-                    result = self.check_update_available()
-                else:
-                    if self.releases is None:
-                        self.releases = [item['tag_name'].replace('v', '')
-                                         for item in data]
-                        self.releases = list(reversed(self.releases))
-
-                result = self.check_update_available()
-                self.update_available, self.latest_release = result
-            except Exception:
-                error_msg = _('Unable to retrieve information.')
-        except HTTPError:
-            error_msg = _('Unable to retrieve information.')
-        except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>Make '
-                          'sure the connection is working properly.')
-        except Exception:
-            error_msg = _('Unable to check for updates.')
+            error_msg = _(
+                'It was not possible to check for Spyder updates due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
+            logger.debug(err, stack_info=True)
 
         # Don't show dialog when starting up spyder and an error occur
         if not (self.startup and error_msg is not None):
@@ -197,7 +223,6 @@ class WorkerDownloadInstaller(QObject):
 
     def _download_installer(self):
         """Donwload latest Spyder standalone installer executable."""
-        logger.debug("Downloading installer executable")
         tmpdir = tempfile.gettempdir()
         is_full_installer = (is_module_installed('numpy') or
                              is_module_installed('pandas'))
@@ -221,13 +246,37 @@ class WorkerDownloadInstaller(QObject):
 
         installer_path = osp.join(installer_dir_path, name)
         self.installer_path = installer_path
-        if not osp.isfile(installer_path):
-            logger.debug(
-                f"Downloading installer from {url} to {installer_path}")
-            urlretrieve(
-                url, installer_path, reporthook=self._progress_reporter)
-        else:
-            self._progress_reporter(1, 1)
+
+        if osp.isfile(installer_path):
+            # Installer already downloaded
+            logger.info(f"{installer_path} already downloaded")
+            self._progress_reporter(1, 1, 1)
+            return
+
+        logger.debug(f"Downloading installer from {url} to {installer_path}")
+        with requests.get(url, stream=True) as r:
+            with open(installer_path, 'wb') as f:
+                chunk_size = 8 * 1024
+                size = -1
+                size_read = 0
+                chunk_num = 0
+
+                if "content-length" in r.headers:
+                    size = int(r.headers["content-length"])
+
+                self._progress_reporter(chunk_num, chunk_size, size)
+
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    size_read += len(chunk)
+                    f.write(chunk)
+                    chunk_num += 1
+                    self._progress_reporter(chunk_num, chunk_size, size)
+
+                if size >= 0 and size_read < size:
+                    raise UpdateDownloadIncompleteError(
+                        "Download incomplete: retrieved only "
+                        f"{size_read} out of {size} bytes."
+                    )
 
     def start(self):
         """Main method of the WorkerDownloadInstaller worker."""
@@ -236,15 +285,25 @@ class WorkerDownloadInstaller(QObject):
             self._download_installer()
         except UpdateDownloadCancelledException:
             if self.installer_path:
-               os.remove(self.installer_path)
+                os.remove(self.installer_path)
             return
-        except HTTPError:
-            error_msg = _('Unable to retrieve installer information.')
-        except URLError:
-            error_msg = _('Unable to connect to the internet. <br><br>'
-                          'Make sure the connection is working properly.')
-        except Exception:
-            error_msg = _('Unable to download the installer.')
+        except SSLError as err:
+            error_msg = SSL_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except ConnectionError as err:
+            error_msg = CONNECT_ERROR_MSG
+            logger.debug(err, stack_info=True)
+        except Exception as err:
+            error = traceback.format_exc()
+            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
+
+            error_msg = _(
+                'It was not possible to download the installer due to the '
+                'following error:'
+                '<br><br>'
+                '<tt>{}</tt>'
+            ).format(formatted_error)
+            logger.debug(err, stack_info=True)
         self.error = error_msg
         try:
             self.sig_ready.emit(self.installer_path)

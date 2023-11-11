@@ -43,6 +43,8 @@ concurrency:
 
 jobs:
   build:
+    # Use this to disable the workflow
+    # if: false
     name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
     runs-on: ubuntu-20.04
     env:
@@ -60,6 +62,10 @@ jobs:
         INSTALL_TYPE: ['pip', 'conda']
         PYTHON_VERSION: ['3.8', '3.10']
         TEST_TYPE: ['fast', 'slow']
+        exclude:
+          # Only test Python 3.8 with pip because Conda-forge will drop it soon
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '3.8'
     timeout-minutes: 90
     steps:
       - name: Checkout Pull Requests
