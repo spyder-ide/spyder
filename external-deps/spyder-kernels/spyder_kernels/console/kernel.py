@@ -560,18 +560,22 @@ class SpyderKernel(IPythonKernel):
                 conf.get(pylab_backend_n, inline_backend),
                 pylab=conf.get(pylab_autoload_n, False)
             )
+
         if figure_format_n in conf:
             self._set_config_option(
                 'InlineBackend.figure_format',
                 conf[figure_format_n]
             )
+
         if resolution_n in conf:
             self._set_mpl_inline_rc_config('figure.dpi', conf[resolution_n])
+
         if width_n in conf and height_n in conf:
             self._set_mpl_inline_rc_config(
                 'figure.figsize',
                 (conf[width_n], conf[height_n])
             )
+
         if bbox_inches_n in conf:
             self.set_mpl_inline_bbox_inches(conf[bbox_inches_n])
 
@@ -980,6 +984,7 @@ class SpyderKernel(IPythonKernel):
         """Set SymPy forecolor depending on console background."""
         if self.shell.special != "sympy":
             return
+
         try:
             from sympy import init_printing
             if background_color == 'dark':
