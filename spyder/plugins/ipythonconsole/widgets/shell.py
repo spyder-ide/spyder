@@ -147,9 +147,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.kernel_handler = None
-        self._kernel_configuration = {}
-        self.is_kernel_configured = False
+        self.special_kernel = special_kernel
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -163,8 +161,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
-        self.special_kernel = special_kernel
+        self.kernel_handler = None
+        self._kernel_configuration = {}
+        self.is_kernel_configured = False
         self._init_kernel_setup = False
+
         if handlers is None:
             handlers = {}
         else:
@@ -534,13 +535,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         Send matplotlib backend.
 
-        If option is not None only send the related options
+        If `option` is not None only send the related options.
         """
         if not self.spyder_kernel_ready:
             # will be sent later
             return
-        # Set Matplotlib backend with Spyder options
 
+        # Set Matplotlib backend with Spyder options
         pylab_n = 'pylab'
         pylab_o = self.get_conf(pylab_n)
 
@@ -559,7 +560,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         backend_o = self.get_conf(pylab_backend_n)
 
         inline_backend = 'inline'
-
         matplotlib_conf = {}
 
         if pylab_o:
@@ -592,7 +592,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             mpl_backend = backend_o
         else:
             # Set Matplotlib backend to inline for external kernels.
-            # Fixes issue 108
+            # Fixes issue spyder-ide/spyder-kernels#108
             mpl_backend = inline_backend
 
         # Automatically load Pylab and Numpy, or only set Matplotlib

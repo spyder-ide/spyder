@@ -568,8 +568,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         filename : str, optional
             Filename associated with the client. The default is ''.
         special : str, optional
-            Type of special support to preload. Can be "pylab", "cython",
-            "sympy", or None
+            Type of special support to preload. It can be "pylab", "cython",
+            "sympy", or None.
         given_name : str, optional
             Initial name displayed in the tab of the client.
             The default is None.
