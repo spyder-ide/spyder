@@ -129,13 +129,19 @@ def test_dataframe_to_type(qtbot):
     view = editor.dataTable
     view.setCurrentIndex(view.model().index(0, 0))
 
-    # Show context menu and select option `To bool`
+    # Show context menu, go down until `Convert to`, and open submenu
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
-    submenu = view.menu.activeAction().menu()
+    for _ in range(100):
+        activeAction = view.menu.activeAction()
+        if activeAction and activeAction.text() == 'Convert to':
+            qtbot.keyPress(view.menu, Qt.Key_Return)
+            break
+        qtbot.keyPress(view.menu, Qt.Key_Down)
+    else:
+        raise RuntimeError('Item "Convert to" not found')
+
+    # Select first option, which is `To bool`
+    submenu = activeAction.menu()
     qtbot.keyPress(submenu, Qt.Key_Return)
     qtbot.wait(1000)
 
