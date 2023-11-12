@@ -26,10 +26,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
-    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
-    # So, pinning it to 8.14 for now.
-    micromamba install ipython=8.14
-
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -46,15 +42,14 @@ else
     # To check our manifest
     pip install -q check-manifest
 
-    # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
+        # This allows the test suite to run more reliably on Linux
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
-    fi
 
-    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
-    # So, pinning it to 8.14 for now.
-    pip install ipython==8.14.0
+        # QDarkstyle 3.2.1 doesn't work with PyQt 5.12
+        pip install qdarkstyle==3.2
+    fi
 
 fi
 
