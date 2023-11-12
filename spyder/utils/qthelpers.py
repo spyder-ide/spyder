@@ -730,11 +730,18 @@ class SpyderProxyStyle(QProxyStyle):
 
     def pixelMetric(self, metric, option=None, widget=None):
         if metric == QStyle.PM_SmallIconSize:
-            # Increase icon size for menus.
+            # Change icon size for menus.
             # Taken from https://stackoverflow.com/a/42145885/438386
-            return QProxyStyle.pixelMetric(self, metric, option, widget) + 2
-        else:
-            return QProxyStyle.pixelMetric(self, metric, option, widget)
+            delta = (
+                -1 if sys.platform == "darwin"
+                else (0 if os.name == "nt" else 1)
+            )
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 class QInputDialogMultiline(QDialog):

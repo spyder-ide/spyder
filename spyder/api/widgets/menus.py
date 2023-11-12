@@ -333,7 +333,8 @@ class SpyderMenu(QMenu):
         """Adjustments when the menu is shown."""
         # Reposition menu vertically due to padding
         if (
-            self._reposition
+            not sys.platform == "darwin"
+            and self._reposition
             and self._is_submenu
             and not self._is_shown
         ):

@@ -10,6 +10,7 @@ Main menu Plugin.
 
 # Standard library imports
 from collections import OrderedDict
+import os
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
@@ -77,7 +78,9 @@ class MainMenu(SpyderPluginV2):
             create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
         if self.is_plugin_enabled(Plugins.Projects):
             create_app_menu(
-                ApplicationMenus.Projects, _("&Projects"), min_width=170
+                ApplicationMenus.Projects,
+                _("&Projects"),
+                min_width=150 if os.name == "nt" else 170
             )
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.View, _("&View"))

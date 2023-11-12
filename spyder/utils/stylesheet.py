@@ -233,9 +233,14 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         )
 
         # Set menu item properties
+        delta_top = 0 if (MAC or WIN) else 1
+        delta_bottom = 0 if MAC else (2 if WIN else 1)
         css["QMenu::item"].setValues(
-            height='1.25em',
-            padding=f'{AppStyle.MarginSize + 1}px {3 * AppStyle.MarginSize}px',
+            height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
+            paddingTop=f'{AppStyle.MarginSize + delta_top}px',
+            paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
+            paddingLeft=f'{3 * AppStyle.MarginSize}px',
+            paddingRight=f'{3 * AppStyle.MarginSize}px',
             fontFamily=font_family,
             fontSize=f'{font_size}pt',
             backgroundColor='transparent'
@@ -259,6 +264,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
                     backgroundColor=bg_color,
                     borderRadius=QStylePalette.SIZE_BORDER_RADIUS
                 )
+
+        # Set state of disabled menu items
+        css["QMenu::item:selected:disabled"].setValues(
+            color=QStylePalette.COLOR_DISABLED,
+            backgroundColor="transparent"
+        )
 
         # Increase padding for QPushButton's
         css.QPushButton.setValues(
