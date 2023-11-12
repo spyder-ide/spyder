@@ -916,6 +916,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     # No restart is needed if the new backend is inline
                     clients_backend_require_restart.append(False)
                     continue
+
                 # Need to know the interactive state
                 interactive_backend = None
                 sw = client.shellwidget
@@ -926,11 +927,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     # If the kernel didn't start and no backend was requested,
                     # the backend is inline
                     interactive_backend = inline_backend
+
                 if interactive_backend is None:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
                     interactive_backend = (
-                        client.shellwidget.get_mpl_interactive_backend())
+                        client.shellwidget.get_mpl_interactive_backend()
+                    )
 
                 if (
                     # There was an error getting the interactive backend in
@@ -1461,8 +1464,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self,
             id_=client_id,
             config_options=self.config_options(),
-            additional_options=self.additional_options(
-                    special=special),
+            additional_options=self.additional_options(special),
             interpreter_versions=self.interpreter_versions(
                 path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
@@ -1484,10 +1486,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             kernel_spec = SpyderKernelSpec(
                 path_to_custom_interpreter=path_to_custom_interpreter
             )
-            kernel_handler = self.get_cached_kernel(
-                kernel_spec,
-                cache=cache,
-                )
+            kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1605,7 +1604,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             special = "cython"
         # Create client
         client = self.create_new_client(
-            filename=filename, special=special)
+            filename=filename, special=special
+        )
 
         # Don't increase the count of master clients
         self.master_clients -= 1

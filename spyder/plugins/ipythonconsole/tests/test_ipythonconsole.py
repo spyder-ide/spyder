@@ -2055,7 +2055,7 @@ def test_old_kernel_version(ipyconsole, qtbot):
     # Wait until it is launched
     qtbot.waitUntil(
         lambda: (
-            kernel_handler._comm_ready_recieved
+            kernel_handler._comm_ready_received
         ),
         timeout=SHELL_TIMEOUT)
 

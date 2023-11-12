@@ -313,21 +313,22 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Autoreload group
         autoreload_group = QGroupBox(_("Autoreload"))
-        autoreload_label = QLabel(_(
-            "Autoreload reloads modules automatically every time before "
-            "executing the Python code typed.<br>"
-            "This is a different mechanism than the UMR.<br>"
-            "It can be slow on windows because of the NTFS file system."
-            ))
+        autoreload_label = QLabel(
+            _("Autoreload reloads modules automatically every time before "
+              "executing your Python code.<br>"
+              "This is a different mechanism than the User Module Reloader "
+              "(UMR) and it can be slow on Windows due to limitations of its "
+              "file system."
+            )
+        )
         autoreload_label.setWordWrap(True)
 
         autoreload_box = newcb(
             _("Use autoreload"),
             "autoreload",
             tip=_(
-                "This option enables the autoreload kernel "
-                "extension.<br>Please refer to its documentation "
-                "to learn how to use it."
+                "This option enables the autoreload magic.<br>"
+                "Please refer to its documentation to learn how to use it."
             )
         )
 
