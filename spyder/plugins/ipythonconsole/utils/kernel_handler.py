@@ -263,12 +263,12 @@ class KernelHandler(QObject):
 
         self.known_spyder_kernel = True
         self.connection_state = KernelConnectionState.SpyderKernelWaitComm
-        if self._comm_ready_recieved:
+        if self._comm_ready_received:
             self.handle_comm_ready()
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self._comm_ready_recieved = True
+        self._comm_ready_received = True
         if self.connection_state in [
             KernelConnectionState.SpyderKernelWaitComm,
             KernelConnectionState.Crashed
