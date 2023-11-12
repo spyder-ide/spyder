@@ -18,7 +18,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
-from spyder.utils.qthelpers import add_actions, SpyderAction
+from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -48,6 +48,7 @@ class SpyderMenu(QMenu):
     A QMenu subclass to implement additional functionality for Spyder.
     """
     MENUS = []
+    APP_MENU = False
 
     def __init__(self, parent=None, title=None, dynamic=True, menu_id=None,
                  min_width=None):
@@ -64,6 +65,7 @@ class SpyderMenu(QMenu):
         self._is_shown = False
         self._is_submenu = False
         self._reposition = True
+        self._in_app_menu = False
 
         if title is None:
             super().__init__(parent)
@@ -76,14 +78,19 @@ class SpyderMenu(QMenu):
         if min_width is not None:
             self.setMinimumWidth(min_width)
 
-        # Needed to enable the dynamic population of actions in menus in the
-        # aboutToShow signal
-        # See spyder-ide/spyder#14612
-        if sys.platform == 'darwin' and dynamic:
-            self.addAction(QAction(self))
-
         # Signals
         self.aboutToShow.connect(self._render)
+
+        # Adjustmens for Mac
+        if sys.platform == 'darwin':
+            # Needed to enable the dynamic population of actions in menus in
+            # the aboutToShow signal.
+            # See spyder-ide/spyder#14612
+            if dynamic:
+                self.addAction(QAction(self))
+
+            # Necessary to follow Mac's HIG for app menus.
+            self.aboutToShow.connect(self._set_icons)
 
         # This line is necessary to have rounded borders in menu corners.
         # Solution taken from https://stackoverflow.com/a/65576117/438386
@@ -300,6 +307,25 @@ class SpyderMenu(QMenu):
                 idx = self._sections.index(section)
                 idx = idx if (idx == 0) else (idx - 1)
                 self._sections.insert(idx, after_section)
+
+    def _set_icons(self):
+        """
+        Unset menu icons for app menus and set them for regular menus.
+
+        This is necessary only for Mac to follow its Human Interface
+        Guidelines (HIG), which don't recommend icons in app menus.
+        """
+        if sys.platform == "darwin":
+            if self.APP_MENU or self._in_app_menu:
+                set_menu_icons(self, False, in_app_menu=True)
+            else:
+                set_menu_icons(self, True)
+
+    def __str__(self):
+        return f"SpyderMenu('{self.menu_id}')"
+
+    def __repr__(self):
+        return f"SpyderMenu('{self.menu_id}')"
 
     # ---- Qt methods
     # -------------------------------------------------------------------------

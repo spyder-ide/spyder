@@ -727,6 +727,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """
         self.get_envs()
         self.console_environment_menu.clear_actions()
+
         for env_key, env_info in self.envs.items():
             env_name = env_key.split()[-1]
             path_to_interpreter, python_version = env_info
@@ -748,7 +749,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 action,
                 menu=self.console_environment_menu
             )
+
         self.console_environment_menu._render()
+        self.console_environment_menu._set_icons()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')

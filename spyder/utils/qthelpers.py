@@ -363,29 +363,21 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    # Workround for Mac because setting context=Qt.WidgetShortcut
-    # there doesn't have any effect
+    if shortcut is not None:
+        action.setShortcut(shortcut)
+    action.setShortcutContext(context)
+
+    # This is necessary to show shortcuts in any regular menu (i.e. not app
+    # ones).
+    # Fixes soyder-ide/spyder#15659.
     if sys.platform == 'darwin':
-        action._shown_shortcut = None
-        if context == Qt.WidgetShortcut:
-            if shortcut is not None:
-                action._shown_shortcut = shortcut
-            else:
-                # This is going to be filled by
-                # main.register_shortcut
-                action._shown_shortcut = 'missing'
-        else:
-            if shortcut is not None:
-                action.setShortcut(shortcut)
-            action.setShortcutContext(context)
-    else:
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        action.setShortcutContext(context)
+        action.setShortcutVisibleInContextMenu(True)
 
     if register_action:
         ACTION_REGISTRY.register_reference(
-            action, id_, plugin, context_name, overwrite)
+            action, id_, plugin, context_name, overwrite
+        )
+
     return action
 
 
@@ -705,14 +697,17 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-def set_menu_icons(menu, state):
+def set_menu_icons(menu, state, in_app_menu=False):
     """Show/hide icons for menu actions."""
     menu_actions = menu.actions()
     for action in menu_actions:
         try:
             if action.menu() is not None:
+                # This is necessary to decide if show icons or not
+                action.menu()._in_app_menu = in_app_menu
+
                 # This is submenu, so we need to call this again
-                set_menu_icons(action.menu(), state)
+                set_menu_icons(action.menu(), state, in_app_menu)
             elif action.isSeparator():
                 continue
             else:

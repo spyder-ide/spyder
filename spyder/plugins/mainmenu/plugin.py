@@ -24,7 +24,7 @@ from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
-from spyder.utils.qthelpers import set_menu_icons, SpyderAction
+from spyder.utils.qthelpers import SpyderAction
 
 
 # Extended typing definitions
@@ -95,50 +95,6 @@ class MainMenu(SpyderPluginV2):
 
     # ---- Private methods
     # ------------------------------------------------------------------------
-    def _show_shortcuts(self, menu):
-        """
-        Show action shortcuts in menu.
-
-        Parameters
-        ----------
-        menu: SpyderMenu
-            Instance of a spyder menu.
-        """
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(action._shown_shortcut)
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self._show_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
-    def _hide_shortcuts(self, menu):
-        """
-        Hide action shortcuts in menu.
-
-        Parameters
-        ----------
-        menu: SpyderMenu
-            Instance of a spyder menu.
-        """
-        menu_actions = menu.actions()
-        for action in menu_actions:
-            if getattr(action, '_shown_shortcut', False):
-                # This is a SpyderAction
-                if action._shown_shortcut is not None:
-                    action.setShortcut(QKeySequence())
-            elif action.menu() is not None:
-                # This is submenu, so we need to call this again
-                self._hide_shortcuts(action.menu())
-            else:
-                # We don't need to do anything for other elements
-                continue
-
     def _hide_options_menus(self):
         """Hide options menu when menubar is pressed in macOS."""
         for plugin_name in PLUGIN_REGISTRY:
@@ -154,21 +110,6 @@ class MainMenu(SpyderPluginV2):
                     except AttributeError:
                         # Old API
                         plugin_instance._options_menu.hide()
-
-    def _setup_menus(self):
-        """Setup menus."""
-        # Show and hide shortcuts and icons in menus for macOS
-        if sys.platform == 'darwin':
-            for menu_id in self._APPLICATION_MENUS:
-                menu = self._APPLICATION_MENUS[menu_id]
-                if menu is not None:
-                    menu.aboutToShow.connect(
-                        lambda menu=menu: self._show_shortcuts(menu))
-                    menu.aboutToHide.connect(
-                        lambda menu=menu: self._hide_shortcuts(menu))
-                    menu.aboutToShow.connect(
-                        lambda menu=menu: set_menu_icons(menu, False))
-                    menu.aboutToShow.connect(self._hide_options_menus)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -201,14 +142,7 @@ class MainMenu(SpyderPluginV2):
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
 
-        # Show and hide shortcuts and icons in menus for macOS
         if sys.platform == 'darwin':
-            menu.aboutToShow.connect(
-                lambda menu=menu: self._show_shortcuts(menu))
-            menu.aboutToHide.connect(
-                lambda menu=menu: self._hide_shortcuts(menu))
-            menu.aboutToShow.connect(
-                lambda menu=menu: set_menu_icons(menu, False))
             menu.aboutToShow.connect(self._hide_options_menus)
 
         if menu_id in self._ITEM_QUEUE:

@@ -9,6 +9,7 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
+import sys
 from typing import List
 
 # Third party imports
@@ -331,8 +332,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Add signal to update actions state before showing the menu
         console_menu = mainmenu.get_application_menu(
             ApplicationMenus.Consoles)
-        console_menu.aboutToShow.connect(
-            widget.update_actions)
+        console_menu.aboutToShow.connect(widget.update_actions)
+
+        if sys.platform == "darwin":
+            # Avoid changing the aspect of the tabs context menu when it's
+            # visible and the user shows the console menu at the same time.
+            console_menu.aboutToShow.connect(
+                lambda: widget.tabwidget.menu.hide()
+            )
 
         # Main menu actions for the IPython Console
         new_consoles_actions = [

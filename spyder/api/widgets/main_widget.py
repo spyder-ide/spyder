@@ -412,11 +412,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._update_actions)
 
-        # Hide icons in Mac plugin menus
-        if sys.platform == 'darwin':
-            self._options_menu.aboutToHide.connect(
-                lambda menu=self._options_menu: set_menu_icons(menu, False))
-
         # For widgets that do not use tabs, we add the corner widget to the
         # corner toolbar
         if not self._is_tab:
@@ -440,16 +435,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.lock_unlock_action.setVisible(show_dock_actions)
         self.dock_action.setVisible(not show_dock_actions)
 
-        if sys.platform == 'darwin':
-            try:
-                set_menu_icons(
-                    self.get_menu(PluginMainWidgetMenus.Options), True)
-            except KeyError:
-                # Prevent unexpected errors on the test suite.
-                pass
-
         # Widget setup
-        # --------------------------------------------------------------------
         self.update_actions()
 
     @Slot(bool)
