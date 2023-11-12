@@ -918,17 +918,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     continue
 
                 # Need to know the interactive state
-                interactive_backend = None
                 sw = client.shellwidget
-                if (
-                    interactive_backend is None
-                    and sw._starting
-                ):
+                if sw._starting:
                     # If the kernel didn't start and no backend was requested,
                     # the backend is inline
                     interactive_backend = inline_backend
-
-                if interactive_backend is None:
+                else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
                     interactive_backend = (
