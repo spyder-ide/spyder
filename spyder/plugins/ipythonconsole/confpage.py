@@ -127,7 +127,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backends = [
             (inline, 'inline'),
             (automatic, 'auto'),
-            ("Qt5", 'qt5'),
+            ("Qt5", 'qt'),
             ("Tkinter", 'tk')
         ]
 
