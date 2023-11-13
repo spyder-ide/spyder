@@ -149,6 +149,11 @@ class SpyderKernel(IPythonKernel):
         ]
         faulthandler.enable(self.faulthandler_handle)
         return self.faulthandler_handle.name, main_id, system_ids
+    
+    @comm_handler
+    def safe_exec(self, filename):
+        """Exec file using ipykernelapp _exec_file"""
+        self.parent._exec_file(filename)
 
     @comm_handler
     def get_fault_text(self, fault_filename, main_id, ignore_ids):

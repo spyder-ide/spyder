@@ -385,7 +385,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.get_conf('startup/use_run_file'):
             run_file = self.get_conf('startup/run_file')
             if run_file:
-                self.execute(f"exec(open({run_file}))", hidden=True)
+                self.call_kernel().safe_exec(run_file)
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
