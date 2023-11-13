@@ -37,7 +37,7 @@ from spyder.config.manager import CONF
 # We need jsmath to get pretty plain-text latex in docstrings
 math = CONF.get('help', 'math', '')
 
-if sphinx_version < "1.1" or not math:
+if sphinx_version < "1.1" and not math:
     extensions = ['sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.mathjax']
