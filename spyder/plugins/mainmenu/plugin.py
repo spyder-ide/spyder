@@ -14,9 +14,6 @@ import os
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
-# Third party imports
-from qtpy.QtGui import QKeySequence
-
 # Local imports
 from spyder.api.config.fonts import SpyderFontType
 from spyder.api.exceptions import SpyderAPIError

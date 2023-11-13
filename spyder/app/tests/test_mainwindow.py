@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import QPoint, Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -61,7 +61,10 @@ from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
-from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsolePyConfiguration,
+    IPythonConsoleWidgetMenus
+)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -6668,6 +6671,75 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()
         main_window.editor.close_file()
+
+
+@flaky(max_runs=5)
+@pytest.mark.skipif(not sys.platform == 'darwin', reason="Only works for Mac")
+def test_icons_in_menus(main_window, qtbot):
+    """Test that we show/hide icons in menus correctly on Mac."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # -- Main variables
+    mainmenu = main_window.get_plugin(Plugins.MainMenu)
+    consoles_menu = mainmenu.get_application_menu(ApplicationMenus.Consoles)
+    ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
+    tabs_console_menu = ipyconsole.get_widget().get_menu(
+        IPythonConsoleWidgetMenus.TabsContextMenu
+    )
+    env_consoles_menu = ipyconsole.get_widget().get_menu(
+        IPythonConsoleWidgetMenus.EnvironmentConsoles
+    )
+
+    # -- Auxiliary functions
+    def show_env_consoles_menu(menu):
+        # Get geometry of action corresponding to env_consoles_menu
+        for action in menu.actions():
+            if action.menu() == env_consoles_menu:
+                rect = menu.actionGeometry(action)
+                break
+
+        # Simulate mouse movement to show the menu
+        for i in range(5):
+            qtbot.mouseMove(
+                menu,
+                QPoint(rect.x() + 2 * i, rect.y() + 2 * i),
+                delay=100
+            )
+
+        # Wait for a bit so the menu is populated
+        qtbot.wait(500)
+
+    # -- IMPORTANT NOTES --
+    # * Don't change this testing order!! First we need to test regular menus
+    #   and then app ones. That's because we remove all icons in menus by
+    #   default on Mac (see the definition of SpyderAction).
+    # * We use get_actions below because we introduce a dummy action on Mac
+    #   menus to dynamically populate them.
+
+    # -- Check that icons are shown in regular menus
+    tabs_console_menu.popup(QPoint(100, 100))
+    qtbot.wait(100)
+    assert tabs_console_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are shown in submenus of regular menus
+    show_env_consoles_menu(tabs_console_menu)
+    assert env_consoles_menu.isVisible()
+    assert env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are not shown in actions of app menus
+    consoles_menu.popup(QPoint(200, 200))
+    qtbot.wait(100)
+    assert not tabs_console_menu.isVisible()
+    assert not consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are not shown in submenus of app menus
+    show_env_consoles_menu(consoles_menu)
+    assert env_consoles_menu.isVisible()
+    assert not env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
 
 
 if __name__ == "__main__":
