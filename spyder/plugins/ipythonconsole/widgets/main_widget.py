@@ -35,9 +35,12 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.ipythonconsole.api import (
-    IPythonConsoleWidgetActions, IPythonConsoleWidgetMenus,
-    IPythonConsoleWidgetOptionsMenus, IPythonConsoleWidgetOptionsMenuSections,
-    IPythonConsoleWidgetTabsContextMenuSections, ClientContextMenuActions)
+    ClientContextMenuActions,
+    IPythonConsoleWidgetActions,
+    IPythonConsoleWidgetMenus,
+    IPythonConsoleWidgetOptionsMenuSections,
+    IPythonConsoleWidgetTabsContextMenuSections
+)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
@@ -544,7 +547,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         options_menu = self.get_options_menu()
 
         self.console_environment_menu = self.create_menu(
-            IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
+            IPythonConsoleWidgetMenus.EnvironmentConsoles,
             _('New console in environment')
         )
         stylesheet = qstylizer.style.StyleSheet()
@@ -552,7 +555,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.console_environment_menu.setStyleSheet(stylesheet.toString())
 
         self.special_console_menu = self.create_menu(
-            IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
+            IPythonConsoleWidgetMenus.SpecialConsoles,
             _('New special console'))
 
         for item in [
@@ -659,7 +662,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Create IPython documentation menu
         self.ipython_menu = self.create_menu(
-            menu_id=IPythonConsoleWidgetOptionsMenus.Documentation,
+            menu_id=IPythonConsoleWidgetMenus.Documentation,
             title=_("IPython documentation"))
         intro_action = self.create_action(
             IPythonConsoleWidgetActions.IPythonDocumentation,

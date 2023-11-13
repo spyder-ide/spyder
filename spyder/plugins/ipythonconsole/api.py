@@ -69,20 +69,17 @@ class IPythonConsoleWidgetActions:
     QuickReference = 'quick reference'
 
 
-class IPythonConsoleWidgetOptionsMenus:
+class IPythonConsoleWidgetMenus:
     SpecialConsoles = 'special_consoles_submenu'
     Documentation = 'documentation_submenu'
     EnvironmentConsoles = 'environment_consoles_submenu'
+    ClientContextMenu = 'client_context_menu'
+    TabsContextMenu = 'tabs_context_menu'
 
 
 class IPythonConsoleWidgetOptionsMenuSections:
     Edit = 'edit_section'
     View = 'view_section'
-
-
-class IPythonConsoleWidgetMenus:
-    ClientContextMenu = 'client_context_menu'
-    TabsContextMenu = 'tabs_context_menu'
 
 
 class IPythonConsoleWidgetTabsContextMenuSections:

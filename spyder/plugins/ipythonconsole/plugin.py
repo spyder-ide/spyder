@@ -21,11 +21,15 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
-from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsolePyConfiguration,
+    IPythonConsoleWidgetMenus
+)
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
-    IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
+    IPythonConsoleWidget
+)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.plugins.run.api import (
@@ -424,7 +428,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         # IPython documentation menu
         mainmenu.remove_item_from_application_menu(
-            IPythonConsoleWidgetOptionsMenus.Documentation,
+            IPythonConsoleWidgetMenus.Documentation,
             menu_id=ApplicationMenus.Help
          )
 
