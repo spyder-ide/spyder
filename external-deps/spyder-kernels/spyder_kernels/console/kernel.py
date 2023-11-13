@@ -643,7 +643,10 @@ class SpyderKernel(IPythonKernel):
                 if value:
                     ret[key] = self.enable_faulthandler()
             elif key == "special_kernel":
-                ret[key] = self.set_special_kernel(value)
+                try:
+                    self.set_special_kernel(value)
+                except Exception:
+                    ret["special_kernel_error"] = value
             elif key == "color scheme":
                 self.set_color_scheme(value)
             elif key == "jedi_completer":
@@ -707,56 +710,47 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "pylab":
-            try:
-                import matplotlib
-                exec("from pylab import *", self.shell.user_ns)
-                self.shell.special = special
-                return
-            except Exception:
-                return "matplotlib"
+            import matplotlib
+            exec("from pylab import *", self.shell.user_ns)
+            self.shell.special = special
+            return
+           
 
         if special == "sympy":
-            try:
-                import sympy
-                sympy_init = "\n".join([
-                    "from sympy import *",
-                    "x, y, z, t = symbols('x y z t')",
-                    "k, m, n = symbols('k m n', integer=True)",
-                    "f, g, h = symbols('f g h', cls=Function)",
-                    "init_printing()",
-                ])
-                exec(sympy_init, self.shell.user_ns)
-                self.shell.special = special
-                return
-            except Exception:
-                return "sympy"
+            import sympy
+            sympy_init = "\n".join([
+                "from sympy import *",
+                "x, y, z, t = symbols('x y z t')",
+                "k, m, n = symbols('k m n', integer=True)",
+                "f, g, h = symbols('f g h', cls=Function)",
+                "init_printing()",
+            ])
+            exec(sympy_init, self.shell.user_ns)
+            self.shell.special = special
+            return
 
         if special == "cython":
+            import cython
+
+            # Import pyximport to enable Cython files support for
+            # import statement
+            import pyximport
+            pyx_setup_args = {}
+
+            # Add Numpy include dir to pyximport/distutils
             try:
-                import cython
-
-                # Import pyximport to enable Cython files support for
-                # import statement
-                import pyximport
-                pyx_setup_args = {}
-
-                # Add Numpy include dir to pyximport/distutils
-                try:
-                    import numpy
-                    pyx_setup_args['include_dirs'] = numpy.get_include()
-                except Exception:
-                    pass
-
-                # Setup pyximport and enable Cython files reload
-                pyximport.install(setup_args=pyx_setup_args,
-                                  reload_support=True)
-
-                self.shell.run_line_magic("reload_ext", "Cython")
-                self.shell.special = special
-                return
-
+                import numpy
+                pyx_setup_args['include_dirs'] = numpy.get_include()
             except Exception:
-                return "cython"
+                pass
+
+            # Setup pyximport and enable Cython files reload
+            pyximport.install(setup_args=pyx_setup_args,
+                              reload_support=True)
+
+            self.shell.run_line_magic("reload_ext", "Cython")
+            self.shell.special = special
+            return
 
         raise NotImplementedError(f"{special}")
 
