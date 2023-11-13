@@ -446,7 +446,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for key, value in dic.items():
             if key == "faulthandler":
                 self.kernel_handler.faulthandler_setup(value)
-            elif key == "special_kernel":
+            elif key == "special_kernel_error":
                 self.ipyclient._show_special_console_error(value)
 
     def pop_execute_queue(self):
