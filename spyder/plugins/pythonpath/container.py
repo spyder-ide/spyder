@@ -18,7 +18,6 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
 from spyder.plugins.pythonpath.utils import get_system_pythonpath
 from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
-from spyder.utils import encoding
 
 
 # Logging
@@ -35,9 +34,6 @@ class PythonpathActions:
 # -----------------------------------------------------------------------------
 class PythonpathContainer(PluginMainContainer):
 
-    PATH_FILE = get_conf_path('path')
-    NOT_ACTIVE_PATH_FILE = get_conf_path('not_active_path')
-
     sig_pythonpath_changed = Signal(object, object)
 
     def __init__(self, *args, **kwargs):
@@ -49,6 +45,10 @@ class PythonpathContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
+
+        # Migrate from old conf files to config options
+        if self.get_conf('paths_in_conf_files', default=True):
+            self._migrate_to_config_options()
 
         # Load Python path
         self._load_pythonpath()
@@ -141,31 +141,25 @@ class PythonpathContainer(PluginMainContainer):
         previous_system_path = self.get_conf('system_path', default=())
 
         # Load all paths
-        if osp.isfile(self.PATH_FILE):
-            with open(self.PATH_FILE, 'r', encoding='utf-8') as f:
-                previous_paths = f.read().splitlines()
+        paths = []
+        previous_paths = self.get_conf('path')
+        for path in previous_paths:
+            # Path was removed since last time or it's not a directory
+            # anymore
+            if not osp.isdir(path):
+                continue
 
-            paths = []
-            for path in previous_paths:
-                # Path was removed since last time or it's not a directory
-                # anymore
-                if not osp.isdir(path):
-                    continue
+            # Path was removed from system path
+            if path in previous_system_path and path not in system_path:
+                continue
 
-                # Path was removed from system path
-                if path in previous_system_path and path not in system_path:
-                    continue
+            paths.append(path)
 
-                paths.append(path)
+        self.path = tuple(paths)
 
-            self.path = tuple(paths)
-
-        # Update path file contents. This avoids loading paths that were
-        # removed in this session in later ones.
-        try:
-            encoding.writelines(self.path, self.PATH_FILE)
-        except OSError as e:
-            logger.error(str(e))
+        # Update path option. This avoids loading paths that were removed in
+        # this session in later ones.
+        self.set_conf('path', self.path)
 
         # Update system path so that path_manager_dialog can work with its
         # latest contents.
@@ -176,11 +170,10 @@ class PythonpathContainer(PluginMainContainer):
             self.path = self.path + system_path
 
         # Load not active paths
-        if osp.isfile(self.NOT_ACTIVE_PATH_FILE):
-            with open(self.NOT_ACTIVE_PATH_FILE, 'r', encoding='utf-8') as f:
-                not_active_path = f.read().splitlines()
-            self.not_active_path = tuple(name for name in not_active_path
-                                         if osp.isdir(name))
+        not_active_paths = self.get_conf('not_active_path')
+        self.not_active_path = tuple(
+            name for name in not_active_paths if osp.isdir(name)
+        )
 
     def _save_python_path(self, new_path_dict):
         """
@@ -191,19 +184,17 @@ class PythonpathContainer(PluginMainContainer):
         inactive.
         """
         path = tuple(p for p in new_path_dict)
-        not_active_path = tuple(p for p in new_path_dict
-                                if not new_path_dict[p])
+        not_active_path = tuple(
+            p for p in new_path_dict if not new_path_dict[p]
+        )
 
-        if path != self.path or not_active_path != self.not_active_path:
-            # Do not write unless necessary
-            try:
-                encoding.writelines(path, self.PATH_FILE)
-                encoding.writelines(not_active_path,
-                                    self.NOT_ACTIVE_PATH_FILE)
-            except OSError as e:
-                logger.error(str(e))
-
+        # Don't set options unless necessary
+        if path != self.path:
+            self.set_conf('path', path)
             self.path = path
+
+        if not_active_path != self.not_active_path:
+            self.set_conf('not_active_path', not_active_path)
             self.not_active_path = not_active_path
 
     def _get_spyder_pythonpath_dict(self):
@@ -250,3 +241,27 @@ class PythonpathContainer(PluginMainContainer):
             logger.debug(f"Update Pythonpath to {pypath}")
             self.set_conf('spyder_pythonpath', pypath)
             self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+
+    def _migrate_to_config_options(self):
+        """
+        Migrate paths saved in the `path` and `not_active_path` files located
+        in our config directory to our config system.
+
+        This was the way we save those paths in Spyder 5 and before.
+        """
+        path_file = get_conf_path('path')
+        not_active_path_file = get_conf_path('not_active_path')
+
+        path = []
+        if osp.isfile(path_file):
+            with open(path_file, 'r', encoding='utf-8') as f:
+                path = f.read().splitlines()
+
+        not_active_path = []
+        if osp.isfile(not_active_path_file):
+            with open(not_active_path_file, 'r', encoding='utf-8') as f:
+                not_active_path = f.read().splitlines()
+
+        self.set_conf('path', tuple(path))
+        self.set_conf('not_active_path', tuple(not_active_path))
+        self.set_conf('paths_in_conf_files', False)
