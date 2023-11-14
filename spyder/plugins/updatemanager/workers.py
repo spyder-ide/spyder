@@ -12,6 +12,7 @@ from time import sleep
 import traceback
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
@@ -96,7 +97,7 @@ class WorkerUpdate(QObject):
         pypi_url = "https://pypi.org/pypi/spyder/json"
 
         if is_conda_based_app():
-            url = ('https://api.github.com/repos/spyder-ide/spyder/releases')
+            url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
         elif is_anaconda():
             self.channel, channel_url = get_spyder_conda_channel()
 
@@ -118,13 +119,13 @@ class WorkerUpdate(QObject):
                     self.releases = [
                         item['tag_name'].replace('v', '') for item in data
                     ]
-                    self.releases = list(reversed(self.releases))
                 elif is_anaconda() and url != pypi_url:
                     spyder_data = data['packages'].get('spyder')
                     if spyder_data:
                         self.releases = [spyder_data["version"]]
                 else:
                     self.releases = [data['info']['version']]
+            self.releases.sort(key=parse)
 
             self._check_update_available()
         except SSLError as err:
