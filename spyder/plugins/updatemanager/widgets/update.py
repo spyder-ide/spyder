@@ -224,8 +224,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         # action, and gives feeback if updates are, or are not found.
         if (
             self.startup and           # startup and...
-            ('dev' in __version__      # current version is dev
-             or error_msg is not None  # or there is an error
+            (error_msg is not None     # there is an error
              or not update_available)  # or no updates available
         ):
             # Do not alert the user to anything
