@@ -21,8 +21,8 @@ else:
 # Mapping of matlotlib backends options to Spyder
 MPL_BACKENDS_TO_SPYDER = {
     inline_backend: "inline",
-    'Qt5Agg': 'qt5',
-    'QtAgg': 'qt5',  # For Matplotlib 3.5+
+    'Qt5Agg': 'qt',
+    'QtAgg': 'qt',  # For Matplotlib 3.5+
     'TkAgg': 'tk',
     'MacOSX': 'osx',
 }
@@ -31,7 +31,7 @@ MPL_BACKENDS_TO_SPYDER = {
 def automatic_backend():
     """Get Matplolib automatic backend option."""
     if is_module_installed('PyQt5'):
-        auto_backend = 'qt5'
+        auto_backend = 'qt'
     elif is_module_installed('_tkinter'):
         auto_backend = 'tk'
     else:

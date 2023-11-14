@@ -1137,7 +1137,7 @@ def test_locals_globals_in_pdb(kernel):
 
 
 @flaky(max_runs=3)
-@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
+@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages")

@@ -59,9 +59,10 @@ class UserModuleReloader:
 
     def is_module_reloadable(self, module, modname):
         """Decide if a module is reloadable or not."""
-        if (path_is_library(getattr(module, '__file__', None),
-                            self.pathlist) or
-                self.is_module_in_namelist(modname)):
+        if (
+            path_is_library(getattr(module, '__file__', None), self.pathlist)
+            or self.is_module_in_namelist(modname)
+        ):
             return False
         else:
             return True

@@ -51,11 +51,11 @@ def test_umr_run(user_module):
     umr = UserModuleReloader()
 
     from foo1.bar import square
-    assert umr.run() == ['foo', 'foo.bar']
+    assert umr.run() == ['foo1', 'foo1.bar']
 
 
 def test_umr_previous_modules(user_module):
-    """Test that UMR's previos_modules is working as expected."""
+    """Test that UMR's previous_modules is working as expected."""
     # Create user module
     user_module('foo2')
 
