@@ -69,7 +69,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
         shellwidget.sig_config_spyder_kernel.connect(
-            lambda sw=shellwidget: self.config_spyder_kernel(sw))
+            lambda sw=shellwidget: self.config_spyder_kernel(sw)
+        )
 
         backend = self.get_conf('pylab/backend')
         swid = id(shellwidget)
@@ -98,7 +99,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
         shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
-            "update_matplotlib_gui")
+            "update_matplotlib_gui"
+        )
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
             del self._shellwidget_dict[shellwidget_id]

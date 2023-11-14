@@ -160,7 +160,7 @@ class KernelHandler(QObject):
         self._init_stderr = ""
         self._init_stdout = ""
         self._shellwidget_connected = False
-        self._comm_ready_recieved = False
+        self._comm_ready_received = False
         self._kernel_info_msg = None
 
         # Start kernel
@@ -213,7 +213,7 @@ class KernelHandler(QObject):
             self.sig_stdout.emit(self._init_stdout)
         self._init_stdout = None
 
-    def check_spyder_kernel_info(self, msg):
+    def check_spyder_kernels_info(self, msg):
         """
         Check if the Spyder-kernels version is the right one after receiving it
         from the kernel.
@@ -221,8 +221,8 @@ class KernelHandler(QObject):
         If the kernel is non-locally managed, check if it is a spyder-kernel.
         """
         self._kernel_info_msg = msg
-        spyder_kernel_info = msg["content"].get("spyder_kernels_info", None)
-        if not spyder_kernel_info:
+        spyder_kernels_info = msg["content"].get("spyder_kernels_info", None)
+        if not spyder_kernels_info:
             if self.known_spyder_kernel:
                 # spyder-kernels version < 3.0
                 self.kernel_error_message = (
@@ -242,7 +242,7 @@ class KernelHandler(QObject):
             self.sig_kernel_is_ready.emit()
             return
 
-        version, pyexec = spyder_kernel_info
+        version, pyexec = spyder_kernels_info
         if not check_version_range(version, SPYDER_KERNELS_VERSION):
             # Development versions are acceptable
             if "dev0" not in version:
@@ -263,12 +263,12 @@ class KernelHandler(QObject):
 
         self.known_spyder_kernel = True
         self.connection_state = KernelConnectionState.SpyderKernelWaitComm
-        if self._comm_ready_recieved:
+        if self._comm_ready_received:
             self.handle_comm_ready()
 
     def handle_comm_ready(self):
         """The kernel comm is ready"""
-        self._comm_ready_recieved = True
+        self._comm_ready_received = True
         if self.connection_state in [
             KernelConnectionState.SpyderKernelWaitComm,
             KernelConnectionState.Crashed
@@ -476,7 +476,7 @@ class KernelHandler(QObject):
         """Start channels"""
         # Start kernel
         self.kernel_client.sig_kernel_info.connect(
-            self.check_spyder_kernel_info
+            self.check_spyder_kernels_info
         )
         self.kernel_client.start_channels()
         self.kernel_client.kernel_info()

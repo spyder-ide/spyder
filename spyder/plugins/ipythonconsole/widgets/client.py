@@ -100,8 +100,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  handlers=None,
                  initial_cwd=None,
                  forcing_custom_interpreter=False,
-                 special_kernel=None
-                 ):
+                 special_kernel=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 

@@ -1534,7 +1534,7 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "backend",
-    ['inline', 'qt5', 'tk', 'osx']
+    ['inline', 'qt', 'tk', 'osx']
 )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Hangs frequently on Mac")
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
@@ -1542,7 +1542,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
     # Skip failing tests
     if backend == 'osx' and sys.platform != "darwin":
         return
-    if backend == 'qt5' and not os.name == "nt" and running_in_ci():
+    if backend == 'qt' and not os.name == "nt" and running_in_ci():
         return
 
     shell = ipyconsole.get_current_shellwidget()
@@ -2057,12 +2057,12 @@ def test_old_kernel_version(ipyconsole, qtbot):
     # Wait until it is launched
     qtbot.waitUntil(
         lambda: (
-            kernel_handler._comm_ready_recieved
+            kernel_handler._comm_ready_received
         ),
         timeout=SHELL_TIMEOUT)
 
     # Set wrong version
-    kernel_handler.check_spyder_kernel_info(
+    kernel_handler.check_spyder_kernels_info(
         {"content": {"spyder_kernels_info": ('1.0.0', '')}}
     )
 

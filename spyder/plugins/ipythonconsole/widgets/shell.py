@@ -147,9 +147,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.kernel_handler = None
-        self._kernel_configuration = {}
-        self.is_kernel_configured = False
+        self.special_kernel = special_kernel
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -162,9 +160,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.shutting_down = False
         self.kernel_client = None
-        self.special_kernel = special_kernel
+        self.kernel_handler = None
+        self._kernel_configuration = {}
+        self.is_kernel_configured = False
         self._init_kernel_setup = False
         self._shellwidget_state = "starting"
+
         if handlers is None:
             handlers = {}
         else:
@@ -284,7 +285,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             if self.kernel_client != self.kernel_handler.kernel_client:
                 # If the kernel crashed, the right client is already connected
                 self.kernel_client = self.kernel_handler.kernel_client
-                # kernel_info must have already been recieved for 
+                # kernel_info must have already been recieved for
                 # handle_kernel_is_ready to be called
                 self._handle_kernel_info_reply(
                     self.kernel_handler._kernel_info_msg
@@ -306,7 +307,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.kernel_connect_sig()
             self.send_spyder_kernel_configuration()
-    
+
     def _started_channels(self):
         """Make a history request"""
         # Disable the _starting mechanism
@@ -394,7 +395,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.kernel_handler is None:
             return False
         return self.kernel_handler.kernel_spec_dict is None
-    
+
     def kernel_connect_sig(self):
         """Connect signals for kernel."""
         if not self._init_kernel_setup:
@@ -462,12 +463,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         run_lines = self.get_conf('startup/run_lines')
         if run_lines:
             self.execute(run_lines, hidden=True)
-        
+
         if self.get_conf('startup/use_run_file'):
             run_file = self.get_conf('startup/run_file')
             if run_file:
-                self.execute(f"exec(open({run_file}))", hidden=True)
-        
+                self.call_kernel().safe_exec(run_file)
+
         self.is_kernel_configured = True
 
     def set_kernel_configuration(self, key, value):
@@ -490,7 +491,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for key, value in dic.items():
             if key == "faulthandler":
                 self.kernel_handler.faulthandler_setup(value)
-            elif key == "special_kernel":
+            elif key == "special_kernel_error":
                 self.ipyclient._show_special_console_error(value)
 
     def pop_execute_startup_queue(self):
@@ -576,7 +577,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """
         Send matplotlib backend.
 
-        If option is not None only send the related options
+        If `option` is not None only send the related options.
         """
         # Set Matplotlib backend with Spyder options
         pylab_n = 'pylab'
@@ -597,7 +598,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         backend_o = self.get_conf(pylab_backend_n)
 
         inline_backend = 'inline'
-
         matplotlib_conf = {}
 
         if pylab_o:
@@ -630,7 +630,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             mpl_backend = backend_o
         else:
             # Set Matplotlib backend to inline for external kernels.
-            # Fixes issue 108
+            # Fixes issue spyder-ide/spyder-kernels#108
             mpl_backend = inline_backend
 
         # Automatically load Pylab and Numpy, or only set Matplotlib

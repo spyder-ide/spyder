@@ -985,8 +985,10 @@ def get_module_version(module_name, interpreter=None):
             print(
                 getattr(mod, '__version__', getattr(mod, 'VERSION', None))
             )  # spyder: test-skip
-            """).format(module_name)
-        # use clean environment
+            """
+        ).format(module_name)
+
+        # Use clean environment
         proc = run_program(interpreter, ['-c', cmd], env={})
         stdout, stderr = proc.communicate()
         stdout = stdout.decode().strip()
