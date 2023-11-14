@@ -131,7 +131,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.update_worker = None
         self.update_timer = None
         self.latest_release = None
-        self.major_update = None
 
         self.cancelled = False
         self.download_thread = None
@@ -210,11 +209,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         # Get results from worker
         update_available = self.update_worker.update_available
         error_msg = self.update_worker.error
-        self.latest_release = self.update_worker.latest_release
-        self.major_update = (
-            parse(__version__).major < parse(self.latest_release).major
-        )
-        self._set_installer_path()
 
         # Always set status, regardless of error, DEV, or startup
         self.set_status(PENDING if update_available else NO_STATUS)
@@ -273,6 +267,12 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         If the installer is already downloaded, proceed to confirm install.
         """
+        self.latest_release = self.update_worker.latest_release
+        self._set_installer_path()
+        major_update = (
+            parse(__version__).major < parse(self.latest_release).major
+        )
+
         if self._verify_installer_path():
             self.set_status(DOWNLOAD_FINISHED)
             self._confirm_install()
@@ -294,7 +294,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             else:
                 manual_update_messagebox(
                     self, self.latest_release, self.update_worker.channel)
-        elif self.major_update:
+        elif major_update:
             msg = _("Would you like to automatically download "
                     "and install it?")
             box = confirm_messagebox(
