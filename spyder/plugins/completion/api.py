@@ -1347,7 +1347,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         self.main.create_menu(name, text=text, icon=icon)
 
-    def get_menu(name, context: Optional[str] = None,
+    def get_menu(self, name, context: Optional[str] = None,
                  plugin: Optional[str] = None):
         """Retrieve a menu by its id."""
         if context is None and plugin is None:

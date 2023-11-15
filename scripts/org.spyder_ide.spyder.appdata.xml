@@ -29,7 +29,9 @@
     </p>
   </description>
 
-  <developer_name>The Spyder Project Contributors</developer_name>
+  <developer id="spyder-ide.org">
+    <name>The Spyder Project Contributors</name>
+  </developer>
 
   <launchable type="desktop-id">spyder.desktop</launchable>
 

@@ -152,7 +152,7 @@ class SpyderKernel(IPythonKernel):
 
     @comm_handler
     def safe_exec(self, filename):
-        """Exec file using ipykernelapp _exec_file"""
+        """Safely execute a file using IPKernelApp._exec_file."""
         self.parent._exec_file(filename)
 
     @comm_handler
@@ -715,7 +715,6 @@ class SpyderKernel(IPythonKernel):
             self.shell.special = special
             return
            
-
         if special == "sympy":
             import sympy
             sympy_init = "\n".join([
