@@ -120,6 +120,12 @@ def is_in_scope_backward(text):
         text.replace(r"\"", "").replace(r"\'", "")[::-1])
 
 
+def remove_comments(text):
+    """Remove code comments from text while ignoring #-symbols inside quotes,
+    which can be part of function arguments."""
+    return re.sub(pattern=r"""(?<!['"])(#.*)""", repl="", string=text)
+
+
 class DocstringWriterExtension(object):
     """Class for insert docstring template automatically."""
 
@@ -194,7 +200,7 @@ class DocstringWriterExtension(object):
 
         for __ in range(min(remain_lines, 20)):
             cur_text = to_text_string(cursor.block().text()).rstrip()
-
+            cur_text = remove_comments(cur_text)
             if is_first_line:
                 if not is_start_of_function(cur_text):
                     return None
@@ -239,7 +245,7 @@ class DocstringWriterExtension(object):
 
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_text = to_text_string(cursor.block().text()).rstrip()
-
+            prev_text = remove_comments(prev_text)
             if is_first_line:
                 if not self.is_end_of_function_definition(
                         prev_text, line_number - 1):
