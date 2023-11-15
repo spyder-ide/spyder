@@ -666,6 +666,7 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
 
     assert editor.toPlainText() == expected
 
+
 @pytest.mark.parametrize(
     'text, expected',
     [
