@@ -6353,34 +6353,69 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Add a new directory to PYTHONPATH
-    new_dir = tmp_path / 'new_dir'
-    new_dir.mkdir()
-    set_user_env({"PYTHONPATH": str(new_dir)})
-
-    # Open Pythonpath dialog to detect new_dir
+    # Main variables
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
+
+    # Add a directory to PYTHONPATH
+    sys_dir = tmp_path / 'sys_dir'
+    sys_dir.mkdir()
+    set_user_env({"PYTHONPATH": str(sys_dir)})
+
+    # Add a directory to the current list of paths to simulate a path added by
+    # users
+    user_dir = tmp_path / 'user_dir'
+    user_dir.mkdir()
+    assert ppm.get_container().path == ()
+    ppm.get_container().path = (str(user_dir),)
+
+    # Open Pythonpath dialog to detect sys_dir
     ppm.show_path_manager()
     qtbot.wait(500)
 
-    # Check new_dir was added to sys.path after closing the dialog
-    ppm.path_manager_dialog.close()
+    # Check we're showing two headers
+    assert len(ppm.path_manager_dialog.headers) == 2
+
+    # Check the PPM emits the right signal after closing the dialog
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.close()
+
+    # Check directories were added to sys.path in the right order
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute("import sys; sys_path = sys.path")
 
-    assert str(new_dir) in shell.get_value("sys_path")
+    sys_path = shell.get_value("sys_path")
+    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
 
     # Create new console
     ipyconsole.create_new_client()
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    shell1 = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell1._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Check new_dir is part of the new console's sys.path
-    with qtbot.waitSignal(shell.executed, timeout=2000):
-        shell.execute("import sys; sys_path = sys.path")
+    # Check directories are part of the new console's sys.path
+    with qtbot.waitSignal(shell1.executed, timeout=2000):
+        shell1.execute("import sys; sys_path = sys.path")
 
-    assert str(new_dir) in shell.get_value("sys_path")
+    sys_path = shell1.get_value("sys_path")
+    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+
+    # Check that disabling a path from the PPM removes it from sys.path in all
+    # consoles
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    item = ppm.path_manager_dialog.listwidget.item(1)
+    item.setCheckState(Qt.Unchecked)
+
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.accept()
+
+    for s in [shell, shell1]:
+        with qtbot.waitSignal(s.executed, timeout=2000):
+            s.execute("import sys; sys_path = sys.path")
+
+        sys_path = s.get_value("sys_path")
+        assert str(user_dir) not in sys_path
 
 
 @flaky(max_runs=10)
