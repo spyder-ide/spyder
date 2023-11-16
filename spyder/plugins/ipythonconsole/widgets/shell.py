@@ -99,7 +99,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For ShellWidget
     sig_focus_changed = Signal()
     sig_new_client = Signal()
-    sig_kernel_restarted_message = Signal(str)
 
     # Kernel died and restarted (not user requested)
     sig_prompt_ready = Signal()
@@ -307,12 +306,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._prompt_requested = False
         self._pdb_recursion_level = 0
         self._reading = False
-
-    def print_restart_message(self):
-        """Print restart message."""
-        self._append_html(
-            _("<br>Restarting kernel...<br>"), before_prompt=True)
-        self.insert_horizontal_ruler()
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):
@@ -1215,7 +1208,10 @@ the sympy module (e.g. plot)
             return self.short_banner()
 
     def _kernel_restarted_message(self, died=True):
-        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        msg = (
+            _("The kernel died, restarting...") if died
+            else _("Restarting kernel...")
+        )
 
         if died and self.kernel_manager is None:
             # The kernel might never restart, show position of fault file
@@ -1224,14 +1220,12 @@ the sympy module (e.g. plot)
                 + self.kernel_handler.fault_filename()
             )
 
-        self.sig_kernel_restarted_message.emit(msg)
+        self._append_html(f"<br>{msg}<br>", before_prompt=False)
+        self.insert_horizontal_ruler()
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         """The kernel restarted."""
         super()._handle_kernel_restarted(*args, **kwargs)
-
-        # Print restart message
-        self.print_restart_message()
 
         # Reset Pdb state
         self.reset_kernel_state()
