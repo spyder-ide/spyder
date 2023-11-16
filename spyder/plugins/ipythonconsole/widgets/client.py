@@ -97,9 +97,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  given_name=None,
                  give_focus=True,
                  options_button=None,
-                 handlers={},
+                 handlers=None,
                  initial_cwd=None,
-                 forcing_custom_interpreter=False):
+                 forcing_custom_interpreter=False,
+                 special_kernel=None):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
@@ -136,7 +137,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             additional_options=additional_options,
             interpreter_versions=interpreter_versions,
             handlers=handlers,
-            local_kernel=True
+            local_kernel=True,
+            special_kernel=special_kernel
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()

@@ -23,11 +23,9 @@ from _thread import interrupt_main
 from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
-import spyder_kernels
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
-from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
@@ -51,16 +49,12 @@ class SpyderShell(ZMQInteractiveShell):
         # Create _namespace_stack before __init__
         self._namespace_stack = []
         self._request_pdb_stop = False
+        self.special = None
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
-
-        # Used for checking correct version by spyder
-        self._spyder_kernels_version = (
-            spyder_kernels.__version__,
-            sys.executable
-        )
+        self.update_gui_frontend = False
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -94,14 +88,16 @@ class SpyderShell(ZMQInteractiveShell):
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
         gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
-        try:
-            self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
-        except Exception:
-            pass
+        if self.update_gui_frontend:
+            try:
+                self.kernel.frontend_call(
+                    blocking=False
+                ).update_matplotlib_gui(gui)
+            except Exception:
+                pass
         return gui, backend
 
     # --- For Pdb namespace integration
-    @comm_handler
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.

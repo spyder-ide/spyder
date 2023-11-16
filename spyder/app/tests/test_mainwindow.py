@@ -1111,14 +1111,16 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
     # Change directory in the explorer widget
     explorer.chdir(temp_dir)
-    qtbot.waitUntil(lambda: osp.normpath(temp_dir) == osp.normpath(shell._cwd))
+    qtbot.waitUntil(
+        lambda: osp.normpath(temp_dir) == osp.normpath(shell.get_cwd())
+    )
 
     # Assert that cwd changed in workingdirectory
     assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(
         temp_dir)
 
     # Assert that cwd changed in IPython console
-    assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
+    assert osp.normpath(temp_dir) == osp.normpath(shell.get_cwd())
 
 
 @flaky(max_runs=3)
@@ -2148,8 +2150,8 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
-     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 'svg')},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 'png')}],
     indirect=True)
 def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
@@ -2170,7 +2172,7 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
 
-    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
+    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 'png':
         assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
     else:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'

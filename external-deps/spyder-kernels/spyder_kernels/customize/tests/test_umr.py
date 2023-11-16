@@ -39,27 +39,6 @@ def square(x):
     return create_module
 
 
-def test_umr_skip_cython(user_module):
-    """
-    Test that the UMR doesn't try to reload modules when Cython
-    support is active.
-    """
-    # Create user module
-    user_module('foo')
-
-    # Activate Cython support
-    os.environ['SPY_RUN_CYTHON'] = 'True'
-
-    # Create UMR
-    umr = UserModuleReloader()
-
-    import foo
-    assert umr.is_module_reloadable(foo, 'foo') == False
-
-    # Deactivate Cython support
-    os.environ['SPY_RUN_CYTHON'] = 'False'
-
-
 def test_umr_run(user_module):
     """Test that UMR's run method is working correctly."""
     # Create user module
@@ -72,12 +51,11 @@ def test_umr_run(user_module):
     umr = UserModuleReloader()
 
     from foo1.bar import square
-    umr.run()
-    umr.modnames_to_reload == ['foo', 'foo.bar']
+    assert umr.run() == ['foo1', 'foo1.bar']
 
 
 def test_umr_previous_modules(user_module):
-    """Test that UMR's previos_modules is working as expected."""
+    """Test that UMR's previous_modules is working as expected."""
     # Create user module
     user_module('foo2')
 

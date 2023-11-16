@@ -124,16 +124,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Tkinter", 3)]
+        backends = [
+            (inline, 'inline'),
+            (automatic, 'auto'),
+            ("Qt5", 'qt'),
+            ("Tkinter", 'tk')
+        ]
 
         if sys.platform == 'darwin':
-            backends.append(("macOS", 4))
+            backends.append(("macOS", 'osx'))
         backends = tuple(backends)
 
         backend_box = self.create_combobox(
             _("Backend:") + "   ",
             backends,
-            'pylab/backend', default=0,
+            'pylab/backend', default='inline',
             tip=_("This option will be applied the next time a console is "
                   "opened."))
 
@@ -149,10 +154,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_label = QLabel(_("Decide how to render the figures created by "
                                 "this backend"))
         inline_label.setWordWrap(True)
-        formats = (("PNG", 0), ("SVG", 1))
+        formats = (("PNG", 'png'), ("SVG", 'svg'))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                           'pylab/inline/figure_format',
-                                          default=0)
+                                          default='png')
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
                         'pylab/inline/resolution', min_=50, max_=999, step=0.1,
@@ -306,6 +311,32 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
 
+        # Autoreload group
+        autoreload_group = QGroupBox(_("Autoreload"))
+        autoreload_label = QLabel(
+            _("Autoreload reloads modules automatically every time before "
+              "executing your Python code.<br>"
+              "This is a different mechanism than the User Module Reloader "
+              "(UMR) and it can be slow on Windows due to limitations of its "
+              "file system."
+            )
+        )
+        autoreload_label.setWordWrap(True)
+
+        autoreload_box = newcb(
+            _("Use autoreload"),
+            "autoreload",
+            tip=_(
+                "This option enables the autoreload magic.<br>"
+                "Please refer to its documentation to learn how to use it."
+            )
+        )
+
+        autoreload_layout = QVBoxLayout()
+        autoreload_layout.addWidget(autoreload_label)
+        autoreload_layout.addWidget(autoreload_box)
+        autoreload_group.setLayout(autoreload_layout)
+
         # Sympy group
         sympy_group = QGroupBox(_("Symbolic mathematics"))
         sympy_label = QLabel(_("Perfom symbolic operations in the console "
@@ -385,6 +416,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         self.create_tab(
             _("Advanced settings"),
-            [jedi_group, greedy_group, autocall_group, sympy_group,
-             prompts_group, windows_group]
+            [jedi_group, greedy_group, autocall_group, autoreload_group,
+             sympy_group, prompts_group, windows_group]
         )

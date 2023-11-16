@@ -142,8 +142,8 @@ DEFAULTS = [
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
-              'pylab/backend': 0,
-              'pylab/inline/figure_format': 0,
+              'pylab/backend': 'inline',
+              'pylab/inline/figure_format': 'png',
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
@@ -154,6 +154,7 @@ DEFAULTS = [
               'greedy_completer': False,
               'jedi_completer': False,
               'autocall': 0,
+              'autoreload': not WIN,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
@@ -662,4 +663,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '80.0.0'
+CONF_VERSION = '81.0.0'
