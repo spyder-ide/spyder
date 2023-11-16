@@ -229,18 +229,27 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
     # ---- Public API
     # -------------------------------------------------------------------------
     def open_external_python_terminal(self, fname, wdir, args, interact, debug,
-                                     python_args):
+                                      python_args):
         """Open external terminal."""
         # Running script in an external system terminal
         try:
             if self.get_conf('default', section='main_interpreter'):
                 executable = get_python_executable()
             else:
-                executable = self.get_conf('executable',
-                                           section='main_interpreter')
+                executable = self.get_conf(
+                    'executable',
+                    section='main_interpreter'
+                )
+
+            pypath = self.get_conf(
+                'spyder_pythonpath',
+                section='pythonpath_manager',
+                default=[]
+            )
 
             programs.run_python_script_in_terminal(
-                fname, wdir, args, interact, debug, python_args, executable
+                fname, wdir, args, interact, debug, python_args, executable,
+                pypath=pypath
             )
         except NotImplementedError:
             QMessageBox.critical(
@@ -269,7 +278,8 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
         debug = False
         python_args = params['python_args']
         self.open_external_python_terminal(
-            filename, wdir, args, interact, debug, python_args)
+            filename, wdir, args, interact, debug, python_args
+        )
 
     @run_execute(extension=['sh', 'bat', 'ps1'])
     def run_shell_files(
