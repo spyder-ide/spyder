@@ -130,13 +130,13 @@ class WorkerUpdate(QObject):
             self._check_update_available()
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         except ConnectionError as err:
             error_msg = CONNECT_ERROR_MSG
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         except HTTPError as err:
             error_msg = HTTP_ERROR_MSG.format(page.status_code)
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
             formatted_error = (error.replace('\n', '<br>')
@@ -148,7 +148,7 @@ class WorkerUpdate(QObject):
                 '<br><br>'
                 '<tt>{}</tt>'
             ).format(formatted_error)
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         finally:
             self.error = error_msg
             self.sig_ready.emit()
@@ -248,10 +248,10 @@ class WorkerDownloadInstaller(QObject):
             self._clean_installer_path()
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         except ConnectionError as err:
             error_msg = CONNECT_ERROR_MSG
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
             formatted_error = (error.replace('\n', '<br>')
@@ -263,7 +263,7 @@ class WorkerDownloadInstaller(QObject):
                 '<br><br>'
                 '<tt>{}</tt>'
             ).format(formatted_error)
-            logger.exception(err)
+            logger.warning(err, exc_info=err)
             self._clean_installer_path()
         finally:
             self.error = error_msg
