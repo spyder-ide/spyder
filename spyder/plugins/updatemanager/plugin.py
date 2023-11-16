@@ -100,7 +100,7 @@ class UpdateManager(SpyderPluginV2):
             and 'dev' not in __version__  # Not dev version
             and self.get_conf('check_updates_on_startup')
         ):
-            container.start_check_updates(startup=True)
+            container.start_check_update(startup=True)
 
     # ---- Private API
     # ------------------------------------------------------------------------
