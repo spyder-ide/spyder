@@ -505,7 +505,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "Note: Debugging will proceed. "
             "Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.",
             # Argument not expected error. See spyder-ide/spyder#19298
-            "The following argument was not expected"
+            "The following argument was not expected",
+            # Avoid showing error for kernel restarts after kernel dies when
+            # using an external interpreter
+            "conda.cli.main_run"
         ]
 
         return any([err in error for err in benign_errors])
