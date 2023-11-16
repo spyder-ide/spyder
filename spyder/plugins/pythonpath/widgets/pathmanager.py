@@ -25,7 +25,6 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
-from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
@@ -96,7 +95,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Widget setup
         self.setWindowTitle(_("PYTHONPATH manager"))
-        self.setWindowIcon(ima.icon('pythonpath'))
+        self.setWindowIcon(self.create_icon('pythonpath'))
         self.resize(500, 400)
         self.export_button.setVisible(os.name == 'nt' and sync)
 
@@ -188,7 +187,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def _create_item(self, path):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
-        item.setIcon(ima.icon('DirClosedIcon'))
+        item.setIcon(self.create_icon('DirClosedIcon'))
 
         if path in self.project_path:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
