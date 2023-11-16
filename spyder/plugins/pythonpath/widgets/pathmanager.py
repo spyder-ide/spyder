@@ -15,7 +15,8 @@ import sys
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
                             QVBoxLayout, QLabel)
@@ -26,7 +27,7 @@ from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
 
 
 class PathManagerToolbuttons:
@@ -101,9 +102,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Description
         description = QLabel(
-            _("The paths listed below will be passed to IPython consoles and "
-              "the Python language server as additional locations to search "
-              "for Python modules.")
+            _("The paths listed below will be passed to the IPython console "
+              "and to the Editor as additional locations to search for Python "
+              "modules.")
         )
         description.setWordWrap(True)
 
@@ -114,14 +115,16 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Middle layout
         middle_layout = QHBoxLayout()
+        middle_layout.setContentsMargins(5, 0, 0, 0)
         middle_layout.addWidget(self.listwidget)
         middle_layout.addLayout(buttons_layout)
 
         # Widget layout
         layout = QVBoxLayout()
         layout.addWidget(description)
-        layout.addSpacing(12)
+        layout.addSpacing(3 * AppStyle.MarginSize)
         layout.addLayout(middle_layout)
+        layout.addSpacing(2 * AppStyle.MarginSize)
         layout.addWidget(self.bbox)
         self.setLayout(layout)
 
@@ -130,6 +133,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.listwidget.itemChanged.connect(lambda x: self.refresh())
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
+
+        # Style
+        self.listwidget.setStyleSheet(f"padding: {AppStyle.MarginSize + 1}px")
 
         # Setup
         self.setup()
@@ -203,18 +209,24 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     def _create_header(self, text):
         """Create a header for a given path section."""
-        header = QListWidgetItem(text)
+        header_item = QListWidgetItem()
+        header_widget = QLabel(text)
 
-        # Header is centered and it can't be selected
-        header.setTextAlignment(Qt.AlignHCenter)
-        header.setFlags(Qt.ItemIsEnabled)
+        # Header is centered
+        header_widget.setAlignment(Qt.AlignHCenter)
 
         # Make header appear in bold
-        font = header.font()
+        font = header_widget.font()
         font.setBold(True)
-        header.setFont(font)
+        header_widget.setFont(font)
 
-        return header
+        # Increase height to make header stand over paths
+        fm = QFontMetrics(font)
+        header_item.setSizeHint(
+            QSize(20, fm.capHeight() + 5 * AppStyle.MarginSize)
+        )
+
+        return header_item, header_widget
 
     @property
     def editable_bottom_row(self):
@@ -250,9 +262,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Project path
         if self.project_path:
-            self.project_header = self._create_header(_("Project path"))
+            self.project_header, project_widget = (
+                self._create_header(_("Project path"))
+            )
             self.headers.append(self.project_header)
             self.listwidget.addItem(self.project_header)
+            self.listwidget.setItemWidget(self.project_header, project_widget)
 
             for path in self.project_path:
                 item = self._create_item(path)
@@ -260,9 +275,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Paths added by the user
         if self.user_path:
-            self.user_header = self._create_header(_("User paths"))
+            self.user_header, user_widget = (
+                self._create_header(_("User paths"))
+            )
             self.headers.append(self.user_header)
             self.listwidget.addItem(self.user_header)
+            self.listwidget.setItemWidget(self.user_header, user_widget)
 
             for path in self.user_path:
                 item = self._create_item(path)
@@ -270,9 +288,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # System path
         if self.system_path:
-            self.system_header = self._create_header(_("System PYTHONPATH"))
+            self.system_header, system_widget = (
+                self._create_header(_("System PYTHONPATH"))
+            )
             self.headers.append(self.system_header)
             self.listwidget.addItem(self.system_header)
+            self.listwidget.setItemWidget(self.system_header, system_widget)
 
             for path in self.system_path:
                 item = self._create_item(path)
@@ -346,6 +367,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 if path in self.project_path and not project_path:
                     continue
                 odict[path] = item.checkState() == Qt.Checked
+
         return odict
 
     def get_user_path(self):
@@ -357,6 +379,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             if item not in self.headers:
                 if path not in (self.project_path + self.system_path):
                     user_path.append(path)
+
         return user_path
 
     def update_paths(self, path=None, not_active_path=None, system_path=None):
@@ -414,7 +437,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Ok button only enabled if actual changes occur
         self.button_ok.setEnabled(
-            self.original_path_dict != self.get_path_dict())
+            self.original_path_dict != self.get_path_dict()
+        )
 
     @Slot()
     def add_path(self, directory=None):
@@ -452,7 +476,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         else:
             if check_path(directory):
                 if not self.user_header:
-                    self.user_header = self._create_header(_("User paths"))
+                    self.user_header, user_widget = (
+                        self._create_header(_("User paths"))
+                    )
                     self.headers.append(self.user_header)
 
                 # Add header if not visible
@@ -461,8 +487,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
                         header_row = self.editable_top_row - 1
                     else:
                         header_row = 0
-                    self.listwidget.insertItem(header_row,
-                                               self.user_header)
+                    self.listwidget.insertItem(header_row, self.user_header)
+                    self.listwidget.setItemWidget(
+                        self.user_header, user_widget
+                    )
 
                 # Add new path
                 item = self._create_item(directory)
