@@ -175,9 +175,10 @@ class PythonpathContainer(PluginMainContainer):
             name for name in not_active_paths if osp.isdir(name)
         )
 
-    def _save_python_path(self, new_path_dict):
+    def _save_paths(self, new_path_dict):
         """
-        Save Spyder PYTHONPATH to configuration folder and update attributes.
+        Save tuples for all paths and not active ones to config system and
+        update their associated attributes.
 
         `new_path_dict` is an OrderedDict that has the new paths as keys and
         the state as values. The state is `True` for active and `False` for
@@ -230,7 +231,7 @@ class PythonpathContainer(PluginMainContainer):
 
         # Save new path
         if new_path_dict is not None:
-            self._save_python_path(new_path_dict)
+            self._save_paths(new_path_dict)
 
         # Load new path plus project path
         new_path_dict_p = self._get_spyder_pythonpath_dict()
