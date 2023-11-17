@@ -132,7 +132,7 @@ def to_unicode_from_fs(string):
     """
     Return a unicode version of string decoded using the file system encoding.
     """
-    if not is_string(string): # string is a QString
+    if not is_string(string):  # string is a QString
         string = to_text_string(string.toUtf8(), 'utf-8')
     else:
         if is_binary_string(string):
