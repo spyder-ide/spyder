@@ -724,8 +724,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'Python %s\n' % py_ver,
             'Type "copyright", "credits" or "license" for more information.',
             '\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
+
+        if ipy_ver:
+            banner_parts.append(
+                'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+            )
+        else:
+            banner_parts.append('IPython -- An enhanced Interactive Python.\n')
+
         banner = ''.join(banner_parts)
 
         # Pylab additions
