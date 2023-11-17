@@ -3,23 +3,30 @@
 # pylint: disable=import-outside-toplevel
 
 import logging
+import sys
 from functools import lru_cache
 from typing import List, Mapping, Sequence, Union
 
-import pkg_resources
 import pluggy
 from pluggy._hooks import HookImpl
 
 from pylsp import _utils, hookspecs, uris, PYLSP
 
+# See compatibility note on `group` keyword:
+#   https://docs.python.org/3/library/importlib.metadata.html#entry-points
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
+
+
 log = logging.getLogger(__name__)
 
 # Sources of config, first source overrides next source
-DEFAULT_CONFIG_SOURCES = ['pycodestyle']
+DEFAULT_CONFIG_SOURCES = ["pycodestyle"]
 
 
 class PluginManager(pluggy.PluginManager):
-
     def _hookexec(
         self,
         hook_name: str,
@@ -50,12 +57,14 @@ class Config:
         self._config_sources = {}
         try:
             from .flake8_conf import Flake8Config
-            self._config_sources['flake8'] = Flake8Config(self._root_path)
+
+            self._config_sources["flake8"] = Flake8Config(self._root_path)
         except ImportError:
             pass
         try:
             from .pycodestyle_conf import PyCodeStyleConfig
-            self._config_sources['pycodestyle'] = PyCodeStyleConfig(self._root_path)
+
+            self._config_sources["pycodestyle"] = PyCodeStyleConfig(self._root_path)
         except ImportError:
             pass
 
@@ -67,14 +76,17 @@ class Config:
         # Pluggy will skip loading a plugin if it throws a DistributionNotFound exception.
         # However I don't want all plugins to have to catch ImportError and re-throw. So here we'll filter
         # out any entry points that throw ImportError assuming one or more of their dependencies isn't present.
-        for entry_point in pkg_resources.iter_entry_points(PYLSP):
+        for entry_point in entry_points(group=PYLSP):
             try:
                 entry_point.load()
             except Exception as e:  # pylint: disable=broad-except
-                log.info("Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e)
+                log.info(
+                    "Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e
+                )
                 self._pm.set_blocked(entry_point.name)
 
-        # Load the entry points into pluggy, having blocked any failing ones
+        # Load the entry points into pluggy, having blocked any failing ones.
+        # Despite the API name, recent Pluggy versions will use ``importlib_metadata``.
         self._pm.load_setuptools_entrypoints(PYLSP)
 
         for name, plugin in self._pm.list_name_plugin():
@@ -82,7 +94,13 @@ class Config:
                 log.info("Loaded pylsp plugin %s from %s", name, plugin)
 
         for plugin_conf in self._pm.hook.pylsp_settings(config=self):
-            self._plugin_settings = _utils.merge_dicts(self._plugin_settings, plugin_conf)
+            self._plugin_settings = _utils.merge_dicts(
+                self._plugin_settings, plugin_conf
+            )
+
+        self._plugin_settings = _utils.merge_dicts(
+            self._plugin_settings, self._init_opts.get("pylsp", {})
+        )
 
         self._update_disabled_plugins()
 
@@ -123,7 +141,7 @@ class Config:
         settings.cache_clear() when the config is updated
         """
         settings = {}
-        sources = self._settings.get('configurationSources', DEFAULT_CONFIG_SOURCES)
+        sources = self._settings.get("configurationSources", DEFAULT_CONFIG_SOURCES)
 
         # Plugin configuration
         settings = _utils.merge_dicts(settings, self._plugin_settings)
@@ -137,7 +155,9 @@ class Config:
             if not source:
                 continue
             source_conf = source.user_config()
-            log.debug("Got user config from %s: %s", source.__class__.__name__, source_conf)
+            log.debug(
+                "Got user config from %s: %s", source.__class__.__name__, source_conf
+            )
             settings = _utils.merge_dicts(settings, source_conf)
 
         # Project configuration
@@ -146,7 +166,9 @@ class Config:
             if not source:
                 continue
             source_conf = source.project_config(document_path or self._root_path)
-            log.debug("Got project config from %s: %s", source.__class__.__name__, source_conf)
+            log.debug(
+                "Got project config from %s: %s", source.__class__.__name__, source_conf
+            )
             settings = _utils.merge_dicts(settings, source_conf)
 
         log.debug("With configuration: %s", settings)
@@ -158,7 +180,11 @@ class Config:
         return _utils.find_parents(root_path, path, names)
 
     def plugin_settings(self, plugin, document_path=None):
-        return self.settings(document_path=document_path).get('plugins', {}).get(plugin, {})
+        return (
+            self.settings(document_path=document_path)
+            .get("plugins", {})
+            .get(plugin, {})
+        )
 
     def update(self, settings):
         """Recursively merge the given settings into the current settings."""
@@ -170,7 +196,8 @@ class Config:
     def _update_disabled_plugins(self):
         # All plugins default to enabled
         self._disabled_plugins = [
-            plugin for name, plugin in self.plugin_manager.list_name_plugin()
-            if not self.settings().get('plugins', {}).get(name, {}).get('enabled', True)
+            plugin
+            for name, plugin in self.plugin_manager.list_name_plugin()
+            if not self.settings().get("plugins", {}).get(name, {}).get("enabled", True)
         ]
         log.info("Disabled plugins: %s", self._disabled_plugins)

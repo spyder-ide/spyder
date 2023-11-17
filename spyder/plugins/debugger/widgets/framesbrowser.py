@@ -20,7 +20,7 @@ from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QSize, Qt, Slot)
 from qtpy.QtWidgets import (
     QApplication, QStyle, QStyledItemDelegate, QStyleOptionViewItem,
-    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
+    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget, QStackedLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -28,7 +28,7 @@ from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
-from spyder.widgets.helperwidgets import FinderWidget
+from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
 class FramesBrowserState:
@@ -132,6 +132,12 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             return False
         return self.finder.isVisible()
 
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.container)
+
     def setup(self):
         """
         Setup the frames browser with provided settings.
@@ -149,12 +155,33 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
 
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "debugger",
+            _("Debugging is not active"),
+            _("Start a debugging session with the ⏯ button, allowing you to "
+              "step through your code and see the functions here that "
+              "Python has run.")
+        )
+
         # Setup layout.
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
+        self.setContentsMargins(0, 0, 0, 0)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.results_browser)
         layout.addWidget(self.finder)
-        self.setLayout(layout)
+
+        self.container = QWidget(self)
+        self.container.setLayout(layout)
+        self.stack_layout.addWidget(self.container)
 
     def _show_namespace(self, namespace):
         """
@@ -170,12 +197,16 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pdb_curindex = None
 
         if self.results_browser is not None:
+            if frames is not None:
+                self.set_pane_empty(False)
+            else:
+                self.set_pane_empty(True)
             self.results_browser.set_frames(frames)
             self.results_browser.set_title(title)
             try:
                 self.results_browser.sig_activated.disconnect(
                     self.set_pdb_index)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 pass
 
     def set_pdb_index(self, index):
@@ -263,7 +294,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def on_config_kernel(self):
         """Ask shellwidget to send Pdb configuration to kernel."""
-        self.shellwidget.call_kernel().set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration("pdb", {
             'breakpoints': self.get_conf("breakpoints", default={}),
             'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),
             'pdb_execute_events': self.get_conf('pdb_execute_events'),
@@ -277,44 +308,42 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Ask shellwidget to stop sending stack."""
         if not self.shellwidget.spyder_kernel_ready:
             return
-        self.shellwidget.call_kernel().set_pdb_configuration(
-            {'pdb_publish_stack': False})
-
-    def set_pdb_configuration(self, configuration):
-        """Set configuration into a debugging session."""
-        if not self.shellwidget.spyder_kernel_ready:
-            # will be sent by on_config_kernel
-            return
-        self.shellwidget.call_kernel(interrupt=True).set_pdb_configuration(
-            configuration)
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {'pdb_publish_stack': False}
+        )
 
     @on_conf_change(option='pdb_ignore_lib')
     def change_pdb_ignore_lib(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_ignore_lib': value
         })
 
     @on_conf_change(option='pdb_execute_events')
     def change_pdb_execute_events(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_execute_events': value
         })
 
     @on_conf_change(option='pdb_use_exclamation_mark')
     def change_pdb_use_exclamation_mark(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_use_exclamation_mark': value
         })
 
     @on_conf_change(option='pdb_stop_first_line')
     def change_pdb_stop_first_line(self, value):
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'pdb_stop_first_line': value
         })
 
     def set_breakpoints(self):
         """Set current breakpoints."""
-        self.set_pdb_configuration({
+        self.shellwidget.set_kernel_configuration(
+            "pdb", {
             'breakpoints': self.get_conf(
                 "breakpoints", default={}, section='debugger')
         })

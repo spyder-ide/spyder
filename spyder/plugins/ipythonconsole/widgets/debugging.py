@@ -226,7 +226,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         try:
             # Make sure the database will not be called after closing
             self.sig_prompt_ready.disconnect(self.reset_debug_state)
-        except TypeError:
+        except (TypeError, RuntimeError):
             # Already disconnected
             pass
 

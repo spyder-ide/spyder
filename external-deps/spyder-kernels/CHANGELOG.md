@@ -1,5 +1,22 @@
 # History of changes
 
+## Version 3.0.0b2 (2023-08-22)
+
+### Pull Requests Merged
+
+* [PR 465](https://github.com/spyder-ide/spyder-kernels/pull/465) - Save temporary file in test to temporary location, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 464](https://github.com/spyder-ide/spyder-kernels/pull/464) - Remove locals inspection, by [@impact27](https://github.com/impact27)
+* [PR 460](https://github.com/spyder-ide/spyder-kernels/pull/460) - PR: Add a global filter flag to settings, by [@jsbautista](https://github.com/jsbautista)
+* [PR 445](https://github.com/spyder-ide/spyder-kernels/pull/445) - PR: Add `exitdb` command and some speed optimizations to the debugger, by [@impact27](https://github.com/impact27)
+* [PR 429](https://github.com/spyder-ide/spyder-kernels/pull/429) - PR: Add a comm handler decorator, by [@impact27](https://github.com/impact27)
+* [PR 411](https://github.com/spyder-ide/spyder-kernels/pull/411) - PR: Remove `set_debug_state` and `do_where` calls, by [@impact27](https://github.com/impact27)
+
+In this release 6 pull requests were closed.
+
+
+----
+
+
 ## Version 3.0.0b1 (2023-06-14)
 
 ### Issues Closed
@@ -38,6 +55,29 @@ In this release 2 issues were closed.
 * [PR 171](https://github.com/spyder-ide/spyder-kernels/pull/171) - PR: Publish Pdb stack frames to Spyder, by [@impact27](https://github.com/impact27)
 
 In this release 25 pull requests were closed.
+
+
+----
+
+
+## Version 2.5.0 (2023-11-06)
+
+### New features
+
+* Add support for chained exceptions to the debugger.
+* Improve getting signatures from docstrings.
+* Restore compatibility with Python 2.
+
+### Pull Requests Merged
+
+* [PR 475](https://github.com/spyder-ide/spyder-kernels/pull/475) - PR: Skip IPython 8.17.1 in our dependencies for Python 3.9+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 474](https://github.com/spyder-ide/spyder-kernels/pull/474) - PR: More improvements to getting signatures from text, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 473](https://github.com/spyder-ide/spyder-kernels/pull/473) - PR: Improve getting signatures from docstrings and catch error when trying to get the signature of some objects, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 472](https://github.com/spyder-ide/spyder-kernels/pull/472) - PR: Add support for chained exceptions to the debugger, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 471](https://github.com/spyder-ide/spyder-kernels/pull/471) - PR: Improve the way we depend on IPython and IPykernel per Python version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 469](https://github.com/spyder-ide/spyder-kernels/pull/469) - PR: Restore compatibility with Python 2, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 6 pull requests were closed.
 
 
 ----

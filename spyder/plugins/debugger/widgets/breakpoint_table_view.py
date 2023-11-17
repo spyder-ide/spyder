@@ -328,4 +328,4 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
             self.resizeColumnToContents(col)
 
     def _adjust_file_column(self):
-        self.horizontalHeader().resizeSection(COL_FILE, self.width() / 2)
+        self.horizontalHeader().resizeSection(COL_FILE, self.width() // 2)

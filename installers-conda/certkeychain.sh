@@ -61,6 +61,7 @@ fi
 log "Creating keychain $KEYCHAINFILE..."
 security create-keychain -p $KEY_PASS $KEYCHAIN
 security list-keychains -s $KEYCHAIN
+security set-keychain-settings -lut 21600 $KEYCHAIN
 security unlock-keychain -p $KEY_PASS $KEYCHAIN
 
 log "Importing certificate(s)..."

@@ -275,8 +275,20 @@ def create_application():
     # The try/except is necessary to run the main window tests on their own.
     try:
         app.set_font()
-    except AttributeError:
-        pass
+    except AttributeError as error:
+        if running_under_pytest():
+            # Set font options to avoid a ton of Qt warnings when running tests
+            app_family = app.font().family()
+            app_size = app.font().pointSize()
+            CONF.set('appearance', 'app_font/family', app_family)
+            CONF.set('appearance', 'app_font/size', app_size)
+
+            from spyder.config.fonts import MEDIUM, MONOSPACE
+            CONF.set('appearance', 'monospace_app_font/family', MONOSPACE[0])
+            CONF.set('appearance', 'monospace_app_font/size', MEDIUM)
+        else:
+            # Raise in case the error is valid
+            raise error
 
     # Required for correct icon on GNOME/Wayland:
     if hasattr(app, 'setDesktopFileName'):

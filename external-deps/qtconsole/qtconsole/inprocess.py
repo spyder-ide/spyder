@@ -56,6 +56,10 @@ class QtInProcessChannel(SuperQObject, InProcessChannel):
         super().flush()
         self.process_events()
 
+    def closed(self):
+        """ Function to ensure compatibility with the QtZMQSocketChannel."""
+        return False
+
 
 class QtInProcessHBChannel(SuperQObject, InProcessHBChannel):
     # This signal will never be fired, but it needs to exist

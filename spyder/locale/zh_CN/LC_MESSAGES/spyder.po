@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2023-06-22 14:39-0500\n"
-"PO-Revision-Date: 2023-06-22 20:05\n"
+"POT-Creation-Date: 2023-10-20 18:41-0500\n"
+"PO-Revision-Date: 2023-10-21 06:44\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -93,129 +93,133 @@ msgstr "锁定窗格到当前位置"
 msgid "More"
 msgstr "更多"
 
-#: spyder/app/mainwindow.py:324
+#: spyder/app/mainwindow.py:329
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
 msgstr "创建 Spyder 所需的套接字时出现错误。请尝试使用管理员权限启动 cmd.exe，执行下述命令后重启电脑：<br><br><span style='color: {color}'><b>netsh winsock reset</b></span><br>"
 
-#: spyder/app/mainwindow.py:392
-msgid "Compatibility Check"
-msgstr "兼容性检查"
+#: spyder/app/mainwindow.py:399
+msgid "Plugin compatibility check"
+msgstr "插件兼容性检查"
 
-#: spyder/app/mainwindow.py:403
+#: spyder/app/mainwindow.py:401
+msgid "It was not possible to load the {} plugin. The problem was:<br><br>{}"
+msgstr "无法加载 {} 插件。 问题是:<br><br>{}"
+
+#: spyder/app/mainwindow.py:423
 msgid "Loading {}..."
 msgstr "正在加载 {}..."
 
-#: spyder/app/mainwindow.py:724 spyder/plugins/tours/widgets.py:1085
+#: spyder/app/mainwindow.py:744 spyder/plugins/tours/widgets.py:1085
 msgid "Welcome to Spyder!"
 msgstr "欢迎使用 Spyder！"
 
-#: spyder/app/mainwindow.py:802
+#: spyder/app/mainwindow.py:822
 msgid "Loading old third-party plugins..."
 msgstr "正在加载旧的第三方插件..."
 
-#: spyder/app/mainwindow.py:850 spyder/plugins/editor/widgets/editor.py:282
+#: spyder/app/mainwindow.py:870 spyder/plugins/editor/widgets/editor.py:282
 msgid "File switcher..."
 msgstr "文件切换器..."
 
-#: spyder/app/mainwindow.py:852
+#: spyder/app/mainwindow.py:872
 msgid "Fast switch between files"
 msgstr "在文件之间进行快速切换"
 
-#: spyder/app/mainwindow.py:860
+#: spyder/app/mainwindow.py:880
 msgid "Symbol finder..."
 msgstr "搜索符号..."
 
-#: spyder/app/mainwindow.py:862
+#: spyder/app/mainwindow.py:882
 msgid "Fast symbol search in file"
 msgstr "在文件内快速搜索符号"
 
-#: spyder/app/mainwindow.py:881 spyder/plugins/editor/widgets/codeeditor.py:4526
+#: spyder/app/mainwindow.py:901 spyder/plugins/editor/widgets/codeeditor.py:4526
 msgid "Undo"
 msgstr "撤销"
 
-#: spyder/app/mainwindow.py:883 spyder/plugins/editor/widgets/codeeditor.py:4529
+#: spyder/app/mainwindow.py:903 spyder/plugins/editor/widgets/codeeditor.py:4529
 msgid "Redo"
 msgstr "重做"
 
-#: spyder/app/mainwindow.py:885 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4535 spyder/plugins/explorer/widgets/explorer.py:390 spyder/plugins/help/widgets.py:374 spyder/plugins/variableexplorer/widgets/arrayeditor.py:525 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:619 spyder/plugins/variableexplorer/widgets/main_widget.py:234 spyder/widgets/browser.py:151 spyder/widgets/collectionseditor.py:641
+#: spyder/app/mainwindow.py:905 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:4535 spyder/plugins/explorer/widgets/explorer.py:390 spyder/plugins/help/widgets.py:374 spyder/plugins/variableexplorer/widgets/arrayeditor.py:525 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:619 spyder/plugins/variableexplorer/widgets/main_widget.py:234 spyder/widgets/browser.py:151 spyder/widgets/collectionseditor.py:641
 msgid "Copy"
 msgstr "复制"
 
-#: spyder/app/mainwindow.py:887 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4532
+#: spyder/app/mainwindow.py:907 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:4532
 msgid "Cut"
 msgstr "剪切"
 
-#: spyder/app/mainwindow.py:889 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4538 spyder/plugins/explorer/widgets/explorer.py:398 spyder/plugins/variableexplorer/widgets/main_widget.py:227 spyder/widgets/collectionseditor.py:638
+#: spyder/app/mainwindow.py:909 spyder/plugins/console/widgets/shell.py:135 spyder/plugins/editor/widgets/codeeditor.py:4538 spyder/plugins/explorer/widgets/explorer.py:398 spyder/plugins/variableexplorer/widgets/main_widget.py:227 spyder/widgets/collectionseditor.py:638
 msgid "Paste"
 msgstr "粘贴"
 
-#: spyder/app/mainwindow.py:892 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4542 spyder/plugins/help/widgets.py:380
+#: spyder/app/mainwindow.py:912 spyder/plugins/console/widgets/shell.py:148 spyder/plugins/editor/widgets/codeeditor.py:4542 spyder/plugins/help/widgets.py:380
 msgid "Select All"
 msgstr "全选"
 
-#: spyder/app/mainwindow.py:923
+#: spyder/app/mainwindow.py:943
 msgid "Setting up main window..."
 msgstr "正在设置主窗口…"
 
-#: spyder/app/mainwindow.py:1496 spyder/plugins/explorer/widgets/explorer.py:480 spyder/plugins/run/plugin.py:40 spyder/plugins/run/widgets.py:392 spyder/utils/programs.py:742 spyder/utils/programs.py:759
+#: spyder/app/mainwindow.py:1520 spyder/plugins/explorer/widgets/explorer.py:480 spyder/plugins/run/plugin.py:40 spyder/plugins/run/widgets.py:392 spyder/utils/programs.py:742 spyder/utils/programs.py:759
 msgid "Run"
 msgstr "运行"
 
-#: spyder/app/mainwindow.py:1497
+#: spyder/app/mainwindow.py:1521
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr "不支持在当前平台 %s 上运行外部系统终端。"
 
-#: spyder/app/mainwindow.py:1550 spyder/plugins/application/confpage.py:256 spyder/plugins/application/confpage.py:281 spyder/plugins/application/container.py:467 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/editor/widgets/editor.py:2552 spyder/plugins/explorer/widgets/explorer.py:1213 spyder/plugins/explorer/widgets/explorer.py:1566 spyder/plugins/ipythonconsole/widgets/shell.py:831 spyder/plugins/layout/container.py:298 spyder/plugins/profiler/widgets/main_widget.py:571 spyder/plugins/profiler/widgets/main_widget.py:729 spyder/plugins/projects/plugin.py:458 spyder/plugins/projects/plugin.py:477 spyder/plugins/projects/plugin.py:735 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/pylint/main_widget.py:390 spyder/plugins/pylint/main_widget.py:422 spyder/plugins/variableexplorer/widgets/arrayeditor.py:627 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:150 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:457 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:665 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1315 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1319 spyder/widgets/collectionseditor.py:1620 spyder/widgets/reporterror.py:412
+#: spyder/app/mainwindow.py:1574 spyder/plugins/application/confpage.py:256 spyder/plugins/application/confpage.py:281 spyder/plugins/application/container.py:539 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/editor/widgets/editor.py:2571 spyder/plugins/explorer/widgets/explorer.py:1213 spyder/plugins/explorer/widgets/explorer.py:1566 spyder/plugins/ipythonconsole/widgets/shell.py:831 spyder/plugins/layout/container.py:298 spyder/plugins/profiler/widgets/main_widget.py:571 spyder/plugins/profiler/widgets/main_widget.py:729 spyder/plugins/projects/plugin.py:458 spyder/plugins/projects/plugin.py:477 spyder/plugins/projects/plugin.py:735 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/pylint/main_widget.py:390 spyder/plugins/pylint/main_widget.py:422 spyder/plugins/variableexplorer/widgets/arrayeditor.py:627 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:150 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:457 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:665 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1315 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1319 spyder/widgets/collectionseditor.py:1620 spyder/widgets/reporterror.py:412
 msgid "Error"
 msgstr "错误"
 
-#: spyder/app/mainwindow.py:1551
+#: spyder/app/mainwindow.py:1575
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
 msgstr "要将 <code>{fpath}</code> 作为 Spyder 项目打开，请使用 <code>spyder -p \"{fname}\"</code> 命令。"
 
-#: spyder/app/mainwindow.py:1777
+#: spyder/app/mainwindow.py:1801
 msgid "Initializing..."
 msgstr "正在初始化..."
 
-#: spyder/app/restart.py:138
+#: spyder/app/restart.py:137
 msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
 msgstr "无法关闭上一个 Spyder 实例。\n"
 "重启已中止。"
 
-#: spyder/app/restart.py:140
+#: spyder/app/restart.py:139
 msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
 msgstr "Spyder 无法重置为出厂默认设置。\n"
 "重启已中止。"
 
-#: spyder/app/restart.py:142
+#: spyder/app/restart.py:141
 msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
 msgstr "无法重启 Spyder。\n"
 "操作已中止。"
 
-#: spyder/app/restart.py:144
+#: spyder/app/restart.py:143
 msgid "Spyder exit error"
 msgstr "Spyder 退出时出现错误"
 
-#: spyder/app/restart.py:145
+#: spyder/app/restart.py:144
 msgid "Spyder reset error"
 msgstr "Spyder 重置时出现错误"
 
-#: spyder/app/restart.py:146
+#: spyder/app/restart.py:145
 msgid "Spyder restart error"
 msgstr "Spyder 重启时出现错误"
 
-#: spyder/app/restart.py:186
+#: spyder/app/restart.py:185
 msgid "Closing Spyder"
 msgstr "正在关闭 Spyder"
 
-#: spyder/app/restart.py:265
+#: spyder/app/restart.py:264
 msgid "Resetting Spyder to defaults"
 msgstr "重置 Spyder 到默认设置"
 
-#: spyder/app/restart.py:297
+#: spyder/app/restart.py:296
 msgid "Restarting"
 msgstr "正在重启"
 
@@ -337,183 +341,183 @@ msgstr "所有文件"
 msgid "Supported text files"
 msgstr "支持的文本文件"
 
-#: spyder/dependencies.py:97
+#: spyder/dependencies.py:101
 msgid "Notify macOS that Spyder can open Python files"
 msgstr "通知 macOS Spyder 可以打开 Python 文件"
 
-#: spyder/dependencies.py:102
+#: spyder/dependencies.py:106
 msgid "Atomic file writes in the Editor"
 msgstr "在编辑器中进行“原子”级文件写入"
 
-#: spyder/dependencies.py:106
+#: spyder/dependencies.py:110
 msgid "Character encoding auto-detection for the Editor"
 msgstr "在编辑器中自动检测字符编码"
 
-#: spyder/dependencies.py:110
+#: spyder/dependencies.py:114
 msgid "Handle communications between kernel and frontend"
 msgstr "负责处理内核与前端之间的通信"
 
-#: spyder/dependencies.py:114
+#: spyder/dependencies.py:118
 msgid "Create projects from cookiecutter templates"
 msgstr "从 cookiecutter 模板创建项目"
 
-#: spyder/dependencies.py:118
+#: spyder/dependencies.py:122
 msgid "Compute text file diff changes during edition"
 msgstr "在编辑时计算文本文件的变更差异"
 
-#: spyder/dependencies.py:122
+#: spyder/dependencies.py:126
 msgid "Compute folding range nesting levels"
 msgstr "计算折叠区域的嵌套层级"
 
-#: spyder/dependencies.py:126
+#: spyder/dependencies.py:130
 msgid "IPython interactive python environment"
 msgstr "IPython 交互式 Python 环境"
 
-#: spyder/dependencies.py:130
+#: spyder/dependencies.py:134
 msgid "Main backend for the Python Language Server"
 msgstr "Python 语言服务器的主后端"
 
-#: spyder/dependencies.py:134
+#: spyder/dependencies.py:138
 msgid "Optimize algorithms for folding"
 msgstr "用于折叠的优化算法"
 
-#: spyder/dependencies.py:138
+#: spyder/dependencies.py:142
 msgid "Verify if snippets files are valid"
 msgstr "验证代码片段文件是否有效"
 
-#: spyder/dependencies.py:142
+#: spyder/dependencies.py:146
 msgid "Save Github credentials to report internal errors securely"
 msgstr "保存Github凭据以便更安全地报告内部错误"
 
-#: spyder/dependencies.py:147
+#: spyder/dependencies.py:151
 msgid "Manipulate Jupyter notebooks in the Editor"
 msgstr "在编辑器中操作 Jupyter notebook"
 
-#: spyder/dependencies.py:151
+#: spyder/dependencies.py:155
 msgid "Improve code completion for objects that use Numpy docstrings"
 msgstr "增强使用Numpy文档字符串（docstrings）的对象的补全功能"
 
-#: spyder/dependencies.py:155
+#: spyder/dependencies.py:159
 msgid "Connect to remote kernels through SSH"
 msgstr "通过SSH连接到远程内核"
 
-#: spyder/dependencies.py:160
+#: spyder/dependencies.py:164
 msgid "Python parser that supports error recovery and round-trip parsing"
 msgstr "支持错误恢复和往返解析的 Python 解析器"
 
-#: spyder/dependencies.py:165
+#: spyder/dependencies.py:169
 msgid "Stdio support for our language server client"
 msgstr "用于语言服务器客户端的标准输入输出支持"
 
-#: spyder/dependencies.py:169
+#: spyder/dependencies.py:173
 msgid "Cache the list of installed Python modules"
 msgstr "缓存已安装的Python模块列表"
 
-#: spyder/dependencies.py:173
+#: spyder/dependencies.py:177
 msgid "CPU and memory usage info in the status bar"
 msgstr "在状态栏中显示处理器和内存信息"
 
-#: spyder/dependencies.py:177
+#: spyder/dependencies.py:181
 msgid "Syntax highlighting for a lot of file types in the Editor"
 msgstr "编辑器中用于多种文档类型的语法高亮"
 
-#: spyder/dependencies.py:181
+#: spyder/dependencies.py:185
 msgid "Static code analysis"
 msgstr "静态代码分析"
 
-#: spyder/dependencies.py:185
+#: spyder/dependencies.py:189
 msgid "Use the same Pylint installation with different virtual environments"
 msgstr "将同一个 Pylint 安装用于不同的虚拟环境"
 
-#: spyder/dependencies.py:190
+#: spyder/dependencies.py:194
 msgid "Code completion and linting for the Editor"
 msgstr "编辑器中的代码自动补全及语法检查"
 
-#: spyder/dependencies.py:194
+#: spyder/dependencies.py:198
 msgid "Autoformat Python files in the Editor with the Black package"
 msgstr "使用 Black 包自动格式化编辑器中的 Python 文件"
 
-#: spyder/dependencies.py:199
+#: spyder/dependencies.py:203
 msgid "Spyder plugin for the Python LSP Server"
 msgstr "LSP 服务器的 Spyder 插件"
 
-#: spyder/dependencies.py:203
+#: spyder/dependencies.py:207
 msgid "Parse desktop files on Linux"
 msgstr "在 Linux 上解析 desktop 文件"
 
-#: spyder/dependencies.py:208
+#: spyder/dependencies.py:212
 msgid "Client for the language server protocol (LSP)"
 msgstr "语言服务器协议（LSP）客户端"
 
-#: spyder/dependencies.py:212
+#: spyder/dependencies.py:216
 msgid "Dark style for the entire interface"
 msgstr "全局暗色样式"
 
-#: spyder/dependencies.py:216
+#: spyder/dependencies.py:220
 msgid "Customize Qt stylesheets"
 msgstr "自定义 Qt 样式表"
 
-#: spyder/dependencies.py:220
+#: spyder/dependencies.py:224
 msgid "Icon theme based on FontAwesome and Material Design icons"
 msgstr "基于 FontAwesome 和 Material Design 的图标主题"
 
-#: spyder/dependencies.py:224
+#: spyder/dependencies.py:228
 msgid "Main package for the IPython console"
 msgstr "IPython 控制台的主程序包"
 
-#: spyder/dependencies.py:228
+#: spyder/dependencies.py:232
 msgid "Abstraction layer for Python Qt bindings."
 msgstr "用于 Python Qt 绑定的抽象层。"
 
-#: spyder/dependencies.py:232
+#: spyder/dependencies.py:236
 msgid "Fast access to code snippets regions"
 msgstr "快速访问代码片段区域"
 
-#: spyder/dependencies.py:236
+#: spyder/dependencies.py:240
 msgid "Determine package version"
 msgstr "确定包版本"
 
-#: spyder/dependencies.py:240
+#: spyder/dependencies.py:244
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
 msgstr "在专用窗格中显示编辑器和控制台中对象的帮助"
 
-#: spyder/dependencies.py:244
+#: spyder/dependencies.py:248
 msgid "Jupyter kernels for the Spyder console"
 msgstr "Spyder 控制台的 Jupyter 内核"
 
-#: spyder/dependencies.py:248
+#: spyder/dependencies.py:252
 msgid "Compute distances between strings"
 msgstr "计算字符串之间的差距"
 
-#: spyder/dependencies.py:252
+#: spyder/dependencies.py:256
 msgid "3-way merge algorithm to merge document changes"
 msgstr "用于合并文档更改的 3 向合并算法"
 
-#: spyder/dependencies.py:256
+#: spyder/dependencies.py:260
 msgid "Watch file changes on project directories"
 msgstr "在项目文件夹中监视文件变动"
 
-#: spyder/dependencies.py:265
+#: spyder/dependencies.py:269
 msgid "Run Cython files in the IPython Console"
 msgstr "在 IPython 控制台中运行 Cython 文件"
 
-#: spyder/dependencies.py:270
+#: spyder/dependencies.py:274
 msgid "2D/3D plotting in the IPython console"
 msgstr "在 IPython 控制台中进行 2D/3D 绘图"
 
-#: spyder/dependencies.py:275
+#: spyder/dependencies.py:279
 msgid "View and edit two and three dimensional arrays in the Variable Explorer"
 msgstr "在变量管理器中查看和编辑二维或三维的数组"
 
-#: spyder/dependencies.py:280
+#: spyder/dependencies.py:284
 msgid "View and edit DataFrames and Series in the Variable Explorer"
 msgstr "在变量管理器中查看和编辑数据框 DataFrame 和序列 Series"
 
-#: spyder/dependencies.py:285
+#: spyder/dependencies.py:289
 msgid "Import Matlab workspace files in the Variable Explorer"
 msgstr "在变量管理器中导入Matlab工作空间文件"
 
-#: spyder/dependencies.py:290
+#: spyder/dependencies.py:294
 msgid "Symbolic mathematics in the IPython Console"
 msgstr "在 IPython 控制台中进行符号运算"
 
@@ -577,7 +581,7 @@ msgstr "富文本"
 msgid "Preview"
 msgstr "预览"
 
-#: spyder/plugins/appearance/confpage.py:381 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:421 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editor.py:421 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2303 spyder/plugins/ipythonconsole/widgets/main_widget.py:2396 spyder/plugins/layout/container.py:307 spyder/plugins/layout/container.py:366 spyder/plugins/layout/plugin.py:429 spyder/plugins/layout/plugin.py:446 spyder/plugins/maininterpreter/confpage.py:176 spyder/plugins/preferences/plugin.py:335 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:565 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:441 spyder/utils/environ.py:116 spyder/utils/environ.py:196 spyder/utils/environ.py:227 spyder/widgets/collectionseditor.py:1046 spyder/widgets/collectionseditor.py:1226 spyder/widgets/collectionseditor.py:1238
+#: spyder/plugins/appearance/confpage.py:381 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:153 spyder/plugins/completion/providers/languageserver/provider.py:421 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editor.py:421 spyder/plugins/ipythonconsole/utils/ssh.py:71 spyder/plugins/ipythonconsole/widgets/main_widget.py:2303 spyder/plugins/ipythonconsole/widgets/main_widget.py:2396 spyder/plugins/layout/container.py:307 spyder/plugins/layout/container.py:366 spyder/plugins/layout/plugin.py:429 spyder/plugins/layout/plugin.py:446 spyder/plugins/maininterpreter/confpage.py:176 spyder/plugins/preferences/plugin.py:335 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:565 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:100 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:441 spyder/utils/environ.py:117 spyder/utils/environ.py:197 spyder/utils/environ.py:228 spyder/widgets/collectionseditor.py:1046 spyder/widgets/collectionseditor.py:1226 spyder/widgets/collectionseditor.py:1238
 msgid "Warning"
 msgstr "警告"
 
@@ -719,7 +723,7 @@ msgstr "为不同显示器输入对应的值，以分号 ';' 分隔。\n"
 msgid "Interface"
 msgstr "界面"
 
-#: spyder/plugins/application/confpage.py:237 spyder/plugins/editor/confpage.py:338 spyder/plugins/ipythonconsole/confpage.py:429
+#: spyder/plugins/application/confpage.py:237 spyder/plugins/editor/confpage.py:347 spyder/plugins/ipythonconsole/confpage.py:429
 msgid "Advanced settings"
 msgstr "高级设置"
 
@@ -731,127 +735,151 @@ msgstr "很抱歉，但设置小于 1.0 的缩放因子是不可能的。 任何
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
 msgstr "很抱歉，尝试设置所选语言时出现以下错误：<br> <br> <tt> {} </tt>"
 
-#: spyder/plugins/application/container.py:125
+#: spyder/plugins/application/container.py:127
 msgid "Spyder documentation"
 msgstr "Spyder文档"
 
-#: spyder/plugins/application/container.py:136
+#: spyder/plugins/application/container.py:138
 msgid "Tutorial videos"
 msgstr "教程视频"
 
-#: spyder/plugins/application/container.py:143
+#: spyder/plugins/application/container.py:145
 msgid "Troubleshooting..."
 msgstr "故障排查..."
 
-#: spyder/plugins/application/container.py:147
+#: spyder/plugins/application/container.py:149
 msgid "Report issue..."
 msgstr "报告问题…"
 
-#: spyder/plugins/application/container.py:152
+#: spyder/plugins/application/container.py:154
 msgid "Dependencies..."
 msgstr "依赖关系…"
 
-#: spyder/plugins/application/container.py:157 spyder/plugins/application/widgets/status.py:162
+#: spyder/plugins/application/container.py:159 spyder/plugins/application/widgets/status.py:162
 msgid "Check for updates..."
 msgstr "检查更新…"
 
-#: spyder/plugins/application/container.py:161
+#: spyder/plugins/application/container.py:163
 msgid "Spyder support..."
 msgstr "Spyder支持…"
 
-#: spyder/plugins/application/container.py:167
+#: spyder/plugins/application/container.py:169
 msgid "About %s..."
 msgstr "关于%s…"
 
-#: spyder/plugins/application/container.py:174
+#: spyder/plugins/application/container.py:176
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
 msgstr "显示和编辑当前的Windows注册表中用户环境变量（即适用于所有会话的环境变量）"
 
-#: spyder/plugins/application/container.py:177
+#: spyder/plugins/application/container.py:179
 msgid "Show current user environment variables (i.e. for all sessions)"
 msgstr "显示当前用户环境变量 (即所有会话)"
 
-#: spyder/plugins/application/container.py:181
+#: spyder/plugins/application/container.py:183
 msgid "Current user environment variables..."
 msgstr "当前的用户环境变量…"
 
-#: spyder/plugins/application/container.py:189
+#: spyder/plugins/application/container.py:191
 msgid "&Restart"
 msgstr "重启(&R)"
 
-#: spyder/plugins/application/container.py:191
+#: spyder/plugins/application/container.py:193
 msgid "Restart"
 msgstr "重启"
 
-#: spyder/plugins/application/container.py:199
+#: spyder/plugins/application/container.py:201
 msgid "&Restart in debug mode"
 msgstr "在调试模式下重启"
 
-#: spyder/plugins/application/container.py:200
+#: spyder/plugins/application/container.py:202
 msgid "Restart in debug mode"
 msgstr "在调试模式下重启"
 
-#: spyder/plugins/application/container.py:210
+#: spyder/plugins/application/container.py:212
 msgid "Debug logs"
 msgstr "调试日志"
 
-#: spyder/plugins/application/container.py:279
+#: spyder/plugins/application/container.py:274
 msgid "New Spyder version"
 msgstr "新的 Spyder 版本"
 
-#: spyder/plugins/application/container.py:281
+#: spyder/plugins/application/container.py:276
 msgid "Check for updates at startup"
 msgstr "启动时检查更新版本"
 
-#: spyder/plugins/application/container.py:302
-msgid "<b>Spyder {} is available!</b> <i>(you have {})</i><br><br>"
-msgstr "<b>Spyder {} 已发布！</b> <i>(现有 {})</i><br><br>"
+#: spyder/plugins/application/container.py:285
+msgid "<h3>Spyder {} is available!</h3><br>"
+msgstr "<h3>Spyder {} 现在可用！</h3><br>"
 
 #: spyder/plugins/application/container.py:306
-msgid "For more information, visit our <a href=\"{}\">installation guide</a>."
-msgstr "要了解更多信息，请访问我们的 <a href=\"{}\">安装指南</a>。"
+msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
+msgstr "你想要使用 Spyder 的安装程序自动下载并安装它吗？<br><br>我们 <a href='{}'>推荐我们自己的安装程序</a> 因为它更加稳定并使更新更方便。 这将使你现有的 Spyder 安装版保持原样。"
 
-#: spyder/plugins/application/container.py:311
-msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please <b>don't</b> use <code>pip</code> to update it as that will break your installation.<br><br>Instead, run the following commands in a terminal:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
-msgstr "<b>重要提示:</b> 因为您是在 Anaconda 中安装的 Spyder，请 <b>不要</b> 使用 <code>pip</code> 来更新它，因这这将破坏您的安装。<br><br>请改为在终端中运行以下命令:<br><code>conda update anaconda</code><br><code>conda install spyder={}</code><br><br>"
+#: spyder/plugins/application/container.py:317
+msgid "Would you like to automatically download and install it?"
+msgstr "你想要自动下载并安装它吗？"
 
-#: spyder/plugins/application/container.py:324
-msgid "Would you like to automatically download and install it?<br><br>"
-msgstr "你想要自动下载并安装吗？<br><br>"
+#: spyder/plugins/application/container.py:348
+msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
+msgstr "在 Anaconda 提示符中运行以下命令或命令组来手动更新：<br><br>"
 
-#: spyder/plugins/application/container.py:342
+#: spyder/plugins/application/container.py:352
+msgid "Run the following command in a cmd prompt to update manually:<br><br>"
+msgstr "在 cmd 提示符中运行以下命令来手动更新：<br><br>"
+
+#: spyder/plugins/application/container.py:356
+msgid "Run the following command or commands in a terminal to update manually:<br><br>"
+msgstr "在终端中运行以下命令或命令组来手动更新：<br><br>"
+
+#: spyder/plugins/application/container.py:359
+msgid "Run the following command in a terminal to update manually:<br><br>"
+msgstr "在终端中运行以下命令来手动更新：<br><br>"
+
+#: spyder/plugins/application/container.py:379
+msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
+msgstr "<b>重要注意事项：</b>你在 Conda 环境中使用 pip 命令安装了 Spyder，这不是一个好主意。 请参阅 <a href=\"{}\">我们的视频</a> 了解详情。"
+
+#: spyder/plugins/application/container.py:397
+msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
+msgstr "<b>重要注意事项：</b> 由于你的 Spyder 是与 Anaconda 一起安装的，请不要使用 pip 来更新它因为那会破坏你安装的版本。"
+
+#: spyder/plugins/application/container.py:406
+msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
+msgstr "<br><br>要了解更多信息，请访问我们的 <a href=\"{}\">安装指南</a>。"
+
+#: spyder/plugins/application/container.py:414
 msgid "Spyder is up to date."
 msgstr "Spyder已经更新到最新。"
 
-#: spyder/plugins/application/container.py:446
+#: spyder/plugins/application/container.py:518
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
 msgstr "<b>还有未满足的依赖项！</b><br><br><tt>%s</tt><br><b>请安装它们以避免出现此消息。</b><br><br><i>注意</i>: Spyder 可以在没有这些依赖的情况下工作，但是为了在使用 Spyder 时拥有更流畅的体验我们 <i>强烈</i> 建议你安装所有缺失的依赖项。<br><br>不安装这些依赖项可能导致问题。 请在报告新问题之前确保所发现的任何问题不是缺失依赖项的直接结果。"
 
-#: spyder/plugins/application/container.py:483
+#: spyder/plugins/application/container.py:555
 msgid "Question"
 msgstr "问题"
 
-#: spyder/plugins/application/container.py:486
+#: spyder/plugins/application/container.py:558
 msgid "Which debug mode do you want Spyder to restart in?"
 msgstr "你想要重新启动Spyder到哪个调试模式？"
 
-#: spyder/plugins/application/container.py:489
+#: spyder/plugins/application/container.py:561
 msgid "Verbose"
 msgstr "详细"
 
-#: spyder/plugins/application/container.py:490
+#: spyder/plugins/application/container.py:562
 msgid "Minimal"
 msgstr "最小"
 
-#: spyder/plugins/application/container.py:606 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:552
+#: spyder/plugins/application/container.py:678 spyder/plugins/completion/providers/kite/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/widgets/shell.py:552
 msgid "Don't show again."
 msgstr "不再显示。"
 
-#: spyder/plugins/application/container.py:621
+#: spyder/plugins/application/container.py:693
 msgid "Restart now"
 msgstr "立即重启"
 
-#: spyder/plugins/application/container.py:623 spyder/plugins/completion/providers/kite/widgets/install.py:114 spyder/plugins/tours/widgets.py:1125
+#: spyder/plugins/application/container.py:695 spyder/plugins/completion/providers/kite/widgets/install.py:114 spyder/plugins/tours/widgets.py:1125
 msgid "Dismiss"
 msgstr "忽略"
 
@@ -961,7 +989,7 @@ msgid "Update installation will continue in the background.\n"
 msgstr "更新安装将在后台继续进行。\n"
 "点击此处再次显示安装对话框。"
 
-#: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:34 spyder/plugins/editor/plugin.py:433 spyder/plugins/editor/plugin.py:2121 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5707 spyder/plugins/editor/widgets/editor.py:325 spyder/plugins/editor/widgets/gotoline.py:29 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:335 spyder/plugins/tours/tours.py:81
+#: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:40 spyder/plugins/editor/plugin.py:433 spyder/plugins/editor/plugin.py:2121 spyder/plugins/editor/utils/switcher.py:36 spyder/plugins/editor/widgets/codeeditor.py:5707 spyder/plugins/editor/widgets/editor.py:325 spyder/plugins/editor/widgets/gotoline.py:29 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:335 spyder/plugins/tours/tours.py:81
 msgid "Editor"
 msgstr "编辑器"
 
@@ -1597,7 +1625,7 @@ msgid "Completions, linting, code\n"
 msgstr "补全、检查、代码\n"
 "折叠和符号状态。"
 
-#: spyder/plugins/completion/providers/languageserver/widgets/status.py:74
+#: spyder/plugins/completion/providers/languageserver/widgets/status.py:76
 msgid "Restart {} Language Server"
 msgstr "重启 {} 语言服务器"
 
@@ -1862,7 +1890,7 @@ msgstr "外部编辑路径…"
 msgid "Set external editor executable path"
 msgstr "设置外部编辑器可执行文件路径"
 
-#: spyder/plugins/console/widgets/main_widget.py:223 spyder/plugins/editor/confpage.py:56 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:367 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:118
+#: spyder/plugins/console/widgets/main_widget.py:223 spyder/plugins/editor/confpage.py:62 spyder/plugins/help/confpage.py:60 spyder/plugins/help/widgets.py:367 spyder/plugins/history/confpage.py:28 spyder/plugins/history/widgets.py:118
 msgid "Wrap lines"
 msgstr "折行"
 
@@ -1930,71 +1958,71 @@ msgstr "清除shell"
 msgid "Clear shell contents ('cls' command)"
 msgstr "清除终端内容（'cls'命令）"
 
-#: spyder/plugins/editor/confpage.py:43
+#: spyder/plugins/editor/confpage.py:49
 msgid "Show tab bar"
 msgstr "显示标签栏"
 
-#: spyder/plugins/editor/confpage.py:45 spyder/plugins/editor/plugin.py:940
+#: spyder/plugins/editor/confpage.py:51 spyder/plugins/editor/plugin.py:940
 msgid "Show selector for classes and functions"
 msgstr "显示类和函数选择器"
 
-#: spyder/plugins/editor/confpage.py:47 spyder/plugins/editor/plugin.py:934
+#: spyder/plugins/editor/confpage.py:53 spyder/plugins/editor/plugin.py:934
 msgid "Show indent guides"
 msgstr "显示缩进指导"
 
-#: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:937
+#: spyder/plugins/editor/confpage.py:55 spyder/plugins/editor/plugin.py:937
 msgid "Show code folding"
 msgstr "显示代码折叠功能"
 
-#: spyder/plugins/editor/confpage.py:50 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:125
+#: spyder/plugins/editor/confpage.py:56 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:125
 msgid "Show line numbers"
 msgstr "显示行号"
 
-#: spyder/plugins/editor/confpage.py:51 spyder/plugins/editor/plugin.py:927
+#: spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:927
 msgid "Show blank spaces"
 msgstr "显示空格占位符"
 
-#: spyder/plugins/editor/confpage.py:52
+#: spyder/plugins/editor/confpage.py:58
 msgid "Highlight current line"
 msgstr "高亮显示当前行"
 
-#: spyder/plugins/editor/confpage.py:54
+#: spyder/plugins/editor/confpage.py:60
 msgid "Highlight current cell"
 msgstr "高亮显示当前Cell"
 
-#: spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:930
+#: spyder/plugins/editor/confpage.py:63 spyder/plugins/editor/plugin.py:930
 msgid "Scroll past the end"
 msgstr "滚动到结尾"
 
-#: spyder/plugins/editor/confpage.py:60
+#: spyder/plugins/editor/confpage.py:66
 msgid "Highlight occurrences after"
 msgstr "高亮延迟时间"
 
-#: spyder/plugins/editor/confpage.py:63 spyder/plugins/statusbar/confpage.py:27 spyder/plugins/statusbar/confpage.py:34
+#: spyder/plugins/editor/confpage.py:69 spyder/plugins/statusbar/confpage.py:27 spyder/plugins/statusbar/confpage.py:34
 msgid " ms"
 msgstr " 毫秒"
 
-#: spyder/plugins/editor/confpage.py:100
+#: spyder/plugins/editor/confpage.py:106
 msgid "Automatic insertion of parentheses, braces and brackets"
 msgstr "自动插入圆括号、中括号、大括号"
 
-#: spyder/plugins/editor/confpage.py:103
+#: spyder/plugins/editor/confpage.py:109
 msgid "Automatic insertion of closing quotes"
 msgstr "自动插入成对的引号"
 
-#: spyder/plugins/editor/confpage.py:106
+#: spyder/plugins/editor/confpage.py:112
 msgid "Automatic insertion of colons after 'for', 'if', 'def', etc"
 msgstr "在'for', 'if', 'def'等关键字后面插入冒号"
 
-#: spyder/plugins/editor/confpage.py:109
+#: spyder/plugins/editor/confpage.py:115
 msgid "Automatic indentation after 'else', 'elif', etc."
 msgstr "在输入else、elif后自动缩进。"
 
-#: spyder/plugins/editor/confpage.py:112
+#: spyder/plugins/editor/confpage.py:118
 msgid "Tab always indent"
 msgstr "Tab键总是缩进"
 
-#: spyder/plugins/editor/confpage.py:114
+#: spyder/plugins/editor/confpage.py:120
 msgid "If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
@@ -2003,186 +2031,186 @@ msgid "If enabled, pressing Tab will always indent,\n"
 msgstr "如果启用，按Tab键将始终缩进，即使光标不在行的开头\n"
 "（启用此选项时，可以使用备用快捷键触发代码完成：Ctrl + Space）"
 
-#: spyder/plugins/editor/confpage.py:120
+#: spyder/plugins/editor/confpage.py:126
 msgid "Automatically strip trailing spaces on changed lines"
 msgstr "行的内容更改时自动移除结尾空格"
 
-#: spyder/plugins/editor/confpage.py:122
+#: spyder/plugins/editor/confpage.py:128
 msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr "若启用，将会移除已更改代码行中的结尾空格（字符除外）\n"
 "若禁用，则仅仅移除由 Spyder 添加的空格。"
 
-#: spyder/plugins/editor/confpage.py:126
+#: spyder/plugins/editor/confpage.py:132
 msgid "Intelligent backspace"
 msgstr "智能退格键"
 
-#: spyder/plugins/editor/confpage.py:130
+#: spyder/plugins/editor/confpage.py:136
 msgid "Automatically remove trailing spaces when saving files"
 msgstr "保存文件时自动移除尾随空格"
 
-#: spyder/plugins/editor/confpage.py:134
+#: spyder/plugins/editor/confpage.py:140
 msgid "Insert a newline at the end if one does not exist when saving a file"
 msgstr "当保存文件时，若文件结尾无换行符，则插入一个换行符"
 
-#: spyder/plugins/editor/confpage.py:139
+#: spyder/plugins/editor/confpage.py:145
 msgid "Trim all newlines after the final one when saving a file"
 msgstr "当保存文件时，移除最后一个换行符之后的所有额外换行符。"
 
-#: spyder/plugins/editor/confpage.py:144
+#: spyder/plugins/editor/confpage.py:150
 msgid "Indentation characters: "
 msgstr "缩进字符： "
 
-#: spyder/plugins/editor/confpage.py:145
+#: spyder/plugins/editor/confpage.py:151
 msgid "2 spaces"
 msgstr "2 个空格"
 
-#: spyder/plugins/editor/confpage.py:146
+#: spyder/plugins/editor/confpage.py:152
 msgid "3 spaces"
 msgstr "3 个空格"
 
-#: spyder/plugins/editor/confpage.py:147
+#: spyder/plugins/editor/confpage.py:153
 msgid "4 spaces"
 msgstr "4 个空格"
 
-#: spyder/plugins/editor/confpage.py:148
+#: spyder/plugins/editor/confpage.py:154
 msgid "5 spaces"
 msgstr "5 个空格"
 
-#: spyder/plugins/editor/confpage.py:149
+#: spyder/plugins/editor/confpage.py:155
 msgid "6 spaces"
 msgstr "6 个空格"
 
-#: spyder/plugins/editor/confpage.py:150
+#: spyder/plugins/editor/confpage.py:156
 msgid "7 spaces"
 msgstr "7 个空格"
 
-#: spyder/plugins/editor/confpage.py:151
+#: spyder/plugins/editor/confpage.py:157
 msgid "8 spaces"
 msgstr "8 个空格"
 
-#: spyder/plugins/editor/confpage.py:152
+#: spyder/plugins/editor/confpage.py:158
 msgid "Tabulations"
 msgstr "制表符"
 
-#: spyder/plugins/editor/confpage.py:155
+#: spyder/plugins/editor/confpage.py:161
 msgid "Tab stop width:"
 msgstr "制表符宽度："
 
-#: spyder/plugins/editor/confpage.py:156
+#: spyder/plugins/editor/confpage.py:162
 msgid "spaces"
 msgstr "空格"
 
-#: spyder/plugins/editor/confpage.py:206
+#: spyder/plugins/editor/confpage.py:212
 msgid "Save all files before running script"
 msgstr "在执行脚本前保存所有文件"
 
-#: spyder/plugins/editor/confpage.py:209
+#: spyder/plugins/editor/confpage.py:215
 msgid "Maintain focus in the editor after running or debugging code"
 msgstr "运行或调试代码后保持焦点在编辑器中"
 
-#: spyder/plugins/editor/confpage.py:212
+#: spyder/plugins/editor/confpage.py:218
 msgid "Copy full cell contents to the console when running code cells"
 msgstr "运行代码单元格时，将完整的单元格代码复制到控制台"
 
-#: spyder/plugins/editor/confpage.py:225
+#: spyder/plugins/editor/confpage.py:231
 msgid "Edit template for new files"
 msgstr "编辑用于新文件的模板"
 
-#: spyder/plugins/editor/confpage.py:229
+#: spyder/plugins/editor/confpage.py:235
 msgid "Autosave"
 msgstr "自动保存"
 
-#: spyder/plugins/editor/confpage.py:231
+#: spyder/plugins/editor/confpage.py:237
 msgid "Automatically save a copy of files with unsaved changes"
 msgstr "自动保存已更改但未保存文件的副本"
 
-#: spyder/plugins/editor/confpage.py:234
+#: spyder/plugins/editor/confpage.py:240
 msgid "Autosave interval: "
 msgstr "自动保存间隔: "
 
-#: spyder/plugins/editor/confpage.py:235
+#: spyder/plugins/editor/confpage.py:241
 msgid "seconds"
 msgstr "秒"
 
-#: spyder/plugins/editor/confpage.py:246
+#: spyder/plugins/editor/confpage.py:252
 msgid "Docstring type"
 msgstr "文档字符串类型"
 
-#: spyder/plugins/editor/confpage.py:251
-msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
-msgstr "此处，您可以选择要在编辑器中提供输入建议的“文档字符串 (docstring)”类型 ({} 或 {})。该输入建议是在声明一个函数、方法或者类之后， 在您按下 <tt>{}</tt> 后提供的。"
+#: spyder/plugins/editor/confpage.py:258
+msgid "Here you can select the type of docstrings ({}, {} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function, method or class declaration."
+msgstr "在这里你可以选择你想要编辑器在一个函数、方法或类声明后输入 <tt>{}</tt> 时自动引入的文档字符串类型 ({}, {} 或 {})。"
 
-#: spyder/plugins/editor/confpage.py:259
+#: spyder/plugins/editor/confpage.py:267
 msgid "Numpy"
 msgstr "Numpy"
 
-#: spyder/plugins/editor/confpage.py:260
+#: spyder/plugins/editor/confpage.py:268
 msgid "Google"
 msgstr "谷歌"
 
-#: spyder/plugins/editor/confpage.py:261
+#: spyder/plugins/editor/confpage.py:269
 msgid "Sphinx"
 msgstr "Sphinx"
 
-#: spyder/plugins/editor/confpage.py:263
+#: spyder/plugins/editor/confpage.py:271
 msgid "Type:"
 msgstr "类型："
 
-#: spyder/plugins/editor/confpage.py:273
+#: spyder/plugins/editor/confpage.py:282
 msgid "Annotations"
 msgstr "注释"
 
-#: spyder/plugins/editor/confpage.py:275
+#: spyder/plugins/editor/confpage.py:284
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
 msgstr "如果出现由以下内容开头的注释，则在行号前显示提示标记：<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
 
-#: spyder/plugins/editor/confpage.py:281
+#: spyder/plugins/editor/confpage.py:290
 msgid "Display code annotations"
 msgstr "显示代码标记"
 
-#: spyder/plugins/editor/confpage.py:290
+#: spyder/plugins/editor/confpage.py:299
 msgid "End-of-line characters"
 msgstr "行结束符"
 
-#: spyder/plugins/editor/confpage.py:291
+#: spyder/plugins/editor/confpage.py:300
 msgid "When opening a text file containing mixed end-of-line characters (this may raise syntax errors in the consoles on Windows platforms), Spyder may fix the file automatically."
 msgstr "当打开含有混合结束字符的文本文件时（这可能会引发Window平台下控制台的语法错误），Spyder自动修复文件。"
 
-#: spyder/plugins/editor/confpage.py:297
+#: spyder/plugins/editor/confpage.py:306
 msgid "Fix automatically and show warning message box"
 msgstr "自动修复并显示警告对话框"
 
-#: spyder/plugins/editor/confpage.py:301
+#: spyder/plugins/editor/confpage.py:310
 msgid "Convert end-of-line characters to the following on save:"
 msgstr "保存时将行结束符转换为以下字符:"
 
-#: spyder/plugins/editor/confpage.py:306 spyder/plugins/editor/plugin.py:891
+#: spyder/plugins/editor/confpage.py:315 spyder/plugins/editor/plugin.py:891
 msgid "LF (Unix)"
 msgstr "LF (Unix)"
 
-#: spyder/plugins/editor/confpage.py:307 spyder/plugins/editor/plugin.py:886
+#: spyder/plugins/editor/confpage.py:316 spyder/plugins/editor/plugin.py:886
 msgid "CRLF (Windows)"
 msgstr "CRLF (Windows)"
 
-#: spyder/plugins/editor/confpage.py:308 spyder/plugins/editor/plugin.py:896
+#: spyder/plugins/editor/confpage.py:317 spyder/plugins/editor/plugin.py:896
 msgid "CR (macOS)"
 msgstr "CR (macOS)"
 
-#: spyder/plugins/editor/confpage.py:332 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:419 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:31
+#: spyder/plugins/editor/confpage.py:341 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:419 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
 msgstr "显示"
 
-#: spyder/plugins/editor/confpage.py:333 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:70
+#: spyder/plugins/editor/confpage.py:342 spyder/plugins/help/confpage.py:59 spyder/plugins/ipythonconsole/confpage.py:70
 msgid "Source code"
 msgstr "源代码"
 
-#: spyder/plugins/editor/confpage.py:334 spyder/plugins/ipythonconsole/confpage.py:193 spyder/plugins/tours/widgets.py:332
+#: spyder/plugins/editor/confpage.py:343 spyder/plugins/ipythonconsole/confpage.py:193 spyder/plugins/tours/widgets.py:332
 msgid "Run code"
 msgstr "运行代码"
 
-#: spyder/plugins/editor/confpage.py:370
+#: spyder/plugins/editor/confpage.py:379
 msgid "This option is disabled since the <i>Autoformat files on save</i> option is active."
 msgstr "此选项已禁用，因为 <i>保存文件时自动格式化</i> 选项已激活。"
 
@@ -2880,7 +2908,7 @@ msgstr "水平分割当前编辑窗口"
 msgid "Close this panel"
 msgstr "关闭当前窗格"
 
-#: spyder/plugins/editor/widgets/editor.py:1474 spyder/plugins/editor/widgets/editor.py:3536
+#: spyder/plugins/editor/widgets/editor.py:1474 spyder/plugins/editor/widgets/editor.py:3555
 msgid "Close window"
 msgstr "关闭窗口"
 
@@ -2896,31 +2924,35 @@ msgstr "保存时出错"
 msgid "<b>Unable to save file '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>无法保存文件 '%s'</b><br><br>错误信息:<br>%s"
 
-#: spyder/plugins/editor/widgets/editor.py:2383
+#: spyder/plugins/editor/widgets/editor.py:2384
 msgid "The file <b>%s</b> is unavailable.<br><br>It may have been removed, moved or renamed outside Spyder.<br><br>Do you want to close it?"
 msgstr "文件 <b>%s</b> 不可用。<br><br>它可能已经在 Spyder 之外被删除、移动或重命名。<br><br>你想要关闭它吗？"
 
-#: spyder/plugins/editor/widgets/editor.py:2407
-msgid "The file <b>%s</b> has been modified outside Spyder.<br><br>Do you want to reload it and lose all your changes?"
-msgstr "文件 <b>%s</b> 已在 Spyder 之外被修改。<br><br>你想要重新加载它并丢弃你所有的更改吗？"
+#: spyder/plugins/editor/widgets/editor.py:2413
+msgid "The file <b>{}</b> has been modified outside Spyder.<br><br>Do you want to reload it and lose all your changes?"
+msgstr "文件 <b>{}</b> 在 Spyder 之外被修改。<br><br>你想要重新加载它并丢弃你所有的更改吗？"
 
-#: spyder/plugins/editor/widgets/editor.py:2533
+#: spyder/plugins/editor/widgets/editor.py:2433
+msgid "The file <b>{}</b> has been modified outside Spyder but it was not possible to reload it.<br><br>Therefore, it will be closed."
+msgstr "文件 <b>{}</b> 在 Spyder 之外被修改但是无法重载它。<br><br>因此，它将被关闭。"
+
+#: spyder/plugins/editor/widgets/editor.py:2552
 msgid "All changes to file <b>%s</b> will be lost.<br>Do you want to revert it from disk?"
 msgstr "对文件 <b>%s</b> 的所有更改都将丢失。<br>你想要从磁盘恢复它吗？"
 
-#: spyder/plugins/editor/widgets/editor.py:2553
+#: spyder/plugins/editor/widgets/editor.py:2572
 msgid "File <b>%s</b> is not saved on disk, so it can't be reverted."
 msgstr "文件 <b>%s</b> 未在磁盘上保存，所以它不能被恢复。"
 
-#: spyder/plugins/editor/widgets/editor.py:2767
+#: spyder/plugins/editor/widgets/editor.py:2786
 msgid "Loading %s..."
 msgstr "正在加载 %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2798
+#: spyder/plugins/editor/widgets/editor.py:2817
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
 msgstr "<b>%s</b>包含多种换行符。<br>Spyder将会自动修复这个问题。"
 
-#: spyder/plugins/editor/widgets/editor.py:3538
+#: spyder/plugins/editor/widgets/editor.py:3557
 msgid "Close this window"
 msgstr "关闭该窗口"
 
@@ -2928,7 +2960,7 @@ msgstr "关闭该窗口"
 msgid "Go to line:"
 msgstr "转到行："
 
-#: spyder/plugins/editor/widgets/gotoline.py:38 spyder/utils/syntaxhighlighters.py:59
+#: spyder/plugins/editor/widgets/gotoline.py:38 spyder/utils/syntaxhighlighters.py:58
 msgid "Current line:"
 msgstr "当前行："
 
@@ -6502,27 +6534,27 @@ msgstr "工作目录"
 msgid "Set the current working directory for various plugins."
 msgstr "设置当前的插件工作目录。"
 
-#: spyder/utils/environ.py:117
+#: spyder/utils/environ.py:118
 msgid "Module <b>pywin32 was not found</b>.<br>Please restart this Windows <i>session</i> (not the computer) for changes to take effect."
 msgstr "模块<b>pywin32</b>未找到。<br>请重启当前Windows<I>会话</I>（而不是重启电脑）来使改变生效。"
 
-#: spyder/utils/environ.py:184
+#: spyder/utils/environ.py:185
 msgid "Environment variables"
 msgstr "环境变量"
 
-#: spyder/utils/environ.py:197
+#: spyder/utils/environ.py:198
 msgid "An error occurred while trying to show your environment variables. The error was<br><br><tt>{0}</tt>"
 msgstr "尝试显示环境变量时出错：<br><br><tt>{0}</tt>"
 
-#: spyder/utils/environ.py:215
+#: spyder/utils/environ.py:216
 msgid "User environment variables"
 msgstr "用户环境变量"
 
-#: spyder/utils/environ.py:218
+#: spyder/utils/environ.py:219
 msgid "User environment variables in Windows registry"
 msgstr "Windows 注册表中的用户环境变量"
 
-#: spyder/utils/environ.py:228
+#: spyder/utils/environ.py:229
 msgid "If you accept changes, this will modify the current user environment variables directly <b>in Windows registry</b>. Use it with precautions, at your own risks.<br><br>Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like <i>Python(x,y) Home</i> for example)"
 msgstr "如果您接受更改，这将直接<b>在Windows注册表中</b>修改当前用户环境变量。 使用前做好准备，风险自负。<br><br>请注意，要使更改生效，您需要重新启动此应用程序的父进程（如果已从Windows快捷方式执行，则只需重新启动Spyder，否则 重新启动您可能已执行它的任何应用程序，例如<i> Python(x,y) Home </i>"
 
@@ -6538,67 +6570,67 @@ msgstr "不能在外部终端上运行该文件"
 msgid "unsaved file"
 msgstr "未保存文件"
 
-#: spyder/utils/syntaxhighlighters.py:58
+#: spyder/utils/syntaxhighlighters.py:57
 msgid "Background:"
 msgstr "背景:"
 
-#: spyder/utils/syntaxhighlighters.py:60
+#: spyder/utils/syntaxhighlighters.py:59
 msgid "Current cell:"
 msgstr "当前Cell："
 
-#: spyder/utils/syntaxhighlighters.py:61
+#: spyder/utils/syntaxhighlighters.py:60
 msgid "Occurrence:"
 msgstr "事件："
 
-#: spyder/utils/syntaxhighlighters.py:62
+#: spyder/utils/syntaxhighlighters.py:61
 msgid "Link:"
 msgstr "链接："
 
-#: spyder/utils/syntaxhighlighters.py:63
+#: spyder/utils/syntaxhighlighters.py:62
 msgid "Side areas:"
 msgstr "侧边栏："
 
-#: spyder/utils/syntaxhighlighters.py:64
+#: spyder/utils/syntaxhighlighters.py:63
 msgid "Matched <br>parens:"
 msgstr "匹配 <br>圆括号："
 
-#: spyder/utils/syntaxhighlighters.py:65
+#: spyder/utils/syntaxhighlighters.py:64
 msgid "Unmatched <br>parens:"
 msgstr "不匹配 <br>圆括号："
 
-#: spyder/utils/syntaxhighlighters.py:66
+#: spyder/utils/syntaxhighlighters.py:65
 msgid "Normal text:"
 msgstr "普通文本："
 
-#: spyder/utils/syntaxhighlighters.py:67
+#: spyder/utils/syntaxhighlighters.py:66
 msgid "Keyword:"
 msgstr "关键字："
 
-#: spyder/utils/syntaxhighlighters.py:68
+#: spyder/utils/syntaxhighlighters.py:67
 msgid "Builtin:"
 msgstr "内置："
 
-#: spyder/utils/syntaxhighlighters.py:69
+#: spyder/utils/syntaxhighlighters.py:68
 msgid "Definition:"
 msgstr "定义："
 
-#: spyder/utils/syntaxhighlighters.py:70
+#: spyder/utils/syntaxhighlighters.py:69
 msgid "Comment:"
 msgstr "注释："
 
-#: spyder/utils/syntaxhighlighters.py:71
+#: spyder/utils/syntaxhighlighters.py:70
 msgid "String:"
 msgstr "字符串："
 
-#: spyder/utils/syntaxhighlighters.py:72
+#: spyder/utils/syntaxhighlighters.py:71
 msgid "Number:"
 msgstr "数值："
 
-#: spyder/utils/syntaxhighlighters.py:73
+#: spyder/utils/syntaxhighlighters.py:72
 msgid "Instance:"
 msgstr "实例："
 
-#: spyder/utils/syntaxhighlighters.py:74
+#: spyder/utils/syntaxhighlighters.py:73
 msgid "Magic:"
 msgstr "魔法:"
 
@@ -7138,23 +7170,23 @@ msgstr "浏览标签"
 msgid "Close current tab"
 msgstr "关闭当前标签"
 
-#: spyder/workers/updates.py:135 spyder/workers/updates.py:137
-msgid "Unable to retrieve information."
-msgstr "无法获取信息。"
+#: spyder/workers/updates.py:30
+msgid "Unable to connect to the Spyder update service.<br><br>Make sure your connection is working properly."
+msgstr "无法连接到 Spyder 更新服务。<br><br>请确保你的网络连接是正常的。"
 
-#: spyder/workers/updates.py:139 spyder/workers/updates.py:244
-msgid "Unable to connect to the internet. <br><br>Make sure the connection is working properly."
-msgstr "无法连接到互联网。<br><br>请确保您的网络工作正常。"
+#: spyder/workers/updates.py:35
+msgid "HTTP error {status_code} when checking for updates.<br><br>Make sure your connection is working properly,and try again later."
+msgstr "当检查更新时发生 HTTP 错误 {status_code}。<br><br>你确保你的网络连接是正常的，并稍后再试。"
 
-#: spyder/workers/updates.py:142
-msgid "Unable to check for updates."
-msgstr "检查更新失败。"
+#: spyder/workers/updates.py:41
+msgid "SSL certificate verification failed while checking for Spyder updates.<br><br>Please contact your network administrator for assistance."
+msgstr "当检查 Spyder 更新时发生 SSL 证书验证失败。<br><br>请联系你的网络管理员寻求帮助。"
 
-#: spyder/workers/updates.py:242
-msgid "Unable to retrieve installer information."
-msgstr "无法获取安装器信息。"
+#: spyder/workers/updates.py:163
+msgid "It was not possible to check for Spyder updates due to the following error:<br><br><tt>{}</tt>"
+msgstr "由于发生以下错误而无法检查 Spyder 更新：<br><br><tt>{}</tt>"
 
-#: spyder/workers/updates.py:247
-msgid "Unable to download the installer."
-msgstr "无法下载安装器"
+#: spyder/workers/updates.py:301
+msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
+msgstr "由于发生以下错误而无法下载安装程序：<br><br><tt>{}</tt>"
 

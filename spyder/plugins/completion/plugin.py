@@ -64,7 +64,7 @@ class CompletionPlugin(SpyderPluginV2):
     set of :class:`SpyderCompletionProvider` instances that are discovered
     and registered via entrypoints.
 
-    This plugin can assume that `fallback`, `snippets`, `lsp` and `kite`
+    This plugin can assume that `fallback`, `snippets` and `lsp`
     completion providers are available, since they are included as part of
     Spyder.
     """
@@ -236,12 +236,6 @@ class CompletionPlugin(SpyderPluginV2):
         # entrypoints
         for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
             try:
-                # This absolutely ensures that the Kite provider won't be
-                # loaded. For instance, it can happen when you have an older
-                # Spyder version installed, but you're running it with
-                # bootstrap.
-                if 'kite' in entry_point.name:
-                    continue
                 logger.debug(f'Loading entry point: {entry_point}')
                 Provider = entry_point.resolve()
                 self._instantiate_and_register_provider(Provider)
@@ -950,7 +944,15 @@ class CompletionPlugin(SpyderPluginV2):
         """Start a given provider."""
         provider_info = self.providers[provider_name]
         if provider_info['status'] == self.STOPPED:
-            provider_info['instance'].start()
+            provider_instance = provider_info['instance']
+            provider_instance.start()
+            for language in self.language_status:
+                language_providers = self.language_status[language]
+                language_providers[provider_name] = (
+                    provider_instance.start_completion_services_for_language(
+                        language
+                    )
+                )
 
     def shutdown_provider_instance(self, provider_name: str):
         """Shutdown a given provider."""
@@ -958,6 +960,10 @@ class CompletionPlugin(SpyderPluginV2):
         if provider_info['status'] == self.RUNNING:
             provider_info['instance'].shutdown()
             provider_info['status'] = self.STOPPED
+            for language in self.language_status:
+                language_providers = self.language_status[language]
+                if provider_name in language_providers:
+                    language_providers[provider_name] = False
 
     # ---------- Methods to create/access graphical elements -----------
     def create_action(self, *args, **kwargs):
@@ -1231,7 +1237,7 @@ class CompletionPlugin(SpyderPluginV2):
         else:
             # Any empty response will be discarded and the completion
             # loop will wait for the next non-empty response.
-            # This should fix the scenario where Kite does not have a
+            # This should fix the scenario where a provider does not have a
             # response for a non-aggregated request but the LSP does.
             any_nonempty = any(request_responses['sources'].get(source)
                                for source in sorted_providers)

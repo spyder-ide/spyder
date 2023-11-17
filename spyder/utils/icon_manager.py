@@ -210,12 +210,20 @@ class IconManager():
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
             'insert_above':            [('mdi.table-arrow-up',), {'color': self.MAIN_FG_COLOR}],
             'insert_below':            [('mdi.table-arrow-down',), {'color': self.MAIN_FG_COLOR}],
+            'insert_after':            [('mdi.table-arrow-right',), {'color': self.MAIN_FG_COLOR}],
+            'insert_before':           [('mdi.table-arrow-left',), {'color': self.MAIN_FG_COLOR}],
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
             'edit_add':                [('mdi.plus-box',), {'color': self.MAIN_FG_COLOR}],
+            'duplicate_row':           [('ph.rows',), {'color': self.MAIN_FG_COLOR}],
+            'duplicate_column':        [('ph.columns',), {'color': self.MAIN_FG_COLOR}],
             'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
             'collapse_row':            [('mdi.arrow-collapse-vertical',), {'color': self.MAIN_FG_COLOR}],
+            'delete_row':              [('mdi.table-row-remove',), {'color': self.MAIN_FG_COLOR}],
+            'delete_column':           [('mdi.table-column-remove',), {'color': self.MAIN_FG_COLOR}],
             'edit_remove':             [('mdi.minus',), {'color': self.MAIN_FG_COLOR}],
+            'format_float':            [('mdi.decimal-increase',), {'color': self.MAIN_FG_COLOR}],
+            'background_color':        [('mdi.format-color-fill',), {'color': self.MAIN_FG_COLOR}],
             'browse_tab':              [('mdi.tab',), {'color': self.MAIN_FG_COLOR}],
             'filelist':                [('mdi.view-list',), {'color': self.MAIN_FG_COLOR}],
             'newwindow':               [('mdi.window-maximize',), {'color': self.MAIN_FG_COLOR}],
@@ -416,9 +424,8 @@ class IconManager():
             normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
-            # This is the color GammaRay reports for icons in disabled
-            # buttons, both for the dark and light themes
-            disabled_color = QColor(150, 150, 150)
+            # Disabled color from qdarkstyle
+            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
 
             # Paint icon with the previous color to get the disabled state.
             # Taken from https://stackoverflow.com/a/65618075/438386
@@ -443,6 +450,7 @@ class IconManager():
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:
                     kwargs['scale_factor'] = scale_factor
+                kwargs['color_disabled'] = QStylePalette.COLOR_DISABLED
                 return qta.icon(*args, **kwargs)
             except KeyError:
                 # Load custom icons
@@ -457,7 +465,14 @@ class IconManager():
 
         basename = osp.basename(fname)
         __, extension = osp.splitext(basename.lower())
-        mime_type, __ = mime.guess_type(basename)
+
+        # Catch error when it's not possible to access the Windows registry to
+        # check for this.
+        # Fixes spyder-ide/spyder#21304
+        try:
+            mime_type, __ = mime.guess_type(basename)
+        except PermissionError:
+            mime_type = None
 
         if osp.isdir(fname):
             extension = "Folder"

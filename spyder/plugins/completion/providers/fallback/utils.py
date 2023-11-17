@@ -167,8 +167,3 @@ def get_parent_until(path):
         spec = importlib.machinery.PathFinder.find_spec('__init__',
                                                         [dirname + os.sep])
     return '.'.join(reversed(items))
-
-
-def default_info_response():
-    """Default response when asking for info."""
-    return dict(name='', argspec='', note='', docstring='', calltip='')

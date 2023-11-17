@@ -41,8 +41,7 @@ class TextDecorationsManager(Manager, QObject):
     widget.
     """
     def __init__(self, editor):
-        super(TextDecorationsManager, self).__init__(editor)
-        QObject.__init__(self, None)
+        super().__init__(editor)
         self._decorations = {"misc": []}
 
         # Timer to not constantly update decorations.

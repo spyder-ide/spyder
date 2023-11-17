@@ -79,7 +79,7 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
     for i in range(nfig):
         figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         figs.append(create_figure(figname))
-        figbrowser._handle_new_figure(figs[-1], fmt)
+        figbrowser.add_figure(figs[-1], fmt)
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
     assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
@@ -102,7 +102,7 @@ def png_to_qimage(png):
 @pytest.mark.order(1)
 @pytest.mark.parametrize("fmt, fext",
                          [('image/png', '.png'), ('image/svg+xml', '.svg')])
-def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
+def test_add_figures(figbrowser, tmpdir, fmt, fext):
     """
     Test that the figure browser widget display correctly new figures in
     its viewer and thumbnails scrollbar.
@@ -114,7 +114,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     for i in range(3):
         figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         fig = create_figure(figname)
-        figbrowser._handle_new_figure(fig, fmt)
+        figbrowser.add_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
         assert figbrowser.thumbnails_sb.get_current_index() == i
         assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == fig
@@ -323,7 +323,7 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     for i in range(8):
         newfig = create_figure(
             osp.join(str(tmpdir), 'new_mplfig{}.png'.format(i)))
-        figbrowser._handle_new_figure(newfig, 'image/png')
+        figbrowser.add_figure(newfig, 'image/png')
         qtbot.wait(500)
 
     # Assert that the scrollbar range was updated correctly and that it's

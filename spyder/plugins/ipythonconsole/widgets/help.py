@@ -14,9 +14,8 @@ import re
 
 # Third party imports
 from pickle import UnpicklingError
-from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN, ANSI_PATTERN
+from qtconsole.ansi_code_processor import ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtpy.QtCore import QEventLoop
 
 # Local imports
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
@@ -38,31 +37,39 @@ class HelpWidget(RichJupyterWidget):
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
-    def get_documentation(self, content):
+    def get_documentation(self, content, signature):
         """Get documentation from inspect reply content."""
         data = content.get('data', {})
         text = data.get('text/plain', '')
+
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
-                text = re.compile(ANSI_PATTERN).sub('', text)
-                signature = self.get_signature(content).split('(')[-1]
+            # Remove ANSI characters from text
+            text = re.compile(ANSI_PATTERN).sub('', text)
 
+            if (
+                self.language_name is not None
+                and self.language_name == 'python'
+            ):
                 # Base value for the documentation
-                documentation = (text.split('Docstring:')[-1].
-                                 split('Type:')[0].split('File:')[0])
+                documentation = (
+                    text.split('Docstring:')[-1].
+                    split('Type:')[0].
+                    split('File:')[0]
+                ).strip()
 
+                # Check if the signature is at the beginning of the docstring
+                # to remove it
                 if signature:
-                    # Check if the signature is in the Docstring
-                    doc_from_signature = documentation.split(signature)
-                    if len(doc_from_signature) > 1:
-                        return (doc_from_signature[-1].split('Docstring:')[-1].
-                                split('Type:')[0].
-                                split('File:')[0]).strip('\r\n')
+                    signature_and_doc = documentation.split("\n\n")
+
+                    if (
+                        len(signature_and_doc) > 1
+                        and signature_and_doc[0].replace('\n', '') == signature
+                    ):
+                        return "\n\n".join(signature_and_doc[1:]).strip('\r\n')
 
                 return documentation.strip('\r\n')
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text.strip('\r\n')
         else:
             return ''
@@ -71,23 +78,34 @@ class HelpWidget(RichJupyterWidget):
         """Get signature from text using a given function name."""
         signature = ''
         argspec = getargspecfromtext(text)
+
         if argspec:
             # This covers cases like np.abs, whose docstring is
             # the same as np.absolute and because of that a proper
             # signature can't be obtained correctly
             signature = name + argspec
         else:
-            signature = getsignaturefromtext(text, name)
+            signature = name + getsignaturefromtext(text, name)
+
         return signature
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""
         data = content.get('data', {})
         text = data.get('text/plain', '')
+
         if text:
-            if (self.language_name is not None
-                    and self.language_name == 'python'):
+            # Remove ANSI characters from text
+            text = re.compile(ANSI_PATTERN).sub('', text)
+
+            if (
+                self.language_name is not None
+                and self.language_name == 'python'
+            ):
+                signature = ''
                 self._control.current_prompt_pos = self._prompt_pos
+
+                # Get object's name
                 line = self._control.get_current_line_to_cursor()
                 name = line[:-1].split('(')[-1]   # Take last token after a (
                 name = name.split('.')[-1]   # Then take last token after a .
@@ -98,29 +116,37 @@ class HelpWidget(RichJupyterWidget):
                 except Exception:
                     pass
 
-                text = text.split('Docstring:')
-
-                # Try signature from text before 'Docstring:'
-                before_text = text[0]
-                before_signature = self._get_signature(name, before_text)
-
-                # Try signature from text after 'Docstring:'
-                after_text = text[-1]
-                after_signature = self._get_signature(name, after_text)
-
-                # Stay with the longest signature
-                if len(before_signature) > len(after_signature):
-                    signature = before_signature
+                # Split between docstring and text before it
+                if 'Docstring:' in text:
+                    before_text, after_text = text.split('Docstring:')
                 else:
-                    signature = after_signature
+                    before_text, after_text = '', text
 
-                # Prevent special characters. Applied here to ensure
-                # recognizing the signature in the logic above.
-                signature = ANSI_OR_SPECIAL_PATTERN.sub('', signature)
+                if before_text:
+                    # This is the case for objects for which IPython was able
+                    # to get a signature (e.g. np.vectorize)
+                    before_text = before_text.strip().replace('\n', '')
+                    signature = self._get_signature(name, before_text)
+
+                # Default signatures returned by IPython
+                default_sigs = [
+                    name + '(*args, **kwargs)',
+                    name + '(self, /, *args, **kwargs)'
+                ]
+
+                # This is the case for objects without signature (e.g.
+                # np.where). For them, we try to find it from their docstrings.
+                if not signature or signature in default_sigs:
+                    after_signature = self._get_signature(
+                        name, after_text.strip()
+                    )
+                    if after_signature:
+                        signature = after_signature
+
+                    signature = signature.replace('\n', '')
 
                 return signature.strip('\r\n')
             else:
-                text = re.compile(ANSI_PATTERN).sub('', text)
                 return text.strip('\r\n')
         else:
             return ''
@@ -159,14 +185,19 @@ class HelpWidget(RichJupyterWidget):
         """
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
-        if (info and info.id == rep['parent_header']['msg_id'] and
-                info.pos == cursor.position()):
+
+        if (
+            info
+            and info.id == rep['parent_header']['msg_id']
+            and info.pos == cursor.position()
+        ):
             content = rep['content']
             if content.get('status') == 'ok' and content.get('found', False):
                 signature = self.get_signature(content)
-                documentation = self.get_documentation(content)
+                documentation = self.get_documentation(content, signature)
                 new_line = (self.language_name is not None
                             and self.language_name == 'python')
+
                 self._control.show_calltip(
                     signature,
                     documentation=documentation,

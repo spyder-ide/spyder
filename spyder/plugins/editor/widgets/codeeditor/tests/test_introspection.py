@@ -28,8 +28,6 @@ from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
-from spyder.plugins.completion.providers.kite.utils.status import (
-    check_if_kite_installed, check_if_kite_running)
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -892,88 +890,6 @@ def test_code_snippets(completions_codeeditor, qtbot):
 
     CONF.set('completions', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
-
-    code_editor.toggle_automatic_completions(True)
-    code_editor.toggle_code_snippets(True)
-
-
-@pytest.mark.skipif((not check_if_kite_installed()
-                     or not check_if_kite_running()),
-                    reason="It's not meant to be run without kite installed "
-                           "and running")
-def test_kite_code_snippets(kite_codeeditor, qtbot):
-    """
-    Test kite code snippets completions without initial placeholder.
-
-    See spyder-ide/spyder#10971
-    """
-    code_editor, kite = kite_codeeditor
-    completion = code_editor.completion_widget
-    snippets = code_editor.editor_extensions.get('SnippetsExtension')
-
-    CONF.set('lsp-server', 'code_snippets', True)
-    CONF.set('kite', 'enable', True)
-    code_editor.toggle_automatic_completions(False)
-    code_editor.toggle_code_snippets(True)
-    kite.update_configuration()
-
-    # Set cursor to start
-    code_editor.go_to_line(1)
-    qtbot.keyClicks(code_editor, 'import numpy as np')
-    qtbot.keyPress(code_editor, Qt.Key_Return)
-    qtbot.keyClicks(code_editor, 'np.sin')
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab)
-
-    assert 'sin('+u'\u2026'+')' in {
-        x['label'] for x in sig.args[0]}
-
-    expected_insert = 'sin($1)$0'
-    insert = sig.args[0][0]
-    assert expected_insert == insert['insertText']
-
-    # Insert completion
-    qtbot.wait(500)
-    qtbot.keyPress(completion, Qt.Key_Tab)
-    assert snippets.is_snippet_active
-
-    # Get code selected text
-    cursor = code_editor.textCursor()
-    arg1 = cursor.selectedText()
-    assert '' == arg1
-    assert snippets.active_snippet == 1
-
-    code_editor.set_cursor_position('eol')
-    qtbot.keyPress(code_editor, Qt.Key_Left)
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig2:
-        code_editor.do_completion()
-
-    assert '<x>)' in {x['label'] for x in sig2.args[0]}
-
-    expected_insert = '${1:[x]})$0'
-    insert = sig2.args[0][0]
-    assert expected_insert == insert['textEdit']['newText']
-    qtbot.keyPress(completion, Qt.Key_Tab)
-
-    # Snippets are disabled when there are no more left
-    code_editor.set_cursor_position('eol')
-    qtbot.keyPress(code_editor, Qt.Key_Enter)
-    assert not snippets.is_snippet_active
-
-    cursor = code_editor.textCursor()
-    cursor.movePosition(QTextCursor.PreviousBlock)
-    cursor.movePosition(QTextCursor.StartOfBlock)
-    cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
-    text1 = cursor.selectedText()
-    assert text1 == 'np.sin([x])'
-
-    CONF.set('lsp-server', 'code_snippets', False)
-    CONF.set('kite', 'enable', False)
-    kite.update_configuration()
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)

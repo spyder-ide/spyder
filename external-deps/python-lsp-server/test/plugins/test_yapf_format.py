@@ -38,8 +38,8 @@ def test_range_format(workspace):
     doc = Document(DOC_URI, workspace, DOC)
 
     def_range = {
-        'start': {'line': 0, 'character': 0},
-        'end': {'line': 4, 'character': 10}
+        "start": {"line": 0, "character": 0},
+        "end": {"line": 4, "character": 10},
     }
     res = pylsp_format_range(doc, def_range, None)
 
@@ -54,23 +54,29 @@ def test_no_change(workspace):
 
 def test_config_file(tmpdir, workspace):
     # a config file in the same directory as the source file will be used
-    conf = tmpdir.join('.style.yapf')
-    conf.write('[style]\ncolumn_limit = 14')
-    src = tmpdir.join('test.py')
+    conf = tmpdir.join(".style.yapf")
+    conf.write("[style]\ncolumn_limit = 14")
+    src = tmpdir.join("test.py")
     doc = Document(uris.from_fs_path(src.strpath), workspace, DOC)
 
     res = pylsp_format_document(workspace, doc, options=None)
 
     # A was split on multiple lines because of column_limit from config file
-    assert apply_text_edits(doc, res) == "A = [\n    'h', 'w',\n    'a'\n]\n\nB = ['h', 'w']\n"
+    assert (
+        apply_text_edits(doc, res)
+        == "A = [\n    'h', 'w',\n    'a'\n]\n\nB = ['h', 'w']\n"
+    )
 
 
-@pytest.mark.parametrize('newline', ['\r\n'])
+@pytest.mark.parametrize("newline", ["\r\n"])
 def test_line_endings(workspace, newline):
-    doc = Document(DOC_URI, workspace, f'import os;import sys{2 * newline}dict(a=1)')
+    doc = Document(DOC_URI, workspace, f"import os;import sys{2 * newline}dict(a=1)")
     res = pylsp_format_document(workspace, doc, options=None)
 
-    assert apply_text_edits(doc, res) == f'import os{newline}import sys{2 * newline}dict(a=1){newline}'
+    assert (
+        apply_text_edits(doc, res)
+        == f"import os{newline}import sys{2 * newline}dict(a=1){newline}"
+    )
 
 
 def test_format_with_tab_size_option(workspace):
@@ -103,7 +109,7 @@ def test_format_returns_text_edit_per_line(workspace):
 
     # two removes and two adds
     assert len(res) == 4
-    assert res[0]['newText'] == ""
-    assert res[1]['newText'] == ""
-    assert res[2]['newText'] == "    log(\"x\")\n"
-    assert res[3]['newText'] == "    log(\"hi\")\n"
+    assert res[0]["newText"] == ""
+    assert res[1]["newText"] == ""
+    assert res[2]["newText"] == '    log("x")\n'
+    assert res[3]["newText"] == '    log("hi")\n'

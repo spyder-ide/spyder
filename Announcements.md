@@ -1,40 +1,36 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.4.4 is released!
+**Subject**: [ANN] Spyder 5.5.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.4.4** has been released and is available for
+I'm pleased to announce that Spyder **5.5.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes fourteen weeks and six days after version 5.4.3 and it contains the
+This release comes ten weeks after version 5.4.5 and it contains the
 following new features and important fixes:
 
-* Add new shortcuts to switch Editor tabs for macOS (`Cmd + 8` and `Cmd + 9`)
-* Add syntax highlighting for Python 3.10 missing statements (`match` and `case`)
-* Improve compatibility with PySide2
-* Improve Editor scrollflags painting (find matches flags painted above errors and warnings flags)
-* Fix crash when plugins fail their compatibility checks
-* Fix LSP status bar error when cliking it
-* Fix IPython console font size setting
-* Prevent IPython console `This version of python seems to be incorrectly compiled` warning message in Python 3.11
-* Skip some IPython versions with somes bugs and add some error catching for the IPython console
-* Fix Editor found results rehighlighting when switching between files
-* Fix Editor class/function dropdown widget when using splited editors
-* Fix Editor line numbers and autoformat cursor position when the wrap lines option is enabled
-* Fix Editor error when removing unsaved files from Projects/Files explorer while open in the Editor
-* Prevent Editor `QTextCursor::setPosition: Position '-1' out of range` warning message
-* Fix Find functionality for a single file
-* Fix PYTHONPATH manager focus issues after adding a path
-* Fix Online Help issues when searching for `numpy` or `pandas`
-* Fix Windows installer being launched with admin rights after installation/autoupdate
-* Fix Windows installer conda environments activation logic when there are spaces in the installation path
-* Fix macOS standalone installer workflow and notarization process with new certificate
+* Drop support for Python 3.7
+* Drop support for PyQt < 5.10
+* Improvements to the logic that checks available updates and the update messages
+* Improvements to the syntax highlighting for `match`/`case` keywords
+* Improved compatibility for the standalone installer with Windows Server 2016
+* Additional information about Spyder available through `spyder.appdata.xml`
+* Fix Outline Explorer `Display variables and attributes` option
+* Fix disabling completion and linting providers
+* Fix errors when removing language servers configurations
+* Fix Editor replace all occurences when using backslashes
+* Fix errors when restarting external kernels
+* Fix error when using the Online help with Python 3.11
+* Fix debugging after errors via the `%debug` magic
+* Fix compatibility with Python 2 environments/custom interpreters
+* Fix application window disappearing when changing monitors
+* Fix PYTHONPATH manager logic to get user environment variables and detect possible `site-packages` directories
 
-In this release we fixed 25 issues and merged 37 pull requests that amount
-to more than 103 commits. For a full list of fixes, please see our
+In this release we fixed 26 issues and merged 42 pull requests that amount
+to more than 151 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -130,18 +126,18 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.0 alpha1 is released!
+**Subject**: [ANN] Spyder 6.0 alpha2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the first alpha of our next major version: Spyder **6.0**.
+I'm pleased to announce the second alpha of our next major version: Spyder **6.0**.
 
 We've been working on this version for more than one year now and it's working
 relatively well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This alpha version includes
-more than 960 commits over our latest stable version (5.4.3).
+more than 455 commits over our latest alpha release (6.0.0a1).
 
 Spyder 6.0 comes with the following interesting new features and fixes:
 
@@ -173,7 +169,7 @@ For a more complete list of changes, please see our
 
 You can easily install this alpha if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a1
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a2
 
 Or you can use pip with this command:
 
@@ -181,4 +177,4 @@ Or you can use pip with this command:
 
 
 Enjoy!
-Carlos
+Daniel

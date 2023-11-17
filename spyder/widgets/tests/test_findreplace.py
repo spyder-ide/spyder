@@ -260,7 +260,7 @@ def test_clear_action(findreplace_editor, qtbot):
     """
     editor = findreplace_editor.editor
     findreplace = findreplace_editor.findreplace
-    clear_action = findreplace.search_text.clear_action
+    clear_action = findreplace.search_text.lineEdit().clear_action
     editor.set_text('foo\nfoo\n')
 
     # clear_action should not be visible when the widget is shown
@@ -290,6 +290,44 @@ def test_clear_action(findreplace_editor, qtbot):
     clear_action.triggered.emit()
     qtbot.wait(500)
     assert not findreplace.messages_action.isVisible()
+
+
+def test_replace_all_backslash(findreplace_editor, qtbot):
+    """
+    Test that we can replace all occurrences of a certain text with an
+    expression that contains backslashes.
+
+    This is a regression test for issue spyder-ide/spyder#21007
+    """
+    editor = findreplace_editor.editor
+    findreplace = findreplace_editor.findreplace
+
+    # Replace all instances of | by \
+    editor.set_text("a | b | c")
+    edit = findreplace.search_text.lineEdit()
+    edit.setFocus()
+    qtbot.keyClicks(edit, '|')
+
+    findreplace.replace_text_button.setChecked(True)
+    findreplace.replace_text.setCurrentText('\\')
+    qtbot.wait(100)
+    findreplace.replace_find_all()
+    assert editor.toPlainText() == "a \\ b \\ c"
+
+    # Clear editor and edit
+    editor.selectAll()
+    qtbot.keyClick(edit, Qt.Key_Delete)
+    edit.clear()
+
+    # Replace all instances of \alpha by \beta
+    editor.set_text("\\Psi\n\\alpha\n\\beta\n\\alpha")
+    edit.setFocus()
+    qtbot.keyClicks(edit, "\\alpha")
+
+    findreplace.replace_text.setCurrentText('\\beta')
+    qtbot.wait(100)
+    findreplace.replace_find_all()
+    assert editor.toPlainText() == "\\Psi\n\\beta\n\\beta\n\\beta"
 
 
 if __name__ == "__main__":

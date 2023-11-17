@@ -7,8 +7,8 @@
 """File explorer configuration page."""
 
 # Third party imports
-from qtpy.QtWidgets import (QTabWidget, QVBoxLayout, QWidget, QGroupBox,
-                            QLabel, QPushButton)
+from qtpy.QtWidgets import (QGroupBox, QLabel, QPushButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
@@ -86,15 +86,8 @@ class ExplorerConfigPage(PluginConfigPage):
         layout_file.addWidget(self.edit_file_associations)
         associations_widget.setLayout(layout_file)
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(general_widget), _("General"))
-        self.tabs.addTab(self.create_tab(associations_widget),
-                         _("File associations"))
-
-        tab_layout = QVBoxLayout()
-        tab_layout.addWidget(self.tabs)
-
-        self.setLayout(tab_layout)
+        self.create_tab(_("General"), general_widget)
+        self.create_tab(_("File associations"), associations_widget)
 
         # Signals
         file_associations.sig_data_changed.connect(self.update_associations)

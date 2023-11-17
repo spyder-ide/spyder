@@ -13,12 +13,11 @@ name = 'qtconsole'
 import sys
 
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 6):
-    error = "ERROR: %s requires Python version 3.7 or above." % name
+if v[0] >= 3 and v[:2] < (3, 7):
+    error = "ERROR: %s requires Python version 3.8 or above." % name
     print(error, file=sys.stderr)
     sys.exit(1)
 
-PY3 = (sys.version_info[0] >= 3)
 
 #-----------------------------------------------------------------------------
 # get on with it
@@ -35,7 +34,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 packages = []
 for d, _, _ in os.walk(pjoin(here, name)):
     if os.path.exists(pjoin(d, '__init__.py')):
-        packages.append(d[len(here)+1:].replace(os.path.sep, '.'))
+        packages.append(d[len(here) + 1:].replace(os.path.sep, '.'))
 
 package_data = {
     'qtconsole' : ['resources/icon/*.svg'],
@@ -64,15 +63,14 @@ setup_args = dict(
     license                       = 'BSD',
     platforms                     = "Linux, Mac OS X, Windows",
     keywords                      = ['Interactive', 'Interpreter', 'Shell'],
-    python_requires               = '>= 3.7',
+    python_requires               = '>= 3.8',
     install_requires = [
         'traitlets!=5.2.1,!=5.2.2',
-        'ipython_genutils',
         'jupyter_core',
         'jupyter_client>=4.1',
         'pygments',
         'ipykernel>=4.1', # not a real dependency, but require the reference kernel
-        'qtpy>=2.0.1',
+        'qtpy>=2.4.0',
         'pyzmq>=17.1',
         'packaging'
     ],
@@ -92,10 +90,11 @@ setup_args = dict(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 )
 

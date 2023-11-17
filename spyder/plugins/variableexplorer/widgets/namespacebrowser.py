@@ -29,6 +29,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
@@ -59,6 +60,20 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     sig_stop_spinner_requested = Signal()
     sig_hide_finder_requested = Signal()
 
+    sig_show_figure_requested = Signal(bytes, str, object)
+    """
+    This is emitted to request that a figure be shown in the Plots plugin.
+
+    Parameters
+    ----------
+    image: bytes
+        The image to show.
+    mime_type: str
+        The image's mime type.
+    shellwidget: ShellWidget
+        The shellwidget associated with the figure.
+    """
+
     def __init__(self, parent):
         if PYQT5:
             super().__init__(parent=parent, class_parent=parent)
@@ -68,6 +83,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
         # Attributes
         self.filename = None
+        self.plots_plugin_enabled = False
 
         # Widgets
         self.editor = None
@@ -143,6 +159,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
             layout.addWidget(self.editor)
             layout.addWidget(self.finder)
 
@@ -186,7 +203,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     def update_view(self, kernel_state):
         """
         Update namespace view and other properties from a new kernel state.
-        
+
         Parameters
         ----------
         kernel_state: dict
@@ -212,18 +229,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             callback=self.set_var_properties
         ).get_var_properties()
 
-    def set_namespace_view_settings(self, interrupt=True):
+    def set_namespace_view_settings(self):
         """Set the namespace view settings"""
         if not self.shellwidget.spyder_kernel_ready:
             return
         settings = self.get_view_settings()
-        self.shellwidget.call_kernel(
-            interrupt=interrupt
-        ).set_namespace_view_settings(settings)
-
-    def setup_kernel(self):
-        self.set_namespace_view_settings(interrupt=False)
-        self.refresh_namespacebrowser(interrupt=False)
+        self.shellwidget.set_kernel_configuration(
+            "namespace_view_settings", settings
+        )
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -301,7 +314,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     return
 
             load_func = iofunctions.load_funcs[extension]
-                
+
             # 'import_wizard' (self.setup_io)
             if isinstance(load_func, str):
                 # Import data with import wizard
@@ -322,7 +335,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 error_message = self.load_data(self.filename, extension)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
-    
+
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
@@ -432,3 +445,73 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             return msg
         except (UnpicklingError, RuntimeError, CommError):
             return None
+
+    def plot(self, data, funcname):
+        """
+        Plot data.
+
+        If all the following conditions are met:
+        * the Plots plugin is enabled, and
+        * the setting "Mute inline plotting" in the Plots plugin is set, and
+        * the graphics backend in the IPython Console preferences is set
+          to "inline",
+        then call `plot_in_plots_plugin`, else call `plot_in_window`.
+        """
+        if (
+            self.plots_plugin_enabled
+            and self.get_conf('mute_inline_plotting', section='plots')
+            and (
+                self.get_conf('pylab/backend', section='ipython_console')
+                == 'inline'
+            )
+        ):
+            self.plot_in_plots_plugin(data, funcname)
+        else:
+            self.plot_in_window(data, funcname)
+
+    def plot_in_plots_plugin(self, data, funcname):
+        """
+        Plot data in Plots plugin.
+
+        Plot the given data to a PNG or SVG image and show the plot in the
+        Plots plugin.
+        """
+        import spyder.pyplot as plt
+        from IPython.core.pylabtools import print_figure
+
+        if self.get_conf('pylab/inline/figure_format',
+                         section='ipython_console') == 1:
+            figure_format = 'svg'
+            mime_type = 'image/svg+xml'
+        else:
+            figure_format = 'png'
+            mime_type = 'image/png'
+        resolution = self.get_conf('pylab/inline/resolution',
+                                   section='ipython_console')
+        width = self.get_conf('pylab/inline/width',
+                              section='ipython_console')
+        height = self.get_conf('pylab/inline/height',
+                               section='ipython_console')
+        if self.get_conf('pylab/inline/bbox_inches',
+                         section='ipython_console'):
+            bbox_inches = 'tight'
+        else:
+            bbox_inches = None
+
+        fig, ax = plt.subplots(figsize=(width, height))
+        getattr(ax, funcname)(data)
+        image = print_figure(fig, fmt=figure_format, bbox_inches=bbox_inches,
+                             dpi=resolution)
+        if figure_format == 'svg':
+            image = image.encode()
+        self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)
+
+    def plot_in_window(self, data, funcname):
+        """
+        Plot data in new Qt window.
+        """
+        import spyder.pyplot as plt
+
+        plt.figure()
+        getattr(plt, funcname)(data)
+        plt.show()
