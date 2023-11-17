@@ -28,7 +28,6 @@ from spyder.plugins.profiler.widgets.profiler_data_tree import (
     ProfilerSubWidget)
 
 
-
 class ProfilerWidgetActions:
     # Triggers
     Clear = 'clear_action'
@@ -282,7 +281,7 @@ class ProfilerWidget(ShellConnectMainWidget):
 
         undo_action.setEnabled(can_undo)
         redo_action.setEnabled(can_redo)
-        
+
         clear_action = self.get_action(ProfilerWidgetActions.Clear)
         clear_action.setEnabled(can_clear)
 
@@ -319,7 +318,6 @@ class ProfilerWidget(ShellConnectMainWidget):
     def switch_widget(self, widget, old_widget):
         """Switch widget."""
         pass
-
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -385,7 +383,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
         widget.data_tree.show_selected()
-    
+
         toggle_tree_action = self.get_action(
             ProfilerWidgetActions.ToggleTreeDirection)
         if toggle_tree_action.isChecked():

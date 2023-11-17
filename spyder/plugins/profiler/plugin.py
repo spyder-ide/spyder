@@ -29,8 +29,6 @@ from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
-
-
 # --- Plugin
 # ----------------------------------------------------------------------------
 class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
@@ -241,7 +239,6 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         params["run_method"] = "profilecell"
 
         return console.exec_cell(input, conf)
-
 
     @run_execute(context=RunContext.Selection)
     def profile_selection(

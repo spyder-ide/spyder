@@ -109,7 +109,7 @@ class Run(SpyderPluginV2):
                 RunMenuSections.Run,
                 before_section=RunMenuSections.RunExtras
             )
-        
+
         self.main_menu_ready = True
 
         while self.pending_menu_actions != []:
@@ -266,7 +266,7 @@ class Run(SpyderPluginV2):
         """
         self.get_container().register_run_configuration_metadata(
             provider, metadata)
-        
+
     def get_currently_selected_configuration(self):
         """
         Get currently selected configuration
@@ -426,7 +426,7 @@ class Run(SpyderPluginV2):
             main toolbar. If a string, it must be a toolbar_id
         add_to_menu: object
             If True, then the action will be added to the Run menu.
-            If a dictionnary, it corresponds to 
+            If a dictionnary, it corresponds to
             {'menu': ..., 'section': ..., 'before_section': ...}
         re_run: bool
             If True, then the button will act as a re-run button instead of
@@ -620,7 +620,7 @@ class Run(SpyderPluginV2):
             main toolbar. If a string, it will be a toolbat id
         add_to_menu: object
             If True, then the action will be added to the Run menu.
-            If a dictionnary, it corresponds to 
+            If a dictionnary, it corresponds to
             {'menu': ..., 'section': ..., 'before_section': ...}
 
         Returns

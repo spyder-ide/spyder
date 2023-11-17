@@ -125,7 +125,7 @@ class ProfilerSubWidget(QWidget, SpyderWidgetMixin):
         """Show profile file."""
         if not prof_buffer:
             return
-        
+
         tmp_dir = None
         if sys.platform.startswith('linux'):
             # Do not use /tmp for temporary files
@@ -661,7 +661,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 # Only expand if not too many children are shown
                 self.change_view(1)
             self.resizeColumnToContents(0)
-        
+
         self.sig_refresh.emit()
 
     def populate_tree(self, parentItem, children_list):
@@ -727,7 +727,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             itemlist.append(tlitem)
             if maxlevel > 0:
                 add_to_itemlist(tlitem, maxlevel=maxlevel)
-
 
         return itemlist
 
