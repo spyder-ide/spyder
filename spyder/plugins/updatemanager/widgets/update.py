@@ -253,7 +253,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             and osp.exists(self.installer_size_path)
         ):
             with open(self.installer_size_path, "r") as f:
-                size = f.read().strip()
+                size = int(f.read().strip())
             return size == osp.getsize(self.installer_path)
         else:
             return False
