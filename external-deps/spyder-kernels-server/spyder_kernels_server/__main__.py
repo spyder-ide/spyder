@@ -89,11 +89,11 @@ class Server(QObject):
     @Slot(str)
     def _handle_kernel_restarted(self, connection_file):
         self.socket_pub.send_pyobj(["kernel_restarted", connection_file])
-    
+
     @Slot(str, str)
     def _handle_stderr(self, connection_file, txt):
         self.socket_pub.send_pyobj(["stderr", connection_file, txt])
-        
+
     @Slot(str, str)
     def _handle_stdout(self, connection_file, txt):
         self.socket_pub.send_pyobj(["stdout", connection_file, txt])

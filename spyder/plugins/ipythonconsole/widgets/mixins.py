@@ -187,7 +187,7 @@ class KernelConnectorMixin(SpyderConfigurationObserver):
 
     def new_kernel(self, kernel_spec_dict):
         """Get a new kernel"""
-        
+
         kernel_handler = KernelHandler.new_from_spec(
             kernel_spec_dict=kernel_spec_dict,
             hostname=self.ssh_remote_hostname,
@@ -341,7 +341,6 @@ class CachedKernelMixin:
             cached_spec_dict,
             _,
         ) = self._cached_kernel_properties
-
 
         if "PYTEST_CURRENT_TEST" in cached_spec_dict["env"]:
             # Make tests faster by using cached kernels

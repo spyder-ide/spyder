@@ -897,7 +897,7 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    
+
     # Check kernel is configured
     faulthandler_args = shell.kernel_handler._fault_args
     assert faulthandler_args is not None

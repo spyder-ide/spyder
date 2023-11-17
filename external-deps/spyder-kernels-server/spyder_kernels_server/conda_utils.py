@@ -8,6 +8,7 @@ import itertools
 import locale
 
 WINDOWS = os.name == 'nt'
+PREFERRED_ENCODING = locale.getpreferredencoding()
 
 
 def is_different_interpreter(pyexec):
@@ -87,14 +88,17 @@ def is_text_string(obj):
     like binary data (Python 3) or QString (PyQt API #1)"""
     return isinstance(obj, str)
 
+
 def is_binary_string(obj):
     """Return True if `obj` is a binary string, False if it is anything else"""
     return isinstance(obj, bytes)
+
 
 def is_string(obj):
     """Return True if `obj` is a text or binary Python string object,
     False if it is anything else, like a QString (PyQt API #1)"""
     return is_text_string(obj) or is_binary_string(obj)
+
 
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
@@ -105,6 +109,7 @@ def to_text_string(obj, encoding=None):
         return obj
     else:
         return str(obj, encoding)
+
 
 # The default encoding for file paths and environment variables should be set
 # to match the default encoding that the OS is using.
@@ -119,8 +124,9 @@ def getfilesystemencoding():
         encoding = PREFERRED_ENCODING
     return encoding
 
-PREFERRED_ENCODING = locale.getpreferredencoding()
+
 FS_ENCODING = getfilesystemencoding()
+
 
 def to_unicode_from_fs(string):
     """
@@ -137,6 +143,7 @@ def to_unicode_from_fs(string):
             else:
                 return unic
     return string
+
 
 def get_home_dir():
     """Return user home directory."""
@@ -166,7 +173,8 @@ def get_home_dir():
             raise RuntimeError('Please set the environment variable HOME to '
                                'your user/home directory path so Spyder can '
                                'start properly.')
-            
+
+
 def is_program_installed(basename):
     """
     Return program absolute path if installed in PATH.
@@ -212,7 +220,8 @@ def is_program_installed(basename):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
-    
+
+
 def find_program(basename):
     """
     Find program in PATH and return absolute path
@@ -230,7 +239,8 @@ def find_program(basename):
         path = is_program_installed(name)
         if path:
             return path
-        
+
+
 def find_conda():
     """Find conda executable."""
     conda = None

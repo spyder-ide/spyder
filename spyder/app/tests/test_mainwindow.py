@@ -824,7 +824,7 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Assert only runfile text is present and there's no banner text ---
     # See spyder-ide/spyder#5301.
     text = control.toPlainText()
-    assert ('runfile' in text)# and not ('Python' in text or 'IPython' in text)
+    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
     # --- Check namespace retention after re-execution ---
     with qtbot.waitSignal(shell.executed):

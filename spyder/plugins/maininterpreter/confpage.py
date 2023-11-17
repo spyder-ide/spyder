@@ -147,8 +147,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
         password_radio.radiobutton.toggled.connect(keyfile.setDisabled)
         password_radio.radiobutton.toggled.connect(passphrase.setDisabled)
 
-
-
         # SSH authentication layout
         auth_layout = QGridLayout()
         auth_layout.addWidget(username, 0, 0, 1, 2)

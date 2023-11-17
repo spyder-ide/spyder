@@ -403,7 +403,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self._init_kernel_setup = True
 
             self.kernel_client.stopped_channels.connect(self.notify_deleted)
-            self.kernel_handler.sig_kernel_restarted.connect(self._handle_kernel_restarted)
+            self.kernel_handler.sig_kernel_restarted.connect(
+                self._handle_kernel_restarted)
 
             # For errors
             self.kernel_handler.kernel_comm.sig_exception_occurred.connect(

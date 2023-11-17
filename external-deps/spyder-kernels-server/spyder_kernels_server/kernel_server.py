@@ -29,10 +29,11 @@ PERMISSION_ERROR_MSG = (
     "consoles. Please make it writable."
 )
 
+
 # kernel_comm needs a qthread
 class StdThread(QThread):
     """Poll for changes in std buffers."""
-    
+
     sig_text = Signal(str)
 
     def __init__(self, std_buffer):
@@ -146,9 +147,8 @@ class KernelServer(QObject):
         self.connect_std_pipes(kernel_key)
 
         kernel_manager.kernel_restarted.connect(
-            lambda connection_file=connection_file: self.sig_kernel_restarted.emit(
-                connection_file
-            )
+            lambda connection_file=connection_file: 
+                self.sig_kernel_restarted.emit(connection_file)
         )
 
         return connection_file

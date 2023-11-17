@@ -34,7 +34,8 @@ def test_kernel_pypath(ipyconsole, tmpdir, default_interpreter):
     os.environ['PYTHONPATH'] = pypath
     CONF.set('pythonpath_manager', 'spyder_pythonpath', [pypath])
 
-    kernel_spec = get_kernel_spec(ipyconsole.get_widget().get_kernel_spec_dict())
+    kernel_spec = get_kernel_spec(
+        ipyconsole.get_widget().get_kernel_spec_dict())
 
     # Check that PYTHONPATH is not in our kernelspec
     # and pypath is in SPY_PYTHONPATH
@@ -56,7 +57,8 @@ def test_python_interpreter(ipyconsole, tmpdir):
     CONF.set('main_interpreter', 'executable', interpreter)
 
     # Create a kernel spec
-    kernel_spec = get_kernel_spec(ipyconsole.get_widget().get_kernel_spec_dict())
+    kernel_spec = get_kernel_spec(
+        ipyconsole.get_widget().get_kernel_spec_dict())
 
     # Assert that the python interprerter is the default one
     assert interpreter not in kernel_spec.argv

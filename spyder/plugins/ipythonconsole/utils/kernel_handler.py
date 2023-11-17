@@ -471,7 +471,7 @@ class KernelHandler(QObject):
         self.kernel_client.hb_channel.time_to_dead = 25.0
 
         self.start_channels()
-    
+
     def start_channels(self):
         """Start channels"""
         # Start kernel

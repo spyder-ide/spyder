@@ -296,7 +296,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         """Ask shellwidget to send Pdb configuration to kernel."""
         self.shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "show_traceback", self.show_exception)
-        
+
         self.shellwidget.set_kernel_configuration("pdb", {
             'breakpoints': self.get_conf("breakpoints", default={}),
             'pdb_ignore_lib': self.get_conf('pdb_ignore_lib'),

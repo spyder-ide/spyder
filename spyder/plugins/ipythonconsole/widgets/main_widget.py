@@ -1496,7 +1496,7 @@ class IPythonConsoleWidget(
         # Connect kernel to client
         client.connect_kernel(kernel_handler)
         return client
-    
+
     def get_kernel_spec_dict(self, pyexec=None):
         """Create a kernel spec dict"""
         kernel_spec = {
@@ -1505,7 +1505,7 @@ class IPythonConsoleWidget(
             "resource_dir": '',
         }
         if (
-            pyexec is None 
+            pyexec is None
             and not self.get_conf('default', section='main_interpreter')
         ):
             pyexec = self.get_conf(
@@ -1514,7 +1514,7 @@ class IPythonConsoleWidget(
         kernel_spec["pyexec"] = pyexec
         kernel_spec["env"] = self.get_kernel_spec_env(pyexec)
         return kernel_spec
-    
+
     def get_kernel_spec_env(self, pyexec):
         """Env vars for kernels"""
         default_interpreter = self.get_conf(
