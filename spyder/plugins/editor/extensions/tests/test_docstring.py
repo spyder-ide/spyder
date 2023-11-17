@@ -665,3 +665,60 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
     editor.writer_docstring.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  def test(v: str = "#"):  # comment, with '#' and "#"
+      ''',
+         '''  def test(v: str = "#"):  # comment, with '#' and "#"
+      """\n      \n
+      Parameters
+      ----------
+      v : str, optional
+          DESCRIPTION. The default is "#".
+
+      Returns
+      -------
+      None.
+
+      """
+      '''),
+        ('''  def test(v1: str = "#", # comment, with '#' and "#"
+         v2: str = '#') -> str:
+      ''',
+         '''  def test(v1: str = "#", # comment, with '#' and "#"
+         v2: str = '#') -> str:
+      """\n      \n
+      Parameters
+      ----------
+      v1 : str, optional
+          DESCRIPTION. The default is "#".
+      v2 : str, optional
+          DESCRIPTION. The default is '#'.
+
+      Returns
+      -------
+      str
+          DESCRIPTION.
+
+      """
+      '''),
+    ])
+def test_docstring_comments(editor_auto_docstring, text, expected):
+    """
+    Test auto docstring with comments on lines of function definition.
+    """
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+
+    editor.writer_docstring.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
