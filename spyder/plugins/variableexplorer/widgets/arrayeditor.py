@@ -45,7 +45,8 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, create_action, keybinding
+from spyder.utils.qthelpers import (
+    add_actions, create_action, keybinding, safe_disconnect)
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
@@ -127,14 +128,6 @@ def get_idx_rect(index_list):
     rows, cols = list(zip(*[(i.row(), i.column()) for i in index_list]))
     return ( min(rows), max(rows), min(cols), max(cols) )
 
-
-def safe_disconnect(signal):
-    """Disconnect a QtSignal, ignoring TypeError"""
-    try:
-        signal.disconnect()
-    except TypeError:
-        # Raised when no slots are connected to the signal
-        pass
 
 #==============================================================================
 # Main classes

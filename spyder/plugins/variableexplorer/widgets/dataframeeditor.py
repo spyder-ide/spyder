@@ -58,9 +58,9 @@ from spyder.config.base import _
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    MENU_SEPARATOR, keybinding,
-                                    qapplication)
+from spyder.utils.qthelpers import (
+    add_actions, create_action, keybinding, MENU_SEPARATOR, qapplication,
+    safe_disconnect)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
@@ -1753,12 +1753,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.bgcolor.setChecked(self.dataModel.bgcolor_enabled)
         self.bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
 
-        try:
-            self.bgcolor_global.stateChanged.disconnect()
-        except TypeError:
-            # Raised when no slots are connected to the signal
-            pass
-
+        safe_disconnect(self.bgcolor_global.stateChanged)
         self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
         self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
         self.bgcolor_global.setEnabled(not self.is_series and

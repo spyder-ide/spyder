@@ -31,7 +31,8 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, create_toolbutton, qapplication
+from spyder.utils.qthelpers import (
+    add_actions, create_toolbutton, qapplication, safe_disconnect)
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -41,15 +42,6 @@ logger = logging.getLogger(__name__)
 
 # About message
 EDITOR_NAME = 'Object'
-
-
-def safe_disconnect(signal):
-    """Disconnect a QtSignal, ignoring TypeError"""
-    try:
-        signal.disconnect()
-    except TypeError:
-        # Raised when no slots are connected to the signal
-        pass
 
 
 class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
