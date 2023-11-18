@@ -60,9 +60,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         assert isinstance(path, (tuple, type(None)))
 
-        # Match buttons style with the rest of Spyder
-        self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-
         self.path = path or ()
         self.project_path = project_path or ()
         self.not_active_path = not_active_path or ()
@@ -135,11 +132,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.bbox.rejected.connect(self.reject)
 
         # Style
-        self.listwidget.setStyleSheet(f"padding: {AppStyle.MarginSize + 1}px")
+        self.setStyleSheet(self._stylesheet)
 
         # Setup
         self.setup()
 
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _add_buttons_to_layout(self, widgets, layout):
         """Helper to add buttons to its layout."""
         for widget in widgets:
@@ -193,7 +192,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def _create_item(self, path):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
-        item.setIcon(self.create_icon('DirClosedIcon'))
 
         if path in self.project_path:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
@@ -212,6 +210,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         header_item = QListWidgetItem()
         header_widget = QLabel(text)
 
+        # Disable item so we can remove its background color
+        header_item.setFlags(header_item.flags() & ~Qt.ItemIsEnabled)
+
         # Header is centered
         header_widget.setAlignment(Qt.AlignHCenter)
 
@@ -223,11 +224,34 @@ class PathManager(QDialog, SpyderWidgetMixin):
         # Increase height to make header stand over paths
         fm = QFontMetrics(font)
         header_item.setSizeHint(
-            QSize(20, fm.capHeight() + 5 * AppStyle.MarginSize)
+            QSize(20, fm.capHeight() + 6 * AppStyle.MarginSize)
         )
 
         return header_item, header_widget
 
+    @property
+    def _stylesheet(self):
+        """Style for the list of paths"""
+        # This is necessary to match the buttons style with the rest of Spyder
+        toolbar_stylesheet = PANES_TOOLBAR_STYLESHEET.get_copy()
+        css = toolbar_stylesheet.get_stylesheet()
+
+        css.QListView.setValues(
+            padding=f"{AppStyle.MarginSize + 1}px"
+        )
+
+        css["QListView::item"].setValues(
+            padding=f"{AppStyle.MarginSize}px"
+        )
+
+        css["QListView::item:disabled"].setValues(
+            backgroundColor="transparent"
+        )
+
+        return css.toString()
+
+    # ---- Public methods
+    # -------------------------------------------------------------------------
     @property
     def editable_bottom_row(self):
         """Maximum bottom row count that is editable."""
