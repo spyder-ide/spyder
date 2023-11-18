@@ -13,6 +13,7 @@ import logging
 import os
 import os.path as osp
 import shlex
+import subprocess
 import sys
 
 # Third-party imports
@@ -1371,16 +1372,17 @@ class IPythonConsoleWidget(
                 ipython_version=release.version
             )
         else:
-            import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
             if path_to_custom_interpreter:
                 pyexec = path_to_custom_interpreter
-            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+
+            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
-                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                '%s -c "import IPython.core.release as r; print(r.version)"'
                 % pyexec
             )
+
             for cmd in [py_cmd, ipy_cmd]:
                 try:
                     # Use clean environment
@@ -1388,7 +1390,9 @@ class IPythonConsoleWidget(
                     output, _err = proc.communicate()
                 except subprocess.CalledProcessError:
                     output = ''
+
                 output = output.decode().split('\n')[0].strip()
+
                 if 'IPython' in cmd:
                     versions['ipython_version'] = output
                 else:
