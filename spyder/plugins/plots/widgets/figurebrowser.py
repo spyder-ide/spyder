@@ -1057,10 +1057,9 @@ class FigureThumbnail(QWidget):
         Set a colored frame around the FigureCanvas if highlight is True.
         """
         if highlight:
-            # Highlighted figure is not clear in dark mode with blue color.
-            # See spyder-ide/spyder#10255.
+            # See spyder-ide/spyder#21598 for choice of styling.
             self.canvas.setStyleSheet(
-                "FigureCanvas{border: 2px solid %s;}" %
+                "FigureCanvas{border: 3px solid %s;}" %
                 QStylePalette.COLOR_ACCENT_3
             )
         else:
