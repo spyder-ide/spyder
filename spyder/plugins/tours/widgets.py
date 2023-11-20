@@ -20,7 +20,7 @@ from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
                          Signal)
 from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
-from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAction, QApplication, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                             QLayout, QMainWindow, QMenu, QMessageBox,
                             QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima
@@ -332,7 +333,7 @@ class FadingTipBox(FadingDialog):
         self.label_image = QLabel()
 
         self.label_title = QLabel()
-        self.combo_title = QComboBox()
+        self.combo_title = SpyderComboBox()
         self.label_current = QLabel()
         self.label_content = QLabel()
 
@@ -374,6 +375,7 @@ class FadingTipBox(FadingDialog):
                              image: url({});
                              }}
                              '''.format(self.combobox_background.name(), arrow)
+
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 

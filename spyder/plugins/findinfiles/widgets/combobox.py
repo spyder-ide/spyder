@@ -10,10 +10,11 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QEvent, Qt, Signal, Slot
-from qtpy.QtWidgets import QComboBox, QMessageBox, QSizePolicy
+from qtpy.QtWidgets import QMessageBox, QSizePolicy
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.utils.encoding import to_unicode_from_fs
 
 
@@ -30,7 +31,7 @@ MAX_PATH_HISTORY = 15
 
 # ---- Combobox
 # ----------------------------------------------------------------------------
-class SearchInComboBox(QComboBox):
+class SearchInComboBox(SpyderComboBox):
     """
     Non editable combo box handling the path locations of the FindOptions
     widget.
@@ -209,4 +210,4 @@ class SearchInComboBox(QComboBox):
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
             return True
-        return QComboBox.eventFilter(self, widget, event)
+        return super().eventFilter(widget, event)

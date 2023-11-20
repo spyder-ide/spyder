@@ -10,13 +10,15 @@ A Class and Function Dropdown Panel for Spyder.
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.QtCore import QSize, Qt, Slot
-from qtpy.QtWidgets import QComboBox, QHBoxLayout
+from qtpy.QtWidgets import QHBoxLayout
 
 # Local imports
 from spyder.config.base import _
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.plugins.completion.api import SymbolKind
 from spyder.plugins.editor.api.panel import Panel
 from spyder.utils.icon_manager import ima
+from spyder.utils.stylesheet import AppStyle
 
 
 class ClassFunctionDropdown(Panel):
@@ -39,8 +41,8 @@ class ClassFunctionDropdown(Panel):
         self.funcs = []
 
         # Widgets
-        self.class_cb = QComboBox()
-        self.method_cb = QComboBox()
+        self.class_cb = SpyderComboBox(self)
+        self.method_cb = SpyderComboBox(self)
 
         # Widget setup
         self.class_cb.addItem(_('<None>'), 0)
@@ -50,8 +52,8 @@ class ClassFunctionDropdown(Panel):
         hbox = QHBoxLayout()
         hbox.addWidget(self.class_cb)
         hbox.addWidget(self.method_cb)
-        hbox.setSpacing(0)
-        hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.setSpacing(2 * AppStyle.MarginSize)
+        hbox.setContentsMargins(*((AppStyle.MarginSize,) * 4))
         self.setLayout(hbox)
 
         # Signals
@@ -71,7 +73,7 @@ class ClassFunctionDropdown(Panel):
 
     def _getVerticalSize(self):
         """Get the default height of a QComboBox."""
-        return self.class_cb.height()
+        return self.class_cb.height() + 2 * AppStyle.MarginSize
 
     @Slot(int, int)
     def _handle_cursor_position_change_event(self, linenum, column):
@@ -138,7 +140,7 @@ class ClassFunctionDropdown(Panel):
 
         Parameters
         ----------
-        combobox : :class:`qtpy.QtWidgets.QComboBox`
+        combobox : :class:`spyder.api.widgets.combobox.SpyderComboBox`
             The combobox to populate
         data : list of :class:`dict`
             The data to populate with. There should be one list element per

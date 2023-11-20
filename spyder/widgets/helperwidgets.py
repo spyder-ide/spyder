@@ -26,11 +26,12 @@ from qtpy.QtWidgets import (
     QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
     QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
     QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
-    QLabel, QFrame, QComboBox)
+    QLabel, QFrame)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
@@ -430,7 +431,7 @@ class FinderLineEdit(ClearLineEdit):
         super().__init__(parent)
         self.key_filter_dict = key_filter_dict
 
-        self._combobox = QComboBox(self)
+        self._combobox = SpyderComboBox(self)
         self._is_shown = False
 
         if regex_base is not None:

@@ -12,11 +12,12 @@ import sys
 # Third party imports
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAbstractItemView, QDialog,
                             QDialogButtonBox, QGroupBox, QHBoxLayout,
                             QPushButton, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
@@ -141,7 +142,7 @@ class LayoutSaveDialog(QDialog):
         self._parent = parent
 
         # widgets
-        self.combo_box = QComboBox(self)
+        self.combo_box = SpyderComboBox(self)
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
         self.combo_box.clearEditText()

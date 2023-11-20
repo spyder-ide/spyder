@@ -17,12 +17,13 @@ from jsonschema.exceptions import ValidationError
 from jsonschema import validate as json_validate
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QDialog,
                             QDialogButtonBox, QGroupBox, QGridLayout, QLabel,
                             QLineEdit, QTableView, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.combobox import SpyderComboBox
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.snippets.ast import build_snippet_ast
@@ -253,7 +254,7 @@ class SnippetEditor(QDialog, SpyderFontsMixin):
 
         # Trigger text
         self.trigger_text_label = QLabel(_('Trigger text:'))
-        self.trigger_text_cb = QComboBox(self)
+        self.trigger_text_cb = SpyderComboBox(self)
         self.trigger_text_cb.setEditable(True)
 
         # Description
