@@ -266,6 +266,25 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{combobox_min_height}em'
         )
 
+        # Add top and bottom padding to the inner contents of comboboxes
+        css["QComboBox QAbstractItemView"].setValues(
+            paddingTop=f"{2 * AppStyle.MarginSize}px",
+            paddingBottom=f"{2 * AppStyle.MarginSize}px"
+        )
+
+        # Add margin and padding to combobox items
+        css["QComboBox QAbstractItemView::item"].setValues(
+            marginLeft=f"{AppStyle.MarginSize}px",
+            marginRight=f"{AppStyle.MarginSize}px",
+            padding=f"{AppStyle.MarginSize}px"
+        )
+
+        # Make color of hovered combobox items match the one used in other
+        # Spyder widgets
+        css["QComboBox QAbstractItemView::item:selected:active"].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+        )
+
         # Make lineedits have *almost* the same height as our comboboxes. This
         # is not perfect because (oddly enough) Qt doesn't set the same height
         # for both when using the same value, but it's close enough.
