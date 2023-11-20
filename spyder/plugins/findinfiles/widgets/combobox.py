@@ -47,9 +47,9 @@ class SearchInComboBox(SpyderComboBox):
         self.setEditable(False)
 
         self.path = ''
-        self.project_path = None
-        self.file_path = None
-        self.external_path = None
+        self.project_path = ''
+        self.file_path = ''
+        self.external_path = ''
 
         if id_ is not None:
             self.ID = id_
@@ -187,7 +187,7 @@ class SearchInComboBox(SpyderComboBox):
         if the value of path is None.
         """
         if path is None:
-            self.project_path = None
+            self.project_path = ''
             self.model().item(PROJECT, 0).setEnabled(False)
             if self.currentIndex() == PROJECT:
                 self.setCurrentIndex(CWD)
