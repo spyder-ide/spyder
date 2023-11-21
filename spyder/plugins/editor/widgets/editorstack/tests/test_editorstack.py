@@ -72,8 +72,10 @@ def visible_editor_bot(editor_bot, mocker):
 
     # We need to patch osp.isfile to avoid the 'this file does not exist'
     # message box.
-    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
-                 returned_value=True)
+    mocker.patch(
+        'spyder.plugins.editor.widgets.editorstack.editorstack.osp.isfile',
+        returned_value=True
+    )
 
     editorstack.show()
 

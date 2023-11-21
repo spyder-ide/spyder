@@ -1,7 +1,7 @@
 # Copyright 2022- Python Language Server Contributors.
 
 import logging
-from typing import Any, Dict, Generator, List, Optional, Set
+from typing import Any, Dict, Generator, List, Optional, Set, Union
 
 import parso
 from jedi import Script
@@ -21,16 +21,31 @@ log = logging.getLogger(__name__)
 
 _score_pow = 5
 _score_max = 10**_score_pow
-MAX_RESULTS = 1000
+MAX_RESULTS_COMPLETIONS = 1000
+MAX_RESULTS_CODE_ACTIONS = 5
 
 
 @hookimpl
 def pylsp_settings() -> Dict[str, Dict[str, Dict[str, Any]]]:
     # Default rope_completion to disabled
-    return {"plugins": {"rope_autoimport": {"enabled": False, "memory": False}}}
+    return {
+        "plugins": {
+            "rope_autoimport": {
+                "enabled": False,
+                "memory": False,
+                "completions": {
+                    "enabled": True,
+                },
+                "code_actions": {
+                    "enabled": True,
+                },
+            }
+        }
+    }
 
 
-def _should_insert(expr: tree.BaseNode, word_node: tree.Leaf) -> bool:  # pylint: disable=too-many-return-statements
+# pylint: disable=too-many-return-statements
+def _should_insert(expr: tree.BaseNode, word_node: tree.Leaf) -> bool:
     """
     Check if we should insert the word_node on the given expr.
 
@@ -60,7 +75,9 @@ def _should_insert(expr: tree.BaseNode, word_node: tree.Leaf) -> bool:  # pylint
     return _handle_first_child(first_child, expr, word_node)
 
 
-def _handle_first_child(first_child: NodeOrLeaf, expr: tree.BaseNode, word_node: tree.Leaf) -> bool:
+def _handle_first_child(
+    first_child: NodeOrLeaf, expr: tree.BaseNode, word_node: tree.Leaf
+) -> bool:
     """Check if we suggest imports given the following first child."""
     if isinstance(first_child, tree.Import):
         return False
@@ -119,24 +136,39 @@ def _process_statements(
     word: str,
     autoimport: AutoImport,
     document: Document,
+    feature: str = "completions",
 ) -> Generator[Dict[str, Any], None, None]:
     for suggestion in suggestions:
         insert_line = autoimport.find_insertion_line(document.source) - 1
         start = {"line": insert_line, "character": 0}
         edit_range = {"start": start, "end": start}
         edit = {"range": edit_range, "newText": suggestion.import_statement + "\n"}
-        score = _get_score(suggestion.source, suggestion.import_statement, suggestion.name, word)
+        score = _get_score(
+            suggestion.source, suggestion.import_statement, suggestion.name, word
+        )
         if score > _score_max:
             continue
         # TODO make this markdown
-        yield {
-            "label": suggestion.name,
-            "kind": suggestion.itemkind,
-            "sortText": _sort_import(score),
-            "data": {"doc_uri": doc_uri},
-            "detail": _document(suggestion.import_statement),
-            "additionalTextEdits": [edit],
-        }
+        if feature == "completions":
+            yield {
+                "label": suggestion.name,
+                "kind": suggestion.itemkind,
+                "sortText": _sort_import(score),
+                "data": {"doc_uri": doc_uri},
+                "detail": _document(suggestion.import_statement),
+                "additionalTextEdits": [edit],
+            }
+        elif feature == "code_actions":
+            yield {
+                "title": suggestion.import_statement,
+                "kind": "quickfix",
+                "edit": {"changes": {doc_uri: [edit]}},
+                # data is a supported field for codeAction responses
+                # See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeAction  # pylint: disable=line-too-long
+                "data": {"sortText": _sort_import(score)},
+            }
+        else:
+            raise ValueError(f"Unknown feature: {feature}")
 
 
 def get_names(script: Script) -> Set[str]:
@@ -147,8 +179,21 @@ def get_names(script: Script) -> Set[str]:
 
 
 @hookimpl
-def pylsp_completions(config: Config, workspace: Workspace, document: Document, position):
+def pylsp_completions(
+    config: Config,
+    workspace: Workspace,
+    document: Document,
+    position,
+    ignored_names: Union[Set[str], None],
+):
     """Get autoimport suggestions."""
+    if (
+        not config.plugin_settings("rope_autoimport")
+        .get("completions", {})
+        .get("enabled", True)
+    ):
+        return []
+
     line = document.lines[position["line"]]
     expr = parso.parse(line)
     word_node = expr.get_leaf_for_position((1, position["character"]))
@@ -157,17 +202,21 @@ def pylsp_completions(config: Config, workspace: Workspace, document: Document, 
     word = word_node.value
     log.debug(f"autoimport: searching for word: {word}")
     rope_config = config.settings(document_path=document.path).get("rope", {})
-    ignored_names: Set[str] = get_names(document.jedi_script(use_document_path=True))
+    ignored_names: Set[str] = ignored_names or get_names(
+        document.jedi_script(use_document_path=True)
+    )
     autoimport = workspace._rope_autoimport(rope_config)
     suggestions = list(autoimport.search_full(word, ignored_names=ignored_names))
     results = list(
         sorted(
-            _process_statements(suggestions, document.uri, word, autoimport, document),
+            _process_statements(
+                suggestions, document.uri, word, autoimport, document, "completions"
+            ),
             key=lambda statement: statement["sortText"],
         )
     )
-    if len(results) > MAX_RESULTS:
-        results = results[:MAX_RESULTS]
+    if len(results) > MAX_RESULTS_COMPLETIONS:
+        results = results[:MAX_RESULTS_COMPLETIONS]
     return results
 
 
@@ -175,7 +224,9 @@ def _document(import_statement: str) -> str:
     return """# Auto-Import\n""" + import_statement
 
 
-def _get_score(source: int, full_statement: str, suggested_name: str, desired_name) -> int:
+def _get_score(
+    source: int, full_statement: str, suggested_name: str, desired_name
+) -> int:
     import_length = len("import")
     full_statement_score = len(full_statement) - import_length
     suggested_name_score = ((len(suggested_name) - len(desired_name))) ** 2
@@ -191,13 +242,94 @@ def _sort_import(score: int) -> str:
     return "[z" + str(score).rjust(_score_pow, "0")
 
 
-def _reload_cache(config: Config, workspace: Workspace, files: Optional[List[Document]] = None):
+def get_name_or_module(document, diagnostic) -> str:
+    start = diagnostic["range"]["start"]
+    return (
+        parso.parse(document.lines[start["line"]])
+        .get_leaf_for_position((1, start["character"] + 1))
+        .value
+    )
+
+
+@hookimpl
+def pylsp_code_actions(
+    config: Config,
+    workspace: Workspace,
+    document: Document,
+    range: Dict,  # pylint: disable=redefined-builtin
+    context: Dict,
+) -> List[Dict]:
+    """
+    Provide code actions through rope.
+
+    Parameters
+    ----------
+    config : pylsp.config.config.Config
+        Current config.
+    workspace : pylsp.workspace.Workspace
+        Current workspace.
+    document : pylsp.workspace.Document
+        Document to apply code actions on.
+    range : Dict
+        Range argument given by pylsp. Not used here.
+    context : Dict
+        CodeActionContext given as dict.
+
+    Returns
+    -------
+      List of dicts containing the code actions.
+    """
+    if (
+        not config.plugin_settings("rope_autoimport")
+        .get("code_actions", {})
+        .get("enabled", True)
+    ):
+        return []
+
+    log.debug(f"textDocument/codeAction: {document} {range} {context}")
+    code_actions = []
+    for diagnostic in context.get("diagnostics", []):
+        if "undefined name" not in diagnostic.get("message", "").lower():
+            continue
+
+        word = get_name_or_module(document, diagnostic)
+        log.debug(f"autoimport: searching for word: {word}")
+        rope_config = config.settings(document_path=document.path).get("rope", {})
+        autoimport = workspace._rope_autoimport(rope_config, feature="code_actions")
+        suggestions = list(autoimport.search_full(word))
+        log.debug("autoimport: suggestions: %s", suggestions)
+        results = list(
+            sorted(
+                _process_statements(
+                    suggestions,
+                    document.uri,
+                    word,
+                    autoimport,
+                    document,
+                    "code_actions",
+                ),
+                key=lambda statement: statement["data"]["sortText"],
+            )
+        )
+
+        if len(results) > MAX_RESULTS_CODE_ACTIONS:
+            results = results[:MAX_RESULTS_CODE_ACTIONS]
+        code_actions.extend(results)
+
+    return code_actions
+
+
+def _reload_cache(
+    config: Config, workspace: Workspace, files: Optional[List[Document]] = None
+):
     memory: bool = config.plugin_settings("rope_autoimport").get("memory", False)
     rope_config = config.settings().get("rope", {})
     autoimport = workspace._rope_autoimport(rope_config, memory)
     task_handle = PylspTaskHandle(workspace)
     resources: Optional[List[Resource]] = (
-        None if files is None else [document._rope_resource(rope_config) for document in files]
+        None
+        if files is None
+        else [document._rope_resource(rope_config) for document in files]
     )
     autoimport.generate_cache(task_handle=task_handle, resources=resources)
     autoimport.generate_modules_cache(task_handle=task_handle)
@@ -225,3 +357,17 @@ def pylsp_document_did_open(config: Config, workspace: Workspace):
 def pylsp_document_did_save(config: Config, workspace: Workspace, document: Document):
     """Update the names associated with this document."""
     _reload_cache(config, workspace, [document])
+
+
+@hookimpl
+def pylsp_workspace_configuration_changed(config: Config, workspace: Workspace):
+    """
+    Initialize autoimport if it has been enabled through a
+    workspace/didChangeConfiguration message from the frontend.
+
+    Generates the cache for local and global items.
+    """
+    if config.plugin_settings("rope_autoimport").get("enabled", False):
+        _reload_cache(config, workspace)
+    else:
+        log.debug("autoimport: Skipping cache reload.")

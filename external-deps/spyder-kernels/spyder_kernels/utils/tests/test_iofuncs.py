@@ -340,13 +340,14 @@ def test_spydata_export(input_namespace, expected_namespace,
                 pass
 
 
-def test_save_load_hdf5_files():
+def test_save_load_hdf5_files(tmp_path):
     """Simple test to check that we can save and load HDF5 files."""
+    h5_file = tmp_path / "test.h5"
     data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
-    iofuncs.save_hdf5(data, "test.h5")
+    iofuncs.save_hdf5(data, h5_file)
 
     expected = ({'a': np.array([1, 2, 3, 4]), 'b': np.array(4.5)}, None)
-    assert repr(iofuncs.load_hdf5("test.h5")) == repr(expected)
+    assert repr(iofuncs.load_hdf5(h5_file)) == repr(expected)
 
 
 def test_load_dicom_files():

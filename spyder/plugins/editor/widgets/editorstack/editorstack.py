@@ -159,7 +159,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     See Also
     --------
-    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
     """
 
     def __init__(self, parent, actions, use_switcher=True):
@@ -2236,26 +2236,44 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
             if str(lastm.toString()) != str(finfo.lastmodified.toString()):
-                if finfo.editor.document().isModified():
+                # Catch any error when trying to reload a file and close it if
+                # that's the case to prevent users from destroying external
+                # changes in Spyder.
+                # Fixes spyder-ide/spyder#21248
+                try:
+                    if finfo.editor.document().isModified():
+                        self.msgbox = QMessageBox(
+                            QMessageBox.Question,
+                            self.title,
+                            _("The file <b>{}</b> has been modified outside "
+                              "Spyder."
+                              "<br><br>"
+                              "Do you want to reload it and lose all your "
+                              "changes?").format(name),
+                            QMessageBox.Yes | QMessageBox.No,
+                            self
+                        )
+
+                        answer = self.msgbox.exec_()
+                        if answer == QMessageBox.Yes:
+                            self.reload(index)
+                        else:
+                            finfo.lastmodified = lastm
+                    else:
+                        self.reload(index)
+                except Exception:
                     self.msgbox = QMessageBox(
-                        QMessageBox.Question,
+                        QMessageBox.Warning,
                         self.title,
-                        _("The file <b>%s</b> has been modified outside "
-                          "Spyder."
+                        _("The file <b>{}</b> has been modified outside "
+                          "Spyder but it was not possible to reload it."
                           "<br><br>"
-                          "Do you want to reload it and lose all your "
-                          "changes?") % name,
-                        QMessageBox.Yes | QMessageBox.No,
+                          "Therefore, it will be closed.").format(name),
+                        QMessageBox.Ok,
                         self
                     )
-
-                    answer = self.msgbox.exec_()
-                    if answer == QMessageBox.Yes:
-                        self.reload(index)
-                    else:
-                        finfo.lastmodified = lastm
-                else:
-                    self.reload(index)
+                    self.msgbox.exec_()
+                    self.close_file(index, force=True)
 
         # Finally, resetting temporary flag:
         self.__file_status_flag = False

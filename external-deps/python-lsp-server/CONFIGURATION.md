@@ -8,6 +8,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.flake8.config` | `string` | Path to the config file that will be the authoritative config source. | `null` |
 | `pylsp.plugins.flake8.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.flake8.exclude` | `array` of `string` items | List of files or directories to exclude. | `[]` |
+| `pylsp.plugins.flake8.extendIgnore` | `array` of `string` items | List of errors and warnings to append to ignore list. | `[]` |
 | `pylsp.plugins.flake8.executable` | `string` | Path to the flake8 executable. | `"flake8"` |
 | `pylsp.plugins.flake8.filename` | `string` | Only check for filenames matching the patterns in this list. | `null` |
 | `pylsp.plugins.flake8.hangClosing` | `boolean` | Hang closing bracket instead of matching indentation of opening bracket's line. | `null` |
@@ -63,7 +64,9 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.pylint.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.pylint.args` | `array` of non-unique `string` items | Arguments to pass to pylint. | `[]` |
 | `pylsp.plugins.pylint.executable` | `string` | Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3. | `null` |
-| `pylsp.plugins.rope_autoimport.enabled` | `boolean` | Enable or disable autoimport. | `false` |
+| `pylsp.plugins.rope_autoimport.enabled` | `boolean` | Enable or disable autoimport. If false, neither completions nor code actions are enabled. If true, the respective features can be enabled or disabled individually. | `false` |
+| `pylsp.plugins.rope_autoimport.completions.enabled` | `boolean` | Enable or disable autoimport completions. | `true` |
+| `pylsp.plugins.rope_autoimport.code_actions.enabled` | `boolean` | Enable or disable autoimport code actions (e.g. for quick fixes). | `true` |
 | `pylsp.plugins.rope_autoimport.memory` | `boolean` | Make the autoimport database memory only. Drastically increases startup time. | `false` |
 | `pylsp.plugins.rope_completion.enabled` | `boolean` | Enable or disable the plugin. | `false` |
 | `pylsp.plugins.rope_completion.eager` | `boolean` | Resolve documentation and detail eagerly. | `false` |

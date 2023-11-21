@@ -134,7 +134,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         if shellwidget_id not in self._shellwidgets:
             widget = PaneEmptyWidget(
                 self,
-                "variable-explorer",  # TODO: Use custom icon here
+                "console-off",
                 _("No connected console"),
                 _("The current console failed to start, so there is no "
                   "content to show here.")

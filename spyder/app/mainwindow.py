@@ -71,6 +71,7 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
@@ -118,7 +119,11 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderConfigurationAccessor):
+class MainWindow(
+    QMainWindow,
+    SpyderMainWindowMixin,
+    SpyderConfigurationAccessor
+):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -225,7 +230,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.thirdparty_plugins = []
 
         # Preferences
-        self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
 
         # Actions
@@ -367,7 +371,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Spyder compatibility check'))
+        messageBox.setWindowTitle(_('Plugin compatibility check'))
         messageBox.setText(
             _("It was not possible to load the {} plugin. The problem "
               "was:<br><br>{}").format(plugin_name, message)
@@ -890,6 +894,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if self.splash is not None:
             self.splash.hide()
 
+        # Move the window to the primary screen if the previous location is not
+        # visible to the user.
+        self.move_to_primary_screen()
+
         # To avoid regressions. We shouldn't have loaded the modules below at
         # this point.
         if DEV is not None:
@@ -1303,11 +1311,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     @Slot()
     def show_preferences(self):
         """Edit Spyder preferences."""
-        self.preferences.open_dialog(self.prefs_dialog_size)
-
-    def set_prefs_size(self, size):
-        """Save preferences dialog size."""
-        self.prefs_dialog_size = size
+        self.preferences.open_dialog()
 
     # ---- Open files server
     # -------------------------------------------------------------------------

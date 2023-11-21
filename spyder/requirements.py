@@ -31,8 +31,9 @@ def show_warning(message):
 
 def check_qt():
     """Check Qt binding requirements"""
-    qt_infos = dict(pyqt5=("PyQt5", "5.9"), pyside2=("PySide2", "5.12"),
+    qt_infos = dict(pyqt5=("PyQt5", "5.10"), pyside2=("PySide2", "5.12"),
                     pyqt6=("PyQt6", "6.5"), pyside6=("PySide6", "6.5"))
+
     try:
         import qtpy
         package_name, required_ver = qt_infos[qtpy.API]

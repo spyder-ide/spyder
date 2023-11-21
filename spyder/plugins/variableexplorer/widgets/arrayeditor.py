@@ -21,24 +21,35 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
-from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
-                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QSpinBox,
-                            QStackedWidget, QTableView, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemDelegate, QApplication, QComboBox, QDialog, QGridLayout,
+    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu,
+    QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
+    QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.config.manager import CONF
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+
+
+class ArrayEditorActions:
+    Copy = 'copy_action'
+    Edit = 'edit_action'
+    Format = 'format_action'
+    Resize = 'resize_action'
+    ToggleBackgroundColor = 'toggle_background_color_action'
+
 
 # Note: string and unicode data types will be formatted with 's' (see below)
 SUPPORTED_FORMATS = {
@@ -580,6 +591,12 @@ class ArrayView(QTableView):
         clipboard = QApplication.clipboard()
         clipboard.setText(cliptxt)
 
+    def edit_item(self):
+        """Edit item"""
+        index = self.currentIndex()
+        if index.isValid():
+            self.edit(index)
+
 
 class ArrayEditorWidget(QWidget):
 
@@ -633,8 +650,11 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format_spec(format_spec)
 
 
-class ArrayEditor(BaseDialog):
+class ArrayEditor(BaseDialog, SpyderWidgetMixin):
     """Array Editor Dialog"""
+
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -754,13 +774,60 @@ class ArrayEditor(BaseDialog):
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
-        # ---- Top row of buttons
-        btn_layout_top = None
+        # ---- Toolbar and actions
+        toolbar = SpyderToolbar(parent=self, title='Editor toolbar')
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+
+        self.copy_action = self.create_action(
+            ArrayEditorActions.Copy,
+            text=_('Copy'),
+            icon=self.create_icon('editcopy'),
+            triggered=self.arraywidget.view.copy)
+        toolbar.add_item(self.copy_action)
+
+        self.edit_action = self.create_action(
+            ArrayEditorActions.Edit,
+            text=_('Edit'),
+            icon=self.create_icon('edit'),
+            triggered=self.arraywidget.view.edit_item)
+        toolbar.add_item(self.edit_action)
+
+        self.format_action = self.create_action(
+            ArrayEditorActions.Format,
+            text=_('Format'),
+            icon=self.create_icon('format_float'),
+            tip=_('Set format of floating-point numbers'),
+            triggered=self.arraywidget.change_format)
+        self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
+        toolbar.add_item(self.format_action)
+
+        self.resize_action = self.create_action(
+            ArrayEditorActions.Resize,
+            text=_('Resize'),
+            icon=self.create_icon('collapse_column'),
+            tip=_('Resize columns to contents'),
+            triggered=self.arraywidget.view.resize_to_contents)
+        toolbar.add_item(self.resize_action)
+
+        self.toggle_bgcolor_action = self.create_action(
+            ArrayEditorActions.ToggleBackgroundColor,
+            text=_('Background color'),
+            icon=self.create_icon('background_color'),
+            toggled=lambda state: self.arraywidget.model.bgcolor(state),
+            initial=self.arraywidget.model.bgcolor_enabled)
+        self.toggle_bgcolor_action.setEnabled(
+            self.arraywidget.model.bgcolor_enabled)
+        toolbar.add_item(self.toggle_bgcolor_action)
+
+        toolbar._render()
+        self.layout.addWidget(toolbar, 0, 0)
+
+        # ---- Buttons in bottom left, if any
+        btn_layout = QHBoxLayout()
         if is_record_array or is_masked_array or data.ndim == 3:
-            btn_layout_top = QHBoxLayout()
 
             if is_record_array:
-                btn_layout_top.addWidget(QLabel(_("Record array fields:")))
+                btn_layout.addWidget(QLabel(_("Record array fields:")))
                 names = []
                 for name in data.dtype.names:
                     field = data.dtype.fields[name]
@@ -783,20 +850,20 @@ class ArrayEditor(BaseDialog):
 
                 # Adding the widgets to layout
                 label = QLabel(_("Axis:"))
-                btn_layout_top.addWidget(label)
-                btn_layout_top.addWidget(ra_combo)
-                btn_layout_top.addWidget(self.shape_label)
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(ra_combo)
+                btn_layout.addWidget(self.shape_label)
 
                 label = QLabel(_("Index:"))
-                btn_layout_top.addWidget(label)
-                btn_layout_top.addWidget(self.index_spin)
+                btn_layout.addWidget(label)
+                btn_layout.addWidget(self.index_spin)
 
-                btn_layout_top.addWidget(self.slicing_label)
+                btn_layout.addWidget(self.slicing_label)
             else:
                 ra_combo = QComboBox(self)
                 ra_combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 ra_combo.addItems(names)
-                btn_layout_top.addWidget(ra_combo)
+                btn_layout.addWidget(ra_combo)
 
             if is_masked_array:
                 label = QLabel(
@@ -805,52 +872,26 @@ class ArrayEditor(BaseDialog):
                 label.setToolTip(_("For performance reasons, changes applied "
                                    "to masked arrays won't be reflected in "
                                    "array's data (and vice-versa)."))
-                btn_layout_top.addWidget(label)
+                btn_layout.addWidget(label)
 
-            btn_layout_top.addStretch()
-
-        # ---- Bottom row of buttons
-        btn_layout_bottom = QHBoxLayout()
-
-        btn_format = QPushButton(_("Format"))
-        # disable format button for int type
-        btn_format.setEnabled(is_float(self.arraywidget.data.dtype))
-        btn_layout_bottom.addWidget(btn_format)
-        btn_format.clicked.connect(self.arraywidget.change_format)
-
-        btn_resize = QPushButton(_("Resize"))
-        btn_layout_bottom.addWidget(btn_resize)
-        btn_resize.clicked.connect(self.arraywidget.view.resize_to_contents)
-
-        self.bgcolor = QCheckBox(_('Background color'))
-        self.bgcolor.setEnabled(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
-        self.bgcolor.stateChanged.connect(
-            lambda state: self.arraywidget.model.bgcolor(state))
-        btn_layout_bottom.addWidget(self.bgcolor)
-
-        btn_layout_bottom.addStretch()
+        # ---- Buttons on bottom right
+        btn_layout.addStretch()
 
         if not readonly:
             self.btn_save_and_close = QPushButton(_('Save and Close'))
             self.btn_save_and_close.setDisabled(True)
             self.btn_save_and_close.clicked.connect(self.accept)
-            btn_layout_bottom.addWidget(self.btn_save_and_close)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_close = QPushButton(_('Close'))
         self.btn_close.setAutoDefault(True)
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
-        btn_layout_bottom.addWidget(self.btn_close)
+        btn_layout.addWidget(self.btn_close)
 
         # ---- Final layout
-        btn_layout_bottom.setContentsMargins(4, 4, 4, 4)
-        if btn_layout_top is not None:
-            btn_layout_top.setContentsMargins(4, 4, 4, 4)
-            self.layout.addLayout(btn_layout_top, 2, 0)
-            self.layout.addLayout(btn_layout_bottom, 3, 0)
-        else:
-            self.layout.addLayout(btn_layout_bottom, 2, 0)
+        btn_layout.setContentsMargins(4, 4, 4, 4)
+        self.layout.addLayout(btn_layout, 2, 0)
 
         # Set minimum size
         self.setMinimumSize(500, 300)
@@ -871,7 +912,8 @@ class ArrayEditor(BaseDialog):
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
-        self.bgcolor.setChecked(self.arraywidget.model.bgcolor_enabled)
+        self.toggle_bgcolor_action.setChecked(
+            self.arraywidget.model.bgcolor_enabled)
 
     def change_active_widget(self, index):
         """

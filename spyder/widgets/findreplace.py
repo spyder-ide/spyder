@@ -30,7 +30,7 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.sourcecode import get_eol_chars
-from spyder.utils.stylesheet import MARGIN_SIZE
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -46,12 +46,12 @@ def is_position_inf(pos1, pos2):
 class SearchText(PatternComboBox):
 
     def __init__(self, parent):
-        self.recommended_width = 400
+        self.recommended_width = AppStyle.FindMinWidth
         super().__init__(parent, adjust_to_minimum=False)
 
     def sizeHint(self):
         """Recommended size."""
-        return QSize(self.recommended_width, 10)
+        return QSize(self.recommended_width, AppStyle.FindHeight)
 
 
 class FindReplace(QWidget):
@@ -73,7 +73,10 @@ class FindReplace(QWidget):
 
         glayout = QGridLayout()
         glayout.setContentsMargins(
-            2 * MARGIN_SIZE, MARGIN_SIZE, 2 * MARGIN_SIZE, 0
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            0
         )
         self.setLayout(glayout)
 
@@ -107,7 +110,9 @@ class FindReplace(QWidget):
         self.search_text.sig_resized.connect(self._resize_replace_text)
 
         self.number_matches_text = QLabel(self)
-        self.search_text.clear_action.triggered.connect(self.clear_matches)
+        self.search_text.lineEdit().clear_action.triggered.connect(
+            self.clear_matches
+        )
         self.hide_number_matches_text = False
         self.number_matches_pixmap = (
             ima.icon('number_matches').pixmap(self.icon_size)
@@ -674,8 +679,8 @@ class FindReplace(QWidget):
         if self.editor is None:
             return
 
-        replace_text = to_text_string(self.replace_text.currentText())
-        search_text = to_text_string(self.search_text.currentText())
+        replace_text = str(self.replace_text.currentText())
+        search_text = str(self.search_text.currentText())
         case = self.case_button.isChecked()
         word = self.words_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
@@ -685,6 +690,7 @@ class FindReplace(QWidget):
         else:
             pattern = re.escape(search_text)
             # re.sub processes backslashes so they must be escaped
+            # See spyder-ide/spyder#21007.
             replace_text = replace_text.replace('\\', r'\\')
 
         # Match whole words only

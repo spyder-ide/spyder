@@ -18,8 +18,8 @@ import sys
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QMessageBox, QTabWidget,
-                            QVBoxLayout, QWidget)
+                            QHBoxLayout, QLabel, QMessageBox, QVBoxLayout,
+                            QWidget)
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
@@ -236,21 +236,19 @@ class ApplicationConfigPage(PluginConfigPage):
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
+
         if sys.platform == "darwin" and not is_conda_based_app():
-            interface_tab = self.create_tab(screen_resolution_group,
-                                            interface_group, macOS_group)
+            self.create_tab(
+                _("Interface"),
+                [screen_resolution_group, interface_group, macOS_group]
+            )
         else:
-            interface_tab = self.create_tab(screen_resolution_group,
-                                            interface_group)
+            self.create_tab(
+                _("Interface"),
+                [screen_resolution_group, interface_group]
+            )
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(interface_tab, _("Interface"))
-        self.tabs.addTab(self.create_tab(advanced_widget),
-                         _("Advanced settings"))
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)
+        self.create_tab(_("Advanced settings"), advanced_widget)
 
     def apply_settings(self, options):
         if 'high_dpi_custom_scale_factors' in options:

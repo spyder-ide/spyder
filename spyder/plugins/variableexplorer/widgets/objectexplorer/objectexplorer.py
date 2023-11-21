@@ -13,7 +13,7 @@ import logging
 import traceback
 
 # Third-party imports
-from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import Signal, Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QGroupBox, QHBoxLayout, QHeaderView,
@@ -52,6 +52,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
                  expanded=False,
                  resize_to_contents=True,
                  parent=None,
+                 namespacebrowser=None,
                  attribute_columns=DEFAULT_ATTR_COLS,
                  attribute_details=DEFAULT_ATTR_DETAILS,
                  readonly=None,
@@ -59,11 +60,13 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         """
         Constructor
 
+        :param obj: any Python object or variable
         :param name: name of the object as it will appear in the root node
         :param expanded: show the first visible root element expanded
         :param resize_to_contents: resize columns to contents ignoring width
             of the attributes
-        :param obj: any Python object or variable
+        :param namespacebrowser: the NamespaceBrowser that the object
+            originates from, if any
         :param attribute_columns: list of AttributeColumn objects that
             define which columns are present in the table and their defaults
         :param attribute_details: list of AttributeDetails objects that define
@@ -100,7 +103,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Tree widget
-        self.obj_tree = ToggleColumnTreeView()
+        self.obj_tree = ToggleColumnTreeView(namespacebrowser)
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)

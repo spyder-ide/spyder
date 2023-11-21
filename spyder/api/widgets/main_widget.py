@@ -38,7 +38,7 @@ from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
 from spyder.utils.registries import (
     ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
 from spyder.utils.stylesheet import (
-    APP_STYLESHEET, MARGIN_SIZE, PANES_TABBAR_STYLESHEET,
+    AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
     PANES_TOOLBAR_STYLESHEET)
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.tabs import Tabs
@@ -296,10 +296,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         # --------------------------------------------------------------------
         # These margins are necessary to give some space between the widgets
         # inside this one and the window separator and borders.
-        self._margin_right = MARGIN_SIZE
-        self._margin_bottom = MARGIN_SIZE
+        self._margin_right = AppStyle.MarginSize
+        self._margin_bottom = AppStyle.MarginSize
         if not self.get_conf('vertical_tabs', section='main'):
-            self._margin_left = MARGIN_SIZE
+            self._margin_left = AppStyle.MarginSize
         else:
             self._margin_left = 0
 
@@ -809,6 +809,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 window.restoreGeometry(
                     QByteArray().fromHex(str(geometry).encode('utf-8'))
                 )
+
+                # Move to the primary screen if the window is not placed in a
+                # visible location.
+                window.move_to_primary_screen()
             except Exception:
                 pass
 

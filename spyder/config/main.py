@@ -74,7 +74,6 @@ DEFAULTS = [
               'window/position': (10, 10),
               'window/is_maximized': True,
               'window/is_fullscreen': False,
-              'window/prefs_dialog_size': (1050, 530),
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
@@ -143,8 +142,8 @@ DEFAULTS = [
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
-              'pylab/backend': 0,
-              'pylab/inline/figure_format': 0,
+              'pylab/backend': 'inline',
+              'pylab/inline/figure_format': 'png',
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
@@ -155,6 +154,7 @@ DEFAULTS = [
               'greedy_completer': False,
               'jedi_completer': False,
               'autocall': 0,
+              'autoreload': not WIN,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
@@ -291,6 +291,13 @@ DEFAULTS = [
               'show_comments': True,
               'follow_cursor': True,
               'display_variables': False
+              }),
+            ('preferences',
+             {
+              'enable': True,
+              'dialog_size': (
+                  (1010, 725) if MAC else ((900, 670) if WIN else (950, 690))
+              ),
               }),
             ('project_explorer',
              {
@@ -567,7 +574,6 @@ NAME_MAP = {
             'current_version',
             'historylog_filename',
             'window/position',
-            'window/prefs_dialog_size',
             'window/size',
             'window/state',
             ]
@@ -609,6 +615,10 @@ NAME_MAP = {
         ('outline_explorer', [
             'expanded_state',
             'scrollbar_position',
+            ],
+         ),
+        ('preferences', [
+            'dialog_size',
             ],
          ),
         ('project_explorer', [
@@ -653,4 +663,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '79.0.0'
+CONF_VERSION = '81.0.0'

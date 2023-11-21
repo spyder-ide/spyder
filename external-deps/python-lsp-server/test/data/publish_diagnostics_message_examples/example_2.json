@@ -1,0 +1,68 @@
+{
+    "diagnostics": [
+        {
+            "message": "'sys' imported but unused",
+            "range": {
+                "end": {
+                    "character": 11,
+                    "line": 0
+                },
+                "start": {
+                    "character": 0,
+                    "line": 0
+                }
+            },
+            "severity": 2,
+            "source": "pyflakes"
+        },
+        {
+            "code": "E225",
+            "message": "E225 missing whitespace around operator",
+            "range": {
+                "end": {
+                    "character": 4,
+                    "line": 1
+                },
+                "start": {
+                    "character": 1,
+                    "line": 1
+                }
+            },
+            "severity": 2,
+            "source": "pycodestyle"
+        },
+        {
+            "code": "W292",
+            "message": "W292 no newline at end of file",
+            "range": {
+                "end": {
+                    "character": 5,
+                    "line": 2
+                },
+                "start": {
+                    "character": 5,
+                    "line": 2
+                }
+            },
+            "severity": 2,
+            "source": "pycodestyle"
+        },
+        {
+            "code": "E225",
+            "message": "E225 missing whitespace around operator",
+            "range": {
+                "end": {
+                    "character": 5,
+                    "line": 2
+                },
+                "start": {
+                    "character": 1,
+                    "line": 2
+                }
+            },
+            "severity": 2,
+            "source": "pycodestyle"
+        }
+    ],
+    uri: "/Users/.../code/python-lsp-server/test"
+}

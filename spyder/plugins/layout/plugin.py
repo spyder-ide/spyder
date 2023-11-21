@@ -33,7 +33,7 @@ from spyder.plugins.layout.layouts import (DefaultLayouts,
                                            HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
                                            SpyderLayout, VerticalSplitLayout)
-from spyder.plugins.preferences.widgets.container import PreferencesActions
+from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
@@ -416,9 +416,9 @@ class Layout(SpyderPluginV2):
         container = self.get_container()
         try:
             settings = self.load_window_settings(
-                'layout_{}/'.format(index_or_layout_id), section=section)
-            (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-             is_fullscreen) = settings
+                'layout_{}/'.format(index_or_layout_id), section=section
+            )
+            hexstate, window_size, pos, is_maximized, is_fullscreen = settings
 
             # The defaults layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
@@ -474,8 +474,6 @@ class Layout(SpyderPluginV2):
         """
         get_func = self.get_conf_default if default else self.get_conf
         window_size = get_func(prefix + 'size', section=section)
-        prefs_dialog_size = get_func(
-            prefix + 'prefs_dialog_size', section=section)
 
         if default:
             hexstate = None
@@ -499,8 +497,7 @@ class Layout(SpyderPluginV2):
 
         is_maximized = get_func(prefix + 'is_maximized', section=section)
         is_fullscreen = get_func(prefix + 'is_fullscreen', section=section)
-        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                is_fullscreen)
+        return (hexstate, window_size, pos, is_maximized, is_fullscreen)
 
     def get_window_settings(self):
         """
@@ -518,25 +515,19 @@ class Layout(SpyderPluginV2):
             is_maximized = self.main.isMaximized()
 
         pos = (self.window_position.x(), self.window_position.y())
-        prefs_dialog_size = (self.prefs_dialog_size.width(),
-                             self.prefs_dialog_size.height())
 
         hexstate = qbytearray_to_str(
             self.main.saveState(version=WINDOW_STATE_VERSION)
         )
-        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                is_fullscreen)
+        return (hexstate, window_size, pos, is_maximized, is_fullscreen)
 
-    def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
-                            pos, is_maximized, is_fullscreen):
+    def set_window_settings(self, hexstate, window_size, pos, is_maximized,
+                            is_fullscreen):
         """
         Set window settings Symetric to the 'get_window_settings' accessor.
         """
         main = self.main
         main.setUpdatesEnabled(False)
-        self.prefs_dialog_size = QSize(prefs_dialog_size[0],
-                                       prefs_dialog_size[1])  # width,height
-        main.set_prefs_size(self.prefs_dialog_size)
         self.window_size = QSize(window_size[0],
                                  window_size[1])  # width, height
         self.window_position = QPoint(pos[0], pos[1])  # x,y
@@ -585,16 +576,10 @@ class Layout(SpyderPluginV2):
         # Fixes spyder-ide/spyder#13882
         win_size = self.main.size()
         pos = self.main.pos()
-        prefs_size = self.prefs_dialog_size
 
         self.set_conf(
             prefix + 'size',
             (win_size.width(), win_size.height()),
-            section=section,
-        )
-        self.set_conf(
-            prefix + 'prefs_dialog_size',
-            (prefs_size.width(), prefs_size.height()),
             section=section,
         )
         self.set_conf(

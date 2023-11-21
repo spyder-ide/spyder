@@ -11,12 +11,12 @@ import logging
 
 from traitlets.config import LoggingConfigurable
 
-from ipython_genutils.importstring import import_item
 
 import uuid
 
 from qtpy import QtCore
-from qtconsole.util import MetaQObjectHasTraits, SuperQObject
+
+from qtconsole.util import MetaQObjectHasTraits, SuperQObject, import_item
 
 
 class CommManager(MetaQObjectHasTraits(

@@ -46,7 +46,7 @@ def test_load_time(qtbot):
 
     # Create page and measure time to do it
     t0 = time.time()
-    preferences.open_dialog(None)
+    preferences.open_dialog()
     load_time = time.time() - t0
 
     container = preferences.get_container()
