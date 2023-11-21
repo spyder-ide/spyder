@@ -21,9 +21,10 @@ from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QHBoxLayout, QLineEdit, QMenu, QTabBar, QTabWidget, QToolButton, QWidget)
+    QHBoxLayout, QLineEdit, QTabBar, QTabWidget, QToolButton, QWidget)
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
@@ -433,7 +434,7 @@ class BaseTabs(QTabWidget):
         self.menu_use_tooltips = menu_use_tooltips
 
         if menu is None:
-            self.menu = QMenu(self)
+            self.menu = SpyderMenu(self)
             if actions:
                 add_actions(self.menu, actions)
         else:
@@ -451,7 +452,7 @@ class BaseTabs(QTabWidget):
             self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
         self.browse_button.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
 
-        self.browse_tabs_menu = QMenu(self)
+        self.browse_tabs_menu = SpyderMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)

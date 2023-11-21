@@ -25,7 +25,7 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QGridLayout,
-    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu,
+    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit,
     QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
     QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
@@ -543,7 +544,7 @@ class ArrayView(QTableView):
                                          icon=ima.icon('editcopy'),
                                          triggered=self.copy,
                                          context=Qt.WidgetShortcut)
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
         add_actions(menu, [self.copy_action, ])
         return menu
 

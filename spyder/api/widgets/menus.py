@@ -9,7 +9,6 @@ Spyder API menu widgets.
 """
 
 # Standard library imports
-import os
 import sys
 from typing import Optional, Union, TypeVar
 
@@ -50,8 +49,7 @@ class SpyderMenu(QMenu):
     MENUS = []
     APP_MENU = False
 
-    def __init__(self, parent=None, title=None, dynamic=True, menu_id=None,
-                 min_width=None):
+    def __init__(self, parent=None, title=None, menu_id=None, min_width=None):
         self._parent = parent
         self._title = title
         self.menu_id = menu_id
@@ -83,10 +81,10 @@ class SpyderMenu(QMenu):
 
         # Adjustmens for Mac
         if sys.platform == 'darwin':
-            # Needed to enable the dynamic population of actions in menus in
-            # the aboutToShow signal.
+            # Needed to enable the dynamic population of actions in app menus
+            # in the aboutToShow signal.
             # See spyder-ide/spyder#14612
-            if dynamic:
+            if self.APP_MENU:
                 self.addAction(QAction(self))
 
             # Necessary to follow Mac's HIG for app menus.

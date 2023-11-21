@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
@@ -273,7 +274,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
-        self.show_cols_submenu = QMenu(self)
+        self.show_cols_submenu = SpyderMenu(self)
         self.options_button.setMenu(self.show_cols_submenu)
         self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)

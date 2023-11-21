@@ -12,9 +12,9 @@ import os
 
 # Third party imports
 from qtpy.QtCore import QPoint, Signal
-from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.utils.qthelpers import add_actions, create_action
@@ -36,7 +36,7 @@ class CompletionStatus(StatusBarWidget):
         self.main = parent
         self.value = ''
 
-        self.menu = QMenu(self)
+        self.menu = SpyderMenu(self)
         self.sig_clicked.connect(self.show_menu)
 
     def update_status(self, value, tool_tip):

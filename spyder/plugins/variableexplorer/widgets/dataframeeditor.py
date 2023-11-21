@@ -46,13 +46,14 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
     QApplication, QCheckBox, QDialog, QFrame, QGridLayout, QHBoxLayout,
-    QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu, QMessageBox,
-    QPushButton, QScrollBar, QTableView, QTableWidget, QVBoxLayout, QWidget)
+    QInputDialog, QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton,
+    QScrollBar, QTableView, QTableWidget, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.py3compat import (is_text_string, is_type_text_string,
@@ -690,7 +691,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             triggered=self.edit_header_item
         )
         header_menu = [edit_header_action]
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
         add_actions(menu, header_menu)
         return menu
 
@@ -823,7 +824,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             (_("Float"), float),
             (_("Str"), to_text_string)
         )
-        convert_to_menu = QMenu(self)
+        convert_to_menu = SpyderMenu(self)
         self.convert_to_action.setMenu(convert_to_menu)
         self.convert_to_actions = []
         for name, func in functions:
@@ -838,7 +839,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
                 )
             ]
 
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
         add_actions(convert_to_menu, self.convert_to_actions)
         add_actions(menu, menu_actions)
 
@@ -1796,7 +1797,7 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
             triggered=lambda: self.edit_header_item(header=header)
         )
         header_menu = [edit_header_action]
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
         add_actions(menu, header_menu)
         return menu
 
