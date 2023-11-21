@@ -185,16 +185,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout = QGridLayout()
         inline_layout.addWidget(format_box.label, 1, 0)
         inline_layout.addWidget(format_box.combobox, 1, 1)
-        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
-        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
-        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
-        inline_layout.addWidget(width_spin.plabel, 3, 0)
-        inline_layout.addWidget(width_spin.spinbox, 3, 1)
-        inline_layout.addWidget(width_spin.slabel, 3, 2)
-        inline_layout.addWidget(height_spin.plabel, 4, 0)
-        inline_layout.addWidget(height_spin.spinbox, 4, 1)
-        inline_layout.addWidget(height_spin.slabel, 4, 2)
-        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
+        spinboxes = [resolution_spin, width_spin, height_spin]
+        for counter, spinbox in enumerate(spinboxes):
+            inline_layout.addWidget(spinbox.plabel, counter + 2, 0)
+            inline_layout.addWidget(spinbox.spinbox, counter + 2, 1)
+            inline_layout.addWidget(spinbox.slabel, counter + 2, 2)
+            inline_layout.addWidget(spinbox.help_label, counter + 2, 3)
+
+        inline_layout.addWidget(bbox_inches_box, len(spinboxes) + 2, 0, 1, 4)
 
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)
