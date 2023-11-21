@@ -57,3 +57,9 @@ class SpyderComboBox(QComboBox):
         # its items.
         # See https://stackoverflow.com/a/33464045/438386 for the details.
         self.setItemDelegate(_SpyderComboBoxDelegate(self))
+
+    def contextMenuEvent(self, event):
+        # Prevent showing context menu for editable comboboxes because it's
+        # added automatically by Qt. That means that the menu is not built
+        # using our API and it's not localized.
+        pass
