@@ -26,6 +26,9 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
+    # Prevent error in a test for the %edit magic
+    micromamba install ipykernel=6.26.0 -q -y
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -50,6 +53,9 @@ else
         # QDarkstyle 3.2.1 doesn't work with PyQt 5.12
         pip install qdarkstyle==3.2
     fi
+
+    # Prevent error in a test for the %edit magic
+    pip install ipykernel==6.26.0
 
 fi
 
