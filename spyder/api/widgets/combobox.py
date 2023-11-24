@@ -48,7 +48,7 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
 
 
 class SpyderComboBox(QComboBox):
-    """ComboBox widget to be used anywhere in Spyder."""
+    """Combobox widget for Spyder when its items don't have icons."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -96,3 +96,17 @@ class SpyderComboBox(QComboBox):
         )
 
         return css
+
+
+class SpyderComboBoxWithIcons(SpyderComboBox):
+    """"Combobox widget for Spyder when its items have icons."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Padding is not necessary because icons give items enough of it.
+        self._css["QComboBox QAbstractItemView::item"].setValues(
+            padding="0px"
+        )
+
+        self.setStyleSheet(self._css.toString())
