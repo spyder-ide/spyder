@@ -45,8 +45,7 @@ OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
 def font_is_installed(font):
     """Check if font is installed"""
     db = QFontDatabase() if QT_VERSION.startswith("5") else QFontDatabase
-    return [fam for fam in db.families()
-            if to_text_string(fam)==font]
+    return [fam for fam in db.families() if str(fam) == font]
 
 
 def get_family(families):

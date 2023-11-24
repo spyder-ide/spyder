@@ -15,8 +15,7 @@ from itertools import groupby
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QScrollArea,
-                            QWidget)
+                            QVBoxLayout, QHBoxLayout, QScrollArea, QWidget)
 
 # Local imports
 from spyder.config.base import _

@@ -469,7 +469,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemFlag.ItemIsEnabled
-        return QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        return (
+            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        )
 
     def reset(self):
         self.beginResetModel()

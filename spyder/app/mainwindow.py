@@ -164,8 +164,9 @@ class MainWindow(
             # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
-        # Enabling scaling for high dpi (not required with Qt 6 where it is
-        # always enabled, see https://doc.qt.io/qt-6/portingguide.html#high-dpi)
+        # Enabling scaling for high dpi. This is not required with Qt 6 where
+        # it is always enabled.
+        # See https://doc.qt.io/qt-6/portingguide.html#high-dpi
         if hasattr(Qt, "AA_UseHighDpiPixmaps"):
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 

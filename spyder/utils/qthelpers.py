@@ -172,6 +172,7 @@ def keyevent_to_keysequence_str(event):
             key_combination = event.keyCombination()  # Qt 6
         else:
             key_combination = event.modifiers() | event.key()  # Qt 5
+
         return QKeySequence(key_combination).toString()
     except TypeError:
         # This error appears in old PyQt versions (e.g. 5.12) which are

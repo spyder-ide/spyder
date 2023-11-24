@@ -16,10 +16,11 @@ import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QEvent, QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt, Signal)
+    QEvent, QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt,
+    Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QImage, QPainter, QRegularExpressionValidator, QTextDocument,
-                        QPixmap)
+                        QImage, QPainter, QRegularExpressionValidator,
+                        QTextDocument, QPixmap)
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (
     QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,

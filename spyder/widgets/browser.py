@@ -75,7 +75,8 @@ class WebPage(QWebEnginePage):
         """
         Overloaded method to handle links ourselves
         """
-        if navigation_type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
+        link_clicked = QWebEnginePage.NavigationType.NavigationTypeLinkClicked
+        if navigation_type == link_clicked:
             self.linkClicked.emit(url)
             return False
 
@@ -128,7 +129,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             context=Qt.WidgetWithChildrenShortcut,
         )
 
-        original_forward_action = self.pageAction(QWebEnginePage.WebAction.Forward)
+        original_forward_action = self.pageAction(
+            QWebEnginePage.WebAction.Forward
+        )
         forward_action = self.create_action(
             name=WebViewActions.Forward,
             text=_("Forward"),
@@ -137,7 +140,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             context=Qt.WidgetWithChildrenShortcut,
         )
 
-        original_select_action = self.pageAction(QWebEnginePage.WebAction.SelectAll)
+        original_select_action = self.pageAction(
+            QWebEnginePage.WebAction.SelectAll
+        )
         select_all_action = self.create_action(
             name=WebViewActions.SelectAll,
             text=_("Select all"),
@@ -170,7 +175,8 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         )
 
         original_inspect_action = self.pageAction(
-            QWebEnginePage.WebAction.InspectElement)
+            QWebEnginePage.WebAction.InspectElement
+        )
         inspect_action = self.create_action(
             name=WebViewActions.Inspect,
             text=_("Inspect"),
@@ -178,7 +184,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             context=Qt.WidgetWithChildrenShortcut,
         )
 
-        original_refresh_action = self.pageAction(QWebEnginePage.WebAction.Reload)
+        original_refresh_action = self.pageAction(
+            QWebEnginePage.WebAction.Reload
+        )
         self.create_action(
             name=WebViewActions.Refresh,
             text=_("Refresh"),
@@ -299,10 +307,14 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                            QWebEngineSettings.FontFamily.FantasyFont):
             settings.setFontFamily(fontfamily, font.family())
         if fixed_font is not None:
-            settings.setFontFamily(QWebEngineSettings.FontFamily.FixedFont, fixed_font.family())
+            settings.setFontFamily(
+                QWebEngineSettings.FontFamily.FixedFont, fixed_font.family()
+            )
         size = font.pixelSize()
         settings.setFontSize(QWebEngineSettings.FontSize.DefaultFontSize, size)
-        settings.setFontSize(QWebEngineSettings.FontSize.DefaultFixedFontSize, size)
+        settings.setFontSize(
+            QWebEngineSettings.FontSize.DefaultFixedFontSize, size
+        )
 
     def apply_zoom_factor(self):
         """Apply zoom factor."""
