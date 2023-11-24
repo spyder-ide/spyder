@@ -10,6 +10,7 @@ Spyder Combobox widget.
 Use this for any combobox you want to add to Spyder.
 """
 
+import qstylizer.style
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QComboBox, QStyledItemDelegate
@@ -58,8 +59,40 @@ class SpyderComboBox(QComboBox):
         # See https://stackoverflow.com/a/33464045/438386 for the details.
         self.setItemDelegate(_SpyderComboBoxDelegate(self))
 
+        self._css = self._generate_stylesheet()
+        self.setStyleSheet(self._css.toString())
+
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
         # added automatically by Qt. That means that the menu is not built
         # using our API and it's not localized.
         pass
+
+    def _generate_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Make our comboboxes have a uniform height
+        css.QComboBox.setValues(
+            minHeight=f'{AppStyle.ComboBoxMinHeight}em'
+        )
+
+        # Add top and bottom padding to the inner contents of comboboxes
+        css["QComboBox QAbstractItemView"].setValues(
+            paddingTop=f"{2 * AppStyle.MarginSize}px",
+            paddingBottom=f"{2 * AppStyle.MarginSize}px"
+        )
+
+        # Add margin and padding to combobox items
+        css["QComboBox QAbstractItemView::item"].setValues(
+            marginLeft=f"{AppStyle.MarginSize}px",
+            marginRight=f"{AppStyle.MarginSize}px",
+            padding=f"{AppStyle.MarginSize}px"
+        )
+
+        # Make color of hovered combobox items match the one used in other
+        # Spyder widgets
+        css["QComboBox QAbstractItemView::item:selected:active"].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+        )
+
+        return css
