@@ -61,10 +61,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Build Environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
-          extra-specs: python=${{ matrix.python-version }}
+          create-args: python=${{ matrix.python-version }}
 
       - name: Build Conda Packages
         run: python build_conda_pkgs.py --build $pkg
@@ -127,10 +127,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Build Environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: installers-conda/build-environment.yml
-          extra-specs: python=${{ matrix.python-version }}
+          create-args: python=${{ matrix.python-version }}
 
       - name: Env Variables
         run: |
