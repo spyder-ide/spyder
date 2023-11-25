@@ -886,5 +886,14 @@ def register_app_launchservices(
     app.applicationStateChanged.connect(handle_applicationStateChanged)
 
 
+def safe_disconnect(signal):
+    """Disconnect a Qt signal, ignoring TypeError."""
+    try:
+        signal.disconnect()
+    except TypeError:
+        # Raised when no slots are connected to the signal
+        pass
+
+
 if __name__ == "__main__":
     show_std_icons()

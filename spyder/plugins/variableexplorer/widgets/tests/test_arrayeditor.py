@@ -13,7 +13,7 @@ Tests for the array editor.
 # Standard library imports
 import os
 import sys
-from unittest.mock import Mock, ANY
+from unittest.mock import Mock, patch, ANY
 
 # Third party imports
 from flaky import flaky
@@ -21,6 +21,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QMessageBox
 from scipy.io import loadmat
 
 # Local imports
@@ -37,10 +38,10 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 # =============================================================================
 # Utility functions
 # =============================================================================
-def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
+def launch_arrayeditor(data, title=""):
     """Helper routine to launch an arrayeditor and return its result."""
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
+    assert dlg.setup_and_check(data, title)
     dlg.show()
     dlg.accept()  # trigger slot connected to OK button
     return dlg.get_value()
@@ -185,16 +186,13 @@ def test_arrayeditor_with_record_array_with_titles(qtbot):
 
 def test_arrayeditor_with_float_array(qtbot):
     arr = np.random.rand(5, 5)
-    assert_array_equal(arr, launch_arrayeditor(arr, "float array",
-                                      xlabels=['a', 'b', 'c', 'd', 'e']))
+    assert_array_equal(arr, launch_arrayeditor(arr, "float array"))
 
 
 def test_arrayeditor_with_complex_array(qtbot):
     arr = np.round(np.random.rand(5, 5)*10)+\
                    np.round(np.random.rand(5, 5)*10)*1j
-    assert_array_equal(arr, launch_arrayeditor(arr, "complex array",
-                                      xlabels=np.linspace(-12, 12, 5),
-                                      ylabels=np.linspace(-12, 12, 5)))
+    assert_array_equal(arr, launch_arrayeditor(arr, "complex array"))
 
 
 def test_arrayeditor_with_bool_array(qtbot):
@@ -227,11 +225,100 @@ def test_arrayeditor_with_empty_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+def test_arrayeditor_refreshaction_disabled():
+    """
+    Test that the Refresh action is disabled by default.
+    """
+    arr_ones = np.ones((3, 3))
+    dlg = ArrayEditor()
+    dlg.setup_and_check(arr_ones, '2D array')
+    assert not dlg.refresh_action.isEnabled()
+
+
+def test_arrayeditor_refresh():
+    """
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
+    """
+    arr_ones = np.ones((3, 3))
+    arr_zeros = np.zeros((4, 4))
+    datafunc = lambda: arr_zeros
+    dlg = ArrayEditor(data_function=datafunc)
+    assert dlg.setup_and_check(arr_ones, '2D array')
+    assert_array_equal(dlg.get_value(), arr_ones)
+    assert dlg.refresh_action.isEnabled()
+    dlg.refresh_action.trigger()
+    assert_array_equal(dlg.get_value(), arr_zeros)
+
+
+@pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
+def test_arrayeditor_refresh_after_edit(result):
+    """
+    Test that after changing a value in the array editor, pressing the Refresh
+    button opens a dialog box (which asks for confirmation), and that the
+    editor is only refreshed if the user clicks Yes.
+    """
+    arr_ones = np.ones((3, 3))
+    arr_edited = arr_ones.copy()
+    arr_edited[0, 0] = 2
+    arr_zeros = np.zeros((4, 4))
+    datafunc = lambda: arr_zeros
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    dlg.show()
+    model = dlg.arraywidget.model
+    model.setData(model.index(0, 0), '2')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.question',
+               return_value=result) as mock_question:
+        dlg.refresh_action.trigger()
+    mock_question.assert_called_once()
+    dlg.accept()
+    if result == QMessageBox.Yes:
+        assert_array_equal(dlg.get_value(), arr_zeros)
+    else:
+        assert_array_equal(dlg.get_value(), arr_edited)
+
+
+def test_arrayeditor_refresh_into_int(qtbot):
+    """
+    Test that if the value after refreshing is not an array but an integer,
+    a critical dialog box is displayed and that the array editor is closed.
+    """
+    arr_ones = np.ones((3, 3))
+    datafunc = lambda: 1
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(dlg.rejected, timeout=0):
+        dlg.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
+def test_arrayeditor_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the array editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    arr_ones = np.ones((3, 3))
+    dlg = ArrayEditor(data_function=datafunc)
+    dlg.setup_and_check(arr_ones, '2D array')
+    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(dlg.rejected, timeout=0):
+        dlg.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, '1D array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -251,7 +338,7 @@ def test_arrayeditor_edit_2d_array(qtbot):
     arr = np.ones((3, 3))
     diff_arr = arr.copy()
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, '2D array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -276,8 +363,7 @@ def test_arrayeditor_edit_complex_array(qtbot):
     cnum = -1+0.5j
     arr = (np.random.random((10, 10)) - 0.50) * cnum
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
-                               ylabels=None)
+    assert dlg.setup_and_check(arr, '2D complex array')
     with qtbot.waitExposed(dlg):
         dlg.show()
     view = dlg.arraywidget.view
@@ -343,8 +429,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     for idx, int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
-        assert dialog.setup_and_check(test_array, '1D array',
-                                      xlabels=None, ylabels=None)
+        assert dialog.setup_and_check(test_array, '1D array')
         with qtbot.waitExposed(dialog):
             dialog.show()
         view = dialog.arraywidget.view
