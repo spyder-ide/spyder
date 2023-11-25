@@ -10,10 +10,12 @@ Spyder Combobox widget.
 Use this for any combobox you want to add to Spyder.
 """
 
+import sys
+
 import qstylizer.style
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QColor
-from qtpy.QtWidgets import QComboBox, QStyledItemDelegate
+from qtpy.QtWidgets import QComboBox, QFrame, QStyledItemDelegate
 
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import AppStyle
@@ -53,12 +55,17 @@ class SpyderComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.is_editable = None
+        self._is_shown = False
+        self._is_popup_shown = False
+
         # This is also necessary to have more fine-grained control over the
         # style of our comboboxes with css, e.g. to add more padding between
         # its items.
         # See https://stackoverflow.com/a/33464045/438386 for the details.
         self.setItemDelegate(_SpyderComboBoxDelegate(self))
 
+        # Style
         self._css = self._generate_stylesheet()
         self.setStyleSheet(self._css.toString())
 
@@ -67,6 +74,40 @@ class SpyderComboBox(QComboBox):
         # added automatically by Qt. That means that the menu is not built
         # using our API and it's not localized.
         pass
+
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+
+        if not self._is_shown:
+            if not self.isEditable():
+                self.is_editable = False
+
+                # This is necessary to make Qt position correctly the popup
+                # widget for non-editable comboboxes.
+                # Solution from https://stackoverflow.com/a/45191141/438386
+                self.setEditable(True)
+                self.lineEdit().setReadOnly(True)
+            else:
+                self.is_editable = True
+
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def showPopup(self):
+        """Adjustments when the popup is shown."""
+        super().showPopup()
+
+        if sys.platform == "darwin":
+            # Reposition popup to display it in the right place.
+            # Solution from https://forum.qt.io/post/349517
+            popup = self.findChild(QFrame)
+            popup.move(popup.x() - 3, popup.y() + 4)
+
+            # Adjust width to match the lineEdit one.
+            if not self._is_popup_shown:
+                popup.setFixedWidth(popup.width() + 2)
+                self._is_popup_shown = True
 
     def _generate_stylesheet(self):
         css = qstylizer.style.StyleSheet()
