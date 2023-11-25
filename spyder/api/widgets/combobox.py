@@ -109,7 +109,28 @@ class SpyderComboBox(QComboBox):
                 popup.setFixedWidth(popup.width() + 2)
                 self._is_popup_shown = True
 
+        # Make borders straight to make popup feel as part of the combobox
+        self._css.QComboBox.setValues(
+            borderBottomLeftRadius="0px",
+            borderBottomRightRadius="0px",
+        )
+
+        self.setStyleSheet(self._css.toString())
+
+    def hidePopup(self):
+        """Adjustments when the popup is hidden."""
+        super().hidePopup()
+
+        # Make borders rounded when popup is not visible
+        self._css.QComboBox.setValues(
+            borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+        )
+
+        self.setStyleSheet(self._css.toString())
+
     def _generate_stylesheet(self):
+        """Base stylesheet for Spyder comboboxes."""
         css = qstylizer.style.StyleSheet()
 
         # Make our comboboxes have a uniform height
@@ -119,8 +140,8 @@ class SpyderComboBox(QComboBox):
 
         # Add top and bottom padding to the inner contents of comboboxes
         css["QComboBox QAbstractItemView"].setValues(
-            paddingTop=f"{2 * AppStyle.MarginSize}px",
-            paddingBottom=f"{2 * AppStyle.MarginSize}px"
+            paddingTop=f"{AppStyle.MarginSize + 1}px",
+            paddingBottom=f"{AppStyle.MarginSize + 1}px"
         )
 
         # Add margin and padding to combobox items
