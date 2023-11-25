@@ -108,26 +108,29 @@ class SpyderComboBox(QComboBox):
             if not self._is_popup_shown:
                 popup.setFixedWidth(popup.width() + 2)
                 self._is_popup_shown = True
+        else:
+            # Make borders straight to make popup feel as part of the combobox.
+            # This doesn't work reliably on Mac.
+            self._css.QComboBox.setValues(
+                borderBottomLeftRadius="0px",
+                borderBottomRightRadius="0px",
+            )
 
-        # Make borders straight to make popup feel as part of the combobox
-        self._css.QComboBox.setValues(
-            borderBottomLeftRadius="0px",
-            borderBottomRightRadius="0px",
-        )
-
-        self.setStyleSheet(self._css.toString())
+            self.setStyleSheet(self._css.toString())
 
     def hidePopup(self):
         """Adjustments when the popup is hidden."""
         super().hidePopup()
 
-        # Make borders rounded when popup is not visible
-        self._css.QComboBox.setValues(
-            borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
-            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
-        )
+        if not sys.platform == "darwin":
+            # Make borders rounded when popup is not visible. This doesn't work
+            # reliably on Mac.
+            self._css.QComboBox.setValues(
+                borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
+                borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            )
 
-        self.setStyleSheet(self._css.toString())
+            self.setStyleSheet(self._css.toString())
 
     def _generate_stylesheet(self):
         """Base stylesheet for Spyder comboboxes."""
