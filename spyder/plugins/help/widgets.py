@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path

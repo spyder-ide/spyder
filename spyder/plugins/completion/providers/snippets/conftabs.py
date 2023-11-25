@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
                             QMessageBox, QPushButton, QVBoxLayout, QFileDialog)
 
 # Local imports
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets import (

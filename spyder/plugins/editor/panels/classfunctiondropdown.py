@@ -14,7 +14,7 @@ from qtpy.QtWidgets import QHBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.api.widgets.combobox import SpyderComboBoxWithIcons
+from spyder.api.widgets.comboboxes import SpyderComboBoxWithIcons
 from spyder.plugins.completion.api import SymbolKind
 from spyder.plugins.editor.api.panel import Panel
 from spyder.utils.icon_manager import ima
@@ -140,7 +140,7 @@ class ClassFunctionDropdown(Panel):
 
         Parameters
         ----------
-        combobox : :class:`spyder.api.widgets.combobox.SpyderComboBox`
+        combobox : :class:`spyder.api.widgets.comboboxes.SpyderComboBox`
             The combobox to populate
         data : list of :class:`dict`
             The data to populate with. There should be one list element per

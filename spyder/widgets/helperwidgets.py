@@ -31,7 +31,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex

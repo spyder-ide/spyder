@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder.api.translations import _
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,

@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault

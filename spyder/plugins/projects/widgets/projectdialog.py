@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout,
                             QPushButton, QRadioButton, QVBoxLayout)
 
 # Local imports
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _, get_home_dir
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton

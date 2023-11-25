@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _

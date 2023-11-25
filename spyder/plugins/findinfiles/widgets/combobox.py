@@ -14,7 +14,7 @@ from qtpy.QtWidgets import QMessageBox, QSizePolicy
 
 # Local imports
 from spyder.api.translations import _
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.utils.encoding import to_unicode_from_fs
 
 

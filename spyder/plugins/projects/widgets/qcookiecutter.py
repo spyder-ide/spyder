@@ -18,7 +18,7 @@ from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
 
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 
 class Namespace:
     """

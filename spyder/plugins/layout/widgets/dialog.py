@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QDialog,
                             QPushButton, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 

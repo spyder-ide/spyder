@@ -5,9 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder Combobox widget.
+Spyder combobox widgets.
 
-Use this for any combobox you want to add to Spyder.
+Use these widgets for any combobox you want to add to Spyder.
 """
 
 import sys

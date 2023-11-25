@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDialog,
 
 # Local imports
 from spyder.api.translations import _
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima

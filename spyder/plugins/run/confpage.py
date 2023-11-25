@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout,
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
-from spyder.api.widgets.combobox import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration)
 from spyder.plugins.run.container import RunContainer
