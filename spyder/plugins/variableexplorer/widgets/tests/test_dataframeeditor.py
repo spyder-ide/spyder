@@ -446,8 +446,8 @@ def test_dataframeeditor_refreshaction_disabled():
 
 def test_dataframeeditor_refresh():
     """
-    Test that after pressing the refresh button, the value of the Array Editor
-    is replaced by the return value of the data_function.
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
     """
     df_zero = DataFrame([[0]])
     df_new = DataFrame([[0, 10], [1, 20], [2, 40]])

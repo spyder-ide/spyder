@@ -887,7 +887,7 @@ def register_app_launchservices(
 
 
 def safe_disconnect(signal):
-    """Disconnect a QtSignal, ignoring TypeError"""
+    """Disconnect a Qt signal, ignoring TypeError."""
     try:
         signal.disconnect()
     except TypeError:

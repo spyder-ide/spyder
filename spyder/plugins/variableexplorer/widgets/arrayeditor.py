@@ -8,14 +8,13 @@
 NumPy Array Editor Dialog based on Qt
 """
 
-from __future__ import annotations
-
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import io
 from typing import Callable, Optional, TYPE_CHECKING
 
@@ -656,8 +655,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent: Optional[QWidget] = None,
-                 data_function: Optional[Callable[[], ArrayLike]] = None):
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        data_function: Optional[Callable[[], ArrayLike]] = None
+    ):
         """
         Constructor.
 
@@ -692,15 +694,16 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     def setup_and_check(self, data, title='', readonly=False):
         """
-        Setup ArrayEditor:
-        return False if data is not supported, True otherwise
+        Setup the editor.
+
+        It returns False if data is not supported, True otherwise.
         """
         self.setup_ui(title, readonly)
         return self.set_data_and_check(data, readonly)
 
     def setup_ui(self, title='', readonly=False):
         """
-        Create user interface
+        Create the user interface.
 
         This creates the necessary widgets and layouts that make up the user
         interface of the array editor. Some elements need to be hidden
@@ -716,8 +719,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         def do_nothing():
             # .create_action() needs a toggled= parameter, but we can only
-            # set it later in .set_data_and_check(), so we use this function
-            # as a placeholder here.
+            # set it later in the set_data_and_check method, so we use this
+            # function as a placeholder here.
             pass
 
         self.copy_action = self.create_action(
@@ -778,7 +781,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # ---- Widgets in bottom left for special arrays
         #
         # These are normally hidden. When editing masked, record or 3d arrays,
-        # the relevant elements are made visible in `.set_data_and_check()`.
+        # the relevant elements are made visible in the set_data_and_check
+        # method.
 
         self.btn_layout = QHBoxLayout()
 
@@ -803,15 +807,17 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.btn_layout.addWidget(self.slicing_label)
 
         self.masked_label = QLabel(
-            _('<u>Warning</u>: Changes are applied separately'))
+            _('<u>Warning</u>: Changes are applied separately')
+        )
         self.masked_label.setToolTip(
             _("For performance reasons, changes applied to masked arrays won't"
-              "be reflected in array's data (and vice-versa)."))
+              "be reflected in array's data (and vice-versa).")
+          )
         self.btn_layout.addWidget(self.masked_label)
 
         self.btn_layout.addStretch()
 
-        # ---- Push buttons on bottom right
+        # ---- Push buttons on the bottom right
 
         self.btn_save_and_close = QPushButton(_('Save and Close'))
         self.btn_save_and_close.setDisabled(True)
@@ -1024,9 +1030,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.arraywidget = self.stack.widget(index)
         if self.arraywidget:
             self.arraywidget.model.dataChanged.connect(
-                self.save_and_close_enable)
+                self.save_and_close_enable
+            )
             self.toggle_bgcolor_action.setChecked(
-                self.arraywidget.model.bgcolor_enabled)
+                self.arraywidget.model.bgcolor_enabled
+            )
 
     def change_active_widget(self, index):
         """
@@ -1100,7 +1108,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         if not self.set_data_and_check(data):
             self.error(
-                _('The new value cannot be displayed in the array editor.'))
+                _('The new value cannot be displayed in the array editor.')
+            )
 
     def ask_for_refresh_confirmation(self) -> bool:
         """
@@ -1113,7 +1122,10 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         message = _('Refreshing the editor will overwrite the changes that '
                     'you made. Do you want to proceed?')
         result = QMessageBox.question(
-            self, _('Refresh array editor?'), message)
+            self,
+            _('Refresh array editor?'),
+            message
+        )
         return result == QMessageBox.Yes
 
     @Slot()

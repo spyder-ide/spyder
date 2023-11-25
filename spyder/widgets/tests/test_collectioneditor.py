@@ -267,7 +267,8 @@ def test_filter_rows(qtbot):
 
 def test_remote_make_data_function():
     """
-    Test that the function returned by make_data_function() ...
+    Test that the function returned by make_data_function() is the expected
+    one.
     """
     variables = {'a': {'type': 'int',
                        'size': 1,
@@ -276,7 +277,8 @@ def test_remote_make_data_function():
                        'numpy_type': 'Unknown'}}
     mock_shellwidget = Mock()
     editor = RemoteCollectionsEditorTableView(
-        None, variables, mock_shellwidget)
+        None, variables, mock_shellwidget
+    )
     index = editor.model.index(0, 0)
     data_function = editor.delegate.make_data_function(index)
     value = data_function()
@@ -508,8 +510,8 @@ def test_collectioneditorwidget_refresh_action_disabled():
 
 def test_collectioneditor_refresh():
     """
-    Test that after pressing the refresh button, the value of the Array Editor
-    is replaced by the return value of the data_function.
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
     """
     old_list = [1, 2, 3, 4]
     new_list = [3, 1, 4, 1, 5]
@@ -524,7 +526,7 @@ def test_collectioneditor_refresh():
 @pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
 def test_collectioneditor_refresh_after_edit(result):
     """
-    Test that after changing a value in the collection editor, refreshing the
+    Test that after changing a value in the collections editor, refreshing the
     editor opens a dialog box (which asks for confirmation), and that the
     editor is only refreshed if the user clicks Yes.
     """
@@ -551,15 +553,15 @@ def test_collectioneditor_refresh_when_variable_deleted(qtbot):
     """
     Test that if the variable is deleted and then the editor is refreshed
     (resulting in data_function raising a KeyError), a critical dialog box
-    is displayed and that the array editor is closed.
+    is displayed and that the editor is closed.
     """
     def datafunc():
         raise KeyError
     lst = [1, 2, 3, 4]
     editor = CollectionsEditor(None, data_function=datafunc)
     editor.setup(lst)
-    with patch('spyder.plugins.variableexplorer.widgets.arrayeditor'
-               '.QMessageBox.critical') as mock_critical, \
+    with patch('spyder.widgets.collectionseditor.QMessageBox'
+               '.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
         editor.widget.refresh_action.trigger()
     mock_critical.assert_called_once()

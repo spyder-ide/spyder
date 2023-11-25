@@ -184,7 +184,7 @@ class DataclassForTesting:
 
 def test_objectexplorer_refreshbutton_disabled():
     """
-    Test that the Refresh button is disabled by default.
+    Test that the refresh button is disabled by default.
     """
     data = DataclassForTesting('lemon', 0.15, 5)
     editor = ObjectExplorer(data, name='data')
@@ -193,8 +193,8 @@ def test_objectexplorer_refreshbutton_disabled():
 
 def test_objectexplorer_refresh():
     """
-    Test that after pressing the refresh button, the value of the Array Editor
-    is replaced by the return value of the data_function.
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
     """
     data_old = DataclassForTesting('lemon', 0.15, 5)
     data_new = range(1, 42, 3)
@@ -237,7 +237,7 @@ class Box:
 
 def test_objectexplorer_refresh_nested():
     """
-    Open an editor for an `Box` object containing a list, and then open another
+    Open an editor for a `Box` object containing a list, and then open another
     editor for the nested list. Test that refreshing the second editor works.
     """
     old_data = Box([1, 2, 3])
@@ -257,7 +257,7 @@ def test_objectexplorer_refresh_nested():
 
 def test_objectexplorer_refresh_doubly_nested():
     """
-    Open an editor for an `Box` object containing another `Box` object which
+    Open an editor for a `Box` object containing another `Box` object which
     in turn contains a list. Then open a second editor for the nested list.
     Test that refreshing the second editor works.
     """

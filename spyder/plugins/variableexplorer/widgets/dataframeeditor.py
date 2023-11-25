@@ -788,7 +788,8 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
             self, _('Refresh'),
             icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=lambda: self.sig_refresh_requested.emit())
+            triggered=lambda: self.sig_refresh_requested.emit()
+        )
         self.refresh_action.setEnabled(self.data_function is not None)
 
         self.convert_to_action = create_action(self, _('Convert to'))
@@ -1612,8 +1613,11 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     """
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent: QWidget = None,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self,
+        parent: QWidget = None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         super().__init__(parent)
         self.data_function = data_function
 
@@ -1630,20 +1634,22 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def setup_and_check(self, data, title='') -> bool:
         """
-        Setup DataFrameEditor:
-        return False if data is not supported, True otherwise.
-        Supported types for data are DataFrame, Series and Index.
+        Setup editor.
+        
+        It returns False if data is not supported, True otherwise. Supported
+        types for data are DataFrame, Series and Index.
         """
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
             title = _("%s editor") % data.__class__.__name__
+
         self.setup_ui(title)
         return self.set_data_and_check(data)
 
     def setup_ui(self, title: str) -> None:
         """
-        Create user interface
+        Create user interface.
         """
         self.layout = QVBoxLayout()
         self.layout.setSpacing(0)
@@ -1718,9 +1724,9 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def set_data_and_check(self, data) -> bool:
         """
-        Checks whether data is suitable and display it in the editor
+        Checks whether data is suitable and display it in the editor.
 
-        This function returns False if data is not supported.
+        This method returns False if data is not supported.
         """
         if not isinstance(data, (pd.DataFrame, pd.Series, pd.Index)):
             return False
@@ -2111,7 +2117,8 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         if not self.set_data_and_check(data):
             self.error(
                 _('The new value cannot be displayed in the dataframe '
-                  'editor.'))
+                  'editor.')
+            )
 
     def ask_for_refresh_confirmation(self) -> bool:
         """
@@ -2124,7 +2131,10 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         message = _('Refreshing the editor will overwrite the changes that '
                     'you made. Do you want to proceed?')
         result = QMessageBox.question(
-            self, _('Refresh dataframe editor?'), message)
+            self,
+            _('Refresh dataframe editor?'),
+            message
+        )
         return result == QMessageBox.Yes
 
     def error(self, message):

@@ -237,8 +237,8 @@ def test_arrayeditor_refreshaction_disabled():
 
 def test_arrayeditor_refresh():
     """
-    Test that after pressing the refresh button, the value of the Array Editor
-    is replaced by the return value of the data_function.
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
     """
     arr_ones = np.ones((3, 3))
     arr_zeros = np.zeros((4, 4))

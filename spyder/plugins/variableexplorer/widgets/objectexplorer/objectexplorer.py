@@ -143,7 +143,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         # Tree widget
         old_obj_tree = self.obj_tree
         self.obj_tree = ToggleColumnTreeView(
-            self.namespacebrowser, self.data_function)
+            self.namespacebrowser,
+            self.data_function
+        )
         self.obj_tree.setAlternatingRowColors(True)
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -257,8 +259,10 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.refresh_button = create_toolbutton(
             self, icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh_editor)
+            triggered=self.refresh_editor
+        )
         self.refresh_button.setEnabled(self.data_function is not None)
+        self.refresh_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addSpacing(5)
         self.tools_layout.addWidget(self.refresh_button)
 
@@ -419,8 +423,11 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         try:
             data = self.data_function()
         except (IndexError, KeyError):
-            QMessageBox.critical(self, _('Collection editor'),
-                                 _('The variable no longer exists.'))
+            QMessageBox.critical(
+                self,
+                _('Object explorer'),
+                _('The variable no longer exists.')
+            )
             self.reject()
             return
 

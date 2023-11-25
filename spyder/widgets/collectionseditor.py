@@ -1335,7 +1335,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.model = self.source_model
         self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(
-            self, namespacebrowser, data_function)
+            self, namespacebrowser, data_function
+        )
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1458,7 +1459,8 @@ class CollectionsEditorWidget(QWidget):
                 self, data, readonly)
         else:
             self.editor = CollectionsEditorTableView(
-                self, data, namespacebrowser, data_function, readonly, title)
+                self, data, namespacebrowser, data_function, readonly, title
+            )
 
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -1472,7 +1474,8 @@ class CollectionsEditorWidget(QWidget):
             text=_('Refresh'),
             icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=lambda: self.sig_refresh_requested.emit())
+            triggered=lambda: self.sig_refresh_requested.emit()
+        )
         toolbar.addAction(self.refresh_action)
 
         # Update the toolbar actions state
@@ -1540,7 +1543,8 @@ class CollectionsEditor(BaseDialog):
 
         self.widget = CollectionsEditorWidget(
             self, self.data_copy, self.namespacebrowser, self.data_function,
-            title=title, readonly=readonly, remote=remote)
+            title=title, readonly=readonly, remote=remote
+        )
         self.widget.sig_refresh_requested.connect(self.refresh_editor)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
@@ -1605,8 +1609,11 @@ class CollectionsEditor(BaseDialog):
         try:
             new_value = self.data_function()
         except (IndexError, KeyError):
-            QMessageBox.critical(self, _('Collection editor'),
-                                 _('The variable no longer exists.'))
+            QMessageBox.critical(
+                self,
+                _('Collection editor'),
+                _('The variable no longer exists.')
+            )
             self.reject()
             return
 
@@ -1628,7 +1635,10 @@ class CollectionsEditor(BaseDialog):
         message = _('Refreshing the editor will overwrite the changes that '
                     'you made. Do you want to proceed?')
         result = QMessageBox.question(
-            self, _('Refresh collection editor?'), message)
+            self,
+            _('Refresh collections editor?'),
+            message
+        )
         return result == QMessageBox.Yes
 
 
@@ -1653,8 +1663,10 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
             name = source_index.model().keys[source_index.row()]
             self.parent().new_value(name, value)
 
-    def make_data_function(self, index: QModelIndex
-                           ) -> Optional[Callable[[], Any]]:
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
         """
         Construct function which returns current value of data.
 

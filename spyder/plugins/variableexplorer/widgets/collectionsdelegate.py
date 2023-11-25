@@ -45,8 +45,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
-    def __init__(self, parent=None, namespacebrowser=None,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self,
+        parent=None,
+        namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         QItemDelegate.__init__(self, parent)
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
@@ -60,8 +64,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         if index.isValid():
             index.model().set_value(index, value)
 
-    def make_data_function(self, index: QModelIndex
-                           ) -> Optional[Callable[[], Any]]:
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
         """
         Construct function which returns current value of data.
 
@@ -92,6 +98,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             data = self.data_function()
             if isinstance(data, (tuple, list, dict, set)):
                 return data[key]
+
             try:
                 return getattr(data, key)
             except (NotImplementedError, AttributeError,
@@ -207,8 +214,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
-                parent=parent, namespacebrowser=self.namespacebrowser,
-                data_function=self.make_data_function(index))
+                parent=parent,
+                namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index)
+            )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -220,7 +229,9 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             # We need to leave this import here for tests to pass.
             from .arrayeditor import ArrayEditor
             editor = ArrayEditor(
-                parent=parent, data_function=self.make_data_function(index))
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 self.sig_editor_shown.emit()
                 return
@@ -252,7 +263,9 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(
-                parent=parent, data_function=self.make_data_function(index))
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key):
                 self.sig_editor_shown.emit()
                 return
@@ -466,7 +479,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def __init__(self, parent=None, namespacebrowser=None,
                  data_function: Optional[Callable[[], Any]] = None):
         CollectionsDelegate.__init__(
-            self, parent, namespacebrowser, data_function)
+            self, parent, namespacebrowser, data_function
+        )
         self.current_index = None
         self.old_obj = None
 
@@ -486,8 +500,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
         if index.isValid():
             index.model().set_value(index, value)
 
-    def make_data_function(self, index: QModelIndex
-                           ) -> Optional[Callable[[], Any]]:
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
         """
         Construct function which returns current value of data.
 
@@ -565,8 +581,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
         if isinstance(value, (list, set, tuple, dict)):
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
-                parent=parent, namespacebrowser=self.namespacebrowser,
-                data_function=self.make_data_function(index))
+                parent=parent,
+                namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index)
+            )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -576,7 +594,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
         elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
                 np.ndarray is not FakeObject):
             editor = ArrayEditor(
-                parent=parent, data_function=self.make_data_function(index))
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -598,7 +618,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject):
             editor = DataFrameEditor(
-                parent=parent, data_function=self.make_data_function(index))
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
