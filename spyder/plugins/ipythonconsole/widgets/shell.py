@@ -564,6 +564,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         resolution_n = 'pylab/inline/resolution'
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
         backend_o = self.get_conf(pylab_backend_n)
 
@@ -590,6 +592,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                     matplotlib_conf[width_n] = width_o
                 if height_o is not None:
                     matplotlib_conf[height_n] = height_o
+
+            # Font size
+            fontsize_o = float(self.get_conf(fontsize_n))
+            if fontsize_o is not None and (
+                    option is None or fontsize_n in option):
+                matplotlib_conf[fontsize_n] = fontsize_o
+
+            # Bottom part
+            bottom_o = float(self.get_conf(bottom_n))
+            if bottom_o is not None and (
+                    option is None or bottom_n in option):
+                matplotlib_conf[bottom_n] = bottom_o
 
             # Print figure kwargs
             bbox_inches_o = self.get_conf(bbox_inches_n)
