@@ -135,7 +135,7 @@ class WorkerUpdate(QObject):
             error_msg = CONNECT_ERROR_MSG
             logger.warning(err, exc_info=err)
         except HTTPError as err:
-            error_msg = HTTP_ERROR_MSG.format(page.status_code)
+            error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
