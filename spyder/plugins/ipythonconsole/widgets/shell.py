@@ -476,16 +476,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   "kernel I did not start.<br>")
             )
 
-    def execute_line_by_line(self, line):
+    def execute_line_by_line(self, line: str):
         """Execute code when sent from the editor in a line by line basis."""
         # If the console is busy, we can't send lines for execution because the
         # input buffer is already filled.
         if self._executing:
             return
 
-        complete_state, __ = self._transformer_manager.check_complete(line)
-        line_indent_level = len(line) - len(line.lstrip())
+        if line.lstrip().startswith("#"):
+            # Treat comments as complete statements. `check_complete` doesn't
+            # do that in some cases.
+            complete_state = "complete"
+        else:
+            complete_state, __ = self._transformer_manager.check_complete(line)
 
+        line_indent_level = len(line) - len(line.lstrip())
         if self._initial_line_indent_level is None:
             self._initial_line_indent_level = line_indent_level
 
