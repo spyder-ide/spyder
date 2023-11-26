@@ -195,80 +195,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             height='3px'
         )
 
-        # Set the same color as the one used for the app toolbar
-        css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
-
-        # Give more padding and margin to items in the menu bar
-        css['QMenuBar::item'].setValues(
-            padding=f'{2 * AppStyle.MarginSize}px',
-            margin='0px 2px'
-        )
-
-        # Remove padding when pressing main menus
-        css['QMenuBar::item:pressed'].setValues(
-            padding='0px'
-        )
-
-        # Add padding and border radius to menus to follow modern standards
-        css.QMenu.setValues(
-            padding=f'{2 * AppStyle.MarginSize}px',
-            # Add more radius than normal to make it more visible.
-            borderRadius=(
-                f'{2 * int(QStylePalette.SIZE_BORDER_RADIUS.split("px")[0])}px'
-            )
-        )
-
-        # Set the right background color for menus. This is the only way to do
-        # it!
-        css['QWidget:disabled QMenu'].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
-        )
-
-        # Add padding around separators to prevent that hovering on items hides
-        # them.
-        css["QMenu::separator"].setValues(
-            margin=f'{2 * AppStyle.MarginSize}px 0px',
-        )
-
-        # Set menu item properties
-        delta_top = 0 if (MAC or WIN) else 1
-        delta_bottom = 0 if MAC else (2 if WIN else 1)
+        # TODO: Remove when the editor is migrated to the new API!
         css["QMenu::item"].setValues(
-            height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
-            paddingTop=f'{AppStyle.MarginSize + delta_top}px',
-            paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
-            paddingLeft=f'{3 * AppStyle.MarginSize}px',
-            paddingRight=f'{3 * AppStyle.MarginSize}px',
+            height='1.4em',
+            padding='4px 8px 4px 8px',
             fontFamily=font_family,
-            fontSize=f'{font_size}pt',
-            backgroundColor='transparent'
-        )
-
-        # Set hover and pressed state of items in menus and the menu bar
-        for widget in ['QMenu', 'QMenuBar']:
-            for state in ['selected', 'pressed']:
-                if state == 'selected':
-                    bg_color = (
-                        QStylePalette.COLOR_BACKGROUND_4 if widget == 'QMenu'
-                        else QStylePalette.COLOR_BACKGROUND_5
-                    )
-                else:
-                    # Don't use a different color for the QMenuBar pressed
-                    # state because a lighter color has too little contrast
-                    # with the text
-                    bg_color = QStylePalette.COLOR_BACKGROUND_5
-
-                css[f"{widget}::item:{state}"].setValues(
-                    backgroundColor=bg_color,
-                    borderRadius=QStylePalette.SIZE_BORDER_RADIUS
-                )
-
-        # Set state of disabled menu items
-        css["QMenu::item:selected:disabled"].setValues(
-            color=QStylePalette.COLOR_DISABLED,
-            backgroundColor="transparent"
+            fontSize=f'{font_size}pt'
         )
 
         # Increase padding for QPushButton's

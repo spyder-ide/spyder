@@ -365,6 +365,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
+        # --- Main menu
+        self.console_environment_menu = self.create_menu(
+            IPythonConsoleWidgetMenus.EnvironmentConsoles,
+            _('New console in environment')
+        )
+
+        css = self.console_environment_menu.css
+        css["QMenu"]["menu-scrollable"].setValue("1")
+        self.console_environment_menu.setStyleSheet(css.toString())
+
+        self.console_environment_menu.aboutToShow.connect(
+            self.update_environment_menu)
+
         # --- Options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
@@ -546,14 +559,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # --- Setting options menu
         options_menu = self.get_options_menu()
 
-        self.console_environment_menu = self.create_menu(
-            IPythonConsoleWidgetMenus.EnvironmentConsoles,
-            _('New console in environment')
-        )
-        stylesheet = qstylizer.style.StyleSheet()
-        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
-        self.console_environment_menu.setStyleSheet(stylesheet.toString())
-
         self.special_console_menu = self.create_menu(
             IPythonConsoleWidgetMenus.SpecialConsoles,
             _('New special console'))
@@ -597,9 +602,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             icon=self.create_icon('ipython_console'),
             triggered=self.create_cython_client,
         )
-
-        self.console_environment_menu.aboutToShow.connect(
-            self.update_environment_menu)
 
         for item in [
                 create_pylab_action,
