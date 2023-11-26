@@ -13,9 +13,9 @@ Use these widgets for any combobox you want to add to Spyder.
 import sys
 
 import qstylizer.style
-from qtpy.QtCore import QSize, Qt
+from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QColor
-from qtpy.QtWidgets import QComboBox, QFrame, QStyledItemDelegate
+from qtpy.QtWidgets import QComboBox, QFrame, QLineEdit, QStyledItemDelegate
 
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import AppStyle
@@ -47,6 +47,20 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
             return QSize(0, 3 * AppStyle.MarginSize)
 
         return super().sizeHint(option, index)
+
+
+class _SpyderComboBoxLineEdit(QLineEdit):
+    """Dummy lineedit used for non-editable comboboxes."""
+
+    sig_mouse_clicked = Signal()
+
+    def mouseReleaseEvent(self, event):
+        self.sig_mouse_clicked.emit()
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        # Avoid selecting the lineedit text with double clicks
+        pass
 
 
 class SpyderComboBox(QComboBox):
@@ -81,12 +95,17 @@ class SpyderComboBox(QComboBox):
         if not self._is_shown:
             if not self.isEditable():
                 self.is_editable = False
+                self.setLineEdit(_SpyderComboBoxLineEdit(self))
 
-                # This is necessary to make Qt position correctly the popup
-                # widget for non-editable comboboxes.
+                # This is necessary to make Qt position the popup widget below
+                # the combobox for non-editable ones.
                 # Solution from https://stackoverflow.com/a/45191141/438386
                 self.setEditable(True)
                 self.lineEdit().setReadOnly(True)
+
+                # Show popup when the lineEdit is clicked, which is the default
+                # behavior for non-editable comboboxes in Qt.
+                self.lineEdit().sig_mouse_clicked.connect(self.showPopup)
             else:
                 self.is_editable = True
 
