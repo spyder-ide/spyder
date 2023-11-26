@@ -479,6 +479,13 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         import spyder.pyplot as plt
         from IPython.core.pylabtools import print_figure
 
+        try:
+            from matplotlib import rc_context
+        except ImportError:
+            # Ignore fontsize and bottom options if guiqwt is used
+            # as plotting library
+            from contextlib import nullcontext as rc_context
+
         if self.get_conf('pylab/inline/figure_format',
                          section='ipython_console') == 1:
             figure_format = 'svg'
@@ -497,11 +504,23 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             bbox_inches = 'tight'
         else:
             bbox_inches = None
+        matplotlib_rc = {
+            'font.size': self.get_conf('pylab/inline/fontsize',
+                                       section='ipython_console'),
+            'figure.subplot.bottom': self.get_conf('pylab/inline/bottom',
+                                                   section='ipython_console')
+        }
 
-        fig, ax = plt.subplots(figsize=(width, height))
-        getattr(ax, funcname)(data)
-        image = print_figure(fig, fmt=figure_format, bbox_inches=bbox_inches,
-                             dpi=resolution)
+        with rc_context(matplotlib_rc):
+            fig, ax = plt.subplots(figsize=(width, height))
+            getattr(ax, funcname)(data)
+            image = print_figure(
+                fig,
+                fmt=figure_format,
+                bbox_inches=bbox_inches,
+                dpi=resolution
+            )
+
         if figure_format == 'svg':
             image = image.encode()
         self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)

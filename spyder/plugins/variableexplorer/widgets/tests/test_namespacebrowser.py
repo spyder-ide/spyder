@@ -231,6 +231,35 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
     assert blocker.args == expected_args
 
 
+def test_namespacebrowser_plot_options(namespacebrowser):
+    """
+    Test that font.size and figure.subplot.bottom in matplotlib.rcParams are
+    set to the values from the Spyder preferences when plotting.
+    """
+    def check_rc(*args):
+        from matplotlib import rcParams
+        assert rcParams['font.size'] == 20.5
+        assert rcParams['figure.subplot.bottom'] == 0.314
+
+    namespacebrowser.set_conf('mute_inline_plotting', True, section='plots')
+    namespacebrowser.plots_plugin_enabled = True
+    namespacebrowser.set_conf(
+        'pylab/inline/fontsize', 20.5, section='ipython_console')
+    namespacebrowser.set_conf(
+        'pylab/inline/bottom', 0.314, section='ipython_console')
+
+    mock_figure = Mock()
+    mock_axis = Mock()
+    mock_png = b'fake png'
+
+    with patch('spyder.pyplot.subplots',
+               return_value=(mock_figure, mock_axis)), \
+         patch('IPython.core.pylabtools.print_figure',
+               return_value=mock_png), \
+         patch.object(mock_axis, 'plot', check_rc):
+        namespacebrowser.plot([4, 2], 'plot')
+
+
 def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser):
     """
     Test that plotting a list from the namespace browser shows a plot if
