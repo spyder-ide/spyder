@@ -19,13 +19,13 @@ from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
 from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression, QSize
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
-                            QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
+                            QFileDialog, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
@@ -847,7 +847,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             fontlabel = QLabel(_("Font"))
 
-        fontbox = QFontComboBox()
+        fontbox = SpyderFontComboBox()
         fontbox.restart_required = restart
         fontbox.label_text = _("{} font").format(title)
 
