@@ -81,8 +81,7 @@ class UpdateManagerStatus(StatusBarWidget):
             self.custom_widget.show()
         elif value == CHECKING:
             self.tooltip = self.BASE_TOOLTIP
-            if self.custom_widget:
-                self.custom_widget.hide()
+            self.custom_widget.hide()
             self.spinner.show()
             self.spinner.start()
         elif value == PENDING:
