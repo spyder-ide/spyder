@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, WIN
 
 
 class _SpyderComboBoxDelegate(QStyledItemDelegate):
@@ -62,6 +62,23 @@ class _SpyderComboBoxLineEdit(QLineEdit):
     """Dummy lineedit used for non-editable comboboxes."""
 
     sig_mouse_clicked = Signal()
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # Fix style issues
+        css = qstylizer.style.StyleSheet()
+        css.QLineEdit.setValues(
+            # These are necessary on Windows to prevent some ugly visual
+            # glitches.
+            backgroundColor="transparent",
+            border="none",
+            padding="0px",
+            # Make text look centered for short comboboxes
+            paddingRight=f"-{3 if WIN else 2}px"
+        )
+
+        self.setStyleSheet(css.toString())
 
     def mouseReleaseEvent(self, event):
         self.sig_mouse_clicked.emit()
