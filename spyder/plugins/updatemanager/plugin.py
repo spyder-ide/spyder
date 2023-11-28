@@ -133,4 +133,5 @@ class UpdateManager(SpyderPluginV2):
 
     @property
     def update_manager_status(self):
+        """Get Update manager statusbar widget"""
         return self.get_container().update_manager_status

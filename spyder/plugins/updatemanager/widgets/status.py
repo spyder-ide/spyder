@@ -102,6 +102,10 @@ class UpdateManagerStatus(StatusBarWidget):
         logger.debug(f"Update manager status: {value}")
         super().set_value(value)
 
+    def set_no_status(self):
+        """Convenience method to set status to NO_STATUS"""
+        self.set_value(NO_STATUS)
+
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip

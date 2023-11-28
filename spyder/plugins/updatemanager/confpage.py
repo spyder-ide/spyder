@@ -36,3 +36,9 @@ class UpdateManagerConfigPage(PluginConfigPage):
         vlayout.addWidget(updates_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
+
+    def apply_settings(self):
+        if 'check_stable_only' in self.changed_options:
+            self.plugin.update_manager_status.set_no_status()
+
+        return set(self.changed_options)
