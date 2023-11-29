@@ -55,7 +55,6 @@ def test_updates_appenv(qtbot, mocker, version):
 
     _update = um.update_worker.update_available
     assert _update if version.split('.')[0] == '1' else not _update
-    # assert len(worker.releases) > 1
     assert len(um.update_worker.releases) > 1
 
 
