@@ -145,9 +145,8 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].connect(self._setup_editor_files)
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
-
-        if self._switcher:
-            widget.sig_open_file_requested.connect(editor.load)
+        # To handle switcher open request
+        widget.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -222,8 +221,6 @@ class Projects(SpyderDockablePlugin):
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        editor.set_projects(None)
-
         treewidget.sig_open_file_requested.disconnect(editor.load)
         treewidget.sig_removed.disconnect(editor.removed)
         treewidget.sig_tree_removed.disconnect(editor.removed_tree)
@@ -237,6 +234,7 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
+        # To handle switcher open request
         widget.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Completions)

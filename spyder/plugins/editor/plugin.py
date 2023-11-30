@@ -21,7 +21,8 @@ from spyder.plugins.editor.api.run import (
 )
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.widgets.main_widget import (
-    EditorMainWidget
+    EditorMainWidget,
+    EditorWidgetActions
 )
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
@@ -201,7 +202,15 @@ class Editor(SpyderDockablePlugin):
         # ---- Run plugin config definitions
         widget.supported_run_extensions = [
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': 'py',
+                'contexts': [
+                    {'context': {'name': 'File'}, 'is_super': True},
+                    {'context': {'name': 'Selection'}, 'is_super': False},
+                    {'context': {'name': 'Cell'}, 'is_super': False}
+                ]
+            },
+            {
+                'input_extension': 'ipy',
                 'contexts': [
                     {'context': {'name': 'File'}, 'is_super': True},
                     {'context': {'name': 'Selection'}, 'is_super': False},
@@ -251,15 +260,15 @@ class Editor(SpyderDockablePlugin):
             run.switch_focused_run_configuration
         )
         widget.sig_register_run_configuration_provider_requested.connect(
-            lambda supported_extension:
+            lambda supported_extensions:
                 run.register_run_configuration_provider(
-                    self.NAME, supported_extension
+                    self.NAME, supported_extensions
                 )
         )
         widget.sig_deregister_run_configuration_provider_requested.connect(
-            lambda unsupported_extension:
+            lambda unsupported_extensions:
                 run.deregister_run_configuration_provider(
-                    self.NAME, unsupported_extension
+                    self.NAME, unsupported_extensions
                 )
         )
         run.register_run_configuration_provider(
@@ -344,7 +353,7 @@ class Editor(SpyderDockablePlugin):
         run.destroy_run_button(RunContext.Cell, re_run=True)
         run.destroy_run_button(
             RunContext.Selection,
-            context_modificator=SelectionContextModificator.Advance
+            extra_action_name=ExtraAction.Advance
         )
         run.destroy_run_button(
             RunContext.Selection,
@@ -701,18 +710,17 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
-        widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            widget.new_action,
-            widget.open_action,
-            widget.save_action,
-            widget.save_all_action,
-            widget.create_new_cell
+            EditorWidgetActions.NewFile,
+            EditorWidgetActions.OpenFile,
+            EditorWidgetActions.SaveFile,
+            EditorWidgetActions.SaveAll,
+            EditorWidgetActions.NewCell
         ]
-        for file_toolbar_action in file_toolbar_actions:
+        for file_toolbar_action_id in file_toolbar_actions:
             toolbar.remove_item_from_application_toolbar(
-                file_toolbar_action,
+                file_toolbar_action_id,
                 toolbar_id=ApplicationToolbars.File,
             )
 
@@ -906,6 +914,11 @@ class Editor(SpyderDockablePlugin):
     def add_supported_run_configuration(self, *args, **kwargs):
         # external console plugin
         return self.get_widget().add_supported_run_configuration(
+            *args, **kwargs
+        )
+
+    def remove_supported_run_configuration(self, *args, **kwargs):
+        return self.get_widget().remove_supported_run_configuration(
             *args, **kwargs
         )
 

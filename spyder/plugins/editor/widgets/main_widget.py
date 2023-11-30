@@ -3004,8 +3004,15 @@ class EditorMainWidget(PluginMainWidget):
         extension = config['extension']
         contexts = config['contexts']
 
+        ext_contexts = []
+        for context in contexts:
+            is_super = RunContext[context['name']] == RunContext.File
+            ext_contexts.append(
+                ExtendedContext(context=context, is_super=is_super)
+            )
         unsupported_extension = SupportedExtensionContexts(
-            input_extension=extension, contexts=contexts)
+            input_extension=extension, contexts=ext_contexts
+        )
 
         self.sig_deregister_run_configuration_provider_requested.emit(
             [unsupported_extension]

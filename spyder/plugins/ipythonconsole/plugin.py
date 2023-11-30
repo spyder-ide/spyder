@@ -244,7 +244,23 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': ['py', 'ipy'],
+            'extension': 'py',
+            'contexts': [
+                {
+                    'name': 'File'
+                },
+                {
+                    'name': 'Cell'
+                },
+                {
+                    'name': 'Selection'
+                },
+            ]
+        }
+
+        self.ipython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'ipy',
             'contexts': [
                 {
                     'name': 'File'
@@ -260,7 +276,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': 'py',
                 'context': {
                     'name': 'File'
                 },
@@ -270,7 +286,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'File'
+                },
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
                 'context': {
                     'name': 'Cell'
                 },
@@ -280,7 +306,27 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': 'ipy',
+                'context': {
+                    'name': 'Cell'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'py',
+                'context': {
+                    'name': 'Selection'
+                },
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'ipy',
                 'context': {
                     'name': 'Selection'
                 },
@@ -376,10 +422,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.sig_edit_goto_requested.connect(editor.load)
         self.sig_edit_new.connect(editor.new)
 
-        editor.add_supported_run_configuration(
-            self.python_editor_run_configuration)
-        editor.add_supported_run_configuration(
-            self.cython_editor_run_configuration)
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.cython_editor_run_configuration
+        ]:
+            editor.add_supported_run_configuration(run_config)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -426,10 +474,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.sig_edit_goto_requested.disconnect(editor.load)
         self.sig_edit_new.disconnect(editor.new)
 
-        editor.remove_supported_run_configuration(
-            self.python_editor_run_configuration)
-        editor.remove_supported_run_configuration(
-            self.cython_editor_run_configuration)
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.cython_editor_run_configuration
+        ]:
+            editor.remove_supported_run_configuration(run_config)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):

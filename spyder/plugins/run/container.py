@@ -329,6 +329,9 @@ class RunContainer(PluginMainContainer):
         if self.currently_selected_configuration is None:
             return
 
+        if self.current_input_provider not in self.supported_extension_contexts:
+            return
+
         input_provider_ext_ctxs = self.supported_extension_contexts[
             self.current_input_provider]
 

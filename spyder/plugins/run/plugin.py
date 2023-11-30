@@ -161,10 +161,11 @@ class Run(SpyderPluginV2):
             )
 
         for key in self.menu_actions:
-            (_, _, name) = self.all_run_actions[key]
-            main_menu.remove_item_from_application_menu(
-                name, ApplicationMenus.Run
-            )
+            (_, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                main_menu.remove_item_from_application_menu(
+                    action_id, ApplicationMenus.Run
+                )
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -178,19 +179,21 @@ class Run(SpyderPluginV2):
             RunActions.Run, ApplicationToolbars.Run)
 
         for key in self.toolbar_actions:
-            (_, _, name) = self.all_run_actions[key]
-            toolbar.remove_item_from_application_toolbar(
-                name, ApplicationToolbars.Run
-            )
+            (_, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                toolbar.remove_item_from_application_toolbar(
+                    action_id, ApplicationToolbars.Run
+                )
 
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
         for key in self.shortcut_actions:
-            (action, _, name) = self.all_run_actions[key]
-            shortcut_context = self.shortcut_actions[key]
-            shortcuts.unregister_shortcut(
-                action, shortcut_context, name)
+            (action, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                shortcut_context = self.shortcut_actions[key]
+                shortcuts.unregister_shortcut(
+                    action, shortcut_context, action_id)
         shortcuts.apply_shortcuts()
 
     # ---- Public API
@@ -515,7 +518,7 @@ class Run(SpyderPluginV2):
         with self.action_lock:
             (_, count, _) = self.all_run_actions.get(key, (None, 0, None))
             count += 1
-            self.all_run_actions[key] = (action, count, action.name)
+            self.all_run_actions[key] = (action, count, action.action_id)
 
         return action
 
@@ -558,26 +561,26 @@ class Run(SpyderPluginV2):
                re_run)
 
         with self.action_lock:
-            action, count, name = self.all_run_actions[key]
+            action, count, action_id = self.all_run_actions[key]
 
-            count -= 1
             if count == 0:
                 self.all_run_actions.pop(key)
                 if key in self.menu_actions and main_menu:
                     main_menu.remove_item_from_application_menu(
-                        name, menu_id=ApplicationMenus.Run)
+                        action_id, menu_id=ApplicationMenus.Run)
 
                 if key in self.toolbar_actions and toolbar:
                     toolbar.remove_item_from_application_toolbar(
-                        name, toolbar_id=ApplicationToolbars.Run)
+                        action_id, toolbar_id=ApplicationToolbars.Run)
 
                 if key in self.shortcut_actions and shortcuts:
                     shortcut_context = self.shortcut_actions[key]
                     shortcuts.unregister_shortcut(
-                        action, shortcut_context, name)
+                        action, shortcut_context, action_id)
                     shortcuts.apply_shortcuts()
             else:
-                self.all_run_actions[key] = (action, count, name)
+                count -= 1
+                self.all_run_actions[key] = (action, count, action_id)
 
     def create_run_in_executor_button(
         self,
@@ -697,7 +700,7 @@ class Run(SpyderPluginV2):
         if register_shortcut:
             self.shortcut_actions[key] = shortcut_context
 
-        self.all_run_actions[key] = (action, 1, action.name)
+        self.all_run_actions[key] = (action, 1, action.action_id)
         return action
 
     def destroy_run_in_executor_button(
