@@ -177,7 +177,6 @@ class Run(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.remove_item_from_application_toolbar(
             RunActions.Run, ApplicationToolbars.Run)
-
         for key in self.toolbar_actions:
             (_, count, action_id) = self.all_run_actions[key]
             if count > 0:
@@ -565,19 +564,27 @@ class Run(SpyderPluginV2):
 
             if count == 0:
                 self.all_run_actions.pop(key)
-                if key in self.menu_actions and main_menu:
-                    main_menu.remove_item_from_application_menu(
-                        action_id, menu_id=ApplicationMenus.Run)
+                if key in self.menu_actions:
+                    self.menu_actions.pop(key)
+                    if main_menu:
+                        main_menu.remove_item_from_application_menu(
+                            action_id, menu_id=ApplicationMenus.Run
+                        )
 
-                if key in self.toolbar_actions and toolbar:
-                    toolbar.remove_item_from_application_toolbar(
-                        action_id, toolbar_id=ApplicationToolbars.Run)
+                if key in self.toolbar_actions:
+                    self.toolbar_actions.pop(key)
+                    if toolbar:
+                        toolbar.remove_item_from_application_toolbar(
+                            action_id, toolbar_id=ApplicationToolbars.Run
+                        )
 
-                if key in self.shortcut_actions and shortcuts:
-                    shortcut_context = self.shortcut_actions[key]
-                    shortcuts.unregister_shortcut(
-                        action, shortcut_context, action_id)
-                    shortcuts.apply_shortcuts()
+                if key in self.shortcut_actions:
+                    shortcut_context = self.shortcut_actions.pop(key)
+                    if shortcuts:
+                        shortcuts.unregister_shortcut(
+                            action, shortcut_context, action_id
+                        )
+                        shortcuts.apply_shortcuts()
             else:
                 count -= 1
                 self.all_run_actions[key] = (action, count, action_id)
