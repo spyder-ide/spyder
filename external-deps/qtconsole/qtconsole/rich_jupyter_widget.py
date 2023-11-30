@@ -8,7 +8,6 @@ from warnings import warn
 
 from qtpy import QtCore, QtGui, QtWidgets
 
-from ipython_genutils.path import ensure_dir_exists
 from traitlets import Bool
 from pygments.util import ClassNotFound
 
@@ -21,6 +20,23 @@ try:
 except ImportError:
     latex_to_png = None
 
+
+def _ensure_dir_exists(path, mode=0o755):
+    """ensure that a directory exists
+
+    If it doesn't exists, try to create it and protect against a race condition
+    if another process is doing the same.
+
+    The default permissions are 755, which differ from os.makedirs default of 777.
+    """
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path, mode=mode)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+    elif not os.path.isdir(path):
+        raise IOError("%r exists but is not a directory" % path)
 
 class LatexError(Exception):
     """Exception for Latex errors"""
@@ -310,7 +326,7 @@ class RichJupyterWidget(RichIPythonWidget):
                 return "<b>Couldn't find image %s</b>" % match.group("name")
 
             if path is not None:
-                ensure_dir_exists(path)
+                _ensure_dir_exists(path)
                 relpath = os.path.basename(path)
                 if image.save("%s/qt_img%s.%s" % (path, match.group("name"), format),
                               "PNG"):

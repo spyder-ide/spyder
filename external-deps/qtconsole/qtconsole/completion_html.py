@@ -3,9 +3,10 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import ipython_genutils.text as text
 
 from qtpy import QtCore, QtGui, QtWidgets
+
+from .util import compute_item_matrix
 
 #--------------------------------------------------------------------------
 # Return an HTML table with selected item in a special class
@@ -311,9 +312,8 @@ class CompletionHtml(QtWidgets.QWidget):
         width = self._text_edit.document().textWidth()
         char_width = self._console_widget._get_font_width()
         displaywidth = int(max(10, (width / char_width) - 1))
-        items_m, ci = text.compute_item_matrix(items, empty=' ',
-                                               displaywidth=displaywidth)
-        self._sliding_interval = SlidingInterval(len(items_m)-1, width=self._rows)
+        items_m, ci = compute_item_matrix(items, empty=" ", displaywidth=displaywidth)
+        self._sliding_interval = SlidingInterval(len(items_m) - 1, width=self._rows)
 
         self._items = items_m
         self._size = (ci['rows_numbers'], ci['columns_numbers'])

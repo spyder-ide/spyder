@@ -26,12 +26,8 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
-    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
-    # So, pinning it to 8.14 for now.
-    micromamba install ipython=8.14
-
-    # Install Pylint 3 to run our tests with it
-    micromamba install pylint=3 -q -y
+    # Prevent error in a test for the %edit magic
+    micromamba install ipykernel=6.26.0 -q -y
 
 else
     # Update pip and setuptools
@@ -49,18 +45,17 @@ else
     # To check our manifest
     pip install -q check-manifest
 
-    # Install Pylint 3 to run our tests with it
-    pip install -U pylint
-
-    # This allows the test suite to run more reliably on Linux
     if [ "$OS" = "linux" ]; then
+        # This allows the test suite to run more reliably on Linux
         pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
         pip install pyqt5==5.12.* pyqtwebengine==5.12.*
+
+        # QDarkstyle 3.2.1 doesn't work with PyQt 5.12
+        pip install qdarkstyle==3.2
     fi
 
-    # IPython 8.15 broke the %debug magic, which is used in some of our tests.
-    # So, pinning it to 8.14 for now.
-    pip install ipython==8.14.0
+    # Prevent error in a test for the %edit magic
+    pip install ipykernel==6.26.0
 
 fi
 
@@ -89,12 +84,17 @@ conda list -n jedi-test-env
 # Create environment to test conda env activation before launching a kernel
 conda create -n spytest-ž -q -y -c conda-forge python=3.9
 
-# `conda run` fails on Windows without a clear reason
+# Install subrepo version of Spyder-kernels in that env
+pushd external-deps/spyder-kernels
+
 if [ "$OS" = "win" ]; then
-    /c/Miniconda/envs/spytest-ž/python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+    # `conda run` fails on Windows without a clear reason
+    /c/Miniconda/envs/spytest-ž/python -m pip install .
 else
-    conda run -n spytest-ž python -m pip install git+https://github.com/spyder-ide/spyder-kernels.git@master
+    conda run -n spytest-ž python -m pip install .
 fi
+
+popd
 
 conda list -n spytest-ž
 

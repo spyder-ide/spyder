@@ -13,7 +13,7 @@ dependencies:
   - diff-match-patch >=20181111
   - fzf >=0.42.0
   - intervaltree >=3.0.2
-  - ipython >=8.13.0,<9.0.0
+  - ipython >=8.13.0,<9.0.0,!=8.17.1
   - jedi >=0.17.2,<0.20.0
   - jellyfish >=0.7
   - jsonschema >=3.2.0
@@ -28,21 +28,22 @@ dependencies:
   - pylint >=2.5.0,<3.1
   - pylint-venv >=3.0.2
   - pyls-spyder >=0.4.0
-  - pyqt <5.16
-  - pyqtwebengine <5.16
+  - pyqt >=5.10,<5.16
+  - pyqtwebengine >=5.10,<5.16
   - python-lsp-black >=1.2.0,<3.0.0
-  - python-lsp-server >=1.8.0,<1.9.0
+  - python-lsp-server >=1.9.0,<1.10.0
   - pyuca >=1.2
   - pyzmq >=22.1.0
   - qdarkstyle >=3.2.0,<3.3.0
   - qstylizer >=0.2.2
   - qtawesome >=1.2.1
-  - qtconsole >=5.4.2,<5.5.0
+  - qtconsole >=5.5.0,<5.6.0
   - qtpy >=2.1.0
   - rtree >=0.9.7
   - setuptools >=49.6.0
   - sphinx >=0.6.6
   - spyder-kernels >=3.0.0b2,<3.0.0b3
+  - superqt >=0.6.1,<1.0.0
   - textdistance >=4.2.0
   - three-merge >=0.1.1
   - watchdog >=0.10.3

@@ -12,7 +12,7 @@ import pytest
 # Local imports
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.plugin import Appearance
-from spyder.plugins.preferences.api import SpyderConfigPage
+from spyder.plugins.preferences.widgets.config_widgets import SpyderConfigPage
 from spyder.plugins.preferences.tests.conftest import (
     config_dialog, MainWindowMock)
 

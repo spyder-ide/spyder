@@ -502,7 +502,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # To update the Variable Explorer after execution
         shellwidget.sig_kernel_state_arrived.connect(nsb.update_view)
-        shellwidget.sig_config_spyder_kernel.connect(nsb.setup_kernel)
+        shellwidget.sig_config_spyder_kernel.connect(
+            nsb.set_namespace_view_settings
+        )
         return nsb
 
     def close_widget(self, nsb):
@@ -515,7 +517,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             self.sig_show_figure_requested)
         nsb.shellwidget.sig_kernel_state_arrived.disconnect(nsb.update_view)
         nsb.shellwidget.sig_config_spyder_kernel.disconnect(
-            nsb.setup_kernel)
+            nsb.set_namespace_view_settings
+        )
 
         nsb.close()
         nsb.setParent(None)

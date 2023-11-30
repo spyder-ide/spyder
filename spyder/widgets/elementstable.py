@@ -10,18 +10,21 @@ associated widget.
 """
 
 # Standard library imports
+import sys
 from typing import List, Optional, TypedDict
 
 # Third-party imports
 import qstylizer.style
-from qtpy.QtCore import QAbstractTableModel, QEvent, QModelIndex, QSize, Qt
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
 
 
@@ -155,16 +158,16 @@ class ElementsTable(HoverRowsTableView):
         self.elements = elements
 
         # Check for additional features
-        with_icons = self._with_feature('icon')
-        with_addtional_info = self._with_feature('additional_info')
-        with_widgets = self._with_feature('widget')
+        self._with_icons = self._with_feature('icon')
+        self._with_addtional_info = self._with_feature('additional_info')
+        self._with_widgets = self._with_feature('widget')
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
         self._current_row = -1
         self._current_row_widget = None
 
-        # To do adjustments when the widget is shown only once
+        # To make adjustments when the widget is shown
         self._is_shown = False
 
         # This is used to paint the entire row's background color when its
@@ -173,7 +176,11 @@ class ElementsTable(HoverRowsTableView):
 
         # Set model
         self.model = ElementsModel(
-            self, self.elements, with_icons, with_addtional_info, with_widgets
+            self,
+            self.elements,
+            self._with_icons,
+            self._with_addtional_info,
+            self._with_widgets
         )
         self.setModel(self.model)
 
@@ -186,7 +193,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Adjustments for the additional info column
         self._info_column_width = 0
-        if with_addtional_info:
+        if self._with_addtional_info:
             info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate)
@@ -201,7 +208,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Adjustments for the widgets column
         self._widgets_column_width = 0
-        if with_widgets:
+        if self._with_widgets:
             widgets_delegate = HTMLDelegate(self, margin=0)
             self.setItemDelegateForColumn(
                 self.model.columns['widgets'], widgets_delegate)
@@ -244,7 +251,7 @@ class ElementsTable(HoverRowsTableView):
         self.verticalHeader().hide()
 
         # Set icons size
-        if with_icons:
+        if self._with_icons:
             self.setIconSize(QSize(32, 32))
 
         # Hide grid to only paint horizontal lines with css
@@ -265,18 +272,19 @@ class ElementsTable(HoverRowsTableView):
         if row != self._current_row:
             self._current_row = row
 
-            # Remove background color of previous row widget
-            if self._current_row_widget is not None:
-                self._current_row_widget.setStyleSheet("")
+            if self._with_widgets:
+                # Remove background color of previous row widget
+                if self._current_row_widget is not None:
+                    self._current_row_widget.setStyleSheet("")
 
-            # Set background for the new row widget
-            new_row_widget = self.elements[row]["row_widget"]
-            new_row_widget.setStyleSheet(
-                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
-            )
+                # Set background for the new row widget
+                new_row_widget = self.elements[row]["row_widget"]
+                new_row_widget.setStyleSheet(
+                    f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+                )
 
-            # Set new current row widget
-            self._current_row_widget = new_row_widget
+                # Set new current row widget
+                self._current_row_widget = new_row_widget
 
     def _set_stylesheet(self, leave=False):
         """Set stylesheet when entering or leaving the widget."""
@@ -297,12 +305,25 @@ class ElementsTable(HoverRowsTableView):
 
         This is necessary to make the table look good at different sizes.
         """
+        # We need to make these extra adjustments for Mac so that the last
+        # column is not too close to the right border
+        extra_width = 0
+        if sys.platform == 'darwin':
+            if self.verticalScrollBar().isVisible():
+                extra_width = (
+                    AppStyle.MacScrollBarWidth +
+                    (15 if self._with_widgets else 5)
+                )
+            else:
+                extra_width = 10 if self._with_widgets else 5
+
         # Resize title column so that the table fits into the available
         # horizontal space.
         if self._info_column_width > 0 or self._widgets_column_width > 0:
             title_column_width = (
                 self.horizontalHeader().size().width() -
-                (self._info_column_width + self._widgets_column_width)
+                (self._info_column_width + self._widgets_column_width +
+                 extra_width)
             )
 
             self.horizontalHeader().resizeSection(
@@ -312,6 +333,18 @@ class ElementsTable(HoverRowsTableView):
         # Resize rows. This is done because wrapping text in HTMLDelegate's
         # changes row heights in unpredictable ways.
         self.resizeRowsToContents()
+
+    _set_layout_debounced = qdebounced(_set_layout, timeout=40)
+    """
+    Debounced version of _set_layout.
+
+    Notes
+    -----
+    * We need a different version of _set_layout so that we can use the regular
+      one in showEvent. That way users won't experience a visual glitch when
+      the widget is rendered for the first time.
+    * We use this version in resizeEvent, where that is not a problem.
+    """
 
     def _with_feature(self, feature_name: str) -> bool:
         """Check if it's necessary to build the table with `feature_name`."""
@@ -349,15 +382,8 @@ class ElementsTable(HoverRowsTableView):
     def resizeEvent(self, event):
         # This is necessary to readjust the layout when the parent widget is
         # resized.
-        self._set_layout()
+        self._set_layout_debounced()
         super().resizeEvent(event)
-
-    def event(self, event):
-        # This is necessary to readjust the layout when the parent widget is
-        # maximized.
-        if event.type() == QEvent.LayoutRequest:
-            self._set_layout()
-        return super().event(event)
 
 
 def test_elements_table():

@@ -25,11 +25,14 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import (add_quotes, get_conda_env_path, is_conda_env,
-                                find_conda)
+from spyder.utils.conda import get_conda_env_path, is_conda_env, find_conda
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
-from spyder.utils.programs import is_python_interpreter, is_module_installed
+from spyder.utils.programs import (
+    is_python_interpreter,
+    is_module_installed,
+    get_module_version
+)
 
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -65,10 +68,18 @@ def is_different_interpreter(pyexec):
 
 def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
-    return is_module_installed(
+    if is_module_installed(
         'spyder_kernels',
         version=SPYDER_KERNELS_VERSION,
-        interpreter=pyexec)
+        interpreter=pyexec
+    ):
+        return True
+
+    # Dev versions of Spyder-kernels are acceptable
+    try:
+        return "dev0" in get_module_version('spyder_kernels', pyexec)
+    except Exception:
+        return False
 
 
 HERE = osp.dirname(os.path.realpath(__file__))
@@ -79,13 +90,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'ipython_console'
 
-    def __init__(self, is_cython=False, is_pylab=False,
-                 is_sympy=False, path_to_custom_interpreter=None,
+    def __init__(self, path_to_custom_interpreter=None,
                  **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
-        self.is_cython = is_cython
-        self.is_pylab = is_pylab
-        self.is_sympy = is_sympy
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
@@ -183,38 +190,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_UMR_VERBOSE': self.get_conf(
                 'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
-            'SPY_RUN_LINES_O': self.get_conf('startup/run_lines'),
-            'SPY_PYLAB_O': self.get_conf('pylab'),
-            'SPY_BACKEND_O': self.get_conf('pylab/backend'),
-            'SPY_AUTOLOAD_PYLAB_O': self.get_conf('pylab/autoload'),
-            'SPY_FORMAT_O': self.get_conf('pylab/inline/figure_format'),
-            'SPY_BBOX_INCHES_O': self.get_conf('pylab/inline/bbox_inches'),
-            'SPY_RESOLUTION_O': self.get_conf('pylab/inline/resolution'),
-            'SPY_WIDTH_O': self.get_conf('pylab/inline/width'),
-            'SPY_HEIGHT_O': self.get_conf('pylab/inline/height'),
-            'SPY_USE_FILE_O': self.get_conf('startup/use_run_file'),
-            'SPY_RUN_FILE_O': self.get_conf('startup/run_file'),
             'SPY_AUTOCALL_O': self.get_conf('autocall'),
             'SPY_GREEDY_O': self.get_conf('greedy_completer'),
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
-            'SPY_SYMPY_O': self.get_conf('symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
-            'SPY_PYTHONPATH': pypath
+            'SPY_PYTHONPATH': pypath,
         })
-
-        if self.is_pylab is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
-            env_vars['SPY_SYMPY_O'] = False
-            env_vars['SPY_RUN_CYTHON'] = False
-        if self.is_sympy is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
-            env_vars['SPY_SYMPY_O'] = True
-            env_vars['SPY_RUN_CYTHON'] = False
-        if self.is_cython is True:
-            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
-            env_vars['SPY_SYMPY_O'] = False
-            env_vars['SPY_RUN_CYTHON'] = True
 
         # App considerations
         # ??? Do we need this?

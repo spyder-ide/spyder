@@ -229,18 +229,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             callback=self.set_var_properties
         ).get_var_properties()
 
-    def set_namespace_view_settings(self, interrupt=True):
+    def set_namespace_view_settings(self):
         """Set the namespace view settings"""
         if not self.shellwidget.spyder_kernel_ready:
             return
         settings = self.get_view_settings()
-        self.shellwidget.call_kernel(
-            interrupt=interrupt
-        ).set_namespace_view_settings(settings)
-
-    def setup_kernel(self):
-        self.set_namespace_view_settings(interrupt=False)
-        self.refresh_namespacebrowser(interrupt=False)
+        self.shellwidget.set_kernel_configuration(
+            "namespace_view_settings", settings
+        )
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -464,7 +460,10 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         if (
             self.plots_plugin_enabled
             and self.get_conf('mute_inline_plotting', section='plots')
-            and self.get_conf('pylab/backend', section='ipython_console') == 0
+            and (
+                self.get_conf('pylab/backend', section='ipython_console')
+                == 'inline'
+            )
         ):
             self.plot_in_plots_plugin(data, funcname)
         else:

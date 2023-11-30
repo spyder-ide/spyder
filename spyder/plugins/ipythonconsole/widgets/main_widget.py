@@ -13,6 +13,7 @@ import logging
 import os
 import os.path as osp
 import shlex
+import subprocess
 import sys
 
 # Third-party imports
@@ -900,7 +901,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                             symbolic_math_n, hide_cmd_windows_n]
         restart_needed = option in restart_options
 
-        inline_backend = 0
+        inline_backend = 'inline'
         pylab_restart = False
         clients_backend_require_restart = [False] * len(self.clients)
         current_client = self.get_current_client()
@@ -912,12 +913,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # interactive backend.
             clients_backend_require_restart = []
             for client in self.clients:
-                interactive_backend = (
-                    client.shellwidget.get_mpl_interactive_backend())
+                if pylab_backend_o == inline_backend:
+                    # No restart is needed if the new backend is inline
+                    clients_backend_require_restart.append(False)
+                    continue
+
+                # Need to know the interactive state
+                sw = client.shellwidget
+                if sw._starting:
+                    # If the kernel didn't start and no backend was requested,
+                    # the backend is inline
+                    interactive_backend = inline_backend
+                else:
+                    # Must ask the kernel. Will not work if the kernel was set
+                    # to another backend and is not now inline
+                    interactive_backend = (
+                        client.shellwidget.get_mpl_interactive_backend()
+                    )
 
                 if (
-                    # No restart is needed if the new backend is inline
-                    pylab_backend_o != inline_backend and
                     # There was an error getting the interactive backend in
                     # the kernel, so we can't proceed.
                     interactive_backend is not None and
@@ -1025,44 +1039,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def _change_client_mpl_conf(self, options, client):
         """Apply Matplotlib related configurations to a client."""
-        # Matplotlib options
-        pylab_n = 'pylab'
-        pylab_o = self.get_conf(pylab_n)
-        pylab_autoload_n = 'pylab/autoload'
-        pylab_backend_n = 'pylab/backend'
-        inline_backend_figure_format_n = 'pylab/inline/figure_format'
-        inline_backend_resolution_n = 'pylab/inline/resolution'
-        inline_backend_width_n = 'pylab/inline/width'
-        inline_backend_height_n = 'pylab/inline/height'
-        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
-
-        # Client widgets
-        sw = client.shellwidget
-        if pylab_o:
-            if pylab_backend_n in options or pylab_autoload_n in options:
-                pylab_autoload_o = self.get_conf(pylab_autoload_n)
-                pylab_backend_o = self.get_conf(pylab_backend_n)
-                sw.set_matplotlib_backend(pylab_backend_o, pylab_autoload_o)
-            if inline_backend_figure_format_n in options:
-                inline_backend_figure_format_o = self.get_conf(
-                    inline_backend_figure_format_n)
-                sw.set_mpl_inline_figure_format(inline_backend_figure_format_o)
-            if inline_backend_resolution_n in options:
-                inline_backend_resolution_o = self.get_conf(
-                    inline_backend_resolution_n)
-                sw.set_mpl_inline_resolution(inline_backend_resolution_o)
-            if (inline_backend_width_n in options or
-                    inline_backend_height_n in options):
-                inline_backend_width_o = self.get_conf(
-                    inline_backend_width_n)
-                inline_backend_height_o = self.get_conf(
-                    inline_backend_height_n)
-                sw.set_mpl_inline_figure_size(
-                    inline_backend_width_o, inline_backend_height_o)
-            if inline_backend_bbox_inches_n in options:
-                inline_backend_bbox_inches_o = self.get_conf(
-                    inline_backend_bbox_inches_n)
-                sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
+        client.shellwidget.send_mpl_backend(options)
 
     def _init_asyncio_patch(self):
         """
@@ -1392,16 +1369,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 ipython_version=release.version
             )
         else:
-            import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
             if path_to_custom_interpreter:
                 pyexec = path_to_custom_interpreter
-            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+
+            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
-                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                '%s -c "import IPython.core.release as r; print(r.version)"'
                 % pyexec
             )
+
             for cmd in [py_cmd, ipy_cmd]:
                 try:
                     # Use clean environment
@@ -1409,7 +1387,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     output, _err = proc.communicate()
                 except subprocess.CalledProcessError:
                     output = ''
+
                 output = output.decode().split('\n')[0].strip()
+
                 if 'IPython' in cmd:
                     versions['ipython_version'] = output
                 else:
@@ -1417,7 +1397,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         return versions
 
-    def additional_options(self, is_pylab=False, is_sympy=False):
+    def additional_options(self, special=None):
         """
         Additional options for shell widgets that are not defined
         in JupyterWidget config options
@@ -1429,10 +1409,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             show_banner=self.get_conf('show_banner')
         )
 
-        if is_pylab is True:
+        if special == "pylab":
             options['autoload_pylab'] = True
             options['sympy'] = False
-        if is_sympy is True:
+        elif special == "sympy":
             options['autoload_pylab'] = False
             options['sympy'] = True
 
@@ -1465,22 +1445,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
-    def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None,
-                          cache=True, initial_cwd=None,
+    def create_new_client(self, give_focus=True, filename='', special=None,
+                          given_name=None, cache=True, initial_cwd=None,
                           path_to_custom_interpreter=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
 
+        # Find what kind of kernel we want
+        if self.get_conf('pylab/autoload'):
+            special = "pylab"
+        elif self.get_conf('symbolic_math'):
+            special = "sympy"
+
         client = ClientWidget(
             self,
             id_=client_id,
             config_options=self.config_options(),
-            additional_options=self.additional_options(
-                    is_pylab=is_pylab,
-                    is_sympy=is_sympy),
+            additional_options=self.additional_options(special),
             interpreter_versions=self.interpreter_versions(
                 path_to_custom_interpreter),
             context_menu_actions=self.context_menu_actions,
@@ -1488,7 +1471,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
             initial_cwd=initial_cwd,
-            forcing_custom_interpreter=path_to_custom_interpreter is not None
+            forcing_custom_interpreter=path_to_custom_interpreter is not None,
+            special_kernel=special
         )
 
         # Add client to widget
@@ -1496,15 +1480,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
 
-        # Create new kernel
-        kernel_spec = SpyderKernelSpec(
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
-            path_to_custom_interpreter=path_to_custom_interpreter
-        )
-
         try:
+            # Create new kernel
+            kernel_spec = SpyderKernelSpec(
+                path_to_custom_interpreter=path_to_custom_interpreter
+            )
             kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
         except Exception as e:
             client.show_kernel_error(e)
@@ -1522,7 +1502,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         related_clients = []
         for cl in self.clients:
-            if connection_file in cl.connection_file:
+            if cl.connection_file and connection_file in cl.connection_file:
                 if (
                     cl.kernel_handler is not None and
                     hostname == cl.kernel_handler.hostname and
@@ -1592,15 +1572,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
-        self.create_new_client(is_pylab=True, given_name="Pylab")
+        self.create_new_client(special="pylab", given_name="Pylab")
 
     def create_sympy_client(self):
         """Force creation of SymPy client"""
-        self.create_new_client(is_sympy=True, given_name="SymPy")
+        self.create_new_client(special="sympy", given_name="SymPy")
 
     def create_cython_client(self):
         """Force creation of Cython client"""
-        self.create_new_client(is_cython=True, given_name="Cython")
+        self.create_new_client(special="cython", given_name="Cython")
 
     def create_environment_client(
         self, environment, path_to_custom_interpreter
@@ -1618,9 +1598,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
+        special = None
+        if is_cython:
+            special = "cython"
         # Create client
         client = self.create_new_client(
-            filename=filename, is_cython=is_cython)
+            filename=filename, special=special
+        )
 
         # Don't increase the count of master clients
         self.master_clients -= 1
@@ -2036,7 +2020,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 method = "runfile"
             # If spyder-kernels, use runfile
             if client.shellwidget.is_spyder_kernel:
-                
+
                 magic_arguments = [norm(filename)]
                 if args:
                     magic_arguments.append("--args")
@@ -2054,13 +2038,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     magic_arguments.append("--post-mortem")
                 if console_namespace:
                     magic_arguments.append("--current-namespace")
-                
+
                 line = "%{} {}".format(method, shlex.join(magic_arguments))
 
             elif method in ["runfile", "debugfile"]:
                 # External, non spyder-kernels, use %run
                 magic_arguments = []
-                
+
                 if method == "debugfile":
                     magic_arguments.append("-d")
                 magic_arguments.append(filename)

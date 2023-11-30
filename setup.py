@@ -211,7 +211,7 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
-    'ipython>=8.13.0,<9.0.0; python_version>"3.8"',
+    'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
@@ -228,22 +228,23 @@ install_requires = [
     'pylint>=2.5.0,<3.1',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
-    'pyqt5<5.16',
-    'pyqtwebengine<5.16',
+    'pyqt5>=5.10,<5.16',
+    'pyqtwebengine>=5.10,<5.16',
     'python-lsp-black>=1.2.0,<3.0.0',
-    'python-lsp-server[all]>=1.8.0,<1.9.0',
+    'python-lsp-server[all]>=1.9.0,<1.10.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=22.1.0',
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.2.1',
-    'qtconsole>=5.4.2,<5.5.0',
+    'qtconsole>=5.5.0,<5.6.0',
     'qtpy>=2.1.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=3.0.0b2,<3.0.0b3',
+    'superqt>=0.6.1,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -254,8 +255,8 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.8.0,<1.10.0')
-    install_requires.append('qtconsole>=5.4.2,<5.6.0')
+    install_requires.append('python-lsp-server[all]>=1.9.0,<1.11.0')
+    install_requires.append('qtconsole>=5.5.0,<5.7.0')
     install_requires.append('spyder-kernels>=3.0.0b2,<3.1.0')
 
 extras_require = {

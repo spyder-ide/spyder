@@ -224,14 +224,14 @@ def preferences_dialog_helper(qtbot, main_window, section):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     main_window.show_preferences()
     preferences = main_window.preferences
     container = preferences.get_container()
 
-    qtbot.waitUntil(lambda: container.dialog is not None,
-                    timeout=5000)
+    qtbot.waitUntil(lambda: container.dialog is not None, timeout=5000)
     dlg = container.dialog
     index = dlg.get_index_by_name(section)
     page = dlg.get_page(index)
@@ -310,11 +310,11 @@ def main_window(request, tmpdir, qtbot):
     CONF.set('tours', 'show_tour_message', False)
 
     # Tests assume inline backend
-    CONF.set('ipython_console', 'pylab/backend', 0)
+    CONF.set('ipython_console', 'pylab/backend', 'inline')
 
     # Test assume the plots are rendered in the console as png
     CONF.set('plots', 'mute_inline_plotting', False)
-    CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
+    CONF.set('ipython_console', 'pylab/inline/figure_format', "png")
 
     # Set exclamation mark to True
     CONF.set('debugger', 'pdb_use_exclamation_mark', True)
