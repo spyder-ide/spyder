@@ -149,7 +149,6 @@ class SpyderToolbar(QToolBar):
             item_id = action_or_widget.action_id
         elif hasattr(action_or_widget, 'ID'):
             item_id = action_or_widget.ID
-
         if not omit_id and item_id is None and action_or_widget is not None:
             raise SpyderAPIError(
                 f'Item {action_or_widget} must declare an ID attribute.')
@@ -209,15 +208,18 @@ class SpyderToolbar(QToolBar):
 
     def remove_item(self, item_id: str):
         """Remove action or widget from toolbar by id."""
-        item = self._item_map.pop(item_id)
-        for section in list(self._section_items.keys()):
-            section_items = self._section_items[section]
-            if item in section_items:
-                section_items.remove(item)
-            if len(section_items) == 0:
-                self._section_items.pop(section)
-        self.clear()
-        self._render()
+        try:
+            item = self._item_map.pop(item_id)
+            for section in list(self._section_items.keys()):
+                section_items = self._section_items[section]
+                if item in section_items:
+                    section_items.remove(item)
+                if len(section_items) == 0:
+                    self._section_items.pop(section)
+            self.clear()
+            self._render()
+        except KeyError:
+            pass
 
     def _render(self):
         """
