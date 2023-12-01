@@ -15,8 +15,8 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QRegExp, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QCursor, QRegExpValidator
+from qtpy.QtCore import QRegularExpression, QSize, Qt, Signal, Slot
+from qtpy.QtGui import QCursor, QRegularExpressionValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QPushButton,
@@ -83,7 +83,7 @@ class InputTextDialog(QDialog):
         """Set the regular expression to validate content."""
         self._regex = regex
         self._reg = re.compile(regex, re.IGNORECASE)
-        validator = QRegExpValidator(QRegExp(regex))
+        validator = QRegularExpressionValidator(QRegularExpression(regex))
         self.lineedit.setValidator(validator)
 
     def text(self):

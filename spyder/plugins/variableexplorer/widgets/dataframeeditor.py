@@ -463,8 +463,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+        return (
+            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        )
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""

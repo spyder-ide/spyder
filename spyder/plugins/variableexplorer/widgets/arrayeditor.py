@@ -379,9 +379,10 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
-            return Qt.ItemIsEnabled
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+            return Qt.ItemFlag.ItemIsEnabled
+        return (
+            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        )
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""

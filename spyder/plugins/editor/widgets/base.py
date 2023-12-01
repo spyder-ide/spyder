@@ -1193,8 +1193,7 @@ class TextEditBaseWidget(
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(widget))
+        srect = self.screen().availableGeometry()
 
         left, top, right, bottom = (srect.left(), srect.top(),
                                     srect.right(), srect.bottom())

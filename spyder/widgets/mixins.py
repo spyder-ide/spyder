@@ -1286,7 +1286,7 @@ class BaseEditMixin(object):
                   word=False, regexp=False):
         """Find text."""
         cursor = self.textCursor()
-        findflag = QTextDocument.FindFlag()
+        findflag = QTextDocument.FindFlag(0)
 
         # Get visible region to center cursor in case it's necessary.
         if getattr(self, 'get_visible_block_numbers', False):

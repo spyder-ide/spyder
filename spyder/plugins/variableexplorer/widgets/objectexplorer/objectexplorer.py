@@ -334,7 +334,7 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
             radio_layout.addWidget(radio_button)
             self.button_group.addButton(radio_button, button_id)
 
-        self.button_group.buttonClicked[int].connect(
+        self.button_group.idClicked.connect(
             self._change_details_field)
         self.button_group.button(0).setChecked(True)
 

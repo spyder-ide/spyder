@@ -36,7 +36,7 @@ def test_HtmlSH_basic():
            (26, 14, 'comment'),  # |<!--comment-->|
            (40, 5, 'normal'),    # | bar.|
            (45, 4, 'builtin')]   # |</p>|
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+    compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 def test_HtmlSH_unclosed_commend():
     txt = '-->'
@@ -44,7 +44,7 @@ def test_HtmlSH_unclosed_commend():
     sh = HtmlSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 3, 'normal')]
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+    compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 
 def test_PythonSH_UTF16_number():
@@ -54,7 +54,7 @@ def test_PythonSH_UTF16_number():
     sh = PythonSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 11, 'normal'), (11, 9, 'number')]
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+    compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 
 def test_PythonSH_UTF16_string():
@@ -64,7 +64,7 @@ def test_PythonSH_UTF16_string():
     sh = PythonSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 11, 'normal'), (11, 10, 'string')]
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+    compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 
 def test_python_string_prefix():
@@ -85,7 +85,7 @@ def test_python_string_prefix():
                (9 + offset, 10 + offset, 'string'),  # |{prefix}'''test'''|
                (19 + 2*offset, 1, 'normal')]         # | |
 
-        compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+        compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 
 def test_Markdown_basic():
@@ -108,7 +108,7 @@ def test_Markdown_basic():
            (61, 1, 'normal'),  # ||
            ]
 
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+    compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
 
 @pytest.mark.parametrize('line', ['# --- First variant',

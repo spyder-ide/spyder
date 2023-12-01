@@ -31,7 +31,8 @@ from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QRegExp, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -1291,7 +1292,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor = self.textCursor()
         # Scanning whole document
         cursor.movePosition(QTextCursor.Start)
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         self.__find_first_pos = cursor.position()
         return cursor
@@ -1299,7 +1302,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def __find_next(self, text, cursor):
         """Find next occurrence"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         if cursor.position() != self.__find_first_pos:
             return cursor
@@ -3082,7 +3087,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         block = cursor.block()
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
-        block_formats = layout.additionalFormats()
+        block_formats = layout.formats()
 
         if block_formats:
             # To easily grab current format for autoinsert_colons

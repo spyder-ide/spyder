@@ -154,7 +154,9 @@ class PatternComboBox(BaseComboBox):
         BaseComboBox.__init__(self, parent)
 
         if adjust_to_minimum:
-            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+            self.setSizeAdjustPolicy(
+                QComboBox.AdjustToMinimumContentsLengthWithIcon
+            )
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
@@ -182,7 +184,9 @@ class EditableComboBox(BaseComboBox):
         self.selected_text = self.currentText()
 
         # Widget setup
-        self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.setSizeAdjustPolicy(
+            QComboBox.AdjustToMinimumContentsLengthWithIcon
+        )
 
         # Signals
         self.editTextChanged.connect(self.validate)
@@ -231,7 +235,9 @@ class PathComboBox(EditableComboBox):
         if adjust_to_contents:
             self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         else:
-            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+            self.setSizeAdjustPolicy(
+                QComboBox.AdjustToMinimumContentsLengthWithIcon
+            )
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: _("Press enter to validate this path"),
                      False: ''}

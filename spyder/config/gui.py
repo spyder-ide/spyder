@@ -19,7 +19,7 @@ from collections import namedtuple
 
 # Third party imports
 from qtconsole.styles import dark_color
-from qtpy import PYQT_VERSION
+from qtpy import PYQT_VERSION, QT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
@@ -44,8 +44,8 @@ OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
 
 def font_is_installed(font):
     """Check if font is installed"""
-    return [fam for fam in QFontDatabase().families()
-            if to_text_string(fam)==font]
+    db = QFontDatabase() if QT_VERSION.startswith("5") else QFontDatabase
+    return [fam for fam in db.families() if str(fam) == font]
 
 
 def get_family(families):

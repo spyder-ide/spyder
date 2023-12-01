@@ -168,7 +168,12 @@ def keyevent_to_keysequence_str(event):
     """Get key sequence corresponding to a key event as a string."""
     try:
         # See https://stackoverflow.com/a/20656496/438386 for context
-        return QKeySequence(event.modifiers() | event.key()).toString()
+        if hasattr(event, "keyCombination"):
+            key_combination = event.keyCombination()  # Qt 6
+        else:
+            key_combination = event.modifiers() | event.key()  # Qt 5
+
+        return QKeySequence(key_combination).toString()
     except TypeError:
         # This error appears in old PyQt versions (e.g. 5.12) which are
         # running under Python 3.10+. In that case, we need to build the
