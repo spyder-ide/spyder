@@ -333,7 +333,12 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         # Add padding and border radius to follow modern standards
         css.QMenu.setValues(
-            padding=f'{2 * AppStyle.MarginSize}px',
+            # Only add top and bottom padding so that menu separators can go
+            # completely from the left to right border.
+            paddingTop=f'{2 * AppStyle.MarginSize}px',
+            paddingBottom=f'{2 * AppStyle.MarginSize}px',
+            # This uses the same color as the separator
+            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}",
             # Add more radius than normal to make it more visible.
             borderRadius=(
                 f'{2 * int(QStylePalette.SIZE_BORDER_RADIUS.split("px")[0])}px'
@@ -348,6 +353,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         # Add padding around separators to prevent that hovering on items hides
         # them.
         css["QMenu::separator"].setValues(
+            # Only add top and bottom margins so that the separators can go
+            # completely from the left to right border.
             margin=f'{2 * AppStyle.MarginSize}px 0px',
         )
 
@@ -356,6 +363,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         delta_bottom = 0 if MAC else (2 if WIN else 1)
         css["QMenu::item"].setValues(
             height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
+            marginLeft=f'{2 * AppStyle.MarginSize}px',
+            marginRight=f'{2 * AppStyle.MarginSize}px',
             paddingTop=f'{AppStyle.MarginSize + delta_top}px',
             paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
             paddingLeft=f'{3 * AppStyle.MarginSize}px',
