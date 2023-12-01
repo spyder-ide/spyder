@@ -14,7 +14,6 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QAction, QMenu
 
 # Local imports
@@ -92,16 +91,6 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
             # Necessary to follow Mac's HIG for app menus.
             self.aboutToShow.connect(self._set_icons)
-
-        # This line is necessary to have rounded borders in menu corners.
-        # Solution taken from https://stackoverflow.com/a/65576117/438386
-        #
-        # Notes
-        # -----
-        # * This requires composition on Linux, but it's not possible to detect
-        #   if that's available in Qt 6 and requires extra libraries in Qt 5.
-        #   Hopefully it's a minor inconvenience to users without it.
-        self.setAttribute(Qt.WA_TranslucentBackground)
 
         # Style
         self.css = self._generate_stylesheet()
@@ -338,11 +327,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             paddingTop=f'{2 * AppStyle.MarginSize}px',
             paddingBottom=f'{2 * AppStyle.MarginSize}px',
             # This uses the same color as the separator
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}",
-            # Add more radius than normal to make it more visible.
-            borderRadius=(
-                f'{2 * int(QStylePalette.SIZE_BORDER_RADIUS.split("px")[0])}px'
-            )
+            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}"
         )
 
         # Set the right background color This is the only way to do it!
