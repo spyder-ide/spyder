@@ -24,6 +24,7 @@ import io
 import re
 import sys
 import warnings
+from typing import Any, Callable, Optional
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
@@ -1316,8 +1317,9 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
 
-    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
-                 title="", names=False):
+    def __init__(self, parent, data, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
+                 readonly=False, title="", names=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.namespacebrowser = namespacebrowser
@@ -1333,7 +1335,9 @@ class CollectionsEditorTableView(BaseTableView):
         )
         self.model = self.source_model
         self.setModel(self.source_model)
-        self.delegate = CollectionsDelegate(self, namespacebrowser)
+        self.delegate = CollectionsDelegate(
+            self, namespacebrowser, data_function
+        )
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1445,15 +1449,19 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget):
     """Dictionary Editor Widget"""
 
-    def __init__(self, parent, data, namespacebrowser=None, readonly=False,
-                 title="", remote=False):
+    sig_refresh_requested = Signal()
+
+    def __init__(self, parent, data, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None,
+                 readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
                 self, data, readonly)
         else:
             self.editor = CollectionsEditorTableView(
-                self, data, namespacebrowser, readonly, title)
+                self, data, namespacebrowser, data_function, readonly, title
+            )
 
         toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -1462,8 +1470,19 @@ class CollectionsEditorWidget(QWidget):
             if item is not None:
                 toolbar.addAction(item)
 
+        self.refresh_action = create_action(
+            self,
+            text=_('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=lambda: self.sig_refresh_requested.emit()
+        )
+        toolbar.addAction(self.refresh_action)
+
         # Update the toolbar actions state
         self.editor.refresh_menu()
+        self.refresh_action.setEnabled(data_function is not None)
+
         layout = QVBoxLayout()
         layout.addWidget(toolbar)
         layout.addWidget(self.editor)
@@ -1481,7 +1500,8 @@ class CollectionsEditorWidget(QWidget):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None, namespacebrowser=None):
+    def __init__(self, parent=None, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1491,6 +1511,7 @@ class CollectionsEditor(BaseDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
         self.data_copy = None
         self.widget = None
         self.btn_save_and_close = None
@@ -1522,8 +1543,10 @@ class CollectionsEditor(BaseDialog):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
-            self, self.data_copy, self.namespacebrowser, title=title,
-            readonly=readonly, remote=remote)
+            self, self.data_copy, self.namespacebrowser, self.data_function,
+            title=title, readonly=readonly, remote=remote
+        )
+        self.widget.sig_refresh_requested.connect(self.refresh_editor)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
         layout = QVBoxLayout()
@@ -1574,6 +1597,51 @@ class CollectionsEditor(BaseDialog):
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data_copy
 
+    def refresh_editor(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        if self.btn_save_and_close and self.btn_save_and_close.isEnabled():
+            if not self.ask_for_refresh_confirmation():
+                return
+
+        try:
+            new_value = self.data_function()
+        except (IndexError, KeyError):
+            QMessageBox.critical(
+                self,
+                _('Collection editor'),
+                _('The variable no longer exists.')
+            )
+            self.reject()
+            return
+
+        self.widget.set_data(new_value)
+        self.data_copy = new_value
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(False)
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+
+    def ask_for_refresh_confirmation(self) -> bool:
+        """
+        Ask user to confirm refreshing the editor.
+
+        This function is to be called if refreshing the editor would overwrite
+        changes that the user made previously. The function returns True if
+        the user confirms that they want to refresh and False otherwise.
+        """
+        message = _('Refreshing the editor will overwrite the changes that '
+                    'you made. Do you want to proceed?')
+        result = QMessageBox.question(
+            self,
+            _('Refresh collections editor?'),
+            message
+        )
+        return result == QMessageBox.Yes
+
 
 #==============================================================================
 # Remote versions of CollectionsDelegate and CollectionsEditorTableView
@@ -1595,6 +1663,38 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
             source_index = index.model().mapToSource(index)
             name = source_index.model().keys[source_index.row()]
             self.parent().new_value(name, value)
+
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        The returned function uses the associated console to retrieve the
+        current value of the variable. This is used to refresh editors created
+        from that variable.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        source_index = index.model().mapToSource(index)
+        name = source_index.model().keys[source_index.row()]
+        parent = self.parent()
+
+        def get_data():
+            return parent.get_value(name)
+
+        return get_data
 
 
 class RemoteCollectionsEditorTableView(BaseTableView):

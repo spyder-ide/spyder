@@ -2379,43 +2379,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the removal of the prefix for a single line."""
-        start_with_space = line_text.startswith(' ')
-        if start_with_space:
-            left_spaces = self.__even_number_of_spaces(line_text)
-        else:
-            left_spaces = False
-        if start_with_space:
-            right_number_spaces = self.__number_of_spaces(line_text, group=1)
-        else:
-            right_number_spaces = self.__number_of_spaces(line_text)
+        cursor.movePosition(QTextCursor.Right,
+                            QTextCursor.MoveAnchor,
+                            line_text.find(prefix))
         # Handle prefix remove for comments with spaces
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            if (right_number_spaces == 1
-                    and (left_spaces or not start_with_space)
-                    or (not start_with_space and right_number_spaces % 2 != 0)
-                    or (left_spaces and right_number_spaces % 2 != 0)):
-                # Handle inserted '# ' with the count of the number of spaces
-                # at the right and left of the prefix.
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix + ' '))
-            else:
-                # Handle manual insertion of '#'
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+                                QTextCursor.KeepAnchor, len(prefix + ' '))
         # Check for prefix without space
         elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                 or line_text.startswith(prefix)):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+        cursor.removeSelectedText()
 
     def __even_number_of_spaces(self, line_text, group=0):
         """

@@ -32,8 +32,8 @@ def show_warning(message):
 def check_qt():
     """Check Qt binding requirements"""
     qt_infos = dict(
-        pyqt5=("PyQt5", "5.10"),
-        pyside2=("PySide2", "5.12"),
+        pyqt5=("PyQt5", "5.15"),
+        pyside2=("PySide2", "5.15"),
         pyqt6=("PyQt6", "6.5"),
         pyside6=("PySide6", "6.5")
     )

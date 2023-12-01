@@ -14,7 +14,7 @@ Tests for the dataframe editor.
 import os
 import sys
 from datetime import datetime
-from unittest.mock import Mock, ANY
+from unittest.mock import Mock, patch, ANY
 
 # Third party imports
 from flaky import flaky
@@ -23,6 +23,7 @@ from packaging.version import parse
 from pandas import (
     __version__ as pandas_version, DataFrame, date_range, read_csv, concat,
     Index, RangeIndex, MultiIndex, CategoricalIndex, Series)
+from pandas.testing import assert_frame_equal
 import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
@@ -128,13 +129,19 @@ def test_dataframe_to_type(qtbot):
     view = editor.dataTable
     view.setCurrentIndex(view.model().index(0, 0))
 
-    # Show context menu and select option `To bool`
+    # Show context menu, go down until `Convert to`, and open submenu
     view.menu.show()
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Up)
-    qtbot.keyPress(view.menu, Qt.Key_Return)
-    submenu = view.menu.activeAction().menu()
+    for _ in range(100):
+        activeAction = view.menu.activeAction()
+        if activeAction and activeAction.text() == 'Convert to':
+            qtbot.keyPress(view.menu, Qt.Key_Return)
+            break
+        qtbot.keyPress(view.menu, Qt.Key_Down)
+    else:
+        raise RuntimeError('Item "Convert to" not found')
+
+    # Select first option, which is `To bool`
+    submenu = activeAction.menu()
     qtbot.keyPress(submenu, Qt.Key_Return)
     qtbot.wait(1000)
 
@@ -425,6 +432,90 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     dfm = DataFrameModel(dataframe, format_spec='d')
     assert data(dfm, 0, 0) == '0'
     assert data(dfm, 1, 0) == 'nan'
+
+
+def test_dataframeeditor_refreshaction_disabled():
+    """
+    Test that the Refresh action is disabled by default.
+    """
+    df = DataFrame([[0]])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    assert not editor.dataTable.refresh_action.isEnabled()
+
+
+def test_dataframeeditor_refresh():
+    """
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
+    """
+    df_zero = DataFrame([[0]])
+    df_new = DataFrame([[0, 10], [1, 20], [2, 40]])
+    editor = DataFrameEditor(data_function=lambda: df_new)
+    editor.setup_and_check(df_zero)
+    assert_frame_equal(editor.get_value(), df_zero)
+    assert editor.dataTable.refresh_action.isEnabled()
+    editor.dataTable.refresh_action.trigger()
+    assert_frame_equal(editor.get_value(), df_new)
+
+
+@pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
+def test_dataframeeditor_refresh_after_edit(result):
+    """
+    Test that after changing a value in the editor, pressing the Refresh
+    button opens a dialog box (which asks for confirmation), and that the
+    editor is only refreshed if the user clicks Yes.
+    """
+    df_zero = DataFrame([[0]])
+    df_edited = DataFrame([[2]])
+    df_new = DataFrame([[0, 10], [1, 20], [2, 40]])
+    editor = DataFrameEditor(data_function=lambda: df_new)
+    editor.setup_and_check(df_zero)
+    model = editor.dataModel
+    model.setData(model.index(0, 0), '2')
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
+               '.QMessageBox.question',
+               return_value=result) as mock_question:
+        editor.dataTable.refresh_action.trigger()
+    mock_question.assert_called_once()
+    editor.accept()
+    if result == QMessageBox.Yes:
+        assert_frame_equal(editor.get_value(), df_new)
+    else:
+        assert_frame_equal(editor.get_value(), df_edited)
+
+
+def test_dataframeeditor_refresh_into_int(qtbot):
+    """
+    Test that if the value after refreshing is not a DataFrame but an integer,
+    a critical dialog box is displayed and that the editor is closed.
+    """
+    df_zero = DataFrame([[0]])
+    editor = DataFrameEditor(data_function=lambda: 1)
+    editor.setup_and_check(df_zero)
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(editor.rejected, timeout=0):
+        editor.dataTable.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
+def test_dataframeeditor_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the dataframe editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    df_zero = DataFrame([[0]])
+    editor = DataFrameEditor(data_function=datafunc)
+    editor.setup_and_check(df_zero)
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
+               '.QMessageBox.critical') as mock_critical, \
+         qtbot.waitSignal(editor.rejected, timeout=0):
+        editor.dataTable.refresh_action.trigger()
+    mock_critical.assert_called_once()
 
 
 def test_change_format(qtbot, monkeypatch):
