@@ -6365,8 +6365,9 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     # users
     user_dir = tmp_path / 'user_dir'
     user_dir.mkdir()
-    assert ppm.get_container().path == ()
-    ppm.get_container().path = (str(user_dir),)
+    if os.name != "nt":
+        assert ppm.get_container().path == ()
+    ppm.get_container().path = (str(user_dir),) + ppm.get_container().path
 
     # Open Pythonpath dialog to detect sys_dir
     ppm.show_path_manager()

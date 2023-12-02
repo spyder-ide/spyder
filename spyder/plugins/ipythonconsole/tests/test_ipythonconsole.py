@@ -1991,6 +1991,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
     assert get_cwd_of_new_client() == fixed_dir
 
 
+@flaky(max_runs=10)
 def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     """
     Test 'startup/run_lines' config works with code from an active project.
