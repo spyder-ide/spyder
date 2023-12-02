@@ -27,7 +27,12 @@ from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    AppStyle,
+    MAC,
+    PANES_TOOLBAR_STYLESHEET,
+    WIN
+)
 
 
 class PathManagerToolbuttons:
@@ -60,9 +65,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         assert isinstance(path, (tuple, type(None)))
 
+        # Style
+        # NOTE: This needs to be here so all buttons are styled correctly
+        self.setStyleSheet(self._stylesheet)
+
         self.path = path or ()
         self.project_path = project_path or ()
         self.not_active_path = not_active_path or ()
+
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
         self.system_path = ()
@@ -87,8 +97,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.selection_widgets = []
         self.right_buttons = self._setup_right_toolbar()
         self.listwidget = QListWidget(self)
-        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok
-                                     | QDialogButtonBox.Cancel)
+        self.bbox = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
 
         # Widget setup
@@ -112,16 +123,16 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Middle layout
         middle_layout = QHBoxLayout()
-        middle_layout.setContentsMargins(5, 0, 0, 0)
+        middle_layout.setContentsMargins(4 if WIN else 5, 0, 0, 0)
         middle_layout.addWidget(self.listwidget)
         middle_layout.addLayout(buttons_layout)
 
         # Widget layout
         layout = QVBoxLayout()
         layout.addWidget(description)
-        layout.addSpacing(3 * AppStyle.MarginSize)
-        layout.addLayout(middle_layout)
         layout.addSpacing(2 * AppStyle.MarginSize)
+        layout.addLayout(middle_layout)
+        layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
         layout.addWidget(self.bbox)
         self.setLayout(layout)
 
@@ -130,9 +141,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.listwidget.itemChanged.connect(lambda x: self.refresh())
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-
-        # Style
-        self.setStyleSheet(self._stylesheet)
 
         # Setup
         self.setup()
@@ -241,7 +249,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         )
 
         css["QListView::item"].setValues(
-            padding=f"{AppStyle.MarginSize}px"
+            padding=f"{AppStyle.MarginSize + (1 if WIN else 0)}px"
         )
 
         css["QListView::item:disabled"].setValues(
