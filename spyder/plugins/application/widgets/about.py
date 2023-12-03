@@ -28,8 +28,7 @@ from spyder import (
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import DialogStyle
+from spyder.utils.stylesheet import DialogStyle, PREFERENCES_TABBAR_STYLESHEET
 
 
 class AboutDialog(QDialog):
@@ -37,25 +36,26 @@ class AboutDialog(QDialog):
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
         QDialog.__init__(self, parent)
+
         self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        )
         versions = get_versions()
 
-        # Show Git revision for development version
+        # -- Show Git revision for development version
         revlink = ''
         if versions['revision']:
             rev = versions['revision']
             revlink = ("<a href='https://github.com/spyder-ide/spyder/"
                        "commit/%s'>%s</a>" % (rev, rev))
 
-        # Get current font properties
-        font = self.font()
-        font_family = font.family()
+        # -- Style attributes
+        font_family = self.font().family()
         buttons_padding = DialogStyle.ButtonsPadding
         buttons_font_size = DialogStyle.ButtonsFontSize
         font_size = DialogStyle.ContentFontSize
-        dialog_background_color = QStylePalette.COLOR_BACKGROUND_2
 
+        # -- Labels
         twitter_url = "https://twitter.com/Spyder_IDE",
         facebook_url = "https://www.facebook.com/SpyderIDE",
         youtube_url = "https://www.youtube.com/Spyder-IDE",
@@ -200,6 +200,7 @@ class AboutDialog(QDialog):
             font_size=font_size))
         self.info.setAlignment(Qt.AlignHCenter)
 
+        # -- Buttons
         btn = QPushButton(_("Copy version info"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
         bbox.setStyleSheet(f"font-size: {buttons_font_size};"
@@ -207,44 +208,56 @@ class AboutDialog(QDialog):
         btn.setStyleSheet(f"font-size: {buttons_font_size};"
                           f"padding: {buttons_padding}")
 
-        # Widget setup
+        # -- Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
         self.setModal(False)
 
-        # Layout
+        # -- Layout
         piclayout = QVBoxLayout()
         piclayout.addWidget(self.label_pic)
         piclayout.addWidget(self.info)
-        piclayout.setContentsMargins(20, 0, 15, 0)
+        piclayout.setContentsMargins(15, 0, 15, 0)
 
+        # Style for scroll areas needs to be applied after creating them.
+        # Otherwise it doesn't have effect.
         scroll_overview = QScrollArea(self)
         scroll_overview.setWidgetResizable(True)
+        scroll_overview.setStyleSheet(
+            f"background-color: {DialogStyle.BackgroundColor}"
+        )
         scroll_overview.setWidget(self.label_overview)
 
         scroll_community = QScrollArea(self)
         scroll_community.setWidgetResizable(True)
+        scroll_community.setStyleSheet(
+            f"background-color: {DialogStyle.BackgroundColor}"
+        )
         scroll_community.setWidget(self.label_community)
 
         scroll_legal = QScrollArea(self)
         scroll_legal.setWidgetResizable(True)
+        scroll_legal.setStyleSheet(
+            f"background-color: {DialogStyle.BackgroundColor}"
+        )
         scroll_legal.setWidget(self.label_legal)
 
-        self.tabs = QTabWidget()
+        self.tabs = QTabWidget(self)
         self.tabs.addTab(scroll_overview, _('Overview'))
         self.tabs.addTab(scroll_community, _('Community'))
         self.tabs.addTab(scroll_legal, _('Legal'))
         self.tabs.setStyleSheet(
-            f"background-color: {dialog_background_color}")
+            f"background-color: {DialogStyle.BackgroundColor}"
+        )
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
-        tabslayout.setContentsMargins(0, 15, 15, 0)
+        tabslayout.setContentsMargins(0, 15, 0, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addStretch(1)
         btmhlayout.addWidget(btn)
         btmhlayout.addWidget(bbox)
-        btmhlayout.setContentsMargins(0, 20, 15, 20)
+        btmhlayout.setContentsMargins(0, 0, 15, 15)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -256,24 +269,32 @@ class AboutDialog(QDialog):
         mainlayout.addLayout(piclayout)
         mainlayout.addLayout(vlayout)
 
-        # Signals
+        # -- Signals
         btn.clicked.connect(self.copy_to_clipboard)
         bbox.accepted.connect(self.accept)
 
-        # Size
+        # -- Style
         self.resize(720, 480)
-
-        # Style
-        css = qstylizer.style.StyleSheet()
-        css.QDialog.setValues(backgroundColor=dialog_background_color)
-        css.QLabel.setValues(backgroundColor=dialog_background_color)
-        css.QTabBar.setValues(fontSize=font_size)
-        css['QTabBar::tab!selected'].setValues(
-            borderBottomColor=dialog_background_color)
-        self.setStyleSheet(css.toString())
+        self.setStyleSheet(self._stylesheet)
 
     def copy_to_clipboard(self):
         QApplication.clipboard().setText(get_versions_text())
+
+    @property
+    def _stylesheet(self):
+        tabs_stylesheet = PREFERENCES_TABBAR_STYLESHEET.get_copy()
+        css = tabs_stylesheet.get_stylesheet()
+
+        for widget in ["QDialog", "QLabel"]:
+            css[widget].setValues(
+                backgroundColor=DialogStyle.BackgroundColor
+            )
+
+        css['QTabWidget::pane'].setValues(
+            padding='6px 15px 6px 3px',
+        )
+
+        return css.toString()
 
 
 def test():
