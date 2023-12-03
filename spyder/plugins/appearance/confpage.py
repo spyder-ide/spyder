@@ -178,10 +178,19 @@ class AppearanceConfigPage(PluginConfigPage):
         edit_button.clicked.connect(self.edit_scheme)
         self.reset_button.clicked.connect(self.reset_to_default)
         self.delete_button.clicked.connect(self.delete_scheme)
-        self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
+        self.schemes_combobox.currentIndexChanged.connect(
+            lambda index: self.update_preview()
+        )
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+        self.plain_text_font.fontbox.currentFontChanged.connect(
+            lambda font: self.update_preview()
+        )
+        self.plain_text_font.sizebox.valueChanged.connect(
+            lambda value: self.update_preview()
+        )
         system_font_checkbox.checkbox.stateChanged.connect(
-            self.update_app_font_group)
+            self.update_app_font_group
+        )
 
         # Setup
         for name in names:
@@ -317,15 +326,9 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
 
-    def update_preview(self, index=None, scheme_name=None):
-        """
-        Update the color scheme of the preview editor and adds text.
+    def update_preview(self, scheme_name=None):
+        """Update the color scheme of the preview editor and adds text."""
 
-        Note
-        ----
-        'index' is needed, because this is triggered by a signal that sends
-        the selected index.
-        """
         text = ('"""A string"""\n\n'
                 '# A comment\n\n'
                 'class Foo(object):\n'
@@ -337,12 +340,16 @@ class AppearanceConfigPage(PluginConfigPage):
         if scheme_name is None:
             scheme_name = self.current_scheme
 
+        plain_text_font = self.plain_text_font.fontbox.currentFont()
+        plain_text_font.setPointSize(self.plain_text_font.sizebox.value())
+
         self.preview_editor.setup_editor(
-            font=get_font(),
+            font=plain_text_font,
             color_scheme=scheme_name,
             show_blanks=False,
             scroll_past_end=False,
         )
+
         self.preview_editor.set_language('Python')
         self.preview_editor.set_text(text)
 
