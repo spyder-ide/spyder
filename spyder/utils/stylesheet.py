@@ -507,12 +507,12 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
-        self.color_tabs_separator = f'{Gray.B70}'
+        self.color_tabs_separator = Gray.B70
 
         if is_dark_interface():
-            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
+            self.color_selected_tab = QStylePalette.COLOR_ACCENT_2
         else:
-            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_5}'
+            self.color_selected_tab = QStylePalette.COLOR_ACCENT_5
 
         # Center tabs to differentiate them from the regular ones.
         # See spyder-ide/spyder#9763 for details.
@@ -527,10 +527,10 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         # Style for selected tabs
         css['QTabBar::tab:selected'].setValues(
             color=(
-                f'{QStylePalette.COLOR_TEXT_1}' if is_dark_interface() else
-                f'{QStylePalette.COLOR_BACKGROUND_1}'
+                QStylePalette.COLOR_TEXT_1 if is_dark_interface() else
+                QStylePalette.COLOR_BACKGROUND_1
             ),
-            backgroundColor=f'{self.color_selected_tab}',
+            backgroundColor=self.color_selected_tab,
         )
 
         # Make scroll button icons smaller on Windows and Mac
@@ -591,7 +591,7 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         css['QTabBar::tab:next-selected:hover'].setValues(
             borderRightColor=self.color_tabs_separator,
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
         css['QTabBar::tab:previous-selected'].setValues(
@@ -605,13 +605,13 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         # -- First and last tabs have rounded borders
         css['QTabBar::tab:first'].setValues(
-            borderTopLeftRadius='4px',
-            borderBottomLeftRadius='4px',
+            borderTopLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
         )
 
         css['QTabBar::tab:last'].setValues(
-            borderTopRightRadius='4px',
-            borderBottomRightRadius='4px',
+            borderTopRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
         )
 
         # -- Last tab doesn't need to show the separator
@@ -759,7 +759,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
 
         css['QTabBar::tab:next-selected:hover'].setValues(
             borderBottomColor=self.color_tabs_separator,
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
         css['QTabBar::tab:previous-selected'].setValues(
@@ -775,14 +775,14 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         # Also, add margin to avoid them touch the top and bottom borders,
         # respectively.
         css['QTabBar::tab:first'].setValues(
-            borderTopLeftRadius='4px',
-            borderTopRightRadius='4px',
+            borderTopLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
             marginTop=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
-            borderBottomLeftRadius='4px',
-            borderBottomRightRadius='4px',
+            borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
             marginBottom=f'{2 * margin_size}px',
         )
 
