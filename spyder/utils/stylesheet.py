@@ -817,6 +817,7 @@ class DialogStyle(SpyderFontsMixin):
 
     IconScaleFactor = 0.5
     ButtonsPadding = '6px' if MAC else '4px 10px'
+    BackgroundColor = QStylePalette.COLOR_BACKGROUND_2
 
     @classproperty
     def _fs(cls):
