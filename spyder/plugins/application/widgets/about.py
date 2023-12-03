@@ -27,10 +27,16 @@ from spyder import (
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import DialogStyle, PREFERENCES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import (
+    AppStyle,
+    DialogStyle,
+    PREFERENCES_TABBAR_STYLESHEET
+)
 
 
 class AboutDialog(QDialog):
+
+    MARGIN = 15
 
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
@@ -171,7 +177,7 @@ class AboutDialog(QDialog):
             label.setAlignment(Qt.AlignTop)
             label.setOpenExternalLinks(True)
             label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            label.setContentsMargins(15, 0, 25, 0)
+            label.setContentsMargins(self.MARGIN, 0, self.MARGIN, 0)
 
         icon_filename = "spyder_about"
         pixmap = QPixmap(get_image_path(icon_filename))
@@ -212,7 +218,7 @@ class AboutDialog(QDialog):
         piclayout = QVBoxLayout()
         piclayout.addWidget(self.label_pic)
         piclayout.addWidget(self.info)
-        piclayout.setContentsMargins(15, 0, 15, 0)
+        piclayout.setContentsMargins(self.MARGIN, 0, self.MARGIN, 0)
 
         # Style for scroll areas needs to be applied after creating them.
         # Otherwise it doesn't have effect.
@@ -247,13 +253,13 @@ class AboutDialog(QDialog):
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
-        tabslayout.setContentsMargins(0, 15, 0, 0)
+        tabslayout.setContentsMargins(0, self.MARGIN, 0, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addStretch(1)
         btmhlayout.addWidget(info_btn)
         btmhlayout.addWidget(ok_btn)
-        btmhlayout.setContentsMargins(0, 0, 15, 15)
+        btmhlayout.setContentsMargins(0, 0, self.MARGIN, self.MARGIN)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -287,9 +293,12 @@ class AboutDialog(QDialog):
                 backgroundColor=DialogStyle.BackgroundColor
             )
 
-        # Set padding according to the dialog contens and layout
+        # Set padding according to the dialog contents and layout
         css['QTabWidget::pane'].setValues(
-            padding='6px 15px 6px 3px',
+            padding=(
+                f'{2 * AppStyle.MarginSize}px {self.MARGIN}px '
+                f'{2 * AppStyle.MarginSize}px {AppStyle.MarginSize}px'
+            )
         )
 
         # Style for buttons
