@@ -19,9 +19,7 @@ from qtpy.QtCore import (
     QEvent, QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt,
     Signal)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QImage, QPainter, QRegularExpressionValidator,
-                        QTextDocument, QPixmap)
-from qtpy.QtSvg import QSvgRenderer
+                        QPainter, QRegularExpressionValidator, QTextDocument)
 from qtpy.QtWidgets import (
     QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
     QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
@@ -30,13 +28,12 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -562,7 +559,7 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
-class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
+class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     """Widget to show a pane/plugin functionality description."""
 
     def __init__(
@@ -587,7 +584,9 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
 
         # Image (icon)
         image_label = QLabel(self)
-        image_label.setPixmap(self.get_icon(icon_filename))
+        image_label.setPixmap(
+            self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
+        )
         image_label.setAlignment(Qt.AlignCenter)
         image_label_qss = qstylizer.style.StyleSheet()
         image_label_qss.QLabel.setValues(border="0px")
@@ -670,54 +669,6 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         console" message in plugins that inherit from ShellConnectMainWidget.
         """
         pass
-
-    def get_icon(self, icon_filename):
-        """
-        Get pane's icon as a QPixmap that it's scaled according to the factor
-        set by users in Preferences.
-        """
-        image_path = get_image_path(icon_filename)
-
-        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
-            scale_factor = float(
-                self.get_conf('high_dpi_custom_scale_factors', section='main')
-            )
-        else:
-            scale_factor = 1
-
-        # Get width and height
-        pm = QPixmap(image_path)
-        width = pm.width()
-        height = pm.height()
-
-        # Rescale by 80% but preserving aspect ratio
-        aspect_ratio = width / height
-        width = int(width * 0.8)
-        height = int(width / aspect_ratio)
-
-        # Paint image using svg renderer
-        image = QImage(
-            int(width * scale_factor), int(height * scale_factor),
-            QImage.Format_ARGB32_Premultiplied
-        )
-        image.fill(0)
-        painter = QPainter(image)
-        renderer = QSvgRenderer(image_path)
-        renderer.render(painter)
-        painter.end()
-
-        # This is also necessary to make the image look good for different
-        # scale factors
-        if scale_factor > 1.0:
-            image.setDevicePixelRatio(scale_factor)
-
-        # Create pixmap out of image
-        final_pm = QPixmap.fromImage(image)
-        final_pm = final_pm.copy(
-            0, 0, int(width * scale_factor), int(height * scale_factor)
-        )
-
-        return final_pm
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
