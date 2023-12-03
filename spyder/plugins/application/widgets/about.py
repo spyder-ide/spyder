@@ -10,7 +10,6 @@
 import sys
 
 # Third party imports
-import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
@@ -51,8 +50,6 @@ class AboutDialog(QDialog):
 
         # -- Style attributes
         font_family = self.font().family()
-        buttons_padding = DialogStyle.ButtonsPadding
-        buttons_font_size = DialogStyle.ButtonsFontSize
         font_size = DialogStyle.ContentFontSize
 
         # -- Labels
@@ -201,12 +198,11 @@ class AboutDialog(QDialog):
         self.info.setAlignment(Qt.AlignHCenter)
 
         # -- Buttons
-        btn = QPushButton(_("Copy version info"), )
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-        bbox.setStyleSheet(f"font-size: {buttons_font_size};"
-                           f"padding: {buttons_padding}")
-        btn.setStyleSheet(f"font-size: {buttons_font_size};"
-                          f"padding: {buttons_padding}")
+        info_btn = QPushButton(_("Copy version info"), )
+        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
+
+        # This needs to be done so that ok_btn gets the same style as info_btn
+        ok_btn.setStyleSheet(self._stylesheet)
 
         # -- Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
@@ -255,8 +251,8 @@ class AboutDialog(QDialog):
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addStretch(1)
-        btmhlayout.addWidget(btn)
-        btmhlayout.addWidget(bbox)
+        btmhlayout.addWidget(info_btn)
+        btmhlayout.addWidget(ok_btn)
         btmhlayout.setContentsMargins(0, 0, 15, 15)
         btmhlayout.addStretch()
 
@@ -270,8 +266,8 @@ class AboutDialog(QDialog):
         mainlayout.addLayout(vlayout)
 
         # -- Signals
-        btn.clicked.connect(self.copy_to_clipboard)
-        bbox.accepted.connect(self.accept)
+        info_btn.clicked.connect(self.copy_to_clipboard)
+        ok_btn.accepted.connect(self.accept)
 
         # -- Style
         self.resize(720, 480)
@@ -285,13 +281,21 @@ class AboutDialog(QDialog):
         tabs_stylesheet = PREFERENCES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
 
+        # Set background color
         for widget in ["QDialog", "QLabel"]:
             css[widget].setValues(
                 backgroundColor=DialogStyle.BackgroundColor
             )
 
+        # Set padding according to the dialog contens and layout
         css['QTabWidget::pane'].setValues(
             padding='6px 15px 6px 3px',
+        )
+
+        # Style for buttons
+        css.QPushButton.setValues(
+            fontSize=DialogStyle.ButtonsFontSize,
+            padding=DialogStyle.ButtonsPadding
         )
 
         return css.toString()
