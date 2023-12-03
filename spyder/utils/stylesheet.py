@@ -555,11 +555,11 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
 
-        # Main constants
+        # -- Main constants
         css = self.get_stylesheet()
         margin_size = AppStyle.MarginSize
 
-        # Basic style
+        # -- Basic style
         css['QTabBar::tab'].setValues(
             # Only add margin to the bottom
             margin=f'0px 0px {2 * margin_size}px 0px',
@@ -567,32 +567,43 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
             borderRadius='0px',
             # Remove a colored border added by QDarkStyle
             borderBottom='0px',
-            # Add right border to make it work as our tabs separator
-            borderRight=f'1px solid {self.color_tabs_separator}',
             # Padding for text inside tabs
             padding='4px 10px',
         )
 
-        # Hide tabs separator for the selected tab and the one to its left.
-        # Note: For some strange reason, Qt uses the `next-selected` state for
-        # the left tab.
-        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
-            css[state].setValues(
-                borderRight=f'1px solid {self.color_selected_tab}',
-            )
-
-        # Style for hovered tabs
-        css['QTabBar::tab:!selected:hover'].setValues(
+        # -- Style for not selected tabs
+        css['QTabBar::tab:!selected'].setValues(
             border='0px',
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
+            borderLeft=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
             borderRight=f'1px solid {self.color_tabs_separator}',
+        )
+
+        css['QTabBar::tab:!selected:hover'].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5,
+            borderLeftColor=QStylePalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Style for the not selected tabs above and below the selected one
+        css['QTabBar::tab:next-selected'].setValues(
+            borderRightColor=QStylePalette.COLOR_BACKGROUND_4,
+        )
+
+        css['QTabBar::tab:next-selected:hover'].setValues(
+            borderRightColor=self.color_tabs_separator,
             backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
         )
 
-        css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderLeft=f'1px solid {self.color_tabs_separator}',
+        css['QTabBar::tab:previous-selected'].setValues(
+            borderLeftColor=QStylePalette.COLOR_BACKGROUND_4,
         )
 
-        # First and last tabs have rounded borders
+        css['QTabBar::tab:previous-selected:hover'].setValues(
+            borderLeftColor=self.color_tabs_separator,
+            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+        )
+
+        # -- First and last tabs have rounded borders
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderBottomLeftRadius='4px',
@@ -603,14 +614,17 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
             borderBottomRightRadius='4px',
         )
 
-        # Last tab doesn't need to show the separator
-        for state in ['QTabBar::tab:last:!selected:hover',
-                      'QTabBar::tab:last']:
-            css[state].setValues(
-                borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
-            )
+        # -- Last tab doesn't need to show the separator
+        css['QTabBar::tab:last:!selected'].setValues(
+            borderRightColor=QStylePalette.COLOR_BACKGROUND_4
+        )
 
-        # Set bottom margin for scroll buttons.
+        css['QTabBar::tab:last:!selected:hover'].setValues(
+            borderRightColor=QStylePalette.COLOR_BACKGROUND_5,
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Set bottom margin for scroll buttons.
         css['QTabBar QToolButton'].setValues(
             marginBottom=f'{2 * margin_size}px',
         )
@@ -704,11 +718,11 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
 
-        # Main constants
+        # -- Main constants
         css = self.get_stylesheet()
         margin_size = AppStyle.MarginSize
 
-        # Basic style
+        # -- Basic style
         css['QTabBar::tab'].setValues(
             # No margins to top/bottom but left/right to separate tabbar from
             # the dockwidget areas
@@ -718,31 +732,48 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             # Remove colored borders added by QDarkStyle
             borderLeft='0px',
             borderRight='0px',
-            # Add border to make it work as our tabs separator
-            borderBottom=f'1px solid {self.color_tabs_separator}',
             # Padding for text inside tabs
             padding='10px 4px',
         )
 
-        # Hide tabs separator for the selected tab and the one to its bottom.
-        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
-            css[state].setValues(
-                borderBottom=f'1px solid {self.color_selected_tab}',
-            )
-
-        # Style for hovered tabs
-        css['QTabBar::tab:!selected:hover'].setValues(
+        # -- Style for not selected tabs
+        css['QTabBar::tab:!selected'].setValues(
             border='0px',
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
+            borderTop=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
             borderBottom=f'1px solid {self.color_tabs_separator}',
+        )
+
+        css['QTabBar::tab:!selected:hover'].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5,
+            borderTopColor=QStylePalette.COLOR_BACKGROUND_5,
+        )
+
+        # -- Style for the not selected tabs to the left and right from the
+        # selected one.
+        # Note: For some strange reason, Qt uses the `next-selected` state for
+        # the left tab.
+        css['QTabBar::tab:next-selected'].setValues(
+            borderBottomColor=QStylePalette.COLOR_BACKGROUND_4,
+        )
+
+        css['QTabBar::tab:next-selected:hover'].setValues(
+            borderBottomColor=self.color_tabs_separator,
             backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
         )
 
-        css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderTop=f'1px solid {self.color_tabs_separator}',
+        css['QTabBar::tab:previous-selected'].setValues(
+            borderTopColor=QStylePalette.COLOR_BACKGROUND_4,
         )
 
-        # First and last tabs have rounded borders. Also, add margin to avoid
-        # them touch the top and bottom borders, respectively.
+        css['QTabBar::tab:previous-selected:hover'].setValues(
+            borderTopColor=self.color_tabs_separator,
+            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+        )
+
+        # -- First and last tabs have rounded borders.
+        # Also, add margin to avoid them touch the top and bottom borders,
+        # respectively.
         css['QTabBar::tab:first'].setValues(
             borderTopLeftRadius='4px',
             borderTopRightRadius='4px',
@@ -755,14 +786,17 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             marginBottom=f'{2 * margin_size}px',
         )
 
-        # Last tab doesn't need to show the separator
-        for state in ['QTabBar::tab:last:!selected:hover',
-                      'QTabBar::tab:last']:
-            css[state].setValues(
-                borderBottomColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
-            )
+        # -- Last tab doesn't need to show the separator
+        css['QTabBar::tab:last:!selected'].setValues(
+            borderBottomColor=QStylePalette.COLOR_BACKGROUND_4
+        )
 
-        # Make style for scroll buttons match the horizontal one
+        css['QTabBar::tab:last:!selected:hover'].setValues(
+            borderBottomColor=QStylePalette.COLOR_BACKGROUND_5,
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Make style for scroll buttons match the horizontal one
         css['QTabBar QToolButton'].setValues(
             marginLeft=f'{margin_size}px',
             marginRight=f'{margin_size}px',
