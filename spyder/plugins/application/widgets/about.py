@@ -11,7 +11,6 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
                             QScrollArea, QTabWidget)
@@ -24,9 +23,9 @@ from spyder import (
     __website_url__ as website_url,
     get_versions, get_versions_text
 )
+from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
-from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.stylesheet import (
     AppStyle,
     DialogStyle,
@@ -34,7 +33,7 @@ from spyder.utils.stylesheet import (
 )
 
 
-class AboutDialog(QDialog):
+class AboutDialog(QDialog, SvgToScaledPixmap):
 
     MARGIN = 15
 
@@ -179,28 +178,24 @@ class AboutDialog(QDialog):
             label.setTextInteractionFlags(Qt.TextBrowserInteraction)
             label.setContentsMargins(self.MARGIN, 0, self.MARGIN, 0)
 
-        icon_filename = "spyder_about"
-        pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
-            pixmap.scaledToWidth(100, Qt.SmoothTransformation))
+            self.svg_to_scaled_pixmap("spyder_about", rescale=0.45)
+        )
         self.label_pic.setAlignment(Qt.AlignBottom)
-        self.info = QLabel((
-            """
+        self.info = QLabel(
+            f"""
             <div style='font-family: "{font_family}";
                 font-size: {font_size};
                 font-weight: normal;
                 '>
             <p>
-            <br>{spyder_ver}
-            <br>{revision}
-            <br>({installer})
-            <br>""").format(
-            spyder_ver=versions['spyder'],
-            revision=revlink,
-            installer=versions['installer'],
-            font_family=font_family,
-            font_size=font_size))
+            <br>{versions['spyder']}
+            <br>{revlink}
+            <br>({versions['installer']})
+            <br>
+            """
+        )
         self.info.setAlignment(Qt.AlignHCenter)
 
         # -- Buttons
