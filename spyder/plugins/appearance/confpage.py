@@ -24,6 +24,16 @@ from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
+PREVIEW_TEXT = (
+    '"""A string"""\n\n'
+    '# A comment\n\n'
+    'class Foo(object):\n'
+    '    def __init__(self):\n'
+    '        bar = 42\n'
+    '        print(bar)\n'
+)
+
+
 class AppearanceConfigPage(PluginConfigPage):
 
     def __init__(self, plugin, parent):
@@ -79,9 +89,16 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.preview_editor = SimpleCodeEditor(self)
         self.preview_editor.setMinimumWidth(210)
+        self.preview_editor.set_language('Python')
+        self.preview_editor.set_text(PREVIEW_TEXT)
+        self.preview_editor.set_blanks_enabled(False)
+        self.preview_editor.set_scrollpastend_enabled(False)
+
         self.stacked_widget = QStackedWidget(self)
-        self.scheme_editor_dialog = SchemeEditor(parent=self,
-                                                 stack=self.stacked_widget)
+        self.scheme_editor_dialog = SchemeEditor(
+            parent=self,
+            stack=self.stacked_widget
+        )
 
         self.scheme_choices_dict = {}
         schemes_combobox_widget = self.create_combobox('', [('', '')],
@@ -328,15 +345,6 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def update_preview(self, scheme_name=None):
         """Update the color scheme of the preview editor and adds text."""
-
-        text = ('"""A string"""\n\n'
-                '# A comment\n\n'
-                'class Foo(object):\n'
-                '    def __init__(self):\n'
-                '        bar = 42\n'
-                '        print(bar)\n'
-                )
-
         if scheme_name is None:
             scheme_name = self.current_scheme
 
@@ -345,13 +353,8 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.preview_editor.setup_editor(
             font=plain_text_font,
-            color_scheme=scheme_name,
-            show_blanks=False,
-            scroll_past_end=False,
+            color_scheme=scheme_name
         )
-
-        self.preview_editor.set_language('Python')
-        self.preview_editor.set_text(text)
 
     def update_app_font_group(self, state):
         """Update app font group enabled state."""
