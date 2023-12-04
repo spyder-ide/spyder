@@ -36,6 +36,7 @@ SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 NEW_DIR = 'new_workingdir'
+PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
 
 # =============================================================================
