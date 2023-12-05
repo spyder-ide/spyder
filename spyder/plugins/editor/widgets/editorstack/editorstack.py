@@ -2731,7 +2731,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     #  ------ Run
     def _get_lines_cursor(self, direction):
-        """ Select and return all lines from cursor in given direction"""
+        """Select and return all lines from cursor in a given direction."""
         editor = self.get_current_editor()
         finfo = self.get_current_finfo()
         enc = finfo.encoding
@@ -2766,28 +2766,20 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         return self._get_lines_cursor(direction='down')
 
     def get_selection(self):
-        """
-        Get selected text or current line in console.
-
-        If some text is selected, then execute that text in console.
-
-        If no text is selected, then execute current line, unless current line
-        is empty. Then, advance cursor to next line. If cursor is on last line
-        and that line is not empty, then add a new blank line and move the
-        cursor there. If cursor is on last line and that line is empty, then do
-        not move cursor.
-        """
+        """Get selected text or current line in the editor."""
         editor = self.get_current_editor()
         encoding = self.get_current_finfo().encoding
+
+        # Get selection
         selection = editor.get_selection_as_executable_code()
         if selection:
             text, off_pos, line_col_pos = selection
             return text, off_pos, line_col_pos, encoding
 
+        # Get current line if no selection
         line_col_from, line_col_to = editor.get_current_line_bounds()
         line_off_from, line_off_to = editor.get_current_line_offsets()
-        line = editor.get_current_line()
-        text = line.lstrip()
+        text = editor.get_current_line()
 
         return (
             text, (line_off_from, line_off_to),
@@ -2807,7 +2799,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         editor.move_cursor_to_next('line', 'down')
 
     def get_current_cell(self):
-        """Get current cell attributes."""
+        """Get current cell."""
         text, block, off_pos, line_col_pos = (
             self.get_current_editor().get_cell_as_executable_code())
         encoding = self.get_current_finfo().encoding
@@ -2815,9 +2807,13 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         return text, off_pos, line_col_pos, name, encoding
 
     def advance_cell(self, reverse=False):
-        """Advance to the next cell.
+        """
+        Advance to the next cell.
 
-        reverse = True --> go to previous cell.
+        Parameters
+        ----------
+        reverse: bool, optional
+            If True, go to the previous cell.
         """
         if not reverse:
             move_func = self.get_current_editor().go_to_next_cell
