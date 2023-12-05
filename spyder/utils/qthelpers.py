@@ -369,7 +369,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
     # This is necessary to show shortcuts in any regular menu (i.e. not app
     # ones).
-    # Fixes soyder-ide/spyder#15659.
+    # Fixes spyder-ide/spyder#15659.
     if sys.platform == 'darwin':
         action.setShortcutVisibleInContextMenu(True)
 

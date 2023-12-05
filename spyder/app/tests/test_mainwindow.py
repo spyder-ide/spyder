@@ -6722,7 +6722,7 @@ def test_icons_in_menus(main_window, qtbot):
 
     # -- Check that icons are shown in regular menus
     tabs_console_menu.popup(QPoint(100, 100))
-    qtbot.wait(100)
+    qtbot.waitUntil(tabs_console_menu.isVisible)
     assert tabs_console_menu.get_actions()[0].isIconVisibleInMenu()
 
     # -- Check that icons are shown in submenus of regular menus
@@ -6732,7 +6732,7 @@ def test_icons_in_menus(main_window, qtbot):
 
     # -- Check that icons are not shown in actions of app menus
     consoles_menu.popup(QPoint(200, 200))
-    qtbot.wait(100)
+    qtbot.waitUntil(consoles_menu.isVisible)
     assert not tabs_console_menu.isVisible()
     assert not consoles_menu.get_actions()[0].isIconVisibleInMenu()
 
