@@ -14,13 +14,14 @@ from uuid import uuid4
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
+from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout,
                             QTableView, QAbstractItemView, QPushButton,
                             QGridLayout, QHeaderView, QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration)
 from spyder.plugins.run.container import RunContainer
@@ -170,7 +171,7 @@ class RunConfigPage(PluginConfigPage):
         )
         about_label.setWordWrap(True)
 
-        self.executor_combo = QComboBox(self)
+        self.executor_combo = SpyderComboBox(self)
         self.executor_combo.currentIndexChanged.connect(
             self.executor_index_changed)
         self.executor_combo.setModel(self.executor_model)

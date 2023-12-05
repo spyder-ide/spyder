@@ -18,13 +18,14 @@ from qtpy import PYQT5
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
-from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
+from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
                             QMessageBox, QSizePolicy, QStackedWidget,
                             QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
@@ -315,7 +316,7 @@ class HelpWidget(PluginMainWidget):
         self.source_label = QLabel(_("Source"))
         self.source_label.ID = HelpWidgetToolbarItems.SourceLabel
 
-        self.source_combo = QComboBox(self)
+        self.source_combo = SpyderComboBox(self)
         self.source_combo.ID = HelpWidgetToolbarItems.SourceCombo
 
         self.object_label = QLabel(_("Object"))

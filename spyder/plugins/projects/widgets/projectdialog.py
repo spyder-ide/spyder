@@ -16,11 +16,12 @@ import tempfile
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QGridLayout,
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout,
                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                             QPushButton, QRadioButton, QVBoxLayout)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _, get_home_dir
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -88,7 +89,7 @@ class ProjectDialog(QDialog):
 
         self.text_project_name = QLineEdit()
         self.text_location = QLineEdit(get_home_dir())
-        self.combo_project_type = QComboBox()
+        self.combo_project_type = SpyderComboBox()
 
         self.label_information = QLabel("")
         self.label_information.hide()

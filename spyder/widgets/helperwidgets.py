@@ -26,11 +26,12 @@ from qtpy.QtWidgets import (
     QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
     QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
     QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
-    QLabel, QFrame, QComboBox)
+    QLabel, QFrame)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
@@ -290,7 +291,13 @@ class IconLineEdit(QLineEdit):
         css = qstylizer.style.StyleSheet()
         css.QLineEdit.setValues(
             border='none',
-            paddingRight=f"{padding}px"
+            paddingLeft=f"{AppStyle.MarginSize}px",
+            paddingRight=f"{padding}px",
+            # This is necessary to correctly center the text
+            paddingTop="0px",
+            paddingBottom="0px",
+            # Prevent jitter when giving focus to the line edit
+            marginLeft=f"-{2 if self._focus_in else 0}px",
         )
 
         self.setStyleSheet(css.toString())
@@ -356,7 +363,7 @@ class IconLineEdit(QLineEdit):
             else:
                 pixmap = self._invalid_icon.pixmap(h, h)
 
-            painter.drawPixmap(w, 2, pixmap)
+            painter.drawPixmap(w, 1, pixmap)
 
         # Small hack to guarantee correct padding on Spyder start
         if self._paint_count < 5:
@@ -430,7 +437,7 @@ class FinderLineEdit(ClearLineEdit):
         super().__init__(parent)
         self.key_filter_dict = key_filter_dict
 
-        self._combobox = QComboBox(self)
+        self._combobox = SpyderComboBox(self)
         self._is_shown = False
 
         if regex_base is not None:

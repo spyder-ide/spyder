@@ -32,23 +32,37 @@ MAC = sys.platform == 'darwin'
 WIN = os.name == 'nt'
 
 
-class AppStyle:
-    """
-    Enum with several constants used in the application style.
+class AppStyle(SpyderFontsMixin):
+    """Enum with several constants used in the application style."""
 
-    Notes
-    -----
-    All sizes are in pixels.
-    """
     # Size of margins.
-    MarginSize = 3
+    MarginSize = 3  # px
 
     # Size of find widget line edits (e.g. FinderWidget and FindReplace)
-    FindMinWidth = 400
-    FindHeight = 26
+    FindMinWidth = 400  # px
+    FindHeight = 26  # px
 
     # To have it for quick access because it's needed a lot in Mac
-    MacScrollBarWidth = 16
+    MacScrollBarWidth = 16  # px
+
+    @classproperty
+    def _fs(cls):
+        """Interface font size in points."""
+        return cls.get_font(SpyderFontType.Interface).pointSize()
+
+    @classproperty
+    def ComboBoxMinHeight(cls):
+        """Combobox min height in em's."""
+        font_size = cls._fs
+
+        if font_size < 10:
+            min_height = 1.8
+        elif 10 <= font_size < 13:
+            min_height = 1.7 if MAC else 1.6
+        else:
+            min_height = 1.5 if MAC else 1.4
+
+        return min_height
 
 
 # =============================================================================
@@ -254,23 +268,11 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
                 fontSize=f'{font_size}pt'
             )
 
-        # Make our comboboxes have a uniform height
-        if font_size < 10:
-            combobox_min_height = 1.8
-        elif 10 <= font_size < 13:
-            combobox_min_height = 1.7 if MAC else 1.6
-        else:
-            combobox_min_height = 1.5 if MAC else 1.4
-
-        css.QComboBox.setValues(
-            minHeight=f'{combobox_min_height}em'
-        )
-
         # Make lineedits have *almost* the same height as our comboboxes. This
         # is not perfect because (oddly enough) Qt doesn't set the same height
         # for both when using the same value, but it's close enough.
         css.QLineEdit.setValues(
-            minHeight=f'{combobox_min_height - 0.2}em'
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
         )
 
         # Change QGroupBox style to avoid the "boxes within boxes" antipattern
