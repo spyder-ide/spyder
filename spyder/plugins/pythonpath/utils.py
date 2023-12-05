@@ -22,8 +22,8 @@ def check_path(path):
     else:
         pattern = re.compile(
             r'.*(lib|lib64)/'
-            '(python|python\d+|python\d+\.\d+)/'
-            '(site|dist)-packages.*'
+            r'(python|python\d+|python\d+\.\d+)/'
+            r'(site|dist)-packages.*'
         )
 
     path_norm = path.replace('\\', '/')
