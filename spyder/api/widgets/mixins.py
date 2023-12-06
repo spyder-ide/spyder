@@ -12,10 +12,12 @@ Spyder API Mixins.
 """
 
 # Standard library imports
+from collections import OrderedDict
 from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QSizePolicy, QToolBar, QWidget, QToolButton
 )
@@ -242,35 +244,75 @@ class SpyderMenuMixin:
 
         menu.add_action(action_or_menu, section=section, before=before)
 
-    def create_menu(self, name, text=None, icon=None):
+    def _create_menu(
+        self,
+        menu_id: str,
+        title: Optional[str] = None,
+        icon: Optional[QIcon] = None,
+        MenuClass=SpyderMenu
+    ) -> SpyderMenu:
         """
-        Create a menu.
+        Create a SpyderMenu or a subclass of it.
 
-        Parameters
-        ----------
-        name: str
-            Unique str identifier.
-        text: str or None
-            Localized text string.
-        icon: QIcon or None
-            Icon to use for the menu.
-
-        Return: QMenu
-            Return the created menu.
+        Notes
+        -----
+        * This method should only be used directly to generate a menu that is a
+          subclass of SpyderMenu.
+        * Refer to the documentation for `create_menu` to learn about its args.
         """
-        from spyder.api.widgets.menus import SpyderMenu
+        menus = getattr(self, '_menus', None)
+        if menus is None:
+            self._menus = OrderedDict()
 
-        menu = SpyderMenu(parent=self, title=text, menu_id=name)
+        if menu_id in self._menus:
+            raise SpyderAPIError(
+                'Menu name "{}" already in use!'.format(menu_id)
+            )
+
+        menu = MenuClass(parent=self, title=title, menu_id=menu_id)
+
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)
 
         MENU_REGISTRY.register_reference(
-            menu, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+        )
+
+        self._menus[menu_id] = menu
         return menu
 
-    def get_menu(self, name: str, context: Optional[str] = None,
-                 plugin: Optional[str] = None) -> SpyderMenu:
+    def create_menu(
+        self,
+        menu_id: str,
+        title: Optional[str] = None,
+        icon: Optional[QIcon] = None,
+    ) -> SpyderMenu:
+        """
+        Create a menu.
+
+        Parameters
+        ----------
+        menu_id: str
+            Unique str identifier.
+        title: str or None
+            Localized text string.
+        icon: QIcon or None
+            Icon to use for the menu.
+
+        Returns
+        -------
+        SpyderMenu
+            The created menu.
+        """
+        return self._create_menu(menu_id, title, icon)
+
+    def get_menu(
+        self,
+        name: str,
+        context: Optional[str] = None,
+        plugin: Optional[str] = None
+    ) -> SpyderMenu:
         """
         Return a menu by name, plugin and context.
 
