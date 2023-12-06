@@ -402,18 +402,16 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         super().showEvent(event)
 
 
-class MainWidgetMenu(SpyderMenu):
+class PluginMainWidgetOptionsMenu(SpyderMenu):
     """
-    This menu fixes the bottom section of the options menu.
+    Options menu for PluginMainWidget.
     """
 
     def _render(self):
-        """
-        Create the menu prior to showing it. This takes into account sections
-        and location of menus. It also hides consecutive separators if found.
-        """
+        """Render the menu's bottom section as expected."""
         if self._dirty:
             self.clear()
+
             bottom = OptionsMenuSections.Bottom
             actions = []
             for section in self._sections:

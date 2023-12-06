@@ -27,8 +27,11 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
 from spyder.api.translations import _
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
-from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
-                                      PluginMainWidgetMenus)
+from spyder.api.widgets.menus import (
+    PluginMainWidgetOptionsMenu,
+    OptionsMenuSections,
+    PluginMainWidgetMenus
+)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.py3compat import qbytearray_to_str
@@ -288,7 +291,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._options_menu = self._create_menu(
             PluginMainWidgetMenus.Options,
             title=_('Options menu'),
-            MenuClass=MainWidgetMenu
+            MenuClass=PluginMainWidgetOptionsMenu
         )
 
         # Margins
