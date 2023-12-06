@@ -228,6 +228,22 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _add_missing_actions(self):
+        """
+        Add actions that were not introduced to the menu because a `before`
+        action they require is not part of it.
+        """
+        for before, actions in self._unintroduced_actions.items():
+            for section, action in actions:
+                self.add_action(
+                    action,
+                    section=section,
+                    before=before,
+                    check_before=False
+                )
+
+        self._unintroduced_actions = {}
+
     def _render(self):
         """
         Create the menu prior to showing it. This takes into account sections
@@ -235,13 +251,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         """
         if self._dirty:
             self.clear()
-
-            # Update actions with those that were not introduced because
-            # a `before` action they required was not part of the menu yet.
-            for before, actions in self._unintroduced_actions.items():
-                for section, action in actions:
-                    self.add_action(action, section=section,
-                                    before=before, check_before=False)
+            self._add_missing_actions()
 
             actions = self.get_actions()
             add_actions(self, actions)
@@ -411,6 +421,7 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
         """Render the menu's bottom section as expected."""
         if self._dirty:
             self.clear()
+            self._add_missing_actions()
 
             bottom = OptionsMenuSections.Bottom
             actions = []
