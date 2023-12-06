@@ -15,10 +15,11 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getsavefilename, getopenfilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QComboBox, QGroupBox, QGridLayout, QLabel,
+from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
                             QMessageBox, QPushButton, QVBoxLayout, QFileDialog)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets import (
@@ -47,7 +48,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         snippets_info_label.setWordWrap(True)
         snippets_info_label.setAlignment(Qt.AlignJustify)
 
-        self.snippets_language_cb = QComboBox(self)
+        self.snippets_language_cb = SpyderComboBox(self)
         self.snippets_language_cb.setToolTip(
             _('Programming language provided by the LSP server'))
         self.snippets_language_cb.addItems(SUPPORTED_LANGUAGES_PY)

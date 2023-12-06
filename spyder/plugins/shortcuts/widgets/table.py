@@ -12,8 +12,8 @@ import re
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QEvent, QModelIndex,
-                         QSortFilterProxyModel, Qt, Slot, QRegExp)
-from qtpy.QtGui import QIcon, QKeySequence, QRegExpValidator
+                         QSortFilterProxyModel, Qt, Slot, QRegularExpression)
+from qtpy.QtGui import QIcon, QKeySequence, QRegularExpressionValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -119,8 +119,8 @@ class ShortcutFinder(QLineEdit):
         self.main = main
 
         # Widget setup
-        regex = QRegExp(regex_base + "{100}")
-        self.setValidator(QRegExpValidator(regex))
+        regex = QRegularExpression(regex_base + "{100}")
+        self.setValidator(QRegularExpressionValidator(regex))
 
         # Signals
         if callback:
@@ -532,8 +532,8 @@ class ShortcutsModel(QAbstractTableModel):
     def flags(self, index):
         """Qt Override."""
         if not index.isValid():
-            return Qt.ItemIsEnabled
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
+            return Qt.ItemFlag.ItemIsEnabled
+        return QAbstractTableModel.flags(self, index)
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""

@@ -16,15 +16,16 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegExp, QSize
-from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
-                            QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
+from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression, QSize
+from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
+from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
+                            QFileDialog, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
@@ -550,7 +551,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.addWidget(edit)
         layout.setContentsMargins(0, 0, 0, 0)
         if regex:
-            edit.setValidator(QRegExpValidator(QRegExp(regex)))
+            edit.setValidator(
+                QRegularExpressionValidator(QRegularExpression(regex))
+            )
         if placeholder:
             edit.setPlaceholderText(placeholder)
         self.lineedits[edit] = (section, option, default)
@@ -762,7 +765,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
-        combobox = QComboBox()
+        combobox = SpyderComboBox()
         for name, key in choices:
             if not (name is None and key is None):
                 combobox.addItem(name, to_qvariant(key))
@@ -844,7 +847,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             fontlabel = QLabel(_("Font"))
 
-        fontbox = QFontComboBox()
+        fontbox = SpyderFontComboBox()
         fontbox.restart_required = restart
         fontbox.label_text = _("{} font").format(title)
 

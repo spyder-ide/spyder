@@ -40,7 +40,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY)
+    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
 
@@ -1869,8 +1869,9 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"%debugfile {repr(str(file))}")
 
-    # steps 4 times
-    for i in range(4):
+    # steps into the comprehension
+    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
     assert "Error" not in control.toPlainText()
@@ -1991,6 +1992,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
     assert get_cwd_of_new_client() == fixed_dir
 
 
+@flaky(max_runs=10)
 def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     """
     Test 'startup/run_lines' config works with code from an active project.

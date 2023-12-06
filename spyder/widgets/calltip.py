@@ -45,7 +45,7 @@ class ToolTipWidget(QLabel):
         """
         Shows tooltips that can be styled with the different themes.
         """
-        super(ToolTipWidget, self).__init__(None, Qt.ToolTip)
+        super().__init__(parent, Qt.ToolTip)
 
         # Variables
         self.completion_doc = None
@@ -147,7 +147,7 @@ class ToolTipWidget(QLabel):
         else:
             cursor_rect = text_edit.cursorRect(cursor)
 
-        screen_rect = self.app.desktop().screenGeometry(text_edit)
+        screen_rect = self.screen().geometry()
         point.setY(point.y() + padding)
         tip_height = self.size().height()
         tip_width = self.size().width()
@@ -255,7 +255,7 @@ class CallTipWidget(QLabel):
             text edit widget.
         """
         assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
-        super(CallTipWidget, self).__init__(None, Qt.ToolTip)
+        super().__init__(text_edit, Qt.ToolTip)
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
 
@@ -462,7 +462,7 @@ class CallTipWidget(QLabel):
         # location based trying to minimize the  area that goes off-screen.
         padding = 0  # Distance in pixels between cursor bounds and tip box.
         cursor_rect = text_edit.cursorRect(cursor)
-        screen_rect = self.app.desktop().screenGeometry(text_edit)
+        screen_rect = self.screen().geometry()
         point.setY(point.y() + padding)
         tip_height = self.size().height()
         tip_width = self.size().width()

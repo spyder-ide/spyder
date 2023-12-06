@@ -82,8 +82,7 @@ from spyder.config.utils import IMPORT_EXT
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
-from spyder.utils.misc import (select_port, getcwd_or_home,
-                               get_python_executable)
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import file_uri, qapplication, start_file
 from spyder.utils.stylesheet import APP_STYLESHEET
@@ -164,8 +163,11 @@ class MainWindow(
             # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
             self._proxy_style = SpyderProxyStyle(None)
 
-        # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        # Enabling scaling for high dpi. This is not required with Qt 6 where
+        # it is always enabled.
+        # See https://doc.qt.io/qt-6/portingguide.html#high-dpi
+        if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+            qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
@@ -379,7 +381,7 @@ class MainWindow(
         messageBox.show()
 
         # Center message
-        screen_geometry = QApplication.desktop().screenGeometry()
+        screen_geometry = self.screen().geometry()
         x = (screen_geometry.width() - messageBox.width()) / 2
         y = (screen_geometry.height() - messageBox.height()) / 2
         messageBox.move(x, y)
@@ -1184,31 +1186,6 @@ class MainWindow(
                 console.redirect_stds()
             else:
                 console.restore_stds()
-
-    def open_external_console(self, fname, wdir, args, interact, debug, python,
-                              python_args, systerm, post_mortem=False):
-        """Open external console"""
-        if systerm:
-            # Running script in an external system terminal
-            try:
-                if self.get_conf('default', section='main_interpreter'):
-                    executable = get_python_executable()
-                else:
-                    executable = self.get_conf(
-                        'executable',
-                        section='main_interpreter'
-                    )
-                pypath = self.get_conf('spyder_pythonpath', default=None,
-                                       section='pythonpath_manager')
-                programs.run_python_script_in_terminal(
-                    fname, wdir, args, interact, debug, python_args,
-                    executable, pypath
-                )
-            except NotImplementedError:
-                QMessageBox.critical(self, _("Run"),
-                                     _("Running an external system terminal "
-                                       "is not supported on platform %s."
-                                       ) % os.name)
 
     def open_file(self, fname, external=False):
         """

@@ -31,7 +31,8 @@ from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QRegExp, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -1291,7 +1292,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor = self.textCursor()
         # Scanning whole document
         cursor.movePosition(QTextCursor.Start)
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         self.__find_first_pos = cursor.position()
         return cursor
@@ -1299,7 +1302,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def __find_next(self, text, cursor):
         """Find next occurrence"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         if cursor.position() != self.__find_first_pos:
             return cursor
@@ -2374,43 +2379,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the removal of the prefix for a single line."""
-        start_with_space = line_text.startswith(' ')
-        if start_with_space:
-            left_spaces = self.__even_number_of_spaces(line_text)
-        else:
-            left_spaces = False
-        if start_with_space:
-            right_number_spaces = self.__number_of_spaces(line_text, group=1)
-        else:
-            right_number_spaces = self.__number_of_spaces(line_text)
+        cursor.movePosition(QTextCursor.Right,
+                            QTextCursor.MoveAnchor,
+                            line_text.find(prefix))
         # Handle prefix remove for comments with spaces
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            if (right_number_spaces == 1
-                    and (left_spaces or not start_with_space)
-                    or (not start_with_space and right_number_spaces % 2 != 0)
-                    or (left_spaces and right_number_spaces % 2 != 0)):
-                # Handle inserted '# ' with the count of the number of spaces
-                # at the right and left of the prefix.
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix + ' '))
-            else:
-                # Handle manual insertion of '#'
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+                                QTextCursor.KeepAnchor, len(prefix + ' '))
         # Check for prefix without space
         elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                 or line_text.startswith(prefix)):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+        cursor.removeSelectedText()
 
     def __even_number_of_spaces(self, line_text, group=0):
         """
@@ -3105,7 +3087,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         block = cursor.block()
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
-        block_formats = layout.additionalFormats()
+        block_formats = layout.formats()
 
         if block_formats:
             # To easily grab current format for autoinsert_colons

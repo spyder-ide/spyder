@@ -24,7 +24,7 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
-    QAbstractItemDelegate, QApplication, QComboBox, QDialog, QGridLayout,
+    QAbstractItemDelegate, QApplication, QDialog, QGridLayout,
     QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit, QMenu,
     QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
     QVBoxLayout, QWidget)
@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
@@ -379,9 +380,10 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
-            return Qt.ItemIsEnabled
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+            return Qt.ItemFlag.ItemIsEnabled
+        return (
+            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        )
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
@@ -789,7 +791,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.combo_label = QLabel()
         self.btn_layout.addWidget(self.combo_label)
 
-        self.combo_box = QComboBox(self)
+        self.combo_box = SpyderComboBox(self)
         self.combo_box.currentIndexChanged.connect(self.combo_box_changed)
         self.btn_layout.addWidget(self.combo_box)
 

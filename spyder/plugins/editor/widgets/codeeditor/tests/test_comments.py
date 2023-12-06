@@ -62,21 +62,21 @@ def test_single_line_comment(codeeditor):
     # Toggle comment with space at the right of prefix but manually inserted
     text = toggle_comment(editor, start_line=2)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
+                    "   self.b = 1\n"
                     " #   print(self.b)\n"
                     "#    \n"
                     )
     # Toggle comment with space insertion
     text = toggle_comment(editor, start_line=2)
     assert text == ("class a():\n"
-                    "    # self.b = 1\n"
+                    "   # self.b = 1\n"
                     " #   print(self.b)\n"
                     "#    \n"
                     )
     # Toggle comment deleting inserted space
     text = toggle_comment(editor, start_line=2)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
+                    "   self.b = 1\n"
                     " #   print(self.b)\n"
                     "#    \n"
                     )
@@ -84,8 +84,8 @@ def test_single_line_comment(codeeditor):
     # but manually inserted
     text = toggle_comment(editor, start_line=3)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
-                    "    print(self.b)\n"
+                    "   self.b = 1\n"
+                    "   print(self.b)\n"
                     "#    \n"
                     )
 
@@ -102,23 +102,23 @@ def test_selection_comment(codeeditor):
     # Toggle manually commented code
     text = toggle_comment(editor, single_line=False)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
-                    "    print(self.b)\n"
-                    "    \n"
+                    "   self.b = 1\n"
+                    "   print(self.b)\n"
+                    "   \n"
                     )
     # Toggle comment inserting prefix and space
     text = toggle_comment(editor, single_line=False)
     assert text == ("# class a():\n"
-                    "#     self.b = 1\n"
-                    "#     print(self.b)\n"
-                    "    \n"
+                    "#    self.b = 1\n"
+                    "#    print(self.b)\n"
+                    "   \n"
                     )
     # Toggle comment deleting inserted prefix and space
     text = toggle_comment(editor, single_line=False)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
-                    "    print(self.b)\n"
-                    "    \n"
+                    "   self.b = 1\n"
+                    "   print(self.b)\n"
+                    "   \n"
                     )
     # Test compatibility with Spyder 3 commenting structure
     text = ("#class a():\n"
@@ -130,9 +130,9 @@ def test_selection_comment(codeeditor):
     # Toggle comment deleting inserted prefix (without space)
     text = toggle_comment(editor, single_line=False)
     assert text == ("class a():\n"
-                    "    self.b = 1\n"
-                    "    print(self.b)\n"
-                    "    \n"
+                    "   self.b = 1\n"
+                    "   print(self.b)\n"
+                    "   \n"
                     )
 
 

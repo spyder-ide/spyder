@@ -50,11 +50,6 @@ class PythonpathManager(SpyderPluginV2):
     new_path_dict: OrderedDict
         New Pythonpath dictionary.
 
-    Notes
-    -----
-    It should be possible to simplify this by sending only the new path dict.
-    However, that requires changes in Spyder-kernels.
-
     See Also
     --------
     :py:meth:`.PythonpathContainer._get_spyder_pythonpath_dict`
