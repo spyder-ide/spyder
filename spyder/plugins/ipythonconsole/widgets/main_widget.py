@@ -755,8 +755,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 menu=self.console_environment_menu
             )
 
-        self.console_environment_menu._render()
-        self.console_environment_menu._set_icons()
+        self.console_environment_menu.render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')

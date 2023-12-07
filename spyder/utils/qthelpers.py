@@ -703,10 +703,10 @@ def set_menu_icons(menu, state, in_app_menu=False):
     for action in menu_actions:
         try:
             if action.menu() is not None:
-                # This is necessary to decide if show icons or not
+                # This is necessary to decide if we need to show icons or not
                 action.menu()._in_app_menu = in_app_menu
 
-                # This is submenu, so we need to call this again
+                # This is a submenu, so we need to call this again
                 set_menu_icons(action.menu(), state, in_app_menu)
             elif action.isSeparator():
                 continue

@@ -950,7 +950,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 section=RecentProjectsMenuSections.Extras)
 
         self._update_project_actions()
-        self.recent_project_menu._render()
+        self.recent_project_menu.render()
 
     def _build_opener(self, project):
         """Build function opening passed project"""

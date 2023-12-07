@@ -102,7 +102,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             self.setMinimumWidth(min_width)
 
         # Signals
-        self.aboutToShow.connect(self._render)
+        self.aboutToShow.connect(self.render)
 
         # Adjustmens for Mac
         if sys.platform == 'darwin':
@@ -267,7 +267,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         self._unintroduced_actions = {}
 
-    def _render(self):
+    def render(self):
         """
         Create the menu prior to showing it. This takes into account sections
         and location of menus.
@@ -278,6 +278,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
             actions = self.get_actions()
             add_actions(self, actions)
+            self._set_icons()
+
             self._dirty = False
 
     def _add_section(self, section, before_section=None):
@@ -440,7 +442,7 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
     Options menu for PluginMainWidget.
     """
 
-    def _render(self):
+    def render(self):
         """Render the menu's bottom section as expected."""
         if self._dirty:
             self.clear()
@@ -461,4 +463,6 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
                     actions.append(action)
 
             add_actions(self, actions)
+            self._set_icons()
+
             self._dirty = False

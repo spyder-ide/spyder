@@ -90,14 +90,13 @@ class MainMenu(SpyderPluginV2):
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
     def on_mainwindow_visible(self):
-        # Pre-render menus so actions with menu roles (like "About Spyder"
-        # and "Preferences") are located in the right place in Mac's menu
-        # bar.
+        # Pre-render menus so actions with menu roles (like "About Spyder" and
+        # "Preferences") are located in the right place in Mac's menu bar.
         # Fixes spyder-ide/spyder#14917
         # This also registers shortcuts for actions that are only in menus.
         # Fixes spyder-ide/spyder#16061
         for menu in self._APPLICATION_MENUS.values():
-            menu._render()
+            menu.render()
 
     # ---- Private methods
     # ------------------------------------------------------------------------

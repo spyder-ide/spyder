@@ -617,7 +617,7 @@ class ApplicationContainer(PluginMainContainer):
             )
 
         # Render menu
-        self.menu_debug_logs._render()
+        self.menu_debug_logs.render()
 
     def load_log_file(self, file):
         """Load log file in editor"""
