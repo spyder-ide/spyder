@@ -231,8 +231,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
-        if not self.shellwidget.spyder_kernel_ready:
-            return
         settings = self.get_view_settings()
         self.shellwidget.set_kernel_configuration(
             "namespace_view_settings", settings

@@ -114,9 +114,9 @@ class CommManager(MetaQObjectHasTraits(
         except KeyError:
             if closing:
                 return
-            self.log.warning("No such comm: %s", comm_id)
             # don't create the list of keys if debug messages aren't enabled
             if self.log.isEnabledFor(logging.DEBUG):
+                self.log.debug("No such comm: %s", comm_id)
                 self.log.debug("Current comms: %s", list(self.comms.keys()))
 
     # comm message handlers

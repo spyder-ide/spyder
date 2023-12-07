@@ -35,12 +35,12 @@ from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (
     get_home_dir, running_under_pytest)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
-from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
     ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
     KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
-from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
+from spyder.plugins.ipythonconsole.widgets.mixins import (
+    CachedKernelMixin, KernelConnectorMixin)
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
@@ -50,6 +50,8 @@ from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
+from spyder.utils.environ import clean_env, get_user_environment_variables
+from spyder.config.base import get_safe_mode, is_conda_based_app
 
 
 # Logging
@@ -119,14 +121,15 @@ class IPythonConsoleWidgetTabsContextMenuSections:
 
 # --- Widgets
 # ----------------------------------------------------------------------------
-class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
+class IPythonConsoleWidget(
+    PluginMainWidget, CachedKernelMixin, KernelConnectorMixin
+):
     """
     IPython Console plugin
 
     This is a widget with tabs where each one is a ClientWidget.
     """
 
-    # Signals
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a
@@ -920,7 +923,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
                 # Need to know the interactive state
                 sw = client.shellwidget
-                if sw._starting:
+                if sw._shellwidget_state != "started":
                     # If the kernel didn't start and no backend was requested,
                     # the backend is inline
                     interactive_backend = inline_backend
@@ -1454,10 +1457,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                          str_id='A')
 
         # Find what kind of kernel we want
-        if self.get_conf('pylab/autoload'):
-            special = "pylab"
-        elif self.get_conf('symbolic_math'):
-            special = "sympy"
+        if special is None:
+            if self.get_conf('pylab/autoload'):
+                special = "pylab"
+            elif self.get_conf('symbolic_math'):
+                special = "sympy"
 
         client = ClientWidget(
             self,
@@ -1482,10 +1486,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         try:
             # Create new kernel
-            kernel_spec = SpyderKernelSpec(
-                path_to_custom_interpreter=path_to_custom_interpreter
+            kernel_spec_dict = self.get_kernel_spec_dict(
+                path_to_custom_interpreter
             )
-            kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
+            kernel_handler = self.get_cached_kernel(
+                kernel_spec_dict,
+                cache=cache,
+            )
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1493,6 +1500,86 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Connect kernel to client
         client.connect_kernel(kernel_handler)
         return client
+
+    def get_kernel_spec_dict(self, pyexec=None):
+        """Create a kernel spec dict"""
+        kernel_spec = {
+            "display_name": 'Python 3 (Spyder)',
+            "language": 'python3',
+            "resource_dir": '',
+        }
+        if (
+            pyexec is None
+            and not self.get_conf('default', section='main_interpreter')
+        ):
+            pyexec = self.get_conf(
+                'executable', section='main_interpreter'
+            )
+        kernel_spec["pyexec"] = pyexec
+        kernel_spec["env"] = self.get_kernel_spec_env(pyexec)
+        return kernel_spec
+
+    def get_kernel_spec_env(self, pyexec):
+        """Env vars for kernels"""
+        default_interpreter = self.get_conf(
+            'default', section='main_interpreter')
+
+        # Ensure that user environment variables are included, but don't
+        # override existing environ values
+        env_vars = get_user_environment_variables()
+        env_vars.update(os.environ)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
+
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
+
+        # List of paths declared by the user, plus project's path, to
+        # add to PYTHONPATH
+        pathlist = self.get_conf(
+            'spyder_pythonpath', default=[], section='pythonpath_manager')
+        pypath = os.pathsep.join(pathlist)
+
+        # List of modules to exclude from our UMR
+        umr_namelist = self.get_conf(
+            'umr/namelist', section='main_interpreter')
+
+        # Environment variables that we need to pass to the kernel
+        env_vars.update({
+            'SPY_EXTERNAL_INTERPRETER': (not default_interpreter
+                                         or pyexec),
+            'SPY_UMR_ENABLED': self.get_conf(
+                'umr/enabled', section='main_interpreter'),
+            'SPY_UMR_VERBOSE': self.get_conf(
+                'umr/verbose', section='main_interpreter'),
+            'SPY_UMR_NAMELIST': ','.join(umr_namelist),
+            'SPY_AUTOCALL_O': self.get_conf('autocall'),
+            'SPY_GREEDY_O': self.get_conf('greedy_completer'),
+            'SPY_JEDI_O': self.get_conf('jedi_completer'),
+            'SPY_TESTING': running_under_pytest() or get_safe_mode(),
+            'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
+            'SPY_PYTHONPATH': pypath,
+        })
+
+        # App considerations
+        # ??? Do we need this?
+        if is_conda_based_app() and default_interpreter:
+            # See spyder-ide/spyder#16927
+            # See spyder-ide/spyder#16828
+            # See spyder-ide/spyder#17552
+            env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
+
+        # Remove this variable because it prevents starting kernels for
+        # external interpreters when present.
+        # Fixes spyder-ide/spyder#13252
+        env_vars.pop('PYTHONEXECUTABLE', None)
+
+        # Making all env_vars strings
+        clean_env_vars = clean_env(env_vars)
+
+        return clean_env_vars
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
                                  password):
@@ -1697,6 +1784,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
+        if client is None:
+            # Nothing to do?
+            return
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
@@ -1760,12 +1850,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.close_client(is_last_client)
             open_clients.remove(client)
 
-        # Wait for all KernelHandler threads to shutdown.
-        KernelHandler.wait_all_shutdown_threads()
-
         # Close cached kernel
         self.close_cached_kernel()
         self.filenames = []
+
+        # Close local server
+        self.stop_local_server(wait=True)
         return True
 
     def get_client_index_from_id(self, client_id):
@@ -1885,8 +1975,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client is None:
             return
 
-        km = client.kernel_handler.kernel_manager
-        if km is None:
+        ks_dict = client.kernel_handler.kernel_spec_dict
+        if ks_dict is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -1911,7 +2001,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Get new kernel
         try:
-            kernel_handler = self.get_cached_kernel(km._kernel_spec)
+            # Update the kernel because settings might have changed
+            ks_dict = self.get_kernel_spec_dict(ks_dict["pyexec"])
+            kernel_handler = self.get_cached_kernel(ks_dict)
         except Exception as e:
             client.show_kernel_error(e)
             return

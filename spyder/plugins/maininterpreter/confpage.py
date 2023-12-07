@@ -12,8 +12,12 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
-                            QLineEdit, QMessageBox, QPushButton, QVBoxLayout)
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (
+    QButtonGroup, QGroupBox, QInputDialog, QLabel,
+    QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QRadioButton,
+    QHBoxLayout, QGridLayout, QSpacerItem)
+from qtpy.compat import getopenfilename
 
 # Local imports
 from spyder.api.translations import _
@@ -24,6 +28,7 @@ from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
+from spyder.config.base import get_home_dir
 
 
 class MainInterpreterConfigPage(PluginConfigPage):
@@ -63,6 +68,104 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
+
+        # Remote kernel groupbox
+        rm_group = self.create_checkable_groupbox(
+            _("Use an external kernel server"),
+            'kernel_server/external_server',
+        )
+
+        # Hostname Layout
+        hostname = self.create_lineedit(
+            _("Hostnane:"),
+            'kernel_server/host',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+        port = self.create_spinbox(
+            ":", "", 'kernel_server/port', min_=1, max_=65535, step=1
+        )
+
+        hostname_layout = QHBoxLayout()
+        hostname_layout.addWidget(hostname)
+        hostname_layout.addWidget(port)
+
+        # SSH authentication
+        auth_group = self.create_checkable_groupbox(
+            _("Authentication method (via SSH):"),
+            'kernel_server/use_ssh',
+        )
+
+        username = self.create_lineedit(
+            _("Username:"),
+            'kernel_server/username',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+
+        auth_bg = QButtonGroup(auth_group)
+        password_radio = self.create_radiobutton(
+            _("Password:"),
+            'kernel_server/password_auth',
+            button_group=auth_bg,
+        )
+        keyfile_radio = self.create_radiobutton(
+            _('SSH keyfile:'),
+            'kernel_server/keyfile_auth',
+            button_group=auth_bg,
+        )
+
+        password = self.create_lineedit(
+            "",
+            'kernel_server/password',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+        password.textbox.setEchoMode(QLineEdit.Password)
+        password_radio.radiobutton.toggled.connect(password.setEnabled)
+        keyfile_radio.radiobutton.toggled.connect(password.setDisabled)
+
+        keyfile = self.create_file_combobox(
+            _('SSH Keyfile'),
+            self.get_option('custom_interpreters_list'),
+            'kernel_server/keyfile',
+            default_line_edit=True,
+            adjust_to_contents=True,
+        )
+        passphrase = self.create_lineedit(
+            _('Passphase:'),
+            'kernel_server/passphrase',
+            alignment=Qt.Horizontal,
+            word_wrap=False
+        )
+
+        passphrase.textbox.setPlaceholderText(_('Optional'))
+        passphrase.textbox.setEchoMode(QLineEdit.Password)
+
+        keyfile_radio.radiobutton.toggled.connect(keyfile.setEnabled)
+        keyfile_radio.radiobutton.toggled.connect(passphrase.setEnabled)
+        password_radio.radiobutton.toggled.connect(keyfile.setDisabled)
+        password_radio.radiobutton.toggled.connect(passphrase.setDisabled)
+
+        # SSH authentication layout
+        auth_layout = QGridLayout()
+        auth_layout.addWidget(username, 0, 0, 1, 2)
+        auth_layout.addWidget(password_radio, 1, 0)
+        auth_layout.addWidget(password, 1, 1)
+        auth_layout.addWidget(keyfile_radio, 2, 0)
+        auth_layout.addWidget(keyfile, 2, 1)
+        auth_layout.addWidget(passphrase, 3, 0, 1, 2)
+        auth_group.setLayout(auth_layout)
+
+        # Remote kernel layout
+        rm_layout = QVBoxLayout()
+        rm_layout.addLayout(hostname_layout)
+        rm_layout.addSpacerItem(QSpacerItem(0, 8))
+        rm_layout.addWidget(auth_group)
+        rm_group.setLayout(rm_layout)
+        auth_group.setCheckable(True)
+        auth_group.toggled.connect(password_radio.radiobutton.setChecked)
+        rm_group.setCheckable(True)
 
         # Python executable Group
         pyexec_group = QGroupBox(_("Python interpreter"))
@@ -104,6 +207,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.cus_exec_radio.radiobutton.toggled.connect(
             self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
+        pyexec_layout.addWidget(rm_group)
         pyexec_group.setLayout(pyexec_layout)
 
         self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()

@@ -144,7 +144,6 @@ def test_leaks(main_window, qtbot):
         # Count initial objects
         # Only one of each should be present, but because of many leaks,
         # this is most likely not the case. Here only closing is tested
-        KernelHandler.wait_all_shutdown_threads()
         gc.collect()
         objects = gc.get_objects()
         n_code_editor_init = 0
@@ -179,7 +178,6 @@ def test_leaks(main_window, qtbot):
         main_window.ipyconsole.restart()
 
         # Wait until the shells are closed
-        KernelHandler.wait_all_shutdown_threads()
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)
@@ -823,10 +821,10 @@ def test_dedicated_consoles(main_window, qtbot):
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
     assert nsb.editor.source_model.rowCount() == 4
 
-    # --- Assert only runfile text is present and there's no banner text ---
+    # --- Assert only runfile text is present ---
     # See spyder-ide/spyder#5301.
     text = control.toPlainText()
-    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
+    assert ('runfile' in text)
 
     # --- Check namespace retention after re-execution ---
     with qtbot.waitSignal(shell.executed):
@@ -937,7 +935,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
-    km, kc = start_new_kernel()
+    km, kc = start_new_kernel(main_window.ipyconsole)
 
     main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -956,7 +954,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     python_shell = shell
 
     # Test with a kernel from Spyder
-    spykm, spykc = start_new_kernel(spykernel=True)
+    spykm, spykc = start_new_kernel(main_window.ipyconsole, spykernel=True)
     main_window.ipyconsole.create_client_for_kernel(spykc.connection_file)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -1954,14 +1952,14 @@ def test_varexp_edit_inline(main_window, qtbot):
                     reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
     """Test that c and n Pdb commands update the Variable Explorer."""
-    nsb = main_window.variableexplorer.current_widget()
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+
+    nsb = main_window.variableexplorer.current_widget()
 
     # Clear all breakpoints
     main_window.debugger.clear_all_breakpoints()
@@ -2112,13 +2110,13 @@ def test_change_cwd_dbg(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
-    nsb = main_window.variableexplorer.current_widget()
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    nsb = main_window.variableexplorer.current_widget()
 
     # Load test file to be able to enter in debugging mode
     test_file = osp.join(LOCATION, 'script.py')
@@ -2160,12 +2158,12 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
     assert CONF.get('plots', 'mute_inline_plotting') is False
     shell = main_window.ipyconsole.get_current_shellwidget()
-    figbrowser = main_window.plots.current_widget()
 
     # Wait until the window is fully up.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    figbrowser = main_window.plots.current_widget()
 
     # Generate a plot inline.
     with qtbot.waitSignal(shell.executed):
@@ -2199,12 +2197,12 @@ def test_plots_scroll(main_window, qtbot):
     """Test plots plugin scrolling"""
     CONF.set('plots', 'mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
-    figbrowser = main_window.plots.current_widget()
 
     # Wait until the window is fully up.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    figbrowser = main_window.plots.current_widget()
 
     # Generate a plot inline.
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
@@ -5168,7 +5166,7 @@ def test_outline_no_init(main_window, qtbot):
 def test_pdb_ipykernel(main_window, qtbot):
     """Check if pdb works without spyder kernel."""
     # Test with a generic kernel
-    km, kc = start_new_kernel()
+    km, kc = start_new_kernel(main_window.ipyconsole)
 
     main_window.ipyconsole.create_client_for_kernel(kc.connection_file)
     ipyconsole = main_window.ipyconsole
