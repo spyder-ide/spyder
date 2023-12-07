@@ -176,7 +176,10 @@ class MainMenu(SpyderPluginV2):
             )
 
         menu = ApplicationMenu(
-            self.main, title, menu_id=menu_id, min_width=min_width
+            self.main,
+            menu_id=menu_id,
+            title=title,
+            min_width=min_width
         )
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)

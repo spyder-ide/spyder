@@ -14,7 +14,7 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtWidgets import QAction, QMenu
+from qtpy.QtWidgets import QAction, QMenu, QWidget
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -51,10 +51,34 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     MENUS = []
     APP_MENU = False
 
-    def __init__(self, parent=None, title=None, menu_id=None, min_width=None):
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        menu_id: Optional[str] = None,
+        title: Optional[str] = None,
+        min_width: Optional[int] = None,
+        reposition: Optional[bool] = True,
+    ):
+        """
+        Create a menu for Spyder.
+
+        Parameters
+        ----------
+        parent: QWidget or None
+            The menu's parent
+        menu_id: str
+            Unique str identifier for the menu.
+        title: str or None
+            Localized text string for the menu.
+        min_width: int or None
+            Minimum width for the menu.
+        reposition: bool, optional (default True)
+            Whether to vertically reposition the menu due to it's padding.
+        """
         self._parent = parent
-        self._title = title
         self.menu_id = menu_id
+        self._title = title
+        self._reposition = reposition
 
         self._sections = []
         self._actions = []
@@ -64,7 +88,6 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self._dirty = False
         self._is_shown = False
         self._is_submenu = False
-        self._reposition = True
         self._in_app_menu = False
 
         if title is None:

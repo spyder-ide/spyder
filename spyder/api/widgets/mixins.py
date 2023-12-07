@@ -249,6 +249,7 @@ class SpyderMenuMixin:
         menu_id: str,
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
+        reposition: Optional[bool] = True,
         MenuClass=SpyderMenu
     ) -> SpyderMenu:
         """
@@ -269,7 +270,12 @@ class SpyderMenuMixin:
                 'Menu name "{}" already in use!'.format(menu_id)
             )
 
-        menu = MenuClass(parent=self, title=title, menu_id=menu_id)
+        menu = MenuClass(
+            parent=self,
+            menu_id=menu_id,
+            title=title,
+            reposition=reposition
+        )
 
         if icon is not None:
             menu.menuAction().setIconVisibleInMenu(True)
@@ -287,25 +293,33 @@ class SpyderMenuMixin:
         menu_id: str,
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
+        reposition: Optional[bool] = True,
     ) -> SpyderMenu:
         """
-        Create a menu.
+        Create a menu for Spyder.
 
         Parameters
         ----------
         menu_id: str
-            Unique str identifier.
+            Unique str identifier for the menu.
         title: str or None
-            Localized text string.
+            Localized text string for the menu.
         icon: QIcon or None
             Icon to use for the menu.
+        reposition: bool, optional (default True)
+            Whether to vertically reposition the menu due to it's padding.
 
         Returns
         -------
         SpyderMenu
             The created menu.
         """
-        return self._create_menu(menu_id, title, icon)
+        return self._create_menu(
+            menu_id=menu_id,
+            title=title,
+            icon=icon,
+            reposition=reposition
+        )
 
     def get_menu(
         self,
