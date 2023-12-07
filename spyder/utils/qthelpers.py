@@ -363,29 +363,21 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    # Workround for Mac because setting context=Qt.WidgetShortcut
-    # there doesn't have any effect
+    if shortcut is not None:
+        action.setShortcut(shortcut)
+    action.setShortcutContext(context)
+
+    # This is necessary to show shortcuts in any regular menu (i.e. not app
+    # ones).
+    # Fixes spyder-ide/spyder#15659.
     if sys.platform == 'darwin':
-        action._shown_shortcut = None
-        if context == Qt.WidgetShortcut:
-            if shortcut is not None:
-                action._shown_shortcut = shortcut
-            else:
-                # This is going to be filled by
-                # main.register_shortcut
-                action._shown_shortcut = 'missing'
-        else:
-            if shortcut is not None:
-                action.setShortcut(shortcut)
-            action.setShortcutContext(context)
-    else:
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        action.setShortcutContext(context)
+        action.setShortcutVisibleInContextMenu(True)
 
     if register_action:
         ACTION_REGISTRY.register_reference(
-            action, id_, plugin, context_name, overwrite)
+            action, id_, plugin, context_name, overwrite
+        )
+
     return action
 
 
@@ -705,14 +697,17 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-def set_menu_icons(menu, state):
+def set_menu_icons(menu, state, in_app_menu=False):
     """Show/hide icons for menu actions."""
     menu_actions = menu.actions()
     for action in menu_actions:
         try:
             if action.menu() is not None:
-                # This is submenu, so we need to call this again
-                set_menu_icons(action.menu(), state)
+                # This is necessary to decide if we need to show icons or not
+                action.menu()._in_app_menu = in_app_menu
+
+                # This is a submenu, so we need to call this again
+                set_menu_icons(action.menu(), state, in_app_menu)
             elif action.isSeparator():
                 continue
             else:
@@ -725,13 +720,28 @@ class SpyderProxyStyle(QProxyStyle):
     """Style proxy to adjust qdarkstyle issues."""
 
     def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
         if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
+            # Disable combobox popup top & bottom areas.
+            # See spyder-ide/spyder#9682
+            # Taken from https://stackoverflow.com/a/21019371
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Change icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            delta = (
+                -1 if sys.platform == "darwin"
+                else (0 if os.name == "nt" else 1)
+            )
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 class QInputDialogMultiline(QDialog):

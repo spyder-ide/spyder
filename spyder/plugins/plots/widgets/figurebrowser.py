@@ -189,7 +189,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
         splitter.setStyleSheet(
-            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}")
+            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+        )
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)

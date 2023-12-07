@@ -422,12 +422,12 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Set border radius and background color for hover, active and inactive
         # states of items
         css['QListView#configdialog-contents::item:hover'].setValues(
-            borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
         )
 
         for state in ['item:selected:active', 'item:selected:!active']:
             css[f'QListView#configdialog-contents::{state}'].setValues(
-                borderRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+                borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
                 backgroundColor=QStylePalette.COLOR_BACKGROUND_4
             )
 

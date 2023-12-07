@@ -36,7 +36,7 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import add_actions, DialogManager
+from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
@@ -92,7 +92,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  config_options,
                  additional_options,
                  interpreter_versions,
-                 context_menu_actions=(),
                  menu_actions=None,
                  given_name=None,
                  give_focus=True,
@@ -117,7 +116,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.hostname = None
         self.show_elapsed_time = self.get_conf('show_elapsed_time')
         self.reset_warning = self.get_conf('show_reset_namespace_warning')
-        self.context_menu_actions = context_menu_actions
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
@@ -540,12 +538,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             return page_control
         else:
             return self.shellwidget._control
-
-    def add_actions_to_context_menu(self, menu):
-        """Add actions to IPython widget context menu"""
-        add_actions(menu, self.context_menu_actions)
-
-        return menu
 
     def set_font(self, font):
         """Set IPython widget's font"""

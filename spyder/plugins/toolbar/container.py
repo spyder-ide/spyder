@@ -11,7 +11,7 @@ Toolbar Container.
 # Standard library imports
 from collections import OrderedDict
 from spyder.utils.qthelpers import SpyderAction
-from typing import Optional, Union, Tuple, Dict, List
+from typing import Optional, Union, Tuple
 
 # Third party imports
 from qtpy.QtCore import QSize, Slot
@@ -122,7 +122,6 @@ class ToolbarContainer(PluginMainContainer):
             ToolbarMenus.ToolbarsMenu,
             _("Toolbars"),
         )
-        self.toolbars_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
         visible_toolbars = self.get_conf("toolbars_visible")

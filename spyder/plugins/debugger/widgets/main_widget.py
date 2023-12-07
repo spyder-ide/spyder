@@ -187,7 +187,8 @@ class DebuggerWidget(ShellConnectMainWidget):
         # This is necessary so that the border radius is maintained when
         # showing/hiding the breakpoints table
         self.splitter.setStyleSheet(
-            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}")
+            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+        )
 
         # Layout
         # Create the layout.

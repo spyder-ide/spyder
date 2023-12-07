@@ -3338,6 +3338,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.format_action.setEnabled(False)
 
         # Build menu
+        # TODO: Change to SpyderMenu when the editor is migrated to the new
+        # API
         self.menu = QMenu(self)
         actions_1 = [self.gotodef_action, self.inspect_current_object_action,
                      None, self.undo_action, self.redo_action, None,
@@ -3356,6 +3358,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             add_actions(self.menu, actions)
 
         # Read-only context-menu
+        # TODO: Change to SpyderMenu when the editor is migrated to the new
+        # API
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,

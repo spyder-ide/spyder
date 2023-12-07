@@ -14,9 +14,9 @@ import os
 
 # Third party imports
 from qtpy.QtCore import QPoint, Slot
-from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
 from spyder.utils.qthelpers import add_actions, create_action
@@ -56,7 +56,7 @@ class LSPStatusWidget(StatusBarWidget):
 
         self.provider = provider
         self.current_language = None
-        self.menu = QMenu(self)
+        self.menu = SpyderMenu(self)
 
         # Setup
         self.set_status(status=ClientStatus.STARTING)
