@@ -406,11 +406,12 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 borderRadius=QStylePalette.SIZE_BORDER_RADIUS
             )
 
-        # Set state of disabled items
-        css["QMenu::item:selected:disabled"].setValues(
-            color=QStylePalette.COLOR_DISABLED,
-            backgroundColor="transparent"
-        )
+        # Set disabled state of items
+        for state in ['disabled', 'selected:disabled']:
+            css[f"QMenu::item:{state}"].setValues(
+                color=QStylePalette.COLOR_DISABLED,
+                backgroundColor="transparent"
+            )
 
         return css
 
