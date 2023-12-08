@@ -17,7 +17,7 @@ import pytest
 # Local imports
 from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.plugin import FindInFiles
-from spyder.plugins.findinfiles.widgets.combobox import SELECT_OTHER
+from spyder.plugins.findinfiles.widgets.combobox import SearchInComboBoxItems
 
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -59,7 +59,9 @@ def test_closing_plugin(findinfiles, qtbot, mocker, tmpdir):
             'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
             return_value=external_path
         )
-        path_selection_combo.setCurrentIndex(SELECT_OTHER)
+        path_selection_combo.setCurrentIndex(
+            SearchInComboBoxItems.SelectAnotherDirectory
+        )
 
     assert path_selection_combo.get_external_paths() == expected_results
 
