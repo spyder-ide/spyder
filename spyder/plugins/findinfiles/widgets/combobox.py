@@ -71,8 +71,11 @@ class SearchInComboBox(SpyderComboBox):
 
         self.insertSeparator(SearchInComboBoxItems.SecondSeparator)
 
-        for path in external_path_history:
-            self.add_external_path(path)
+        if external_path_history:
+            for path in external_path_history:
+                self.add_external_path(path)
+        else:
+            self.set_state_other_dirs_items(False)
 
         self.currentIndexChanged.connect(self.path_selection_changed)
         self.view().installEventFilter(self)
@@ -86,9 +89,11 @@ class SearchInComboBox(SpyderComboBox):
         """
         if not osp.exists(path):
             return
+        self.set_state_other_dirs_items(True)
         self.removeItem(self.findText(path))
         self.addItem(path)
         self.setItemData(self.count() - 1, path, Qt.ToolTipRole)
+
         while (
             self.count() >
             (MAX_PATH_HISTORY + SearchInComboBoxItems.ExternalPaths)
@@ -106,6 +111,7 @@ class SearchInComboBox(SpyderComboBox):
         """Remove all the external paths listed in the combobox."""
         while self.count() > SearchInComboBoxItems.ExternalPaths:
             self.removeItem(SearchInComboBoxItems.ExternalPaths)
+        self.set_state_other_dirs_items(False)
 
     def get_current_searchpath(self):
         """
@@ -197,6 +203,23 @@ class SearchInComboBox(SpyderComboBox):
                 SearchInComboBoxItems.Project, 0
             ).setEnabled(True)
 
+    def set_state_other_dirs_items(self, enabled):
+        """
+        Set the enabled/visible state of items that change when other
+        directories are added/removed to/from the combobox.
+        """
+        # The second separator needs to be visible only when the user has added
+        # other directories.
+        self.view().setRowHidden(
+            SearchInComboBoxItems.SecondSeparator, not enabled
+        )
+
+        # The ClearList item needs to be disabled if the user has not added
+        # other directories
+        self.model().item(
+            SearchInComboBoxItems.ClearList, 0
+        ).setEnabled(enabled)
+
     def eventFilter(self, widget, event):
         """Used to handle key events on the QListView of the combobox."""
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
@@ -210,6 +233,9 @@ class SearchInComboBox(SpyderComboBox):
                 new_index = min(self.count() - 1, index)
                 if new_index < SearchInComboBoxItems.ExternalPaths:
                     new_index = SearchInComboBoxItems.Cwd
+                    self.set_state_other_dirs_items(False)
+                    self.hidePopup()
+
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
 
