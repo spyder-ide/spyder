@@ -43,7 +43,6 @@ class SearchInComboBox(SpyderComboBox):
     def __init__(self, external_path_history=[], parent=None, id_=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setToolTip(_('Search directory'))
         self.setEditable(False)
 
         self.path = ''
@@ -55,29 +54,16 @@ class SearchInComboBox(SpyderComboBox):
             self.ID = id_
 
         self.addItem(_("Current working directory"))
-        ttip = ("Search in all files and directories present on the current"
-                " Spyder path")
-        self.setItemData(0, ttip, Qt.ToolTipRole)
 
         self.addItem(_("Project"))
-        ttip = _("Search in all files and directories present on the"
-                 " current project path (if opened)")
-        self.setItemData(1, ttip, Qt.ToolTipRole)
         self.model().item(1, 0).setEnabled(False)
 
-        self.addItem(_("File").replace('&', ''))
-        ttip = _("Search in current opened file")
-        self.setItemData(2, ttip, Qt.ToolTipRole)
+        self.addItem(_("Current file").replace('&', ''))
 
         self.insertSeparator(3)
 
-        self.addItem(_("Select other directory"))
-        ttip = _("Search in other folder present on the file system")
-        self.setItemData(4, ttip, Qt.ToolTipRole)
-
-        self.addItem(_("Clear this list"))
-        ttip = _("Clear the list of other directories")
-        self.setItemData(5, ttip, Qt.ToolTipRole)
+        self.addItem(_("Select another directory"))
+        self.addItem(_("Clear the list of other directories"))
 
         self.insertSeparator(6)
 
@@ -204,10 +190,13 @@ class SearchInComboBox(SpyderComboBox):
                 # Remove item and update the view.
                 self.removeItem(index)
                 self.showPopup()
+
                 # Set the view selection so that it doesn't bounce around.
                 new_index = min(self.count() - 1, index)
                 new_index = 0 if new_index < EXTERNAL_PATHS else new_index
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
+
             return True
+
         return super().eventFilter(widget, event)
