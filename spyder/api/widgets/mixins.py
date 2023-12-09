@@ -639,14 +639,11 @@ class SpyderActionMixin:
         raise NotImplementedError('')
 
 
-class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
-                        SpyderConfigurationObserver, SpyderToolButtonMixin):
+class SpyderWidgetMixin(SpyderActionMixin, SpyderConfigurationObserver,
+                        SpyderMenuMixin, SpyderToolbarMixin,
+                        SpyderToolButtonMixin):
     """
     Basic functionality for all Spyder widgets and Qt items.
-
-    This mixin does not include toolbar handling as that is limited to the
-    application with the coreui plugin or the PluginMainWidget for dockable
-    plugins.
 
     This provides a simple management of widget options, as well as Qt helpers
     for defining the actions a widget provides.
