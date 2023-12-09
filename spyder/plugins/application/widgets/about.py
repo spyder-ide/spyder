@@ -10,6 +10,7 @@
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
@@ -183,14 +184,14 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
             self.svg_to_scaled_pixmap("spyder_about", rescale=0.45)
         )
         self.label_pic.setAlignment(Qt.AlignBottom)
+
         self.info = QLabel(
             f"""
             <div style='font-family: "{font_family}";
                 font-size: {font_size};
                 font-weight: normal;
                 '>
-            <p>
-            <br>{versions['spyder']}
+            {versions['spyder']}
             <br>{revlink}
             <br>({versions['installer']})
             <br>
@@ -202,8 +203,9 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         info_btn = QPushButton(_("Copy version info"), )
         ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
 
-        # This needs to be done so that ok_btn gets the same style as info_btn
-        ok_btn.setStyleSheet(self._stylesheet)
+        # Apply style to buttons
+        for button in [info_btn, ok_btn]:
+            button.setStyleSheet(self._button_stylesheet)
 
         # -- Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
@@ -211,40 +213,44 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         # -- Layout
         piclayout = QVBoxLayout()
+        piclayout.addStretch()
         piclayout.addWidget(self.label_pic)
+        piclayout.addSpacing(-5)
         piclayout.addWidget(self.info)
-        piclayout.setContentsMargins(self.MARGIN, 0, self.MARGIN, 0)
+        piclayout.addStretch()
+        piclayout.setContentsMargins(
+            # This makes the left and right margins around the image and info
+            # to be the same.
+            self.MARGIN - AppStyle.MarginSize,
+            0,
+            self.MARGIN,
+            0
+        )
 
-        # Style for scroll areas needs to be applied after creating them.
-        # Otherwise it doesn't have effect.
         scroll_overview = QScrollArea(self)
         scroll_overview.setWidgetResizable(True)
-        scroll_overview.setStyleSheet(
-            f"background-color: {DialogStyle.BackgroundColor}"
-        )
         scroll_overview.setWidget(self.label_overview)
 
         scroll_community = QScrollArea(self)
         scroll_community.setWidgetResizable(True)
-        scroll_community.setStyleSheet(
-            f"background-color: {DialogStyle.BackgroundColor}"
-        )
+        scroll_community.setStyleSheet(self._scrollarea_stylesheet)
         scroll_community.setWidget(self.label_community)
 
         scroll_legal = QScrollArea(self)
         scroll_legal.setWidgetResizable(True)
-        scroll_legal.setStyleSheet(
-            f"background-color: {DialogStyle.BackgroundColor}"
-        )
+        scroll_legal.setStyleSheet(self._scrollarea_stylesheet)
         scroll_legal.setWidget(self.label_legal)
+
+        # Style for scroll areas needs to be applied after creating them.
+        # Otherwise it doesn't have effect.
+        for scroll_area in [scroll_overview, scroll_community, scroll_legal]:
+            scroll_area.setStyleSheet(self._scrollarea_stylesheet)
 
         self.tabs = QTabWidget(self)
         self.tabs.addTab(scroll_overview, _('Overview'))
         self.tabs.addTab(scroll_community, _('Community'))
         self.tabs.addTab(scroll_legal, _('Legal'))
-        self.tabs.setStyleSheet(
-            f"background-color: {DialogStyle.BackgroundColor}"
-        )
+        self.tabs.setStyleSheet(self._tabs_stylesheet)
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
@@ -264,6 +270,9 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         mainlayout = QHBoxLayout(self)
         mainlayout.addLayout(piclayout)
+        # This compensates the margin set for scroll areas to center them on
+        # the tabbar
+        mainlayout.addSpacing(-self.MARGIN)
         mainlayout.addLayout(vlayout)
 
         # -- Signals
@@ -271,14 +280,13 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         ok_btn.accepted.connect(self.accept)
 
         # -- Style
-        self.resize(720, 480)
-        self.setStyleSheet(self._stylesheet)
+        self.setStyleSheet(self._main_stylesheet)
 
     def copy_to_clipboard(self):
         QApplication.clipboard().setText(get_versions_text())
 
     @property
-    def _stylesheet(self):
+    def _main_stylesheet(self):
         tabs_stylesheet = PREFERENCES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
 
@@ -288,18 +296,64 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
                 backgroundColor=DialogStyle.BackgroundColor
             )
 
-        # Set padding according to the dialog contents and layout
-        css['QTabWidget::pane'].setValues(
-            padding=(
-                f'{2 * AppStyle.MarginSize}px {self.MARGIN}px '
-                f'{2 * AppStyle.MarginSize}px {AppStyle.MarginSize}px'
-            )
+        return css.toString()
+
+    @property
+    def _scrollarea_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # This is the only way to make the scroll areas to have the same
+        # background color as the other widgets in the dialog.
+        css.setValues(
+            backgroundColor=DialogStyle.BackgroundColor
         )
 
-        # Style for buttons
+        css.QScrollArea.setValues(
+            # Default border color doesn't have enough contrast with the
+            # background.
+            border=f"1px solid {DialogStyle.BorderColor}",
+            # This is necessary to center the tabbar on the scroll area
+            marginLeft=f"{self.MARGIN}px"
+        )
+
+        css.QScrollBar.setValues(
+            # Default border color doesn't have enough contrast with the
+            # background.
+            border=f"1px solid {DialogStyle.BorderColor}",
+        )
+
+        return css.toString()
+
+    @property
+    def _button_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Increase font size and padding
         css.QPushButton.setValues(
             fontSize=DialogStyle.ButtonsFontSize,
             padding=DialogStyle.ButtonsPadding
+        )
+
+        return css.toString()
+
+    @property
+    def _tabs_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # This fixes a visual glitch with the tabbar background color
+        css.setValues(
+            backgroundColor=DialogStyle.BackgroundColor
+        )
+
+        css['QTabWidget::pane'].setValues(
+            # Set tab pane margins according to the dialog contents and layout
+            margin=(
+                f'{2 * AppStyle.MarginSize}px {self.MARGIN}px '
+                f'{2 * AppStyle.MarginSize}px 0px'
+            ),
+            # Padding is not necessary in this case because we set a border for
+            # the scroll areas.
+            padding="0px",
         )
 
         return css.toString()
