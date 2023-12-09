@@ -30,12 +30,14 @@ from spyder.api.config.mixins import (
 )
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 class SpyderToolButtonMixin:
@@ -166,11 +168,17 @@ class SpyderToolbarMixin:
             stretcher.ID = id_
         return stretcher
 
-    def create_toolbar(self, name: str) -> QToolBar:
+    def create_toolbar(self, name: str) -> SpyderToolbar:
         """
         Create a Spyder toolbar.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbar to create.
         """
-        toolbar = QToolBar(self)
+        toolbar = SpyderToolbar(self, name)
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         TOOLBAR_REGISTRY.register_reference(
             toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
         return toolbar
