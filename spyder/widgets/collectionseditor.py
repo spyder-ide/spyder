@@ -46,7 +46,6 @@ from spyder_kernels.utils.nsview import (
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
@@ -61,7 +60,6 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -1446,7 +1444,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.dictfilter = dictfilter
 
 
-class CollectionsEditorWidget(QWidget):
+class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
 
     sig_refresh_requested = Signal()
@@ -1463,9 +1461,7 @@ class CollectionsEditorWidget(QWidget):
                 self, data, namespacebrowser, data_function, readonly, title
             )
 
-        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
-        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-
+        toolbar = self.create_toolbar('Editor toolbar', register=False)
         for item in self.editor.menu_actions:
             if item is not None:
                 toolbar.addAction(item)

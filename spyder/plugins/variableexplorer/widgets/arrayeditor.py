@@ -38,7 +38,6 @@ if TYPE_CHECKING:
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
@@ -47,7 +46,6 @@ from spyder.py3compat import (is_binary_string, is_string, is_text_string,
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, keybinding, safe_disconnect)
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 class ArrayEditorActions:
@@ -716,8 +714,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Toolbar and actions
 
-        toolbar = SpyderToolbar(parent=self, title='Editor toolbar')
-        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        toolbar = self.create_toolbar('Editor toolbar', register=False)
 
         def do_nothing():
             # .create_action() needs a toggled= parameter, but we can only

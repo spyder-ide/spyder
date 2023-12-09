@@ -31,9 +31,7 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    add_actions, create_toolbutton, qapplication, safe_disconnect)
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.qthelpers import add_actions, qapplication, safe_disconnect
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -235,50 +233,59 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
         """Sets up the main menu."""
-        self.tools_layout = QHBoxLayout()
+        self.toolbar = self.create_toolbar(
+            'Object explorer toolbar', register=False
+        )
 
-        callable_attributes = create_toolbutton(
-            self, text=_("Show callable attributes"),
+        callable_attributes = self.create_toolbutton(
+            name='Show callable toolbutton',
+            text=_("Show callable attributes"),
             icon=ima.icon("class"),
-            toggled=self._toggle_show_callable_attributes_action)
+            toggled=self._toggle_show_callable_attributes_action,
+            register=False
+        )
         callable_attributes.setCheckable(True)
         callable_attributes.setChecked(show_callable_attributes)
-        callable_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-        self.tools_layout.addWidget(callable_attributes)
+        self.toolbar.add_item(callable_attributes)
 
-        special_attributes = create_toolbutton(
-            self, text=_("Show __special__ attributes"),
+        special_attributes = self.create_toolbutton(
+            name='Show special toolbutton',
+            text=_("Show __special__ attributes"),
             icon=ima.icon("private2"),
-            toggled=self._toggle_show_special_attributes_action)
+            toggled=self._toggle_show_special_attributes_action,
+            register=False
+        )
         special_attributes.setCheckable(True)
         special_attributes.setChecked(show_special_attributes)
-        special_attributes.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-        self.tools_layout.addSpacing(5)
-        self.tools_layout.addWidget(special_attributes)
+        self.toolbar.add_item(special_attributes)
 
-        self.refresh_button = create_toolbutton(
-            self, icon=ima.icon('refresh'),
+        self.refresh_button = self.create_toolbutton(
+            name='Refresh toolbutton',
+            icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh_editor
+            triggered=self.refresh_editor,
+            register=False
         )
         self.refresh_button.setEnabled(self.data_function is not None)
-        self.refresh_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-        self.tools_layout.addSpacing(5)
-        self.tools_layout.addWidget(self.refresh_button)
+        self.toolbar.add_item(self.refresh_button)
 
-        self.tools_layout.addStretch()
+        stretcher = self.create_stretcher('Toolbar stretcher')
+        self.toolbar.add_item(stretcher)
 
-        self.options_button = create_toolbutton(
-                self, text=_('Options'), icon=ima.icon('tooloptions'))
-        self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.options_button = self.create_toolbutton(
+            name='Options toolbutton',
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
         self.show_cols_submenu = self.create_menu(
             'Options menu', register=False
         )
         self.options_button.setMenu(self.show_cols_submenu)
-        self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-        self.tools_layout.addWidget(self.options_button)
+        self.toolbar.add_item(self.options_button)
+        self.toolbar._render()
 
     @Slot()
     def _toggle_show_callable_attributes_action(self):
@@ -298,10 +305,8 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
     def _setup_views(self):
         """Creates the UI widgets."""
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
 
-        layout.addLayout(self.tools_layout)
+        layout.addWidget(self.toolbar)
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
         layout.addWidget(self.central_splitter)
         self.setLayout(layout)

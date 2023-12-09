@@ -53,7 +53,6 @@ from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
@@ -64,7 +63,6 @@ from spyder.utils.qthelpers import (
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 # Supported real and complex number types
@@ -1716,8 +1714,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         btn_layout.setContentsMargins(0, 16, 0, 16)
         self.glayout.addLayout(btn_layout, 4, 0, 1, 2)
 
-        self.toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
-        self.toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        self.toolbar = self.create_toolbar('Editor toolbar', register=False)
         self.layout.addWidget(self.toolbar)
         self.layout.addLayout(self.glayout)
 
