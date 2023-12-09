@@ -199,6 +199,33 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         )
         self.info.setAlignment(Qt.AlignHCenter)
 
+        # -- Scroll areas
+        scroll_overview = QScrollArea(self)
+        scroll_overview.setWidgetResizable(True)
+        scroll_overview.setWidget(self.label_overview)
+
+        scroll_community = QScrollArea(self)
+        scroll_community.setWidgetResizable(True)
+        scroll_community.setStyleSheet(self._scrollarea_stylesheet)
+        scroll_community.setWidget(self.label_community)
+
+        scroll_legal = QScrollArea(self)
+        scroll_legal.setWidgetResizable(True)
+        scroll_legal.setStyleSheet(self._scrollarea_stylesheet)
+        scroll_legal.setWidget(self.label_legal)
+
+        # Style for scroll areas needs to be applied after creating them.
+        # Otherwise it doesn't have effect.
+        for scroll_area in [scroll_overview, scroll_community, scroll_legal]:
+            scroll_area.setStyleSheet(self._scrollarea_stylesheet)
+
+        # -- Tabs
+        self.tabs = QTabWidget(self)
+        self.tabs.addTab(scroll_overview, _('Overview'))
+        self.tabs.addTab(scroll_community, _('Community'))
+        self.tabs.addTab(scroll_legal, _('Legal'))
+        self.tabs.setStyleSheet(self._tabs_stylesheet)
+
         # -- Buttons
         info_btn = QPushButton(_("Copy version info"), )
         ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -227,30 +254,6 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
             0
         )
 
-        scroll_overview = QScrollArea(self)
-        scroll_overview.setWidgetResizable(True)
-        scroll_overview.setWidget(self.label_overview)
-
-        scroll_community = QScrollArea(self)
-        scroll_community.setWidgetResizable(True)
-        scroll_community.setStyleSheet(self._scrollarea_stylesheet)
-        scroll_community.setWidget(self.label_community)
-
-        scroll_legal = QScrollArea(self)
-        scroll_legal.setWidgetResizable(True)
-        scroll_legal.setStyleSheet(self._scrollarea_stylesheet)
-        scroll_legal.setWidget(self.label_legal)
-
-        # Style for scroll areas needs to be applied after creating them.
-        # Otherwise it doesn't have effect.
-        for scroll_area in [scroll_overview, scroll_community, scroll_legal]:
-            scroll_area.setStyleSheet(self._scrollarea_stylesheet)
-
-        self.tabs = QTabWidget(self)
-        self.tabs.addTab(scroll_overview, _('Overview'))
-        self.tabs.addTab(scroll_community, _('Community'))
-        self.tabs.addTab(scroll_legal, _('Legal'))
-        self.tabs.setStyleSheet(self._tabs_stylesheet)
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
