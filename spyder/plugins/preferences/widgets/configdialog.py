@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import (
@@ -52,7 +53,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
-        # Attributes
+        # ---- Attributes
         self.main = parent
         self.items_font = self.get_font(
             SpyderFontType.Interface, font_size_delta=1
@@ -60,11 +61,11 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self._is_shown = False
         self._separators = []
 
-        # Size
+        # ---- Size
         self.setMinimumWidth(self.MIN_WIDTH)
         self.setMinimumHeight(self.MIN_HEIGHT)
 
-        # Widgets
+        # ---- Widgets
         self.pages_widget = QStackedWidget(self)
         self.contents_widget = QListWidget(self)
         self.button_reset = QPushButton(_('Reset to defaults'))
@@ -82,22 +83,22 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
 
-        # Widgets setup
+        # ---- Widgets setup
         self.pages_widget.setMinimumWidth(600)
 
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(3)
         self.contents_widget.setCurrentRow(0)
-        self.contents_widget.setObjectName('configdialog-contents')
         self.contents_widget.setIconSize(QSize(self.ICON_SIZE, self.ICON_SIZE))
         self.contents_widget.setFixedWidth(self.CONTENTS_WIDTH)
 
         # Don't show horizontal scrollbar because it doesn't look good. Instead
         # we show tooltips if the text doesn't fit in contents_widget width.
         self.contents_widget.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarAlwaysOff)
+            Qt.ScrollBarAlwaysOff
+        )
 
-        # Layout
+        # ---- Layout
         contents_and_pages_layout = QGridLayout()
         contents_and_pages_layout.addWidget(self.contents_widget, 0, 0)
         contents_and_pages_layout.addWidget(self.pages_widget, 0, 1)
@@ -118,11 +119,17 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
         self.setLayout(layout)
 
-        # Stylesheet
-        self._css = self._generate_stylesheet()
-        self.setStyleSheet(self._css.toString())
+        # ---- Stylesheet
+        self.setStyleSheet(self._main_stylesheet)
 
-        # Signals and slots
+        self._contents_css = self._generate_contents_stylesheet()
+        self.contents_widget.setStyleSheet(self._contents_css.toString())
+
+        self.contents_widget.verticalScrollBar().setStyleSheet(
+            self._contents_scrollbar_stylesheet
+        )
+
+        # ---- Signals and slots
         self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
@@ -203,6 +210,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
 
         hline = QFrame(self.contents_widget)
         hline.setFrameShape(QFrame.HLine)
+        hline.setStyleSheet(self._separators_stylesheet)
         self.contents_widget.setItemWidget(item, hline)
 
         # This is necessary to keep in sync the contents_widget and
@@ -361,11 +369,11 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
                 f'0px {self.ITEMS_MARGIN}px'
             )
 
-            self._css['QListView#configdialog-contents::item'].setValues(
+            self._contents_css['QListView::item'].setValues(
                 margin=item_margin
             )
 
-            self.setStyleSheet(self._css.toString())
+            self.contents_widget.setStyleSheet(self._contents_css.toString())
 
     def _adjust_separators_width(self):
         """
@@ -395,48 +403,82 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
                 else:
                     sep.setFixedWidth(204)
 
-    def _generate_stylesheet(self):
-        """Generate stylesheet for this widget as a qstylizer object."""
-        # Use the tabbar stylesheet as the base one and extend it.
+    @property
+    def _main_stylesheet(self):
+        """Main style for this widget."""
+        # Use the preferences tabbar stylesheet as the base one and extend it.
         tabs_stylesheet = PREFERENCES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
-
-        # Set style of contents area
-        css['QListView#configdialog-contents'].setValues(
-            padding=f'{self.ITEMS_MARGIN}px 0px',
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_2,
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
-        )
-
-        # Remove border color on focus of contents area
-        css['QListView#configdialog-contents:focus'].setValues(
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
-        )
-
-        # Add margin and padding for items in contents area
-        css['QListView#configdialog-contents::item'].setValues(
-            padding=f'{self.ITEMS_PADDING}px',
-            margin=f'0px {self.ITEMS_MARGIN}px'
-        )
-
-        # Set border radius and background color for hover, active and inactive
-        # states of items
-        css['QListView#configdialog-contents::item:hover'].setValues(
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
-        )
-
-        for state in ['item:selected:active', 'item:selected:!active']:
-            css[f'QListView#configdialog-contents::{state}'].setValues(
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-            )
 
         # Remove border of all scroll areas for pages
         css['QScrollArea#configdialog-scrollarea'].setValues(
             border='0px',
         )
 
+        return css.toString()
+
+    def _generate_contents_stylesheet(self):
+        """Generate stylesheet for the contents widget"""
+        css = qstylizer.style.StyleSheet()
+
+        # This also sets the background color of the vertical scrollbar
+        # associated to this widget
+        css.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_2
+        )
+
+        # Main style
+        css.QListView.setValues(
+            padding=f'{self.ITEMS_MARGIN}px 0px',
+            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+        )
+
+        # Remove border color on focus
+        css['QListView:focus'].setValues(
+            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+        )
+
+        # Add margin and padding for items
+        css['QListView::item'].setValues(
+            padding=f'{self.ITEMS_PADDING}px',
+            margin=f'0px {self.ITEMS_MARGIN}px'
+        )
+
+        # Set border radius and background color for hover, active and inactive
+        # states of items
+        css['QListView::item:hover'].setValues(
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+        )
+
+        for state in ['item:selected:active', 'item:selected:!active']:
+            css[f'QListView::{state}'].setValues(
+                borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+            )
+
         return css
+
+    @property
+    def _contents_scrollbar_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Give border a darker color to stand out over the background
+        css.setValues(
+            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_5}"
+        )
+
+        return css.toString()
+
+    @property
+    def _separators_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # This makes separators stand out better over the background
+        css.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
+        )
+
+        return css.toString()
 
     @qdebounced(timeout=40)
     def _on_resize_event(self):
