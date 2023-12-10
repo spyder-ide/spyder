@@ -18,13 +18,12 @@ from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (
     QAbstractItemView, QAction, QButtonGroup, QGroupBox, QHBoxLayout,
-    QHeaderView, QMenu, QMessageBox, QPushButton, QRadioButton, QSplitter,
+    QHeaderView, QMessageBox, QPushButton, QRadioButton, QSplitter,
     QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
@@ -45,7 +44,7 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
+class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
     """Object explorer main widget window."""
     CONF_SECTION = 'variable_explorer'
 
@@ -274,7 +273,9 @@ class ObjectExplorer(BaseDialog, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.options_button.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
 
-        self.show_cols_submenu = SpyderMenu(self)
+        self.show_cols_submenu = self.create_menu(
+            'Options menu', register=False
+        )
         self.options_button.setMenu(self.show_cols_submenu)
         self.show_cols_submenu.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         self.tools_layout.addWidget(self.options_button)

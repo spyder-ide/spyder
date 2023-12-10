@@ -45,8 +45,7 @@ from spyder_kernels.utils.nsview import (
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import (is_binary_string, to_text_string,
@@ -588,7 +587,7 @@ class BaseHeaderView(QHeaderView):
             self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
 
 
-class BaseTableView(QTableView, SpyderConfigurationAccessor):
+class BaseTableView(QTableView, SpyderWidgetMixin):
     """Base collection editor table view"""
     CONF_SECTION = 'variable_explorer'
 
@@ -712,7 +711,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
 
-        menu = SpyderMenu(self)
+        menu = self.create_menu('Editor menu', register=False)
         self.menu_actions = [
             self.edit_action,
             self.copy_action,
@@ -736,7 +735,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         ]
         add_actions(menu, self.menu_actions)
 
-        self.empty_ws_menu = SpyderMenu(self)
+        self.empty_ws_menu = self.create_menu('Empty ws', register=False)
         add_actions(
             self.empty_ws_menu,
             [self.insert_action, self.paste_action]

@@ -37,7 +37,6 @@ if TYPE_CHECKING:
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
@@ -445,7 +444,7 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 
 
 #TODO: Implement "Paste" (from clipboard) feature
-class ArrayView(QTableView):
+class ArrayView(QTableView, SpyderWidgetMixin):
     """Array view class"""
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
@@ -544,7 +543,7 @@ class ArrayView(QTableView):
                                          icon=ima.icon('editcopy'),
                                          triggered=self.copy,
                                          context=Qt.WidgetShortcut)
-        menu = SpyderMenu(self)
+        menu = self.create_menu('Editor menu', register=False)
         add_actions(menu, [self.copy_action, ])
         return menu
 
