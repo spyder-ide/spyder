@@ -425,14 +425,19 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         """Adjustments when the menu is shown."""
-        # Reposition menu vertically due to padding
+        # Reposition submenus vertically due to padding and border
         if (
             not sys.platform == "darwin"
             and self._reposition
             and self._is_submenu
             and not self._is_shown
         ):
-            self.move(self.pos().x(), self.pos().y() - 2 * AppStyle.MarginSize)
+            self.move(
+                self.pos().x(),
+                # Current vertical pos - padding - border
+                self.pos().y() - 2 * AppStyle.MarginSize - 1
+            )
+
             self._is_shown = True
 
         super().showEvent(event)
