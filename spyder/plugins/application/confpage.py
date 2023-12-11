@@ -65,8 +65,6 @@ class ApplicationConfigPage(PluginConfigPage):
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
                                     "them to Github"), 'show_internal_errors')
-        check_updates = newcb(_("Check for updates on startup"),
-                              'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -88,7 +86,6 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(single_instance_box)
         advanced_layout.addWidget(prompt_box)
         advanced_layout.addWidget(popup_console_box)
-        advanced_layout.addWidget(check_updates)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
