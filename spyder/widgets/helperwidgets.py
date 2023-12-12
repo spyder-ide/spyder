@@ -37,8 +37,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.stylesheet import AppStyle, DialogStyle
-from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.stylesheet import AppStyle
 
 
 # Valid finder chars. To be improved
@@ -579,6 +578,10 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
     ):
         super().__init__(parent)
 
+        # Attributes
+        self._is_shown = False
+        self._spin = None
+
         interface_font_size = self.get_font(
             SpyderFontType.Interface).pointSize()
 
@@ -625,17 +628,20 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         pane_empty_layout.addWidget(image_label)
 
         # Display spinner if requested
-        if spinner is not False:
+        if spinner:
             spin_widget = qta.IconWidget()
+            self._spin = qta.Spin(spin_widget, interval=3, autostart=False)
             spin_icon = qta.icon(
                 "mdi.loading",
-                color="white",
-                animation=qta.Spin(spin_widget, interval=3),
+                color=ima.MAIN_FG_COLOR,
+                animation=self._spin
             )
+
             spin_widget.setIconSize(QSize(32, 32))
             spin_widget.setIcon(spin_icon)
             spin_widget.setStyleSheet(image_label_qss.toString())
             spin_widget.setAlignment(Qt.AlignCenter)
+
             pane_empty_layout.addWidget(spin_widget)
             pane_empty_layout.addItem(QSpacerItem(20, 20))
 
@@ -656,6 +662,8 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         self.setFocusPolicy(Qt.StrongFocus)
         self._apply_stylesheet(False)
 
+    # ---- Public methods
+    # -------------------------------------------------------------------------
     def setup(self, *args, **kwargs):
         """
         This method is needed when using this widget to show a "no connected
@@ -711,6 +719,22 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
 
         return final_pm
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            self._start_spinner()
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def hideEvent(self, event):
+        """Adjustments when the widget is hidden."""
+        self._stop_spinner()
+        self._is_shown = False
+        super().hideEvent(event)
+
     def focusInEvent(self, event):
         self._apply_stylesheet(True)
         super().focusOutEvent(event)
@@ -719,6 +743,8 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         self._apply_stylesheet(False)
         super().focusOutEvent(event)
 
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _apply_stylesheet(self, focus):
         if focus:
             border_color = QStylePalette.COLOR_ACCENT_3
@@ -734,6 +760,19 @@ class PaneEmptyWidget(QFrame, SpyderConfigurationAccessor, SpyderFontsMixin):
         )
 
         self.setStyleSheet(qss.toString())
+
+    def _start_spinner(self):
+        """
+        Start spinner when requested, in case the widget has one (it's stopped
+        by default).
+        """
+        if self._spin is not None:
+            self._spin.start()
+
+    def _stop_spinner(self):
+        """Stop spinner when requested, in case the widget has one."""
+        if self._spin is not None:
+            self._spin.stop()
 
 
 class HoverRowsTableView(QTableView):
