@@ -16,14 +16,13 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.widgets.menus import MENU_SEPARATOR
+from spyder.api.widgets.menus import SpyderMenu, MENU_SEPARATOR
 from spyder.config.base import (DEV, get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
@@ -305,7 +304,7 @@ class Application(SpyderPluginV2):
 
         help_plugin = self.get_plugin(Plugins.Help)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
-        menu = QMenu(parent=parent)
+        menu = SpyderMenu(parent=parent)
         actions = [self.documentation_action]
         # Help actions
         if help_plugin:

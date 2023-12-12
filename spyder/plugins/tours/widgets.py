@@ -22,11 +22,12 @@ from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
-                            QLayout, QMainWindow, QMenu, QMessageBox,
+                            QLayout, QMainWindow, QMessageBox,
                             QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
@@ -579,7 +580,7 @@ class FadingTipBox(FadingDialog):
 
     def context_menu_requested(self, event):
         pos = QPoint(event.x(), event.y())
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
 
         actions = []
         action_title = create_action(self, _('Go to step: '), icon=QIcon())

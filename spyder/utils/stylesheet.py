@@ -21,7 +21,7 @@ import qstylizer.style
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
-from spyder.config.gui import is_dark_interface, OLD_PYQT
+from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import QStylePalette
 
 
@@ -176,16 +176,6 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             margin='0px'
         )
 
-        # Set the same color as the one used for the app toolbar
-        css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
-
-        # Remove padding when pressing main menus
-        css['QMenuBar::item:pressed'].setValues(
-            padding='0px'
-        )
-
         # Remove border, padding and spacing for main toolbar
         css.QToolBar.setValues(
             borderBottom='0px',
@@ -205,21 +195,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             height='3px'
         )
 
-        # Set menu item properties
+        # TODO: Remove when the editor is migrated to the new API!
         css["QMenu::item"].setValues(
-            height='1.6em',
-            padding='4px 24px 4px 8px',
+            height='1.4em',
+            padding='4px 8px 4px 8px',
             fontFamily=font_family,
             fontSize=f'{font_size}pt'
-        )
-
-        if OLD_PYQT:
-            css["QMenu::item"].setValues(
-                padding='4px 24px 4px 28px',
-            )
-
-        css["QMenu#checkbox-padding::item"].setValues(
-            padding='4px 24px 4px 28px',
         )
 
         # Increase padding for QPushButton's
@@ -317,6 +298,7 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
             marginLeft=self.BUTTON_MARGIN_RIGHT,
             marginRight=self.BUTTON_MARGIN_RIGHT,
             border='0px',
+            borderRadius='0px',
             padding='0px',
         )
 
@@ -353,6 +335,7 @@ class PanesToolbarStyleSheet(SpyderStyleSheet):
             height=self.BUTTON_HEIGHT,
             width=self.BUTTON_WIDTH,
             border='0px',
+            borderRadius='0px',
             margin='0px'
         )
 
@@ -414,11 +397,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
             )
 
         # Set width for scroll buttons
-        # This makes one button huge and the other very small in PyQt 5.9
-        if not OLD_PYQT:
-            css['QTabBar::scroller'].setValues(
-                width='66px',
-            )
+        css['QTabBar::scroller'].setValues(
+            width='66px',
+        )
 
 
 class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
@@ -500,6 +481,11 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css['QTabWidget::right-corner'].setValues(
             top='-1px',
             right='-3px' if WIN else '-1px'
+        )
+
+        # Make scroll buttons height match the one of tabs
+        css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
+            marginTop=self.TOP_MARGIN,
         )
 
         # Make scroll button icons smaller on Windows and Mac

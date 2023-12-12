@@ -32,7 +32,7 @@ from qtpy.QtCore import (
     QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu,
+    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
     QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
@@ -46,6 +46,7 @@ from spyder_kernels.utils.nsview import (
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import (is_binary_string, to_text_string,
@@ -711,7 +712,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item)
 
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
         self.menu_actions = [
             self.edit_action,
             self.copy_action,
@@ -735,7 +736,7 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         ]
         add_actions(menu, self.menu_actions)
 
-        self.empty_ws_menu = QMenu(self)
+        self.empty_ws_menu = SpyderMenu(self)
         add_actions(
             self.empty_ws_menu,
             [self.insert_action, self.paste_action]

@@ -161,7 +161,6 @@ class LayoutContainer(PluginMainContainer):
 
         self._plugins_menu = self.create_menu(
             LayoutPluginMenus.PluginsMenu, _("Panes"))
-        self._plugins_menu.setObjectName('checkbox-padding')
 
     def update_actions(self):
         pass

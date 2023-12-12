@@ -55,8 +55,6 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWindow
-from spyder.plugins.editor.widgets.printer import (
-    SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    update_bookmarks)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -68,6 +66,7 @@ from spyder.plugins.run.api import (
     SupportedExtensionContexts, ExtendedContext)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.widgets.mixins import BaseEditMixin
+from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -723,7 +722,6 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetMenus.EOL,
             title=_("Convert end-of-line characters")
         )
-        self.eol_menu.setObjectName('checkbox-padding')
         self.eol_menu.addActions(eol_actions)
         self.trailingspaces_action = self.create_action(
             EditorWidgetActions.RemoveTrailingSpaces,

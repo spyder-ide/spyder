@@ -14,7 +14,6 @@ subclass of PluginMainWidget.
 # Standard library imports
 from collections import OrderedDict
 import logging
-import sys
 from typing import Optional
 
 # Third party imports
@@ -25,18 +24,19 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
-from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
-                                      PluginMainWidgetMenus)
+from spyder.api.widgets.menus import (
+    PluginMainWidgetOptionsMenu,
+    OptionsMenuSections,
+    PluginMainWidgetMenus
+)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.py3compat import qbytearray_to_str
-from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
-from spyder.utils.registries import (
-    ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
+from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.utils.stylesheet import (
     AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
     PANES_TOOLBAR_STYLESHEET)
@@ -287,9 +287,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         self._corner_toolbar.setSizePolicy(QSizePolicy.Minimum,
                                            QSizePolicy.Expanding)
-        self._options_menu = self.create_menu(
+
+        self._options_menu = self._create_menu(
             PluginMainWidgetMenus.Options,
             title=_('Options menu'),
+            MenuClass=PluginMainWidgetOptionsMenu
         )
 
         # Margins
@@ -412,11 +414,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._update_actions)
 
-        # Hide icons in Mac plugin menus
-        if sys.platform == 'darwin':
-            self._options_menu.aboutToHide.connect(
-                lambda menu=self._options_menu: set_menu_icons(menu, False))
-
         # For widgets that do not use tabs, we add the corner widget to the
         # corner toolbar
         if not self._is_tab:
@@ -440,16 +437,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.lock_unlock_action.setVisible(show_dock_actions)
         self.dock_action.setVisible(not show_dock_actions)
 
-        if sys.platform == 'darwin':
-            try:
-                set_menu_icons(
-                    self.get_menu(PluginMainWidgetMenus.Options), True)
-            except KeyError:
-                # Prevent unexpected errors on the test suite.
-                pass
-
         # Widget setup
-        # --------------------------------------------------------------------
         self.update_actions()
 
     @Slot(bool)
@@ -604,45 +592,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         return toolbar
 
-    def create_menu(self, menu_id, title='', icon=None):
-        """
-        Override SpyderMenuMixin method to use a different menu class.
-
-        Parameters
-        ----------
-        menu_id: str
-            Unique toolbar string identifier.
-        title: str
-            Toolbar localized title.
-        icon: QIcon or None
-            Icon to use for the menu.
-
-        Returns
-        -------
-        MainWidgetMenu
-            The main widget menu.
-        """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
-
-        if menu_id in self._menus:
-            raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(menu_id)
-            )
-
-        menu = MainWidgetMenu(parent=self, title=title, menu_id=menu_id)
-
-        MENU_REGISTRY.register_reference(
-            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
-
-        if icon is not None:
-            menu.menuAction().setIconVisibleInMenu(True)
-            menu.setIcon(icon)
-
-        self._menus[menu_id] = menu
-        return menu
-
     def get_options_menu(self):
         """
         Return the main options menu of the widget.
@@ -780,7 +729,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             # self._toolbars_already_rendered = True
 
-    # ---- SpyderDockwidget handling ------------------------------------------
+    # ---- SpyderDockwidget handling
     # -------------------------------------------------------------------------
     @Slot()
     def create_window(self):

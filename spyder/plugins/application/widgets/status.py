@@ -14,10 +14,11 @@ import os
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtWidgets import QMenu, QLabel
+from qtpy.QtWidgets import QLabel
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.application.widgets.install import (
@@ -62,7 +63,7 @@ class ApplicationUpdateStatus(StatusBarWidget):
         self.installer = UpdateInstallerDialog(self)
 
         # Check for updates action menu
-        self.menu = QMenu(self)
+        self.menu = SpyderMenu(self)
 
         # Set aligment attributes for custom widget to match default label
         # values
