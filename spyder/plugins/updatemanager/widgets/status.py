@@ -21,8 +21,13 @@ from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.plugins.updatemanager.widgets.update import (
-    NO_STATUS, DOWNLOADING_INSTALLER, PENDING,
-    CHECKING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE)
+    CHECKING,
+    DOWNLOAD_FINISHED,
+    DOWNLOADING_INSTALLER,
+    INSTALL_ON_CLOSE,
+    NO_STATUS,
+    PENDING
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
 
@@ -33,23 +38,23 @@ logger = logging.getLogger(__name__)
 
 class UpdateManagerStatus(StatusBarWidget):
     """Status bar widget for update manager."""
-    BASE_TOOLTIP = _("Update manager status")
+    BASE_TOOLTIP = _("Application update status")
     ID = 'update_manager_status'
 
     sig_check_update = Signal()
     """Signal to request checking for updates."""
 
     sig_start_update = Signal()
-    """Signal to start update process"""
+    """Signal to start the update process"""
 
     sig_show_progress_dialog = Signal(bool)
     """
-    Signal to show progress dialog
+    Signal to show the progress dialog.
 
     Parameters
     ----------
     show: bool
-        True to show, False to hide
+        True to show, False to hide.
     """
 
     CUSTOM_WIDGET_CLASS = QLabel
@@ -73,7 +78,7 @@ class UpdateManagerStatus(StatusBarWidget):
         """Set update manager status."""
         if value == DOWNLOADING_INSTALLER:
             self.tooltip = _(
-                "Downloading update will continue in the background.\n"
+                "Downloading the update will continue in the background.\n"
                 "Click here to show the download dialog again."
             )
             self.spinner.hide()
@@ -96,6 +101,7 @@ class UpdateManagerStatus(StatusBarWidget):
             if self.spinner:
                 self.spinner.hide()
                 self.spinner.stop()
+
         self.setVisible(True)
         self.update_tooltip()
         value = f"Spyder: {value}"
@@ -132,9 +138,11 @@ class UpdateManagerStatus(StatusBarWidget):
                 text=_("Check for updates..."),
                 triggered=self.sig_check_update.emit
             )
+
             add_actions(self.menu, [check_for_updates_action])
             rect = self.contentsRect()
             os_height = 7 if os.name == 'nt' else 12
             pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-10, -rect.height() - os_height))
+                rect.topLeft() + QPoint(-10, -rect.height() - os_height)
+            )
             self.menu.popup(pos)

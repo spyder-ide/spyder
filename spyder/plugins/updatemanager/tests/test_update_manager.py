@@ -41,20 +41,25 @@ def test_updates_appenv(qtbot, mocker, version):
     mocker.patch.object(update, "__version__", new=version)
     # Do not execute start_update after check_update completes.
     mocker.patch.object(
-        UpdateManagerWidget, "start_update", new=lambda x: None)
+        UpdateManagerWidget, "start_update", new=lambda x: None
+    )
     mocker.patch.object(workers, "__version__", new=version)
     mocker.patch.object(workers, "is_anaconda", return_value=True)
     mocker.patch.object(workers, "is_conda_based_app", return_value=True)
     mocker.patch.object(
         workers, "get_spyder_conda_channel",
-        return_value=("conda-forge", "https://conda.anaconda.org/conda-forge"))
+        return_value=("conda-forge", "https://conda.anaconda.org/conda-forge")
+    )
 
     um = UpdateManagerWidget(None)
     um.start_check_update()
     qtbot.waitUntil(um.update_thread.isFinished)
 
-    _update = um.update_worker.update_available
-    assert _update if version.split('.')[0] == '1' else not _update
+    update_available = um.update_worker.update_available
+    if version.split('.')[0] == '1':
+        assert update_available
+    else:
+        assert not update_available
     assert len(um.update_worker.releases) > 1
 
 
@@ -68,8 +73,8 @@ def test_updates_appenv(qtbot, mocker, version):
 )
 def test_updates_condaenv(qtbot, worker, mocker, version, channel):
     """
-    Test whether or not we offer updates for our installers according to the
-    current Spyder version.
+    Test whether or not we offer updates for conda installed Spyder according
+    to the current version.
     """
     mocker.patch.object(workers, "__version__", new=version)
     mocker.patch.object(workers, "is_anaconda", return_value=True)
@@ -81,16 +86,17 @@ def test_updates_condaenv(qtbot, worker, mocker, version, channel):
     with qtbot.waitSignal(worker.sig_ready, timeout=5000):
         worker.start()
 
-    _update = worker.update_available
-    assert _update if version.split('.')[0] == '1' else not _update
+    update_available = worker.update_available
+    if version.split('.')[0] == '1':
+        assert update_available
+    else:
+        assert not update_available
     assert len(worker.releases) == 1
 
 
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
 def test_updates_pipenv(qtbot, worker, mocker, version):
-    """
-    Test updates for pip installed Spyder
-    """
+    """Test updates for pip installed Spyder."""
     mocker.patch.object(workers, "__version__", new=version)
     mocker.patch.object(workers, "is_anaconda", return_value=False)
     mocker.patch.object(workers, "is_conda_based_app", return_value=False)
@@ -102,8 +108,11 @@ def test_updates_pipenv(qtbot, worker, mocker, version):
     with qtbot.waitSignal(worker.sig_ready, timeout=5000):
         worker.start()
 
-    _update = worker.update_available
-    assert _update if version.split('.')[0] == '1' else not _update
+    update_available = worker.update_available
+    if version.split('.')[0] == '1':
+        assert update_available
+    else:
+        assert not update_available
     assert len(worker.releases) == 1
 
 
@@ -118,24 +127,31 @@ def test_update_non_stable(qtbot, mocker, version, release, stable_only):
     worker.releases = [release]
     worker._check_update_available()
 
-    _update = worker.update_available
-    assert not _update if "a" in release and stable_only else _update
+    update_available = worker.update_available
+    if "a" in release and stable_only:
+        assert not update_available
+    else:
+        assert update_available
 
 
 # ---- Test WorkerDownloadInstaller
 
+@pytest.mark.skip(reason="Re-enable when alternate repo is available")
 @pytest.mark.skipif(not running_in_ci(), reason="Download only in CI")
 def test_download(qtbot, mocker):
     """
     Test download spyder installer.
+
     Uses UpdateManagerWidget in order to also test QThread.
     """
     um = UpdateManagerWidget(None)
     um.latest_release = "6.0.0a2"
     um._set_installer_path()
+
     # Do not execute _start_install after download completes.
     mocker.patch.object(
-        UpdateManagerWidget, "_confirm_install", new=lambda x: None)
+        UpdateManagerWidget, "_confirm_install", new=lambda x: None
+    )
 
     um._start_download()
     qtbot.waitUntil(um.download_thread.isFinished, timeout=60000)

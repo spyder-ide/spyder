@@ -21,7 +21,8 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
 from spyder.plugins.updatemanager.widgets.update import (
-    UpdateManagerWidget, NO_STATUS
+    UpdateManagerWidget,
+    NO_STATUS
 )
 from spyder.utils.qthelpers import DialogManager
 
@@ -41,6 +42,8 @@ class UpdateManagerContainer(PluginMainContainer):
 
         self.install_on_close = False
 
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         self.dialog_manager = DialogManager()
         self.update_manager = UpdateManagerWidget(parent=self)
@@ -76,6 +79,18 @@ class UpdateManagerContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
+    def on_close(self):
+        """To call from Spyder when the plugin is closed."""
+        self.update_manager.cleanup_threads()
+
+        # Run installer after Spyder is closed
+        if self.install_on_close:
+            self.update_manager.start_install()
+
+        self.dialog_manager.close_all()
+
+    # --- Public API
+    # -------------------------------------------------------------------------
     def set_status(self, status, latest_version=None):
         """Set Update Manager status"""
         self.update_manager_status.set_value(status)
@@ -93,13 +108,3 @@ class UpdateManagerContainer(PluginMainContainer):
     def set_install_on_close(self, install_on_close):
         """Set whether start install on close."""
         self.install_on_close = install_on_close
-
-    def on_close(self):
-        """To call from Spyder when the plugin is closed."""
-        self.update_manager.cleanup_threads()
-
-        # Run installer after Spyder is closed
-        if self.install_on_close:
-            self.update_manager.start_install()
-
-        self.dialog_manager.close_all()

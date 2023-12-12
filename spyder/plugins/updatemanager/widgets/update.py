@@ -12,7 +12,6 @@ import os
 import os.path as osp
 import sys
 import subprocess
-from tempfile import gettempdir
 import platform
 
 # Third-party imports
@@ -26,9 +25,12 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.config.utils import is_anaconda
-from spyder.plugins.updatemanager.workers import (WorkerUpdate,
-                                                  WorkerDownloadInstaller)
+from spyder.plugins.updatemanager.workers import (
+    WorkerUpdate,
+    WorkerDownloadInstaller
+)
 from spyder.utils.conda import find_conda, is_anaconda_pkg
+from spyder.utils.programs import get_temp_dir, is_program_installed
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -45,44 +47,34 @@ CHECKING = _("Checking for updates")
 CANCELLED = _("Cancelled update")
 INSTALL_ON_CLOSE = _("Install on close")
 
-INSTALL_INFO_MESSAGES = {
-    DOWNLOADING_INSTALLER: _("Downloading Spyder {version}"),
-    DOWNLOAD_FINISHED: _("Finished downloading Spyder {version}"),
-    INSTALLING: _("Installing Spyder {version}"),
-    FINISHED: _("Finished installing Spyder {version}"),
-    PENDING: _("Spyder {version} available to download"),
-    CHECKING: _("Checking for new Spyder version"),
-    CANCELLED: _("Spyder update cancelled"),
-    INSTALL_ON_CLOSE: _("Install Spyder {version} on close")
-}
-
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
 URL_I = 'https://docs.spyder-ide.org/current/installation.html'
-TMPDIR = osp.join(gettempdir(), 'spyder')
 
 
 class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
-    """Check for updates widget"""
+    """Check for updates widget."""
+
+    CONF_SECTION = "update_manager"
 
     sig_disable_actions = Signal(bool)
     """
-    Signal to disable plugin actions during check for update
+    Signal to disable plugin actions during check for update.
 
     Parameters
     ----------
     disable: bool
-        True to disable, False to re-enable
+        True to disable, False to re-enable.
     """
 
     sig_block_status_signals = Signal(bool)
     """
     Signal to block signals from update manager status during
-    check for update
+    check for update.
 
     Parameters
     ----------
     block: bool
-        True to block, False to unblock
+        True to block, False to unblock.
     """
 
     sig_download_progress = Signal(int)
@@ -124,7 +116,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.CONF_SECTION = parent.CONF_SECTION if parent else 'update_manager'
 
         self.startup = None
         self.update_thread = None
@@ -161,10 +152,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def start_check_update(self, startup=False):
         """
-        Check for spyder updates using a QThread.
+        Check for Spyder updates using a QThread.
 
         Update actions are disabled in the menubar and statusbar while
-        checking for updates
+        checking for updates.
 
         If startup is True, then checking for updates is delayed 1 min;
         actions are disabled during this time as well.
@@ -197,7 +188,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.update_timer.setSingleShot(True)
             self.sig_block_status_signals.emit(True)
             self.update_timer.timeout.connect(
-                lambda: self.sig_block_status_signals.emit(False))
+                lambda: self.sig_block_status_signals.emit(False)
+            )
             self.update_timer.timeout.connect(self.update_thread.start)
             self.update_timer.start()
         else:
@@ -215,7 +207,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # self.startup = True is used on startup, so only positive feedback is
         # given. self.startup = False is used after startup when using the menu
-        # action, and gives feeback if updates are, or are not found.
+        # action, and gives feeback if updates are or are not found.
         if (
             self.startup and           # startup and...
             (error_msg is not None     # there is an error
@@ -231,17 +223,18 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             info_messagebox(self, _("Spyder is up to date."), checkbox=True)
 
     def _set_installer_path(self):
-        """Set the emp file path for the downloaded installer"""
+        """Set the temp file path for the downloaded installer."""
         if os.name == 'nt':
             plat, ext = 'Windows', 'exe'
         if sys.platform == 'darwin':
             plat, ext = 'macOS', 'pkg'
         if sys.platform.startswith('linux'):
             plat, ext = 'Linux', 'sh'
+
         mach = platform.machine().lower().replace("amd64", "x86_64")
         fname = f'Spyder-{self.latest_release}-{plat}-{mach}.{ext}'
 
-        dirname = osp.join(TMPDIR, 'updates', self.latest_release)
+        dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
         self.installer_path = osp.join(dirname, fname)
         self.installer_size_path = osp.join(dirname, "size")
 
@@ -286,19 +279,23 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 "This will leave your existing Spyder installation "
                 "untouched."
             ).format(URL_I + "#standalone-installers")
+
             box = confirm_messagebox(
-                self, msg, version=self.latest_release, checkbox=True
+                self, msg, _('Spyder update'),
+                version=self.latest_release, checkbox=True
             )
             if box.result() == QMessageBox.Yes:
                 self._start_download()
             else:
                 manual_update_messagebox(
-                    self, self.latest_release, self.update_worker.channel)
+                    self, self.latest_release, self.update_worker.channel
+                )
         elif major_update:
             msg = _("Would you like to automatically download "
                     "and install it?")
             box = confirm_messagebox(
-                self, msg, version=self.latest_release, checkbox=True
+                self, msg, _('Spyder update'),
+                version=self.latest_release, checkbox=True
             )
             if box.result() == QMessageBox.Yes:
                 self._start_download()
@@ -313,7 +310,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         self.cancelled = False
         self.download_worker = WorkerDownloadInstaller(
-            self.latest_release, self.installer_path, self.installer_size_path)
+            self.latest_release, self.installer_path, self.installer_size_path
+        )
 
         self.sig_disable_actions.emit(True)
         self.set_status(DOWNLOADING_INSTALLER)
@@ -330,7 +328,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             lambda: self.sig_disable_actions.emit(False)
         )
         self.download_worker.sig_download_progress.connect(
-            self._update_download_progress)
+            self._update_download_progress
+        )
         self.download_worker.moveToThread(self.download_thread)
         self.download_thread.started.connect(self.download_worker.start)
         self.download_thread.start()
@@ -359,7 +358,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """Cancel the installation in progress."""
         self.download_worker.paused = True
         msg = _('Do you really want to cancel the download?')
-        box = confirm_messagebox(self, msg, critical=True)
+        box = confirm_messagebox(
+            self, msg, _('Spyder download'), critical=True
+        )
         if box.result() == QMessageBox.Yes:
             self.cancelled = True
             self.cleanup_threads()
@@ -388,7 +389,12 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         msg = _("Would you like to install it?")
         box = confirm_messagebox(
-            self, msg, version=self.latest_release, on_close=True)
+            self,
+            msg,
+            _('Spyder install'),
+            version=self.latest_release,
+            on_close=True
+        )
         if box.result() == QMessageBox.Yes:
             self.sig_install_on_close.emit(True)
             self.sig_quit_requested.emit()
@@ -418,16 +424,23 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         elif sys.platform == 'darwin':
             # Terminal cannot accept a command with arguments therefore
             # create a temporary script
-            tmpdir = osp.join(gettempdir(), 'spyder')
-            tmpscript = osp.join(tmpdir, 'tmp_install.sh')
-            os.makedirs(tmpdir, exist_ok=True)
+            tmpscript = osp.join(get_temp_dir(), 'tmp_install.sh')
             with open(tmpscript, 'w') as f:
                 f.write(' '.join(sub_cmd))
             os.chmod(tmpscript, 0o711)  # set executable permissions
 
             cmd = ['open', '-b', 'com.apple.terminal', tmpscript]
         else:
-            cmd = ['gnome-terminal', '--window', '--'] + sub_cmd
+            programs = [
+                {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
+                {'cmd': 'konsole', 'exe-opt': '-e'},
+                {'cmd': 'xfce4-terminal', 'exe-opt': '-x'},
+                {'cmd': 'xterm', 'exe-opt': '-e'}
+            ]
+            for program in programs:
+                if is_program_installed(program['cmd']):
+                    cmd = [program['cmd'], program['exe-opt']] + sub_cmd
+                    break
 
         subprocess.Popen(' '.join(cmd), shell=True)
 
@@ -436,14 +449,12 @@ class UpdateMessageBox(QMessageBox):
     def __init__(self, icon=None, text=None, parent=None):
         super().__init__(icon=icon, text=text, parent=parent)
         self.setWindowModality(Qt.NonModal)
-        self.setWindowTitle(_("Spyder Update Manager"))
         self.setTextFormat(Qt.RichText)
 
 
 class UpdateMessageCheckBox(MessageCheckBox):
     def __init__(self, icon=None, text=None, parent=None):
         super().__init__(icon=icon, text=text, parent=parent)
-        self.setWindowTitle(_("Spyder Update Manager"))
         self.setTextFormat(Qt.RichText)
         self._parent = parent
         self.set_checkbox_text(_("Check for updates at startup"))
@@ -462,6 +473,7 @@ class ProgressDialog(UpdateMessageBox):
 
     def __init__(self, parent, text):
         super().__init__(icon=QMessageBox.NoIcon, text=text, parent=parent)
+        self.setWindowTitle(_("Spyder update"))
 
         self._progress_bar = QProgressBar(self)
         self._progress_bar.setMinimumWidth(250)
@@ -486,7 +498,9 @@ class ProgressDialog(UpdateMessageBox):
 
 def error_messagebox(parent, error_msg):
     box = UpdateMessageBox(
-        icon=QMessageBox.Warning, text=error_msg, parent=parent)
+        icon=QMessageBox.Warning, text=error_msg, parent=parent
+    )
+    box.setWindowTitle(_("Spyder update error"))
     box.setStandardButtons(QMessageBox.Ok)
     box.setDefaultButton(QMessageBox.Ok)
     box.show()
@@ -497,19 +511,22 @@ def info_messagebox(parent, message, version=None, checkbox=False):
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     message = HEADER.format(version) + message if version else message
     box = box_class(icon=QMessageBox.Information, text=message, parent=parent)
+    box.setWindowTitle(_("New Spyder version"))
     box.setStandardButtons(QMessageBox.Ok)
     box.setDefaultButton(QMessageBox.Ok)
     box.show()
     return box
 
 
-def confirm_messagebox(parent, message, version=None, critical=False,
+def confirm_messagebox(parent, message, title, version=None, critical=False,
                        checkbox=False, on_close=False):
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     message = HEADER.format(version) + message if version else message
     box = box_class(
         icon=QMessageBox.Critical if critical else QMessageBox.Question,
-        text=message, parent=parent)
+        text=message, parent=parent
+    )
+    box.setWindowTitle(title)
     box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
     box.setDefaultButton(QMessageBox.Yes)
     if on_close:

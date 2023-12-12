@@ -13,25 +13,30 @@ from spyder import __version__
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown
+)
 from spyder.config.base import DEV
 from spyder.plugins.updatemanager.confpage import UpdateManagerConfigPage
-from spyder.plugins.updatemanager.container import (UpdateManagerActions,
-                                                    UpdateManagerContainer)
+from spyder.plugins.updatemanager.container import (
+    UpdateManagerActions,
+    UpdateManagerContainer
+)
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 
 
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.StatusBar]
+    OPTIONAL = [Plugins.MainMenu, Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
     CONF_FILE = False
     CONF_WIDGET_CLASS = UpdateManagerConfigPage
     CAN_BE_DISABLED = False
 
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _('Update Manager')
@@ -44,8 +49,7 @@ class UpdateManager(SpyderPluginV2):
     def get_description():
         return _('Manage application updates.')
 
-    # --------------------- PLUGIN INITIALIZATION -----------------------------
-
+    # ---- Plugin initialization
     def on_initialize(self):
         pass
 
@@ -69,8 +73,7 @@ class UpdateManager(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         statusbar.add_status_widget(self.update_manager_status)
 
-    # -------------------------- PLUGIN TEARDOWN ------------------------------
-
+    # ---- Plugin teardown
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Remove status widget if created

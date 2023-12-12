@@ -13,6 +13,15 @@ done
 shift $(($OPTIND - 1))
 
 update_spyder(){
+    cat <<EOF
+=========================================================
+Updating Spyder
+---------------
+
+IMPORTANT: Do not close this window until it has finished
+=========================================================
+
+EOF
     $conda install -p $prefix -c conda-forge --override-channels -y spyder=$spy_ver
     read -p "Press any key to exit..."
 }
@@ -33,6 +42,7 @@ install_spyder(){
     uninstall_script="$prefix/../../uninstall-spyder.sh"
     if [[ -f "$uninstall_script" ]]; then
         echo "Uninstalling Spyder..."
+        echo ""
         $uninstall_script
     fi
 

@@ -68,7 +68,7 @@ class WorkerUpdate(QObject):
         self.stable_only = stable_only
         self.latest_release = None
         self.releases = None
-        self.update_available = None
+        self.update_available = False
         self.error = None
         self.channel = None
 
@@ -82,8 +82,11 @@ class WorkerUpdate(QObject):
         logger.debug(f"Available versions: {self.releases}")
 
         self.latest_release = releases[-1] if releases else __version__
-        self.update_available = check_version(__version__,
-                                              self.latest_release, '<')
+        self.update_available = check_version(
+            __version__,
+            self.latest_release,
+            '<'
+        )
 
         logger.debug(f"Update available: {self.update_available}")
         logger.debug(f"Latest release: {self.latest_release}")
@@ -101,7 +104,9 @@ class WorkerUpdate(QObject):
         elif is_anaconda():
             self.channel, channel_url = get_spyder_conda_channel()
 
-            if channel_url is None or self.channel == "pypi":
+            if channel_url is None:
+                return
+            elif self.channel == "pypi":
                 url = pypi_url
             else:
                 url = channel_url + '/channeldata.json'
@@ -139,8 +144,10 @@ class WorkerUpdate(QObject):
             logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
-            formatted_error = (error.replace('\n', '<br>')
-                                    .replace(' ', '&nbsp;'))
+            formatted_error = (
+                error.replace('\n', '<br>')
+                .replace(' ', '&nbsp;')
+            )
 
             error_msg = _(
                 'It was not possible to check for Spyder updates due to the '
@@ -151,7 +158,10 @@ class WorkerUpdate(QObject):
             logger.warning(err, exc_info=err)
         finally:
             self.error = error_msg
-            self.sig_ready.emit()
+            try:
+                self.sig_ready.emit()
+            except RuntimeError:
+                pass
 
 
 class WorkerDownloadInstaller(QObject):
@@ -254,8 +264,10 @@ class WorkerDownloadInstaller(QObject):
             logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
-            formatted_error = (error.replace('\n', '<br>')
-                                    .replace(' ', '&nbsp;'))
+            formatted_error = (
+                error.replace('\n', '<br>')
+                .replace(' ', '&nbsp;')
+            )
 
             error_msg = _(
                 'It was not possible to download the installer due to the '
@@ -267,4 +279,7 @@ class WorkerDownloadInstaller(QObject):
             self._clean_installer_path()
         finally:
             self.error = error_msg
-            self.sig_ready.emit()
+            try:
+                self.sig_ready.emit()
+            except RuntimeError:
+                pass

@@ -59,7 +59,13 @@ exit %ERRORLEVEL%
     goto :EOF
 
 :update_subroutine
+    echo =========================================================
     echo Updating Spyder
+    echo ---------------
+    echo
+    echo IMPORTANT: Do not close this window until it has finished
+    echo =========================================================
+    echo
 
     call :wait_for_spyder_quit
 
