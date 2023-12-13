@@ -22,6 +22,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -100,19 +101,37 @@ class DependenciesDialog(QDialog):
         QDialog.__init__(self, parent)
 
         # Widgets
-        self.label = QLabel(_("Optional modules are not required to run "
-                              "Spyder but enhance its functions."))
-        self.label2 = QLabel(_("<b>Note:</b> New dependencies or changed ones "
-                               "will be correctly detected only after Spyder "
-                               "is restarted."))
+        note1 = _(
+            "Optional modules are not required to run Spyder but enhance "
+            "its functions."
+        )
+
+        note2 = _(
+            "New dependencies or changed ones will be correctly detected only "
+            "after Spyder is restarted."
+        )
+
+        label = QLabel(
+            (
+                "<style>"
+                "ul, li {{margin-left: -15px}}"
+                "li {{margin-bottom: 0.3em}}"
+                "</style>"
+                "<ul>"
+                "<li>{}</li>"
+                "<li>{}</li>"
+                "</ul>"
+            ).format(note1, note2)
+        )
+
         self.treewidget = DependenciesTreeWidget(self)
         btn = QPushButton(_("Copy to clipboard"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
-        self.setWindowTitle("Spyder %s: %s" % (__version__,
-                                               _("Dependencies")))
-        self.setWindowIcon(ima.icon('tooloptions'))
+        self.setWindowTitle(
+            _("Dependencies for Spyder {}").format(__version__)
+        )
         self.setModal(False)
 
         # Create a QStackedWidget
@@ -141,9 +160,11 @@ class DependenciesDialog(QDialog):
         hlayout.addWidget(bbox)
 
         vlayout = QVBoxLayout()
+        vlayout.setContentsMargins(*((5 * AppStyle.MarginSize,) * 4))
+        vlayout.addSpacing(AppStyle.MarginSize)
         vlayout.addWidget(self.stacked_widget)
-        vlayout.addWidget(self.label)
-        vlayout.addWidget(self.label2)
+        vlayout.addWidget(label)
+        vlayout.addSpacing(AppStyle.MarginSize)
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
@@ -182,7 +203,7 @@ def test():
                      ">=0.10", kind=OPTIONAL)
 
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     dlg = DependenciesDialog(None)
     dlg.set_data(dependencies.DEPENDENCIES)
     dlg.show()
