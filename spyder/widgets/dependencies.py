@@ -125,14 +125,15 @@ class DependenciesDialog(QDialog):
         )
 
         self.treewidget = DependenciesTreeWidget(self)
-        btn = QPushButton(_("Copy to clipboard"), )
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        self.copy_btn = QPushButton(_("Copy to clipboard"))
+        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
         self.setWindowTitle(
             _("Dependencies for Spyder {}").format(__version__)
         )
         self.setModal(False)
+        self.copy_btn.setEnabled(False)
 
         # Create a QStackedWidget
         self.stacked_widget = QStackedWidget()
@@ -155,9 +156,9 @@ class DependenciesDialog(QDialog):
 
         # Layout
         hlayout = QHBoxLayout()
-        hlayout.addWidget(btn)
+        hlayout.addWidget(self.copy_btn)
         hlayout.addStretch()
-        hlayout.addWidget(bbox)
+        hlayout.addWidget(ok_btn)
 
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(*((5 * AppStyle.MarginSize,) * 4))
@@ -171,8 +172,8 @@ class DependenciesDialog(QDialog):
         self.resize(860, 560)
 
         # Signals
-        btn.clicked.connect(self.copy_to_clipboard)
-        bbox.accepted.connect(self.accept)
+        self.copy_btn.clicked.connect(self.copy_to_clipboard)
+        ok_btn.accepted.connect(self.accept)
 
     def set_data(self, dependencies):
         self.treewidget.update_dependencies(dependencies)
@@ -180,6 +181,9 @@ class DependenciesDialog(QDialog):
 
         # Once data is loaded, switch to the tree widget
         self.stacked_widget.setCurrentWidget(self.treewidget)
+
+        # Enable copy button
+        self.copy_btn.setEnabled(True)
 
     def copy_to_clipboard(self):
         from spyder.dependencies import status

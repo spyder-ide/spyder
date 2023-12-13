@@ -232,9 +232,10 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             )
 
         # Adjust padding of QPushButton's in QDialog's
-        css["QDialog QPushButton"].setValues(
-            padding='3px 15px 3px 15px',
-        )
+        for widget in ["QPushButton", "QPushButton:disabled"]:
+            css[f"QDialog {widget}"].setValues(
+                padding='3px 15px 3px 15px',
+            )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
             padding='3px 0px 3px 0px',
