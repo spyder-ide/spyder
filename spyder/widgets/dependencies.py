@@ -10,7 +10,6 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
@@ -19,9 +18,10 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
-from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
+from spyder.config.gui import is_dark_interface
+from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -56,15 +56,28 @@ class DependenciesTreeWidget(QTreeWidget):
                                     dependency.required_version,
                                     dependency.installed_version,
                                     dependency.features])
+
             # Format content
             if dependency.check():
                 item.setIcon(0, ima.icon('dependency_ok'))
             elif dependency.kind == OPTIONAL:
                 item.setIcon(0, ima.icon('dependency_warning'))
                 item.setBackground(2, QColor(SpyderPalette.COLOR_WARN_1))
+
+                # Fix foreground color in the light theme
+                if not is_dark_interface():
+                    item.setForeground(
+                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                    )
             else:
                 item.setIcon(0, ima.icon('dependency_error'))
                 item.setBackground(2, QColor(SpyderPalette.COLOR_ERROR_1))
+
+                # Fix foreground color in the light theme
+                if not is_dark_interface():
+                    item.setForeground(
+                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                    )
 
             # Add to tree
             if dependency.kind == OPTIONAL:
