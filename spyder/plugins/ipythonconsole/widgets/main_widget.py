@@ -1173,7 +1173,15 @@ class IPythonConsoleWidget(PluginMainWidget):
                 self.infowidget.show()
             else:
                 if self.enable_infowidget:
-                    self.infowidget.hide()
+                    try:
+                        self.infowidget.hide()
+                    except RuntimeError:
+                        # Needed to handle the possible scenario where the
+                        # `infowidget` (`FrameWebView`) related C/C++ object
+                        # has been already deleted when trying to hide it.
+                        # See spyder-ider/spyder#21509
+                        self.enable_infowidget = False
+                        self.infowidget = None
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
