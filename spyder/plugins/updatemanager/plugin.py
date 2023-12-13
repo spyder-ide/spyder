@@ -17,7 +17,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown
 )
 from spyder.config.base import DEV
-from spyder.plugins.updatemanager.confpage import UpdateManagerConfigPage
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
@@ -32,7 +31,6 @@ class UpdateManager(SpyderPluginV2):
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
     CONF_FILE = False
-    CONF_WIDGET_CLASS = UpdateManagerConfigPage
     CAN_BE_DISABLED = False
 
     # ---- SpyderPluginV2 API

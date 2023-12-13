@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
+from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
 
@@ -65,6 +66,16 @@ class ApplicationConfigPage(PluginConfigPage):
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
                                     "them to Github"), 'show_internal_errors')
+        check_update_cb = newcb(
+            _("Check for updates on startup"),
+            'check_updates_on_startup',
+            section='update_manager'
+        )
+        stable_only_cb = newcb(
+            _("Check for stable releases only"),
+            'check_stable_only',
+            section='update_manager'
+        )
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -86,6 +97,8 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(single_instance_box)
         advanced_layout.addWidget(prompt_box)
         advanced_layout.addWidget(popup_console_box)
+        advanced_layout.addWidget(check_update_cb)
+        advanced_layout.addWidget(stable_only_cb)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
@@ -269,6 +282,11 @@ class ApplicationConfigPage(PluginConfigPage):
                 self.set_option(
                     'high_dpi_custom_scale_factors', scale_factors_text)
                 self.changed_options.add('high_dpi_custom_scale_factors')
+
+        um = self.plugin.get_plugin(Plugins.UpdateManager, error=False)
+        if um and 'check_stable_only' in self.changed_options:
+            um.update_manager_status.set_no_status()
+
         self.plugin.apply_settings()
 
     def _save_lang(self):
