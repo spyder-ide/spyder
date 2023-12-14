@@ -142,7 +142,8 @@ class DependenciesDialog(QDialog):
         self.loading_pane = PaneEmptyWidget(
             self,
             "dependencies",
-            _("Please wait while we prepare your dependencies..."),
+            _("Dependency information will be retrieved shortly. "
+              "Please wait..."),
             bottom_stretch=1,
             spinner=True,
         )
