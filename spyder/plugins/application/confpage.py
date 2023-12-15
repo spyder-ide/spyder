@@ -284,7 +284,10 @@ class ApplicationConfigPage(PluginConfigPage):
                 self.changed_options.add('high_dpi_custom_scale_factors')
 
         um = self.plugin.get_plugin(Plugins.UpdateManager, error=False)
-        if um and 'check_stable_only' in self.changed_options:
+        if (
+            um
+            and ('update_manager', 'check_stable_only') in self.changed_options
+        ):
             um.update_manager_status.set_no_status()
 
         self.plugin.apply_settings()
