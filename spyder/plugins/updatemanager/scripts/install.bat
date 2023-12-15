@@ -18,10 +18,10 @@ chcp 65001>nul
 echo =========================================================
 echo Updating Spyder
 echo ---------------
-echo
+echo.
 echo IMPORTANT: Do not close this window until it has finished
 echo =========================================================
-echo
+echo.
 
 IF not "%conda%"=="" IF not "%spy_ver%"=="" (
     call :update_subroutine
