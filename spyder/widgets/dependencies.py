@@ -22,7 +22,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -111,17 +111,18 @@ class DependenciesDialog(QDialog):
             "after Spyder is restarted."
         )
 
+        notes_vmargin = "0.4em" if WIN else "0.3em"
         label = QLabel(
             (
                 "<style>"
                 "ul, li {{margin-left: -15px}}"
-                "li {{margin-bottom: 0.3em}}"
+                "li {{margin-bottom: {}}}"
                 "</style>"
                 "<ul>"
                 "<li>{}</li>"
                 "<li>{}</li>"
                 "</ul>"
-            ).format(note1, note2)
+            ).format(notes_vmargin, note1, note2)
         )
 
         self.treewidget = DependenciesTreeWidget(self)
@@ -163,14 +164,14 @@ class DependenciesDialog(QDialog):
 
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(*((5 * AppStyle.MarginSize,) * 4))
-        vlayout.addSpacing(AppStyle.MarginSize)
         vlayout.addWidget(self.stacked_widget)
-        vlayout.addWidget(label)
         vlayout.addSpacing(AppStyle.MarginSize)
+        vlayout.addWidget(label)
+        vlayout.addSpacing((-2 if MAC else 1) * AppStyle.MarginSize)
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
-        self.resize(860, 560)
+        self.setFixedSize(860, 560)
 
         # Signals
         self.copy_btn.clicked.connect(self.copy_to_clipboard)
