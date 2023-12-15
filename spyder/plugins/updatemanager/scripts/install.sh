@@ -1,5 +1,5 @@
 #!/bin/bash -i
-set -e
+
 unset HISTFILE  # Do not write to history with interactive shell
 
 while getopts "i:c:p:v:" option; do
@@ -13,15 +13,6 @@ done
 shift $(($OPTIND - 1))
 
 update_spyder(){
-    cat <<EOF
-=========================================================
-Updating Spyder
----------------
-
-IMPORTANT: Do not close this window until it has finished
-=========================================================
-
-EOF
     $conda install -p $prefix -c conda-forge --override-channels -y spyder=$spy_ver
     read -p "Press any key to exit..."
 }
@@ -44,11 +35,22 @@ install_spyder(){
         echo "Uninstalling Spyder..."
         echo ""
         $uninstall_script
+        [[ $? > 0 ]] && return
     fi
 
     # Run installer
     [[ "$OSTYPE" = "darwin"* ]] && open $install_exe || sh $install_exe
 }
+
+cat <<EOF
+=========================================================
+Updating Spyder
+---------------
+
+IMPORTANT: Do not close this window until it has finished
+=========================================================
+
+EOF
 
 while [[ $(pgrep spyder 2> /dev/null) ]]; do
     echo "Waiting for Spyder to quit..."
