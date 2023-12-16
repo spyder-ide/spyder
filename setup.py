@@ -312,6 +312,7 @@ spyder_plugins_entry_points = [
     'switcher = spyder.plugins.switcher.plugin:Switcher',
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
+    'update_manager = spyder.plugins.updatemanager.plugin:UpdateManager',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]
