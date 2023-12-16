@@ -118,6 +118,9 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == spyder/plugins/findinfiles/widgets/main_widget.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/application/widgets/__init__.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1

@@ -30,13 +30,15 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import (
     AppStyle,
     DialogStyle,
-    PREFERENCES_TABBAR_STYLESHEET
+    MAC,
+    PREFERENCES_TABBAR_STYLESHEET,
+    WIN
 )
 
 
 class AboutDialog(QDialog, SvgToScaledPixmap):
 
-    MARGIN = 15
+    PADDING = 5 if MAC else 15
 
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
@@ -109,13 +111,11 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
                         font-weight: normal;
                         '>
             <br>
-            <p>
             Created by Pierre Raybaut; current maintainer is Carlos Cordoba.
             Developed by the
             <a href="{project_url}/graphs/contributors">international
             Spyder community</a>. Many thanks to all the Spyder beta testers
             and dedicated users.
-            </p>
             <p>For help with Spyder errors and crashes, please read our
             <a href="{trouble_url}">Troubleshooting Guide</a>, and for bug
             reports and feature requests, visit our
@@ -140,12 +140,10 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
                         font-weight: normal;
                         '>
             <br>
-            <p>
             Copyright &copy; 2009-2020 Spyder Project Contributors and
             <a href="{project_url}/blob/master/AUTHORS.txt">others</a>.
             Distributed under the terms of the
             <a href="{project_url}/blob/master/LICENSE.txt">MIT License</a>.
-            </p>
             <p>
             <p>Certain source files under other compatible permissive
             licenses and/or originally by other authors.
@@ -161,7 +159,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
             unsplash&utm_medium=referral&utm_content=creditCopyText">Bench
             Accounting</a> on <a href="https://unsplash.com/?utm_source=
             unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash
-            </a>
+            </a>.
             </p>
             <p>
             See the
@@ -177,7 +175,12 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
             label.setAlignment(Qt.AlignTop)
             label.setOpenExternalLinks(True)
             label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            label.setContentsMargins(self.MARGIN, 0, self.MARGIN, 0)
+            label.setContentsMargins(
+                (3 if MAC else 1) * self.PADDING,
+                0,
+                (3 if MAC else 1) * self.PADDING,
+                (3 if MAC else 1) * self.PADDING,
+            )
 
         self.label_pic = QLabel(self)
         self.label_pic.setPixmap(
@@ -206,12 +209,10 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         scroll_community = QScrollArea(self)
         scroll_community.setWidgetResizable(True)
-        scroll_community.setStyleSheet(self._scrollarea_stylesheet)
         scroll_community.setWidget(self.label_community)
 
         scroll_legal = QScrollArea(self)
         scroll_legal.setWidgetResizable(True)
-        scroll_legal.setStyleSheet(self._scrollarea_stylesheet)
         scroll_legal.setWidget(self.label_legal)
 
         # Style for scroll areas needs to be applied after creating them.
@@ -224,10 +225,11 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         self.tabs.addTab(scroll_overview, _('Overview'))
         self.tabs.addTab(scroll_community, _('Community'))
         self.tabs.addTab(scroll_legal, _('Legal'))
+        self.tabs.setElideMode(Qt.ElideNone)
         self.tabs.setStyleSheet(self._tabs_stylesheet)
 
         # -- Buttons
-        info_btn = QPushButton(_("Copy version info"), )
+        info_btn = QPushButton(_("Copy version info"))
         ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Apply style to buttons
@@ -247,23 +249,23 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         piclayout.addStretch()
         piclayout.setContentsMargins(
             # This makes the left and right margins around the image and info
-            # to be the same.
-            self.MARGIN - AppStyle.MarginSize,
+            # to be the same on Linux and Windows.
+            self.PADDING - (0 if MAC else 1) * AppStyle.MarginSize,
             0,
-            self.MARGIN,
+            self.PADDING,
             0
         )
 
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
         tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
-        tabslayout.setContentsMargins(0, self.MARGIN, 0, 0)
+        tabslayout.setContentsMargins(0, self.PADDING, 0, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addStretch(1)
         btmhlayout.addWidget(info_btn)
         btmhlayout.addWidget(ok_btn)
-        btmhlayout.setContentsMargins(0, 0, self.MARGIN, self.MARGIN)
+        btmhlayout.setContentsMargins(0, 0, self.PADDING, self.PADDING)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
@@ -275,7 +277,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         mainlayout.addLayout(piclayout)
         # This compensates the margin set for scroll areas to center them on
         # the tabbar
-        mainlayout.addSpacing(-self.MARGIN)
+        mainlayout.addSpacing(-self.PADDING)
         mainlayout.addLayout(vlayout)
 
         # -- Signals
@@ -283,6 +285,8 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         ok_btn.accepted.connect(self.accept)
 
         # -- Style
+        size = (600, 460) if MAC else ((580, 450) if WIN else (610, 455))
+        self.setFixedSize(*size)
         self.setStyleSheet(self._main_stylesheet)
 
     def copy_to_clipboard(self):
@@ -316,7 +320,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
             # background.
             border=f"1px solid {DialogStyle.BorderColor}",
             # This is necessary to center the tabbar on the scroll area
-            marginLeft=f"{self.MARGIN}px"
+            marginLeft=f"{self.PADDING}px"
         )
 
         css.QScrollBar.setValues(
@@ -350,10 +354,10 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         css['QTabWidget::pane'].setValues(
             # Set tab pane margins according to the dialog contents and layout
-            margin=(
-                f'{2 * AppStyle.MarginSize}px {self.MARGIN}px '
-                f'{2 * AppStyle.MarginSize}px 0px'
-            ),
+            marginTop=f"{(3 if MAC else 2) * AppStyle.MarginSize}px",
+            marginRight=f"{self.PADDING}px",
+            marginBottom=f"{(0 if MAC else 2) * AppStyle.MarginSize}px",
+            marginLeft="0px",
             # Padding is not necessary in this case because we set a border for
             # the scroll areas.
             padding="0px",

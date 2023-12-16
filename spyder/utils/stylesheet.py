@@ -584,7 +584,10 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
             borderLeftColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
-        # -- Style for the not selected tabs above and below the selected one
+        # -- Style for the not selected tabs to the right and left of the
+        # selected one.
+        # Note: For some strange reason, Qt uses the `next-selected` state for
+        # the left tab.
         css['QTabBar::tab:next-selected'].setValues(
             borderRightColor=QStylePalette.COLOR_BACKGROUND_4,
         )
@@ -749,10 +752,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             borderTopColor=QStylePalette.COLOR_BACKGROUND_5,
         )
 
-        # -- Style for the not selected tabs to the left and right from the
-        # selected one.
-        # Note: For some strange reason, Qt uses the `next-selected` state for
-        # the left tab.
+        # -- Style for the not selected tabs above and below the selected one.
         css['QTabBar::tab:next-selected'].setValues(
             borderBottomColor=QStylePalette.COLOR_BACKGROUND_4,
         )

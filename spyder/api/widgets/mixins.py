@@ -718,13 +718,13 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
 
     def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
         """
-        Transform svg to a QPixmap that is scaled according to the factor
+        Transform svg to a QPixmap that is scaled according to the factor set
         by users in Preferences.
 
         Parameters
         ----------
         svg_file: str
-            Path to the svg file.
+            Name of or path to the svg file.
         rescale: float, optional
             Rescale pixmap according to a factor between 0 and 1.
         in_package: bool, optional
