@@ -171,9 +171,19 @@ class ScrollFlagArea(Panel):
         """
         # The area in which the slider handle of the scrollbar may move.
         groove_rect = self.get_scrollbar_groove_rect()
-        # The scrollbar's scale factor ratio between pixel span height and
-        # value span height
-        scale_factor = groove_rect.height() / self.get_scrollbar_value_height()
+
+        # This is necessary to catch a possible error when the scrollbar
+        # has zero height.
+        # Fixes spyder-ide/spyder#21600
+        try:
+            # The scrollbar's scale factor ratio between pixel span height and
+            # value span height
+            scale_factor = (
+                groove_rect.height() / self.get_scrollbar_value_height()
+            )
+        except ZeroDivisionError:
+            scale_factor = 1
+
         # The vertical offset of the scroll flag area relative to the
         # top of the text editor.
         offset = groove_rect.y()
