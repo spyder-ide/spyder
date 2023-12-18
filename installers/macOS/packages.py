@@ -43,6 +43,7 @@ spyder_kernels :
 
 # Packages that cannot be in the zip folder
 PACKAGES = [
+    'blackd',
     'keyring',
     'pkg_resources',
     'pygments',

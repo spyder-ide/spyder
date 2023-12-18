@@ -88,6 +88,8 @@ jobs:
           fi
           ${pythonLocation}/bin/python -m pip install -U pip setuptools wheel
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
+      - name: Add mising file to Black dist-info
+        run: touch ${pythonLocation}/lib/python3.9/site-packages/black-23.12.0.dist-info/top_level.txt
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
         run: ${pythonLocation}/bin/python -bb -X dev -W error ${GITHUB_WORKSPACE}/install_dev_repos.py --not-editable --no-install spyder
@@ -102,6 +104,8 @@ jobs:
           install_name_tool -change @rpath/libc++.1.dylib /usr/lib/libc++.1.dylib bin/micromamba
       - name: Build Application Bundle
         run: ${pythonLocation}/bin/python setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+      - name: Add missing Black module to bundle
+        run: cp -v ${pythonLocation}/lib/python3.9/site-packages/629853fdff261ed89b74__mypyc* ${DISTDIR}/Spyder.app/Contents/Resources/lib/python3.9/
       - name: Create Keychain
         if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: ./certkeychain.sh "${MACOS_CERTIFICATE}" "${MACOS_CERTIFICATE_PWD}"
