@@ -687,7 +687,36 @@ class PythonLSPServer(MethodDispatcher):
     def m_text_document__code_lens(self, textDocument=None, **_kwargs):
         return self.code_lens(textDocument["uri"])
 
+    def _cell_document__completion(self, cellDocument, position=None, **_kwargs):
+        workspace = self._match_uri_to_workspace(cellDocument.notebook_uri)
+        notebookDocument = workspace.get_maybe_document(cellDocument.notebook_uri)
+        if notebookDocument is None:
+            raise ValueError("Invalid notebook document")
+
+        cell_data = notebookDocument.cell_data()
+
+        # Concatenate all cells to be a single temporary document
+        total_source = "\n".join(data["source"] for data in cell_data.values())
+        with workspace.temp_document(total_source) as temp_uri:
+            # update position to be the position in the temp document
+            if position is not None:
+                position["line"] += cell_data[cellDocument.uri]["line_start"]
+
+            completions = self.completions(temp_uri, position)
+
+            # Translate temp_uri locations to cell document locations
+            for item in completions.get("items", []):
+                if item.get("data", {}).get("doc_uri") == temp_uri:
+                    item["data"]["doc_uri"] = cellDocument.uri
+
+            return completions
+
     def m_text_document__completion(self, textDocument=None, position=None, **_kwargs):
+        # textDocument here is just a dict with a uri
+        workspace = self._match_uri_to_workspace(textDocument["uri"])
+        document = workspace.get_document(textDocument["uri"])
+        if isinstance(document, Cell):
+            return self._cell_document__completion(document, position, **_kwargs)
         return self.completions(textDocument["uri"], position)
 
     def _cell_document__definition(self, cellDocument, position=None, **_kwargs):
