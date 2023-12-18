@@ -15,11 +15,11 @@ from typing import Any, Callable, Optional
 
 # Third-party imports
 from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
-from qtpy.QtGui import QKeySequence, QTextOption
+from qtpy.QtGui import QTextOption
 from qtpy.QtWidgets import (
-    QAbstractItemView, QAction, QButtonGroup, QGroupBox, QHBoxLayout,
-    QHeaderView, QMessageBox, QPushButton, QRadioButton, QSplitter,
-    QToolButton, QVBoxLayout, QWidget)
+    QAbstractItemView, QButtonGroup, QGroupBox, QHBoxLayout, QHeaderView,
+    QMessageBox, QPushButton, QRadioButton, QSplitter, QToolButton,
+    QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -212,22 +212,27 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
 
     def _setup_actions(self):
         """Creates the main window actions."""
+        def do_nothing():
+            # .create_action() needs a toggled= parameter, but we can only
+            # set it later in the set_value method, so we use this function as
+            # a placeholder here.
+            pass
+
         # Show/hide callable objects
-        self.toggle_show_callable_action = QAction(
-            _("Show callable attributes"),
-            self,
-            checkable=True,
-            shortcut=QKeySequence("Alt+C"),
-            statusTip=_("Shows/hides attributes that are callable "
-                        "(functions, methods, etc)")
+        self.toggle_show_callable_action = self.create_action(
+            name=None,
+            text=_("Show callable attributes"),
+            toggled=do_nothing,
+            tip=_("Shows/hides attributes that are callable "
+                  "(functions, methods etc)")
         )
+
         # Show/hide special attributes
-        self.toggle_show_special_attribute_action = QAction(
-            _("Show __special__ attributes"),
-            self,
-            checkable=True,
-            shortcut=QKeySequence("Alt+S"),
-            statusTip=_("Shows or hides __special__ attributes")
+        self.toggle_show_special_attribute_action = self.create_action(
+            name=None,
+            text=_("Show __special__ attributes"),
+            toggled=do_nothing,
+            tip=_("Shows or hides __special__ attributes")
         )
 
     def _setup_menu(self, show_callable_attributes=False,

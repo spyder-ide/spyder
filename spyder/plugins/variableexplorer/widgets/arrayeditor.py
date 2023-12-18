@@ -44,8 +44,7 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    add_actions, create_action, keybinding, safe_disconnect)
+from spyder.utils.qthelpers import add_actions, keybinding, safe_disconnect
 
 
 class ArrayEditorActions:
@@ -536,11 +535,15 @@ class ArrayView(QTableView, SpyderWidgetMixin):
 
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self, _('Copy'),
-                                         shortcut=keybinding('Copy'),
-                                         icon=ima.icon('editcopy'),
-                                         triggered=self.copy,
-                                         context=Qt.WidgetShortcut)
+        self.copy_action = self.create_action(
+            name=None,
+            text=_('Copy'),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy,
+            register_action=False
+        )
+        self.copy_action.setShortcut(keybinding('Copy'))
+        self.copy_action.setShortcutContext(Qt.WidgetShortcut)
         menu = self.create_menu('Editor menu', register=False)
         add_actions(menu, [self.copy_action, ])
         return menu

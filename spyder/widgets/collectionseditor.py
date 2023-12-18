@@ -51,8 +51,7 @@ from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import (
-    add_actions, create_action, MENU_SEPARATOR, mimedata2url)
+from spyder.utils.qthelpers import add_actions, MENU_SEPARATOR, mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
@@ -642,72 +641,122 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
     def setup_menu(self):
         """Setup context menu"""
-        resize_action = create_action(self, _("Resize rows to contents"),
-                                      icon=ima.icon('collapse_row'),
-                                      triggered=self.resizeRowsToContents)
-        resize_columns_action = create_action(
-            self,
-            _("Resize columns to contents"),
+        resize_action = self.create_action(
+            name=None,
+            text=_("Resize rows to contents"),
+            icon=ima.icon('collapse_row'),
+            triggered=self.resizeRowsToContents,
+            register_action=False
+        )
+        resize_columns_action = self.create_action(
+            name=None,
+            text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
-            triggered=self.resize_column_contents)
-        self.paste_action = create_action(self, _("Paste"),
-                                          icon=ima.icon('editpaste'),
-                                          triggered=self.paste)
-        self.copy_action = create_action(self, _("Copy"),
-                                         icon=ima.icon('editcopy'),
-                                         triggered=self.copy)
-        self.edit_action = create_action(self, _("Edit"),
-                                         icon=ima.icon('edit'),
-                                         triggered=self.edit_item)
-        self.plot_action = create_action(
-            self, _("Plot"),
+            triggered=self.resize_column_contents,
+            register_action=False
+        )
+        self.paste_action = self.create_action(
+            name=None,
+            text=_("Paste"),
+            icon=ima.icon('editpaste'),
+            triggered=self.paste,
+            register_action=False
+        )
+        self.copy_action = self.create_action(
+            name=None,
+            text=_("Copy"),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy,
+            register_action=False
+        )
+        self.edit_action = self.create_action(
+            name=None,
+            text=_("Edit"),
+            icon=ima.icon('edit'),
+            triggered=self.edit_item,
+            register_action=False
+        )
+        self.plot_action = self.create_action(
+            name=None,
+            text=_("Plot"),
             icon=ima.icon('plot'),
-            triggered=lambda: self.plot_item('plot')
+            triggered=lambda: self.plot_item('plot'),
+            register_action=False
         )
         self.plot_action.setVisible(False)
-        self.hist_action = create_action(
-            self, _("Histogram"),
+        self.hist_action = self.create_action(
+            name=None,
+            text=_("Histogram"),
             icon=ima.icon('hist'),
-            triggered=lambda: self.plot_item('hist')
+            triggered=lambda: self.plot_item('hist'),
+            register_action=False
         )
         self.hist_action.setVisible(False)
-        self.imshow_action = create_action(self, _("Show image"),
-                                           icon=ima.icon('imshow'),
-                                           triggered=self.imshow_item)
+        self.imshow_action = self.create_action(
+            name=None,
+            text=_("Show image"),
+            icon=ima.icon('imshow'),
+            triggered=self.imshow_item,
+            register_action=False
+        )
         self.imshow_action.setVisible(False)
-        self.save_array_action = create_action(self, _("Save array"),
-                                               icon=ima.icon('filesave'),
-                                               triggered=self.save_array)
+        self.save_array_action = self.create_action(
+            name=None,
+            text=_("Save array"),
+            icon=ima.icon('filesave'),
+            triggered=self.save_array,
+            register_action=False
+        )
         self.save_array_action.setVisible(False)
-        self.insert_action = create_action(
-            self, _("Insert"),
+        self.insert_action = self.create_action(
+            name=None,
+            text=_("Insert"),
             icon=ima.icon('insert'),
-            triggered=lambda: self.insert_item(below=False)
+            triggered=lambda: self.insert_item(below=False),
+            register_action=False
         )
-        self.insert_action_above = create_action(
-            self, _("Insert above"),
+        self.insert_action_above = self.create_action(
+            name=None,
+            text=_("Insert above"),
             icon=ima.icon('insert_above'),
-            triggered=lambda: self.insert_item(below=False)
+            triggered=lambda: self.insert_item(below=False),
+            register_action=False
         )
-        self.insert_action_below = create_action(
-            self, _("Insert below"),
+        self.insert_action_below = self.create_action(
+            name=None,
+            text=_("Insert below"),
             icon=ima.icon('insert_below'),
-            triggered=lambda: self.insert_item(below=True)
+            triggered=lambda: self.insert_item(below=True),
+            register_action=False
         )
-        self.remove_action = create_action(self, _("Remove"),
-                                           icon=ima.icon('editdelete'),
-                                           triggered=self.remove_item)
-        self.rename_action = create_action(self, _("Rename"),
-                                           icon=ima.icon('rename'),
-                                           triggered=self.rename_item)
-        self.duplicate_action = create_action(self, _("Duplicate"),
-                                              icon=ima.icon('edit_add'),
-                                              triggered=self.duplicate_item)
-        self.view_action = create_action(
-            self,
-            _("View with the Object Explorer"),
+        self.remove_action = self.create_action(
+            name=None,
+            text=_("Remove"),
+            icon=ima.icon('editdelete'),
+            triggered=self.remove_item,
+            register_action=False
+        )
+        self.rename_action = self.create_action(
+            name=None,
+            text=_("Rename"),
+            icon=ima.icon('rename'),
+            triggered=self.rename_item,
+            register_action=False
+        )
+        self.duplicate_action = self.create_action(
+            name=None,
+            text=_("Duplicate"),
+            icon=ima.icon('edit_add'),
+            triggered=self.duplicate_item,
+            register_action=False
+        )
+        self.view_action = self.create_action(
+            name=None,
+            text=_("View with the Object Explorer"),
             icon=ima.icon('outline_explorer'),
-            triggered=self.view_item)
+            triggered=self.view_item,
+            register_action=False
+        )
 
         menu = self.create_menu('Editor menu', register=False)
         self.menu_actions = [
@@ -1466,12 +1515,13 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             if item is not None:
                 toolbar.addAction(item)
 
-        self.refresh_action = create_action(
-            self,
+        self.refresh_action = self.create_action(
+            name=None,
             text=_('Refresh'),
             icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=lambda: self.sig_refresh_requested.emit()
+            triggered=lambda: self.sig_refresh_requested.emit(),
+            register_action=None
         )
         toolbar.addAction(self.refresh_action)
 
