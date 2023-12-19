@@ -55,8 +55,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url, set_menu_icons,
                                     create_waitspinner)
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.widgets.tabs import BaseTabs
-
 
 logger = logging.getLogger(__name__)
 
@@ -1643,8 +1643,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         if not unsaved_nb:
             # No file to save
             return True
-        if unsaved_nb > 1:
-            buttons |= int(QMessageBox.YesToAll | QMessageBox.NoToAll)
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -1662,32 +1660,35 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                     return False
             elif no_all:
                 self.autosave.remove_autosave_file(finfo)
-            elif (finfo.editor.document().isModified() and
-                  self.save_dialog_on_tests):
-
-                self.msgbox = QMessageBox(
+            elif (
+                finfo.editor.document().isModified()
+                and self.save_dialog_on_tests
+            ):
+                box_cls = MessageCheckBox if unsaved_nb > 1 else QMessageBox
+                self.msgbox = box_cls(
                     QMessageBox.Question,
                     self.title,
                     _("<b>%s</b> has been modified."
-                      "<br>Do you want to save changes?"
+                      "<br><br>Do you want to save changes?"
                       ) % osp.basename(finfo.filename),
                     buttons,
                     parent=self
                 )
+                if unsaved_nb > 1:
+                    self.msgbox.set_checkbox_text(_("Apply to all"))
+                self.msgbox.button(QMessageBox.Yes).setText(_("Save"))
+                self.msgbox.button(QMessageBox.No).setText(_("Discard"))
 
                 answer = self.msgbox.exec_()
                 if answer == QMessageBox.Yes:
                     if not self.save(index):
                         return False
+                    if unsaved_nb > 1:
+                        yes_all = self.msgbox.is_checked()
                 elif answer == QMessageBox.No:
                     self.autosave.remove_autosave_file(finfo.filename)
-                elif answer == QMessageBox.YesToAll:
-                    if not self.save(index):
-                        return False
-                    yes_all = True
-                elif answer == QMessageBox.NoToAll:
-                    self.autosave.remove_autosave_file(finfo.filename)
-                    no_all = True
+                    if unsaved_nb > 1:
+                        no_all = self.msgbox.is_checked()
                 elif answer == QMessageBox.Cancel:
                     return False
         return True
