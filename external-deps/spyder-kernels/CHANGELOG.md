@@ -1,5 +1,19 @@
 # History of changes
 
+## Version 3.0.0b3 (2023-12-18)
+
+### Pull Requests Merged
+
+* [PR 476](https://github.com/spyder-ide/spyder-kernels/pull/476) - PR: Send back pickling error correctly, by [@impact27](https://github.com/impact27)
+* [PR 467](https://github.com/spyder-ide/spyder-kernels/pull/467) - PR: Fix index when skipping hidden frames (Debugger), by [@impact27](https://github.com/impact27)
+* [PR 466](https://github.com/spyder-ide/spyder-kernels/pull/466) - PR: Simplify kernel configuration, by [@impact27](https://github.com/impact27)
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
 ## Version 3.0.0b2 (2023-08-22)
 
 ### Pull Requests Merged
