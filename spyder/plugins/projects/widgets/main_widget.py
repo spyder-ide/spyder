@@ -231,7 +231,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.create_action(
             ProjectsActions.NewProject,
             text=_("New Project..."),
-            triggered=self.create_new_project)
+            triggered=self.create_new_project,
+            icon=self.create_icon("new_project"))
 
         self.create_action(
             ProjectsActions.OpenProject,
