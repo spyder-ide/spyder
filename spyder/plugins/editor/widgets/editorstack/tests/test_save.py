@@ -101,6 +101,7 @@ def test_save_if_changed(editor_bot, mocker):
     editor_stack, qtbot = editor_bot
     save_if_changed = editor_stack.save_if_changed
     mocker.patch.object(editor.QMessageBox, 'exec_')
+    mocker.patch.object(editor.MessageCheckBox, 'is_checked')
     mocker.patch.object(editor_stack, 'save')
     mocker.patch.object(editor_stack.autosave, 'remove_autosave_file')
     editor_stack.save.return_value = True
@@ -129,9 +130,10 @@ def test_save_if_changed(editor_bot, mocker):
     assert editor_stack.save.called
     assert not editor_stack.autosave.remove_autosave_file.called
 
-    # YesToAll button - if any save() fails, then return False.
+    # Yes button, apply all - if any save() fails, then return False.
     editor_stack.save.reset_mock()
-    editor.QMessageBox.exec_.return_value = editor.QMessageBox.YesToAll
+    editor.MessageCheckBox.is_checked.return_value = True
+    editor.MessageCheckBox.exec_.return_value = editor.QMessageBox.Yes
     assert save_if_changed() is True
     assert editor_stack.save.call_count == 3
     assert not editor_stack.autosave.remove_autosave_file.called
@@ -143,10 +145,10 @@ def test_save_if_changed(editor_bot, mocker):
     assert not editor_stack.save.called
     assert editor_stack.autosave.remove_autosave_file.called
 
-    # NoToAll button - remove autosave 3x, returns True.
+    # No button, apply all - remove autosave 3x, returns True.
     editor_stack.save.reset_mock()
     editor_stack.autosave.remove_autosave_file.reset_mock()
-    editor.QMessageBox.exec_.return_value = editor.QMessageBox.NoToAll
+    editor.MessageCheckBox.exec_.return_value = editor.QMessageBox.No
     assert save_if_changed() is True
     assert not editor_stack.save.called
     assert editor_stack.autosave.remove_autosave_file.call_count == 3
