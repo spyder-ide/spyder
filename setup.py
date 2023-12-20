@@ -230,7 +230,7 @@ install_requires = [
     'pyls-spyder>=0.4.0',
     'pyqt5>=5.15,<5.16',
     'pyqtwebengine>=5.15,<5.16',
-    'python-lsp-black>=1.2.0,<3.0.0',
+    'python-lsp-black>=2.0.0,<3.0.0',
     'python-lsp-server[all]>=1.9.0,<1.10.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
