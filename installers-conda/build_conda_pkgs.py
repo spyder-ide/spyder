@@ -50,6 +50,7 @@ class BuildCondaPkg:
     norm = True
     source = None
     feedstock = None
+    feedstock_branch = None
     shallow_ver = None
 
     def __init__(self, data={}, debug=False, shallow=False):
@@ -104,7 +105,10 @@ class BuildCondaPkg:
 
         # Clone feedstock
         self.logger.info("Cloning feedstock...")
-        Repo.clone_from(self.feedstock, to_path=self._fdstk_path)
+        kwargs = dict(to_path=self._fdstk_path)
+        if self.feedstock_branch:
+            kwargs.update(branch=self.feedstock_branch)
+        Repo.clone_from(self.feedstock, **kwargs)
 
     def _build_cleanup(self):
         """Remove cloned source and feedstock repositories"""
@@ -197,6 +201,7 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
+    feedstock_branch = "dev"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
@@ -301,6 +306,7 @@ class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
     source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "v1.4.1"
 
 
@@ -308,6 +314,7 @@ class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
     source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "5.3.1"
 
 
@@ -315,6 +322,7 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
+    feedstock_branch = "rc"
     shallow_ver = "v2.3.1"
 
 
