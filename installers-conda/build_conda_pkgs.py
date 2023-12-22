@@ -212,16 +212,6 @@ class SpyderCondaPkg(BuildCondaPkg):
         )
         file.write_text(file_text)
 
-        self.logger.info("Creating Spyder menu file...")
-        _menufile = RESOURCES / "spyder-menu.json"
-        self.menufile = BUILD / "spyder-menu.json"
-        commit, branch = self.repo.head.commit.name_rev.split()
-        text = _menufile.read_text()
-        text = text.replace("__PKG_VERSION__", self.version)
-        text = text.replace("__SPY_BRANCH__", branch)
-        text = text.replace("__SPY_COMMIT__", commit[:8])
-        self.menufile.write_text(text)
-
     def _patch_meta(self, meta):
         # Get current Spyder requirements
         yaml = YAML()
