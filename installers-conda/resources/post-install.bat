@@ -1,6 +1,9 @@
 :: This script launches Spyder after install
 @echo off
 
+:: Mark as conda-based-app
+echo. > %PREFIX%\envs\spyder-runtime\Menu\conda-based-app
+
 echo %PREFIX% | findstr /b "%USERPROFILE%" > nul && (
     set shortcut_root=%APPDATA%
 ) || (
