@@ -66,10 +66,10 @@ class BuildCondaPkg:
         self._get_source(shallow=shallow)
         self._get_version()
 
-        self._patch_source()
-
         self.data = {'version': self.version}
         self.data.update(data)
+
+        self._patch_source()
 
         self._recipe_patched = False
 
@@ -200,6 +200,18 @@ class SpyderCondaPkg(BuildCondaPkg):
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
+        self.logger.info("Patching Spyder source...")
+        file = self._bld_src / "spyder/__init__.py"
+        file_text = file.read_text()
+        ver_str = tuple(self.version.split('.'))
+        file_text = re.sub(
+            r'^(version_info = ).*',
+            rf'\g<1>{ver_str}',
+            file_text,
+            flags=re.MULTILINE
+        )
+        file.write_text(file_text)
+
         self.logger.info("Creating Spyder menu file...")
         _menufile = RESOURCES / "spyder-menu.json"
         self.menufile = BUILD / "spyder-menu.json"
