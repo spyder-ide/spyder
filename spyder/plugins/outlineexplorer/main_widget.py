@@ -196,7 +196,27 @@ class OutlineExplorerWidget(PluginMainWidget):
         """
         super().create_window()
         self.windowwidget.sig_window_state_changed.connect(
-            self._handle_undocked_window_state)
+            self._handle_undocked_window_state
+        )
+
+    @Slot()
+    def close_dock(self):
+        """
+        Reimplemented to preserve the widget's visible state when editor is
+        maximized.
+        """
+        if self.in_maximized_editor:
+            self.set_conf('show_with_maximized_editor', False)
+        super().close_dock()
+
+    def toggle_view(self, checked):
+        """Reimplemented to handle the case when the editor is maximized."""
+        if self.in_maximized_editor:
+            self.set_conf('show_with_maximized_editor', checked)
+            if checked:
+                self._plugin.dock_with_maximized_editor()
+                return
+        super().toggle_view(checked)
 
     # ---- Public API
     # -------------------------------------------------------------------------

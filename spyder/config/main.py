@@ -294,7 +294,8 @@ DEFAULTS = [
               'sort_files_alphabetically': False,
               'show_comments': True,
               'follow_cursor': True,
-              'display_variables': False
+              'display_variables': False,
+              'show_with_maximized_editor': True
               }),
             ('preferences',
              {

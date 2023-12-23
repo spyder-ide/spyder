@@ -56,10 +56,10 @@ DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 # The current versions are:
 #
 # * Spyder 4: Version 0 (it was the default).
-# * Spyder 5.0.0 to 5.0.5: Version 1 (a bump was required due to the new API).
+# * Spyder 5.0.0: Version 1 (a bump was required due to the new API).
 # * Spyder 5.1.0: Version 2 (a bump was required due to the migration of
 #                            Projects to the new API).
-# * Spyder 5.2.0: Version 3 (a bump was required due to the migration of
+# * Spyder 5.2.0: Version 3 (a bump was required due to the migration of the
 #                            IPython Console to the new API)
 WINDOW_STATE_VERSION = 3
 
@@ -652,6 +652,12 @@ class Layout(SpyderPluginV2):
         First call: maximize current dockwidget
         Second call (or restore=True): restore original window layout
         """
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        outline_explorer = self.get_plugin(
+            Plugins.OutlineExplorer,
+            error=False
+        )
+
         if self._state_before_maximizing is None:
             if restore:
                 return
@@ -678,7 +684,10 @@ class Layout(SpyderPluginV2):
             # turns out to be None.
             if self._last_plugin is None:
                 # Use the Editor as default plugin to maximize
-                self._last_plugin = self.get_plugin(Plugins.Editor)
+                if editor is not None:
+                    self._last_plugin = editor
+                else:
+                    return
 
             # Maximize last_plugin
             self._last_plugin.dockwidget.toggleViewAction().setDisabled(True)
@@ -703,15 +712,10 @@ class Layout(SpyderPluginV2):
                 self._last_plugin.show()
                 self._last_plugin._visibility_changed(True)
 
-            if self._last_plugin is self.get_plugin(Plugins.Editor):
-                # Automatically show the outline if the editor was maximized:
-                outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
-                self.main.addDockWidget(
-                    Qt.RightDockWidgetArea,
-                    outline_explorer.dockwidget
-                )
-                outline_explorer.dockwidget.show()
-                outline_explorer.dock_with_maximized_editor()
+            if self._last_plugin is editor:
+                # Automatically show the outline if the editor was maximized
+                if outline_explorer is not None:
+                    outline_explorer.dock_with_maximized_editor()
         else:
             # Restore original layout (before maximizing current dockwidget)
             try:
@@ -737,9 +741,9 @@ class Layout(SpyderPluginV2):
             )
             self._state_before_maximizing = None
 
-            if self._last_plugin is self.get_plugin(Plugins.Editor):
-                outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
-                outline_explorer.hide_from_maximized_editor()
+            if self._last_plugin is editor:
+                if outline_explorer is not None:
+                    outline_explorer.hide_from_maximized_editor()
 
             try:
                 # New API

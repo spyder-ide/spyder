@@ -142,6 +142,9 @@ class OutlineExplorer(SpyderDockablePlugin):
         latter is maximized.
         """
         self.get_widget().in_maximized_editor = True
+        if self.get_conf('show_with_maximized_editor'):
+            self.main.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.dockwidget.show()
         self._set_toggle_view_action_state()
 
     def hide_from_maximized_editor(self):
