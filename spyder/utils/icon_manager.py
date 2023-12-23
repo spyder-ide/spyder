@@ -243,7 +243,7 @@ class IconManager():
             'DirClosedIcon':           [('mdi.folder',), {'color': self.MAIN_FG_COLOR}],
             'DialogHelpButton':        [('mdi.lifebuoy',), {'color': self.MAIN_FG_COLOR}],
             'VideoIcon':               [('mdi.video',), {'color': self.MAIN_FG_COLOR}],
-            'MessageBoxInformation':   [('mdi.information',), {'color': self.MAIN_FG_COLOR}],
+            'MessageBoxInformation':   [('mdi.information-outline',), {'color': self.MAIN_FG_COLOR}],
             'DirOpenIcon':             [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
             'FileIcon':                [('mdi.file',), {'color': self.MAIN_FG_COLOR}],
             'ExcelFileIcon':           [('mdi.file-excel',), {'color': self.MAIN_FG_COLOR}],

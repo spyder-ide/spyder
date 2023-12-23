@@ -27,10 +27,10 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.config.base import get_conf_path, get_debug_level
+from spyder.plugins.application.widgets import AboutDialog
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
-from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 
