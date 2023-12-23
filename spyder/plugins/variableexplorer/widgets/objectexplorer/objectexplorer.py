@@ -25,13 +25,12 @@ from qtpy.QtWidgets import (
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, qapplication, safe_disconnect
+from spyder.utils.qthelpers import add_actions, qapplication
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -78,10 +77,6 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # Options
-        show_callable_attributes = self.get_conf('show_callable_attributes')
-        show_special_attributes = self.get_conf('show_special_attributes')
-
         # Model
         self.name = name
         self.expanded = expanded
@@ -92,13 +87,12 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         self.readonly = readonly
 
         self.obj_tree = None
+        self._proxy_tree_model = None
         self.btn_save_and_close = None
         self.btn_close = None
 
         # Views
-        self._setup_actions()
-        self._setup_menu(show_callable_attributes=show_callable_attributes,
-                         show_special_attributes=show_special_attributes)
+        self._setup_toolbar()
         self._setup_views()
         if self.name:
             self.setWindowTitle(f'{self.name} - {EDITOR_NAME}')
@@ -111,11 +105,6 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
 
         self._resize_to_contents = resize_to_contents
         self._readViewSettings(reset=reset)
-
-        # Update views with model
-        self.toggle_show_special_attribute_action.setChecked(
-            show_special_attributes)
-        self.toggle_show_callable_action.setChecked(show_callable_attributes)
 
     def get_value(self):
         """Get editor current object state."""
@@ -149,19 +138,6 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
         self.obj_tree.add_header_context_menu()
-
-        # Connect signals
-        safe_disconnect(self.toggle_show_callable_action.toggled)
-        self.toggle_show_callable_action.toggled.connect(
-            self._proxy_tree_model.setShowCallables)
-        self.toggle_show_callable_action.toggled.connect(
-            self.obj_tree.resize_columns_to_contents)
-
-        safe_disconnect(self.toggle_show_special_attribute_action.toggled)
-        self.toggle_show_special_attribute_action.toggled.connect(
-            self._proxy_tree_model.setShowSpecialAttributes)
-        self.toggle_show_special_attribute_action.toggled.connect(
-            self.obj_tree.resize_columns_to_contents)
 
         # Keep a temporary reference of the selection_model to prevent
         # segfault in PySide.
@@ -210,59 +186,45 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             column_idx, not checked)
         return show_column
 
-    def _setup_actions(self):
-        """Creates the main window actions."""
+    def _setup_toolbar(self, show_callable_attributes=False,
+                       show_special_attributes=False):
+        """
+        Sets up the toolbar and the actions in it.
+        """
         def do_nothing():
             # .create_action() needs a toggled= parameter, but we can only
             # set it later in the set_value method, so we use this function as
             # a placeholder here.
             pass
 
-        # Show/hide callable objects
-        self.toggle_show_callable_action = self.create_action(
-            name=None,
-            text=_("Show callable attributes"),
-            toggled=do_nothing,
-            tip=_("Shows/hides attributes that are callable "
-                  "(functions, methods etc)")
-        )
-
-        # Show/hide special attributes
-        self.toggle_show_special_attribute_action = self.create_action(
-            name=None,
-            text=_("Show __special__ attributes"),
-            toggled=do_nothing,
-            tip=_("Shows or hides __special__ attributes")
-        )
-
-    def _setup_menu(self, show_callable_attributes=False,
-                    show_special_attributes=False):
-        """Sets up the main menu."""
         self.toolbar = self.create_toolbar(
             'Object explorer toolbar', register=False
         )
 
-        callable_attributes = self.create_toolbutton(
-            name='Show callable toolbutton',
+        # Show/hide callable objects
+        self.toggle_show_callable_action = self.create_action(
+            name='Show callable attributes',
             text=_("Show callable attributes"),
             icon=ima.icon("class"),
-            toggled=self._toggle_show_callable_attributes_action,
-            register=False
+            tip=_("Shows/hides attributes that are callable "
+                  "(functions, methods etc)"),
+            toggled=self._show_callable_attributes,
+            option='show_callable_attributes',
+            register_action=False
         )
-        callable_attributes.setCheckable(True)
-        callable_attributes.setChecked(show_callable_attributes)
-        self.toolbar.add_item(callable_attributes)
+        self.toolbar.add_item(self.toggle_show_callable_action)
 
-        special_attributes = self.create_toolbutton(
-            name='Show special toolbutton',
+        # Show/hide special attributes
+        self.toggle_show_special_attribute_action = self.create_action(
+            name='Show special attributes',
             text=_("Show __special__ attributes"),
             icon=ima.icon("private2"),
-            toggled=self._toggle_show_special_attributes_action,
-            register=False
+            tip=_("Shows or hides __special__ attributes"),
+            toggled=self._show_special_attributes,
+            option='show_special_attributes',
+            register_action=False
         )
-        special_attributes.setCheckable(True)
-        special_attributes.setChecked(show_special_attributes)
-        self.toolbar.add_item(special_attributes)
+        self.toolbar.add_item(self.toggle_show_special_attribute_action)
 
         self.refresh_button = self.create_toolbutton(
             name='Refresh toolbutton',
@@ -292,20 +254,23 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         self.toolbar.add_item(self.options_button)
         self.toolbar._render()
 
-    @Slot()
-    def _toggle_show_callable_attributes_action(self):
-        """Toggle show callable atributes action."""
-        action_checked = not self.toggle_show_callable_action.isChecked()
-        self.toggle_show_callable_action.setChecked(action_checked)
-        self.set_conf('show_callable_attributes', action_checked)
+    def _show_callable_attributes(self, value: bool):
+        """
+        Called when user toggles "show special attributes" option.
+        """
+        if self._proxy_tree_model:
+            self._proxy_tree_model.setShowCallables(value)
+        if self.obj_tree:
+            self.obj_tree.resize_columns_to_contents()
 
-    @Slot()
-    def _toggle_show_special_attributes_action(self):
-        """Toggle show special attributes action."""
-        action_checked = (
-            not self.toggle_show_special_attribute_action.isChecked())
-        self.toggle_show_special_attribute_action.setChecked(action_checked)
-        self.set_conf('show_special_attributes', action_checked)
+    def _show_special_attributes(self, value: bool):
+        """
+        Called when user toggles "show callable attributes" option.
+        """
+        if self._proxy_tree_model:
+            self._proxy_tree_model.setShowSpecialAttributes(value)
+        if self.obj_tree:
+            self.obj_tree.resize_columns_to_contents()
 
     def _setup_views(self):
         """Creates the UI widgets."""
@@ -480,7 +445,7 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             self.editor.setup_editor(
                 font=self.get_font(SpyderFontType.MonospaceInterface),
                 show_blanks=False,
-                color_scheme=CONF.get('appearance', 'selected'),
+                color_scheme=self.get_conf('selected', section='appearance'),
                 scroll_past_end=False,
             )
             self.editor.set_text(data)
