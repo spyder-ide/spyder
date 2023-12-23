@@ -674,13 +674,10 @@ class Layout(SpyderPluginV2):
                     if plugin.isAncestorOf(focus_widget):
                         self._last_plugin = plugin
 
-            # Only plugins that have a dockwidget are part of widgetlist,
-            # so last_plugin can be None after the above "for" cycle.
-            # For example, this happens if, after Spyder has started, focus
-            # is set to the Working directory toolbar (which doesn't have
-            # a dockwidget) and then you press the Maximize button
+            # This prevents a possible error when the value of _last_plugin
+            # turns out to be None.
             if self._last_plugin is None:
-                # Using the Editor as default plugin to maximize
+                # Use the Editor as default plugin to maximize
                 self._last_plugin = self.get_plugin(Plugins.Editor)
 
             # Maximize last_plugin
@@ -706,13 +703,15 @@ class Layout(SpyderPluginV2):
                 self._last_plugin.show()
                 self._last_plugin._visibility_changed(True)
 
-            if self._last_plugin is self.main.editor:
+            if self._last_plugin is self.get_plugin(Plugins.Editor):
                 # Automatically show the outline if the editor was maximized:
                 outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
                 self.main.addDockWidget(
                     Qt.RightDockWidgetArea,
-                    outline_explorer.dockwidget)
+                    outline_explorer.dockwidget
+                )
                 outline_explorer.dockwidget.show()
+                outline_explorer.dock_with_maximized_editor()
         else:
             # Restore original layout (before maximizing current dockwidget)
             try:
@@ -722,6 +721,7 @@ class Layout(SpyderPluginV2):
             except AttributeError:
                 # Old API
                 self._last_plugin.dockwidget.setWidget(self._last_plugin)
+
             self._last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.main.setCentralWidget(None)
 
@@ -736,6 +736,11 @@ class Layout(SpyderPluginV2):
                 self._state_before_maximizing, version=WINDOW_STATE_VERSION
             )
             self._state_before_maximizing = None
+
+            if self._last_plugin is self.get_plugin(Plugins.Editor):
+                outline_explorer = self.get_plugin(Plugins.OutlineExplorer)
+                outline_explorer.hide_from_maximized_editor()
+
             try:
                 # New API
                 self._last_plugin.get_widget().get_focus_widget().setFocus()
