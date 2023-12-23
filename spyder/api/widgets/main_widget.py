@@ -238,7 +238,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.close_action = None
         self._toolbars_already_rendered = False
         self._is_maximized = False
-        self._window_was_undocked_before_hiding = False
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -780,7 +779,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         logger.debug(f"Docking window of plugin {self._name}")
 
         # Reset undocked state
-        self._window_was_undocked_before_hiding = False
+        self.set_conf('window_was_undocked_before_hiding', False)
 
         # This avoids trying to close the window twice: once when calling
         # _close_window below and the other when Qt calls the closeEvent of
@@ -811,7 +810,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
           That gives users the ability to show/hide plugins without
           docking/undocking them first.
         """
-        if self._window_was_undocked_before_hiding:
+        if self.get_conf('window_was_undocked_before_hiding', default=False):
             self.close_dock()
         else:
             self.dock_window()
@@ -933,7 +932,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 # Don't run this while the window is being created to not
                 # affect setting up the layout at startup.
                 not self._plugin.main.is_setting_up
-                and self._window_was_undocked_before_hiding
+                and self.get_conf(
+                    'window_was_undocked_before_hiding', default=False
+                )
             ):
                 undock = True
         else:
@@ -949,7 +950,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 self._close_window(switch_to_plugin=False)
 
                 # Save undocked state to restore it afterwards.
-                self._window_was_undocked_before_hiding = True
+                self.set_conf('window_was_undocked_before_hiding', True)
 
             self.dockwidget.hide()
             self.is_visible = False
