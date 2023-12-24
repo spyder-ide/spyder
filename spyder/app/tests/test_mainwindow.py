@@ -48,10 +48,20 @@ from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
-    COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
-    generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, read_asset_file,
-    reset_run_code, SHELL_TIMEOUT, start_new_kernel)
+    COMPILE_AND_EVAL_TIMEOUT,
+    COMPLETION_TIMEOUT,
+    EVAL_TIMEOUT,
+    get_random_dockable_plugin,
+    generate_run_parameters,
+    find_desired_tab_in_window,
+    LOCATION,
+    open_file_in_editor,
+    preferences_dialog_helper,
+    read_asset_file,
+    reset_run_code,
+    SHELL_TIMEOUT,
+    start_new_kernel
+)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci)
 from spyder.config.manager import CONF
@@ -1741,22 +1751,6 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    def get_random_plugin():
-        """Get a random dockable plugin and give it focus"""
-        plugins = main_window.get_dockable_plugins()
-        for plugin_name, plugin in plugins:
-            if plugin_name in [Plugins.Editor, Plugins.IPythonConsole]:
-                plugins.remove((plugin_name, plugin))
-
-        plugin = random.choice(plugins)[1]
-
-        if not plugin.get_widget().toggle_view_action.isChecked():
-            plugin.toggle_view(True)
-            plugin._hide_after_test = True
-
-        plugin.get_widget().get_focus_widget().setFocus()
-        return plugin
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -1770,7 +1764,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     max_button = main_toolbar.widgetForAction(max_action)
 
     # Maximize a random plugin
-    plugin_1 = get_random_plugin()
+    plugin_1 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     # Load test file
@@ -1805,7 +1802,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after clicking the
     # debug button
-    plugin_2 = get_random_plugin()
+    plugin_2 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
@@ -1840,7 +1840,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         shell.stop_debugging()
 
     # Maximize a plugin and check that it's unmaximized after running a file
-    plugin_3 = get_random_plugin()
+    plugin_3 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     run_parameters = generate_run_parameters(main_window, test_file)
@@ -1853,7 +1856,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         plugin_3.toggle_view(False)
 
     # Maximize a plugin and check that it's unmaximized after running a cell
-    plugin_4 = get_random_plugin()
+    plugin_4 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
     assert not plugin_4.get_widget().get_maximized_state()
@@ -1863,7 +1869,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after running a
     # selection
-    plugin_5 = get_random_plugin()
+    plugin_5 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(main_window.run_selection_button, Qt.LeftButton)
     assert not plugin_5.get_widget().get_maximized_state()
