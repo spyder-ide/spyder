@@ -269,6 +269,7 @@ def get_random_dockable_plugin(main_window, exclude=None):
         plugin.toggle_view(True)
         plugin._hide_after_test = True
 
+    plugin.switch_to_plugin()
     plugin.get_widget().get_focus_widget().setFocus()
     return plugin
 

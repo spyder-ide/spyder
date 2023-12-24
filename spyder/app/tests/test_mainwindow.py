@@ -4985,8 +4985,8 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: all(trees_update_state(treewidget)))
     check_symbols_number(1, treewidget)
 
-    # Hide outline from view
-    outline_explorer.toggle_view_action.setChecked(False)
+    # Dock outline back to the main window
+    outline_explorer.get_widget().dock_window()
     assert outline_explorer.get_widget().windowwidget is None
 
     # Change code again and save it to emulate what users need to do to close
@@ -6749,6 +6749,141 @@ def test_icons_in_menus(main_window, qtbot):
     show_env_consoles_menu(consoles_menu)
     assert env_consoles_menu.isVisible()
     assert not env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+
+@flaky(max_runs=3)
+def test_undock_plugin_and_close(main_window, qtbot):
+    """
+    Test that the UX of plugins that are closed while being undocked works as
+    expected.
+
+    This checks the functionality added in PR spyder-ide/spyder#19784.
+    """
+    # Select a random plugin and undock it
+    plugin = get_random_dockable_plugin(
+        main_window,
+        # TODO: Remove when the editor is migrated to the new API
+        exclude=[Plugins.Editor]
+    )
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+
+    # Do a normal close and check the plugin was docked
+    plugin.get_widget().windowwidget.close()
+    qtbot.waitUntil(lambda: plugin.get_widget().is_visible)
+    assert not plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Undock plugin, toggle its visibility and check it's hidden
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.toggle_view_action.setChecked(False)
+    qtbot.waitUntil(lambda: not plugin.get_widget().is_visible)
+    assert plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Toggle plugin's visibility and check it's undocked directly
+    plugin.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+
+    # Dock plugin and check the default dock/undock behavior is restored
+    plugin.get_widget().dock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is None)
+
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.get_widget().windowwidget.close()
+    qtbot.waitUntil(lambda: plugin.get_widget().is_visible)
+    assert not plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Undock plugin, close it with the close action and check it's hidden
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.get_widget().close_action.trigger()
+    qtbot.waitUntil(lambda: not plugin.get_widget().is_visible)
+    assert plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Reset undocked state of selected plugin
+    plugin.set_conf('window_was_undocked_before_hiding', False)
+
+
+@flaky(max_runs=3)
+def test_outline_in_maximized_editor(main_window, qtbot):
+    """
+    Test that the visibility of the Outline when shown with the maximized
+    editor works as expected.
+
+    This is a regression test for issue spyder-ide/spyder#16265.
+    """
+    editor = main_window.get_plugin(Plugins.Editor)
+    outline = main_window.get_plugin(Plugins.OutlineExplorer)
+
+    # Grab maximize button
+    max_action = main_window.layouts.maximize_action
+    toolbar = main_window.get_plugin(Plugins.Toolbar)
+    main_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Main)
+    max_button = main_toolbar.widgetForAction(max_action)
+
+    # Maxmimize editor
+    editor.get_focus_widget().setFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+
+    # Check outline is visible
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+    assert outline.get_conf('show_with_maximized_editor')
+
+    # Check undock and lock/unlock actions are hidden in Outline's Options menu
+    outline.get_widget()._options_menu.popup(QPoint(100, 100))
+    qtbot.waitUntil(outline.get_widget()._options_menu.isVisible)
+    assert not outline.get_widget().undock_action.isVisible()
+    assert not outline.get_widget().lock_unlock_action.isVisible()
+    outline.get_widget()._options_menu.hide()
+
+    # Close Outline, unmaximize and maximize again, and check it's not visible
+    outline.get_widget().close_action.trigger()
+    qtbot.waitUntil(lambda: not outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert not outline.get_widget().is_visible
+    assert not outline.get_conf('show_with_maximized_editor')
+
+    # Unmaximize, show Outline in regular layout, maximize and check is not
+    # visible, and unmaximize and check it's visible again.
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+
+    assert not outline.toggle_view_action.isChecked()
+    outline.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert not outline.get_widget().is_visible
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert outline.get_widget().is_visible
+
+    # Maximize, show Outline, unmaximize and maximize again, and check Outline
+    # is still visible.
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+
+    assert not outline.toggle_view_action.isChecked()
+    outline.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+
+    assert outline.get_widget().is_visible
+    assert outline.get_conf('show_with_maximized_editor')
 
 
 if __name__ == "__main__":
