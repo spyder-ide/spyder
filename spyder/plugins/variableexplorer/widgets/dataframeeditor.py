@@ -47,7 +47,7 @@ from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
     QApplication, QCheckBox, QDialog, QFrame, QGridLayout, QHBoxLayout,
     QInputDialog, QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton,
-    QScrollBar, QTableView, QTableWidget, QVBoxLayout, QWidget)
+    QScrollBar, QStyle, QTableView, QTableWidget, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -62,6 +62,7 @@ from spyder.utils.qthelpers import (
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle, MAC
 
 
 # Supported real and complex number types
@@ -1679,12 +1680,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """
         Create user interface.
         """
-        self.layout = QVBoxLayout()
-        self.layout.setSpacing(0)
+        # ---- Toolbar (to be filled later)
+
+        self.toolbar = self.create_toolbar('Editor toolbar', register=False)
+
+        # ---- Grid layout with tables and scrollbars showing data frame
+
         self.glayout = QGridLayout()
         self.glayout.setSpacing(0)
-        self.glayout.setContentsMargins(0, 12, 0, 0)
-        self.setLayout(self.layout)
+        self.glayout.setContentsMargins(0, 0, 0, 0)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -1708,10 +1712,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.min_trunc = avg_width * 12  # Minimum size for columns
         self.max_width = avg_width * 64  # Maximum size for columns
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        # ---- Buttons at bottom
+
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(5)
 
         btn_format = QPushButton(_("Format"))
         btn_layout.addWidget(btn_format)
@@ -1740,14 +1743,25 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(0, 16, 0, 16)
-        self.glayout.addLayout(btn_layout, 4, 0, 1, 2)
+        # ---- Final layout
 
-        self.toolbar = self.create_toolbar('Editor toolbar', register=False)
+        self.layout = QVBoxLayout()
         self.layout.addWidget(self.toolbar)
+
+        # Remove vertical space between toolbar and data frame
+        style = self.style()
+        default_spacing = style.pixelMetric(QStyle.PM_LayoutVerticalSpacing)
+        self.layout.addSpacing(-default_spacing)
+
         self.layout.addLayout(self.glayout)
+        self.layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
+        self.layout.addLayout(btn_layout)
+        self.setLayout(self.layout)
 
         self.setWindowTitle(title)
+
+        # Make the dialog act as a window
+        self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data) -> bool:
         """

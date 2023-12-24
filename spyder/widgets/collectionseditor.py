@@ -59,6 +59,7 @@ from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import AppStyle, MAC
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -1530,6 +1531,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         self.refresh_action.setEnabled(data_function is not None)
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(toolbar)
         layout.addWidget(self.editor)
         self.setLayout(layout)
@@ -1595,13 +1598,9 @@ class CollectionsEditor(BaseDialog):
         self.widget.sig_refresh_requested.connect(self.refresh_editor)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable)
-        layout = QVBoxLayout()
-        layout.addWidget(self.widget)
-        self.setLayout(layout)
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
-        btn_layout.setContentsMargins(4, 4, 4, 4)
         btn_layout.addStretch()
 
         if not readonly:
@@ -1616,7 +1615,12 @@ class CollectionsEditor(BaseDialog):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
+        # CollectionEditor widget layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.widget)
+        layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
         layout.addLayout(btn_layout)
+        self.setLayout(layout)
 
         self.setWindowTitle(self.widget.get_title())
         if icon is None:

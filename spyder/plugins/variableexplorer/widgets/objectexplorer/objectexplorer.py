@@ -18,7 +18,7 @@ from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QTextOption
 from qtpy.QtWidgets import (
     QAbstractItemView, QButtonGroup, QGroupBox, QHBoxLayout, QHeaderView,
-    QMessageBox, QPushButton, QRadioButton, QSplitter, QToolButton,
+    QMessageBox, QPushButton, QRadioButton, QSplitter, QStyle, QToolButton,
     QVBoxLayout, QWidget)
 
 # Local imports
@@ -31,6 +31,7 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, qapplication
+from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -178,7 +179,9 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             old_obj_tree.deleteLater()
         else:
             self.central_splitter.insertWidget(0, self.obj_tree)
-
+            self.central_splitter.setCollapsible(0, False)
+            self.central_splitter.setCollapsible(1, True)
+            self.central_splitter.setSizes([500, 320])
 
     def _make_show_column_function(self, column_idx):
         """Creates a function that shows or hides a column."""
@@ -274,29 +277,27 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
 
     def _setup_views(self):
         """Creates the UI widgets."""
-        layout = QVBoxLayout()
 
-        layout.addWidget(self.toolbar)
         self.central_splitter = QSplitter(self, orientation=Qt.Vertical)
-        layout.addWidget(self.central_splitter)
-        self.setLayout(layout)
 
         # Bottom pane
         bottom_pane_widget = QWidget()
+        bottom_pane_widget.setContentsMargins(0, 2*AppStyle.MarginSize, 0, 0)
         bottom_layout = QHBoxLayout()
         bottom_layout.setSpacing(0)
-        bottom_layout.setContentsMargins(5, 5, 5, 5)  # left top right bottom
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
         bottom_pane_widget.setLayout(bottom_layout)
         self.central_splitter.addWidget(bottom_pane_widget)
 
         group_box = QGroupBox(_("Details"))
+        group_box.setStyleSheet('QGroupBox '
+                                '{margin-bottom: 0px; margin-right: -2px;}')
         bottom_layout.addWidget(group_box)
 
-        v_group_layout = QVBoxLayout()
         h_group_layout = QHBoxLayout()
-        h_group_layout.setContentsMargins(2, 2, 2, 2)  # left top right bottom
-        group_box.setLayout(v_group_layout)
-        v_group_layout.addLayout(h_group_layout)
+        top_margin = self.style().pixelMetric(QStyle.PM_LayoutTopMargin)
+        h_group_layout.setContentsMargins(0, top_margin, 0, 0)
+        group_box.setLayout(h_group_layout)
 
         # Radio buttons
         radio_widget = QWidget()
@@ -324,8 +325,6 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
 
         # Save and close buttons
         btn_layout = QHBoxLayout()
-        btn_layout.setContentsMargins(4, 8, 8, 16)
-        btn_layout.setSpacing(5)
         btn_layout.addStretch()
 
         if not self.readonly:
@@ -339,12 +338,19 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
-        layout.addLayout(btn_layout)
 
-        # Splitter parameters
-        self.central_splitter.setCollapsible(0, False)
-        self.central_splitter.setCollapsible(1, True)
-        self.central_splitter.setSizes([500, 320])
+        layout = QVBoxLayout()
+        layout.addWidget(self.toolbar)
+
+        # Remove vertical space between toolbar and data from object
+        style = self.style()
+        default_spacing = style.pixelMetric(QStyle.PM_LayoutVerticalSpacing)
+        layout.addSpacing(-default_spacing)
+
+        layout.addWidget(self.central_splitter)
+        layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
+        layout.addLayout(btn_layout)
+        self.setLayout(layout)
 
     # End of setup_methods
     def _readViewSettings(self, reset=False):

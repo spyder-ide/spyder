@@ -24,10 +24,9 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
-    QAbstractItemDelegate, QApplication, QDialog, QGridLayout,
-    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit,
-    QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
-    QVBoxLayout, QWidget)
+    QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
+    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox,
+    QStackedWidget, QStyle, QTableView, QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
@@ -45,6 +44,7 @@ from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, keybinding, safe_disconnect
+from spyder.utils.stylesheet import AppStyle, MAC
 
 
 class ArrayEditorActions:
@@ -622,6 +622,7 @@ class ArrayEditorWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.view)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     def accept_changes(self):
@@ -688,7 +689,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.data = None
         self.arraywidget = None
         self.stack = None
-        self.layout = None
         self.btn_save_and_close = None
         self.btn_close = None
         # Values for 3d array editor
@@ -712,9 +712,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         interface of the array editor. Some elements need to be hidden
         depending on the data; this will be done when the data is set.
         """
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
-
         # ---- Toolbar and actions
 
         toolbar = self.create_toolbar('Editor toolbar', register=False)
@@ -772,13 +769,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         toolbar.add_item(self.refresh_action)
 
         toolbar._render()
-        self.layout.addWidget(toolbar, 0, 0)
 
         # ---- Stack widget (empty)
 
         self.stack = QStackedWidget(self)
         self.stack.currentChanged.connect(self.current_widget_changed)
-        self.layout.addWidget(self.stack, 1, 0)
 
         # ---- Widgets in bottom left for special arrays
         #
@@ -834,9 +829,18 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Final layout
 
-        # Add bottom row of widgets
-        self.btn_layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.addLayout(self.btn_layout, 2, 0)
+        layout = QVBoxLayout()
+        layout.addWidget(toolbar)
+
+        # Remove vertical space between toolbar and table containing array
+        style = self.style()
+        default_spacing = style.pixelMetric(QStyle.PM_LayoutVerticalSpacing)
+        layout.addSpacing(-default_spacing)
+
+        layout.addWidget(self.stack)
+        layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
+        layout.addLayout(self.btn_layout)
+        self.setLayout(layout)
 
         # Set title
         if title:
