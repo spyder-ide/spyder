@@ -441,7 +441,7 @@ def test_dataframeeditor_refreshaction_disabled():
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    assert not editor.dataTable.refresh_action.isEnabled()
+    assert not editor.refresh_action.isEnabled()
 
 
 def test_dataframeeditor_refresh():
@@ -454,8 +454,8 @@ def test_dataframeeditor_refresh():
     editor = DataFrameEditor(data_function=lambda: df_new)
     editor.setup_and_check(df_zero)
     assert_frame_equal(editor.get_value(), df_zero)
-    assert editor.dataTable.refresh_action.isEnabled()
-    editor.dataTable.refresh_action.trigger()
+    assert editor.refresh_action.isEnabled()
+    editor.refresh_action.trigger()
     assert_frame_equal(editor.get_value(), df_new)
 
 
@@ -476,7 +476,7 @@ def test_dataframeeditor_refresh_after_edit(result):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.question',
                return_value=result) as mock_question:
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_question.assert_called_once()
     editor.accept()
     if result == QMessageBox.Yes:
@@ -496,7 +496,7 @@ def test_dataframeeditor_refresh_into_int(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 
@@ -514,7 +514,7 @@ def test_dataframeeditor_refresh_when_variable_deleted(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 

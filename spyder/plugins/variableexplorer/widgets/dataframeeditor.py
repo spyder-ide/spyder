@@ -571,7 +571,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
     sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
-    sig_refresh_requested = Signal()
 
     CONF_SECTION = 'variable_explorer'
 
@@ -595,7 +594,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.duplicate_row_action = None
         self.duplicate_col_action = None
         self.convert_to_menu = None
-        self.refresh_action = None
         self.resize_action = None
         self.resize_columns_action = None
 
@@ -809,15 +807,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         )
         self.copy_action.setShortcut(keybinding('Copy'))
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
-        self.refresh_action = self.create_action(
-            name=None,
-            text=_('Refresh'),
-            icon=ima.icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
-            triggered=lambda: self.sig_refresh_requested.emit(),
-            register_action=False
-        )
-        self.refresh_action.setEnabled(self.data_function is not None)
 
         self.convert_to_menu = self.create_menu(
             menu_id='Convert submenu',
@@ -1645,6 +1634,16 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         super().__init__(parent)
         self.data_function = data_function
 
+        self.refresh_action = self.create_action(
+            name=None,
+            text=_('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh_editor,
+            register_action=False
+        )
+        self.refresh_action.setEnabled(self.data_function is not None)
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -1809,7 +1808,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         self.toolbar.clear()
         actions = [
-            self.dataTable.refresh_action,
+            self.refresh_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
             self.dataTable.edit_action,
@@ -1947,7 +1946,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataTable.sig_sort_by_column.connect(self._sort_update)
         self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
         self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
-        self.dataTable.sig_refresh_requested.connect(self.refresh_editor)
 
     def sortByIndex(self, index):
         """Implement a Index sort."""
