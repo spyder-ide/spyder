@@ -1811,8 +1811,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.refresh_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
-            self.dataTable.edit_action,
-            self.dataTable.copy_action,
             self.dataTable.remove_row_action,
             self.dataTable.remove_col_action,
             self.dataTable.insert_action_above,

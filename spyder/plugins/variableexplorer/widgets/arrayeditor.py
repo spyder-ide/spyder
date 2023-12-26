@@ -544,8 +544,16 @@ class ArrayView(QTableView, SpyderWidgetMixin):
         )
         self.copy_action.setShortcut(keybinding('Copy'))
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
+
+        edit_action = self.create_action(
+            name=None,
+            text=_('Edit'),
+            icon=ima.icon('edit'),
+            triggered=self.edit_item,
+            register_action=False
+        )
         menu = self.create_menu('Editor menu', register=False)
-        add_actions(menu, [self.copy_action, ])
+        add_actions(menu, [self.copy_action, edit_action])
         return menu
 
     def contextMenuEvent(self, event):
@@ -730,20 +738,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=self.refresh)
         self.refresh_action.setDisabled(self.data_function is None)
         toolbar.add_item(self.refresh_action)
-
-        self.copy_action = self.create_action(
-            ArrayEditorActions.Copy,
-            text=_('Copy'),
-            icon=self.create_icon('editcopy'),
-            triggered=do_nothing)
-        toolbar.add_item(self.copy_action)
-
-        self.edit_action = self.create_action(
-            ArrayEditorActions.Edit,
-            text=_('Edit'),
-            icon=self.create_icon('edit'),
-            triggered=do_nothing)
-        toolbar.add_item(self.edit_action)
 
         self.format_action = self.create_action(
             ArrayEditorActions.Format,
@@ -937,12 +931,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
 
         # ---- Actions
-
-        safe_disconnect(self.copy_action.triggered)
-        self.copy_action.triggered.connect(self.arraywidget.view.copy)
-
-        safe_disconnect(self.edit_action.triggered)
-        self.edit_action.triggered.connect(self.arraywidget.view.edit_item)
 
         safe_disconnect(self.format_action.triggered)
         self.format_action.triggered.connect(self.arraywidget.change_format)
