@@ -15,10 +15,8 @@ spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
 u_spy_exe=${PREFIX}/uninstall-spyder.sh
 all_user=$([[ -e ${PREFIX}/.nonadmin ]] && echo false || echo true)
 
-sed_opts=("-i")
 alias_text="alias uninstall-spyder=${u_spy_exe}"
 if [[ "$OSTYPE" = "darwin"* ]]; then
-    sed_opts+=("", "-e")
     shortcut_path="/Applications/${INSTALLER_NAME}.app"
     if [[ "$all_user" = "false" ]]; then
         shortcut_path="${HOME}${shortcut_path}"
@@ -36,6 +34,16 @@ else
     fi
 fi
 
+
+# BSD sed requires extra "" after -i flag
+if [[ $(sed --version 2>/dev/null) ]]; then
+    # GNU sed has --version
+    sed_opts=("-i" "-e")
+else
+    # BSD sed does not have --version
+    sed_opts=("-i" "" "-e")
+fi
+
 m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
 
@@ -45,12 +53,7 @@ add_alias() {
         exit 0
     fi
 
-    # Remove old-style markers, if present; discard after EXPERIMENTAL
-    # installer attrition.
-    sed ${sed_opts[@]} "/# <<<< Added by Spyder <<<</,/# >>>> Added by Spyder >>>>/d" $shell_init
-
-    # Posix compliant sed does not like semicolons.
-    # Must use newlines to work on macOS
+    # BSD sed does not like semicolons; newlines work for both BSD and GNU.
     sed ${sed_opts[@]} "
     /$m1/,/$m2/{
         h
