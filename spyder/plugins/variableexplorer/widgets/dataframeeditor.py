@@ -45,9 +45,9 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QCheckBox, QDialog, QFrame, QGridLayout, QHBoxLayout,
-    QInputDialog, QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton,
-    QScrollBar, QStyle, QTableView, QTableWidget, QVBoxLayout, QWidget)
+    QApplication, QDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
+    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollBar,
+    QStyle, QTableView, QTableWidget, QToolButton, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -58,7 +58,7 @@ from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
-    add_actions, keybinding, MENU_SEPARATOR, qapplication, safe_disconnect)
+    add_actions, keybinding, MENU_SEPARATOR, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
@@ -1643,6 +1643,24 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             register_action=False
         )
         self.refresh_action.setEnabled(self.data_function is not None)
+        self.format_action = self.create_action(
+            name=None,
+            text=_('Format'),
+            icon=self.create_icon('format_float'),
+            tip=_('Set format of floating-point numbers'),
+            triggered=self.change_format
+        )
+        self.bgcolor_action = self.create_action(
+            name=None,
+            text=_('Background color'),
+            icon=self.create_icon('background_color'),
+            toggled=self.change_bgcolor_enable
+        )
+        self.bgcolor_global_action = self.create_action(
+            name='Background color global',
+            text=_('Column min/max'),
+            toggled=self.toggle_bgcolor_global
+        )
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1709,22 +1727,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         # ---- Buttons at bottom
 
         btn_layout = QHBoxLayout()
-
-        btn_format = QPushButton(_("Format"))
-        btn_layout.addWidget(btn_format)
-        btn_format.clicked.connect(self.change_format)
-
-        btn_resize = QPushButton(_('Resize'))
-        btn_layout.addWidget(btn_resize)
-        btn_resize.clicked.connect(self.resize_to_contents)
-
-        self.bgcolor = QCheckBox(_('Background color'))
-        self.bgcolor.stateChanged.connect(self.change_bgcolor_enable)
-        btn_layout.addWidget(self.bgcolor)
-
-        self.bgcolor_global = QCheckBox(_('Column min/max'))
-        btn_layout.addWidget(self.bgcolor_global)
-
         btn_layout.addStretch()
 
         self.btn_save_and_close = QPushButton(_('Save and Close'))
@@ -1791,14 +1793,13 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        self.bgcolor.setChecked(self.dataModel.bgcolor_enabled)
-        self.bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
+        self.bgcolor_action.setChecked(self.dataModel.bgcolor_enabled)
+        self.bgcolor_action.setEnabled(self.dataModel.bgcolor_enabled)
 
-        safe_disconnect(self.bgcolor_global.stateChanged)
-        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
-        self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global.setEnabled(not self.is_series and
-                                       self.dataModel.bgcolor_enabled)
+        self.bgcolor_global_action.setChecked(self.dataModel.colum_avg_enabled)
+        self.bgcolor_global_action.setEnabled(
+            not self.is_series and self.dataModel.bgcolor_enabled
+        )
 
         self.btn_save_and_close.setDisabled(True)
         self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
@@ -1809,8 +1810,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.toolbar.clear()
         actions = [
             self.refresh_action,
+            self.format_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
+            self.bgcolor_action,
             self.dataTable.insert_action_above,
             self.dataTable.insert_action_below,
             self.dataTable.insert_action_after,
@@ -1822,6 +1825,21 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         ]
         for item in actions:
             self.toolbar.addAction(item)
+
+        stretcher = self.create_stretcher('Toolbar stretcher')
+        self.toolbar.addWidget(stretcher)
+
+        options_menu = self.create_menu('Options menu', register=False)
+        options_menu.add_action(self.bgcolor_global_action)
+        options_button = self.create_toolbutton(
+            name='Options toolbutton',
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+        self.toolbar.addWidget(options_button)
 
         return True
 
@@ -2142,7 +2160,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         This is implementet so column min/max is only active when bgcolor is
         """
         self.dataModel.bgcolor(state)
-        self.bgcolor_global.setEnabled(not self.is_series and state > 0)
+        self.bgcolor_global_action.setEnabled(not self.is_series and state > 0)
+
+    def toggle_bgcolor_global(self, state: bool) -> None:
+        """
+        Toggle "Column min/max" setting
+        """
+        if self.dataModel:
+            self.dataModel.colum_avg(state)
 
     def refresh_editor(self) -> None:
         """
