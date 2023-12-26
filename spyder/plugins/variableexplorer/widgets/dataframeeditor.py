@@ -837,12 +837,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             self.duplicate_row_action,
             self.duplicate_col_action,
             MENU_SEPARATOR,
-            self.convert_to_menu.menuAction(),
-            MENU_SEPARATOR,
-            self.resize_action,
-            self.resize_columns_action,
-            MENU_SEPARATOR,
-            self.refresh_action
+            self.convert_to_menu.menuAction()
         ]
 
         functions = (

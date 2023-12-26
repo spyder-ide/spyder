@@ -777,10 +777,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             self.view_action,
             self.plot_action,
             self.hist_action,
-            self.imshow_action,
-            MENU_SEPARATOR,
-            self.resize_action,
-            self.resize_columns_action
+            self.imshow_action
         ]
         add_actions(menu, menu_actions)
 
