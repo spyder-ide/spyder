@@ -704,7 +704,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.imshow_action.setVisible(False)
         self.save_array_action = self.create_action(
             name=None,
-            text=_("Save array"),
+            text=_("Save"),
             icon=ima.icon('filesave'),
             triggered=self.save_array,
             register_action=False
@@ -1528,7 +1528,6 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.editor.paste_action,
             self.editor.rename_action,
             self.editor.remove_action,
-            self.editor.save_array_action,
             self.editor.insert_action,
             self.editor.insert_action_above,
             self.editor.insert_action_below,
