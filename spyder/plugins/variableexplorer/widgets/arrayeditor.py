@@ -722,6 +722,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             # function as a placeholder here.
             pass
 
+        self.refresh_action = self.create_action(
+            ArrayEditorActions.Refresh,
+            text=_('Refresh'),
+            icon=self.create_icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh)
+        self.refresh_action.setDisabled(self.data_function is None)
+        toolbar.add_item(self.refresh_action)
+
         self.copy_action = self.create_action(
             ArrayEditorActions.Copy,
             text=_('Copy'),
@@ -758,15 +767,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('background_color'),
             toggled=do_nothing)
         toolbar.add_item(self.toggle_bgcolor_action)
-
-        self.refresh_action = self.create_action(
-            ArrayEditorActions.Refresh,
-            text=_('Refresh'),
-            icon=self.create_icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh)
-        self.refresh_action.setDisabled(self.data_function is None)
-        toolbar.add_item(self.refresh_action)
 
         toolbar._render()
 

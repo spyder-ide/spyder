@@ -1814,6 +1814,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         self.toolbar.clear()
         actions = [
+            self.dataTable.refresh_action,
+            self.dataTable.resize_action,
+            self.dataTable.resize_columns_action,
             self.dataTable.edit_action,
             self.dataTable.copy_action,
             self.dataTable.remove_row_action,
@@ -1823,10 +1826,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.dataTable.insert_action_after,
             self.dataTable.insert_action_before,
             self.dataTable.duplicate_row_action,
-            self.dataTable.duplicate_col_action,
-            self.dataTable.resize_action,
-            self.dataTable.resize_columns_action,
-            self.dataTable.refresh_action
+            self.dataTable.duplicate_col_action
         ]
         for item in actions:
             self.toolbar.addAction(item)

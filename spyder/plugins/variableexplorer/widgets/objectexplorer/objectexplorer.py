@@ -204,6 +204,16 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             'Object explorer toolbar', register=False
         )
 
+        self.refresh_button = self.create_toolbutton(
+            name='Refresh toolbutton',
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh_editor,
+            register=False
+        )
+        self.refresh_button.setEnabled(self.data_function is not None)
+        self.toolbar.add_item(self.refresh_button)
+
         # Show/hide callable objects
         self.toggle_show_callable_action = self.create_action(
             name='Show callable attributes',
@@ -228,16 +238,6 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             register_action=False
         )
         self.toolbar.add_item(self.toggle_show_special_attribute_action)
-
-        self.refresh_button = self.create_toolbutton(
-            name='Refresh toolbutton',
-            icon=ima.icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh_editor,
-            register=False
-        )
-        self.refresh_button.setEnabled(self.data_function is not None)
-        self.toolbar.add_item(self.refresh_button)
 
         stretcher = self.create_stretcher('Toolbar stretcher')
         self.toolbar.add_item(stretcher)

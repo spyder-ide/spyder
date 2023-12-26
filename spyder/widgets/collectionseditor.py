@@ -1512,8 +1512,20 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 self, data, namespacebrowser, data_function, readonly, title
             )
 
+        self.refresh_action = self.create_action(
+            name=None,
+            text=_('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=lambda: self.sig_refresh_requested.emit(),
+            register_action=None
+        )
+
         toolbar = self.create_toolbar('Editor toolbar', register=False)
         actions = [
+            self.refresh_action,
+            self.editor.resize_action,
+            self.editor.resize_columns_action,
             self.editor.edit_action,
             self.editor.copy_action,
             self.editor.paste_action,
@@ -1527,22 +1539,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.editor.view_action,
             self.editor.plot_action,
             self.editor.hist_action,
-            self.editor.imshow_action,
-            self.editor.resize_action,
-            self.editor.resize_columns_action
+            self.editor.imshow_action
         ]
         for item in actions:
             toolbar.addAction(item)
-
-        self.refresh_action = self.create_action(
-            name=None,
-            text=_('Refresh'),
-            icon=ima.icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
-            triggered=lambda: self.sig_refresh_requested.emit(),
-            register_action=None
-        )
-        toolbar.addAction(self.refresh_action)
 
         # Update the toolbar actions state
         self.editor.refresh_menu()
