@@ -642,7 +642,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.selectionModel().selectionChanged.connect(self.refresh_menu)
 
     def setup_menu(self):
-        """Setup context menu"""
+        """Setup actions and context menu"""
         self.resize_action = self.create_action(
             name=None,
             text=_("Resize rows to contents"),
@@ -762,17 +762,17 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         menu = self.create_menu('Editor menu', register=False)
         menu_actions = [
-            self.edit_action,
             self.copy_action,
             self.paste_action,
             self.rename_action,
-            self.remove_action,
+            self.edit_action,
             self.save_array_action,
             MENU_SEPARATOR,
             self.insert_action,
             self.insert_action_above,
             self.insert_action_below,
             self.duplicate_action,
+            self.remove_action,
             MENU_SEPARATOR,
             self.view_action,
             self.plot_action,
@@ -1523,11 +1523,11 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.refresh_action,
             self.editor.resize_action,
             self.editor.resize_columns_action,
-            self.editor.remove_action,
             self.editor.insert_action,
             self.editor.insert_action_above,
             self.editor.insert_action_below,
             self.editor.duplicate_action,
+            self.editor.remove_action,
             self.editor.view_action,
             self.editor.plot_action,
             self.editor.hist_action,

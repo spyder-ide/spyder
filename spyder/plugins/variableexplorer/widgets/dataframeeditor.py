@@ -814,10 +814,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             register=False
         )
         menu_actions = [
-            self.edit_action,
             self.copy_action,
-            self.remove_row_action,
-            self.remove_col_action,
+            self.edit_action,
             MENU_SEPARATOR,
             self.insert_action_above,
             self.insert_action_below,
@@ -825,6 +823,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             self.insert_action_before,
             self.duplicate_row_action,
             self.duplicate_col_action,
+            self.remove_row_action,
+            self.remove_col_action,
             MENU_SEPARATOR,
             self.convert_to_menu.menuAction()
         ]
@@ -1811,14 +1811,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.refresh_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
-            self.dataTable.remove_row_action,
-            self.dataTable.remove_col_action,
             self.dataTable.insert_action_above,
             self.dataTable.insert_action_below,
             self.dataTable.insert_action_after,
             self.dataTable.insert_action_before,
             self.dataTable.duplicate_row_action,
-            self.dataTable.duplicate_col_action
+            self.dataTable.duplicate_col_action,
+            self.dataTable.remove_row_action,
+            self.dataTable.remove_col_action
         ]
         for item in actions:
             self.toolbar.addAction(item)
