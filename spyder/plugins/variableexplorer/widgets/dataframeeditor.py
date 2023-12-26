@@ -582,7 +582,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         self.menu = None
         self.menu_header_h = None
-        self.menu_actions = []
         self.empty_ws_menu = None
         self.copy_action = None
         self.edit_action = None
@@ -597,6 +596,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.duplicate_col_action = None
         self.convert_to_menu = None
         self.refresh_action = None
+        self.resize_action = None
+        self.resize_columns_action = None
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -722,14 +723,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
     def setup_menu(self):
         """Setup context menu."""
-        resize_action = self.create_action(
+        self.resize_action = self.create_action(
             name=None,
             text=_("Resize rows to contents"),
             icon=ima.icon('collapse_row'),
             triggered=lambda: self.resize_to_contents(rows=True),
             register_action=False
         )
-        resize_columns_action = self.create_action(
+        self.resize_columns_action = self.create_action(
             name=None,
             text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
@@ -838,12 +839,11 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             MENU_SEPARATOR,
             self.convert_to_menu.menuAction(),
             MENU_SEPARATOR,
-            resize_action,
-            resize_columns_action,
+            self.resize_action,
+            self.resize_columns_action,
             MENU_SEPARATOR,
             self.refresh_action
         ]
-        self.menu_actions = menu_actions.copy()
 
         functions = (
             (_("Bool"), bool),
@@ -1813,10 +1813,23 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.table_header.setRowHeight(0, self.table_header.height())
 
         self.toolbar.clear()
-        for item in self.dataTable.menu_actions:
-            if item is not None:
-                if item.text() != _('Convert to'):
-                    self.toolbar.addAction(item)
+        actions = [
+            self.dataTable.edit_action,
+            self.dataTable.copy_action,
+            self.dataTable.remove_row_action,
+            self.dataTable.remove_col_action,
+            self.dataTable.insert_action_above,
+            self.dataTable.insert_action_below,
+            self.dataTable.insert_action_after,
+            self.dataTable.insert_action_before,
+            self.dataTable.duplicate_row_action,
+            self.dataTable.duplicate_col_action,
+            self.dataTable.resize_action,
+            self.dataTable.resize_columns_action,
+            self.dataTable.refresh_action
+        ]
+        for item in actions:
+            self.toolbar.addAction(item)
 
         return True
 

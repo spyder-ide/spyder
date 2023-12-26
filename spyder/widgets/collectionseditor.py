@@ -600,7 +600,6 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         self.array_filename = None
         self.menu = None
-        self.menu_actions = []
         self.empty_ws_menu = None
         self.paste_action = None
         self.copy_action = None
@@ -617,6 +616,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.rename_action = None
         self.duplicate_action = None
         self.view_action = None
+        self.resize_action = None
+        self.resize_columns_action = None
         self.delegate = None
         self.proxy_model = None
         self.source_model = None
@@ -642,14 +643,14 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
     def setup_menu(self):
         """Setup context menu"""
-        resize_action = self.create_action(
+        self.resize_action = self.create_action(
             name=None,
             text=_("Resize rows to contents"),
             icon=ima.icon('collapse_row'),
             triggered=self.resizeRowsToContents,
             register_action=False
         )
-        resize_columns_action = self.create_action(
+        self.resize_columns_action = self.create_action(
             name=None,
             text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
@@ -760,7 +761,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         )
 
         menu = self.create_menu('Editor menu', register=False)
-        self.menu_actions = [
+        menu_actions = [
             self.edit_action,
             self.copy_action,
             self.paste_action,
@@ -778,10 +779,10 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             self.hist_action,
             self.imshow_action,
             MENU_SEPARATOR,
-            resize_action,
-            resize_columns_action
+            self.resize_action,
+            self.resize_columns_action
         ]
-        add_actions(menu, self.menu_actions)
+        add_actions(menu, menu_actions)
 
         self.empty_ws_menu = self.create_menu('Empty ws', register=False)
         add_actions(
@@ -1512,9 +1513,26 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             )
 
         toolbar = self.create_toolbar('Editor toolbar', register=False)
-        for item in self.editor.menu_actions:
-            if item is not None:
-                toolbar.addAction(item)
+        actions = [
+            self.editor.edit_action,
+            self.editor.copy_action,
+            self.editor.paste_action,
+            self.editor.rename_action,
+            self.editor.remove_action,
+            self.editor.save_array_action,
+            self.editor.insert_action,
+            self.editor.insert_action_above,
+            self.editor.insert_action_below,
+            self.editor.duplicate_action,
+            self.editor.view_action,
+            self.editor.plot_action,
+            self.editor.hist_action,
+            self.editor.imshow_action,
+            self.editor.resize_action,
+            self.editor.resize_columns_action
+        ]
+        for item in actions:
+            toolbar.addAction(item)
 
         self.refresh_action = self.create_action(
             name=None,
