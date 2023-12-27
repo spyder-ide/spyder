@@ -295,7 +295,8 @@ DEFAULTS = [
               'show_comments': True,
               'follow_cursor': True,
               'display_variables': False,
-              'show_with_maximized_editor': True
+              'show_with_maximized_editor': True,
+              'show_in_editor_window': True
               }),
             ('preferences',
              {

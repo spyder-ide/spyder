@@ -43,6 +43,20 @@ from spyder.widgets.findreplace import FindReplace
 logger = logging.getLogger(__name__)
 
 
+class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
+
+    sig_collapse_requested = Signal()
+
+    @Slot()
+    def close_dock(self):
+        """
+        Reimplemented to preserve the widget's visible state when shown in an
+        editor window.
+        """
+        self.set_conf("show_in_editor_window", False)
+        self.sig_collapse_requested.emit()
+
+
 class EditorWidget(QSplitter):
     CONF_SECTION = 'editor'
 
@@ -74,7 +88,7 @@ class EditorWidget(QSplitter):
         # Set up an outline but only if its corresponding plugin is available.
         self.outlineexplorer = None
         if outline_plugin is not None:
-            self.outlineexplorer = OutlineExplorerWidget(
+            self.outlineexplorer = OutlineExplorerinEditorWindow(
                 'outline_explorer',
                 outline_plugin,
                 self,
@@ -90,14 +104,18 @@ class EditorWidget(QSplitter):
             # Remove bottom section actions from Options menu because they
             # don't apply here.
             options_menu = self.outlineexplorer.get_options_menu()
-            for action in ['undock_pane', 'close_pane',
-                           'lock_unlock_position']:
+            for action in ['undock_pane', 'lock_unlock_position']:
                 options_menu.remove_action(action)
 
+            # Signals
             self.outlineexplorer.edit_goto.connect(
                 lambda filenames, goto, word:
                 plugin.load(filenames=filenames, goto=goto, word=word,
                             editorwindow=self.parent())
+            )
+
+            self.outlineexplorer.sig_collapse_requested.connect(
+                self.hide_outlineexplorer
             )
 
             # Start symbol services for all supported languages
@@ -125,11 +143,17 @@ class EditorWidget(QSplitter):
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(editor_widgets)
-        if outline_plugin is not None:
+        if self.outlineexplorer is not None:
             self.splitter.addWidget(self.outlineexplorer)
         self.splitter.setStretchFactor(0, 3)
         self.splitter.setStretchFactor(1, 1)
         self.splitter.splitterMoved.connect(self.on_splitter_moved)
+
+        if (
+            self.outlineexplorer is not None
+            and not self.outlineexplorer.get_conf("show_in_editor_window")
+        ):
+            self.outlineexplorer.close_dock()
 
         # Style
         # Set background color to be the same as the one used in any other
@@ -215,15 +239,22 @@ class EditorWidget(QSplitter):
         else:
             self.outlineexplorer.change_tree_visibility(True)
 
+    def hide_outlineexplorer(self):
+        """
+        Hide outline explorer by expanding the editor widgets to take the full
+        width of the widget.
+        """
+        self.splitter.moveSplitter(self.size().width(), 0)
+
 
 class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
     sig_window_state_changed = Signal(object)
 
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
                  outline_plugin, parent=None):
-        # Parent needs to be `None` if the the created widget is meant to be
+        # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        QMainWindow.__init__(self, parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.plugin = plugin
