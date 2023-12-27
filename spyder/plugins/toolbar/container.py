@@ -11,7 +11,7 @@ Toolbar Container.
 # Standard library imports
 from collections import OrderedDict
 from spyder.utils.qthelpers import SpyderAction
-from typing import Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 # Third party imports
 from qtpy.QtCore import QSize, Slot
@@ -25,7 +25,7 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.utils.registries import TOOLBAR_REGISTRY
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 
 
 # Type annotations
@@ -65,7 +65,7 @@ class ToolbarContainer(PluginMainContainer):
         self._ADDED_TOOLBARS = OrderedDict()
         self._toolbarslist = []
         self._visible_toolbars = []
-        self._ITEMS_QUEUE = {}  # type: Dict[str, List[ItemInfo]]
+        self._ITEMS_QUEUE: Dict[str, List[ItemInfo]] = {}
 
     # ---- Private Methods
     # ------------------------------------------------------------------------
@@ -139,7 +139,10 @@ class ToolbarContainer(PluginMainContainer):
     # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(
-            self, toolbar_id: str, title: str) -> ApplicationToolbar:
+        self,
+        toolbar_id: str,
+        title: str
+    ) -> ApplicationToolbar:
         """
         Create an application toolbar and add it to the main window.
 
@@ -157,14 +160,16 @@ class ToolbarContainer(PluginMainContainer):
         """
         if toolbar_id in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" already added!'.format(toolbar_id))
+                'Toolbar with ID "{}" already added!'.format(toolbar_id)
+            )
 
         toolbar = ApplicationToolbar(self, title)
         toolbar.ID = toolbar_id
         toolbar.setObjectName(toolbar_id)
 
         TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+        )
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
@@ -234,13 +239,15 @@ class ToolbarContainer(PluginMainContainer):
         if mainwindow:
             mainwindow.removeToolBar(toolbar)
 
-    def add_item_to_application_toolbar(self,
-                                        item: ToolbarItem,
-                                        toolbar_id: Optional[str] = None,
-                                        section: Optional[str] = None,
-                                        before: Optional[str] = None,
-                                        before_section: Optional[str] = None,
-                                        omit_id: bool = False):
+    def add_item_to_application_toolbar(
+        self,
+        item: ToolbarItem,
+        toolbar_id: Optional[str] = None,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False
+    ):
         """
         Add action or widget `item` to given application toolbar `section`.
 
@@ -271,8 +278,11 @@ class ToolbarContainer(PluginMainContainer):
             toolbar.add_item(item, section=section, before=before,
                              before_section=before_section, omit_id=omit_id)
 
-    def remove_item_from_application_toolbar(self, item_id: str,
-                                             toolbar_id: Optional[str] = None):
+    def remove_item_from_application_toolbar(
+        self,
+        item_id: str,
+        toolbar_id: Optional[str] = None
+    ):
         """
         Remove action or widget from given application toolbar by id.
 
@@ -315,7 +325,7 @@ class ToolbarContainer(PluginMainContainer):
 
         return self._APPLICATION_TOOLBARS[toolbar_id]
 
-    def get_application_toolbars(self):
+    def get_application_toolbars(self) -> List[ApplicationToolbar]:
         """
         Return all created application toolbars.
 
@@ -378,7 +388,18 @@ class ToolbarContainer(PluginMainContainer):
                     # and QMainWindow.addToolbar(QString), which return a
                     # pointer to an already existing QObject.
                     action.__class__ = QActionID
-                action.action_id = f'toolbar_{toolbar_id}'
+
+                # Register action
+                id_ = f'toggle_view_{toolbar_id}'
+                action.action_id = id_
+
+                ACTION_REGISTRY.register_reference(
+                    action,
+                    id_,
+                    self._plugin.NAME
+                )
+
+                # Add action to menu
                 section = (
                     main_section
                     if toolbar_id in default_toolbars
