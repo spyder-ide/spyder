@@ -195,20 +195,18 @@ def _generate_background_images(installer_type):
 
 
 def _get_condarc():
-    # we need defaults for tensorflow and others on windows only
-    defaults = "- defaults" if WINDOWS else ""
-    prompt = "[spyder]({default_env}) "
     contents = dedent(
-        f"""
+        """
         channels:  #!final
+          - conda-forge/label/spyder_kernels_rc
+          - conda-forge/label/spyder_dev
           - conda-forge
-          {defaults}
         repodata_fns:  #!final
           - repodata.json
         auto_update_conda: false  #!final
         notify_outdated_conda: false  #!final
-        channel_priority: strict  #!final
-        env_prompt: '{prompt}'  #! final
+        channel_priority: flexible  #!final
+        env_prompt: '[spyder]({default_env}) '  #! final
         """
     )
     # the undocumented #!final comment is explained here
