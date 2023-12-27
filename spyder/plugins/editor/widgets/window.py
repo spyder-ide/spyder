@@ -25,6 +25,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.config.base import _
@@ -51,6 +53,15 @@ class EditorMainWindowMenus:
     View = "view"
 
 
+class ViewMenuSections:
+    Outline = "outline"
+    Toolbars = "toolbars"
+
+
+class EditorMainWindowActions:
+    ToggleOutline = "toggle_outline"
+
+
 # ---- Widgets
 # -----------------------------------------------------------------------------
 class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
@@ -63,18 +74,28 @@ class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
         Reimplemented to preserve the widget's visible state when shown in an
         editor window.
         """
-        self.set_conf("show_in_editor_window", False)
         self.sig_collapse_requested.emit()
 
 
-class EditorWidget(QSplitter):
+class EditorWidget(QSplitter, SpyderConfigurationObserver):
     CONF_SECTION = 'editor'
 
     def __init__(self, parent, plugin, menu_actions, outline_plugin):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        statusbar = parent.statusBar()  # Create a status bar
+        # ---- Attributes
+        self.editorstacks = []
+        self.plugin = plugin
+        self._sizes = None
+
+        # ---- Find widget
+        self.find_widget = FindReplace(self, enable_replace=True)
+        self.plugin.register_widget_shortcuts(self.find_widget)
+        self.find_widget.hide()
+
+        # ---- Status bar
+        statusbar = parent.statusBar()
         self.vcs_status = VCSStatus(self)
         self.cursorpos_status = CursorPositionStatus(self)
         self.encoding_status = EncodingStatus(self)
@@ -87,15 +108,7 @@ class EditorWidget(QSplitter):
         statusbar.insertPermanentWidget(0, self.cursorpos_status)
         statusbar.insertPermanentWidget(0, self.vcs_status)
 
-        self.editorstacks = []
-
-        self.plugin = plugin
-
-        self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts(self.find_widget)
-        self.find_widget.hide()
-
-        # Set up an outline but only if its corresponding plugin is available.
+        # ---- Outline.
         self.outlineexplorer = None
         if outline_plugin is not None:
             self.outlineexplorer = OutlineExplorerinEditorWindow(
@@ -125,7 +138,7 @@ class EditorWidget(QSplitter):
             )
 
             self.outlineexplorer.sig_collapse_requested.connect(
-                self.hide_outlineexplorer
+                lambda: self.set_conf("show_outline_in_editor_window", False)
             )
 
             # Start symbol services for all supported languages
@@ -135,6 +148,7 @@ class EditorWidget(QSplitter):
             # Tell Outline's treewidget that is visible
             self.outlineexplorer.change_tree_visibility(True)
 
+        # ---- Editor widgets
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setSpacing(0)
@@ -150,22 +164,29 @@ class EditorWidget(QSplitter):
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
+        # ---- Splitter
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(editor_widgets)
         if self.outlineexplorer is not None:
             self.splitter.addWidget(self.outlineexplorer)
+
         self.splitter.setStretchFactor(0, 3)
         self.splitter.setStretchFactor(1, 1)
+
+        # This sets the same UX as the one users encounter when the editor is
+        # maximized.
+        self.splitter.setChildrenCollapsible(False)
+
         self.splitter.splitterMoved.connect(self.on_splitter_moved)
 
         if (
             self.outlineexplorer is not None
-            and not self.outlineexplorer.get_conf("show_in_editor_window")
+            and not self.get_conf("show_outline_in_editor_window")
         ):
             self.outlineexplorer.close_dock()
 
-        # Style
+        # ---- Style
         # Set background color to be the same as the one used in any other
         # widget. This removes what appears to be some extra borders in several
         # places.
@@ -249,12 +270,22 @@ class EditorWidget(QSplitter):
         else:
             self.outlineexplorer.change_tree_visibility(True)
 
-    def hide_outlineexplorer(self):
-        """
-        Hide outline explorer by expanding the editor widgets to take the full
-        width of the widget.
-        """
-        self.splitter.moveSplitter(self.size().width(), 0)
+    @on_conf_change(option='show_outline_in_editor_window')
+    def toggle_outlineexplorer(self, value):
+        """Toggle outline explorer visibility."""
+        if value:
+            # When self._sizes is not available, the splitter sizes are set
+            # automatically by the ratios set for it above.
+            if self._sizes is not None:
+                self.splitter.setSizes(self._sizes)
+        else:
+            self._sizes = self.splitter.sizes()
+            self.splitter.setChildrenCollapsible(True)
+
+            # Collapse Outline
+            self.splitter.moveSplitter(self.size().width(), 0)
+
+            self.splitter.setChildrenCollapsible(False)
 
 
 class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
@@ -415,6 +446,19 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
             MenuClass=ApplicationMenu
         )
 
+        # Create Outline action
+        toggle_outline_action = self.create_action(
+            EditorMainWindowActions.ToggleOutline,
+            _("Outline"),
+            toggled=True,
+            option="show_outline_in_editor_window"
+        )
+
+        view_menu.add_action(
+            toggle_outline_action,
+            section=ViewMenuSections.Outline
+        )
+
         # Add toolbar toggle view actions
         visible_toolbars = self.get_conf(
             'last_visible_toolbars',
@@ -432,7 +476,10 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
                 toolbar_action.setChecked(True)
                 toolbar.setVisible(True)
 
-            view_menu.add_action(toolbar_action)
+            view_menu.add_action(
+                toolbar_action,
+                section=ViewMenuSections.Toolbars
+            )
 
         return view_menu
 
