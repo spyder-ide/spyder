@@ -1858,9 +1858,10 @@ class CodeEditor(TextEditBaseWidget):
         start, end = self.get_selection_start_end()
         start_line, start_col = start
         end_line, end_col = end
-        using_spaces = self.indent_chars != '\t'
-        tab_size = (len(self.indent_chars) if using_spaces else
-                    self.tab_stop_width_spaces)
+
+        # Remove empty trailing newline from multiline selection
+        if end_line > start_line and end_col == 0:
+            end_line -= 1
 
         fmt_range = {
             'start': {
@@ -1872,6 +1873,11 @@ class CodeEditor(TextEditBaseWidget):
                 'character': end_col
             }
         }
+
+        using_spaces = self.indent_chars != '\t'
+        tab_size = (len(self.indent_chars) if using_spaces else
+                    self.tab_stop_width_spaces)
+
         params = {
             'file': self.filename,
             'range': fmt_range,
