@@ -721,10 +721,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         This action can only be performed once.
         """
         # if not self._toolbars_already_rendered:
-        self._main_toolbar._render()
-        self._corner_toolbar._render()
+        self._main_toolbar.render()
+        self._corner_toolbar.render()
         for __, toolbar in self._auxiliary_toolbars.items():
-            toolbar._render()
+            toolbar.render()
 
             # self._toolbars_already_rendered = True
 
@@ -1026,7 +1026,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         # This is necessary for old API plugins interacting with new ones.
         self._plugin._ismaximized = state
 
-    # --- API: methods to define or override
+    # ---- API: methods to define or override
     # ------------------------------------------------------------------------
     def get_title(self):
         """

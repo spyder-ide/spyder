@@ -772,7 +772,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.refresh_action.setDisabled(self.data_function is None)
         toolbar.add_item(self.refresh_action)
 
-        toolbar._render()
+        toolbar.render()
         self.layout.addWidget(toolbar, 0, 0)
 
         # ---- Stack widget (empty)

@@ -12,7 +12,7 @@ Spyder API toolbar widgets.
 from collections import OrderedDict
 import os
 import sys
-from typing import Union, Optional, Tuple, List, Dict
+from typing import Dict, List, Optional, Tuple, Union
 import uuid
 
 # Third part imports
@@ -105,11 +105,14 @@ class SpyderToolbar(QToolBar):
 
     def __init__(self, parent, title):
         super().__init__(parent=parent)
-        self._section_items = OrderedDict()
-        self._item_map = {}  # type: Dict[str, ToolbarItem]
-        self._pending_items = {}  # type: Dict[str, List[ToolbarItemEntry]]
+
+        # Attributes
         self._title = title
+        self._section_items = OrderedDict()
+        self._item_map: Dict[str, ToolbarItem] = {}
+        self._pending_items: Dict[str, List[ToolbarItemEntry]] = {}
         self._default_section = "default_section"
+        self._filter = None
 
         self.setWindowTitle(title)
 
@@ -119,9 +122,14 @@ class SpyderToolbar(QToolBar):
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
         ext_button.setToolTip(_("More"))
 
-    def add_item(self, action_or_widget: ToolbarItem,
-                 section: Optional[str] = None, before: Optional[str] = None,
-                 before_section: Optional[str] = None, omit_id: bool = False):
+    def add_item(
+        self,
+        action_or_widget: ToolbarItem,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False
+    ):
         """
         Add action or widget item to given toolbar `section`.
 
@@ -217,14 +225,10 @@ class SpyderToolbar(QToolBar):
             if len(section_items) == 0:
                 self._section_items.pop(section)
         self.clear()
-        self._render()
+        self.render()
 
-    def _render(self):
-        """
-        Create the toolbar taking into account sections and locations.
-
-        This method is called once on widget setup.
-        """
+    def render(self):
+        """Create the toolbar taking into account sections and locations."""
         sec_items = []
         for sec, items in self._section_items.items():
             for item in items:
@@ -246,9 +250,12 @@ class SpyderToolbar(QToolBar):
             add_method(item)
 
             if isinstance(item, QAction):
-                text_beside_icon = getattr(item, 'text_beside_icon', False)
                 widget = self.widgetForAction(item)
 
+                if self._filter is not None:
+                    widget.installEventFilter(self._filter)
+
+                text_beside_icon = getattr(item, 'text_beside_icon', False)
                 if text_beside_icon:
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
@@ -316,40 +323,3 @@ class MainWidgetToolbar(SpyderToolbar):
     def set_icon_size(self, icon_size):
         self._icon_size = icon_size
         self.setIconSize(icon_size)
-
-    def _render(self):
-        """
-        Create the toolbar taking into account the sections and locations.
-
-        This method is called once on widget setup.
-        """
-        sec_items = []
-        for sec, items in self._section_items.items():
-            for item in items:
-                sec_items.append([sec, item])
-
-            sep = QAction(self)
-            sep.setSeparator(True)
-            sec_items.append((None, sep))
-
-        if sec_items:
-            sec_items.pop()
-
-        for (sec, item) in sec_items:
-            if isinstance(item, QAction):
-                add_method = super().addAction
-            else:
-                add_method = super().addWidget
-
-            add_method(item)
-
-            if isinstance(item, QAction):
-                widget = self.widgetForAction(item)
-                widget.installEventFilter(self._filter)
-
-                text_beside_icon = getattr(item, 'text_beside_icon', False)
-                if text_beside_icon:
-                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-
-                if item.isCheckable():
-                    widget.setCheckable(True)
