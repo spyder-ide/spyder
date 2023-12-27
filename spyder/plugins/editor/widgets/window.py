@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""EditorWidget and EditorMainWindow widget"""
+"""EditorWidget and EditorMainWindow widgets."""
 
 # pylint: disable=C0103
 # pylint: disable=R0903
@@ -24,25 +24,35 @@ from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.plugins import Plugins
+from spyder.api.widgets.toolbars import ApplicationToolbar
+from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
+from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
-from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.icon_manager import ima
+from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.py3compat import qbytearray_to_str
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
-from spyder.utils.stylesheet import APP_STYLESHEET, APP_TOOLBAR_STYLESHEET
+from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
 
 
 logger = logging.getLogger(__name__)
 
 
+# ---- Constants
+# -----------------------------------------------------------------------------
+class EditorMainWindowMenus:
+    View = "view"
+
+
+# ---- Widgets
+# -----------------------------------------------------------------------------
 class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
 
     sig_collapse_requested = Signal()
@@ -247,26 +257,35 @@ class EditorWidget(QSplitter):
         self.splitter.moveSplitter(self.size().width(), 0)
 
 
-class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
+class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
+    CONF_SECTION = "editor"
+
     sig_window_state_changed = Signal(object)
 
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 outline_plugin, parent=None):
+    def __init__(self, plugin, menu_actions, outline_plugin, parent=None):
         # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        # ---- Attributes
         self.plugin = plugin
         self.window_size = None
+        self.toolbars = []
 
-        self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         outline_plugin)
+        # ---- Main widget
+        self.editorwidget = EditorWidget(
+            self,
+            plugin,
+            menu_actions,
+            outline_plugin
+        )
         self.sig_window_state_changed.connect(
-            self.editorwidget.on_window_state_changed)
+            self.editorwidget.on_window_state_changed
+        )
         self.setCentralWidget(self.editorwidget)
 
-        # Setting interface theme
+        # ---- Style
         self.setStyleSheet(str(APP_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
@@ -278,64 +297,53 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.setWindowTitle("Spyder - %s" % plugin.windowTitle())
         self.setWindowIcon(plugin.windowIcon())
 
-        self.toolbars = []
-        if toolbar_list:
-            for title, object_name, actions in toolbar_list:
-                toolbar = self.addToolBar(title)
-                toolbar.setObjectName(object_name)
-                toolbar.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
-                toolbar.setMovable(False)
-                add_actions(toolbar, actions)
-                self.toolbars.append(toolbar)
+        # ---- Add toolbars
+        toolbar_list = [
+            ApplicationToolbars.File,
+            ApplicationToolbars.Run,
+            ApplicationToolbars.Debug
+        ]
 
-        self.menus = []
-        if menu_list:
-            quit_action = create_action(self, _("Close window"),
-                                        icon=ima.icon("close_pane"),
-                                        tip=_("Close this window"),
-                                        triggered=self.close)
-            for index, (title, actions) in enumerate(menu_list):
-                menu = self.menuBar().addMenu(title)
-                if index == 0:
-                    # File menu
-                    add_actions(menu, actions+[None, quit_action])
-                else:
-                    add_actions(menu, actions)
-                self.menus.append(menu)
+        for toolbar_id in toolbar_list:
+            toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
+            new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
+            for action in toolbar.actions():
+                new_toolbar.add_item(
+                    action,
+                    # TODO: Remove this omit_id usage when the editor is
+                    # migrated to the new API
+                    omit_id=True if action.action_id is None else False
+                )
 
-    def get_toolbars(self):
-        """Get the toolbars."""
-        return self.toolbars
+            new_toolbar.render()
+            new_toolbar.setMovable(False)
 
-    def add_toolbars_to_menu(self, menu_title, actions):
-        """Add toolbars to a menu."""
-        # Six is the position of the view menu in menus list
-        # that you can find in plugins/editor.py setup_other_windows.
-        if self.menus:
-            view_menu = self.menus[6]
-            if actions == self.toolbars and view_menu:
-                toolbars = []
-                for toolbar in self.toolbars:
-                    action = toolbar.toggleViewAction()
-                    toolbars.append(action)
-                add_actions(view_menu, toolbars)
+            self.addToolBar(new_toolbar)
+            self.toolbars.append(new_toolbar)
 
-    def load_toolbars(self):
-        """Loads the last visible toolbars from the .ini file."""
-        toolbars_names = self.get_conf(
-            'last_visible_toolbars', section='main', default=[]
-        )
-        if toolbars_names:
-            dic = {}
-            for toolbar in self.toolbars:
-                dic[toolbar.objectName()] = toolbar
-                toolbar.toggleViewAction().setChecked(False)
-                toolbar.setVisible(False)
-            for name in toolbars_names:
-                if name in dic:
-                    dic[name].toggleViewAction().setChecked(True)
-                    dic[name].setVisible(True)
+        # ---- Add menus
+        menu_list = [
+            ApplicationMenus.File,
+            ApplicationMenus.Edit,
+            ApplicationMenus.Search,
+            ApplicationMenus.Source,
+            ApplicationMenus.Run,
+            ApplicationMenus.Tools,
+            EditorMainWindowMenus.View,
+            ApplicationMenus.Help
+        ]
 
+        for menu_id in menu_list:
+            if menu_id == EditorMainWindowMenus.View:
+                view_menu = self._create_view_menu()
+                self.menuBar().addMenu(view_menu)
+            else:
+                self.menuBar().addMenu(
+                    self.get_menu(menu_id, plugin=Plugins.MainMenu)
+                )
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def resizeEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.isFullScreen():
@@ -362,6 +370,8 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
             self.sig_window_state_changed.emit(self.windowState())
         super().changeEvent(event)
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def get_layout_settings(self):
         """Return layout state"""
         splitsettings = self.editorwidget.editorsplitter.get_layout_settings()
@@ -393,6 +403,38 @@ class EditorMainWindow(QMainWindow, SpyderConfigurationAccessor):
         splitsettings = settings.get('splitsettings')
         if splitsettings is not None:
             self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _create_view_menu(self):
+        # Create menu
+        view_menu = self._create_menu(
+            menu_id=EditorMainWindowMenus.View,
+            parent=self,
+            title=_("&View"),
+            MenuClass=ApplicationMenu
+        )
+
+        # Add toolbar toggle view actions
+        visible_toolbars = self.get_conf(
+            'last_visible_toolbars',
+            section='toolbar'
+        )
+
+        for toolbar in self.toolbars:
+            toolbar_action = toolbar.toggleViewAction()
+            toolbar_action.action_id = f'toolbar_{toolbar.ID}'
+
+            if toolbar.ID not in visible_toolbars:
+                toolbar_action.setChecked(False)
+                toolbar.setVisible(False)
+            else:
+                toolbar_action.setChecked(True)
+                toolbar.setVisible(True)
+
+            view_menu.add_action(toolbar_action)
+
+        return view_menu
 
 
 class EditorPluginExample(QSplitter):
@@ -440,7 +482,7 @@ class EditorPluginExample(QSplitter):
 
     def go_to_file(self, fname, lineno, text='', start_column=None):
         editorstack = self.editorstacks[0]
-        editorstack.set_current_filename(to_text_string(fname))
+        editorstack.set_current_filename(str(fname))
         editor = editorstack.get_current_editor()
         editor.go_to_line(lineno, word=text, start_column=start_column)
 

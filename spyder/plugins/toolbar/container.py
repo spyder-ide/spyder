@@ -81,8 +81,10 @@ class ToolbarContainer(PluginMainContainer):
         """Collect the visible toolbars."""
         toolbars = []
         for toolbar in self._toolbarslist:
-            if (toolbar.toggleViewAction().isChecked()
-                    and toolbar not in toolbars):
+            if (
+                toolbar.toggleViewAction().isChecked()
+                and toolbar not in toolbars
+            ):
                 toolbars.append(toolbar)
 
         self._visible_toolbars = toolbars
@@ -358,7 +360,9 @@ class ToolbarContainer(PluginMainContainer):
 
             self._visible_toolbars = toolbars
         else:
-            self._get_visible_toolbars()
+            # This is necessary to set the toolbars in EditorMainWindow the
+            # first time Spyder starts.
+            self.save_last_visible_toolbars()
 
         for toolbar in self._visible_toolbars:
             toolbar.setVisible(toolbars_visible)
@@ -376,6 +380,11 @@ class ToolbarContainer(PluginMainContainer):
         for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
+
+                # This is necessary to show the same visible toolbars both in
+                # MainWindow and EditorMainWindow.
+                action.triggered.connect(self.save_last_visible_toolbars)
+
                 if not PYSIDE2:
                     # Modifying __class__ of a QObject created by C++ [1] seems
                     # to invalidate the corresponding Python object when PySide
