@@ -163,8 +163,7 @@ class ToolbarContainer(PluginMainContainer):
                 'Toolbar with ID "{}" already added!'.format(toolbar_id)
             )
 
-        toolbar = ApplicationToolbar(self, title)
-        toolbar.ID = toolbar_id
+        toolbar = ApplicationToolbar(self, toolbar_id, title)
         toolbar.setObjectName(toolbar_id)
 
         TOOLBAR_REGISTRY.register_reference(

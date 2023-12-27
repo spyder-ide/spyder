@@ -152,15 +152,18 @@ class SpyderToolbar(QToolBar):
             Spyder 4 plugins. Default: False
         """
         item_id = None
-        if (isinstance(action_or_widget, SpyderAction) or
-                hasattr(action_or_widget, 'action_id')):
+        if (
+            isinstance(action_or_widget, SpyderAction)
+            or hasattr(action_or_widget, 'action_id')
+        ):
             item_id = action_or_widget.action_id
         elif hasattr(action_or_widget, 'ID'):
             item_id = action_or_widget.ID
 
         if not omit_id and item_id is None and action_or_widget is not None:
             raise SpyderAPIError(
-                f'Item {action_or_widget} must declare an ID attribute.')
+                f'Item {action_or_widget} must declare an ID attribute.'
+            )
 
         if before is not None:
             if before not in self._item_map:
@@ -275,8 +278,9 @@ class ApplicationToolbar(SpyderToolbar):
     This is used by Qt to be able to save and restore the state of widgets.
     """
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, toolbar_id, title):
         super().__init__(parent=parent, title=title)
+        self.ID = toolbar_id
 
         self._style = ToolbarStyle(None)
         self._style.TYPE = 'Application'
