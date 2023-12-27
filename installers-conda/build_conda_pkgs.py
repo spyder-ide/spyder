@@ -128,9 +128,6 @@ class BuildCondaPkg:
     def _patch_meta(self, meta):
         return meta
 
-    def _patch_build_script(self):
-        pass
-
     def patch_recipe(self):
         """
         Patch conda build recipe
@@ -161,8 +158,6 @@ class BuildCondaPkg:
         file.write_text(meta)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
-
-        self._patch_build_script()
 
         self._recipe_patched = True
 
@@ -255,44 +250,6 @@ class SpyderCondaPkg(BuildCondaPkg):
                       rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
         return meta
-
-    def _patch_build_script(self):
-        self.logger.info("Patching build script...")
-
-        rel_menufile = self.menufile.relative_to(HERE.parent)
-
-        if os.name == 'posix':
-            logomark = "branding/logo/logomark/spyder-logomark-background.png"
-            file = self._fdstk_path / "recipe" / "build.sh"
-            text = file.read_text()
-            text += dedent(
-                f"""
-                # Create the Menu directory
-                mkdir -p "${{PREFIX}}/Menu"
-
-                # Copy menu.json template
-                cp "${{SRC_DIR}}/{rel_menufile}" "${{PREFIX}}/Menu/spyder-menu.json"
-
-                # Copy application icons
-                if [[ $OSTYPE == "darwin"* ]]; then
-                    cp "${{SRC_DIR}}/img_src/spyder.icns" "${{PREFIX}}/Menu/spyder.icns"
-                else
-                    cp "${{SRC_DIR}}/{logomark}" "${{PREFIX}}/Menu/spyder.png"
-                fi
-                """
-            )
-
-        if os.name == 'nt':
-            file = self._fdstk_path / "recipe" / "bld.bat"
-            text = file.read_text()
-            text = text.replace(
-                r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                fr"copy %SRC_DIR%\{rel_menufile} %MENU_DIR%\spyder-menu.json"
-            )
-        file.rename(file.parent / ("_" + file.name))  # keep copy of original
-        file.write_text(text)
-
-        self.logger.info(f"Patched build script contents:\n{file.read_text()}")
 
 
 class PylspCondaPkg(BuildCondaPkg):
