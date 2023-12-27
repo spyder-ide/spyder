@@ -232,22 +232,25 @@ class ProjectExplorerWidget(PluginMainWidget):
             ProjectsActions.NewProject,
             text=_("New Project..."),
             triggered=self.create_new_project,
-            icon=self.create_icon("new_project"))
+            icon=self.create_icon("project_new"))
 
         self.create_action(
             ProjectsActions.OpenProject,
             text=_("Open Project..."),
-            triggered=lambda v: self.open_project())
+            triggered=lambda v: self.open_project(),
+            icon=self.create_icon("project_open"))
 
         self.close_project_action = self.create_action(
             ProjectsActions.CloseProject,
             text=_("Close Project"),
-            triggered=self.close_project)
+            triggered=self.close_project,
+            icon=self.create_icon("project_close"))
 
         self.delete_project_action = self.create_action(
             ProjectsActions.DeleteProject,
             text=_("Delete Project"),
-            triggered=self.delete_project)
+            triggered=self.delete_project,
+            icon=self.create_icon("project_delete"))
 
         self.clear_recent_projects_action = self.create_action(
             ProjectsActions.ClearRecentProjects,
@@ -277,7 +280,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 action,
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main)
-            
+
     def set_pane_empty(self):
         self.treewidget.hide()
         self.pane_empty.show()
@@ -933,7 +936,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                         action = self.create_action(
                             name,
                             text=name,
-                            icon=self.create_icon('project'),
+                            icon=self.create_icon('project_spyder'),
                             triggered=self._build_opener(project),
                         )
 
