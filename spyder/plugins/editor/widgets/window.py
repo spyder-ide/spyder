@@ -17,6 +17,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import QByteArray, QEvent, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
@@ -32,6 +33,7 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.icon_manager import ima
+from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.utils.stylesheet import APP_STYLESHEET, APP_TOOLBAR_STYLESHEET
@@ -45,7 +47,7 @@ class EditorWidget(QSplitter):
     CONF_SECTION = 'editor'
 
     def __init__(self, parent, plugin, menu_actions, outline_plugin):
-        QSplitter.__init__(self, parent)
+        super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         statusbar = parent.statusBar()  # Create a status bar
@@ -125,9 +127,31 @@ class EditorWidget(QSplitter):
         self.splitter.addWidget(editor_widgets)
         if outline_plugin is not None:
             self.splitter.addWidget(self.outlineexplorer)
-        self.splitter.setStretchFactor(0, 5)
+        self.splitter.setStretchFactor(0, 3)
         self.splitter.setStretchFactor(1, 1)
         self.splitter.splitterMoved.connect(self.on_splitter_moved)
+
+        # Style
+        # Set background color to be the same as the one used in any other
+        # widget. This removes what appears to be some extra borders in several
+        # places.
+        css = qstylizer.style.StyleSheet()
+        css.QSplitter.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_1
+        )
+
+        # Make splitter handle to have the same size as the QMainWindow
+        # separators. That's because the editor and outline are shown like
+        # this when the editor is maximized.
+        css['QSplitter::handle:horizontal'].setValues(
+            width="7px"
+        )
+
+        css['QSplitter::handle:vettical'].setValues(
+            height="7px"
+        )
+
+        self.splitter.setStyleSheet(css.toString())
 
     def register_editorstack(self, editorstack):
         logger.debug("Registering editorstack")
