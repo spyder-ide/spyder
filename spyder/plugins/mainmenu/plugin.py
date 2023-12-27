@@ -24,6 +24,7 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.mixins import SpyderMenuMixin
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.palette import QStylePalette
@@ -37,7 +38,7 @@ ItemSectionBefore = Tuple[
 ItemQueue = Dict[str, List[ItemSectionBefore]]
 
 
-class MainMenu(SpyderPluginV2):
+class MainMenu(SpyderPluginV2, SpyderMenuMixin):
     NAME = 'mainmenu'
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -174,11 +175,12 @@ class MainMenu(SpyderPluginV2):
                 'Menu with id "{}" already added!'.format(menu_id)
             )
 
-        menu = ApplicationMenu(
-            self.main,
+        menu = self._create_menu(
             menu_id=menu_id,
+            parent=self.main,
             title=title,
-            min_width=min_width
+            min_width=min_width,
+            MenuClass=ApplicationMenu
         )
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
