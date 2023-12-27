@@ -71,7 +71,7 @@ exit %ERRORLEVEL%
 
     call :wait_for_spyder_quit
 
-    %conda% install -p %prefix% -c conda-forge --override-channels -y spyder=%spy_ver%
+    %conda% install -p %prefix% -y spyder=%spy_ver%
     set /P CONT=Press any key to exit...
     goto :EOF
 
