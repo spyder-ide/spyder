@@ -78,7 +78,10 @@ class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
 
 
 class EditorWidget(QSplitter, SpyderConfigurationObserver):
+    """Main widget to show in EditorMainWindow."""
+
     CONF_SECTION = 'editor'
+    SPLITTER_WIDTH = "7px"
 
     def __init__(self, parent, plugin, menu_actions, outline_plugin):
         super().__init__(parent)
@@ -88,6 +91,9 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         self.editorstacks = []
         self.plugin = plugin
         self._sizes = None
+
+        # This needs to be done at this point to avoid an error at startup
+        self._splitter_css = self._generate_splitter_stylesheet()
 
         # ---- Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -187,26 +193,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             self.outlineexplorer.close_dock()
 
         # ---- Style
-        # Set background color to be the same as the one used in any other
-        # widget. This removes what appears to be some extra borders in several
-        # places.
-        css = qstylizer.style.StyleSheet()
-        css.QSplitter.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_1
-        )
-
-        # Make splitter handle to have the same size as the QMainWindow
-        # separators. That's because the editor and outline are shown like
-        # this when the editor is maximized.
-        css['QSplitter::handle:horizontal'].setValues(
-            width="7px"
-        )
-
-        css['QSplitter::handle:vettical'].setValues(
-            height="7px"
-        )
-
-        self.splitter.setStyleSheet(css.toString())
+        self.splitter.setStyleSheet(self._splitter_css.toString())
 
     def register_editorstack(self, editorstack):
         logger.debug("Registering editorstack")
@@ -235,6 +222,25 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         )
         for es in self.editorstacks:
             logger.debug(f"    {es}")
+
+    def _generate_splitter_stylesheet(self):
+        # Set background color to be the same as the one used in any other
+        # widget. This removes what appears to be some extra borders in several
+        # places.
+        css = qstylizer.style.StyleSheet()
+        css.QSplitter.setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_1
+        )
+
+        # Make splitter handle to have the same size as the QMainWindow
+        # separators. That's because the editor and outline are shown like
+        # this when the editor is maximized.
+        css['QSplitter::handle'].setValues(
+            width=self.SPLITTER_WIDTH,
+            height=self.SPLITTER_WIDTH
+        )
+
+        return css
 
     def unregister_editorstack(self, editorstack):
         logger.debug("Unregistering editorstack")
@@ -278,12 +284,28 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             # automatically by the ratios set for it above.
             if self._sizes is not None:
                 self.splitter.setSizes(self._sizes)
+
+            # Show and enable splitter handle
+            self._splitter_css['QSplitter::handle'].setValues(
+                width=self.SPLITTER_WIDTH,
+                height=self.SPLITTER_WIDTH
+            )
+            self.splitter.setStyleSheet(self._splitter_css.toString())
+            self.splitter.handle(1).setEnabled(True)
         else:
             self._sizes = self.splitter.sizes()
             self.splitter.setChildrenCollapsible(True)
 
             # Collapse Outline
             self.splitter.moveSplitter(self.size().width(), 0)
+
+            # Hide and disable splitter handle
+            self._splitter_css['QSplitter::handle'].setValues(
+                width="0px",
+                height="0px"
+            )
+            self.splitter.setStyleSheet(self._splitter_css.toString())
+            self.splitter.handle(1).setEnabled(False)
 
             self.splitter.setChildrenCollapsible(False)
 
