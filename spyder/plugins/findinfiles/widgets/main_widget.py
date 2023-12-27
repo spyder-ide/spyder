@@ -140,6 +140,7 @@ class FindInFilesWidget(PluginMainWidget):
         self._search_in_label_width = None
         self._exclude_label_width = None
         self._is_shown = False
+        self._is_first_time = False
 
         search_text = self.get_conf('search_text', '')
         path_history = self.get_conf('path_history', [])
@@ -348,22 +349,18 @@ class FindInFilesWidget(PluginMainWidget):
             self.set_max_results_action,
             menu=menu,
         )
-        self.set_pane_empty()
 
-    def set_pane_empty(self):
-        if self.result_browser.data:
-            self.stacked_widget.setCurrentWidget(self.result_browser)
-        else:
-            self.stacked_widget.setCurrentWidget(self.pane_empty)
+        # Set pane_empty widget at the beginning
+        self.stacked_widget.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(
-            'stop' if self.running else 'find'))
+            'stop' if self.running else 'find')
+        )
 
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
-        self.set_pane_empty()
 
     @on_conf_change(option='more_options')
     def on_more_options_update(self, value):
@@ -645,6 +642,12 @@ class FindInFilesWidget(PluginMainWidget):
         If there is no search running, this will start the search. If there is
         a search running, this will stop it.
         """
+        # Show result_browser the first time a user performs a search and leave
+        # it shown afterwards.
+        if not self._is_first_time:
+            self.stacked_widget.setCurrentWidget(self.result_browser)
+            self._is_first_time = True
+
         if self.running:
             self.stop()
         else:

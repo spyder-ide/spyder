@@ -1094,7 +1094,6 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
         start_tour_color = QStylePalette.COLOR_ACCENT_2
         start_tour_hover = QStylePalette.COLOR_ACCENT_3
         start_tour_pressed = QStylePalette.COLOR_ACCENT_4
@@ -1187,7 +1186,7 @@ class OpenTourDialog(QDialog):
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        self.setStyleSheet(f"background-color:{dialog_tour_color}")
+        self.setStyleSheet(f"background-color:{DialogStyle.BackgroundColor}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)

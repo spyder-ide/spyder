@@ -8,7 +8,7 @@ import os
 import re
 import uuid
 import functools
-from typing import Literal, Optional, Generator, Callable, List
+from typing import Optional, Generator, Callable, List
 from threading import RLock
 
 import jedi
@@ -58,30 +58,20 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
-
-        # We have a sperate AutoImport object for each feature to avoid sqlite errors
-        # from accessing the same database from multiple threads.
-        # An upstream fix discussion is here: https://github.com/python-rope/rope/issues/713
-        self.__rope_autoimport = (
-            {}
-        )  # Type: Dict[Literal["completions", "code_actions"], rope.contrib.autoimport.sqlite.AutoImport]
+        self.__rope_autoimport = None
 
     def _rope_autoimport(
         self,
         rope_config: Optional,
         memory: bool = False,
-        feature: Literal["completions", "code_actions"] = "completions",
     ):
         # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
 
-        if feature not in ["completions", "code_actions"]:
-            raise ValueError(f"Unknown feature {feature}")
-
-        if self.__rope_autoimport.get(feature, None) is None:
+        if self.__rope_autoimport is None:
             project = self._rope_project_builder(rope_config)
-            self.__rope_autoimport[feature] = AutoImport(project, memory=memory)
-        return self.__rope_autoimport[feature]
+            self.__rope_autoimport = AutoImport(project, memory=memory)
+        return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
         # pylint: disable=import-outside-toplevel
@@ -388,8 +378,8 @@ class Workspace:
         )
 
     def close(self):
-        for _, autoimport in self.__rope_autoimport.items():
-            autoimport.close()
+        if self.__rope_autoimport:
+            self.__rope_autoimport.close()
 
 
 class Document:

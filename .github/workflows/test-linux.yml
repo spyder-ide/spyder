@@ -140,9 +140,13 @@ jobs:
       - name: Run tests with gdb
         if: env.USE_GDB == 'true'
         shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
       - name: Run tests
         shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh || \
