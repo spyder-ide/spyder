@@ -228,13 +228,6 @@ class SpyderCondaPkg(BuildCondaPkg):
         self.menufile.write_text(text)
 
     def _patch_meta(self, meta):
-        # Remove osx_is_app
-        meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
-                      r'\g<1>', meta, flags=re.MULTILINE)
-
-        # Remove app node
-        meta = re.sub(r'^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
-
         # Get current Spyder requirements
         yaml = YAML()
         current_requirements = ['python']
