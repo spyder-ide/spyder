@@ -475,7 +475,7 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
         )
 
         # Create Outline action
-        toggle_outline_action = self.create_action(
+        self.toggle_outline_action = self.create_action(
             EditorMainWindowActions.ToggleOutline,
             _("Outline"),
             toggled=True,
@@ -483,7 +483,7 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
         )
 
         view_menu.add_action(
-            toggle_outline_action,
+            self.toggle_outline_action,
             section=ViewMenuSections.Outline
         )
 

@@ -6886,5 +6886,75 @@ def test_outline_in_maximized_editor(main_window, qtbot):
     assert outline.get_conf('show_with_maximized_editor')
 
 
+@flaky(max_runs=3)
+def test_editor_window_outline_and_toolbars(main_window, qtbot):
+    """Check the behavior of the Outline and toolbars in editor windows."""
+    # Create editor window.
+    editorwindow = main_window.editor.create_new_window()
+    qtbot.waitUntil(editorwindow.isVisible)
+
+    # Check toolbars in editor window are visible
+    for toolbar in editorwindow.toolbars:
+        assert toolbar.isVisible()
+        assert toolbar.toggleViewAction().isChecked()
+
+    # Hide Outline from its close action
+    editorwindow.editorwidget.outlineexplorer.close_action.trigger()
+    assert not editorwindow.editorwidget.outlineexplorer.is_visible
+
+    # Check splitter handle is hidden and disabled
+    assert editorwindow.editorwidget.splitter.handleWidth() == 0
+    assert not editorwindow.editorwidget.splitter.handle(1).isEnabled()
+
+    # Show outline again and check it's visible
+    editorwindow.toggle_outline_action.setChecked(True)
+    qtbot.waitUntil(
+        lambda: editorwindow.editorwidget.outlineexplorer.is_visible
+    )
+
+    # Check splitter handle is shown and active
+    assert editorwindow.editorwidget.splitter.handle(1).isEnabled()
+    assert editorwindow.editorwidget.splitter.handleWidth() > 0
+
+    # Hide Outline and check its visible state is preserved for new editor
+    # windows
+    editorwindow.toggle_outline_action.setChecked(False)
+    assert not editorwindow.editorwidget.outlineexplorer.is_visible
+
+    editorwindow.close()
+
+    editorwindow1 = main_window.editor.create_new_window()
+    qtbot.waitUntil(editorwindow1.isVisible)
+    assert not editorwindow1.editorwidget.outlineexplorer.is_visible
+
+    editorwindow1.close()
+
+    # Hide debug toolbar in main window
+    main_toolbar = main_window.get_plugin(Plugins.Toolbar)
+    debug_toolbar_action = main_toolbar.get_action(
+        f"toggle_view_{ApplicationToolbars.Debug}"
+    )
+    debug_toolbar_action.trigger()
+
+    # Check main toolbars visibility state is synced between main and editor
+    # windows
+    editorwindow2 = main_window.editor.create_new_window()
+
+    for toolbar in editorwindow2.toolbars:
+        toolbar_action = toolbar.toggleViewAction()
+
+        if toolbar.ID == ApplicationToolbars.Debug:
+            assert not toolbar.isVisible()
+            assert not toolbar_action.isChecked()
+        else:
+            assert toolbar.isVisible()
+            assert toolbar_action.isChecked()
+
+    editorwindow2.close()
+
+    # Restore debug toolbar
+    debug_toolbar_action.trigger()
+
+
 if __name__ == "__main__":
     pytest.main()
