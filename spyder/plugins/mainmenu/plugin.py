@@ -14,9 +14,6 @@ import os
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
-# Third-party imports
-import qstylizer.style
-
 # Local imports
 from spyder.api.config.fonts import SpyderFontType
 from spyder.api.exceptions import SpyderAPIError
@@ -25,10 +22,12 @@ from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SpyderMenuMixin
-from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenu,
+    ApplicationMenus,
+    MENUBAR_STYLESHEET,
+)
 from spyder.utils.qthelpers import SpyderAction
-from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import AppStyle
 
 
 # Extended typing definitions
@@ -68,7 +67,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         if not sys.platform == 'darwin':
             app_font = self.get_font(font_type=SpyderFontType.Interface)
             self.main.menuBar().setFont(app_font)
-            self.main.menuBar().setStyleSheet(self._stylesheet)
+            self.main.menuBar().setStyleSheet(str(MENUBAR_STYLESHEET))
 
         # Create Application menus using plugin public API
         create_app_menu = self.create_application_menu
@@ -116,39 +115,6 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                     except AttributeError:
                         # Old API
                         plugin_instance._options_menu.hide()
-
-    @property
-    def _stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Set the same color as the one used for the app toolbar
-        css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
-
-        # Give more padding and margin to items
-        css['QMenuBar::item'].setValues(
-            padding=f'{2 * AppStyle.MarginSize}px',
-            margin='0px 2px'
-        )
-
-        # Remove padding when pressing main menus
-        css['QMenuBar::item:pressed'].setValues(
-            padding='0px'
-        )
-
-        # Set hover and pressed state of items in the menu bar
-        for state in ['selected', 'pressed']:
-            # Don't use a different color for the QMenuBar pressed state
-            # because a lighter color has too little contrast with the text.
-            bg_color = QStylePalette.COLOR_BACKGROUND_5
-
-            css[f"QMenuBar::item:{state}"].setValues(
-                backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
-            )
-
-        return css.toString()
 
     # ---- Public API
     # ------------------------------------------------------------------------

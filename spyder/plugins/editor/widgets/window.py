@@ -34,7 +34,11 @@ from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenu,
+    ApplicationMenus,
+    MENUBAR_STYLESHEET,
+)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import qbytearray_to_str
@@ -340,6 +344,8 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
 
         # ---- Style
         self.setStyleSheet(str(APP_STYLESHEET))
+        if not sys.platform == "darwin":
+            self.menuBar().setStyleSheet(str(MENUBAR_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
         editorstack = self.editorwidget.editorsplitter.editorstack
