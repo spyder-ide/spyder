@@ -295,7 +295,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
                 height=self.SPLITTER_WIDTH
             )
             self.splitter.setStyleSheet(self._splitter_css.toString())
-            self.splitter.handle(1).setEnabled(True)
+            if self.splitter.handle(1) is not None:
+                self.splitter.handle(1).setEnabled(True)
         else:
             self._sizes = self.splitter.sizes()
             self.splitter.setChildrenCollapsible(True)
@@ -309,7 +310,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
                 height="0px"
             )
             self.splitter.setStyleSheet(self._splitter_css.toString())
-            self.splitter.handle(1).setEnabled(False)
+            if self.splitter.handle(1) is not None:
+                self.splitter.handle(1).setEnabled(False)
 
             self.splitter.setChildrenCollapsible(False)
 
@@ -364,7 +366,13 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
         ]
 
         for toolbar_id in toolbar_list:
-            toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
+            # This is necessary to run tests for this widget without Spyder's
+            # main window
+            try:
+                toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
+            except KeyError:
+                continue
+
             new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
             for action in toolbar.actions():
                 new_toolbar.add_item(
@@ -397,9 +405,14 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
                 view_menu = self._create_view_menu()
                 self.menuBar().addMenu(view_menu)
             else:
-                self.menuBar().addMenu(
-                    self.get_menu(menu_id, plugin=Plugins.MainMenu)
-                )
+                # This is necessary to run tests for this widget without
+                # Spyder's main window
+                try:
+                    self.menuBar().addMenu(
+                        self.get_menu(menu_id, plugin=Plugins.MainMenu)
+                    )
+                except KeyError:
+                    continue
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
