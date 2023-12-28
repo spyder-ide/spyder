@@ -150,6 +150,20 @@ def test_dataframe_to_type(qtbot):
     assert editor.btn_save_and_close.isEnabled()
 
 
+def test_dataframe_editor_shows_scrollbar(qtbot):
+    """
+    Test the dataframe editor shows a scrollbar when opening a large dataframe.
+    Regression test for spyder-ide/spyder#21627 .
+    """
+    df = DataFrame(numpy.zeros((100, 100)))
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    with qtbot.waitExposed(editor):
+        editor.show()
+
+    assert editor.dataTable.horizontalScrollBar().isVisible()
+
+
 def test_dataframe_datetimeindex(qtbot):
     """Regression test for spyder-ide/spyder#11129 ."""
     ds = Series(
