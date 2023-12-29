@@ -899,8 +899,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         self.set_strip_mode(strip_mode)
 
-    # ---- Debug panel
-    # -------------------------------------------------------------------------
     # ---- Set different attributes
     # -------------------------------------------------------------------------
     def set_folding_panel(self, folding):
@@ -1492,6 +1490,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
+
         extra_selections = []
         self.found_results = []
         has_unicode = len(text) != qstring_length(text)
@@ -1979,6 +1978,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.text_helper.goto_line(line, column=start_column,
                                    end_column=end_column, move=True,
                                    word=word)
+
+        # This is necessary to update decoratios after moving to `line` (some
+        # tests fail without it).
+        self.update_decorations_timer.start()
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
