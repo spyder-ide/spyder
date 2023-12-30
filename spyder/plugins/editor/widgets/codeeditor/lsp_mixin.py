@@ -1029,6 +1029,16 @@ class LSPMixin:
         start, end = self.get_selection_start_end()
         start_line, start_col = start
         end_line, end_col = end
+
+        # Remove empty trailing newline from multiline selection
+        if end_line > start_line and end_col == 0:
+            end_line -= 1
+
+        fmt_range = {
+            "start": {"line": start_line, "character": start_col},
+            "end": {"line": end_line, "character": end_col},
+        }
+
         using_spaces = self.indent_chars != "\t"
         tab_size = (
             len(self.indent_chars)
@@ -1036,10 +1046,6 @@ class LSPMixin:
             else self.tab_stop_width_spaces
         )
 
-        fmt_range = {
-            "start": {"line": start_line, "character": start_col},
-            "end": {"line": end_line, "character": end_col},
-        }
         params = {
             "file": self.filename,
             "range": fmt_range,
