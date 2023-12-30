@@ -63,7 +63,7 @@ class KeyPressFilter(QObject):
             elif (e.key() == Qt.Key_Return):
                 self.sig_enter_key_pressed.emit()
                 return True
-        return super(KeyPressFilter, self).eventFilter(src, e)
+        return super().eventFilter(src, e)
 
 
 class SwitcherDelegate(HTMLDelegate):
@@ -77,7 +77,7 @@ class SwitcherDelegate(HTMLDelegate):
         Override Qt method to force this delegate to look active at all times.
         """
         option.state |= QStyle.State_Active
-        super(SwitcherDelegate, self).paint(painter, option, index)
+        super().paint(painter, option, index)
 
 
 class Switcher(QDialog):
@@ -457,7 +457,7 @@ class Switcher(QDialog):
 
     def accept(self):
         """Override Qt method."""
-        super(Switcher, self).accept()
+        super().accept()
 
     def reject(self):
         """Override Qt method."""
@@ -468,7 +468,7 @@ class Switcher(QDialog):
         self.edit.blockSignals(False)
 
         self.sig_rejected.emit()
-        super(Switcher, self).reject()
+        super().reject()
 
     # ---- Helper methods: Lineedit widget
     def search_text(self):
@@ -546,7 +546,8 @@ class Switcher(QDialog):
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(
-            proxy_index, selection_model.ClearAndSelect)
+            proxy_index, selection_model.ClearAndSelect
+        )
 
         # Ensure that the selected item is visible
         self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
