@@ -16,6 +16,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.widgets.switcher import Switcher
+from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 
 
 class SwitcherContainer(PluginMainContainer):
@@ -71,18 +72,26 @@ class SwitcherContainer(PluginMainContainer):
         # Set position
         mainwindow = self._plugin.get_main()
 
-        # Note: The +8 pixel on the top makes it look better
-        default_top = (mainwindow.toolbar.toolbars_menu.geometry().height() +
-                       mainwindow.menuBar().geometry().height() + 8)
+        # Note: The +3 pixels makes it vertically align with the main menu or
+        # main menu + toolbar
+        default_top_without_toolbar = (
+            mainwindow.menuBar().geometry().height()
+            + 3
+        )
+
+        default_top_with_toolbar = (
+            int(APP_TOOLBAR_STYLESHEET.BUTTON_HEIGHT.split("px")[0])
+            + default_top_without_toolbar
+        )
 
         current_window = QApplication.activeWindow()
         if current_window == mainwindow:
             if self.get_conf('toolbars_visible', section='toolbar'):
-                delta_top = default_top
+                delta_top = default_top_with_toolbar
             else:
-                delta_top = mainwindow.menuBar().geometry().height() + 8
+                delta_top = default_top_without_toolbar
         else:
-            delta_top = default_top
+            delta_top = default_top_with_toolbar
 
         switcher.set_position(delta_top, current_window)
         switcher.show()
