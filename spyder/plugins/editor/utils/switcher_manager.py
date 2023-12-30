@@ -12,14 +12,14 @@ Editor Switcher manager.
 import os.path as osp
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
 
 
-class EditorSwitcherManager(object):
+class EditorSwitcherManager(SpyderConfigurationAccessor):
     """
     Switcher instance manager to handle base modes for an Editor.
 
@@ -136,16 +136,23 @@ class EditorSwitcherManager(object):
         editor = self._editor()
         language = editor.language
         editor.update_whitespace_count(0, 0)
+
         self._current_line = editor.get_cursor_line_number()
         self._switcher.clear()
         self._switcher.set_placeholder_text(_('Select symbol'))
+
         oe_symbols = editor.oe_proxy.info or []
-        display_variables = CONF.get('outline_explorer', 'display_variables')
+        display_variables = self.get_conf(
+            'display_variables',
+            section='outline_explorer'
+        )
 
         idx = 0
         total_symbols = len(oe_symbols)
         oe_symbols = sorted(
-            oe_symbols, key=lambda x: x['location']['range']['start']['line'])
+            oe_symbols, key=lambda x: x['location']['range']['start']['line']
+        )
+
         for symbol in oe_symbols:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
@@ -153,10 +160,14 @@ class EditorSwitcherManager(object):
                 if symbol_kind == SymbolKind.MODULE:
                     total_symbols -= 1
                     continue
-                if (symbol_kind == SymbolKind.VARIABLE and
-                        not display_variables):
+
+                if (
+                    symbol_kind == SymbolKind.VARIABLE and
+                    not display_variables
+                ):
                     total_symbols -= 1
                     continue
+
                 if symbol_kind == SymbolKind.FIELD and not display_variables:
                     total_symbols -= 1
                     continue
@@ -170,16 +181,22 @@ class EditorSwitcherManager(object):
             formated_title = '{space}{title}'.format(title=symbol_name,
                                                      space=space)
             icon = ima.icon(SYMBOL_KIND_ICON.get(symbol_kind, 'no_match'))
-            data = {'title': symbol_name,
-                    'line_number': symbol_start + 1}
+            data = {
+                'title': symbol_name,
+                'line_number': symbol_start + 1
+            }
             last_item = idx + 1 == total_symbols
-            self._switcher.add_item(title=formated_title,
-                                    icon=icon,
-                                    section=self._section,
-                                    data=data,
-                                    last_item=last_item)
+            self._switcher.add_item(
+                title=formated_title,
+                icon=icon,
+                section=self._section,
+                data=data,
+                last_item=last_item
+            )
+
             idx += 1
-        # Needed to update fold spaces for items titles
+
+        # Needed to update fold spaces for item titles
         self._switcher.setup()
 
     def handle_switcher_selection(self, item, mode, search_text):
@@ -238,6 +255,7 @@ class EditorSwitcherManager(object):
             line_number = int(line_number)
             editorstack.go_to_line(line_number)
             self._switcher.set_visible(visible)
+
             # Closing the switcher
             if not visible:
                 self._current_line = None
