@@ -14,6 +14,7 @@ from qtpy.QtWidgets import QApplication
 # Spyder imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
+from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.widgets.switcher import Switcher
 
 
@@ -26,7 +27,7 @@ class SwitcherContainer(PluginMainContainer):
 
         # Switcher shortcuts
         self.create_action(
-            'file switcher',
+            SwitcherActions.FileSwitcherAction,
             _('File switcher...'),
             icon=self._plugin.get_icon(),
             tip=_('Fast switch between files'),
@@ -36,7 +37,7 @@ class SwitcherContainer(PluginMainContainer):
         )
 
         self.create_action(
-            'symbol finder',
+            SwitcherActions.SymbolFinderAction,
             _('Symbol finder...'),
             icon=self.create_icon('symbol_find'),
             tip=_('Fast symbol search in file'),

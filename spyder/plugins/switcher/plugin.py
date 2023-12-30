@@ -20,15 +20,10 @@ from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (on_plugin_available,
                                                        on_plugin_teardown)
+from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.container import SwitcherContainer
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
-
-# --- Constants
-# ----------------------------------------------------------------------------
-class SwitcherActions:
-    FileSwitcherAction = 'file switcher'
-    SymbolFinderAction = 'symbol finder'
 
 
 # --- Plugin
