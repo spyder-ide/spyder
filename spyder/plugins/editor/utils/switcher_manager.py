@@ -56,11 +56,12 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
         self._switcher.add_mode(self.SYMBOL_MODE, _('Go to Symbol in File'))
         self._switcher.sig_mode_selected.connect(self.handle_switcher_modes)
         self._switcher.sig_item_selected.connect(
-            self.handle_switcher_selection)
-        self._switcher.sig_text_changed.connect(self.handle_switcher_text)
+            self.handle_switcher_selection
+        )
         self._switcher.sig_rejected.connect(self.handle_switcher_rejection)
         self._switcher.sig_item_changed.connect(
-            self.handle_switcher_item_change)
+            self.handle_switcher_item_change
+        )
         self._switcher.sig_search_text_available.connect(
             lambda text: self._switcher.setup()
         )

@@ -99,16 +99,6 @@ class Switcher(QDialog):
     This signal is emitted when the plugin is dismissed.
     """
 
-    sig_text_changed = Signal(str)
-    """
-    This signal is emitted when the plugin search/filter text changes.
-
-    Parameters
-    ----------
-    search_text: str
-        The current search/filter text.
-    """
-
     sig_item_changed = Signal(object)
     """
     This signal is emitted when the plugin current item changes.
@@ -208,7 +198,6 @@ class Switcher(QDialog):
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
 
-        self.edit.textChanged.connect(self.sig_text_changed)
         self.edit.textChanged.connect(lambda: self._search_timer.start())
         self.edit.returnPressed.connect(self.enter)
 

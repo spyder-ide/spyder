@@ -45,19 +45,9 @@ class Switcher(SpyderPluginV2):
     This signal is emitted when the plugin is dismissed.
     """
 
-    sig_text_changed = Signal(str)
-    """
-    This signal is emitted when the plugin search/filter text changes.
-
-    Parameters
-    ----------
-    search_text: str
-        The current search/filter text.
-    """
-
     sig_item_changed = Signal(object)
     """
-    This signal is emitted when the plugin current item changes.
+    This signal is emitted when the current item changes.
     """
 
     sig_item_selected = Signal(object, str, str)
@@ -114,12 +104,12 @@ class Switcher(SpyderPluginV2):
         self._switcher = container.switcher
 
         self._switcher.sig_rejected.connect(self.sig_rejected)
-        self._switcher.sig_text_changed.connect(self.sig_text_changed)
         self._switcher.sig_item_changed.connect(self.sig_item_changed)
         self._switcher.sig_item_selected.connect(self.sig_item_selected)
         self._switcher.sig_mode_selected.connect(self.sig_mode_selected)
         self._switcher.sig_search_text_available.connect(
-            self.sig_search_text_available)
+            self.sig_search_text_available
+        )
 
     def on_close(self, cancellable=True):
         """Close switcher widget."""
