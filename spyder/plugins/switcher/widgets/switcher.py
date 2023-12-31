@@ -205,6 +205,7 @@ class Switcher(QDialog):
         self.edit.setFocus()
 
     # ---- Helper methods
+    # -------------------------------------------------------------------------
     def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
@@ -218,6 +219,7 @@ class Switcher(QDialog):
             self.set_height()
 
     # ---- API
+    # -------------------------------------------------------------------------
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
@@ -425,7 +427,7 @@ class Switcher(QDialog):
         self.sig_item_changed.emit(self.current_item())
 
     # ---- Qt overrides
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @Slot()
     @Slot(QListWidgetItem)
     def enter(self, itemClicked=None):
@@ -439,10 +441,6 @@ class Switcher(QDialog):
                 item, mode, self.search_text_without_mode()
             )
 
-    def accept(self):
-        """Override Qt method."""
-        super().accept()
-
     def reject(self):
         """Override Qt method."""
         # This prevents calling _on_search_text_changed, which unnecessarily
@@ -450,10 +448,14 @@ class Switcher(QDialog):
         with signals_blocked(self.edit):
             self.set_search_text('')
 
+        # Reset mode
+        self._mode_on = ""
+
         self.sig_rejected.emit()
         super().reject()
 
     # ---- Helper methods: Lineedit widget
+    # -------------------------------------------------------------------------
     def search_text(self):
         """Get the normalized (lowecase) content of the search text."""
         return to_text_string(self.edit.text()).lower()
@@ -495,6 +497,7 @@ class Switcher(QDialog):
             self.setup()
 
     # ---- Helper methods: List widget
+    # -------------------------------------------------------------------------
     def _is_separator(self, item):
         """Check if item is an separator item (SwitcherSeparatorItem)."""
         return isinstance(item, SwitcherSeparatorItem)

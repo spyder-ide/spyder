@@ -10,6 +10,7 @@
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
+from superqt.utils import signals_blocked
 
 # Spyder imports
 from spyder.api.translations import _
@@ -21,8 +22,8 @@ from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 
 class SwitcherContainer(PluginMainContainer):
 
-    # --- PluginMainContainer API
-    # ------------------------------------------------------------------------
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
     def setup(self):
         self.switcher = Switcher(self._plugin.get_main())
 
@@ -50,8 +51,8 @@ class SwitcherContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def open_switcher(self, symbol=False):
         """Open switcher dialog."""
         switcher = self.switcher
@@ -62,7 +63,14 @@ class SwitcherContainer(PluginMainContainer):
 
         # Set mode and setup
         if symbol:
-            switcher.set_search_text('@')
+            # Avoid emitting sig_search_text_available
+            with signals_blocked(switcher.edit):
+                switcher.set_search_text('@')
+
+            # Manually set mode and emit sig_mode_selected so that symbols are
+            # shown instantly.
+            switcher._mode_on = "@"
+            switcher.sig_mode_selected.emit("@")
         else:
             switcher.set_search_text('')
 
