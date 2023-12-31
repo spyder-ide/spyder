@@ -8,11 +8,12 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QTimer
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
                             QVBoxLayout)
+from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
@@ -163,12 +164,6 @@ class Switcher(QDialog):
         self.proxy = SwitcherProxyModel(self.list)
         self.filter = KeyPressFilter()
 
-        # Search timer
-        self._search_timer = QTimer(self)
-        self._search_timer.setInterval(300)
-        self._search_timer.setSingleShot(True)
-        self._search_timer.timeout.connect(self._on_search_text_changed)
-
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
@@ -198,7 +193,7 @@ class Switcher(QDialog):
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
 
-        self.edit.textChanged.connect(lambda: self._search_timer.start())
+        self.edit.textChanged.connect(self._on_search_text_changed)
         self.edit.returnPressed.connect(self.enter)
 
         self.list.clicked.connect(self.enter)
@@ -452,9 +447,8 @@ class Switcher(QDialog):
         """Override Qt method."""
         # This prevents calling _on_search_text_changed, which unnecessarily
         # tries to populate the switcher when we're closing it.
-        self.edit.blockSignals(True)
-        self.set_search_text('')
-        self.edit.blockSignals(False)
+        with signals_blocked(self.edit):
+            self.set_search_text('')
 
         self.sig_rejected.emit()
         super().reject()
@@ -478,6 +472,7 @@ class Switcher(QDialog):
         """Set the content of the search text."""
         self.edit.setText(string)
 
+    @qdebounced(timeout=250)
     def _on_search_text_changed(self):
         """Actions to take when the search text has changed."""
         if self.search_text() != "":
