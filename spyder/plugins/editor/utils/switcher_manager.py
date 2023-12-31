@@ -175,18 +175,17 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
 
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
-
             fold_level = editor.leading_whitespaces[symbol_start]
-
             space = ' ' * fold_level
-            formated_title = '{space}{title}'.format(title=symbol_name,
-                                                     space=space)
+            formated_title = f'{space}{symbol_name}'
+
             icon = ima.icon(SYMBOL_KIND_ICON.get(symbol_kind, 'no_match'))
             data = {
                 'title': symbol_name,
                 'line_number': symbol_start + 1
             }
             last_item = idx + 1 == total_symbols
+
             self._switcher.add_item(
                 title=formated_title,
                 icon=icon,
@@ -235,9 +234,9 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
 
     def handle_switcher_item_change(self, current):
         """Handle item selection change."""
-        editorstack = self._editorstack()
         mode = self._switcher.get_mode()
         if mode == '@' and current is not None:
+            editorstack = self._editorstack()
             line_number = int(current.get_data()['line_number'])
             editorstack.go_to_line(line_number)
 
