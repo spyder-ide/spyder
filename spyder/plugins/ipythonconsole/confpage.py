@@ -172,16 +172,24 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
         fontsize_spin = self.create_spinbox(
-                          _("Font size:")+"  ", " "+_("points"),
-                          'pylab/inline/fontsize', min_=5, max_=48, step=1.0,
-                          tip=_("Default is 10"))
+            _("Font size:") + "  ",
+            " " + _("points"),
+            'pylab/inline/fontsize',
+            min_=5,
+            max_=48,
+            step=1.0,
+            tip=_("Default is 10")
+        )
         bottom_spin = self.create_spinbox(
-                          _("Bottom edge:")+"  ",
-                          " "+_("of figure height"),
-                          'pylab/inline/bottom', min_=0, max_=0.3, step=0.01,
-                          tip=_("The position of the bottom edge of the "
-                                "subplots,\nas a fraction of the figure "
-                                "height.\nThe default is 0.11."))
+            _("Bottom edge:") + "  ",
+            " " + _("of figure height"),
+            'pylab/inline/bottom',
+            min_=0,
+            max_=0.3,
+            step=0.01,
+            tip=_("The position of the bottom edge of the subplots,\nas a "
+                  "fraction of the figure height.\nThe default is 0.11.")
+        )
         bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),

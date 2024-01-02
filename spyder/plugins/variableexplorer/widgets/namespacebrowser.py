@@ -504,6 +504,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             bbox_inches = 'tight'
         else:
             bbox_inches = None
+
         matplotlib_rc = {
             'font.size': self.get_conf('pylab/inline/fontsize',
                                        section='ipython_console'),

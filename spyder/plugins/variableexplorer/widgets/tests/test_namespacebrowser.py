@@ -244,9 +244,11 @@ def test_namespacebrowser_plot_options(namespacebrowser):
     namespacebrowser.set_conf('mute_inline_plotting', True, section='plots')
     namespacebrowser.plots_plugin_enabled = True
     namespacebrowser.set_conf(
-        'pylab/inline/fontsize', 20.5, section='ipython_console')
+        'pylab/inline/fontsize', 20.5, section='ipython_console'
+    )
     namespacebrowser.set_conf(
-        'pylab/inline/bottom', 0.314, section='ipython_console')
+        'pylab/inline/bottom', 0.314, section='ipython_console'
+    )
 
     mock_figure = Mock()
     mock_axis = Mock()

@@ -595,14 +595,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
             # Font size
             fontsize_o = float(self.get_conf(fontsize_n))
-            if fontsize_o is not None and (
-                    option is None or fontsize_n in option):
+            if (
+                fontsize_o is not None
+                and (option is None or fontsize_n in option)
+            ):
                 matplotlib_conf[fontsize_n] = fontsize_o
 
             # Bottom part
             bottom_o = float(self.get_conf(bottom_n))
-            if bottom_o is not None and (
-                    option is None or bottom_n in option):
+            if (
+                bottom_o is not None
+                and (option is None or bottom_n in option)
+            ):
                 matplotlib_conf[bottom_n] = bottom_o
 
             # Print figure kwargs
