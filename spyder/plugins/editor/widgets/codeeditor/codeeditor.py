@@ -286,6 +286,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
 
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
+
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
             ClassFunctionDropdown(),
