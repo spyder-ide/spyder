@@ -1229,8 +1229,7 @@ class LSPMixin:
 
     def cleanup_folding(self):
         """Cleanup folding pane."""
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.folding_regions = {}
+        self.folding_panel.folding_regions = {}
 
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
@@ -1256,11 +1255,10 @@ class LSPMixin:
         """Update folding information with new data from the LSP."""
         try:
             lines = self.toPlainText().splitlines()
-            folding_panel = self.panels.get(FoldingPanel)
 
             current_tree, root = merge_folding(
                 ranges, lines, self.get_line_separator(),
-                folding_panel.current_tree, folding_panel.root
+                self.folding_panel.current_tree, self.folding_panel.root
             )
 
             folding_info = collect_folding_regions(root)
@@ -1273,18 +1271,15 @@ class LSPMixin:
             self.manage_lsp_handle_errors("Error when processing folding")
 
     def highlight_folded_regions(self):
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.highlight_folded_regions()
+        self.folding_panel.highlight_folded_regions()
 
     def _finish_update_folding(self):
         """Finish updating code folding."""
-        folding_panel = self.panels.get(FoldingPanel)
-
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
         if self._folding_info is not None:
-            folding_panel.update_folding(self._folding_info)
+            self.folding_panel.update_folding(self._folding_info)
 
         self.highlight_folded_regions()
 

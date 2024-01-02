@@ -258,12 +258,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._last_hover_pattern_text = None
 
         # 79-col edge line
-        self.edge_line = self.panels.register(EdgeLine(),
-                                              Panel.Position.FLOATING)
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            Panel.Position.FLOATING
+        )
 
         # indent guides
-        self.indent_guides = self.panels.register(IndentationGuide(),
-                                                  Panel.Position.FLOATING)
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            Panel.Position.FLOATING
+        )
+
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -276,7 +281,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.background = QColor('white')
 
         # Folding
-        self.panels.register(FoldingPanel())
+        self.folding_panel = self.panels.register(FoldingPanel())
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -333,8 +338,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(),
-                                                   Panel.Position.RIGHT)
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            Panel.Position.RIGHT
+        )
+
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -903,8 +911,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # -------------------------------------------------------------------------
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.setVisible(folding)
+        self.folding_panel.setVisible(folding)
 
     def set_tab_mode(self, enable):
         """
@@ -4072,25 +4079,27 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __move_line_or_selection(self, after_current_line=True):
         cursor = self.textCursor()
+
         # Unfold any folded code block before moving lines up/down
-        folding_panel = self.panels.get('FoldingPanel')
         fold_start_line = cursor.blockNumber() + 1
         block = cursor.block().next()
 
-        if fold_start_line in folding_panel.folding_status:
-            fold_status = folding_panel.folding_status[fold_start_line]
+        if fold_start_line in self.folding_panel.folding_status:
+            fold_status = self.folding_panel.folding_status[fold_start_line]
             if fold_status:
-                folding_panel.toggle_fold_trigger(block)
+                self.folding_panel.toggle_fold_trigger(block)
 
         if after_current_line:
             # Unfold any folded region when moving lines down
             fold_start_line = cursor.blockNumber() + 2
             block = cursor.block().next().next()
 
-            if fold_start_line in folding_panel.folding_status:
-                fold_status = folding_panel.folding_status[fold_start_line]
+            if fold_start_line in self.folding_panel.folding_status:
+                fold_status = self.folding_panel.folding_status[
+                    fold_start_line
+                ]
                 if fold_status:
-                    folding_panel.toggle_fold_trigger(block)
+                    self.folding_panel.toggle_fold_trigger(block)
         else:
             # Unfold any folded region when moving lines up
             block = cursor.block()
@@ -4104,9 +4113,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
-                folding_panel.current_tree[fold_start_line]))
+                self.folding_panel.current_tree[fold_start_line]))
 
-            folding_status = folding_panel.folding_status
+            folding_status = self.folding_panel.folding_status
             if len(enclosing_regions) > 0:
                 for region in enclosing_regions:
                     fold_start_line = region.begin
@@ -4114,10 +4123,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     if fold_start_line in folding_status:
                         fold_status = folding_status[fold_start_line]
                         if fold_status:
-                            folding_panel.toggle_fold_trigger(block)
+                            self.folding_panel.toggle_fold_trigger(block)
 
         self._TextEditBaseWidget__move_line_or_selection(
-            after_current_line=after_current_line)
+            after_current_line=after_current_line
+        )
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
