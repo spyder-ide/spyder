@@ -443,6 +443,9 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 #TODO: Implement "Paste" (from clipboard) feature
 class ArrayView(QTableView, SpyderWidgetMixin):
     """Array view class"""
+
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
 
@@ -735,7 +738,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             text=_('Refresh'),
             icon=self.create_icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh)
+            triggered=self.refresh,
+            register_action=False
+        )
         self.refresh_action.setDisabled(self.data_function is None)
         toolbar.add_item(self.refresh_action)
 
@@ -744,7 +749,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             text=_('Format'),
             icon=self.create_icon('format_float'),
             tip=_('Set format of floating-point numbers'),
-            triggered=do_nothing)
+            triggered=do_nothing,
+            register_action=False
+        )
         toolbar.add_item(self.format_action)
 
         self.resize_action = self.create_action(
@@ -752,14 +759,18 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             text=_('Resize'),
             icon=self.create_icon('collapse_column'),
             tip=_('Resize columns to contents'),
-            triggered=do_nothing)
+            triggered=do_nothing,
+            register_action=False
+        )
         toolbar.add_item(self.resize_action)
 
         self.toggle_bgcolor_action = self.create_action(
             ArrayEditorActions.ToggleBackgroundColor,
             text=_('Background color'),
             icon=self.create_icon('background_color'),
-            toggled=do_nothing)
+            toggled=do_nothing,
+            register_action=False
+        )
         toolbar.add_item(self.toggle_bgcolor_action)
 
         toolbar._render()
