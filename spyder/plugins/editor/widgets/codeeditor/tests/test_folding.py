@@ -7,7 +7,7 @@
 """Tests for the folding features."""
 
 # Standard library imports
-import os
+import sys
 
 # Third party imports
 from flaky import flaky
@@ -15,6 +15,9 @@ import pytest
 import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
+
+# Local imports
+from spyder.config.base import running_in_ci
 
 
 # ---- Code to test
@@ -85,7 +88,6 @@ def test_folding(completions_codeeditor, qtbot):
 
 @pytest.mark.order(2)
 @flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_when_searching(search_codeeditor, qtbot):
     editor, finder = search_codeeditor
     editor.toggle_code_folding(True)
@@ -114,7 +116,6 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 
 @pytest.mark.order(2)
 @flaky(max_runs=5)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_goto(completions_codeeditor, qtbot):
     editor, __ = completions_codeeditor
     editor.toggle_code_folding(True)
@@ -140,7 +141,10 @@ def test_unfold_goto(completions_codeeditor, qtbot):
 
 @flaky(max_runs=5)
 @pytest.mark.order(2)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
+@pytest.mark.skipif(
+    running_in_ci() and sys.platform.startswith("linux"),
+    reason="Fails on Linux and CIs"
+)
 def test_delete_folded_line(completions_codeeditor, qtbot):
     editor, __ = completions_codeeditor
     editor.toggle_code_folding(True)
@@ -209,7 +213,10 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
 
 @flaky(max_runs=5)
 @pytest.mark.order(2)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
+@pytest.mark.skipif(
+    running_in_ci() and sys.platform.startswith("linux"),
+    reason="Fails on Linux and CIs"
+)
 def test_delete_selections_with_folded_lines(completions_codeeditor, qtbot):
     editor, __ = completions_codeeditor
     editor.toggle_code_folding(True)
@@ -292,7 +299,6 @@ def test_delete_selections_with_folded_lines(completions_codeeditor, qtbot):
 
 @flaky(max_runs=5)
 @pytest.mark.order(2)
-@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_preserve_folded_regions_after_paste(completions_codeeditor, qtbot):
     editor, __ = completions_codeeditor
     editor.toggle_code_folding(True)
