@@ -48,7 +48,7 @@ class SpyderToolButtonMixin:
     def create_toolbutton(self, name, text=None, icon=None,
                           tip=None, toggled=None, triggered=None,
                           autoraise=True, text_beside_icon=False,
-                          section=None, option=None, register=False):
+                          section=None, option=None, register=True):
         """
         Create a Spyder toolbutton.
         """
