@@ -871,6 +871,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         'pylab', 'pylab/backend', 'pylab/autoload',
         'pylab/inline/figure_format', 'pylab/inline/resolution',
         'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/fontsize', 'pylab/inline/bottom',
         'pylab/inline/bbox_inches'])
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
