@@ -1675,10 +1675,12 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                     buttons,
                     parent=self
                 )
+
                 self.msgbox.button(QMessageBox.Yes).setText(_("Save"))
                 self.msgbox.button(QMessageBox.No).setText(_("Discard"))
                 yta = self.msgbox.button(QMessageBox.YesToAll)
                 nta = self.msgbox.button(QMessageBox.NoToAll)
+
                 if yta:
                     yta.setText(_("Save all"))
                 if nta:
