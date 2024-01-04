@@ -108,7 +108,7 @@ class Toolbar(SpyderPluginV2):
                         omit_id=True
                     )
 
-            toolbar._render()
+            toolbar.render()
 
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()

@@ -183,16 +183,23 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             spacing='0px',
         )
 
-        # Remove margins around separators
+        # Remove margins around separators and decrease size a bit
         css['QMainWindow::separator:horizontal'].setValues(
             marginTop='0px',
-            marginBottom='0px'
+            marginBottom='0px',
+            # This is summed to the separator padding (2px)
+            width="3px",
+            # The default iamge is not visiblw at this size
+            image="none"
         )
 
         css['QMainWindow::separator:vertical'].setValues(
             marginLeft='0px',
             marginRight='0px',
-            height='3px'
+            # This is summed to the separator padding (2px)
+            height='3px',
+            # The default iamge is not visiblw at this size
+            image="none"
         )
 
         # TODO: Remove when the editor is migrated to the new API!
@@ -268,6 +275,27 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
+        )
+
+        # Decrease splitter handle size to be a bit smaller than QMainWindow
+        # separators.
+        css['QSplitter::handle'].setValues(
+            padding="0px",
+        )
+
+        css['QSplitter::handle:horizontal'].setValues(
+            width="5px",
+            image="none"
+        )
+
+        css['QSplitter::handle:vertical'].setValues(
+            height="5px",
+            image="none"
+        )
+
+        # Make splitter handle color match the one of QMainWindow separators
+        css['QSplitter::handle:hover'].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_6,
         )
 
 

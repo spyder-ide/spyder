@@ -8,6 +8,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import random
 import sys
 import threading
 import traceback
@@ -253,6 +254,24 @@ def generate_run_parameters(mainwindow, filename, selected=None,
     )
 
     return {file_uuid: file_run_params}
+
+
+def get_random_dockable_plugin(main_window, exclude=None):
+    """Get a random dockable plugin and give it focus."""
+    plugins = main_window.get_dockable_plugins()
+    for plugin_name, plugin in plugins:
+        if exclude and plugin_name in exclude:
+            plugins.remove((plugin_name, plugin))
+
+    plugin = random.choice(plugins)[1]
+
+    if not plugin.get_widget().toggle_view_action.isChecked():
+        plugin.toggle_view(True)
+        plugin._hide_after_test = True
+
+    plugin.switch_to_plugin()
+    plugin.get_widget().get_focus_widget().setFocus()
+    return plugin
 
 
 # =============================================================================

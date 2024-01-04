@@ -63,12 +63,11 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, EditMenuSections, SearchMenuSections, SourceMenuSections
+    EditMenuSections, SearchMenuSections, SourceMenuSections
 )
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
-from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
@@ -235,8 +234,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.last_focused_editorstack = {}
         self.editorwindows = []
         self.editorwindows_to_be_created = []
-        self.toolbar_list = None
-        self.menu_list = None
 
         # We need to call this here to create self.dock_toolbar_actions,
         # which is used below.
@@ -1870,44 +1867,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
-        # TODO: All the actions here should be taken from
-        # the MainMenus plugin
-        file_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.File).get_actions()
-        edit_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Edit).get_actions()
-        search_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Search).get_actions()
-        source_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Source).get_actions()
-        run_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Run).get_actions()
-        tools_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Tools).get_actions()
-        help_menu_actions = self.main.mainmenu.get_application_menu(
-            ApplicationMenus.Help).get_actions()
-
-        # --- TODO: Rewrite when the editor is moved to the new API
-        debug_toolbar_actions = self.main.toolbar.get_application_toolbar(
-            ApplicationToolbars.Debug).actions()
-        run_toolbar_actions = self.main.toolbar.get_application_toolbar(
-            ApplicationToolbars.Run).actions()
-
-        self.toolbar_list = ((_("File toolbar"), "file_toolbar",
-                              self.main.file_toolbar_actions),
-                             (_("Run toolbar"), "run_toolbar",
-                              run_toolbar_actions),
-                             (_("Debug toolbar"), "debug_toolbar",
-                              debug_toolbar_actions))
-
-        self.menu_list = ((_("&File"), file_menu_actions),
-                          (_("&Edit"), edit_menu_actions),
-                          (_("&Search"), search_menu_actions),
-                          (_("Sour&ce"), source_menu_actions),
-                          (_("&Run"), run_menu_actions),
-                          (_("&Tools"), tools_menu_actions),
-                          (_("&View"), []),
-                          (_("&Help"), help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -1926,13 +1885,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         window = EditorMainWindow(
             self,
             self.stack_menu_actions,
-            self.toolbar_list,
-            self.menu_list,
             outline_plugin=self.outlineexplorer
         )
 
-        window.add_toolbars_to_menu("&View", window.get_toolbars())
-        window.load_toolbars()
         window.resize(self.size())
         window.show()
         window.editorwidget.editorsplitter.editorstack.new_window = True
