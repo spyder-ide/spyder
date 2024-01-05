@@ -11,6 +11,7 @@ import os.path as osp
 import re
 
 # Third party imports
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
@@ -126,7 +127,10 @@ class FindInFilesWidget(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent=parent)
+        if PYQT5 or PYQT6:
+            super().__init__(name, plugin, parent=parent)
+        else:
+            PluginMainWidget.__init__(self, name, plugin, parent=parent)
         self.set_conf('text_color', MAIN_TEXT_COLOR)
         self.set_conf('hist_limit', MAX_PATH_HISTORY)
 

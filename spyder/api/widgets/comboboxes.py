@@ -15,6 +15,7 @@ import sys
 
 # Third-party imports
 import qstylizer.style
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (
@@ -139,7 +140,11 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
     """Combobox widget for Spyder when its items don't have icons."""
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        if PYQT5 or PYQT6:
+            super().__init__(parent)
+        else:
+            QComboBox.__init__(self, parent)
+            _SpyderComboBoxMixin.__init__(self)
 
         self.is_editable = None
         self._is_shown = False
