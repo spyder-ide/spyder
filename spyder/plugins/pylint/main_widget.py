@@ -24,8 +24,8 @@ import pylint
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
-from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
+                            QTreeWidgetItem, QStackedWidget, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -336,7 +336,7 @@ class PylintWidget(PluginMainWidget):
                 pass
 
         # Widget setup
-        self.filecombo.setInsertPolicy(self.filecombo.InsertAtTop)
+        self.filecombo.setInsertPolicy(QComboBox.InsertPolicy.InsertAtTop)
         for fname in self.curr_filenames[::-1]:
             self.set_filename(fname)
 

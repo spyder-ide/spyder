@@ -20,7 +20,7 @@ import qstylizer.style
 from qtpy import PYQT5
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
-from qtpy.QtWidgets import QTableView
+from qtpy.QtWidgets import QAbstractItemView, QTableView
 
 # Local imports
 from spyder.api.translations import _
@@ -186,8 +186,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
 
         # Setup
         self.setSortingEnabled(False)
-        self.setSelectionBehavior(self.SelectRows)
-        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setModel(self.model)
         self._adjust_columns()
         self.horizontalHeader().setStretchLastSection(True)

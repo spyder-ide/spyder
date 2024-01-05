@@ -25,7 +25,7 @@ from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QMenu, QVBoxLayout, QWidget,
-                            QSizePolicy, QToolBar)
+                            QSizePolicy, QToolBar, QToolButton)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -593,7 +593,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
-        menu_btn.setPopupMode(menu_btn.InstantPopup)
+        menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}

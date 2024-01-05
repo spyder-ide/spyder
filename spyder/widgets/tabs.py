@@ -454,7 +454,7 @@ class BaseTabs(QTabWidget):
 
         self.browse_tabs_menu = SpyderMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
-        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
+        self.browse_button.setPopupMode(QToolButton.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 

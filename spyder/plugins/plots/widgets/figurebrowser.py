@@ -21,9 +21,9 @@ from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QScrollArea,
-                            QScrollBar, QSplitter, QStyle, QVBoxLayout,
-                            QWidget, QStackedLayout)
+from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout,QLayout,
+                            QScrollArea, QScrollBar, QSplitter, QStyle,
+                            QVBoxLayout, QWidget, QStackedLayout)
 
 # Local library imports
 from spyder.api.translations import _
@@ -1050,7 +1050,7 @@ class FigureThumbnail(QWidget):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
-        layout.setSizeConstraint(layout.SetFixedSize)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
     def highlight_canvas(self, highlight):
         """
