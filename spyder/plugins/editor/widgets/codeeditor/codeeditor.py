@@ -41,7 +41,6 @@ from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
                             QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 
-
 # Local imports
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
@@ -375,7 +374,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.update_decorations_timer.start())
+            lambda value: self.update_decorations_timer.start()
+        )
+
+        # Hide calltip when scrolling
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.hide_calltip()
+        )
 
         # QTextEdit + LSPMixin
         self.textChanged.connect(self._schedule_document_did_change)
@@ -471,8 +476,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
-            key, pattern_text, cursor = self.get_pattern_at(pos)
-            text = self.get_word_at(pos)
+            # --- Show Ctrl/Cmd click tooltips
+            key, pattern_text, __ = self.get_pattern_at(pos)
             if pattern_text:
                 ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
                 if key in ['file']:
@@ -489,10 +494,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.show_tooltip(text=hint_text, at_point=pos)
                 return
 
+            # --- Show LSP hovers
+            text = self.get_word_at(pos)
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
             self._last_point = pos
+
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
                     self._last_hover_word = text
@@ -3355,8 +3363,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Update decorations after releasing these keys because they don't
         # trigger the emission of the valueChanged signal in
         # verticalScrollBar.
-        # See https://bugreports.qt.io/browse/QTBUG-25365
-        if key in {Qt.Key_Up,  Qt.Key_Down}:
+        # See https://bugreports.qt.io/browse/QTBUG-25365, which should be
+        # fixed in Qt 6.
+        if key in {Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown}:
             self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
@@ -3432,9 +3441,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if text:
             self.clear_occurrences()
 
-
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
+
+        if key in {Qt.Key_PageUp, Qt.Key_PageDown}:
+            self.hide_tooltip()
+            self.hide_calltip()
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.

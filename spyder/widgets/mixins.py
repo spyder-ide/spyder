@@ -708,6 +708,10 @@ class BaseEditMixin(object):
         self._last_point = None
         self.tooltip_widget.hide()
 
+    def hide_calltip(self):
+        """Hide the calltip widget."""
+        self.calltip_widget.hide()
+
     # ----- Required methods for the LSP
     def document_did_change(self, text=None):
         pass
