@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
-#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Widgets for the Application plugin."""
+"""
+spyder.plugins.updatemanager
+============================
 
-from .about import AboutDialog  # noqa
+Application Update Manager Plugin.
+"""
