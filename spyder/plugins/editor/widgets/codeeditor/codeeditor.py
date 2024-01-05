@@ -4086,10 +4086,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 event.accept()
                 return
 
-        if self.has_selected_text():
-            TextEditBaseWidget.mouseMoveEvent(self, event)
-            return
-
         if self.go_to_definition_enabled and ctrl:
             if self._handle_goto_definition_event(pos):
                 event.accept()
@@ -4098,8 +4094,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if (not self._should_display_hover(pos)
-                    and not self.is_completion_widget_visible()):
+            if (
+                not self._should_display_hover(pos)
+                and not self.is_completion_widget_visible()
+            ):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)
