@@ -61,10 +61,6 @@ EOL_SYMBOLS = [
 
 class BaseEditMixin(object):
 
-    _BACKGROUND_COLOR = (
-        QStylePalette.COLOR_BACKGROUND_4 if is_dark_interface() else
-        QStylePalette.COLOR_BACKGROUND_2
-    )
     _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
     _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
     _DEFAULT_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
@@ -94,8 +90,6 @@ class BaseEditMixin(object):
     sig_will_insert_text = None
     sig_will_remove_selection = None
     sig_text_was_inserted = None
-
-    _styled_widgets = set()
 
     def __init__(self):
         self.eol_chars = None
@@ -151,26 +145,6 @@ class BaseEditMixin(object):
         point = self.calculate_real_position(point)
 
         return point
-
-    def _update_stylesheet(self, widget):
-        """Update the background stylesheet to make it lighter."""
-        # Update the stylesheet for a given widget at most once
-        # because Qt is slow to repeatedly parse & apply CSS
-        if id(widget) in self._styled_widgets:
-            return
-
-        self._styled_widgets.add(id(widget))
-        name = widget.__class__.__name__
-        widget.setObjectName(name)
-
-        # Don't use qstylizer here to run this faster.
-        css = (
-            f'{name}#{name} {{'
-            f'    background-color: {self._BACKGROUND_COLOR};'
-            f'    border: 1px solid {QStylePalette.COLOR_TEXT_4};'
-            f'}}'
-        )
-        widget.setStyleSheet(css)
 
     @property
     def _tip_text_size(self):
@@ -582,8 +556,6 @@ class BaseEditMixin(object):
             text_new_line=text_new_line
         )
 
-        self._update_stylesheet(self.calltip_widget)
-
         # Set a max width so the widget doesn't show up too large due to its
         # content, which looks bad.
         self.calltip_widget.setMaximumWidth(
@@ -622,8 +594,6 @@ class BaseEditMixin(object):
             with_html_format=with_html_format,
             text_new_line=text_new_line
         )
-
-        self._update_stylesheet(self.tooltip_widget)
 
         # Set a max width so the widget doesn't show up too large due to its
         # content, which looks bad.

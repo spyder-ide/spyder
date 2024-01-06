@@ -21,6 +21,7 @@ from unicodedata import category
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import (QBasicTimer, QCoreApplication, QEvent, Qt, QTimer,
                          Signal)
 from qtpy.QtGui import QCursor, QFontMetrics, QPalette
@@ -29,7 +30,14 @@ from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
                             QStylePainter, QToolTip)
 
 # Local imports
-from spyder.py3compat import to_text_string
+from spyder.config.gui import is_dark_interface
+from spyder.utils.palette import QStylePalette
+
+
+BACKGROUND_COLOR = (
+    QStylePalette.COLOR_BACKGROUND_4 if is_dark_interface() else
+    QStylePalette.COLOR_BACKGROUND_2
+)
 
 
 class ToolTipWidget(QLabel):
@@ -86,7 +94,11 @@ class ToolTipWidget(QLabel):
         self.linkHovered.connect(self._update_hover_html_link_style)
         self._timer_hide.timeout.connect(self._hide)
         QApplication.instance().applicationStateChanged.connect(
-            self._should_hide)
+            self._should_hide
+        )
+
+        # Style
+        self.setStyleSheet(self._stylesheet)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -117,6 +129,17 @@ class ToolTipWidget(QLabel):
     def _hide(self):
         """Call the actual hide method."""
         super().hide()
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        css["ToolTipWidget"].setValues(
+            backgroundColor=BACKGROUND_COLOR,
+            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+        )
+
+        return css.toString()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -303,8 +326,14 @@ class CallTipWidget(QLabel):
 
         # Signals
         QApplication.instance().applicationStateChanged.connect(
-            self._should_hide)
+            self._should_hide
+        )
 
+        # Style
+        self.setStyleSheet(self._stylesheet)
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
             changes.
@@ -348,10 +377,6 @@ class CallTipWidget(QLabel):
         if event.timerId() == self._hide_timer.timerId():
             self._hide_timer.stop()
             self.hide()
-
-    #--------------------------------------------------------------------------
-    # 'QWidget' interface
-    #--------------------------------------------------------------------------
 
     def enterEvent(self, event):
         """ Reimplemented to cancel the hide timer.
@@ -417,10 +442,8 @@ class CallTipWidget(QLabel):
         """
         self.hide()
 
-    #--------------------------------------------------------------------------
-    # 'CallTipWidget' interface
-    #--------------------------------------------------------------------------
-
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def show_tip(self, point, tip, wrapped_tiplines):
         """ Attempts to show the specified tip at the current cursor location.
         """
@@ -539,10 +562,8 @@ class CallTipWidget(QLabel):
         self.show()
         return True
 
-    #--------------------------------------------------------------------------
-    # Protected interface
-    #--------------------------------------------------------------------------
-
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _find_parenthesis(self, position, forward=True):
         """ If 'forward' is True (resp. False), proceed forwards
             (resp. backwards) through the line that contains 'position' until an
@@ -552,7 +573,7 @@ class CallTipWidget(QLabel):
         """
         commas = depth = 0
         document = self._text_edit.document()
-        char = to_text_string(document.characterAt(position))
+        char = str(document.characterAt(position))
         # Search until a match is found or a non-printable character is
         # encountered.
         while category(char) != 'Cc' and position > 0:
@@ -567,7 +588,7 @@ class CallTipWidget(QLabel):
                     break
                 depth -= 1
             position += 1 if forward else -1
-            char = to_text_string(document.characterAt(position))
+            char = str(document.characterAt(position))
         else:
             position = -1
         return position, commas
@@ -583,15 +604,13 @@ class CallTipWidget(QLabel):
             self.app.topLevelAt(QCursor.pos()) != self):
             self._hide_timer.start(800, self)
 
-    #------ Signal handlers ----------------------------------------------------
-
     def _cursor_position_changed(self):
         """ Updates the tip based on user cursor movement.
         """
         cursor = self._text_edit.textCursor()
         position = cursor.position()
         document = self._text_edit.document()
-        char = to_text_string(document.characterAt(position - 1))
+        char = str(document.characterAt(position - 1))
         if position <= self._start_position:
             self.hide()
         elif char == ')':
@@ -605,3 +624,14 @@ class CallTipWidget(QLabel):
         """
         if state != Qt.ApplicationActive:
             self.hide()
+
+    @property
+    def _stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        css["CallTipWidget"].setValues(
+            backgroundColor=BACKGROUND_COLOR,
+            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+        )
+
+        return css.toString()
