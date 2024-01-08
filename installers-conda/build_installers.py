@@ -242,6 +242,7 @@ def _definitions():
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
+        "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
@@ -279,6 +280,7 @@ def _definitions():
 
         definitions.update(
             {
+                "progress_notifications": True,
                 "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
