@@ -64,7 +64,7 @@ jobs:
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
-            --channel-priority=strict
+            --channel-priority=flexible
             python=${{ matrix.python-version }}
           cache-downloads: true
           cache-environment: true

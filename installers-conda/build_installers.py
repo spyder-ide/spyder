@@ -227,13 +227,14 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
-            "napari/label/bundle_tools_3",
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
         "specs": [
             f"python={PY_VER}",
+            "conda >=23.11.0",
+            "menuinst >=2.0.2",
             "mamba",
         ],
         "installer_filename": OUTPUT_FILE.name,
@@ -348,7 +349,7 @@ def _constructor():
     cmd_args.append(str(BUILD))
 
     env = os.environ.copy()
-    env["CONDA_CHANNEL_PRIORITY"] = "strict"
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
     logger.info("Configuration:")

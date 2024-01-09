@@ -162,7 +162,7 @@ jobs:
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
-            --channel-priority=strict
+            --channel-priority=flexible
             python=${{ matrix.python-version }}
           cache-downloads: true
           cache-environment: true
@@ -185,7 +185,7 @@ jobs:
           CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
           conda config --set bld_path $CONDA_BLD_PATH
-          mamba index $CONDA_BLD_PATH
+          conda index $CONDA_BLD_PATH
           mamba search -c local --override-channels || true
 
       - name: Create Keychain
