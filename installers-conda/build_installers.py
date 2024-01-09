@@ -265,6 +265,7 @@ def _definitions():
                 "default_prefix": os.path.join(
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
             }
         )
@@ -279,6 +280,7 @@ def _definitions():
         definitions.update(
             {
                 "progress_notifications": True,
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
@@ -315,6 +317,7 @@ def _definitions():
                     "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "check_path_length": False,
+                "pre_install": str(RESOURCES / "pre-install.bat"),
                 "post_install": str(RESOURCES / "post-install.bat"),
             }
         )

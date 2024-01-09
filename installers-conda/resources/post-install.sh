@@ -144,10 +144,6 @@ END
 chmod u+x ${u_spy_exe}
 
 # ----
-echo "Marking as conda-based-app..."
-touch ${PREFIX}/envs/spyder-runtime/Menu/conda-based-app
-
-# ----
 if [[ "$OSTYPE" = "linux"* ]]; then
     cat <<EOF
 

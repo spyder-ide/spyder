@@ -13,9 +13,6 @@ for /F "tokens=*" %%i in (
     set shortcut=%%~fi
 )
 
-:: Mark as conda-based-app
-echo. > "%spy_rt%\Menu\conda-based-app"
-
 :: Launch Spyder
 set tmpdir=%TMP%\spyder
 set launch_script=%tmpdir%\launch_script.bat
