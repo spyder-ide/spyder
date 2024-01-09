@@ -234,26 +234,32 @@ jobs:
 
           installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
 
-          root_prefix=$(compgen -G $HOME/Library/spyder-*)
+          base_prefix=$(compgen -G $HOME/Library/spyder-*)
+          spy_rt=$base_prefix/envs/spyder-runtime
+          menu=$spy_rt/Menu/spyder-menu.json
+          mode=user
+          shortcut=$(${base_prefix}/bin/python - <<EOF
+          from menuinst.api import _load
+          menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$base_prefix", _mode="$mode")
+          print(menu_items[0]._paths()[0])
+          EOF
+          )
 
           echo "Install info:"
-          echo "Contents of ${root_prefix}:"
-          ls -al $root_prefix
-          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
-          cat $root_prefix/uninstall-spyder.sh
+          echo "Contents of ${base_prefix}:"
+          ls -al $base_prefix
+          echo -e "\nContents of ${base_prefix}/uninstall-spyder.sh:"
+          cat $base_prefix/uninstall-spyder.sh
 
-          app_path=/Applications/Spyder.app
-          [[ -e ${root_prefix}/.nonadmin ]] && app_path=${HOME}${app_path}
-
-          if [[ -e "$app_path" ]]; then
-              echo "Contents of $app_path/Contents/MacOS:"
-              ls -al $app_path/Contents/MacOS
-              echo -e "\nContents of $app_path/Contents/Info.plist:"
-              cat $app_path/Contents/Info.plist
-              echo -e "\nContents of $app_path/Contents/MacOS/spyder-script:"
-              cat $app_path/Contents/MacOS/spyder-script
+          if [[ -e "$shortcut" ]]; then
+              echo "Contents of $shortcut/Contents/MacOS:"
+              ls -al $shortcut/Contents/MacOS
+              echo -e "\nContents of $shortcut/Contents/Info.plist:"
+              cat $shortcut/Contents/Info.plist
+              echo -e "\nContents of $shortcut/Contents/MacOS/spyder-script:"
+              cat $shortcut/Contents/MacOS/spyder-script
           else
-              echo "$app_path does not exist"
+              echo "$shortcut does not exist"
               exit 1
           fi
 
@@ -262,22 +268,28 @@ jobs:
         run: |
           $PKG_PATH -b
 
-          root_prefix=$(compgen -G $HOME/.local/spyder-*)
+          base_prefix=$(compgen -G $HOME/.local/spyder-*)
+          spy_rt=$base_prefix/envs/spyder-runtime
+          menu=$spy_rt/Menu/spyder-menu.json
+          mode=user
+          shortcut=$(${base_prefix}/bin/python - <<EOF
+          from menuinst.api import _load
+          menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$base_prefix", _mode="$mode")
+          print(menu_items[0]._paths()[0])
+          EOF
+          )
 
           echo "Install info:"
-          echo "Contents of ${root_prefix}:"
-          ls -al $root_prefix
-          echo -e "\nContents of ${root_prefix}/uninstall-spyder.sh:"
-          cat ${root_prefix}/uninstall-spyder.sh
+          echo "Contents of ${base_prefix}:"
+          ls -al $base_prefix
+          echo -e "\nContents of ${base_prefix}/uninstall-spyder.sh:"
+          cat ${base_prefix}/uninstall-spyder.sh
 
-          shortcut_path=/share/applications/spyder_spyder.desktop
-          [[ -e ${root_prefix}/.nonadmin ]] && shortcut_path=${HOME}/.local${shortcut_path} || shortcut_path=/usr${shortcut_path}
-
-          if [[ -e $shortcut_path ]]; then
-              echo -e "\nContents of ${shortcut_path}:"
-              cat $shortcut_path
+          if [[ -e $shortcut ]]; then
+              echo -e "\nContents of ${shortcut}:"
+              cat $shortcut
           else
-              echo "$shortcut_path does not exist"
+              echo "$shortcut does not exist"
               exit 1
           fi
 
@@ -287,8 +299,16 @@ jobs:
         run: |
           start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
 
-          set "shortcut_path=%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
-          if exist "%shortcut_path%" (
+          set base_prefix=%USERPROFILE%\AppData\Local\spyder-6
+          set spy_rt=%base_prefix%\envs\spyder-runtime
+          set menu=%spy_rt%\Menu\spyder-menu.json
+          set mode=user
+          for /F "tokens=*" %%i in (
+              '%base_prefix%\python -c "from menuinst.api import _load; menu, menu_items = _load(r'%menu%', target_prefix=r'%spy_rt%', base_prefix=r'%base_prefix%', _mode='%mode%'); print(menu_items[0]._paths()[0])"'
+          ) do (
+              set shortcut=%%~fi
+          )
+          if exist "%shortcut%" (
               echo "Spyder installed successfully"
           ) else (
               echo "Spyder NOT installed successfully"

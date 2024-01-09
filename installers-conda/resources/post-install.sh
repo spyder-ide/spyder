@@ -10,30 +10,22 @@ env | sort
 echo ""
 
 # ----
-name_lower=$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')
-spy_exe=${PREFIX}/envs/spyder-runtime/bin/spyder
-u_spy_exe=${PREFIX}/uninstall-spyder.sh
-all_user=$([[ -e ${PREFIX}/.nonadmin ]] && echo false || echo true)
+name_lower="$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')"
+spy_rt="${PREFIX}/envs/spyder-runtime"
+spy_exe="${spy_rt}/bin/spyder"
+u_spy_exe="${PREFIX}/uninstall-spyder.sh"
+mode=$([[ -e "${PREFIX}/.nonadmin" ]] && echo "user" || echo "system")
+menu="${spy_rt}/Menu/spyder-menu.json"
 
-alias_text="alias uninstall-spyder=${u_spy_exe}"
-if [[ "$OSTYPE" = "darwin"* ]]; then
-    shortcut_path="/Applications/${INSTALLER_NAME}.app"
-    if [[ "$all_user" = "false" ]]; then
-        shortcut_path="${HOME}${shortcut_path}"
-    else
-        unset alias_text  # Do not create uninstall alias
-    fi
-else
-    shortcut_path="/share/applications/${name_lower}_${name_lower}.desktop"
-    if [[ "$all_user" = "true" ]]; then
-        shortcut_path="/usr${shortcut_path}"
-        alias_text="alias spyder=${spy_exe}"  # Do not create uninstall alias
-    else
-        shortcut_path="${HOME}/.local${shortcut_path}"
-        alias_text="alias spyder=${spy_exe}\n${alias_text}"
-    fi
-fi
+shortcut_path=$(${PREFIX}/bin/python - <<EOF
+from menuinst.api import _load
+menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$PREFIX", _mode="$mode")
+print(menu_items[0]._paths()[0])
+EOF
+)
 
+[[ "$OSTYPE" = "linux"* ]] && alias_text="alias spyder=${spy_exe}"
+[[ "$mode" = "user" ]] && alias_text="${alias_text:+${alias_text}\n}alias uninstall-spyder=${u_spy_exe}"
 
 # BSD sed requires extra "" after -i flag
 if [[ $(sed --version 2>/dev/null) ]]; then
@@ -48,9 +40,9 @@ m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
 
 add_alias() {
-    if [[ ! -f "$shell_init" || ! -s "$shell_init" ]]; then
+    if [[ ! -s "$shell_init" ]]; then
         echo -e "$m1\n${alias_text}\n$m2" > $shell_init
-        exit 0
+        return
     fi
 
     # BSD sed does not like semicolons; newlines work for both BSD and GNU.
@@ -72,20 +64,17 @@ add_alias() {
 }
 
 # ----
-if [[ "$all_user" = "true" && "$OSTYPE" = "darwin"* ]]; then
+if [[ "$mode" = "system" && "$OSTYPE" = "darwin"* ]]; then
     shell_init_list=("/etc/zshrc" "/etc/bashrc")
-elif [[ "$all_user" = "true" ]]; then
+elif [[ "$mode" = "system" ]]; then
     shell_init_list=("/etc/zsh/zshrc" "/etc/bash.bashrc")
 else
-    case $SHELL in
-        (*"zsh") shell_init_list=("$HOME/.zshrc") ;;
-        (*"bash") shell_init_list=("$HOME/.bashrc") ;;
-    esac
+    shell_init_list=("$HOME/.zshrc" "$HOME/.bashrc")
 fi
 
 for shell_init in ${shell_init_list[@]}; do
     [[ -z "$shell_init" || -z "$alias_text" ]] && continue
-    [[ "$all_user" = "true" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
+    [[ "$mode" = "system" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
     echo "Creating aliases in $shell_init ..."
     add_alias
 done
@@ -142,8 +131,12 @@ for x in ${shell_init_list[@]}; do
 done
 
 # Remove shortcut and environment
-echo "Removing Spyder and environment..."
-rm -rf ${shortcut_path}
+echo "Removing Spyder shortcut and environment..."
+${PREFIX}/bin/python - <<EOF
+from menuinst.api import remove
+remove("$menu", target_prefix="$spy_rt", base_prefix="$PREFIX")
+EOF
+
 rm -rf ${PREFIX}
 
 echo "Spyder successfully uninstalled."
@@ -168,7 +161,7 @@ distributions with the command:
 $ spyder
 
 EOF
-    if [[ "$all_user" = "true" ]]; then
+    if [[ "$mode" = "system" ]]; then
         cat <<EOF
 This command will only be available in new shell sessions.
 
