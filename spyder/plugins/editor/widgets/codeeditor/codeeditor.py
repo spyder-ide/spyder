@@ -73,6 +73,11 @@ from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
+from spyder.widgets.mixins import (
+    DEFAULT_COMPLETION_HINT_MAX_WIDTH,
+    DEFAULT_MAX_HINT_WIDTH,
+    DEFAULT_MAX_LINES
+)
 
 
 try:
@@ -1981,9 +1986,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     inspect_word=word,
                     at_point=at_point,
                     completion_doc=completion_doc,
-                    max_lines=self._DEFAULT_MAX_LINES,
-                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH,
-                    show_help_on_click=True
+                    max_lines=DEFAULT_MAX_LINES,
+                    max_width=DEFAULT_COMPLETION_HINT_MAX_WIDTH,
+                    show_help_on_click=True,
                 )
                 self.tooltip_widget.move(at_point)
             else:
@@ -2029,7 +2034,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             for paragraph in paragraphs:
                 new_paragraph = textwrap.wrap(
                     paragraph,
-                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                    width=DEFAULT_MAX_HINT_WIDTH
+                )
+
                 if lines_per_message > 2:
                     if len(new_paragraph) > 1:
                         new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
