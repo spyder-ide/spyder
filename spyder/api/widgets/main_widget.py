@@ -17,7 +17,7 @@ import logging
 from typing import Optional
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
@@ -219,7 +219,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)
