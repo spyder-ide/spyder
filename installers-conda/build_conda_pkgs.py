@@ -181,7 +181,7 @@ class BuildCondaPkg:
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call([
-                "mamba", "mambabuild",
+                "conda", "mambabuild",
                 "--no-test", "--skip-existing", "--build-id-pat={n}",
                 str(self._fdstk_path / "recipe")
             ])
