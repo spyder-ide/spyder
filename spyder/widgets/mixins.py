@@ -62,18 +62,18 @@ EOL_SYMBOLS = [
 ]
 
 # Tips style
-DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
-PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
-DEFAULT_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
-CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
+TIP_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
+TIP_PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
+TIP_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
+TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
 
 # Tips content
-DEFAULT_LANGUAGE = 'python'
-DEFAULT_MAX_LINES = 10
-DEFAULT_MAX_WIDTH = 55
-DEFAULT_COMPLETION_HINT_MAX_WIDTH = 50
-DEFAULT_MAX_HINT_LINES = 7
-DEFAULT_MAX_HINT_WIDTH = 55
+TIP_DEFAULT_LANGUAGE = 'python'
+TIP_MAX_LINES = 10
+TIP_MAX_WIDTH = 55
+COMPLETION_HINT_MAX_WIDTH = 50
+HINT_MAX_LINES = 7
+HINT_MAX_WIDTH = 55
 BUILTINS_DOCSTRING_MAP = {
     int.__doc__: 'integer',
     list.__doc__: 'list',
@@ -183,7 +183,7 @@ class BaseEditMixin(object):
 
     def _format_text(self, title=None, signature=None, text=None,
                      inspect_word=None, max_lines=None,
-                     max_width=DEFAULT_MAX_WIDTH, display_link=False,
+                     max_width=TIP_MAX_WIDTH, display_link=False,
                      text_new_line=False,  with_html_format=False):
         """
         Create HTML template for calltips and tooltips.
@@ -213,14 +213,14 @@ class BaseEditMixin(object):
         # Get current font properties
         font_family = self.font().family()
         text_size = self._tip_text_size
-        text_color = DEFAULT_TEXT_COLOR
+        text_color = TIP_TEXT_COLOR
 
         template = ''
         if title:
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
                 size=text_size,
-                color=DEFAULT_TITLE_COLOR,
+                color=TIP_TITLE_COLOR,
                 main_text=title,
             )
 
@@ -330,7 +330,7 @@ class BaseEditMixin(object):
                 template += (
                     f'<hr>'
                     f'<div align="left">'
-                    f'<span style="color: {DEFAULT_TITLE_COLOR};'
+                    f'<span style="color: {TIP_TITLE_COLOR};'
                     f'text-decoration:none;'
                     f'font-family:"{font_family}";font-size:{text_size}pt;>'
                 ) + help_text + '</span></div>'
@@ -345,7 +345,7 @@ class BaseEditMixin(object):
         return template
 
     def _format_signature(self, signatures, parameter=None,
-                          max_width=DEFAULT_MAX_WIDTH):
+                          max_width=TIP_MAX_WIDTH):
         """
         Create HTML template for signature.
 
@@ -354,7 +354,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
-        language = getattr(self, 'language', DEFAULT_LANGUAGE).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -363,7 +363,7 @@ class BaseEditMixin(object):
             '</span>'
         )
         chars_template = (
-            '<span style="color:{0};'.format(CHAR_HIGHLIGHT_COLOR) +
+            '<span style="color:{0};'.format(TIP_CHAR_HIGHLIGHT_COLOR) +
             'font-weight:bold"><b>{char}</b>'
             '</span>'
         )
@@ -440,7 +440,7 @@ class BaseEditMixin(object):
                 title = title_template.format(
                     font_size=self._tip_text_size,
                     font_family=font_family,
-                    color=PARAMETER_HIGHLIGHT_COLOR,
+                    color=TIP_PARAMETER_HIGHLIGHT_COLOR,
                     parameter=parameter,
                 )
             else:
@@ -451,7 +451,7 @@ class BaseEditMixin(object):
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
                                     inspect_word=None,
-                                    max_width=DEFAULT_MAX_WIDTH):
+                                    max_width=TIP_MAX_WIDTH):
         """
         LSP hints might provide docstrings instead of signatures.
 
@@ -459,7 +459,7 @@ class BaseEditMixin(object):
         the text accordingly.
         """
         has_signature = False
-        language = getattr(self, 'language', DEFAULT_LANGUAGE).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
         # Remove special symbols that could interfere with ''.format
@@ -510,7 +510,7 @@ class BaseEditMixin(object):
         return new_signature, extra_text, inspect_word
 
     def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=DEFAULT_LANGUAGE, text_new_line=True):
+                     language=TIP_DEFAULT_LANGUAGE, text_new_line=True):
         """
         Show calltip.
 
@@ -522,7 +522,7 @@ class BaseEditMixin(object):
         point = self._calculate_position()
         signature = signature.strip()
         inspect_word = None
-        language = getattr(self, 'language', DEFAULT_LANGUAGE).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         if language == 'python' and signature:
             inspect_word = signature.split('(')[0]
             # Check if documentation is better than signature, sometimes
@@ -544,22 +544,22 @@ class BaseEditMixin(object):
         # Format
         res = self._check_signature_and_format(signature, parameter,
                                                inspect_word=inspect_word,
-                                               max_width=DEFAULT_MAX_WIDTH)
+                                               max_width=TIP_MAX_WIDTH)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
-            max_lines=DEFAULT_MAX_LINES,
-            max_width=DEFAULT_MAX_WIDTH,
+            max_lines=TIP_MAX_LINES,
+            max_width=TIP_MAX_WIDTH,
             text_new_line=text_new_line
         )
 
         # Set a max width so the widget doesn't show up too large due to its
         # content, which looks bad.
         self.calltip_widget.setMaximumWidth(
-            self._tip_width_in_pixels(DEFAULT_MAX_WIDTH)
+            self._tip_width_in_pixels(TIP_MAX_WIDTH)
         )
 
         # Show calltip
@@ -569,8 +569,8 @@ class BaseEditMixin(object):
     def show_tooltip(self, title=None, signature=None, text=None,
                      inspect_word=None,
                      at_line=None, at_point=None, display_link=False,
-                     max_lines=DEFAULT_MAX_LINES,
-                     max_width=DEFAULT_MAX_WIDTH,
+                     max_lines=TIP_MAX_LINES,
+                     max_width=TIP_MAX_WIDTH,
                      with_html_format=False,
                      text_new_line=True,
                      completion_doc=None,
@@ -608,8 +608,8 @@ class BaseEditMixin(object):
         )
 
     def show_hint(self, text, inspect_word, at_point,
-                  max_lines=DEFAULT_MAX_HINT_LINES,
-                  max_width=DEFAULT_MAX_HINT_WIDTH,
+                  max_lines=HINT_MAX_LINES,
+                  max_width=HINT_MAX_WIDTH,
                   text_new_line=True,
                   completion_doc=None,
                   vertical_position='bottom',
@@ -617,7 +617,7 @@ class BaseEditMixin(object):
         """Show code hint and crop text as needed."""
         # Don't show full docstring for builtin types, just its type
         display_link = True
-        language = getattr(self, 'language', DEFAULT_LANGUAGE).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         if language == 'python':
             builtin = ''
             # Check if `text` matches a builtin docstring
