@@ -1,20 +1,26 @@
 :: This script launches Spyder after install
 @echo off
 
-:: Mark as conda-based-app
-echo. > %PREFIX%\envs\spyder-runtime\Menu\conda-based-app
+set spy_rt=%PREFIX%\envs\spyder-runtime
+set menu=%spy_rt%\Menu\spyder-menu.json
+set mode=system
+if exist "%PREFIX%\.nonadmin" set mode=user
 
-echo %PREFIX% | findstr /b "%USERPROFILE%" > nul && (
-    set shortcut_root=%APPDATA%
-) || (
-    set shortcut_root=%ALLUSERSPROFILE%
+:: Get shortcut path
+for /F "tokens=*" %%i in (
+    '%PREFIX%\python -c "from menuinst.api import _load; menu, menu_items = _load(r'%menu%', target_prefix=r'%spy_rt%', base_prefix=r'%PREFIX%', _mode='%mode%'); print(menu_items[0]._paths()[0])"'
+) do (
+    set shortcut=%%~fi
 )
-set shortcut="%shortcut_root%\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
 
+:: Mark as conda-based-app
+echo. > "%spy_rt%\Menu\conda-based-app"
+
+:: Launch Spyder
 set tmpdir=%TMP%\spyder
 set launch_script=%tmpdir%\launch_script.bat
 
-mkdir %tmpdir% 2> nul
+if not exist "%tmpdir%" mkdir "%tmpdir%"
 (
 echo @echo off
 echo :loop
@@ -23,9 +29,9 @@ echo if "%%errorlevel%%"=="0" ^(
 echo     timeout /t 1 /nobreak ^> nul
 echo     goto loop
 echo ^) else ^(
-echo     start "" /B %shortcut%
+echo     start "" /B "%shortcut%"
 echo     exit
 echo ^)
-) > %launch_script%
+) > "%launch_script%"
 
 C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
