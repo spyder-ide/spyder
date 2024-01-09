@@ -17,7 +17,6 @@ import os.path as osp
 # Third party imports
 from qdarkstyle.colorsystem import Gray
 import qstylizer.style
-from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
@@ -68,17 +67,11 @@ class EditTabNamePopup(QLineEdit):
         self.installEventFilter(self)
 
         # Clean borders and no shadow to blend with tab
-        if PYQT5:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint |
-                Qt.NoDropShadowWindowHint
-            )
-        else:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint
-            )
+        self.setWindowFlags(
+            Qt.Popup |
+            Qt.FramelessWindowHint |
+            Qt.NoDropShadowWindowHint
+        )
         self.setFrame(False)
 
     def eventFilter(self, widget, event):
