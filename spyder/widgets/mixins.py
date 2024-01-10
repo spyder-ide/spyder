@@ -566,17 +566,15 @@ class BaseEditMixin(object):
         self.calltip_widget.show_tip(point, text, [])
         self.calltip_widget.show()
 
-    def show_tooltip(self, title=None, signature=None, text=None,
-                     inspect_word=None,
-                     at_line=None, at_point=None, display_link=False,
-                     max_lines=TIP_MAX_LINES,
-                     max_width=TIP_MAX_WIDTH,
-                     with_html_format=False,
-                     text_new_line=True,
-                     completion_doc=None,
-                     vertical_position='bottom',
-                     show_help_on_click=False):
-        """Show tooltip."""
+    def show_tooltip(
+        self,
+        text,
+        title=None,
+        at_line=None,
+        at_point=None,
+        with_html_format=False,
+    ):
+        """Show a tooltip."""
 
         # Find position
         point = self._calculate_position(at_line=at_line, at_point=at_point)
@@ -584,40 +582,44 @@ class BaseEditMixin(object):
         # Format text
         tiptext = self._format_text(
             title=title,
-            signature=signature,
             text=text,
-            inspect_word=inspect_word,
-            display_link=display_link,
-            max_lines=max_lines,
-            max_width=max_width,
+            max_lines=TIP_MAX_LINES,
             with_html_format=with_html_format,
-            text_new_line=text_new_line
+            text_new_line=True
         )
 
         # Set a max width so the widget doesn't show up too large due to its
         # content, which looks bad.
         self.tooltip_widget.setMaximumWidth(
-            self._tip_width_in_pixels(max_width)
+            self._tip_width_in_pixels(TIP_MAX_WIDTH)
         )
 
         # Display tooltip
-        self.tooltip_widget.show_tip(
-            point, tiptext, completion_doc=completion_doc,
-            vertical_position=vertical_position,
-            show_help_on_click=show_help_on_click
-        )
+        self.tooltip_widget.show_tip(point, tiptext)
 
-    def show_hint(self, text, inspect_word, at_point,
-                  max_lines=HINT_MAX_LINES,
-                  max_width=HINT_MAX_WIDTH,
-                  text_new_line=True,
-                  completion_doc=None,
-                  vertical_position='bottom',
-                  show_help_on_click=False):
-        """Show code hint and crop text as needed."""
+    def show_hint(
+        self,
+        text,
+        inspect_word,
+        at_point,
+        completion_doc=None,
+        vertical_position="bottom",
+        as_hover=False
+    ):
+        """Show code completion hint or hover."""
+        # Max lines and width
+        if as_hover:
+            max_lines = HINT_MAX_LINES
+            max_width = HINT_MAX_WIDTH
+        else:
+            max_lines = TIP_MAX_LINES
+            max_width = COMPLETION_HINT_MAX_WIDTH
+
         # Don't show full docstring for builtin types, just its type
         display_link = True
+        show_help_on_click = True
         language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
+
         if language == 'python':
             builtin = ''
             # Check if `text` matches a builtin docstring
@@ -645,7 +647,6 @@ class BaseEditMixin(object):
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)
         html_signature, extra_text, _ = res
-        point = self.get_word_start_pos(at_point)
 
         # Only display hover hint if there is documentation
         if extra_text is not None:
@@ -655,13 +656,31 @@ class BaseEditMixin(object):
                                 QTextCursor.MoveAnchor)
             self._last_hover_cursor = cursor
 
-            self.show_tooltip(signature=html_signature, text=extra_text,
-                              at_point=point, inspect_word=inspect_word,
-                              display_link=display_link, max_lines=max_lines,
-                              max_width=max_width, text_new_line=text_new_line,
-                              completion_doc=completion_doc,
-                              vertical_position=vertical_position,
-                              show_help_on_click=show_help_on_click)
+            point = self._calculate_position(
+                at_point=self.get_word_start_pos(at_point)
+            )
+
+            tiptext = self._format_text(
+                signature=html_signature,
+                text=extra_text,
+                inspect_word=inspect_word,
+                display_link=display_link,
+                max_lines=max_lines,
+                max_width=max_width,
+                text_new_line=True
+            )
+
+            self.tooltip_widget.setMaximumWidth(
+                self._tip_width_in_pixels(max_width)
+            )
+
+            self.tooltip_widget.show_tip(
+                point,
+                tiptext,
+                completion_doc=completion_doc,
+                vertical_position=vertical_position,
+                show_help_on_click=show_help_on_click
+            )
 
     def hide_tooltip(self):
         """

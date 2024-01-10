@@ -73,11 +73,7 @@ from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
-from spyder.widgets.mixins import (
-    COMPLETION_HINT_MAX_WIDTH,
-    HINT_MAX_WIDTH,
-    TIP_MAX_LINES
-)
+from spyder.widgets.mixins import HINT_MAX_WIDTH
 
 
 try:
@@ -1986,9 +1982,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     inspect_word=word,
                     at_point=at_point,
                     completion_doc=completion_doc,
-                    max_lines=TIP_MAX_LINES,
-                    max_width=COMPLETION_HINT_MAX_WIDTH,
-                    show_help_on_click=True,
                 )
                 self.tooltip_widget.move(at_point)
             else:
