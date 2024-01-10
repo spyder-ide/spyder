@@ -575,6 +575,10 @@ class BaseEditMixin(object):
         with_html_format=False,
     ):
         """Show a tooltip."""
+        # Prevent to hide the widget when used as a completion hint to reuse it
+        # as a tooltip
+        if self.tooltip_widget.is_hint():
+            return
 
         # Find position
         point = self._calculate_position(at_line=at_line, at_point=at_point)
@@ -595,6 +599,7 @@ class BaseEditMixin(object):
         )
 
         # Display tooltip
+        self.tooltip_widget.set_as_tooltip()
         self.tooltip_widget.show_tip(point, tiptext)
 
     def show_hint(
@@ -609,9 +614,16 @@ class BaseEditMixin(object):
         """Show code completion hint or hover."""
         # Max lines and width
         if as_hover:
+            # Prevent to hide the widget when used as a completion hint to
+            # reuse as a hover
+            if self.tooltip_widget.is_hint():
+                return
+
+            self.tooltip_widget.set_as_hover()
             max_lines = HINT_MAX_LINES
             max_width = HINT_MAX_WIDTH
         else:
+            self.tooltip_widget.set_as_hint()
             max_lines = TIP_MAX_LINES
             max_width = COMPLETION_HINT_MAX_WIDTH
 
@@ -643,6 +655,7 @@ class BaseEditMixin(object):
                 )
                 display_link = False
                 show_help_on_click = False
+                completion_doc = None
 
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)

@@ -305,7 +305,12 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         tooltip = getattr(self.textedit, 'tooltip_widget', None)
         if tooltip:
-            tooltip.hide()
+            # This is necessary to reuse this widget as a tooltip or hover.
+            tooltip.reset_state()
+
+            # Use this method to hide the widget immediately instead of using a
+            # time, which can generate odd UX situations.
+            tooltip._hide()
 
         QListWidget.hide(self)
         QToolTip.hideText()

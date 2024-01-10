@@ -91,7 +91,7 @@ class TextEditBaseWidget(
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
+        self.tooltip_widget = ToolTipWidget(self)
 
         self.highlight_current_cell_enabled = False
 

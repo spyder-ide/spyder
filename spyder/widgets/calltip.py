@@ -52,7 +52,7 @@ class ToolTipWidget(QLabel):
     sig_completion_help_requested = Signal(str, str)
     sig_help_requested = Signal(str)
 
-    def __init__(self, parent=None, as_tooltip=False):
+    def __init__(self, parent=None):
         """
         Shows tooltips that can be styled with the different themes.
         """
@@ -62,8 +62,8 @@ class ToolTipWidget(QLabel):
         self.completion_doc = None
         self._url = ''
         self.app = QCoreApplication.instance()
-        self.as_tooltip = as_tooltip
-        self.tip = None
+        self._as_hover = False
+        self._as_hint = False
         self._timer_hide = QTimer()
         self._text_edit = parent
         self.show_help_on_click = False
@@ -152,7 +152,6 @@ class ToolTipWidget(QLabel):
             return
 
         # Set the text and resize the widget accordingly.
-        self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
 
@@ -216,9 +215,9 @@ class ToolTipWidget(QLabel):
         if horizontal == 'Left':
             point.setX(point.x() - tip_width)
         else:
-            # The -1 below is necessary to horizontally align the tooltip to
+            # The -2 below is necessary to horizontally align the hover to
             # the text.
-            point.setX(point.x() - 1)
+            point.setX(point.x() - (2 if self._as_hover else 0))
 
         # Move tip to new coordinates
         self.move(point)
@@ -229,6 +228,29 @@ class ToolTipWidget(QLabel):
             self.show()
 
         return True
+
+    def set_as_tooltip(self):
+        """Make the widget work as a tooltip."""
+        self.reset_state()
+
+    def set_as_hint(self):
+        """Make the widget work to display code completion hints."""
+        self._as_hint = True
+        self._as_hover = False
+
+    def set_as_hover(self):
+        """Make the widget work to display hovers."""
+        self._as_hover = True
+        self._as_hint = False
+
+    def is_hint(self):
+        """Check if the widget is used as a completion hint."""
+        return self._as_hint
+
+    def reset_state(self):
+        """Reset widget state as a hover, tooltip or hint."""
+        self._as_hint = False
+        self._as_hover = False
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -254,7 +276,11 @@ class ToolTipWidget(QLabel):
             self.sig_help_requested.emit(self._url)
 
         super().mousePressEvent(event)
-        self._hide()
+
+        # Prevent to hide the widget when it's used as a completion hint and
+        # users click on it
+        if not self._as_hint:
+            self._hide()
 
     def focusOutEvent(self, event):
         """Reimplemented to hide tooltip when focus goes out."""
@@ -273,7 +299,11 @@ class ToolTipWidget(QLabel):
     def leaveEvent(self, event):
         """Reimplemented to hide tooltip on leave."""
         super().leaveEvent(event)
-        self._hide()
+
+        # Prevent to hide the widget when it's used as a completion hint and
+        # the cursor lays on top of it when browsing different completions.
+        if not self._as_hint:
+            self._hide()
 
     def hide(self):
         """
