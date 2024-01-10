@@ -143,12 +143,12 @@ def test_renamed_tree(editor_plugin, mocker):
 
     editor.renamed_tree('/test/directory', '/test/dir')
     assert editor.renamed.call_count == 3
-    assert editor.renamed.called_with(source='/test/directory/file1.py',
-                                      dest='test/dir/file1.py')
-    assert editor.renamed.called_with(source='/test/directory/file2.txt',
-                                      dest='test/dir/file2.txt')
-    assert editor.renamed.called_with(source='/test/directory/file4.rst',
-                                      dest='test/dir/file4.rst')
+    editor.renamed.assert_any_call(source='/test/directory/file1.py',
+                                   dest='/test/dir/file1.py')
+    editor.renamed.assert_any_call(source='/test/directory/file2.txt',
+                                   dest='/test/dir/file2.txt')
+    editor.renamed.assert_any_call(source='/test/directory/file4.rst',
+                                   dest='/test/dir/file4.rst')
 
 
 def test_no_template(editor_plugin):
