@@ -24,12 +24,14 @@ from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-DEFAULT_COMPLETION_ITEM_HEIGHT = 15
-DEFAULT_COMPLETION_ITEM_WIDTH = 250
+COMPLETION_ITEM_HEIGHT = 15
+COMPLETION_ITEM_WIDTH = 250
+COMPLETION_DELTA_FOR_SCROLLBAR = 7
 
 
 class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
+
     ITEM_TYPE_MAP = {
         CompletionItemKind.TEXT: 'text',
         CompletionItemKind.METHOD: 'method',
@@ -50,6 +52,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         CompletionItemKind.FILE: 'file',
         CompletionItemKind.REFERENCE: 'reference',
     }
+
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)
@@ -78,12 +81,11 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
-        self.setMinimumWidth(DEFAULT_COMPLETION_ITEM_WIDTH)
+        self.setMinimumWidth(COMPLETION_ITEM_WIDTH)
 
         # Initial item height and width
         fm = QFontMetrics(self.textedit.font())
         self.item_height = fm.height()
-        self.item_width = self.width()
 
     def setup_appearance(self, size, font):
         """Setup size and font of the completion widget."""
@@ -116,7 +118,6 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # hide the text as we moved away from the position
             self.hide()
             return
-
         else:
             self.completion_position = position
 
@@ -144,6 +145,14 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.show()
         self.setFocus()
         self.raise_()
+
+        if self.verticalScrollBar().isVisible():
+            # This is necessary to avoid the scrollbar cropping item types
+            self.setMinimumWidth(
+                COMPLETION_ITEM_WIDTH - COMPLETION_DELTA_FOR_SCROLLBAR
+            )
+        else:
+            self.setMinimumWidth(COMPLETION_ITEM_WIDTH)
 
         self.textedit.position_widget_at_cursor(self)
 
@@ -181,7 +190,22 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         self.display_index = []
         height = self.item_height
-        width = self.item_width
+
+        # This heuristics tells us if the amount of items is taller than the
+        # widget's height, which makes it display the vertical scrollbar (we
+        # can't check if it's visible because the widget can't be shown when
+        # this function is called).
+        if (
+            # The +4 here is the vertical amount of padding around each item
+            (height + 4) * len(self.completion_list)
+            + self.horizontalScrollBar().height()
+        ) > self.height() - 10:
+            # This is necessary to avoid the scrollbar cropping item types
+            width = COMPLETION_ITEM_WIDTH - COMPLETION_DELTA_FOR_SCROLLBAR
+        else:
+            # This is necessary to make the item type closer to the widget's
+            # right border.
+            width = COMPLETION_ITEM_WIDTH + COMPLETION_DELTA_FOR_SCROLLBAR
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
@@ -250,8 +274,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                                      icon_provider=None,
                                      img_height=0,
                                      img_width=0,
-                                     height=DEFAULT_COMPLETION_ITEM_HEIGHT,
-                                     width=DEFAULT_COMPLETION_ITEM_WIDTH):
+                                     height=COMPLETION_ITEM_HEIGHT,
+                                     width=COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
         height = to_text_string(height)
         width = to_text_string(width)
