@@ -74,6 +74,7 @@ TIP_MAX_WIDTH = 55
 COMPLETION_HINT_MAX_WIDTH = 50
 HINT_MAX_LINES = 7
 HINT_MAX_WIDTH = 55
+SIGNATURE_MAX_LINES = 4
 BUILTINS_DOCSTRING_MAP = {
     int.__doc__: 'integer',
     list.__doc__: 'list',
@@ -414,7 +415,7 @@ class BaseEditMixin(object):
             indent = ' ' * (len(name) + 1)
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
-            for row in rows:
+            for row in rows[:SIGNATURE_MAX_LINES]:
                 if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
