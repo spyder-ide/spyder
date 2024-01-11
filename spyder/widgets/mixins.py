@@ -85,7 +85,8 @@ BUILTINS_DOCSTRING_MAP = {
     str.__doc__: 'string',
     bool.__doc__: 'bool',
     bytes.__doc__: 'bytes string',
-    range.__doc__: 'range object'
+    range.__doc__: 'range object',
+    iter.__doc__: 'iterator',
 }
 
 
@@ -510,6 +511,29 @@ class BaseEditMixin(object):
 
         return new_signature, extra_text, inspect_word
 
+    def _check_python_builtin(self, text):
+        """Check if `text` matches a builtin docstring."""
+        builtin = ''
+
+        if BUILTINS_DOCSTRING_MAP.get(text):
+            builtin = BUILTINS_DOCSTRING_MAP[text]
+
+        # Another possibility is that the text after the signature matches
+        # a buitin docstring (e.g. that's the case for Numpy objects).
+        text_after_signature = '\n\n'.join(text.split('\n\n')[1:])
+        if BUILTINS_DOCSTRING_MAP.get(text_after_signature):
+            builtin = BUILTINS_DOCSTRING_MAP[text_after_signature]
+
+        if builtin:
+            return (
+                # This makes the text appear centered
+                "&nbsp;" +
+                "This is " +
+                # Use the right article in case we got an integer
+                ("an " if builtin == 'integer' else "a ") +
+                builtin
+            )
+
     def show_calltip(self, signature, parameter=None, documentation=None,
                      language=TIP_DEFAULT_LANGUAGE, text_new_line=True):
         """
@@ -628,41 +652,25 @@ class BaseEditMixin(object):
             max_lines = TIP_MAX_LINES
             max_width = COMPLETION_HINT_MAX_WIDTH
 
-        # Don't show full docstring for builtin types, just its type
+        # Don't show full docstring for Python builtins, just its type
         display_link = True
         show_help_on_click = True
         language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
 
         if language == 'python':
-            builtin = ''
-            # Check if `text` matches a builtin docstring
-            if BUILTINS_DOCSTRING_MAP.get(text):
-                builtin = BUILTINS_DOCSTRING_MAP[text]
-
-            # Another possibility is that the text after the signature matches
-            # a buitin docstring (e.g. that's the case for Numpy objects).
-            text_after_signature = '\n\n'.join(text.split('\n\n')[1:])
-            if BUILTINS_DOCSTRING_MAP.get(text_after_signature):
-                builtin = BUILTINS_DOCSTRING_MAP[text_after_signature]
-
-            if builtin:
-                text = (
-                    # This makes the text appear centered
-                    "&nbsp;" +
-                    "This is " +
-                    # Use the right article in case we got an integer
-                    ("an " if builtin == 'integer' else "a ") +
-                    builtin
-                )
+            builtin_text = self._check_python_builtin(text)
+            if builtin_text is not None:
+                text = builtin_text
                 display_link = False
                 show_help_on_click = False
                 completion_doc = None
 
+        # Get signature and extra text from text
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)
         html_signature, extra_text, _ = res
 
-        # Only display hover hint if there is documentation
+        # Only display hint if there is documentation for it
         if extra_text is not None:
             # This is needed to show help when clicking on hover hints
             cursor = self.cursorForPosition(at_point)
@@ -670,6 +678,7 @@ class BaseEditMixin(object):
                                 QTextCursor.MoveAnchor)
             self._last_hover_cursor = cursor
 
+            # Get position and text for the hint
             point = self._calculate_position(
                 at_point=self.get_word_start_pos(at_point)
             )
@@ -684,10 +693,12 @@ class BaseEditMixin(object):
                 text_new_line=True
             )
 
+            # Adjust width
             self.tooltip_widget.setMaximumWidth(
                 self._tip_width_in_pixels(max_width)
             )
 
+            # Show hint
             self.tooltip_widget.show_tip(
                 point,
                 tiptext,
