@@ -4,10 +4,10 @@
 :: Create variables from arguments
 :parse
 IF "%~1"=="" GOTO endparse
-IF "%~1"=="-p" set prefix=%2 & SHIFT
-IF "%~1"=="-i" set install_exe=%2 & SHIFT
-IF "%~1"=="-c" set conda=%2 & SHIFT
-IF "%~1"=="-v" set spy_ver=%2 & SHIFT
+IF "%~1"=="-p" set prefix=%~2& SHIFT
+IF "%~1"=="-i" set install_exe=%~2& SHIFT
+IF "%~1"=="-c" set conda=%~2& SHIFT
+IF "%~1"=="-v" set spy_ver=%~2& SHIFT
 SHIFT
 GOTO parse
 :endparse
