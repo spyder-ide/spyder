@@ -165,7 +165,14 @@ class ToolTipWidget(QLabel):
         tip_width = self.size().width()
 
         text_edit_height = text_edit.size().height()
-        text_edit_gpos = text_edit.mapToGlobal(text_edit.pos())
+        text_edit_gpos = (
+            # If text_edit is a window in itself (e.g. when used indenpendently
+            # in our tests) we don't need to get its global position because
+            # text_edit.pos() already gives it.
+            text_edit.mapToGlobal(text_edit.pos())
+            if not text_edit.isWindow()
+            else text_edit.pos()
+        )
 
         vertical = vertical_position
         horizontal = 'Right'
