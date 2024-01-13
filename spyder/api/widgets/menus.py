@@ -14,7 +14,7 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtWidgets import QAction, QMenu, QWidget
+from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -40,6 +40,24 @@ class OptionsMenuSections:
 class PluginMainWidgetMenus:
     Context = 'context_menu'
     Options = 'options_menu'
+
+
+# ---- Style
+# -----------------------------------------------------------------------------
+class SpyderMenuProxyStyle(QProxyStyle):
+    """Style adjustments that can only be done with a proxy style."""
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Change icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            delta = -1 if MAC else (0 if WIN else 1)
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 # ---- Widgets
@@ -118,6 +136,10 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         # Style
         self.css = self._generate_stylesheet()
         self.setStyleSheet(self.css.toString())
+
+        style = SpyderMenuProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
 
     # ---- Public API
     # -------------------------------------------------------------------------

@@ -156,13 +156,6 @@ class MainWindow(
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
 
-        if running_under_pytest():
-            self._proxy_style = None
-        else:
-            from spyder.utils.qthelpers import SpyderProxyStyle
-            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-            self._proxy_style = SpyderProxyStyle(None)
-
         # Enabling scaling for high dpi. This is not required with Qt 6 where
         # it is always enabled.
         # See https://doc.qt.io/qt-6/portingguide.html#high-dpi
@@ -664,54 +657,35 @@ class MainWindow(
 
         PLUGIN_REGISTRY.set_main(self)
 
-        # TODO: Remove circular dependency between help and ipython console
-        # and remove this import. Help plugin should take care of it
-        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
 
-        logger.info("Applying theme configuration...")
-        ui_theme = self.get_conf('ui_theme', section='appearance')
-        color_scheme = self.get_conf('selected', section='appearance')
-        qapp = QApplication.instance()
-
-        if ui_theme == 'dark':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp.setStyle(self._proxy_style)
-            dark_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(dark_qss)
-            self.statusBar().setStyleSheet(dark_qss)
-            css_path = DARK_CSS_PATH
-
-        elif ui_theme == 'light':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp.setStyle(self._proxy_style)
-            light_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(light_qss)
-            self.statusBar().setStyleSheet(light_qss)
-            css_path = CSS_PATH
-
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                if not running_under_pytest():
-                    # Set style proxy to fix combobox popup on mac and qdark
-                    qapp.setStyle(self._proxy_style)
-                dark_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(dark_qss)
-                self.statusBar().setStyleSheet(dark_qss)
-                css_path = DARK_CSS_PATH
-            else:
-                light_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(light_qss)
-                self.statusBar().setStyleSheet(light_qss)
-                css_path = CSS_PATH
+        # Applying app stylesheet
+        logger.info("Applying main stylesheet...")
+        self.setStyleSheet(str(APP_STYLESHEET))
 
         # This needs to done after applying the stylesheet to the window
         logger.info("Set color for links in Qt widgets")
+        qapp = QApplication.instance()
         set_links_color(qapp)
 
-        # Set css_path as a configuration to be used by the plugins
+        # Set css_path as a configuration to be used by the plugins.
+        # TODO: Remove circular dependency between help and ipython console
+        # and remove this import. Help plugin should take care of it
+        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
+
+        ui_theme = self.get_conf('ui_theme', section='appearance')
+        color_scheme = self.get_conf('selected', section='appearance')
+
+        if ui_theme == 'dark':
+            css_path = DARK_CSS_PATH
+        elif ui_theme == 'light':
+            css_path = CSS_PATH
+        elif ui_theme == 'automatic':
+            if not is_dark_font_color(color_scheme):
+                css_path = DARK_CSS_PATH
+            else:
+                css_path = CSS_PATH
+
         self.set_conf('css_path', css_path, section='appearance')
 
         # Status bar
