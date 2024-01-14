@@ -2212,6 +2212,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
+        CURSOR_INSERTION_POINT = '$|$'
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
@@ -2344,6 +2345,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             enc = 'utf-8'
             default_content = True
 
+        # Store position of first cursor insertion marker and remove marker
+        cursor_pos = text.find(CURSOR_INSERTION_POINT)
+        text = text.replace(CURSOR_INSERTION_POINT, '')
+
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
@@ -2355,6 +2360,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts(current_editor)
+
+        # Move cursor to position of the insertion marker
+        cursor = current_editor.textCursor()
+        cursor.setPosition(cursor_pos)
+        current_editor.setTextCursor(cursor)
+
         if not created_from_here:
             self.save(force=True)
 
