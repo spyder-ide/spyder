@@ -210,6 +210,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 '',
                 '@author: ${username}',
                 '@file: ${file}',
+                '@project: ${projectname}',
                 '',
                 'Copyright ${year}  ${fullname}',
                 '"""',
