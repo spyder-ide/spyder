@@ -2316,7 +2316,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     'monthname': now.strftime('%b'),
                     'weekday': now.strftime('%a'),
                     'username': username,
-                    'fullname': displayname or 'n/a'
+                    'fullname': displayname or 'n/a',
+                    'file': fname,
+                    'filename': os.path.basename(fname),
+                    'filepath': os.path.dirname(fname)
                 }
                 try:
                     text = string.Template(text).safe_substitute(VARS)
