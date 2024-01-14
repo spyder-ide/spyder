@@ -14,6 +14,7 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
+from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 
 # Local imports
@@ -448,20 +449,28 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         """Adjustments when the menu is shown."""
-        # Reposition submenus vertically due to padding and border
-        if (
-            not sys.platform == "darwin"
-            and self._reposition
-            and self._is_submenu
-            and not self._is_shown
-        ):
-            self.move(
-                self.pos().x(),
-                # Current vertical pos - padding - border
-                self.pos().y() - 2 * AppStyle.MarginSize - 1
-            )
+        if not self._is_shown:
+            # Reposition submenus vertically due to padding and border
+            if self._reposition and self._is_submenu:
+                self.move(
+                    self.pos().x(),
+                    # Current vertical pos - padding - border
+                    self.pos().y() - 2 * AppStyle.MarginSize - 1
+                )
 
             self._is_shown = True
+
+        # Reposition menus horizontally due to border
+        if QCursor().pos().x() - self.pos().x() < 40:
+            # If the difference between the current cursor x position and the
+            # menu one is small, it means the menu will be shown to the right,
+            # so we need to move it in that direction.
+            delta_x = 1
+        else:
+            # This happens when the menu is shown to the left.
+            delta_x = -1
+
+        self.move(self.pos().x() + delta_x, self.pos().y())
 
         super().showEvent(event)
 
