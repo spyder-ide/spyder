@@ -209,6 +209,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'Created on ${date}',
                 '',
                 '@author: ${username}',
+                '@file: ${file}',
                 '',
                 'Copyright ${year}  ${fullname}',
                 '"""',
