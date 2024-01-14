@@ -2218,13 +2218,31 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if enc_match:
                     enc = enc_match.group(1)
                 # Initialize template variables
-                # Windows
+                # Only Windows has a 'USERNAME' environment variable
                 username = encoding.to_unicode_from_fs(
                                 os.environ.get('USERNAME', ''))
-                # Linux, Mac OS X
-                if not username:
+                if username:
+                    # Windows
+                    import ctypes
+
+                    GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
+                    name_display = 3
+
+                    size = ctypes.pointer(ctypes.c_ulong(0))
+                    GetUserNameEx(name_display, None, size)
+
+                    name_buffer = ctypes.create_unicode_buffer(
+                                size.contents.value)
+                    GetUserNameEx(name_display, name_buffer, size)
+                    displayname = nameBuffer.value
+                else:
+                    # Linux, Mac OS X
+                    import pwd
+
                     username = encoding.to_unicode_from_fs(
                                    os.environ.get('USER', '-'))
+                    displayname = pwd.getpwnam(username).pw_gecos.split(',')[0]
+
                 now = datetime.now().astimezone()
                 now.replace(microsecond=0)
                 VARS = {
@@ -2240,6 +2258,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     'monthname': now.strftime('%b'),
                     'weekday': now.strftime('%a'),
                     'username': username,
+                    'fullname': displayname
                 }
                 try:
                     text = string.Template(text).safe_substitute(VARS)
