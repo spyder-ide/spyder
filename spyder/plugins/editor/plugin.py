@@ -2217,6 +2217,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             current_es = self.get_current_editorstack()
         else:
             current_es = editorstack
+
+        projects = self.main.get_plugin(Plugins.Projects, error=False)
+        if projects and projects.get_active_project() is not None:
+            project_name = projects.get_active_project.get_name()
+            project_path = projects.get_active_project_path()
+        else:
+            project_name = ''
+            project_path = ''
+
         created_from_here = fname is None
         if created_from_here:
             if self.untitled_num == 0:
@@ -2242,17 +2251,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd_or_home()
 
-            projects = self.main.get_plugin(Plugins.Projects, error=False)
-            print(f'{projects=}', file=sys.stderr)
-            if projects and projects.get_active_project() is not None:
-                basedir = projects.get_active_project_path()
-                print(f'{basedir=}', file=sys.stderr)
+            if project_path:
+                basedir = project_path
             else:
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
+                else:
+                    basedir = getcwd_or_home()
             fname = osp.abspath(osp.join(basedir, fname))
         else:
             # QString when triggered by a Qt signal
@@ -2320,7 +2327,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     'fullname': displayname or 'n/a',
                     'file': fname,
                     'filename': os.path.basename(fname),
-                    'filepath': os.path.dirname(fname)
+                    'filepath': os.path.dirname(fname),
+                    'projectname': project_name or 'n/a',
+                    'projectpath': project_path or 'n/a'
                 }
                 try:
                     text = string.Template(text).safe_substitute(VARS)
