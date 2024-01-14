@@ -2210,6 +2210,56 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
+        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
+        # Creating editor widget
+        if editorstack is None:
+            current_es = self.get_current_editorstack()
+        else:
+            current_es = editorstack
+        created_from_here = fname is None
+        if created_from_here:
+            if self.untitled_num == 0:
+                for finfo in current_es.data:
+                    current_filename = finfo.editor.filename
+                    if _("untitled") in current_filename:
+                        # Start the counter of the untitled_num with respect
+                        # to this number if there's other untitled file in
+                        # spyder. Please see spyder-ide/spyder#7831
+                        fname_data = osp.splitext(current_filename)
+                        try:
+                            act_num = int(
+                                fname_data[0].split(_("untitled"))[-1])
+                            self.untitled_num = act_num + 1
+                        except ValueError:
+                            # Catch the error in case the user has something
+                            # different from a number after the untitled
+                            # part.
+                            # Please see spyder-ide/spyder#12892
+                            self.untitled_num = 0
+            while True:
+                fname = create_fname(self.untitled_num)
+                self.untitled_num += 1
+                if not osp.isfile(fname):
+                    break
+            basedir = getcwd_or_home()
+
+            projects = self.main.get_plugin(Plugins.Projects, error=False)
+            print(f'{projects=}', file=sys.stderr)
+            if projects and projects.get_active_project() is not None:
+                basedir = projects.get_active_project_path()
+                print(f'{basedir=}', file=sys.stderr)
+            else:
+                c_fname = self.get_current_filename()
+                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                    basedir = osp.dirname(c_fname)
+            fname = osp.abspath(osp.join(basedir, fname))
+        else:
+            # QString when triggered by a Qt signal
+            fname = osp.abspath(to_text_string(fname))
+            index = current_es.has_filename(fname)
+            if index is not None and not current_es.close_file(index):
+                return
+
         # If no text is provided, create default content
         try:
             if text is None:
@@ -2279,54 +2329,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             text = ''
             enc = 'utf-8'
             default_content = True
-
-        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
-        # Creating editor widget
-        if editorstack is None:
-            current_es = self.get_current_editorstack()
-        else:
-            current_es = editorstack
-        created_from_here = fname is None
-        if created_from_here:
-            if self.untitled_num == 0:
-                for finfo in current_es.data:
-                    current_filename = finfo.editor.filename
-                    if _("untitled") in current_filename:
-                        # Start the counter of the untitled_num with respect
-                        # to this number if there's other untitled file in
-                        # spyder. Please see spyder-ide/spyder#7831
-                        fname_data = osp.splitext(current_filename)
-                        try:
-                            act_num = int(
-                                fname_data[0].split(_("untitled"))[-1])
-                            self.untitled_num = act_num + 1
-                        except ValueError:
-                            # Catch the error in case the user has something
-                            # different from a number after the untitled
-                            # part.
-                            # Please see spyder-ide/spyder#12892
-                            self.untitled_num = 0
-            while True:
-                fname = create_fname(self.untitled_num)
-                self.untitled_num += 1
-                if not osp.isfile(fname):
-                    break
-            basedir = getcwd_or_home()
-
-            projects = self.main.get_plugin(Plugins.Projects, error=False)
-            if projects and projects.get_active_project() is not None:
-                basedir = projects.get_active_project_path()
-            else:
-                c_fname = self.get_current_filename()
-                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                    basedir = osp.dirname(c_fname)
-            fname = osp.abspath(osp.join(basedir, fname))
-        else:
-            # QString when triggered by a Qt signal
-            fname = osp.abspath(to_text_string(fname))
-            index = current_es.has_filename(fname)
-            if index is not None and not current_es.close_file(index):
-                return
 
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
