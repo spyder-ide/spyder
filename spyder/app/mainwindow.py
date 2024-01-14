@@ -46,7 +46,8 @@ requirements.check_qt()
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QShortcut
+from qtpy.QtWidgets import (
+    QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -649,6 +650,26 @@ class MainWindow(
 
                 action.setShortcut(shortcut)
 
+    def _prevent_freeze_when_moving_dockwidgets(self):
+        """
+        This is necessary to prevent an ugly freeze when moving dockwidgets to
+        different locations (see `SpyderDockWidget` for how that's handled).
+
+        Perhaps this is due to the new special style for tabbars, but now Qt
+        takes a long time to run `findChildren(QTabBar)` when it hasn't done it
+        in a while. So we do it here every minute.
+        """
+        def find_tabbars():
+            # Catch an error when closing the app on macOS with PyQt 5.15
+            try:
+                self.findChildren(QTabBar)
+            except RuntimeError:
+                pass
+
+        tabbars_timer = QTimer(self)
+        tabbars_timer.timeout.connect(find_tabbars)
+        tabbars_timer.start(60 * 1000)
+
     def setup(self):
         """Setup main window."""
         PLUGIN_REGISTRY.sig_plugin_ready.connect(
@@ -920,6 +941,9 @@ class MainWindow(
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
+
+        # Prevent freezes when moving panes
+        self._prevent_freeze_when_moving_dockwidgets()
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False

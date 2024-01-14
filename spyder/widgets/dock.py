@@ -247,9 +247,13 @@ class SpyderDockWidget(QDockWidget):
     sig_title_bar_shown = Signal(bool)
 
     def __init__(self, title, parent):
-        super(SpyderDockWidget, self).__init__(title, parent)
-        self.title = title
+        super().__init__(title, parent)
 
+        # Attributes
+        self.title = title
+        self._is_shown = False
+
+        # Set features
         self.setFeatures(self.FEATURES)
 
         # Widgets
@@ -273,27 +277,34 @@ class SpyderDockWidget(QDockWidget):
         self.remove_title_bar()
 
         # Signals
-        # To track dockwidget changes the filter is installed when dockwidget
-        # visibility changes. This installs the filter on startup and also
-        # on dockwidgets that are undocked and then docked to a new location.
-        self.visibilityChanged.connect(self.install_tab_event_filter)
+        # This installs the tab filter when dockwidgets are undocked and then
+        # docked to a new location.
+        self.dockLocationChanged.connect(
+            lambda area: self.install_tab_event_filter()
+        )
 
     def closeEvent(self, event):
-        """
-        Reimplement Qt method to send a signal on close so that "Panes" main
-        window menu can be updated correctly
-        """
+        """Send a signal on close so that the "Panes" menu can be updated."""
         self.sig_plugin_closed.emit()
 
-    def install_tab_event_filter(self, value):
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            # This installs the tab filter at startup
+            self.install_tab_event_filter()
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def install_tab_event_filter(self):
         """
         Install an event filter to capture mouse events in the tabs of a
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
 
-        # This is necessary to catch an error when closing the app
-        # in macOS with PyQt 5.15
+        # This is necessary to catch an error when closing the app on macOS
+        # with PyQt 5.15
         try:
             tabbars = self.main.findChildren(QTabBar)
         except RuntimeError:
