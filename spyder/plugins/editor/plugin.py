@@ -20,7 +20,6 @@ from pathlib import Path
 import re
 import string
 import sys
-import time
 from typing import Dict, Optional
 import uuid
 
@@ -2226,12 +2225,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 if not username:
                     username = encoding.to_unicode_from_fs(
                                    os.environ.get('USER', '-'))
+                now = datetime.now().astimezone()
+                now.replace(microsecond=0)
                 VARS = {
-                    'date': time.ctime(),
-                    'year': time.strftime('%Y'),
-                    'month': time.strftime('%m'),
-                    'monthname': time.strftime('%B'),
-                    'day': time.strftime('%d'),
+                    'date': now.ctime(),
+                    'year': now.strftime('%Y'),
+                    'month': now.strftime('%m'),
+                    'monthname': now.strftime('%B'),
+                    'day': now.strftime('%d'),
                     'username': username,
                 }
                 try:
