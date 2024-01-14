@@ -18,6 +18,7 @@ import os
 import os.path as osp
 from pathlib import Path
 import re
+import string
 import sys
 import time
 from typing import Dict, Optional
@@ -205,8 +206,13 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 shebang = ['#!/usr/bin/env python3']
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
-                '"""', 'Created on %(date)s', '',
-                '@author: %(username)s', '"""', '', '']
+                '"""',
+                'Created on ${date}',
+                '',
+                '@author: ${username}',
+                '"""',
+                '',
+                '']
             try:
                 encoding.write(os.linesep.join(header), self.TEMPLATE_PATH,
                                'utf-8')
@@ -2225,7 +2231,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     'username': username,
                 }
                 try:
-                    text = text % VARS
+                    text = string.Template(text).safe_substitute(VARS)
                 except Exception:
                     pass
             else:
