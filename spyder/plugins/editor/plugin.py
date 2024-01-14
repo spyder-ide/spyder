@@ -2224,7 +2224,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     import ctypes
 
                     username = encoding.to_unicode_from_fs(
-                                os.environ.get('USERNAME', ''))
+                                os.environ.get('USERNAME', '-'))
                     GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
                     name_display = 3
 
@@ -2234,14 +2234,20 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     name_buffer = ctypes.create_unicode_buffer(
                                 size.contents.value)
                     GetUserNameEx(name_display, name_buffer, size)
-                    displayname = nameBuffer.value
+                    displayname = nameBuffer.value.strip()
                 else:
                     # Linux, Mac OS X
                     import pwd
 
                     username = encoding.to_unicode_from_fs(
                                    os.environ.get('USER', '-'))
-                    displayname = pwd.getpwnam(username).pw_gecos.split(',')[0]
+                    try:
+                        pwd_struct = pwd.getpwnam(username)
+                    except KeyError:
+                        displayname = ''
+                    else:
+                        # Use first element in Gecos field as user's full name
+                        displayname = pwd_struct.pw_gecos.split(',')[0].strip()
 
                 now = datetime.now().astimezone()
                 now.replace(microsecond=0)
@@ -2258,7 +2264,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     'monthname': now.strftime('%b'),
                     'weekday': now.strftime('%a'),
                     'username': username,
-                    'fullname': displayname
+                    'fullname': displayname or 'n/a'
                 }
                 try:
                     text = string.Template(text).safe_substitute(VARS)
