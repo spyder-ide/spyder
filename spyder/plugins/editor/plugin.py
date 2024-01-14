@@ -2228,6 +2228,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                    os.environ.get('USER', '-'))
                 VARS = {
                     'date': time.ctime(),
+                    'year': time.strftime('%Y'),
+                    'month': time.strftime('%m'),
+                    'monthname': time.strftime('%B'),
+                    'day': time.strftime('%d'),
                     'username': username,
                 }
                 try:
