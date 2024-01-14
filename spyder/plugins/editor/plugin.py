@@ -2236,7 +2236,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                     name_buffer = ctypes.create_unicode_buffer(
                                 size.contents.value)
                     GetUserNameEx(name_display, name_buffer, size)
-                    displayname = nameBuffer.value.strip()
+                    displayname = name_buffer.value.strip()
                 else:
                     # Linux, Mac OS X
                     import pwd
