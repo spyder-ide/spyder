@@ -2229,10 +2229,16 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 now.replace(microsecond=0)
                 VARS = {
                     'date': now.ctime(),
+                    'isodate': now.isoformat(),
                     'year': now.strftime('%Y'),
                     'month': now.strftime('%m'),
-                    'monthname': now.strftime('%B'),
                     'day': now.strftime('%d'),
+                    'hour': now.strftime('%H'),
+                    'minute': now.strftime('%M'),
+                    'second': now.strftime('%S'),
+                    'tzname': now.strftime('%Z'),
+                    'monthname': now.strftime('%b'),
+                    'weekday': now.strftime('%a'),
                     'username': username,
                 }
                 try:
