@@ -206,6 +206,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
                 '"""',
+                '$|$',
+                '',
                 'Created on ${date}',
                 '',
                 '@author: ${username}',
