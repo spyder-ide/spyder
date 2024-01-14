@@ -2217,14 +2217,14 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                                       text)
                 if enc_match:
                     enc = enc_match.group(1)
+
                 # Initialize template variables
-                # Only Windows has a 'USERNAME' environment variable
-                username = encoding.to_unicode_from_fs(
-                                os.environ.get('USERNAME', ''))
-                if username:
+                if os.name == 'nt':
                     # Windows
                     import ctypes
 
+                    username = encoding.to_unicode_from_fs(
+                                os.environ.get('USERNAME', ''))
                     GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
                     name_display = 3
 
