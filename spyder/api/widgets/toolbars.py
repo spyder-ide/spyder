@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu, SpyderMenuProxyStyle
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
@@ -113,11 +114,20 @@ class SpyderToolbar(QToolBar):
 
         self.setWindowTitle(title)
 
-        # Set icon for extension button.
+        # Set attributes for extension button.
         # From https://stackoverflow.com/a/55412455/438386
         ext_button = self.findChild(QToolButton, "qt_toolbar_ext_button")
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
         ext_button.setToolTip(_("More"))
+
+        # Set style for extension button menu.
+        ext_button.menu().setStyleSheet(
+            SpyderMenu._generate_stylesheet().toString()
+        )
+
+        ext_button_menu_style = SpyderMenuProxyStyle(None)
+        ext_button_menu_style.setParent(self)
+        ext_button.menu().setStyle(ext_button_menu_style)
 
     def add_item(self, action_or_widget: ToolbarItem,
                  section: Optional[str] = None, before: Optional[str] = None,

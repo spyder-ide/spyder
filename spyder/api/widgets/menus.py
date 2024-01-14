@@ -372,12 +372,13 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             else:
                 set_menu_icons(self, True)
 
-    def _generate_stylesheet(self):
+    @classmethod
+    def _generate_stylesheet(cls):
         """Generate base stylesheet for menus."""
         css = qstylizer.style.StyleSheet()
-        font = self.get_font(SpyderFontType.Interface)
+        font = cls.get_font(SpyderFontType.Interface)
 
-        # Add padding and border radius to follow modern standards
+        # Add padding and border to follow modern standards
         css.QMenu.setValues(
             # Only add top and bottom padding so that menu separators can go
             # completely from the left to right border.
