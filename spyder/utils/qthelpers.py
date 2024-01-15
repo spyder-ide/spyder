@@ -27,8 +27,8 @@ from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle,
-                            QToolButton, QVBoxLayout, QWidget)
+                            QPushButton, QStyle, QToolButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -714,34 +714,6 @@ def set_menu_icons(menu, state, in_app_menu=False):
                 action.setIconVisibleInMenu(state)
         except RuntimeError:
             continue
-
-
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combobox popup top & bottom areas.
-            # See spyder-ide/spyder#9682
-            # Taken from https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
-
-    def pixelMetric(self, metric, option=None, widget=None):
-        if metric == QStyle.PM_SmallIconSize:
-            # Change icon size for menus.
-            # Taken from https://stackoverflow.com/a/42145885/438386
-            delta = (
-                -1 if sys.platform == "darwin"
-                else (0 if os.name == "nt" else 1)
-            )
-
-            return (
-                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
-            )
-
-        return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 class QInputDialogMultiline(QDialog):

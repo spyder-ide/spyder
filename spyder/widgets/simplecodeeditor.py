@@ -565,6 +565,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         if self._highlighter:
             self._highlighter.rehighlight()
+            self._apply_current_line_highlight()
 
 
 if __name__ == "__main__":

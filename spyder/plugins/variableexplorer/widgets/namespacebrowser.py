@@ -29,7 +29,6 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
