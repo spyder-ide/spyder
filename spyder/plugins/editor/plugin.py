@@ -2216,6 +2216,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         """
         CURSOR_INSERTION_POINT = '$|$'
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
+
+        cursor_history_state = self.__ignore_cursor_history
+        self.__ignore_cursor_history = True
+
         # Creating editor widget
         if editorstack is None:
             current_es = self.get_current_editorstack()
@@ -2370,6 +2374,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         if not created_from_here:
             self.save(force=True)
+
+        self.__ignore_cursor_history = cursor_history_state
 
     def edit_template(self):
         """Edit new file template"""
