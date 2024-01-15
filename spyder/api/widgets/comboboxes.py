@@ -22,12 +22,27 @@ from qtpy.QtWidgets import (
     QFontComboBox,
     QFrame,
     QLineEdit,
+    QProxyStyle,
+    QStyle,
     QStyledItemDelegate
 )
 
 # Local imports
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import AppStyle, WIN
+
+
+class _SpyderComboBoxProxyStyle(QProxyStyle):
+    """Style proxy to adjust qdarkstyle issues."""
+
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        if hint == QStyle.SH_ComboBox_Popup:
+            # Disable combobox popup top & bottom areas.
+            # See spyder-ide/spyder#9682.
+            # Taken from https://stackoverflow.com/a/21019371
+            return 0
+
+        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 class _SpyderComboBoxDelegate(QStyledItemDelegate):
@@ -98,10 +113,14 @@ class _SpyderComboBoxMixin:
         self._css = self._generate_stylesheet()
         self.setStyleSheet(self._css.toString())
 
+        style = _SpyderComboBoxProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
+
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
-        # added automatically by Qt. That means that the menu is not built
-        # using our API and it's not localized.
+        # added automatically by Qt. That means the menu is not built using our
+        # API and it's not localized.
         pass
 
     def _generate_stylesheet(self):

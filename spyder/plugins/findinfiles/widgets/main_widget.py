@@ -35,6 +35,7 @@ from spyder.widgets.helperwidgets import PaneEmptyWidget
 # -----------------------------------------------------------------------------
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAX_COMBOBOX_WIDTH = AppStyle.FindMinWidth + 80  # In pixels
+MIN_COMBOBOX_WIDTH = AppStyle.FindMinWidth - 80  # In pixels
 
 
 # ---- Enums
@@ -185,7 +186,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.SearchInCombo
         )
         self.path_selection_combo.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
@@ -196,7 +197,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
         )
         self.exclude_pattern_edit.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 

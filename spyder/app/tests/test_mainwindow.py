@@ -2440,7 +2440,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
-def test_switcher(main_window, qtbot, tmpdir):
+def test_switcher(main_window, capsys, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
     switcher_widget = switcher._switcher
@@ -2490,12 +2490,15 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available,
-                    timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: code_editor.completions_available,
+        timeout=COMPLETION_TIMEOUT
+    )
 
     with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
+        code_editor.completions_response_signal,
+        timeout=COMPLETION_TIMEOUT
+    ):
         code_editor.request_symbols()
 
     qtbot.wait(9000)
@@ -2503,7 +2506,19 @@ def example_def_2():
     switcher.open_switcher()
     qtbot.keyClicks(switcher_widget.edit, '@')
     qtbot.wait(500)
+
+    # Capture stderr and assert there are no errors
+    sys_stream = capsys.readouterr()
+    assert sys_stream.err == ''
+
+    # Check number of items
     assert switcher_widget.count() == 2
+
+    # Check that selecting different items in the switcher jumps to the
+    # corresponding line in the editor
+    switcher.set_current_row(1)
+    code_editor.textCursor().blockNumber() == 5
+
     switcher.on_close()
 
 
