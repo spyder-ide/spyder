@@ -2224,7 +2224,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
         projects = self.main.get_plugin(Plugins.Projects, error=False)
         if projects and projects.get_active_project() is not None:
-            project_name = projects.get_active_project.get_name()
+            project_name = projects.get_active_project().get_name()
             project_path = projects.get_active_project_path()
         else:
             project_name = ''
