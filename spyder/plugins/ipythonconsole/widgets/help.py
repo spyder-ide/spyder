@@ -16,11 +16,12 @@ import re
 from pickle import UnpicklingError
 from qtconsole.ansi_code_processor import ANSI_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-
-# Local imports
 from spyder_kernels.utils.dochelpers import (getargspecfromtext,
                                              getsignaturefromtext)
 from spyder_kernels.comms.commbase import CommError
+
+# Local imports
+from spyder.widgets.mixins import HINT_MAX_LINES
 
 
 class HelpWidget(RichJupyterWidget):
@@ -202,6 +203,6 @@ class HelpWidget(RichJupyterWidget):
                     signature,
                     documentation=documentation,
                     language=self.language_name,
-                    max_lines=7,
+                    max_lines=HINT_MAX_LINES,
                     text_new_line=new_line
                 )

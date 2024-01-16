@@ -534,8 +534,15 @@ class BaseEditMixin(object):
                 builtin
             )
 
-    def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=TIP_DEFAULT_LANGUAGE, text_new_line=True):
+    def show_calltip(
+        self,
+        signature,
+        parameter=None,
+        documentation=None,
+        language=TIP_DEFAULT_LANGUAGE,
+        max_lines=TIP_MAX_LINES,
+        text_new_line=True
+    ):
         """
         Show calltip.
 
@@ -576,7 +583,7 @@ class BaseEditMixin(object):
             inspect_word=inspect_word,
             display_link=False,
             text=documentation,
-            max_lines=TIP_MAX_LINES,
+            max_lines=max_lines,
             max_width=TIP_MAX_WIDTH,
             text_new_line=text_new_line
         )
