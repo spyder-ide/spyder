@@ -16,8 +16,10 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.extensions.closebrackets import (
-        CloseBracketsExtension)
+    CloseBracketsExtension
+)
 
 # Constants
 TEST_SIG = 'some_function(foo={}, hello=None)'
@@ -330,7 +332,10 @@ def test_hints_vertical_position(qtbot, completions_codeeditor, params):
 
 
 @pytest.mark.order(2)
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
+@pytest.mark.skipif(
+    running_in_ci() and not os.name == 'nt',
+    reason="Only works on Windows"
+)
 def test_completion_hints(qtbot, completions_codeeditor):
     """Test that the editor is returning hover hints."""
     code_editor, _ = completions_codeeditor
@@ -402,7 +407,7 @@ def test_completion_hints(qtbot, completions_codeeditor):
     qtbot.mouseMove(
         code_editor,
         QPoint(
-            point_1.x() - code_editor.linenumberarea.width() / 2, point_1.y()
+            point_1.x() - code_editor.linenumberarea.width() // 2, point_1.y()
         ),
         delay=100,
     )
