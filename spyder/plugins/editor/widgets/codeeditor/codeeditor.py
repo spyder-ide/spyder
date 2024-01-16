@@ -1953,7 +1953,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._timer_mouse_moving.stop()
         self._last_hover_word = None
         self.clear_extra_selections('code_analysis_highlight')
-        if self.tooltip_widget.isVisible() and not self.tooltip_widget.is_hint():
+        if (
+            self.tooltip_widget.isVisible()
+            and not self.tooltip_widget.is_hint()
+        ):
             self.tooltip_widget.hide()
 
     def _set_completions_hint_idle(self):

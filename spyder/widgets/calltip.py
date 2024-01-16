@@ -550,7 +550,7 @@ class CallTipWidget(QLabel):
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off screen, check if point is in top or bottom
             # half of screen.
-            if point_.y() < tip_height :
+            if point_.y() < tip_height:
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
                 if 2 * point.y() < window_rect.height():
