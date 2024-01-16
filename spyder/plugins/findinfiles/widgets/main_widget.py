@@ -434,6 +434,16 @@ class FindInFilesWidget(PluginMainWidget):
 
         super().showEvent(event)
 
+    def resizeEvent(self, event):
+        """Adjustments when the widget is resized."""
+        super().resizeEvent(event)
+
+        # This recomputes the result items width according to this widget's
+        # width, which makes the UI be rendered as expected.
+        # NOTE: Don't debounce or throttle `set_width` because then it wouldn't
+        # do its job as expected.
+        self.result_browser.set_width()
+
     # ---- Private API
     # ------------------------------------------------------------------------
     def _get_options(self):
