@@ -618,6 +618,7 @@ class ProfilerWidget(PluginMainWidget):
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
 
+        self.stacked_widget.setCurrentWidget(self.datatree)
         self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
 
