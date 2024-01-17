@@ -496,6 +496,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 return
 
             # --- Show LSP hovers
+            # This prevents requesting a new hover while trying to reach the
+            # current one to click on it.
+            if (
+                self.tooltip_widget.is_hover()
+                and self.tooltip_widget.is_hovered()
+            ):
+                return
+
             text = self.get_word_at(pos)
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()

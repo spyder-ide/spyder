@@ -64,6 +64,7 @@ class ToolTipWidget(QLabel):
         self.app = QCoreApplication.instance()
         self._as_hover = False
         self._as_hint = False
+        self._hovered = False
         self._timer_hide = QTimer()
         self._text_edit = parent
         self.show_help_on_click = False
@@ -254,6 +255,14 @@ class ToolTipWidget(QLabel):
         """Check if the widget is used as a completion hint."""
         return self._as_hint
 
+    def is_hover(self):
+        """Check if the widget is used as a hover."""
+        return self._as_hover
+
+    def is_hovered(self):
+        """Check if the the mouse is on top of this widget."""
+        return self._hovered
+
     def reset_state(self):
         """Reset widget state as a hover, tooltip or hint."""
         self._as_hint = False
@@ -300,6 +309,7 @@ class ToolTipWidget(QLabel):
         else:
             self.setCursor(Qt.ArrowCursor)
 
+        self._hovered = True
         self._timer_hide.stop()
         super().enterEvent(event)
 
@@ -308,6 +318,7 @@ class ToolTipWidget(QLabel):
         # This is necessary to set the cursor correctly in enterEvent on Mac
         self.unsetCursor()
 
+        self._hovered = False
         super().leaveEvent(event)
 
         # Prevent to hide the widget when it's used as a completion hint and
