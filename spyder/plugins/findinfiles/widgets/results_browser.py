@@ -361,13 +361,3 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
                 width = width + 2 * AppStyle.MarginSize
 
         self.itemDelegate().width = width
-
-    def resizeEvent(self, event):
-        """Adjustments when the widget is resized."""
-        super().resizeEvent(event)
-
-        # This recomputes the items width according to the widget's current
-        # one, which makes the UI be rendered as expected.
-        # NOTE: Don't debounce or throttle this method because it wouldn't do
-        # its work as expected.
-        self.set_width()

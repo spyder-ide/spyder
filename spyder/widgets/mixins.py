@@ -23,20 +23,25 @@ import textwrap
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
-from qtpy.QtGui import QDesktopServices, QTextCursor, QTextDocument
+from qtpy.QtGui import (
+    QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
 from qtpy.QtWidgets import QApplication
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.manager import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
+from spyder.utils.color_system import Green, Orange
 from spyder.utils.palette import QStylePalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
+
+# ---- Constants
+# -----------------------------------------------------------------------------
 
 # List of possible EOL symbols
 EOL_SYMBOLS = [
@@ -56,30 +61,46 @@ EOL_SYMBOLS = [
     "\u2029",   # Paragraph Separator
 ]
 
+# Tips style
+TIP_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
+TIP_PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
+TIP_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
+TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
 
+# Tips content
+TIP_DEFAULT_LANGUAGE = 'python'
+TIP_MAX_LINES = 10
+TIP_MAX_WIDTH = 55
+COMPLETION_HINT_MAX_WIDTH = 50
+HINT_MAX_LINES = 7
+HINT_MAX_WIDTH = 55
+SIGNATURE_MAX_LINES = 4
+BUILTINS_DOCSTRING_MAP = {
+    int.__doc__: 'integer',
+    list.__doc__: 'list',
+    dict.__doc__: 'dictionary',
+    set.__doc__: 'set',
+    float.__doc__: 'float',
+    tuple.__doc__: 'tuple',
+    str.__doc__: 'string',
+    bool.__doc__: 'bool',
+    bytes.__doc__: 'bytes string',
+    range.__doc__: 'range object',
+    iter.__doc__: 'iterator',
+}
+
+
+# ---- Mixins
+# -----------------------------------------------------------------------------
 class BaseEditMixin(object):
-
-    _PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
-    _DEFAULT_TITLE_COLOR = QStylePalette.COLOR_ACCENT_4
-    _CHAR_HIGHLIGHT_COLOR = QStylePalette.COLOR_ACCENT_4
-    _DEFAULT_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
-    _DEFAULT_LANGUAGE = 'python'
-    _DEFAULT_MAX_LINES = 10
-    _DEFAULT_MAX_WIDTH = 60
-    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
-    _DEFAULT_MAX_HINT_LINES = 20
-    _DEFAULT_MAX_HINT_WIDTH = 85
 
     # The following signals are used to indicate text changes on the editor.
     sig_will_insert_text = None
     sig_will_remove_selection = None
     sig_text_was_inserted = None
 
-    _styled_widgets = set()
-
     def __init__(self):
         self.eol_chars = None
-        self.calltip_size = 600
 
     #------Line number area
     def get_linenumberarea_width(self):
@@ -102,13 +123,10 @@ class BaseEditMixin(object):
         Calculate a global point position `QPoint(x, y)`, for a given
         line, local cursor position, or local point.
         """
-        font = self.font()
-
         if at_point is not None:
             # Showing tooltip at point position
-            margin = (self.document().documentMargin() / 2) + 1
-            cx = int(at_point.x() - margin)
-            cy = int(at_point.y() - margin)
+            cx = at_point.x()
+            cy = at_point.y()
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
@@ -118,57 +136,56 @@ class BaseEditMixin(object):
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
-            cx = int(cx)
-            cy = int(cy - font.pointSize() / 2)
 
-        # Calculate vertical delta
-        # The needed delta changes with font size, so we use a power law
-        if sys.platform == 'darwin':
-            delta = int((font.pointSize() * 1.20) ** 0.98 + 4.5)
-        elif os.name == 'nt':
-            delta = int((font.pointSize() * 1.20) ** 1.05) + 7
-        else:
-            delta = int((font.pointSize() * 1.20) ** 0.98) + 7
-        # delta = font.pointSize() + 5
+            # Ubuntu Mono has a strange behavior regarding its height that we
+            # need to account for. Other monospaced fonts behave as expected.
+            if self.font().family() == 'Ubuntu Mono':
+                padding = 5
+            else:
+                padding = 1 if sys.platform == "darwin" else 3
+
+            # This is necessary because the point Qt returns for the cursor is
+            # much below the line's bottom position.
+            cy = int(cy - QFontMetrics(self.font()).capHeight() + padding)
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
         point = self.calculate_real_position(point)
-        point.setY(point.y() + delta)
 
         return point
 
-    def _update_stylesheet(self, widget):
-        """Update the background stylesheet to make it lighter."""
-        # Update the stylesheet for a given widget at most once
-        # because Qt is slow to repeatedly parse & apply CSS
-        if id(widget) in self._styled_widgets:
-            return
-        self._styled_widgets.add(id(widget))
-        background = QStylePalette.COLOR_BACKGROUND_4
-        border = QStylePalette.COLOR_TEXT_4
-        name = widget.__class__.__name__
-        widget.setObjectName(name)
-        css = '''
-            {0}#{0} {{
-                background-color:{1};
-                border: 1px solid {2};
-            }}'''.format(name, background, border)
-        widget.setStyleSheet(css)
+    @property
+    def _tip_text_size(self):
+        """Text size for tooltips and calltips."""
+        font = self.font()
+        font_size = font.pointSize()
+        return (font_size - 1) if font_size > 9 else font_size
 
-    def _get_inspect_shortcut(self):
+    def _tip_width_in_pixels(self, max_width):
         """
-        Queries the editor's config to get the current "Inspect" shortcut.
+        Get width for tooltips and calltips in pixels.
+
+        Parameters
+        ----------
+        max_width: int
+            Max width in numbers of characters that the widget can show.
         """
-        value = CONF.get('shortcuts', 'editor/inspect current object')
-        if value:
-            if sys.platform == "darwin":
-                value = value.replace('Ctrl', 'Cmd')
-        return value
+        # Get max width using the current font and text size
+        font = self.font()
+        font.setPointSize(self._tip_text_size)
+        max_width_in_pixels = QFontMetrics(font).size(
+            Qt.TextSingleLine,
+            'M' * max_width
+        )
+
+        # We add a bit more pixels to the previous value to account for cases
+        # in which the textwrap algorithm can't break text exactly at
+        # `max_width`.
+        return max_width_in_pixels.width() + 20
 
     def _format_text(self, title=None, signature=None, text=None,
-                     inspect_word=None, title_color=None, max_lines=None,
-                     max_width=_DEFAULT_MAX_WIDTH, display_link=False,
+                     inspect_word=None, max_lines=None,
+                     max_width=TIP_MAX_WIDTH, display_link=False,
                      text_new_line=False,  with_html_format=False):
         """
         Create HTML template for calltips and tooltips.
@@ -183,29 +200,29 @@ class BaseEditMixin(object):
         | `text` (ellided to `max_lines`)      |
         |                                      |
         ----------------------------------------
-        | Link or shortcut with `inspect_word` |
+        | Help message                         |
         ----------------------------------------
         """
-        BASE_TEMPLATE = u'''
-            <div style=\'font-family: "{font_family}";
+
+        BASE_TEMPLATE = """
+            <div style='font-family: "{font_family}";
                         font-size: {size}pt;
-                        color: {color}\'>
+                        color: {color};'>
                 {main_text}
             </div>
-        '''
+        """
+
         # Get current font properties
-        font = self.font()
-        font_family = font.family()
-        title_size = font.pointSize()
-        text_size = title_size - 1 if title_size > 9 else title_size
-        text_color = self._DEFAULT_TEXT_COLOR
+        font_family = self.font().family()
+        text_size = self._tip_text_size
+        text_color = TIP_TEXT_COLOR
 
         template = ''
         if title:
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
-                size=title_size,
-                color=title_color,
+                size=text_size,
+                color=TIP_TITLE_COLOR,
                 main_text=title,
             )
 
@@ -274,13 +291,25 @@ class BaseEditMixin(object):
         # Limit max number of text displayed
         if max_lines:
             if len(lines) > max_lines:
-                text = '\n'.join(lines[:max_lines]) + ' ...'
+                text = '\n'.join(lines[:max_lines])
+
+                # Add ellipsis in a new line if necessary
+                if text[-1] == '\n':
+                    text = text + '...'
+                else:
+                    text = text + '\n...'
             else:
                 text = '\n'.join(lines)
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
-            text = '<br>' + text
+            # If there's enough content in the docstring or signature, then we
+            # add an hr to separate them.
+            if len(lines) > 2 or signature.count('<br>') > 2:
+                separator = '<hr>'
+            else:
+                separator = '<br>'
+            text = separator + text
 
         template += BASE_TEMPLATE.format(
             font_family=font_family,
@@ -290,45 +319,23 @@ class BaseEditMixin(object):
         )
 
         help_text = ''
-        if inspect_word:
-            if display_link:
-                help_text = (
-                    '<span style="font-family: \'{font_family}\';'
-                    'font-size:{font_size}pt;">'
-                    'Click anywhere in this tooltip for additional help'
-                    '</span>'.format(
-                        font_size=text_size,
-                        font_family=font_family,
-                    )
-                )
-            else:
-                shortcut = self._get_inspect_shortcut()
-                if shortcut:
-                    base_style = (
-                        f'background-color:{QStylePalette.COLOR_BACKGROUND_4};'
-                        f'color:{QStylePalette.COLOR_TEXT_1};'
-                        'font-size:11px;'
-                    )
-                    help_text = ''
-                    # (
-                    #     'Press '
-                    #     '<kbd style="{1}">[</kbd>'
-                    #     '<kbd style="{1}text-decoration:underline;">'
-                    #     '{0}</kbd><kbd style="{1}">]</kbd> for aditional '
-                    #     'help'.format(shortcut, base_style)
-                    # )
+        if inspect_word and display_link:
+            help_text = (
+                f'<span style="font-family: \'{font_family}\';'
+                f'font-size:{text_size}pt;">'
+                f'Click on this tooltip for additional help'
+                f'</span>'
+            )
 
         if help_text and inspect_word:
             if display_link:
                 template += (
-                    '<hr>'
-                    '<div align="left">'
-                    f'<span style="color: {QStylePalette.COLOR_ACCENT_4};'
-                    'text-decoration:none;'
-                    'font-family:"{font_family}";font-size:{size}pt;><i>'
-                    ''.format(font_family=font_family,
-                              size=text_size)
-                    ) + help_text + '</i></span></div>'
+                    f'<hr>'
+                    f'<div align="left">'
+                    f'<span style="color: {TIP_TITLE_COLOR};'
+                    f'text-decoration:none;'
+                    f'font-family:"{font_family}";font-size:{text_size}pt;>'
+                ) + help_text + '</span></div>'
             else:
                 template += (
                     '<hr>'
@@ -340,10 +347,7 @@ class BaseEditMixin(object):
         return template
 
     def _format_signature(self, signatures, parameter=None,
-                          max_width=_DEFAULT_MAX_WIDTH,
-                          parameter_color=_PARAMETER_HIGHLIGHT_COLOR,
-                          char_color=_CHAR_HIGHLIGHT_COLOR,
-                          language=_DEFAULT_LANGUAGE):
+                          max_width=TIP_MAX_WIDTH):
         """
         Create HTML template for signature.
 
@@ -352,7 +356,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
-        language = getattr(self, 'language', language).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -361,8 +365,8 @@ class BaseEditMixin(object):
             '</span>'
         )
         chars_template = (
-            '<span style="color:{0};'.format(self._CHAR_HIGHLIGHT_COLOR) +
-            'font-weight:bold">{char}'
+            '<span style="color:{0};'.format(TIP_CHAR_HIGHLIGHT_COLOR) +
+            'font-weight:bold"><b>{char}</b>'
             '</span>'
         )
 
@@ -412,7 +416,7 @@ class BaseEditMixin(object):
             indent = ' ' * (len(name) + 1)
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
-            for row in rows:
+            for row in rows[:SIGNATURE_MAX_LINES]:
                 if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
@@ -431,15 +435,14 @@ class BaseEditMixin(object):
 
             # Get current font properties
             font = self.font()
-            font_size = font.pointSize()
             font_family = font.family()
 
             # Format title to display active parameter
             if parameter and language == 'python':
                 title = title_template.format(
-                    font_size=font_size,
+                    font_size=self._tip_text_size,
                     font_family=font_family,
-                    color=parameter_color,
+                    color=TIP_PARAMETER_HIGHLIGHT_COLOR,
                     parameter=parameter,
                 )
             else:
@@ -450,18 +453,15 @@ class BaseEditMixin(object):
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
                                     inspect_word=None,
-                                    max_width=_DEFAULT_MAX_WIDTH,
-                                    language=_DEFAULT_LANGUAGE):
+                                    max_width=TIP_MAX_WIDTH):
         """
         LSP hints might provide docstrings instead of signatures.
 
-        This method will check for multiple signatures (dict, type etc...) and
-        format the text accordingly.
+        This method will check for signatures (dict, type etc...) and format
+        the text accordingly.
         """
-        open_func_char = ''
         has_signature = False
-        has_multisignature = False
-        language = getattr(self, 'language', language).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         signature_or_text = signature_or_text.replace('\\*', '*')
 
         # Remove special symbols that could interfere with ''.format
@@ -475,41 +475,17 @@ class BaseEditMixin(object):
 
         if language == 'python':
             open_func_char = '('
-            has_multisignature = False
-
             if inspect_word:
-                has_signature = signature_or_text.startswith(inspect_word)
+                has_signature = signature_or_text.startswith(
+                    inspect_word + open_func_char)
             else:
-                idx = signature_or_text.find(open_func_char)
-                inspect_word = signature_or_text[:idx]
-                has_signature = True
+                # Trying to find signature on first line
+                idx = lines[0].find(open_func_char)
+                if idx > 0:
+                    inspect_word = lines[0][:idx]
+                    has_signature = True
 
-            if has_signature:
-                name_plus_char = inspect_word + open_func_char
-
-                all_lines = []
-                for line in lines:
-                    if (line.startswith(name_plus_char)
-                            and line.count(name_plus_char) > 1):
-                        sublines = line.split(name_plus_char)
-                        sublines = [name_plus_char + l for l in sublines]
-                        sublines = [l.strip() for l in sublines]
-                    else:
-                        sublines = [line]
-
-                    all_lines = all_lines + sublines
-
-                lines = all_lines
-                count = 0
-                for line in lines:
-                    if line.startswith(name_plus_char):
-                        count += 1
-
-                # Signature type
-                has_signature = count == 1
-                has_multisignature = count > 1 and len(lines) > 1
-
-        if has_signature and not has_multisignature:
+        if has_signature:
             for i, line in enumerate(lines):
                 if line.strip() == '':
                     break
@@ -529,31 +505,44 @@ class BaseEditMixin(object):
                     parameter=parameter,
                     max_width=max_width
                 )
-        elif has_multisignature:
-            signature = signature_or_text.replace(name_plus_char,
-                                                  '<br>' + name_plus_char)
-            signature = signature[4:]  # Remove the first line break
-            signature = signature.replace('\n', ' ')
-            signature = signature.replace(r'\\*', '*')
-            signature = signature.replace(r'\*', '*')
-            signature = signature.replace('<br>', '\n')
-            signatures = signature.split('\n')
-            signatures = [sig for sig in signatures if sig]  # Remove empty
-            new_signature = self._format_signature(
-                signatures=signatures,
-                parameter=parameter,
-                max_width=max_width
-            )
-            extra_text = None
         else:
             new_signature = None
             extra_text = signature_or_text
 
         return new_signature, extra_text, inspect_word
 
-    def show_calltip(self, signature, parameter=None, documentation=None,
-                     language=_DEFAULT_LANGUAGE, max_lines=_DEFAULT_MAX_LINES,
-                     max_width=_DEFAULT_MAX_WIDTH, text_new_line=True):
+    def _check_python_builtin(self, text):
+        """Check if `text` matches a builtin docstring."""
+        builtin = ''
+
+        if BUILTINS_DOCSTRING_MAP.get(text):
+            builtin = BUILTINS_DOCSTRING_MAP[text]
+
+        # Another possibility is that the text after the signature matches
+        # a buitin docstring (e.g. that's the case for Numpy objects).
+        text_after_signature = '\n\n'.join(text.split('\n\n')[1:])
+        if BUILTINS_DOCSTRING_MAP.get(text_after_signature):
+            builtin = BUILTINS_DOCSTRING_MAP[text_after_signature]
+
+        if builtin:
+            return (
+                # This makes the text appear centered
+                "&nbsp;" +
+                "This is " +
+                # Use the right article in case we got an integer
+                ("an " if builtin == 'integer' else "a ") +
+                builtin
+            )
+
+    def show_calltip(
+        self,
+        signature,
+        parameter=None,
+        documentation=None,
+        language=TIP_DEFAULT_LANGUAGE,
+        max_lines=TIP_MAX_LINES,
+        text_new_line=True
+    ):
         """
         Show calltip.
 
@@ -565,7 +554,7 @@ class BaseEditMixin(object):
         point = self._calculate_position()
         signature = signature.strip()
         inspect_word = None
-        language = getattr(self, 'language', language).lower()
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
         if language == 'python' and signature:
             inspect_word = signature.split('(')[0]
             # Check if documentation is better than signature, sometimes
@@ -587,8 +576,7 @@ class BaseEditMixin(object):
         # Format
         res = self._check_signature_and_format(signature, parameter,
                                                inspect_word=inspect_word,
-                                               language=language,
-                                               max_width=max_width)
+                                               max_width=TIP_MAX_WIDTH)
         new_signature, text, inspect_word = res
         text = self._format_text(
             signature=new_signature,
@@ -596,75 +584,135 @@ class BaseEditMixin(object):
             display_link=False,
             text=documentation,
             max_lines=max_lines,
-            max_width=max_width,
+            max_width=TIP_MAX_WIDTH,
             text_new_line=text_new_line
         )
 
-        self._update_stylesheet(self.calltip_widget)
+        # Set a max width so the widget doesn't show up too large due to its
+        # content, which looks bad.
+        self.calltip_widget.setMaximumWidth(
+            self._tip_width_in_pixels(TIP_MAX_WIDTH)
+        )
 
         # Show calltip
         self.calltip_widget.show_tip(point, text, [])
         self.calltip_widget.show()
 
-    def show_tooltip(self, title=None, signature=None, text=None,
-                     inspect_word=None, title_color=_DEFAULT_TITLE_COLOR,
-                     at_line=None, at_point=None, display_link=False,
-                     max_lines=_DEFAULT_MAX_LINES,
-                     max_width=_DEFAULT_MAX_WIDTH,
-                     cursor=None,
-                     with_html_format=False,
-                     text_new_line=True,
-                     completion_doc=None):
-        """Show tooltip."""
-        # Find position of calltip
-        point = self._calculate_position(
-            at_line=at_line,
-            at_point=at_point,
-        )
+    def show_tooltip(
+        self,
+        text,
+        title=None,
+        at_line=None,
+        at_point=None,
+        with_html_format=False,
+    ):
+        """Show a tooltip."""
+        # Prevent to hide the widget when used as a completion hint to reuse it
+        # as a tooltip
+        if self.tooltip_widget.is_hint():
+            return
+
+        # Find position
+        point = self._calculate_position(at_line=at_line, at_point=at_point)
+
         # Format text
         tiptext = self._format_text(
             title=title,
-            signature=signature,
             text=text,
-            title_color=title_color,
-            inspect_word=inspect_word,
-            display_link=display_link,
-            max_lines=max_lines,
-            max_width=max_width,
+            max_lines=TIP_MAX_LINES,
             with_html_format=with_html_format,
-            text_new_line=text_new_line
+            text_new_line=True
         )
 
-        self._update_stylesheet(self.tooltip_widget)
+        # Set a max width so the widget doesn't show up too large due to its
+        # content, which looks bad.
+        self.tooltip_widget.setMaximumWidth(
+            self._tip_width_in_pixels(TIP_MAX_WIDTH)
+        )
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
-                                     completion_doc=completion_doc)
+        self.tooltip_widget.set_as_tooltip()
+        self.tooltip_widget.show_tip(point, tiptext)
 
-    def show_hint(self, text, inspect_word, at_point,
-                  max_lines=_DEFAULT_MAX_HINT_LINES,
-                  max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True, completion_doc=None):
-        """Show code hint and crop text as needed."""
+    def show_hint(
+        self,
+        text,
+        inspect_word,
+        at_point,
+        completion_doc=None,
+        vertical_position="bottom",
+        as_hover=False
+    ):
+        """Show code completion hint or hover."""
+        # Max lines and width
+        if as_hover:
+            # Prevent to hide the widget when used as a completion hint to
+            # reuse as a hover
+            if self.tooltip_widget.is_hint():
+                return
+
+            self.tooltip_widget.set_as_hover()
+            max_lines = HINT_MAX_LINES
+            max_width = HINT_MAX_WIDTH
+        else:
+            self.tooltip_widget.set_as_hint()
+            max_lines = TIP_MAX_LINES
+            max_width = COMPLETION_HINT_MAX_WIDTH
+
+        # Don't show full docstring for Python builtins, just its type
+        display_link = True
+        show_help_on_click = True
+        language = getattr(self, 'language', TIP_DEFAULT_LANGUAGE).lower()
+
+        if language == 'python':
+            builtin_text = self._check_python_builtin(text)
+            if builtin_text is not None:
+                text = builtin_text
+                display_link = False
+                show_help_on_click = False
+                completion_doc = None
+
+        # Get signature and extra text from text
         res = self._check_signature_and_format(text, max_width=max_width,
                                                inspect_word=inspect_word)
         html_signature, extra_text, _ = res
-        point = self.get_word_start_pos(at_point)
 
-        # Only display hover hint if there is documentation
+        # Only display hint if there is documentation for it
         if extra_text is not None:
-            # This is needed to get hover hints
+            # This is needed to show help when clicking on hover hints
             cursor = self.cursorForPosition(at_point)
             cursor.movePosition(QTextCursor.StartOfWord,
                                 QTextCursor.MoveAnchor)
             self._last_hover_cursor = cursor
 
-            self.show_tooltip(signature=html_signature, text=extra_text,
-                              at_point=point, inspect_word=inspect_word,
-                              display_link=True, max_lines=max_lines,
-                              max_width=max_width, cursor=cursor,
-                              text_new_line=text_new_line,
-                              completion_doc=completion_doc)
+            # Get position and text for the hint
+            point = self._calculate_position(
+                at_point=self.get_word_start_pos(at_point)
+            )
+
+            tiptext = self._format_text(
+                signature=html_signature,
+                text=extra_text,
+                inspect_word=inspect_word,
+                display_link=display_link,
+                max_lines=max_lines,
+                max_width=max_width,
+                text_new_line=True
+            )
+
+            # Adjust width
+            self.tooltip_widget.setMaximumWidth(
+                self._tip_width_in_pixels(max_width)
+            )
+
+            # Show hint
+            self.tooltip_widget.show_tip(
+                point,
+                tiptext,
+                completion_doc=completion_doc,
+                vertical_position=vertical_position,
+                show_help_on_click=show_help_on_click
+            )
 
     def hide_tooltip(self):
         """
@@ -679,6 +727,10 @@ class BaseEditMixin(object):
         self._last_hover_word = None
         self._last_point = None
         self.tooltip_widget.hide()
+
+    def hide_calltip(self):
+        """Hide the calltip widget."""
+        self.calltip_widget.hide()
 
     # ----- Required methods for the LSP
     def document_did_change(self, text=None):

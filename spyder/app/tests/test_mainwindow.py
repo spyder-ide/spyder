@@ -53,7 +53,8 @@ from spyder.app.tests.conftest import (
     open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
-    get_home_dir, get_conf_path, get_module_path, running_in_ci)
+    get_home_dir, get_conf_path, get_module_path, running_in_ci,
+    running_in_ci_with_conda)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
@@ -4168,6 +4169,10 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_running_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging in a
@@ -4222,6 +4227,10 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     """
     Test that the running namespace can be accessed recursively
@@ -4287,6 +4296,10 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_debug_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging

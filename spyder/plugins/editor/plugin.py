@@ -857,8 +857,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
                 tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
-                      "HACK/BUG/OPTIMIZE/!!!/???)"),
-                triggered=self.go_to_next_todo)
+                      "HACK/BUG/OPTIMIZE/!!!/???)"))
         self.todo_menu = QMenu(self)
         self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.todo_list_action.setMenu(self.todo_menu)
@@ -2798,14 +2797,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-    @Slot()
-    def go_to_next_todo(self):
-        self.switch_to_plugin()
-        editor = self.get_current_editor()
-        editor.go_to_next_todo()
-        filename = self.get_current_filename()
-        cursor = editor.textCursor()
-        self.add_cursor_to_history(filename, cursor)
 
     @Slot()
     def go_to_next_warning(self):

@@ -15,6 +15,9 @@ from qtpy.QtGui import QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QTextEdit
 import pytest
 
+# Local imports
+from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
+
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
@@ -482,38 +485,39 @@ def test_format_signature(codeeditor):
     concatenate((a1, a2, a...), [b1, b2, b...], axis={}, index=[],
                 *args, **kargs)"""
     editor = codeeditor
+    color = TIP_PARAMETER_HIGHLIGHT_COLOR
 
     format_signature = editor._format_signature(signature, parameter="(a1")
 
-    assert "color:#259AE9'><b>a1</b></span>" in format_signature
+    assert f"color:{color}'><b>a1</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="a2")
-    assert "color:#259AE9'><b>a2</b></span>" in format_signature
+    assert f"color:{color}'><b>a2</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="a...")
     print(format_signature)
-    assert "color:#259AE9'><b>a...</b></span>" in format_signature
+    assert f"color:{color}'><b>a...</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="[b1")
-    assert "color:#259AE9'><b>b1</b></span>" in format_signature
+    assert f"color:{color}'><b>b1</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="b2")
-    assert "color:#259AE9'><b>b2</b></span>" in format_signature
+    assert f"color:{color}'><b>b2</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="b...")
-    assert "color:#259AE9'><b>b...</b></span>" in format_signature
+    assert f"color:{color}'><b>b...</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="axis")
-    assert "color:#259AE9'><b>axis</b></span>" in format_signature
+    assert f"color:{color}'><b>axis</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="index")
-    assert "color:#259AE9'><b>index</b></span>" in format_signature
+    assert f"color:{color}'><b>index</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="*args")
-    assert "color:#259AE9'><b>*args</b></span>" in format_signature
+    assert f"color:{color}'><b>*args</b></span>" in format_signature
 
     format_signature = editor._format_signature(signature, parameter="**kargs")
-    assert "color:#259AE9'><b>**kargs</b></span>" in format_signature
+    assert f"color:{color}'><b>**kargs</b></span>" in format_signature
 
 
 def test_delete(codeeditor):

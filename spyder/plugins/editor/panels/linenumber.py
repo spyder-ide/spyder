@@ -241,15 +241,16 @@ class LineNumberArea(Panel):
         Show code analisis, if left button pressed select lines.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        block = self.editor.document().findBlockByNumber(line_number-1)
+        block = self.editor.document().findBlockByNumber(line_number - 1)
         data = block.userData()
 
-        # this disables pyflakes messages if there is an active drag/selection
-        # operation
+        # This disables messages if there is an active drag/selection operation
         check = self._released == -1
-        if data and data.code_analysis and check:
-            self.editor.show_code_analysis_results(line_number,
-                                                   data)
+        if check and data:
+            if data.code_analysis:
+                self.editor.show_code_analysis_results(line_number, data)
+            elif data.todo:
+                self.editor.show_todo(line_number, data)
         else:
             self.editor.hide_tooltip()
 

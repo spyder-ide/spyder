@@ -905,13 +905,23 @@ class LSPMixin:
             self.sig_display_object_info.emit(
                 content, self._request_hover_clicked
             )
+
             if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word
+
+                # Replace non-breaking spaces for real ones.
                 content = content.replace("\xa0", " ")
+
+                # Show hover
                 self.show_hint(
-                    content, inspect_word=word, at_point=self._last_point
+                    content,
+                    inspect_word=word,
+                    at_point=self._last_point,
+                    vertical_position='top',
+                    as_hover=True,
                 )
+
                 self._last_point = None
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed

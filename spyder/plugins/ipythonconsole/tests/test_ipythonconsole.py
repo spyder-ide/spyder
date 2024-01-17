@@ -78,12 +78,12 @@ def test_banners(ipyconsole, qtbot):
     [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval ..."]),
+       "open interval<br>..."]),
      ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
-      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+      ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
        "<br>",
-       "Define a vectorized function which takes a nested sequence ..."]),
+       "Define a vectorized function which takes a nested<br>..."]),
      ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
       ["Calculate the absolute value"]),
