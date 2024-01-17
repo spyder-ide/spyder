@@ -154,7 +154,7 @@ class PlotsWidget(ShellConnectMainWidget):
             name=PlotsWidgetActions.CloseAll,
             text=_("Remove all plots"),
             tip=_("Remove all plots"),
-            icon=self.create_icon('filecloseall'),
+            icon=self.create_icon('editdelete'),
             triggered=self.remove_all_plots,
             register_shortcut=True,
         )
