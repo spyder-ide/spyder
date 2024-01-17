@@ -1227,7 +1227,7 @@ class TextEditBaseWidget(
             point.setY(point.y() - widget.height())
             delta_y = -2
         else:
-            delta_y = 6
+            delta_y = 5 if sys.platform == "darwin" else 6
 
         # Add small delta to the vertical position so that the widget is not
         # shown too close to the text

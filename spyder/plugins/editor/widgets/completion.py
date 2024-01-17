@@ -26,7 +26,7 @@ from spyder.widgets.helperwidgets import HTMLDelegate
 
 COMPLETION_ITEM_HEIGHT = 15
 COMPLETION_ITEM_WIDTH = 250
-COMPLETION_DELTA_FOR_SCROLLBAR = 7
+COMPLETION_DELTA_FOR_SCROLLBAR = 7 if sys.platform.startswith("linux") else 0
 
 
 class CompletionWidget(QListWidget, SpyderConfigurationAccessor):

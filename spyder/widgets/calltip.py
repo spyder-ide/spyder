@@ -208,9 +208,9 @@ class ToolTipWidget(QLabel):
             # Ubuntu Mono has a strange behavior regarding its height that we
             # need to account for. Other monospaced fonts behave as expected.
             if font.family() == 'Ubuntu Mono':
-                padding = 0
+                padding = 2
             else:
-                padding = 3
+                padding = 1 if sys.platform == "darwin" else 5
 
             # Qt sets the mouse coordinates (given by `point`) a bit above the
             # line where it's placed, i.e. not exactly where the text
@@ -305,6 +305,9 @@ class ToolTipWidget(QLabel):
 
     def leaveEvent(self, event):
         """Reimplemented to hide tooltip on leave."""
+        # This is necessary to set the cursor correctly in enterEvent on Mac
+        self.unsetCursor()
+
         super().leaveEvent(event)
 
         # Prevent to hide the widget when it's used as a completion hint and

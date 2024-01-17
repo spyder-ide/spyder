@@ -140,13 +140,13 @@ class BaseEditMixin(object):
             # Ubuntu Mono has a strange behavior regarding its height that we
             # need to account for. Other monospaced fonts behave as expected.
             if self.font().family() == 'Ubuntu Mono':
-                padding = 3
+                padding = 5
             else:
-                padding = 0
+                padding = 1 if sys.platform == "darwin" else 3
 
             # This is necessary because the point Qt returns for the cursor is
             # much below the line's bottom position.
-            cy = int(cy - QFontMetrics(self.font()).xHeight() + padding)
+            cy = int(cy - QFontMetrics(self.font()).capHeight() + padding)
 
         # Map to global coordinates
         point = self.mapToGlobal(QPoint(cx, cy))
