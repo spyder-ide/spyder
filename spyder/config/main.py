@@ -492,6 +492,7 @@ DEFAULTS = [
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
+              'editor/wrap lines': "Alt+Z",
               'editor/show in external file explorer': '',
               # -- Internal console --
               'console/inspect current object': "Ctrl+I",
