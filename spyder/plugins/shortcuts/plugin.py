@@ -180,7 +180,7 @@ class Shortcuts(SpyderPluginV2):
                 if shortcut_sequence in self._shortcut_sequences:
                     continue
 
-                self._shortcut_sequences |= {shortcut_sequence}
+                self._shortcut_sequences |= {(context, shortcut_sequence)}
                 keyseq = QKeySequence(shortcut_sequence)
             else:
                 # Needed to remove old sequences that were cleared.

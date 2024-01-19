@@ -557,6 +557,8 @@ class SpyderKernel(IPythonKernel):
         resolution_n = 'pylab/inline/resolution'
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
         inline_backend = 'inline'
 
@@ -579,6 +581,15 @@ class SpyderKernel(IPythonKernel):
             self._set_mpl_inline_rc_config(
                 'figure.figsize',
                 (conf[width_n], conf[height_n])
+            )
+
+        if fontsize_n in conf:
+            self._set_mpl_inline_rc_config('font.size', conf[fontsize_n])
+
+        if bottom_n in conf:
+            self._set_mpl_inline_rc_config(
+                'figure.subplot.bottom',
+                conf[bottom_n]
             )
 
         if bbox_inches_n in conf:

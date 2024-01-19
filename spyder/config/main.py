@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -151,6 +152,8 @@ DEFAULTS = [
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/fontsize': 10.0,
+              'pylab/inline/bottom': 0.11,
               'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,

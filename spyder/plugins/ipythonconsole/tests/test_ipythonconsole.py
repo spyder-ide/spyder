@@ -17,6 +17,7 @@ import re
 import shutil
 import sys
 from textwrap import dedent
+from unittest.mock import patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -1912,6 +1913,21 @@ def test_restart_intertactive_backend(ipyconsole, qtbot):
     qtbot.wait(1000)
     main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+
+def test_mpl_conf(ipyconsole, qtbot):
+    """
+    Test that after setting matplotlib-related config options, the member
+    function send_mpl_backend of the shellwidget is called with the new value.
+    """
+    main_widget = ipyconsole.get_widget()
+    client = main_widget.get_current_client()
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/fontsize', 20.5)
+    mock.assert_called_once_with({'pylab/inline/fontsize': 20.5})
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/bottom', 0.314)
+    mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
 @flaky(max_runs=3)

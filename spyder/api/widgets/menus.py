@@ -14,7 +14,8 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtWidgets import QAction, QMenu, QWidget
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -40,6 +41,24 @@ class OptionsMenuSections:
 class PluginMainWidgetMenus:
     Context = 'context_menu'
     Options = 'options_menu'
+
+
+# ---- Style
+# -----------------------------------------------------------------------------
+class SpyderMenuProxyStyle(QProxyStyle):
+    """Style adjustments that can only be done with a proxy style."""
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Change icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            delta = -1 if MAC else (0 if WIN else 1)
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
 
 
 # ---- Widgets
@@ -118,6 +137,10 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         # Style
         self.css = self._generate_stylesheet()
         self.setStyleSheet(self.css.toString())
+
+        style = SpyderMenuProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -350,12 +373,13 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             else:
                 set_menu_icons(self, True)
 
-    def _generate_stylesheet(self):
+    @classmethod
+    def _generate_stylesheet(cls):
         """Generate base stylesheet for menus."""
         css = qstylizer.style.StyleSheet()
-        font = self.get_font(SpyderFontType.Interface)
+        font = cls.get_font(SpyderFontType.Interface)
 
-        # Add padding and border radius to follow modern standards
+        # Add padding and border to follow modern standards
         css.QMenu.setValues(
             # Only add top and bottom padding so that menu separators can go
             # completely from the left to right border.
@@ -425,15 +449,28 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         """Adjustments when the menu is shown."""
-        # Reposition menu vertically due to padding
-        if (
-            not sys.platform == "darwin"
-            and self._reposition
-            and self._is_submenu
-            and not self._is_shown
-        ):
-            self.move(self.pos().x(), self.pos().y() - 2 * AppStyle.MarginSize)
+        if not self._is_shown:
+            # Reposition submenus vertically due to padding and border
+            if self._reposition and self._is_submenu:
+                self.move(
+                    self.pos().x(),
+                    # Current vertical pos - padding - border
+                    self.pos().y() - 2 * AppStyle.MarginSize - 1
+                )
+
             self._is_shown = True
+
+        # Reposition menus horizontally due to border
+        if QCursor().pos().x() - self.pos().x() < 40:
+            # If the difference between the current cursor x position and the
+            # menu one is small, it means the menu will be shown to the right,
+            # so we need to move it in that direction.
+            delta_x = 1
+        else:
+            # This happens when the menu is shown to the left.
+            delta_x = -1
+
+        self.move(self.pos().x() + delta_x, self.pos().y())
 
         super().showEvent(event)
 
