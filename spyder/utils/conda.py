@@ -203,7 +203,7 @@ def get_spyder_conda_channel():
     conda = find_conda()
 
     if conda is None:
-        return None
+        return None, None
 
     env = get_conda_env_path(sys.executable)
     cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
@@ -213,7 +213,7 @@ def get_spyder_conda_channel():
         out = out.decode()
         out = json.loads(out)
     except Exception:
-        return None
+        return None, None
 
     for package_info in out:
         if package_info["name"] == 'spyder':
