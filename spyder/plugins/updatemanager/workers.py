@@ -104,7 +104,7 @@ class WorkerUpdate(QObject):
         elif is_anaconda():
             self.channel, channel_url = get_spyder_conda_channel()
 
-            if channel_url is None:
+            if self.channel is None or channel_url is None:
                 return
             elif self.channel == "pypi":
                 url = pypi_url
