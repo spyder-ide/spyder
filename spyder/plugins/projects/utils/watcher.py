@@ -12,14 +12,15 @@ import logging
 # Third-party imports
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QMessageBox
-
 import watchdog
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, PatternMatchingEventHandler
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
+from spyder.config.utils import get_edit_extensions
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
 watchdog.utils.BaseThread = BaseThreadWrapper
 
 
-class WorkspaceEventHandler(QObject, FileSystemEventHandler):
+class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
     """
     Event handler for watchdog notifications.
 
@@ -65,7 +66,10 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
-        FileSystemEventHandler.__init__(self)
+        PatternMatchingEventHandler.__init__(
+            self,
+            patterns = [f"*{ext}" for ext in get_edit_extensions()],
+        )
 
     def fmt_is_dir(self, is_dir):
         return 'directory' if is_dir else 'file'
@@ -98,6 +102,13 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
         logger.info("Modified {0}: {1}".format(
             self.fmt_is_dir(is_dir), src_path))
         self.sig_file_modified.emit(src_path, is_dir)
+
+    def dispatch(self, event):
+        # Don't apply patterns to directories, only to files
+        if event.is_directory:
+            FileSystemEventHandler.dispatch(self, event)
+        else:
+            super().dispatch(event)
 
 
 class WorkspaceWatcher(QObject):
