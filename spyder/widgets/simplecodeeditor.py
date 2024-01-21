@@ -15,7 +15,8 @@ https://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 
 # Third party imports
 from qtpy.QtCore import QPoint, QRect, QSize, Qt, Signal
-from qtpy.QtGui import QColor, QFont, QPainter, QTextCursor, QTextFormat, QTextOption
+from qtpy.QtGui import (
+    QColor, QFont, QPainter, QTextCursor, QTextFormat, QTextOption)
 from qtpy.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 # Local imports

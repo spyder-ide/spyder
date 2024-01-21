@@ -186,7 +186,9 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
 
         # Setup
         self.setSortingEnabled(False)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setModel(self.model)
         self._adjust_columns()

@@ -21,7 +21,7 @@ from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout,QLayout,
+from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
                             QVBoxLayout, QWidget, QStackedLayout)
 
