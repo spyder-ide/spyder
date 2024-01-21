@@ -2745,7 +2745,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         tofile = to_text_string(dest)
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                new_filename = fname.replace(dirname, tofile)
+                source_re = "^" + re.escape(source)
+                dest_quoted = dest.replace("\\", r"\\")
+                new_filename = re.sub(source_re, dest_quoted, fname)
                 self.renamed(source=fname, dest=new_filename)
 
     #------ Source code
