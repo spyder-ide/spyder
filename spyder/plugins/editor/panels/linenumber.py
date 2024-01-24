@@ -15,7 +15,7 @@ import math
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QPointF
 from qtpy.QtGui import (
-    QColor, QFontMetricsF, QPainter, QStaticText, QTextOption
+    QColor, QFont, QFontMetricsF, QPainter, QStaticText, QTextOption
 )
 
 # Local imports
@@ -155,7 +155,7 @@ class LineNumberArea(Panel):
         # be the same as the text one when zooming
         # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
         font = self.editor.font()
-        font.setWeight(font.Normal)
+        font.setWeight(QFont.Weight.Normal)
         painter.setFont(font)
         painter.setPen(self.linenumbers_color)
 
@@ -178,7 +178,7 @@ class LineNumberArea(Panel):
             QPointF(left, top), self._static_line_numbers)
 
         if active_top is not None:
-            font.setWeight(font.Bold)
+            font.setWeight(QFont.Weight.Bold)
             painter.setFont(font)
             painter.setPen(self.editor.normal_color)
 
@@ -218,11 +218,11 @@ class LineNumberArea(Panel):
         for top, line_number, block in self.editor.visible_blocks:
             if self._margin:
                 if line_number == active_line_number:
-                    font.setWeight(font.Bold)
+                    font.setWeight(QFont.Weight.Bold)
                     painter.setFont(font)
                     painter.setPen(self.editor.normal_color)
                 else:
-                    font.setWeight(font.Normal)
+                    font.setWeight(QFont.Weight.Normal)
                     painter.setFont(font)
                     painter.setPen(self.linenumbers_color)
 

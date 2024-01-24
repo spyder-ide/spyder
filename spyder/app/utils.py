@@ -298,20 +298,6 @@ def create_application():
     if hasattr(app, 'setDesktopFileName'):
         app.setDesktopFileName('spyder')
 
-    # ---- Monkey patching QApplication
-    class FakeQApplication(QApplication):
-        """Spyder's fake QApplication"""
-        def __init__(self, args):
-            self = app  # analysis:ignore
-
-        @staticmethod
-        def exec_():
-            """Do nothing because the Qt mainloop is already running"""
-            pass
-
-    from qtpy import QtWidgets
-    QtWidgets.QApplication = FakeQApplication
-
     # ---- Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass

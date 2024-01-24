@@ -13,8 +13,8 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QScrollArea, QTabWidget)
+                            QHBoxLayout, QVBoxLayout, QLabel, QLayout,
+                            QPushButton, QScrollArea, QTabWidget)
 
 # Local imports
 from spyder import (
@@ -258,7 +258,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
-        tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
+        tabslayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         tabslayout.setContentsMargins(0, self.PADDING, 0, 0)
 
         btmhlayout = QHBoxLayout()
@@ -271,7 +271,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         vlayout = QVBoxLayout()
         vlayout.addLayout(tabslayout)
         vlayout.addLayout(btmhlayout)
-        vlayout.setSizeConstraint(vlayout.SetFixedSize)
+        vlayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         mainlayout = QHBoxLayout(self)
         mainlayout.addLayout(piclayout)

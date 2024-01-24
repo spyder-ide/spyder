@@ -19,7 +19,7 @@ import sys
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -190,7 +190,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.clients_hearbeat[language].stop()
                     self.clients_hearbeat[language].setParent(None)
                     del self.clients_hearbeat[language]
-                    if PYSIDE2:
+                    if PYSIDE2 or PYSIDE6:
                         client['instance'].disconnect(None, None, None)
                     else:
                         client['instance'].disconnect()
@@ -667,7 +667,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             if language_client['status'] == self.RUNNING:
                 logger.info("Stopping LSP client for {}...".format(language))
                 try:
-                    if PYSIDE2:
+                    if PYSIDE2 or PYSIDE6:
                         language_client['instance'].disconnect(None, None, None)
                     else:
                         language_client['instance'].disconnect()

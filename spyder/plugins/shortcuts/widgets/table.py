@@ -16,8 +16,8 @@ from qtpy.QtCore import (QAbstractTableModel, QEvent, QModelIndex,
 from qtpy.QtGui import QIcon, QKeySequence, QRegularExpressionValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QSpacerItem, QVBoxLayout)
+                            QLabel, QLayout, QLineEdit, QMessageBox,
+                            QPushButton, QSpacerItem, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -265,7 +265,7 @@ class ShortcutEditor(QDialog):
         layout.addLayout(layout_sequence)
         layout.addSpacing(10)
         layout.addLayout(button_box)
-        layout.setSizeConstraint(layout.SetFixedSize)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         # Signals
         self.button_ok.clicked.connect(self.accept_override)
