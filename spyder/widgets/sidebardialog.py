@@ -6,22 +6,33 @@
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetricsF
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtGui import QFontMetricsF, QIcon
 from qtpy.QtWidgets import (
-    QDialog, QDialogButtonBox, QFrame, QGridLayout, QHBoxLayout, QListView,
-    QListWidget, QListWidgetItem, QPushButton, QScrollArea, QStackedWidget,
-    QVBoxLayout, QWidget)
+    QDialog,
+    QDialogButtonBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QListView,
+    QListWidget,
+    QListWidgetItem,
+    QScrollArea,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget
+)
 from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
-from spyder.config.base import _, load_lang_conf
-from spyder.config.manager import CONF
-from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import (
-    AppStyle, MAC, PREFERENCES_TABBAR_STYLESHEET, WIN)
+    AppStyle,
+    MAC,
+    PREFERENCES_TABBAR_STYLESHEET,
+    WIN
+)
 
 
 class PageScrollArea(QScrollArea):
@@ -32,13 +43,8 @@ class PageScrollArea(QScrollArea):
         return super().widget().page
 
 
-class ConfigDialog(QDialog, SpyderFontsMixin):
-    """Preferences dialog."""
-
-    # Signals
-    check_settings = Signal()
-    sig_size_changed = Signal(QSize)
-    sig_reset_preferences_requested = Signal()
+class SidebarDialog(QDialog, SpyderFontsMixin):
+    """Sidebar dialog."""
 
     # Constants
     ITEMS_MARGIN = 2 * AppStyle.MarginSize
@@ -47,14 +53,18 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
     )
     CONTENTS_WIDTH = 230 if MAC else (200 if WIN else 240)
     ICON_SIZE = 20
-    MIN_WIDTH = 940 if MAC else (875 if WIN else 920)
-    MIN_HEIGHT = 700 if MAC else (660 if WIN else 670)
+    PAGES_MINIMUM_WIDTH = 600
+
+    # To be set by childs
+    TITLE = ""
+    ICON = QIcon()
+    MIN_WIDTH = 800
+    MIN_HEIGHT = 600
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
         # ---- Attributes
-        self.main = parent
         self.items_font = self.get_font(
             SpyderFontType.Interface, font_size_delta=1
         )
@@ -68,23 +78,18 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # ---- Widgets
         self.pages_widget = QStackedWidget(self)
         self.contents_widget = QListWidget(self)
-        self.button_reset = QPushButton(_('Reset to defaults'))
-
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
-                                QDialogButtonBox.Cancel)
-        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
-        self.ok_btn = bbox.button(QDialogButtonBox.Ok)
+        buttons_box, buttons_layout = self.create_buttons()
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(ima.icon('configure'))
+        self.setWindowTitle(self.TITLE)
+        self.setWindowIcon(self.ICON)
 
         # ---- Widgets setup
-        self.pages_widget.setMinimumWidth(600)
+        self.pages_widget.setMinimumWidth(self.PAGES_MINIMUM_WIDTH)
 
         self.contents_widget.setMovement(QListView.Static)
         self.contents_widget.setSpacing(3)
@@ -107,15 +112,10 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         contents_and_pages_layout.setColumnStretch(1, 3)
         contents_and_pages_layout.setHorizontalSpacing(0)
 
-        btnlayout = QHBoxLayout()
-        btnlayout.addWidget(self.button_reset)
-        btnlayout.addStretch(1)
-        btnlayout.addWidget(bbox)
-
         layout = QVBoxLayout()
         layout.addLayout(contents_and_pages_layout)
         layout.addSpacing(3)
-        layout.addLayout(btnlayout)
+        layout.addLayout(buttons_layout)
 
         self.setLayout(layout)
 
@@ -130,16 +130,12 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         )
 
         # ---- Signals and slots
-        self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
             self.pages_widget.setCurrentIndex)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        bbox.clicked.connect(self.button_clicked)
-
-        # Ensures that the config is present on spyder first run
-        CONF.set('main', 'interface_language', load_lang_conf())
+        buttons_box.accepted.connect(self.accept)
+        buttons_box.rejected.connect(self.reject)
+        buttons_box.clicked.connect(self.button_clicked)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -163,38 +159,11 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         if page and hasattr(page, 'widget'):
             return page.widget()
 
-    def get_index_by_name(self, name):
-        """Return page index by CONF_SECTION name."""
-        for idx in range(self.pages_widget.count()):
-            page = self.get_page(idx)
-
-            # This is the case for separators
-            if page is None:
-                continue
-
-            try:
-                # New API
-                section = page.plugin.NAME
-            except AttributeError:
-                section = page.CONF_SECTION
-
-            if section == name:
-                return idx
-        else:
-            return None
-
     def button_clicked(self, button):
-        if button is self.apply_btn:
-            # Apply button was clicked
-            configpage = self.get_page()
-            if not configpage.is_valid():
-                return
-            configpage.apply_changes()
+        pass
 
     def current_page_changed(self, index):
-        widget = self.get_page(index)
-        self.apply_btn.setVisible(widget.apply_callback is not None)
-        self.apply_btn.setEnabled(widget.is_modified)
+        pass
 
     def add_separator(self):
         """Add a horizontal line to separate different sections."""
@@ -221,11 +190,8 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self._separators.append(hline)
 
     def add_page(self, page):
-        # Signals
-        self.check_settings.connect(page.check_settings)
         page.show_this_page.connect(lambda row=self.contents_widget.count():
                                     self.contents_widget.setCurrentRow(row))
-        page.apply_button_enabled.connect(self.apply_btn.setEnabled)
 
         # Container widget so that we can center the page
         layout = QHBoxLayout()
@@ -243,7 +209,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Add container to a scroll area in case the page contents don't fit
         # in the dialog
         scrollarea = PageScrollArea(self)
-        scrollarea.setObjectName('configdialog-scrollarea')
+        scrollarea.setObjectName('sidebardialog-scrollarea')
         scrollarea.setWidgetResizable(True)
         scrollarea.setWidget(container)
         self.pages_widget.addWidget(scrollarea)
@@ -262,31 +228,22 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         # Set font for items
         item.setFont(self.items_font)
 
-    def check_all_settings(self):
-        """This method is called to check all configuration page settings
-        after configuration dialog has been shown"""
-        self.check_settings.emit()
+    def create_buttons(self):
+        """
+        Create buttons to be displayed in the dialog.
+
+        You need to override this method if you want different buttons in the
+        dialog.
+        """
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+
+        layout = QHBoxLayout()
+        layout.addWidget(bbox)
+
+        return bbox, layout
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    @Slot()
-    def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.pages_widget.count()):
-            configpage = self.get_page(index)
-
-            # This can be the case for separators, which doesn't have a config
-            # page.
-            if configpage is None:
-                continue
-
-            if not configpage.is_valid():
-                return
-
-            configpage.apply_changes()
-
-        QDialog.accept(self)
-
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
         if not self._is_shown:
@@ -411,7 +368,7 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         css = tabs_stylesheet.get_stylesheet()
 
         # Remove border of all scroll areas for pages
-        css['QScrollArea#configdialog-scrollarea'].setValues(
+        css['QScrollArea#sidebardialog-scrollarea'].setValues(
             border='0px',
         )
 
@@ -486,4 +443,3 @@ class ConfigDialog(QDialog, SpyderFontsMixin):
         self._add_tooltips()
         self._adjust_items_margin()
         self._adjust_separators_width()
-        self.sig_size_changed.emit(self.size())
