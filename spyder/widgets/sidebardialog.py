@@ -6,7 +6,7 @@
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import QSize, Qt
+from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetricsF, QIcon
 from qtpy.QtWidgets import (
     QDialog,
@@ -26,6 +26,7 @@ from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import (
     AppStyle,
@@ -41,6 +42,49 @@ class PageScrollArea(QScrollArea):
     def widget(self):
         """Return the page widget inside the scroll area."""
         return super().widget().page
+
+
+class SidebarPage(QWidget):
+    """Base class for pages used in SidebarDialog's"""
+
+    # Signals
+    show_this_page = Signal()
+
+    # Constants
+    MAX_WIDTH = 620
+    MIN_HEIGHT = 550
+
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+
+        # Set dimensions
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumHeight(self.MIN_HEIGHT)
+
+    def initialize(self):
+        """Initialize page."""
+        self.setup_page()
+
+    def get_name(self):
+        """Return page name."""
+        raise NotImplementedError
+
+    def get_icon(self):
+        """Return page icon."""
+        raise NotImplementedError
+
+    def setup_page(self):
+        """Setup widget to be shown in the page."""
+        raise NotImplementedError
+
+    @staticmethod
+    def create_icon(name):
+        """Create an icon by name using Spyder's icon manager."""
+        return ima.icon(name)
+
+    def sizeHint(self):
+        """Default page size."""
+        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
 
 
 class SidebarDialog(QDialog, SpyderFontsMixin):

@@ -34,6 +34,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.comboboxes import FileComboBox
+from spyder.widgets.sidebardialog import SidebarPage
 
 
 class BaseConfigTab(QWidget):
@@ -58,49 +59,6 @@ class ConfigAccessMixin(object):
     def remove_option(self, option, section=None):
         section = self.CONF_SECTION if section is None else section
         CONF.remove_option(section, option)
-
-
-class SidebarPage(QWidget):
-    """Base class for configuration page in Preferences"""
-
-    # Signals
-    show_this_page = Signal()
-
-    # Constants
-    MAX_WIDTH = 620
-    MIN_HEIGHT = 550
-
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-
-        # Set dimensions
-        self.setMaximumWidth(self.MAX_WIDTH)
-        self.setMinimumHeight(self.MIN_HEIGHT)
-
-    def initialize(self):
-        """Initialize page."""
-        self.setup_page()
-
-    def get_name(self):
-        """Return page name."""
-        raise NotImplementedError
-
-    def get_icon(self):
-        """Return page icon."""
-        raise NotImplementedError
-
-    def setup_page(self):
-        """Setup widget to be shown in the page."""
-        raise NotImplementedError
-
-    @staticmethod
-    def create_icon(name):
-        """Create an icon by name using Spyder's icon manager."""
-        return ima.icon(name)
-
-    def sizeHint(self):
-        """Default page size."""
-        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
 
 
 class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
