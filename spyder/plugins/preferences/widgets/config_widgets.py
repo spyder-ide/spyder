@@ -60,99 +60,69 @@ class ConfigAccessMixin(object):
         CONF.remove_option(section, option)
 
 
-class ConfigPage(QWidget):
+class SidebarPage(QWidget):
     """Base class for configuration page in Preferences"""
 
     # Signals
-    apply_button_enabled = Signal(bool)
     show_this_page = Signal()
 
-    def __init__(self, parent, apply_callback=None):
+    # Constants
+    MAX_WIDTH = 620
+    MIN_HEIGHT = 550
+
+    def __init__(self, parent):
         QWidget.__init__(self, parent)
+
+        # Set dimensions
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumHeight(self.MIN_HEIGHT)
+
+    def initialize(self):
+        """Initialize page."""
+        self.setup_page()
+
+    def get_name(self):
+        """Return page name."""
+        raise NotImplementedError
+
+    def get_icon(self):
+        """Return page icon."""
+        raise NotImplementedError
+
+    def setup_page(self):
+        """Setup widget to be shown in the page."""
+        raise NotImplementedError
+
+    @staticmethod
+    def create_icon(name):
+        """Create an icon by name using Spyder's icon manager."""
+        return ima.icon(name)
+
+    def sizeHint(self):
+        """Default page size."""
+        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
+
+
+class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
+    """
+    Page that can display graphical elements connected to our config system.
+    """
+
+    # Signals
+    apply_button_enabled = Signal(bool)
+
+    # Constants
+    CONF_SECTION = None
+
+    def __init__(self, parent):
+        SidebarPage.__init__(self, parent)
 
         # Callback to call before saving settings to disk
         self.pre_apply_callback = None
 
         # Callback to call after saving settings to disk
-        self.apply_callback = apply_callback
-
-        self.is_modified = False
-
-    def initialize(self):
-        """
-        Initialize configuration page:
-            * setup GUI widgets
-            * load settings and change widgets accordingly
-        """
-        self.setup_page()
-        self.load_from_conf()
-
-    def get_name(self):
-        """Return configuration page name"""
-        raise NotImplementedError
-
-    def get_icon(self):
-        """Return configuration page icon (24x24)"""
-        raise NotImplementedError
-
-    def setup_page(self):
-        """Setup configuration page widget"""
-        raise NotImplementedError
-
-    def set_modified(self, state):
-        self.is_modified = state
-        self.apply_button_enabled.emit(state)
-
-    def is_valid(self):
-        """Return True if all widget contents are valid"""
-        raise NotImplementedError
-
-    def apply_changes(self):
-        """Apply changes callback"""
-        if self.is_modified:
-            if self.pre_apply_callback is not None:
-                self.pre_apply_callback()
-
-            self.save_to_conf()
-
-            if self.apply_callback is not None:
-                self.apply_callback()
-
-            # Since the language cannot be retrieved by CONF and the language
-            # is needed before loading CONF, this is an extra method needed to
-            # ensure that when changes are applied, they are copied to a
-            # specific file storing the language value. This only applies to
-            # the main section config.
-            if self.CONF_SECTION == u'main':
-                self._save_lang()
-
-            for restart_option in self.restart_options:
-                if restart_option in self.changed_options:
-                    self.prompt_restart_required()
-                    break  # Ensure a single popup is displayed
-            self.set_modified(False)
-
-    def load_from_conf(self):
-        """Load settings from configuration file"""
-        raise NotImplementedError
-
-    def save_to_conf(self):
-        """Save settings to configuration file"""
-        raise NotImplementedError
-
-
-class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
-    """Plugin configuration dialog box page widget"""
-    CONF_SECTION = None
-    MAX_WIDTH = 620
-    MIN_HEIGHT = 550
-
-    def __init__(self, parent):
-        ConfigPage.__init__(
-            self,
-            parent,
-            apply_callback=lambda: self._apply_settings_tabs(
-                self.changed_options)
+        self.apply_callback = lambda: self._apply_settings_tabs(
+            self.changed_options
         )
 
         self.checkboxes = {}
@@ -171,14 +141,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.default_button_group = None
         self.main = parent.main
         self.tabs = None
+        self.is_modified = False
 
-        # Set dimensions
-        self.setMaximumWidth(self.MAX_WIDTH)
-        self.setMinimumHeight(self.MIN_HEIGHT)
-
-    def sizeHint(self):
-        """Default page size."""
-        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
+    def initialize(self):
+        """Initialize configuration page."""
+        self.setup_page()
+        self.load_from_conf()
 
     def _apply_settings_tabs(self, options):
         if self.tabs is not None:
@@ -195,13 +163,39 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def apply_settings(self, options):
         raise NotImplementedError
 
+    def apply_changes(self):
+        """Apply changes callback"""
+        if self.is_modified:
+            if self.pre_apply_callback is not None:
+                self.pre_apply_callback()
+
+            self.save_to_conf()
+
+            if self.apply_callback is not None:
+                self.apply_callback()
+
+            # Since the language cannot be retrieved by CONF and the language
+            # is needed before loading CONF, this is an extra method needed to
+            # ensure that when changes are applied, they are copied to a
+            # specific file storing the language value. This only applies to
+            # the main section config.
+            if self.CONF_SECTION == 'main':
+                self._save_lang()
+
+            for restart_option in self.restart_options:
+                if restart_option in self.changed_options:
+                    self.prompt_restart_required()
+                    break  # Ensure a single popup is displayed
+            self.set_modified(False)
+
     def check_settings(self):
         """This method is called to check settings after configuration
         dialog has been shown"""
         pass
 
     def set_modified(self, state):
-        ConfigPage.set_modified(self, state)
+        self.is_modified = state
+        self.apply_button_enabled.emit(state)
         if not state:
             self.changed_options = set()
 
