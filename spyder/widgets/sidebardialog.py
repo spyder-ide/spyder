@@ -4,6 +4,9 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
+from typing import List, Optional, Type
+
 # Third party imports
 import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal
@@ -104,6 +107,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
     ICON = QIcon()
     MIN_WIDTH = 800
     MIN_HEIGHT = 600
+    PAGE_CLASSES: List[Type[SidebarPage]] = []
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -181,6 +185,13 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         buttons_box.rejected.connect(self.reject)
         buttons_box.clicked.connect(self.button_clicked)
 
+        # Add pages to the dialog
+        self.add_pages()
+
+        # Set index to the initial page
+        if self.PAGE_CLASSES:
+            self.set_current_index(0)
+
     # ---- Public API
     # -------------------------------------------------------------------------
     def get_current_index(self):
@@ -191,7 +202,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
 
-    def get_page(self, index=None):
+    def get_page(self, index=None) -> Optional[SidebarPage]:
         """Return page widget"""
         if index is None:
             page = self.pages_widget.currentWidget()
@@ -233,7 +244,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Save separators to perform certain operations only on them
         self._separators.append(hline)
 
-    def add_page(self, page):
+    def add_page(self, page: SidebarPage):
         page.show_this_page.connect(lambda row=self.contents_widget.count():
                                     self.contents_widget.setCurrentRow(row))
 
@@ -271,6 +282,13 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Set font for items
         item.setFont(self.items_font)
+
+    def add_pages(self):
+        """Add pages to the dialog."""
+        for PageClass in self.PAGE_CLASSES:
+            page = PageClass(self)
+            page.initialize()
+            self.add_page(page)
 
     def create_buttons(self):
         """
