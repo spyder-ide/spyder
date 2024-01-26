@@ -186,11 +186,34 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         buttons_box.clicked.connect(self.button_clicked)
 
         # Add pages to the dialog
-        self.add_pages()
+        self._add_pages()
 
         # Set index to the initial page
         if self.PAGE_CLASSES:
             self.set_current_index(0)
+
+    # ---- Public API to be overridden by children
+    # -------------------------------------------------------------------------
+    def button_clicked(self, button):
+        """Actions to perform after one of the dialog's buttons is clicked."""
+        pass
+
+    def current_page_changed(self, index):
+        """Actions to perform after the current page in the dialog changes."""
+        pass
+
+    def create_buttons(self):
+        """
+        Create the buttons that will be displayed in the dialog.
+
+        Override this method if you want different buttons in it.
+        """
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+
+        layout = QHBoxLayout()
+        layout.addWidget(bbox)
+
+        return bbox, layout
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -213,12 +236,6 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # as their config page). So, we need to check for this.
         if page and hasattr(page, 'widget'):
             return page.widget()
-
-    def button_clicked(self, button):
-        pass
-
-    def current_page_changed(self, index):
-        pass
 
     def add_separator(self):
         """Add a horizontal line to separate different sections."""
@@ -282,27 +299,6 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Set font for items
         item.setFont(self.items_font)
-
-    def add_pages(self):
-        """Add pages to the dialog."""
-        for PageClass in self.PAGE_CLASSES:
-            page = PageClass(self)
-            page.initialize()
-            self.add_page(page)
-
-    def create_buttons(self):
-        """
-        Create buttons to be displayed in the dialog.
-
-        You need to override this method if you want different buttons in the
-        dialog.
-        """
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-
-        layout = QHBoxLayout()
-        layout.addWidget(bbox)
-
-        return bbox, layout
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -505,3 +501,10 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         self._add_tooltips()
         self._adjust_items_margin()
         self._adjust_separators_width()
+
+    def _add_pages(self):
+        """Add pages to the dialog."""
+        for PageClass in self.PAGE_CLASSES:
+            page = PageClass(self)
+            page.initialize()
+            self.add_page(page)
