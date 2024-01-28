@@ -382,14 +382,22 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
         for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action, search_action, refresh_action,
-                     self.filter_button]:
+                     reset_namespace_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
                 section=VariableExplorerWidgetMainToolBarSections.Main,
             )
         save_action.setEnabled(False)
+
+        # Corner toolbar (i.e., buttons in front of options menu)
+        corner_toolbar = self.get_toolbar('corner_toolbar')
+        for item in [search_action, self.filter_button, refresh_action]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=corner_toolbar,
+                section='corner'
+            )
 
         # ---- Context menu to show when there are variables present
         self.context_menu = self.create_menu(

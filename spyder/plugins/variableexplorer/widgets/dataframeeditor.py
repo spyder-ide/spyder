@@ -1644,16 +1644,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         )
         self.refresh_action.setEnabled(self.data_function is not None)
         self.format_action = self.create_action(
-            name=None,
+            name='Format',
             text=_('Format'),
             icon=self.create_icon('format_float'),
             tip=_('Set format of floating-point numbers'),
             triggered=self.change_format
         )
         self.bgcolor_action = self.create_action(
-            name=None,
+            name='Background color',
             text=_('Background color'),
-            icon=self.create_icon('background_color'),
             toggled=self.change_bgcolor_enable
         )
         self.bgcolor_global_action = self.create_action(
@@ -1808,12 +1807,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.table_header.setRowHeight(0, self.table_header.height())
 
         self.toolbar.clear()
+        self.toolbar.addAction(self.dataTable.resize_action)
+        self.toolbar.addAction(self.dataTable.resize_columns_action)
+        self.toolbar.addSeparator()
         actions = [
-            self.refresh_action,
-            self.format_action,
-            self.dataTable.resize_action,
-            self.dataTable.resize_columns_action,
-            self.bgcolor_action,
             self.dataTable.insert_action_above,
             self.dataTable.insert_action_below,
             self.dataTable.insert_action_after,
@@ -1829,8 +1826,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         stretcher = self.create_stretcher('Toolbar stretcher')
         self.toolbar.addWidget(stretcher)
 
+        self.toolbar.addAction(self.refresh_action)
+
         options_menu = self.create_menu('Options menu', register=False)
+        options_menu.add_action(self.bgcolor_action)
         options_menu.add_action(self.bgcolor_global_action)
+        options_menu.add_action(self.format_action)
         options_button = self.create_toolbutton(
             name='Options toolbutton',
             text=_('Options'),

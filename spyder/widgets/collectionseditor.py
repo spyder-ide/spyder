@@ -1519,22 +1519,20 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         )
 
         toolbar = self.create_toolbar('Editor toolbar', register=False)
-        actions = [
-            self.refresh_action,
-            self.editor.resize_action,
-            self.editor.resize_columns_action,
-            self.editor.insert_action,
-            self.editor.insert_action_above,
-            self.editor.insert_action_below,
-            self.editor.duplicate_action,
-            self.editor.remove_action,
-            self.editor.view_action,
-            self.editor.plot_action,
-            self.editor.hist_action,
-            self.editor.imshow_action
-        ]
-        for item in actions:
-            toolbar.addAction(item)
+        toolbar.addAction(self.refresh_action)
+        toolbar.addAction(self.editor.resize_action)
+        toolbar.addAction(self.editor.resize_columns_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.editor.insert_action)
+        toolbar.addAction(self.editor.insert_action_above)
+        toolbar.addAction(self.editor.insert_action_below)
+        toolbar.addAction(self.editor.duplicate_action)
+        toolbar.addAction(self.editor.remove_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.editor.view_action)
+        toolbar.addAction(self.editor.plot_action)
+        toolbar.addAction(self.editor.hist_action)
+        toolbar.addAction(self.editor.imshow_action)
 
         # Update the toolbar actions state
         self.editor.refresh_menu()

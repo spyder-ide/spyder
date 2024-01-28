@@ -279,7 +279,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             title=_("Main widget corner toolbar"),
         )
-        self._corner_toolbar.ID = 'corner_toolbar',
+        self._corner_toolbar.ID = 'corner_toolbar'
 
         TOOLBAR_REGISTRY.register_reference(
             self._corner_toolbar, self._corner_toolbar.ID,

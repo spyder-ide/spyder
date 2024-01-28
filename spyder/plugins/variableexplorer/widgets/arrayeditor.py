@@ -26,7 +26,7 @@ from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
     QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox,
-    QStackedWidget, QStyle, QTableView, QVBoxLayout, QWidget)
+    QStackedWidget, QStyle, QTableView, QToolButton, QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
@@ -723,26 +723,14 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         interface of the array editor. Some elements need to be hidden
         depending on the data; this will be done when the data is set.
         """
-        # ---- Toolbar and actions
 
-        toolbar = self.create_toolbar('Editor toolbar', register=False)
+        # ---- Actions
 
         def do_nothing():
             # .create_action() needs a toggled= parameter, but we can only
             # set it later in the set_data_and_check method, so we use this
             # function as a placeholder here.
             pass
-
-        self.refresh_action = self.create_action(
-            ArrayEditorActions.Refresh,
-            text=_('Refresh'),
-            icon=self.create_icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh,
-            register_action=False
-        )
-        self.refresh_action.setDisabled(self.data_function is None)
-        toolbar.add_item(self.refresh_action)
 
         self.format_action = self.create_action(
             ArrayEditorActions.Format,
@@ -752,8 +740,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
-        toolbar.add_item(self.format_action)
-
+        self.refresh_action = self.create_action(
+            ArrayEditorActions.Refresh,
+            text=_('Refresh'),
+            icon=self.create_icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh,
+            register_action=False
+        )
+        self.refresh_action.setDisabled(self.data_function is None)
         self.resize_action = self.create_action(
             ArrayEditorActions.Resize,
             text=_('Resize'),
@@ -762,17 +757,33 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
-        toolbar.add_item(self.resize_action)
-
         self.toggle_bgcolor_action = self.create_action(
             ArrayEditorActions.ToggleBackgroundColor,
             text=_('Background color'),
-            icon=self.create_icon('background_color'),
             toggled=do_nothing,
             register_action=False
         )
-        toolbar.add_item(self.toggle_bgcolor_action)
 
+        # ---- Toolbar and options menu
+
+        options_menu = self.create_menu('Options menu', register=False)
+        options_menu.add_action(self.toggle_bgcolor_action)
+        options_menu.add_action(self.format_action)
+
+        options_button = self.create_toolbutton(
+            name='Options toolbutton',
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
+        toolbar = self.create_toolbar('Editor toolbar', register=False)
+        toolbar.add_item(self.resize_action)
+        toolbar.add_item(self.create_stretcher(id_='stretcher'))
+        toolbar.add_item(self.refresh_action)
+        toolbar.add_item(options_button)
         toolbar._render()
 
         # ---- Stack widget (empty)
