@@ -784,22 +784,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Autoformatting configuration
         formatter = self.get_conf('formatting')
 
-        # This is necessary to support python-lsp-black 1 and 2 in the same
-        # codebase. See python-lsp/python-lsp-black#41 for details.
-        # TODO: Remove this in Spyder 6 to only support version 2.
-        old_pylsp_black = is_module_installed(
-            'pylsp_black', '<2.0.0', distribution_name='python_lsp_black'
-        )
-
-        if old_pylsp_black:
-            black_formatter = 'pylsp_black'
-            if formatter == 'black':
-                formatter = 'pylsp_black'
-        else:
-            black_formatter = 'black'
-
         # Enabling/disabling formatters
-        formatters = ['autopep8', 'yapf', black_formatter]
+        formatters = ['autopep8', 'yapf', 'black']
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
@@ -812,9 +798,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # 1. The autopep8 plugin shares the same maxLineLength value with the
         #    pycodestyle one. That's why it's not necessary to set it here.
         # 2. The yapf pylsp plugin doesn't support this yet.
-        if not old_pylsp_black:
-            # TODO: Remove this if in Spyder 6.
-            formatter_options['black']['line_length'] = cs_max_line_length
+        formatter_options['black']['line_length'] = cs_max_line_length
 
         # PyLS-Spyder configuration
         group_cells = self.get_conf(
@@ -890,10 +874,5 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins['preload']['modules'] = self.get_conf('preload_modules')
         for fmt in formatters:
             plugins[fmt].update(formatter_options[fmt])
-
-        # TODO: Remove the code in this if in Spyder 6 because it won't be
-        # necessary.
-        if old_pylsp_black:
-            plugins['black']['line_length'] = cs_max_line_length
 
         return python_config
