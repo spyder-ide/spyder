@@ -118,7 +118,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -131,7 +131,7 @@ jobs:
 
       - name: Restore python-lsp-server Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
@@ -140,7 +140,7 @@ jobs:
 
       - name: Restore qtconsole Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
@@ -149,7 +149,7 @@ jobs:
 
       - name: Restore ${{ matrix.spyk-arch }} spyder-kernels Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}

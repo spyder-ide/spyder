@@ -44,13 +44,13 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
           key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
