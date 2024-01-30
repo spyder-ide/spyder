@@ -116,6 +116,7 @@ DEFAULTS = [
             ('pythonpath_manager',
              {
               'spyder_pythonpath': [],
+              'prioritize': False,
               }),
             ('quick_layouts',
              {

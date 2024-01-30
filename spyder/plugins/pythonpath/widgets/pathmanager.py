@@ -44,13 +44,14 @@ class PathManagerToolbuttons:
     AddPath = 'add_path'
     RemovePath = 'remove_path'
     ExportPaths = 'export_paths'
+    Prioritize = 'prioritize'
 
 
 class PathManager(QDialog, SpyderWidgetMixin):
     """Path manager dialog."""
 
     redirect_stdio = Signal(bool)
-    sig_path_changed = Signal(object)
+    sig_path_changed = Signal(object, bool)
 
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
@@ -79,6 +80,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.system_path = ()
         self.user_path = []
 
+        self.original_prioritize = None
+
         # This is necessary to run our tests
         if self.path:
             self.update_paths(system_path=get_system_pythonpath())
@@ -91,6 +94,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.movedown_button = None
         self.movebottom_button = None
         self.export_button = None
+        self.prioritize_button = None
         self.user_header = None
         self.project_header = None
         self.system_header = None
@@ -108,6 +112,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.setWindowIcon(self.create_icon('pythonpath'))
         self.resize(500, 400)
         self.export_button.setVisible(os.name == 'nt' and sync)
+        self.prioritize_button.setChecked(
+            self.get_conf('prioritize', default=False)
+        )
 
         # Description
         description = QLabel(
@@ -190,12 +197,20 @@ class PathManager(QDialog, SpyderWidgetMixin):
             icon=self.create_icon('fileexport'),
             triggered=self.export_pythonpath,
             tip=_("Export to PYTHONPATH environment variable"))
+        self.prioritize_button = self.create_toolbutton(
+            PathManagerToolbuttons.Prioritize,
+            icon=self.create_icon('first_page'),
+            option='prioritize',
+            triggered=self.prioritize,
+            tip=_("Place PYTHONPATH at the front of sys.path"))
+        self.prioritize_button.setCheckable(True)
 
         self.selection_widgets = [self.movetop_button, self.moveup_button,
                                   self.movedown_button, self.movebottom_button]
         return (
             [self.add_button, self.remove_button] +
-            self.selection_widgets + [self.export_button]
+            self.selection_widgets + [self.export_button] +
+            [self.prioritize_button]
         )
 
     def _create_item(self, path):
@@ -334,6 +349,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         self.listwidget.setCurrentRow(0)
         self.original_path_dict = self.get_path_dict()
+        self.original_prioritize = self.get_conf('prioritize', default=False)
         self.refresh()
 
     @Slot()
@@ -462,7 +478,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Enable remove button only for user paths
         self.remove_button.setEnabled(
-            not current_item in self.headers
+            current_item not in self.headers
             and (self.editable_top_row <= row <= self.editable_bottom_row)
         )
 
@@ -471,6 +487,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         # Ok button only enabled if actual changes occur
         self.button_ok.setEnabled(
             self.original_path_dict != self.get_path_dict()
+            or self.original_prioritize != self.prioritize_button.isChecked()
         )
 
     @Slot()
@@ -602,6 +619,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.user_path = self.get_user_path()
         self.refresh()
 
+    def prioritize(self):
+        """Toggle prioritize setting."""
+        self.refresh()
+
     def current_row(self):
         """Returns the current row of the list."""
         return self.listwidget.currentRow()
@@ -632,14 +653,21 @@ class PathManager(QDialog, SpyderWidgetMixin):
         system paths are different.
         """
         if self.system_path != self.get_conf('system_path', default=()):
-            self.sig_path_changed.emit(self.get_path_dict())
+            self.sig_path_changed.emit(
+                self.get_path_dict(),
+                self.get_conf('prioritize', default=False)
+            )
         self.set_conf('system_path', self.system_path)
 
     def accept(self):
         """Override Qt method."""
         path_dict = self.get_path_dict()
-        if self.original_path_dict != path_dict:
-            self.sig_path_changed.emit(path_dict)
+        prioritize = self.prioritize_button.isChecked()
+        if (
+            self.original_path_dict != path_dict
+            or self.original_prioritize != prioritize
+        ):
+            self.sig_path_changed.emit(path_dict, prioritize)
         super().accept()
 
     def reject(self):
@@ -662,7 +690,8 @@ def test():
         project_path=tuple(sys.path[-2:]),
     )
 
-    def callback(path_dict):
+    def callback(path_dict, prioritize):
+        sys.stdout.write(f"prioritize: {prioritize}\n")
         sys.stdout.write(str(path_dict))
 
     dlg.sig_path_changed.connect(callback)
