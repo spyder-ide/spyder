@@ -34,7 +34,7 @@ class PythonpathActions:
 # -----------------------------------------------------------------------------
 class PythonpathContainer(PluginMainContainer):
 
-    sig_pythonpath_changed = Signal(object, object)
+    sig_pythonpath_changed = Signal(object, object, bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -100,9 +100,13 @@ class PythonpathContainer(PluginMainContainer):
         # New path
         new_path_dict_p = self._get_spyder_pythonpath_dict()
 
+        prioritize = self.get_conf('prioritize', default=False)
+
         # Update path
         self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
-        self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+        self.sig_pythonpath_changed.emit(
+            old_path_dict_p, new_path_dict_p, prioritize
+        )
 
     def show_path_manager(self):
         """Show path manager dialog."""
@@ -262,7 +266,9 @@ class PythonpathContainer(PluginMainContainer):
             new_path_dict_p != old_path_dict_p
             or new_prioritize != old_prioritize
         ):
-            self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+            self.sig_pythonpath_changed.emit(
+                old_path_dict_p, new_path_dict_p, new_prioritize
+            )
 
     def _migrate_to_config_options(self):
         """
