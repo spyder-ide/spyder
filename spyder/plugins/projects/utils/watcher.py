@@ -12,6 +12,7 @@ import logging
 # Third-party imports
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QMessageBox
+from superqt.utils import qthrottled
 import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, PatternMatchingEventHandler
@@ -120,15 +121,25 @@ class WorkspaceWatcher(QObject):
 
     observer = None
 
+    sig_file_moved = Signal(str, str, bool)
+    sig_file_created = Signal(str, bool)
+    sig_file_deleted = Signal(str, bool)
+    sig_file_modified = Signal(str, bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.event_handler = WorkspaceEventHandler(self)
 
+        self.event_handler.sig_file_moved.connect(self.on_moved)
+        self.event_handler.sig_file_created.connect(self.on_created)
+        self.event_handler.sig_file_deleted.connect(self.on_deleted)
+        self.event_handler.sig_file_modified.connect(self.on_modified)
+
     def connect_signals(self, project):
-        self.event_handler.sig_file_created.connect(project.file_created)
-        self.event_handler.sig_file_moved.connect(project.file_moved)
-        self.event_handler.sig_file_deleted.connect(project.file_deleted)
-        self.event_handler.sig_file_modified.connect(project.file_modified)
+        self.sig_file_created.connect(project.file_created)
+        self.sig_file_moved.connect(project.file_moved)
+        self.sig_file_deleted.connect(project.file_deleted)
+        self.sig_file_modified.connect(project.file_modified)
 
     def start(self, workspace_folder):
         # Needed to handle an error caused by the inotify limit reached.
@@ -180,3 +191,19 @@ class WorkspaceWatcher(QObject):
                 self.observer = None
             except RuntimeError:
                 pass
+
+    @qthrottled(timeout=200)
+    def on_moved(self, src_path, dest_path, is_dir):
+        self.sig_file_moved.emit(src_path, dest_path, is_dir)
+
+    @qthrottled(timeout=200)
+    def on_created(self, path, is_dir):
+        self.sig_file_created.emit(path, is_dir)
+
+    @qthrottled(timeout=200)
+    def on_deleted(self, path, is_dir):
+        self.sig_file_deleted.emit(path, is_dir)
+
+    @qthrottled(timeout=200)
+    def on_modified(self, path, is_dir):
+        self.sig_file_modified.emit(path, is_dir)

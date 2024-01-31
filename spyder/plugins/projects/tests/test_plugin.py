@@ -379,16 +379,16 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
     project_root = tmpdir.mkdir('project0')
     folder0 = project_root.mkdir('folder0')
     folder1 = project_root.mkdir('folder1')
-    file0 = project_root.join('file0')
-    file1 = folder0.join('file1')
-    file2 = folder0.join('file2')
-    file3 = folder1.join('file3')
+    file0 = project_root.join('file0.txt')
+    file1 = folder0.join('file1.txt')
+    file2 = folder0.join('file2.txt')
+    file3 = folder1.join('file3.txt')
     file0.write('')
     file1.write('')
     file3.write('ab')
 
     # Open the project
-    projects.open_project(path=to_text_string(project_root))
+    projects.open_project(path=str(project_root))
 
     # Get a reference to the filesystem event handler
     fs_handler = projects.get_widget().watcher.event_handler
@@ -399,7 +399,7 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
         file2.write('')
 
     file_created, is_dir = blocker.args
-    assert file_created == to_text_string(file2)
+    assert file_created == str(file2)
     assert not is_dir
 
     # Test folder creation
@@ -408,47 +408,47 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
         folder2 = project_root.mkdir('folder2')
 
     folder_created, is_dir = blocker.args
-    assert folder_created == osp.join(to_text_string(project_root), 'folder2')
+    assert folder_created == osp.join(str(project_root), 'folder2')
 
     # Test file move/renaming
-    new_file = osp.join(to_text_string(folder0), 'new_file')
+    new_file = osp.join(str(folder0), 'new_file.txt')
     with qtbot.waitSignal(fs_handler.sig_file_moved,
                           timeout=3000) as blocker:
-        shutil.move(to_text_string(file1), new_file)
+        shutil.move(str(file1), new_file)
 
     original_file, file_moved, is_dir = blocker.args
-    assert original_file == to_text_string(file1)
+    assert original_file == str(file1)
     assert file_moved == new_file
     assert not is_dir
 
     # Test folder move/renaming
-    new_folder = osp.join(to_text_string(project_root), 'new_folder')
+    new_folder = osp.join(str(project_root), 'new_folder')
     with qtbot.waitSignal(fs_handler.sig_file_moved,
                           timeout=3000) as blocker:
-        shutil.move(to_text_string(folder2), new_folder)
+        shutil.move(str(folder2), new_folder)
 
     original_folder, folder_moved, is_dir = blocker.args
-    assert original_folder == to_text_string(folder2)
+    assert original_folder == str(folder2)
     assert folder_moved == new_folder
     assert is_dir
 
     # Test file deletion
     with qtbot.waitSignal(fs_handler.sig_file_deleted,
                           timeout=3000) as blocker:
-        os.remove(to_text_string(file0))
+        os.remove(str(file0))
 
     deleted_file, is_dir = blocker.args
-    assert deleted_file == to_text_string(file0)
+    assert deleted_file == str(file0)
     assert not is_dir
-    assert not osp.exists(to_text_string(file0))
+    assert not osp.exists(str(file0))
 
     # Test folder deletion
     with qtbot.waitSignal(fs_handler.sig_file_deleted,
                           timeout=3000) as blocker:
-        shutil.rmtree(to_text_string(folder0))
+        shutil.rmtree(str(folder0))
 
     deleted_folder, is_dir = blocker.args
-    assert to_text_string(folder0) in deleted_folder
+    assert str(folder0) in deleted_folder
 
     # For some reason this fails in macOS
     if not sys.platform == 'darwin':
@@ -458,7 +458,7 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
             file3.write('abc')
 
         modified_file, is_dir = blocker.args
-        assert modified_file in to_text_string(file3)
+        assert modified_file in str(file3)
 
 
 def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
