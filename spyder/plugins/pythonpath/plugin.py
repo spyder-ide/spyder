@@ -34,7 +34,7 @@ class PythonpathManager(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    sig_pythonpath_changed = Signal(object, object)
+    sig_pythonpath_changed = Signal(object, object, bool)
     """
     This signal is emitted when there is a change in the Pythonpath handled by
     Spyder.
@@ -49,6 +49,9 @@ class PythonpathManager(SpyderPluginV2):
 
     new_path_dict: OrderedDict
         New Pythonpath dictionary.
+
+    prioritize
+        Whether to prioritize Pythonpath in sys.path
 
     See Also
     --------
