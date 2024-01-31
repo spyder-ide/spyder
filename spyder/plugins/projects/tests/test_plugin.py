@@ -24,7 +24,6 @@ from flaky import flaky
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 import spyder.plugins.base
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
@@ -368,8 +367,6 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
 
 
 @flaky(max_runs=5)
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
-@pytest.mark.skipif(not running_in_ci(), reason="Hangs locally sometimes")
 def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     Test that filesystem notifications are emitted when creating,
@@ -377,6 +374,7 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
     """
     # Create a directory for the project and some files.
     project_root = tmpdir.mkdir('project0')
+    git_folder = project_root.mkdir('.git')
     folder0 = project_root.mkdir('folder0')
     folder1 = project_root.mkdir('folder1')
     file0 = project_root.join('file0.txt')
@@ -450,15 +448,29 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
     deleted_folder, is_dir = blocker.args
     assert str(folder0) in deleted_folder
 
-    # For some reason this fails in macOS
-    if not sys.platform == 'darwin':
-        # Test file/folder modification
-        with qtbot.waitSignal(fs_handler.sig_file_modified,
-                              timeout=3000) as blocker:
-            file3.write('abc')
+    # Test file/folder modification
+    with qtbot.waitSignal(fs_handler.sig_file_modified,
+                          timeout=3000) as blocker:
+        file3.write('abc')
 
-        modified_file, is_dir = blocker.args
-        assert modified_file in str(file3)
+    modified_file, is_dir = blocker.args
+    assert modified_file in str(file3)
+
+    # Test events in hidden folders are not emitted
+    with qtbot.assertNotEmitted(fs_handler.sig_file_created, wait=2000):
+        git_file = git_folder.join('git_file.txt')
+        git_file.write("Some data")
+
+    # Test events in pycache folders are not emitted
+    with qtbot.assertNotEmitted(fs_handler.sig_file_created, wait=2000):
+        pycache_folder = project_root.mkdir('__pycache__')
+        pycache_file = pycache_folder.join("foo.pyc")
+        pycache_file.write("")
+
+    # Test events for files with binary extensions are not emitted
+    with qtbot.assertNotEmitted(fs_handler.sig_file_created, wait=2000):
+        png_file = project_root.join("binary.png")
+        png_file.write("")
 
 
 def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):

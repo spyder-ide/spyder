@@ -9,6 +9,7 @@
 # Standard lib imports
 import os
 import logging
+from pathlib import Path
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal
@@ -21,9 +22,20 @@ from watchdog.observers.polling import PollingObserverVFS
 from spyder.config.utils import get_edit_extensions
 
 
+# ---- Constants
+# -----------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 
+EDIT_EXTENSIONS = get_edit_extensions()
 
+FOLDERS_TO_IGNORE = [
+    "__pycache__",
+    "build",
+]
+
+
+# ---- Monkey patches
+# -----------------------------------------------------------------------------
 class BaseThreadWrapper(watchdog.utils.BaseThread):
     """
     Wrapper around watchdog BaseThread class.
@@ -50,6 +62,44 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
 watchdog.utils.BaseThread = BaseThreadWrapper
 
 
+# ---- Auxiliary functions
+# -----------------------------------------------------------------------------
+def ignore_entry(entry: os.DirEntry) -> bool:
+    """Check if an entry should be ignored."""
+    parts = Path(entry.path).parts
+
+    # Ignore files in hidden directories (e.g. .git)
+    if any([p.startswith(".") for p in parts]):
+        return True
+
+    # Ignore specific folders
+    for folder in FOLDERS_TO_IGNORE:
+        if folder in parts:
+            return True
+
+    return False
+
+
+def editable_file(entry: os.DirEntry) -> bool:
+    """Check if an entry file is editable."""
+    if entry.is_file():
+        return (os.path.splitext(entry.path)[1] in EDIT_EXTENSIONS)
+    return True
+
+
+def filter_scandir(path):
+    """
+    Filter entries from os.scandir that we're not interested in tracking in the
+    observer.
+    """
+    return (
+        entry for entry in os.scandir(path)
+        if (not ignore_entry(entry) and editable_file(entry))
+    )
+
+
+# ---- Event handler
+# -----------------------------------------------------------------------------
 class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
     """
     Event handler for watchdog notifications.
@@ -67,7 +117,7 @@ class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
         QObject.__init__(self, parent)
         PatternMatchingEventHandler.__init__(
             self,
-            patterns = [f"*{ext}" for ext in get_edit_extensions()],
+            patterns=[f"*{ext}" for ext in EDIT_EXTENSIONS],
         )
 
     def fmt_is_dir(self, is_dir):
@@ -110,6 +160,8 @@ class WorkspaceEventHandler(QObject, PatternMatchingEventHandler):
             super().dispatch(event)
 
 
+# ---- Watcher
+# -----------------------------------------------------------------------------
 class WorkspaceWatcher(QObject):
     """
     Wrapper class around watchdog observer and notifier.
@@ -148,7 +200,9 @@ class WorkspaceWatcher(QObject):
         #   openmsi/openmsistream#56).
         # * There doesn't seem to be issues on Mac, but it's simpler to use a
         #   single observer for all OSes.
-        self.observer = PollingObserverVFS(stat=os.stat, listdir=os.scandir)
+        self.observer = PollingObserverVFS(
+            stat=os.stat, listdir=filter_scandir
+        )
 
         self.observer.schedule(
             self.event_handler, workspace_folder, recursive=True
