@@ -43,7 +43,7 @@ from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.utils.qthelpers import create_action, add_actions
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.api.run import (
@@ -635,7 +635,7 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.go_to_next_todo
         )
         self.todo_menu = self.create_menu(EditorWidgetMenus.TodoList)
-        self.todo_menu.setStyleSheet(stylesheet.toString())
+        self.todo_menu.setStyleSheet(self.todo_menu.styleSheet() + stylesheet.toString())
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         self.warning_list_action = self.create_action(
@@ -648,7 +648,7 @@ class EditorMainWidget(PluginMainWidget):
         self.warning_menu = self.create_menu(
             EditorWidgetMenus.WarningErrorList
         )
-        self.warning_menu.setStyleSheet(stylesheet.toString())
+        self.warning_menu.setStyleSheet(self.warning_menu.styleSheet() + stylesheet.toString())
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = self.create_action(
@@ -874,8 +874,7 @@ class EditorMainWidget(PluginMainWidget):
             self.open_action,
             self.save_action,
             self.save_all_action,
-            self.create_new_cell,
-            MENU_SEPARATOR
+            self.create_new_cell
         ]
         self.pythonfile_dependent_actions = [
             self.blockcomment_action,
@@ -2115,7 +2114,7 @@ class EditorMainWidget(PluginMainWidget):
         for fname in self.recent_files:
             if osp.isfile(fname):
                 recent_files.append(fname)
-        self.recent_file_menu.clear()
+        self.recent_file_menu.clear_actions()
         if recent_files:
             for fname in recent_files:
                 action = create_action(
@@ -2124,10 +2123,18 @@ class EditorMainWidget(PluginMainWidget):
                         fname, scale_factor=1.0))
                 action.triggered[bool].connect(self.load)
                 action.setData(to_qvariant(fname))
-                self.recent_file_menu.addAction(action)
+                self.recent_file_menu.add_action(
+                    action,
+                    section="recent_files_section",
+                    omit_id=True,
+                    before_section="recent_files_actions_section"
+                )
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
-        add_actions(self.recent_file_menu, (None, self.max_recent_action,
-                                            self.clear_recent_action))
+        for menu_action in (self.max_recent_action, self.clear_recent_action):
+            self.recent_file_menu.add_action(
+                menu_action, section="recent_files_actions_section"
+            )
+        self.recent_file_menu.render()
 
     @Slot()
     def clear_recent_files(self):

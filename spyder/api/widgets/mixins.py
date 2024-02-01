@@ -250,6 +250,7 @@ class SpyderMenuMixin:
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
         reposition: Optional[bool] = True,
+        register_menu: Optional[bool] = True,
         MenuClass=SpyderMenu
     ) -> SpyderMenu:
         """
@@ -281,9 +282,10 @@ class SpyderMenuMixin:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)
 
-        MENU_REGISTRY.register_reference(
-            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME
-        )
+        if register_menu:
+            MENU_REGISTRY.register_reference(
+                menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+            )
 
         self._menus[menu_id] = menu
         return menu
@@ -294,6 +296,7 @@ class SpyderMenuMixin:
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
         reposition: Optional[bool] = True,
+        register_menu: Optional[bool] = True
     ) -> SpyderMenu:
         """
         Create a menu for Spyder.
@@ -308,6 +311,8 @@ class SpyderMenuMixin:
             Icon to use for the menu.
         reposition: bool, optional (default True)
             Whether to vertically reposition the menu due to it's padding.
+        register_menu: bool, optional (default True)
+            Whether to register menu in the central registry
 
         Returns
         -------
@@ -318,7 +323,8 @@ class SpyderMenuMixin:
             menu_id=menu_id,
             title=title,
             icon=icon,
-            reposition=reposition
+            reposition=reposition,
+            register_menu=register_menu
         )
 
     def get_menu(

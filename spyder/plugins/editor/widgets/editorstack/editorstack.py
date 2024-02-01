@@ -24,7 +24,7 @@ from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
-                            QMessageBox, QMenu, QVBoxLayout, QWidget,
+                            QMessageBox, QVBoxLayout, QWidget,
                             QSizePolicy, QToolBar)
 
 # Local imports
@@ -49,10 +49,11 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (add_actions,  # create_action,
-                                    create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons,
-                                    create_waitspinner)
+from spyder.utils.qthelpers import (
+    create_toolbutton,
+    mimedata2url,
+    create_waitspinner
+)
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
 
@@ -72,6 +73,19 @@ class EditorStackActions:
     SplitHorizontally = "split horizontally"
     CloseSplitPanel = "close split panel"
     CloseWindow = "close_window_action"
+
+
+class EditorStackMenus:
+    OptionsMenu = "editorstack_options_menu"
+
+
+class EditorStackMenuSections:
+    GivenSection = "given_section"
+    SwitcherSection = "switcher_path_section"
+    CloseOrderSection = "close_order_section"
+    SplitCloseSection = "split_close_section"
+    WindowSection = "window_section"
+    NewWindowCloseSection = "new_window_and_close_section"
 
 
 class EditorStack(QWidget, SpyderWidgetMixin):
@@ -180,6 +194,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.threadmanager = ThreadManager(self)
+
+        self.is_closable = False
         self.new_window = False
         self.horsplit_action = None
         self.versplit_action = None
@@ -213,33 +229,33 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # TODO: Change access to main and plugin/main_widget
         if use_switcher and self.get_plugin()._plugin.main:
             self.set_switcher(self.get_plugin()._plugin.main.switcher)
-        copy_absolute_path_action = self.create_action(
+        self.copy_absolute_path_action = self.create_action(
             EditorStackActions.CopyAbsolutePath,
             text=_("Copy absolute path"),
             icon=self.create_icon('editcopy'),
             triggered=lambda: self.copy_absolute_path(),
             register_action=False
         )
-        copy_relative_path_action = self.create_action(
+        self.copy_relative_path_action = self.create_action(
             EditorStackActions.CopyRelativePath,
             text=_("Copy relative path"),
             icon=self.create_icon('editcopy'),
             triggered=lambda: self.copy_relative_path(),
             register_action=False
         )
-        close_right = self.create_action(
+        self.close_right = self.create_action(
             EditorStackActions.CloseAllRight,
             text=_("Close all to the right"),
             triggered=self.close_all_right,
             register_action=False
         )
-        close_all_but_this = self.create_action(
+        self.close_all_but_this = self.create_action(
             EditorStackActions.CloseAllButThis,
             text=_("Close all but this"),
             triggered=self.close_all_but_this,
             register_action=False
         )
-        sort_tabs = self.create_action(
+        self.sort_tabs = self.create_action(
             EditorStackActions.SortTabs,
             text=_("Sort tabs alphabetically"),
             triggered=self.sort_file_tabs_alphabetically,
@@ -250,7 +266,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             text = _("Show in Finder")
         else:
             text = _("Show in external file explorer")
-        external_fileexp_action = self.create_action(
+        self.external_fileexp_action = self.create_action(
             EditorStackActions.ShowInExternalFileExplorer,
             text=text,
             triggered=self.show_in_external_file_explorer,
@@ -258,21 +274,18 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             register_shortcut=True,
             register_action=False
         )
-
-        self.menu_actions = actions + [
-            external_fileexp_action,
-            MENU_SEPARATOR,
-            self.switcher_action,
-            self.symbolfinder_action,
-            copy_absolute_path_action,
-            copy_relative_path_action,
-            MENU_SEPARATOR,
-            close_right,
-            close_all_but_this,
-            sort_tabs
-        ]
+        self.new_window_action = None
+        if parent is not None:
+            self.new_window_action = self.create_action(
+                EditorStackActions.NewWindow,
+                text=_("New window"),
+                icon=self.create_icon('newwindow'),
+                tip=_("Create a new editor window"),
+                triggered=parent.main_widget.create_new_window,
+                register_action=False
+            )
+        self._given_actions = actions
         self.outlineexplorer = None
-        self.is_closable = False
         self.new_action = None
         self.open_action = None
         self.save_action = None
@@ -622,7 +635,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             tip=_('Options')
         )
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
-        self.menu = QMenu(self)
+        self.menu = self.create_menu(
+            EditorStackMenus.OptionsMenu, register_menu=False
+        )
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
@@ -650,12 +665,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         tab_layout.setContentsMargins(0, 0, 0, 0)
         tab_layout.addWidget(self.tabs)
         layout.addWidget(tab_container)
-
-        # Show/hide icons in plugin menus for Mac
-        if sys.platform == 'darwin':
-            self.menu.aboutToHide.connect(
-                lambda menu=self.menu:
-                set_menu_icons(menu, False))
 
     def create_top_widgets(self):
         # Filename label
@@ -810,7 +819,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         self.send_to_help(name, help_text, force=True)
 
-    #  ------ Editor Widget Settings
+    # ---- Editor Widget Settings
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
@@ -1113,7 +1122,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         for finfo in self.data:
             finfo.editor.set_current_project_path(root_path)
 
-    #  ------ Stacked widget management
+    # ---- Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()
 
@@ -1266,40 +1275,66 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-    #  ------ Context menu
+    # ---- Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
-        self.menu.clear()
+        self.menu.clear_actions()
         if self.data:
-            actions = self.menu_actions
+            given_actions = self._given_actions + [
+                self.external_fileexp_action
+            ]
+            for given_action in given_actions:
+                self.menu.add_action(
+                    given_action, section=EditorStackMenuSections.GivenSection
+                )
+            # switcher and path section
+            switcher_path_actions = [
+                self.switcher_action,
+                self.symbolfinder_action,
+                self.copy_absolute_path_action,
+                self.copy_relative_path_action
+            ]
+            for switcher_path_action in switcher_path_actions:
+                self.menu.add_action(
+                    switcher_path_action,
+                    section=EditorStackMenuSections.SwitcherSection
+                )
+            # close and order section
+            close_order_actions = [
+                self.close_right,
+                self.close_all_but_this,
+                self.sort_tabs
+            ]
+            for close_order_action in close_order_actions:
+                self.menu.add_action(
+                    close_order_action,
+                    section=EditorStackMenuSections.CloseOrderSection
+                )
         else:
             actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-        add_actions(self.menu, list(actions) + self.__get_split_actions())
-        self.close_split_action.setEnabled(self.is_closable)
-
-        if sys.platform == 'darwin':
-            set_menu_icons(self.menu, True)
-
-    #  ------ Hor/Ver splitting
-    def __get_split_actions(self):
-        if self.parent() is not None:
-            main_widget = self.parent().main_widget
-        else:
-            main_widget = None
-
-        # New window
-        if main_widget is not None:
-            self.new_window_action = self.create_action(
-                EditorStackActions.NewWindow,
-                text=_("New window"),
-                icon=self.create_icon('newwindow'),
-                tip=_("Create a new editor window"),
-                triggered=main_widget.create_new_window,
-                register_action=False
+            for menu_action in actions:
+                self.menu.add_action(menu_action)
+        for split_actions in self.__get_split_actions():
+            self.menu.add_action(
+                split_actions,
+                section=EditorStackMenuSections.SplitCloseSection
             )
+        for window_actions in self.__get_window_actions():
+            self.menu.add_action(
+                window_actions, section=EditorStackMenuSections.WindowSection
+            )
+        for new_window_and_close_action in (
+                self.__get_new_window_and_close_actions()
+                ):
+            self.menu.add_action(
+                new_window_and_close_action,
+                section=EditorStackMenuSections.NewWindowCloseSection
+            )
+        self.menu.render()
 
-        # Splitting
+    # ---- Hor/Ver splitting actions
+    def __get_split_actions(self):
         self.versplit_action = self.create_action(
             EditorStackActions.SplitVertically,
             text=_("Split vertically"),
@@ -1329,10 +1364,17 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             register_shortcut=True,
             register_action=False
         )
+        self.close_split_action.setEnabled(self.is_closable)
 
-        # Regular actions
-        actions = [MENU_SEPARATOR, self.versplit_action,
-                   self.horsplit_action, self.close_split_action]
+        actions = [
+            self.versplit_action, self.horsplit_action, self.close_split_action
+        ]
+
+        return actions
+
+    # ---- Window actions
+    def __get_window_actions(self):
+        actions = []
 
         if self.new_window:
             window = self.window()
@@ -1343,16 +1385,31 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 triggered=window.close,
                 register_action=False
             )
-            actions += [MENU_SEPARATOR, self.new_window_action,
-                        close_window_action]
-        elif main_widget is not None:
+            if self.new_window_action:
+                actions += [self.new_window_action]
+            actions += [close_window_action]
+
+        return actions
+
+    # ---- New window and close/docking/undocking actions
+    def __get_new_window_and_close_actions(self):
+        actions = []
+        if self.parent() is not None:
+            main_widget = self.parent().main_widget
+        else:
+            main_widget = None
+
+        if main_widget is not None:
             if main_widget.windowwidget is not None:
-                actions += [MENU_SEPARATOR, main_widget.dock_action]
+                actions += [main_widget.dock_action]
             else:
-                actions += [MENU_SEPARATOR, self.new_window_action,
-                            main_widget.lock_unlock_action,
-                            main_widget.undock_action,
-                            main_widget.close_action]
+                if self.new_window_action:
+                    actions += [self.new_window_action]
+                actions += [
+                    main_widget.lock_unlock_action,
+                    main_widget.undock_action,
+                    main_widget.close_action
+                ]
 
         return actions
 
@@ -1490,7 +1547,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.blockSignals(False)
         self.refresh()
 
-    #  ------ Close file, tabwidget...
+    # ---- Close file, tabwidget...
     def close_file(self, index=None, force=False):
         """Close file (index=None -> close current file)
         Keep current file index unchanged (if current file
@@ -1652,7 +1709,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_last_closed_files(self, fnames):
         self.last_closed_files = fnames
 
-    #  ------ Save
+    # ---- Save
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified.
 
@@ -2393,7 +2450,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.sig_refresh_eol_chars.emit(os_name)
 
-    #  ------ Load, reload
+    # ---- Load, reload
     def reload(self, index):
         """Reload file from disk."""
         finfo = self.data[index]
@@ -2770,7 +2827,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
 
-    #  ------ Run
+    # ---- Run
     def _get_lines_cursor(self, direction):
         """ Select and return all lines from cursor in given direction"""
         editor = self.get_current_editor()
@@ -2886,7 +2943,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         return text, off_pos, col_pos, cell_name, encoding
 
-    #  ------ Drag and drop
+    # ---- Drag and drop
     def dragEnterEvent(self, event):
         """
         Reimplemented Qt method.

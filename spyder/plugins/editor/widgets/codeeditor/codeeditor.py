@@ -37,12 +37,12 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
-                            QScrollBar)
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
 
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu, MENU_SEPARATOR
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.panel import Panel
@@ -71,8 +71,12 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette, QStylePalette
-from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    mimedata2url, start_file)
+from spyder.utils.qthelpers import (
+    create_action,
+    file_uri,
+    mimedata2url,
+    start_file
+)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 
@@ -84,6 +88,17 @@ except Exception:
     nbformat = None  # analysis:ignore
 
 logger = logging.getLogger(__name__)
+
+
+class CodeEditorContextMenuSections:
+      InspectSection = "inspect_section"
+      UndoRedoSection = "undo_redo_section"
+      EditSection = "edit_section"
+      NbformatSections = "nbformat_section"
+      ZoomSection = "zoom_section"
+      RefactorCodeSection = "refactor_code_section"
+      CopySection = "copy_section"
+      OtherSection = "others_section"
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget):
@@ -3338,32 +3353,87 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.format_action.setEnabled(False)
 
         # Build menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.menu = QMenu(self)
-        actions_1 = [self.gotodef_action, self.inspect_current_object_action,
-                     None, self.undo_action, self.redo_action, None,
-                     self.cut_action, self.copy_action,
-                     self.paste_action, selectall_action]
-        actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action, self.docstring_action,
-                     self.format_action]
+        # TODO: Make codeeditor a `SpyderWidgetMixin`?
+        self.menu = SpyderMenu(self)
+        # inspect section
+        inspect_actions = [
+            self.gotodef_action, self.inspect_current_object_action
+        ]
+        for menu_action in inspect_actions:
+            self.menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.InspectSection,
+                omit_id=True
+            )
+        # undo/redo section
+        undo_redo_actions = [self.undo_action, self.redo_action]
+        for menu_action in undo_redo_actions:
+            self.menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.UndoRedoSection,
+                omit_id=True
+            )
+        # edit section
+        edit_actions = [
+            self.cut_action,
+            self.copy_action,
+            self.paste_action,
+            selectall_action
+        ]
+        for menu_action in edit_actions:
+            self.menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.EditSection,
+                omit_id=True
+            )
         if nbformat is not None:
-            nb_actions = [self.clear_all_output_action,
-                          self.ipynb_convert_action, None]
-            actions = actions_1 + nb_actions + actions_2
-            add_actions(self.menu, actions)
-        else:
-            actions = actions_1 + actions_2
-            add_actions(self.menu, actions)
+            # nbformat section
+            nb_actions = [
+                self.clear_all_output_action, self.ipynb_convert_action
+            ]
+            for menu_action in nb_actions:
+                self.menu.add_action(
+                    menu_action,
+                    section=CodeEditorContextMenuSections.NbformatSections,
+                    omit_id=True
+                )
+        # zoom section
+        zoom_actions = [
+            zoom_in_action, zoom_out_action, zoom_reset_action
+        ]
+        for menu_action in zoom_actions:
+            self.menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.ZoomSection,
+                omit_id=True
+            )
+        # refactor/code section
+        refactor_code_actions = [
+            toggle_comment_action, self.docstring_action, self.format_action
+        ]
+        for menu_action in refactor_code_actions:
+            self.menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.RefactorCodeSection,
+                omit_id=True
+            )
 
         # Read-only context-menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu,
-                    (self.copy_action, None, selectall_action,
-                     self.gotodef_action))
+        self.readonly_menu = SpyderMenu(self)
+        # copy section
+        self.readonly_menu.add_action(
+            self.copy_action,
+            section=CodeEditorContextMenuSections.CopySection,
+            omit_id=True
+        )
+        # other section
+        other_actions = [selectall_action, self.gotodef_action]
+        for menu_action in other_actions:
+            self.readonly_menu.add_action(
+                menu_action,
+                section=CodeEditorContextMenuSections.OtherSection,
+                omit_id=True
+            )
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
