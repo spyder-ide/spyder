@@ -33,7 +33,7 @@ if [[ $(sed --version 2>/dev/null) ]]; then
     sed_opts=("-i" "-e")
 else
     # BSD sed does not have --version
-    sed_opts=("-i" "" "-e")
+    sed_opts=("-i" "''" "-e")
 fi
 
 m1="# >>> Added by Spyder >>>"
@@ -113,7 +113,7 @@ fi
 # Quit Spyder
 echo "Quitting Spyder..."
 if [[ "\$OSTYPE" = "darwin"* ]]; then
-    osascript -e 'quit app "Spyder.app"' 2>/dev/null
+    osascript -e 'quit app "$(basename "$shortcut_path")"' 2>/dev/null
 else
     pkill spyder 2>/dev/null
 fi

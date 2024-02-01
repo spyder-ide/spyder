@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 import re
 import sys
+from textwrap import dedent
 try:
     import winreg
 except Exception:
@@ -48,11 +49,12 @@ def _get_user_env_script():
     user_env_script = Path(get_conf_path()) / 'user-env.sh'
 
     if Path(shell).name in ('bash', 'zsh'):
-        script_text = (
-            f"#!{shell} -i\n"
-            "unset HISTFILE\n"
-            f"{shell} -l -c "
-            f"\"{sys.executable} -c 'import os; print(dict(os.environ))'\"\n"
+        script_text = dedent(
+            f"""\
+            !{shell} -i
+            unset HISTFILE
+            {shell} -l -c "'{sys.executable}' -c 'import os; print(dict(os.environ))'"
+            """
         )
     else:
         logger.info("Getting user environment variables is not supported "

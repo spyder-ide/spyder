@@ -252,12 +252,12 @@ jobs:
           cat $base_prefix/uninstall-spyder.sh
 
           if [[ -e "$shortcut" ]]; then
-              echo "Contents of $shortcut/Contents/MacOS:"
-              ls -al $shortcut/Contents/MacOS
+              echo "$shortcut/Contents/MacOS contents:"
+              ls -al "$shortcut/Contents/MacOS"
               echo -e "\nContents of $shortcut/Contents/Info.plist:"
-              cat $shortcut/Contents/Info.plist
-              echo -e "\nContents of $shortcut/Contents/MacOS/spyder-script:"
-              cat $shortcut/Contents/MacOS/spyder-script
+              cat "$shortcut/Contents/Info.plist"
+              echo -e "\n$shortcut/Contents/MacOS/spyder"*-script contents:
+              cat "$shortcut/Contents/MacOS/spyder"*-script
           else
               echo "$shortcut does not exist"
               exit 1
