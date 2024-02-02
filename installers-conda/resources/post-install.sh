@@ -192,18 +192,17 @@ echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 echo "Launching Spyder now..."
 if [[ "$OSTYPE" = "darwin"* ]]; then
-    tmp_dir=${TMPDIR:-$SHARED_INSTALLER_TEMP/}spyder
-    launch_script=${tmp_dir}/post-install-launch.sh
-    echo "Creating post-install launch script ..."
-    mkdir -p $tmp_dir
+    launch_script=${TMPDIR:-$SHARED_INSTALLER_TEMP}/post-install-launch.sh
+    echo "Creating post-install launch script $launch_script..."
     cat <<EOF > $launch_script
 #!/bin/bash
 while pgrep -fq Installer.app; do
     sleep 1
 done
-open -a $shortcut_path
+open -a "$shortcut_path"
 EOF
     chmod +x $launch_script
+    cat $launch_script
 
     nohup $launch_script &>/dev/null &
 elif [[ -n "$(which gtk-launch)" ]]; then
