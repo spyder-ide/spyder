@@ -83,6 +83,11 @@ echo "Creating uninstall script..."
 cat <<END > ${u_spy_exe}
 #!/bin/bash
 
+if [[ ! -w ${PREFIX} || ! -w "$shortcut_path" ]]; then
+    echo "Uninstalling Spyder requires sudo privileges."
+    exit 1
+fi
+
 while getopts "f" option; do
     case "\$option" in
         (f) force=true ;;
@@ -137,7 +142,7 @@ rm -rf ${PREFIX}
 
 echo "Spyder successfully uninstalled."
 END
-chmod u+x ${u_spy_exe}
+chmod +x ${u_spy_exe}
 
 # ---- Linux post-install notes
 if [[ "$OSTYPE" == "linux"* ]]; then
