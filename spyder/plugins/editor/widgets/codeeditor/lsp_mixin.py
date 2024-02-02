@@ -905,13 +905,23 @@ class LSPMixin:
             self.sig_display_object_info.emit(
                 content, self._request_hover_clicked
             )
+
             if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word
+
+                # Replace non-breaking spaces for real ones.
                 content = content.replace("\xa0", " ")
+
+                # Show hover
                 self.show_hint(
-                    content, inspect_word=word, at_point=self._last_point
+                    content,
+                    inspect_word=word,
+                    at_point=self._last_point,
+                    vertical_position='top',
+                    as_hover=True,
                 )
+
                 self._last_point = None
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
@@ -1029,6 +1039,16 @@ class LSPMixin:
         start, end = self.get_selection_start_end()
         start_line, start_col = start
         end_line, end_col = end
+
+        # Remove empty trailing newline from multiline selection
+        if end_line > start_line and end_col == 0:
+            end_line -= 1
+
+        fmt_range = {
+            "start": {"line": start_line, "character": start_col},
+            "end": {"line": end_line, "character": end_col},
+        }
+
         using_spaces = self.indent_chars != "\t"
         tab_size = (
             len(self.indent_chars)
@@ -1036,10 +1056,6 @@ class LSPMixin:
             else self.tab_stop_width_spaces
         )
 
-        fmt_range = {
-            "start": {"line": start_line, "character": start_col},
-            "end": {"line": end_line, "character": end_col},
-        }
         params = {
             "file": self.filename,
             "range": fmt_range,

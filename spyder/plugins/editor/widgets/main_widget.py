@@ -632,6 +632,9 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('todo_list'),
             tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
                   "HACK/BUG/OPTIMIZE/!!!/???)"),
+            # TODO: This was removed at spyder-ide/spyder#21710 and
+            # without it a `spyder.api.exceptions.SpyderAPIError: Action must provide the toggled or triggered parameters!`
+            # is raised. Should this be actually removed?
             triggered=self.go_to_next_todo
         )
         self.todo_menu = self.create_menu(EditorWidgetMenus.TodoList)
@@ -2143,7 +2146,7 @@ class EditorMainWidget(PluginMainWidget):
 
     @Slot()
     def change_max_recent_files(self):
-        "Change max recent files entries"""
+        """Change max recent files entries"""
         editorstack = self.get_current_editorstack()
         mrf, valid = QInputDialog.getInt(
             editorstack,
@@ -2562,7 +2565,9 @@ class EditorMainWidget(PluginMainWidget):
         tofile = to_text_string(dest)
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                new_filename = fname.replace(dirname, tofile)
+                source_re = "^" + re.escape(source)
+                dest_quoted = dest.replace("\\", r"\\")
+                new_filename = re.sub(source_re, dest_quoted, fname)
                 self.renamed(source=fname, dest=new_filename)
 
     # ---- Source code

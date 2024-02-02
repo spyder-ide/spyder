@@ -13,7 +13,7 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
@@ -57,7 +57,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def __init__(self, parent, path=None, project_path=None,
                  not_active_path=None, sync=True):
         """Path manager dialog."""
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QDialog.__init__(self, parent)

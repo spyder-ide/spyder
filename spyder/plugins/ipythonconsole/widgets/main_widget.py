@@ -871,6 +871,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         'pylab', 'pylab/backend', 'pylab/autoload',
         'pylab/inline/figure_format', 'pylab/inline/resolution',
         'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/fontsize', 'pylab/inline/bottom',
         'pylab/inline/bbox_inches'])
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
@@ -1158,7 +1159,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.infowidget.show()
             else:
                 if self.enable_infowidget:
-                    self.infowidget.hide()
+                    try:
+                        self.infowidget.hide()
+                    except RuntimeError:
+                        # Needed to handle the possible scenario where the
+                        # `infowidget` (`FrameWebView`) related C/C++ object
+                        # has been already deleted when trying to hide it.
+                        # See spyder-ider/spyder#21509
+                        self.enable_infowidget = False
+                        self.infowidget = None
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab

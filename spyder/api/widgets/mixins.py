@@ -17,17 +17,22 @@ from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QImage, QPainter, QPixmap
+from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QSizePolicy, QToolBar, QWidget, QToolButton
 )
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor,
+    SpyderConfigurationObserver
+)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
@@ -713,3 +718,71 @@ class SpyderMainWindowMixin:
         # plugin ones, which usually are not maximized.
         if not hasattr(self, 'is_window_widget'):
             self.showMaximized()
+
+
+class SvgToScaledPixmap(SpyderConfigurationAccessor):
+    """
+    Mixin to transform an SVG to a QPixmap that is scaled according to the
+    factor set by users in Preferences.
+    """
+
+    def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
+        """
+        Transform svg to a QPixmap that is scaled according to the factor set
+        by users in Preferences.
+
+        Parameters
+        ----------
+        svg_file: str
+            Name of or path to the svg file.
+        rescale: float, optional
+            Rescale pixmap according to a factor between 0 and 1.
+        in_package: bool, optional
+            Get svg from the `images` folder in the Spyder package.
+        """
+        if in_package:
+            image_path = get_image_path(svg_file)
+
+        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+            scale_factors = self.get_conf(
+                'high_dpi_custom_scale_factors',
+                section='main'
+            )
+            scale_factor = float(scale_factors.split(":")[0])
+        else:
+            scale_factor = 1
+
+        # Get width and height
+        pm = QPixmap(image_path)
+        width = pm.width()
+        height = pm.height()
+
+        # Rescale but preserving aspect ratio
+        if rescale is not None:
+            aspect_ratio = width / height
+            width = int(width * rescale)
+            height = int(width / aspect_ratio)
+
+        # Paint image using svg renderer
+        image = QImage(
+            int(width * scale_factor), int(height * scale_factor),
+            QImage.Format_ARGB32_Premultiplied
+        )
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(image_path)
+        renderer.render(painter)
+        painter.end()
+
+        # This is also necessary to make the image look good for different
+        # scale factors
+        if scale_factor > 1.0:
+            image.setDevicePixelRatio(scale_factor)
+
+        # Create pixmap out of image
+        final_pm = QPixmap.fromImage(image)
+        final_pm = final_pm.copy(
+            0, 0, int(width * scale_factor), int(height * scale_factor)
+        )
+
+        return final_pm

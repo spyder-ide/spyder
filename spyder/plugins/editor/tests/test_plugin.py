@@ -137,27 +137,38 @@ def test_renamed_tree(editor_plugin, mocker):
     editor_main_widget = editor.get_widget()
     mocker.patch.object(editor_main_widget, 'get_filenames')
     mocker.patch.object(editor_main_widget, 'renamed')
-    editor_main_widget.get_filenames.return_value = [
-        '/test/directory/file1.py',
-        '/test/directory/file2.txt',
-        '/home/spyder/testing/file3.py',
-        '/test/directory/file4.rst'
-    ]
+    if os.name == "nt":
+        filenames = [r'C:\test\directory\file1.py',
+                     r'C:\test\directory\file2.txt',
+                     r'C:\home\spyder\testing\file3.py',
+                     r'C:\test\directory\file4.rst']
+        expected = [r'C:\test\dir\file1.py',
+                    r'C:\test\dir\file2.txt',
+                    r'C:\home\spyder\testing\file3.py',
+                    r'C:\test\dir\file4.rst']
+        sourcedir = r'C:\test\directory'
+        destdir = r'C:\test\dir'
+    else:
+        filenames = ['/test/directory/file1.py',
+                     '/test/directory/file2.txt',
+                     '/home/spyder/testing/file3.py',
+                     '/test/directory/file4.rst']
+        expected = ['/test/dir/file1.py',
+                    '/test/dir/file2.txt',
+                    '/home/spyder/testing/file3.py',
+                    '/test/dir/file4.rst']
+        sourcedir = '/test/directory'
+        destdir = '/test/dir'
 
-    editor.renamed_tree('/test/directory', '/test/dir')
-    assert editor.get_widget().renamed.call_count == 3
-    assert editor.get_widget().renamed.called_with(
-        source='/test/directory/file1.py',
-        dest='test/dir/file1.py'
-    )
-    assert editor.get_widget().renamed.called_with(
-        source='/test/directory/file2.txt',
-        dest='test/dir/file2.txt'
-    )
-    assert editor.get_widget().renamed.called_with(
-        source='/test/directory/file4.rst',
-        dest='test/dir/file4.rst'
-    )
+    editor_main_widget.get_filenames.return_value = filenames
+
+    editor_main_widget.renamed_tree(sourcedir, destdir)
+    assert editor_main_widget.renamed.call_count == 3
+    for file in [0, 1, 3]:
+        editor_main_widget.renamed.assert_any_call(
+            source=filenames[file],
+            dest=expected[file]
+        )
 
 
 def test_no_template(editor_plugin):

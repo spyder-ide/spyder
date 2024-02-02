@@ -17,7 +17,7 @@ import tempfile
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QGroupBox, QHBoxLayout, QLabel, QLayout, QLineEdit,
                             QPushButton, QRadioButton, QVBoxLayout)
 
 # Local imports
@@ -146,7 +146,7 @@ class ProjectDialog(QDialog):
         layout.addLayout(layout_grid)
         layout.addSpacing(8)
         layout.addWidget(self.bbox)
-        layout.setSizeConstraint(layout.SetFixedSize)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         self.setLayout(layout)
 

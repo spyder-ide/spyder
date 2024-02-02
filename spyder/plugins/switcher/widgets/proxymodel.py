@@ -15,7 +15,7 @@ class SwitcherProxyModel(QSortFilterProxyModel):
 
     def __init__(self, parent=None):
         """Proxy model to perform sorting on the scored items."""
-        super(SwitcherProxyModel, self).__init__(parent)
+        super().__init__(parent)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)

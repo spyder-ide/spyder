@@ -113,7 +113,7 @@ def test_objectexplorer(objectexplorer):
     ([1, 3, 4, 'kjkj', None], [45, 48]),
     ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 57]),
     (1.2233, [57, 59]),
-    (np.random.rand(10, 10), [166, 162]),
+    (np.random.rand(10, 10), [162, 167]),
     (datetime.date(1945, 5, 8), [43, 48])
 ])
 def test_objectexplorer_collection_types(objectexplorer, params):

@@ -29,7 +29,8 @@ from typing import Any, Callable, Optional
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, Signal, Slot)
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer, Signal,
+    Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
@@ -633,6 +634,15 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
         # it to show any information on it.
         self.verticalHeader().hide()
 
+        # Delay editing values for a bit so that when users do a double click
+        # (the default behavior for editing since Spyder was created; now they
+        # only have to do a single click), our editor dialogs are focused.
+        self.__index_clicked = None
+        self._edit_value_timer = QTimer(self)
+        self._edit_value_timer.setInterval(100)
+        self._edit_value_timer.setSingleShot(True)
+        self._edit_value_timer.timeout.connect(self._edit_value)
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -904,36 +914,40 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
             self.source_model.reset()
             self.sortByColumn(0, Qt.AscendingOrder)
 
+    def _edit_value(self):
+        self.edit(self.__index_clicked)
+
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
         if event.button() != Qt.LeftButton:
             QTableView.mousePressEvent(self, event)
             return
+
         index_clicked = self.indexAt(event.pos())
         if index_clicked.isValid():
-            if index_clicked == self.currentIndex() \
-               and index_clicked in self.selectedIndexes():
+            if (
+                index_clicked == self.currentIndex()
+                and index_clicked in self.selectedIndexes()
+            ):
                 self.clearSelection()
             else:
                 row = index_clicked.row()
                 # TODO: Remove hard coded "Value" column number (3 here)
-                index_clicked = index_clicked.child(row, 3)
-                self.edit(index_clicked)
-                QTableView.mousePressEvent(self, event)
+                self.__index_clicked = index_clicked.child(row, 3)
+
+                # Wait for a bit to edit values so dialogs are focused on
+                # double clicks. That will preserve the way things worked in
+                # Spyder 5 for users that are accustomed to do double clicks.
+                self._edit_value_timer.start()
         else:
             self.clearSelection()
             event.accept()
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
-        index_clicked = self.indexAt(event.pos())
-        if index_clicked.isValid():
-            row = index_clicked.row()
-            # TODO: Remove hard coded "Value" column number (3 here)
-            index_clicked = index_clicked.child(row, 3)
-            self.edit(index_clicked)
-        else:
-            event.accept()
+        # Make this event do nothing because variables are now edited with a
+        # single click.
+        pass
 
     def mouseMoveEvent(self, event):
         """Change cursor shape."""
@@ -1709,7 +1723,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.shellwidget = shellwidget
         self.var_properties = {}
         self.dictfilter = None
-        self.delegate = None
         self.readonly = False
 
         self.source_model = CollectionsModel(

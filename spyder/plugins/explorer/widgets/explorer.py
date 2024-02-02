@@ -19,14 +19,14 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
-                            QToolTip, QTreeView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QAbstractItemView, QApplication, QDialog, QDialogButtonBox,
+    QFileSystemModel, QInputDialog, QLabel, QLineEdit, QMessageBox,
+    QProxyStyle, QStyle, QTextEdit, QToolTip, QTreeView, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -267,7 +267,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QTreeView.__init__(self, parent)
@@ -300,7 +300,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         # Setup
         self.setup_fs_model()
-        self.setSelectionMode(self.ExtendedSelection)
+        self.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection
+        )
         header.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Track mouse movements. This activates the mouseMoveEvent declared

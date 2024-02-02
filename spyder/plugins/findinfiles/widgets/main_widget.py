@@ -11,6 +11,7 @@ import os.path as osp
 import re
 
 # Third party imports
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
@@ -35,6 +36,7 @@ from spyder.widgets.helperwidgets import PaneEmptyWidget
 # -----------------------------------------------------------------------------
 MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
 MAX_COMBOBOX_WIDTH = AppStyle.FindMinWidth + 80  # In pixels
+MIN_COMBOBOX_WIDTH = AppStyle.FindMinWidth - 80  # In pixels
 
 
 # ---- Enums
@@ -126,7 +128,10 @@ class FindInFilesWidget(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        super().__init__(name, plugin, parent=parent)
+        if PYQT5 or PYQT6:
+            super().__init__(name, plugin, parent=parent)
+        else:
+            PluginMainWidget.__init__(self, name, plugin, parent=parent)
         self.set_conf('text_color', MAIN_TEXT_COLOR)
         self.set_conf('hist_limit', MAX_PATH_HISTORY)
 
@@ -140,6 +145,7 @@ class FindInFilesWidget(PluginMainWidget):
         self._search_in_label_width = None
         self._exclude_label_width = None
         self._is_shown = False
+        self._is_first_time = False
 
         search_text = self.get_conf('search_text', '')
         path_history = self.get_conf('path_history', [])
@@ -184,7 +190,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.SearchInCombo
         )
         self.path_selection_combo.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.path_selection_combo.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
@@ -195,7 +201,7 @@ class FindInFilesWidget(PluginMainWidget):
             id_=FindInFilesWidgetToolbarItems.ExcludePatternCombo
         )
         self.exclude_pattern_edit.setMinimumSize(
-            MAX_COMBOBOX_WIDTH, AppStyle.FindHeight
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
@@ -348,22 +354,18 @@ class FindInFilesWidget(PluginMainWidget):
             self.set_max_results_action,
             menu=menu,
         )
-        self.set_pane_empty()
 
-    def set_pane_empty(self):
-        if self.result_browser.data:
-            self.stacked_widget.setCurrentWidget(self.result_browser)
-        else:
-            self.stacked_widget.setCurrentWidget(self.pane_empty)
+        # Set pane_empty widget at the beginning
+        self.stacked_widget.setCurrentWidget(self.pane_empty)
 
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(
-            'stop' if self.running else 'find'))
+            'stop' if self.running else 'find')
+        )
 
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
-        self.set_pane_empty()
 
     @on_conf_change(option='more_options')
     def on_more_options_update(self, value):
@@ -435,6 +437,16 @@ class FindInFilesWidget(PluginMainWidget):
             self._is_shown = True
 
         super().showEvent(event)
+
+    def resizeEvent(self, event):
+        """Adjustments when the widget is resized."""
+        super().resizeEvent(event)
+
+        # This recomputes the result items width according to this widget's
+        # width, which makes the UI be rendered as expected.
+        # NOTE: Don't debounce or throttle `set_width` because then it wouldn't
+        # do its job as expected.
+        self.result_browser.set_width()
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -645,6 +657,12 @@ class FindInFilesWidget(PluginMainWidget):
         If there is no search running, this will start the search. If there is
         a search running, this will stop it.
         """
+        # Show result_browser the first time a user performs a search and leave
+        # it shown afterwards.
+        if not self._is_first_time:
+            self.stacked_widget.setCurrentWidget(self.result_browser)
+            self._is_first_time = True
+
         if self.running:
             self.stop()
         else:

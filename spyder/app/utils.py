@@ -215,9 +215,8 @@ def create_splash_screen(use_previous_factor=False):
         # qt-snippet-render-svg-to-qpixmap-for.html for details.
         if CONF.get('main', 'high_dpi_custom_scale_factor'):
             if not use_previous_factor:
-                factor = float(
-                    CONF.get('main', 'high_dpi_custom_scale_factors')
-                )
+                factors = CONF.get('main', 'high_dpi_custom_scale_factors')
+                factor = float(factors.split(":")[0])
             else:
                 factor = previous_factor
         else:
@@ -298,20 +297,6 @@ def create_application():
     # Required for correct icon on GNOME/Wayland:
     if hasattr(app, 'setDesktopFileName'):
         app.setDesktopFileName('spyder')
-
-    # ---- Monkey patching QApplication
-    class FakeQApplication(QApplication):
-        """Spyder's fake QApplication"""
-        def __init__(self, args):
-            self = app  # analysis:ignore
-
-        @staticmethod
-        def exec_():
-            """Do nothing because the Qt mainloop is already running"""
-            pass
-
-    from qtpy import QtWidgets
-    QtWidgets.QApplication = FakeQApplication
 
     # ---- Monkey patching sys.exit
     def fake_sys_exit(arg=[]):

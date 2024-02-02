@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright (c) 2009- Spyder Project Contributors
+# Copyright (c) Spyder Project Contributors
 #
-# Distributed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Licensed under the terms of the MIT License
+# (see LICENSE.txt for details)
 # -----------------------------------------------------------------------------
+
+"""Tests for Update Manager Plugin."""

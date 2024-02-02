@@ -46,7 +46,8 @@ requirements.check_qt()
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox, QShortcut
+from qtpy.QtWidgets import (
+    QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -155,13 +156,6 @@ class MainWindow(
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
-
-        if running_under_pytest():
-            self._proxy_style = None
-        else:
-            from spyder.utils.qthelpers import SpyderProxyStyle
-            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-            self._proxy_style = SpyderProxyStyle(None)
 
         # Enabling scaling for high dpi. This is not required with Qt 6 where
         # it is always enabled.
@@ -653,6 +647,26 @@ class MainWindow(
 
                 action.setShortcut(shortcut)
 
+    def _prevent_freeze_when_moving_dockwidgets(self):
+        """
+        This is necessary to prevent an ugly freeze when moving dockwidgets to
+        different locations (see `SpyderDockWidget` for how that's handled).
+
+        Perhaps this is due to the new special style for tabbars, but now Qt
+        takes a long time to run `findChildren(QTabBar)` when it hasn't done it
+        in a while. So we do it here every minute.
+        """
+        def find_tabbars():
+            # Catch an error when closing the app on macOS with PyQt 5.15
+            try:
+                self.findChildren(QTabBar)
+            except RuntimeError:
+                pass
+
+        tabbars_timer = QTimer(self)
+        tabbars_timer.timeout.connect(find_tabbars)
+        tabbars_timer.start(60 * 1000)
+
     def setup(self):
         """Setup main window."""
         PLUGIN_REGISTRY.sig_plugin_ready.connect(
@@ -661,54 +675,35 @@ class MainWindow(
 
         PLUGIN_REGISTRY.set_main(self)
 
-        # TODO: Remove circular dependency between help and ipython console
-        # and remove this import. Help plugin should take care of it
-        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
         logger.info("*** Start of MainWindow setup ***")
 
-        logger.info("Applying theme configuration...")
-        ui_theme = self.get_conf('ui_theme', section='appearance')
-        color_scheme = self.get_conf('selected', section='appearance')
-        qapp = QApplication.instance()
-
-        if ui_theme == 'dark':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp.setStyle(self._proxy_style)
-            dark_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(dark_qss)
-            self.statusBar().setStyleSheet(dark_qss)
-            css_path = DARK_CSS_PATH
-
-        elif ui_theme == 'light':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp.setStyle(self._proxy_style)
-            light_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(light_qss)
-            self.statusBar().setStyleSheet(light_qss)
-            css_path = CSS_PATH
-
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                if not running_under_pytest():
-                    # Set style proxy to fix combobox popup on mac and qdark
-                    qapp.setStyle(self._proxy_style)
-                dark_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(dark_qss)
-                self.statusBar().setStyleSheet(dark_qss)
-                css_path = DARK_CSS_PATH
-            else:
-                light_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(light_qss)
-                self.statusBar().setStyleSheet(light_qss)
-                css_path = CSS_PATH
+        # Applying app stylesheet
+        logger.info("Applying main stylesheet...")
+        self.setStyleSheet(str(APP_STYLESHEET))
 
         # This needs to done after applying the stylesheet to the window
         logger.info("Set color for links in Qt widgets")
+        qapp = QApplication.instance()
         set_links_color(qapp)
 
-        # Set css_path as a configuration to be used by the plugins
+        # Set css_path as a configuration to be used by the plugins.
+        # TODO: Remove circular dependency between help and ipython console
+        # and remove this import. Help plugin should take care of it
+        from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
+
+        ui_theme = self.get_conf('ui_theme', section='appearance')
+        color_scheme = self.get_conf('selected', section='appearance')
+
+        if ui_theme == 'dark':
+            css_path = DARK_CSS_PATH
+        elif ui_theme == 'light':
+            css_path = CSS_PATH
+        elif ui_theme == 'automatic':
+            if not is_dark_font_color(color_scheme):
+                css_path = DARK_CSS_PATH
+            else:
+                css_path = CSS_PATH
+
         self.set_conf('css_path', css_path, section='appearance')
 
         # Status bar
@@ -935,6 +930,9 @@ class MainWindow(
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
+
+        # Prevent freezes when moving panes
+        self._prevent_freeze_when_moving_dockwidgets()
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False

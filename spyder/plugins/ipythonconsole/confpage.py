@@ -171,6 +171,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
+        fontsize_spin = self.create_spinbox(
+            _("Font size:") + "  ",
+            " " + _("points"),
+            'pylab/inline/fontsize',
+            min_=5,
+            max_=48,
+            step=1.0,
+            tip=_("Default is 10")
+        )
+        bottom_spin = self.create_spinbox(
+            _("Bottom edge:") + "  ",
+            " " + _("of figure height"),
+            'pylab/inline/bottom',
+            min_=0,
+            max_=0.3,
+            step=0.01,
+            tip=_("The position of the bottom edge of the subplots,\nas a "
+                  "fraction of the figure height.\nThe default is 0.11.")
+        )
+        bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),
             'pylab/inline/bbox_inches',
@@ -185,16 +205,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout = QGridLayout()
         inline_layout.addWidget(format_box.label, 1, 0)
         inline_layout.addWidget(format_box.combobox, 1, 1)
-        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
-        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
-        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
-        inline_layout.addWidget(width_spin.plabel, 3, 0)
-        inline_layout.addWidget(width_spin.spinbox, 3, 1)
-        inline_layout.addWidget(width_spin.slabel, 3, 2)
-        inline_layout.addWidget(height_spin.plabel, 4, 0)
-        inline_layout.addWidget(height_spin.spinbox, 4, 1)
-        inline_layout.addWidget(height_spin.slabel, 4, 2)
-        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
+        spinboxes = [resolution_spin, width_spin, height_spin,
+                     fontsize_spin, bottom_spin]
+        for counter, spinbox in enumerate(spinboxes):
+            inline_layout.addWidget(spinbox.plabel, counter + 2, 0)
+            inline_layout.addWidget(spinbox.spinbox, counter + 2, 1)
+            inline_layout.addWidget(spinbox.slabel, counter + 2, 2)
+            inline_layout.addWidget(spinbox.help_label, counter + 2, 3)
+
+        inline_layout.addWidget(bbox_inches_box, len(spinboxes) + 2, 0, 1, 4)
 
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)
