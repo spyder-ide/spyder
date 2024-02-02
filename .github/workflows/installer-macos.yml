@@ -127,7 +127,7 @@ jobs:
         if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
         run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ env.DISTDIR }}/${{ env.DMGNAME }}
           name: ${{ env.DMGNAME }}
