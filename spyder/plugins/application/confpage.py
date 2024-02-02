@@ -30,7 +30,6 @@ HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
 class ApplicationConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -205,8 +204,9 @@ class ApplicationConfigPage(PluginConfigPage):
             tip=_("Enter values for different screens separated by semicolons "
                   "';'.\n Float values are supported"),
             alignment=Qt.Horizontal,
-            regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
-            restart=True)
+            regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
+            restart=True
+        )
 
         normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
@@ -242,36 +242,6 @@ class ApplicationConfigPage(PluginConfigPage):
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
-    def apply_settings(self, options):
-        if 'high_dpi_custom_scale_factors' in options:
-            scale_factors = self.get_option(
-                'high_dpi_custom_scale_factors'
-            ).split(';')
-
-            change_min_scale_factor = False
-            for idx, scale_factor in enumerate(scale_factors[:]):
-                scale_factor = float(scale_factor)
-                if scale_factor < 1.0:
-                    change_min_scale_factor = True
-                    scale_factors[idx] = "1.0"
-
-            if change_min_scale_factor:
-                scale_factors_text = ";".join(scale_factors)
-                QMessageBox.critical(
-                    self,
-                    _("Error"),
-                    _("We're sorry but setting a scale factor bellow 1.0 "
-                      "isn't possible. Any scale factor bellow 1.0 will "
-                      "be set to 1.0"),
-                    QMessageBox.Ok
-                )
-                self.custom_scaling_edit.textbox.setText(scale_factors_text)
-                self.set_option(
-                    'high_dpi_custom_scale_factors', scale_factors_text
-                )
-                self.changed_options.add('high_dpi_custom_scale_factors')
-
-        self.plugin.apply_settings()
 
     def _save_lang(self):
         """
