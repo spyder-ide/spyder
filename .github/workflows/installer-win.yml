@@ -65,7 +65,7 @@ jobs:
         run: |
           python installers/Windows/installer.py 3.8.10 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG} ${SUFFIX_FLAG} ${TEMPLATE_FAG}
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: dist/${{ env.EXE_NAME }}
           name: ${{ env.EXE_NAME }}
