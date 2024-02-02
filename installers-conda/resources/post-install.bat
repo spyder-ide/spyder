@@ -1,14 +1,12 @@
 :: This script launches Spyder after install
 @echo off
 
-set spy_rt=%PREFIX%\envs\spyder-runtime
-set menu=%spy_rt%\Menu\spyder-menu.json
 set mode=system
 if exist "%PREFIX%\.nonadmin" set mode=user
 
 :: Get shortcut path
 for /F "tokens=*" %%i in (
-    '%PREFIX%\python -c "from menuinst.api import _load; menu, menu_items = _load(r'%menu%', target_prefix=r'%spy_rt%', base_prefix=r'%PREFIX%', _mode='%mode%'); print(menu_items[0]._paths()[0])"'
+    '%PREFIX%\python %PREFIX%\Scripts\menuinst_cli.py shortcut --mode=%mode%'
 ) do (
     set shortcut=%%~fi
 )

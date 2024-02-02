@@ -240,73 +240,9 @@ jobs:
           echo "PKG_GLOB=$PKG_GLOB" >> $GITHUB_ENV
           echo "PKG_BASE_NAME=$PKG_BASE_NAME" >> $GITHUB_ENV
 
-      - name: Test macOS Installer
-        if: runner.os == 'macOS'
-        run: |
-          # Stream install.log to stdout to view all log messages.
-          tail -F /var/log/install.log & tail_id=$!
-          trap "kill -s TERM $tail_id" EXIT
-
-          installer -pkg $PKG_PATH -target CurrentUserHomeDirectory >/dev/null
-
-          base_prefix=$(compgen -G $HOME/Library/spyder-*)
-          spy_rt=$base_prefix/envs/spyder-runtime
-          menu=$spy_rt/Menu/spyder-menu.json
-          mode=user
-          shortcut=$(${base_prefix}/bin/python - <<EOF
-          from menuinst.api import _load
-          menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$base_prefix", _mode="$mode")
-          print(menu_items[0]._paths()[0])
-          EOF
-          )
-
-          echo "Install info:"
-          echo "Contents of ${base_prefix}:"
-          ls -al $base_prefix
-          echo -e "\nContents of ${base_prefix}/uninstall-spyder.sh:"
-          cat $base_prefix/uninstall-spyder.sh
-
-          if [[ -e "$shortcut" ]]; then
-              echo "$shortcut/Contents/MacOS contents:"
-              ls -al "$shortcut/Contents/MacOS"
-              echo -e "\nContents of $shortcut/Contents/Info.plist:"
-              cat "$shortcut/Contents/Info.plist"
-              echo -e "\n$shortcut/Contents/MacOS/spyder"*-script contents:
-              cat "$shortcut/Contents/MacOS/spyder"*-script
-          else
-              echo "$shortcut does not exist"
-              exit 1
-          fi
-
-      - name: Test Linux Installer
-        if: runner.os == 'Linux'
-        run: |
-          $PKG_PATH -b
-
-          base_prefix=$(compgen -G $HOME/.local/spyder-*)
-          spy_rt=$base_prefix/envs/spyder-runtime
-          menu=$spy_rt/Menu/spyder-menu.json
-          mode=user
-          shortcut=$(${base_prefix}/bin/python - <<EOF
-          from menuinst.api import _load
-          menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$base_prefix", _mode="$mode")
-          print(menu_items[0]._paths()[0])
-          EOF
-          )
-
-          echo "Install info:"
-          echo "Contents of ${base_prefix}:"
-          ls -al $base_prefix
-          echo -e "\nContents of ${base_prefix}/uninstall-spyder.sh:"
-          cat ${base_prefix}/uninstall-spyder.sh
-
-          if [[ -e $shortcut ]]; then
-              echo -e "\nContents of ${shortcut}:"
-              cat $shortcut
-          else
-              echo "$shortcut does not exist"
-              exit 1
-          fi
+      - name: Test macOS or Linux Installer
+        if: runner.os != 'Windows'
+        run: ${{ github.workspace }}/.github/scripts/installer_test.sh
 
       - name: Test Windows Installer
         if: runner.os == 'Windows'
@@ -316,11 +252,9 @@ jobs:
           start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
           if exist %base_prefix%\install.log type %base_prefix%\install.log
 
-          set spy_rt=%base_prefix%\envs\spyder-runtime
-          set menu=%spy_rt%\Menu\spyder-menu.json
           set mode=system
           for /F "tokens=*" %%i in (
-              '%base_prefix%\python -c "from menuinst.api import _load; menu, menu_items = _load(r'%menu%', target_prefix=r'%spy_rt%', base_prefix=r'%base_prefix%', _mode='%mode%'); print(menu_items[0]._paths()[0])"'
+              '%base_prefix%\python %base_prefix%\Scripts\menuinst_cli.py shortcut --mode=%mode%'
           ) do (
               set shortcut=%%~fi
           )

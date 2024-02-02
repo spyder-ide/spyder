@@ -9,24 +9,7 @@ echo "Environment variables:"
 env | sort
 echo ""
 
-# ----
-name_lower="$(echo ${INSTALLER_NAME} | tr 'A-Z' 'a-z')"
-spy_rt="${PREFIX}/envs/spyder-runtime"
-spy_exe="${spy_rt}/bin/spyder"
-u_spy_exe="${PREFIX}/uninstall-spyder.sh"
-mode=$([[ -e "${PREFIX}/.nonadmin" ]] && echo "user" || echo "system")
-menu="${spy_rt}/Menu/spyder-menu.json"
-
-shortcut_path=$(${PREFIX}/bin/python - <<EOF
-from menuinst.api import _load
-menu, menu_items = _load("$menu", target_prefix="$spy_rt", base_prefix="$PREFIX", _mode="$mode")
-print(menu_items[0]._paths()[0])
-EOF
-)
-
-[[ "$OSTYPE" = "linux"* ]] && alias_text="alias spyder=${spy_exe}"
-[[ "$mode" = "user" ]] && alias_text="${alias_text:+${alias_text}\n}alias uninstall-spyder=${u_spy_exe}"
-
+# ---- Sed options
 # BSD sed requires extra "" after -i flag
 if [[ $(sed --version 2>/dev/null) ]]; then
     # GNU sed has --version
@@ -35,6 +18,19 @@ else
     # BSD sed does not have --version
     sed_opts=("-i" "''" "-e")
 fi
+
+# ---- Shortcut
+pythonexe=${PREFIX}/bin/python
+menuinst=${PREFIX}/bin/menuinst_cli.py
+mode=$([[ -e "${PREFIX}/.nonadmin" ]] && echo "user" || echo "system")
+shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
+
+# ---- Aliases
+spy_exe="${PREFIX}/envs/spyder-runtime/bin/spyder"
+u_spy_exe="${PREFIX}/uninstall-spyder.sh"
+
+[[ "$OSTYPE" == "linux"* ]] && alias_text="alias spyder=${spy_exe}"
+[[ "$mode" == "user" ]] && alias_text="${alias_text:+${alias_text}\n}alias uninstall-spyder=${u_spy_exe}"
 
 m1="# >>> Added by Spyder >>>"
 m2="# <<< Added by Spyder <<<"
@@ -63,23 +59,26 @@ add_alias() {
     }" $shell_init
 }
 
-# ----
-if [[ "$mode" = "system" && "$OSTYPE" = "darwin"* ]]; then
+if [[ "$mode" == "system" && "$OSTYPE" == "darwin"* ]]; then
     shell_init_list=("/etc/zshrc" "/etc/bashrc")
-elif [[ "$mode" = "system" ]]; then
+elif [[ "$mode" == "system" ]]; then
     shell_init_list=("/etc/zsh/zshrc" "/etc/bash.bashrc")
 else
     shell_init_list=("$HOME/.zshrc" "$HOME/.bashrc")
 fi
 
 for shell_init in ${shell_init_list[@]}; do
+    # If shell rc path or alias_text is empty, don't do anything
     [[ -z "$shell_init" || -z "$alias_text" ]] && continue
-    [[ "$mode" = "system" && ! -f "$shell_init" ]] && continue  # Don't create non-existent global init file
+
+    # Don't create non-existent global init file
+    [[ "$mode" == "system" && ! -f "$shell_init" ]] && continue
+
     echo "Creating aliases in $shell_init ..."
     add_alias
 done
 
-# ----
+# ---- Uninstall script
 echo "Creating uninstall script..."
 cat <<END > ${u_spy_exe}
 #!/bin/bash
@@ -112,7 +111,7 @@ fi
 
 # Quit Spyder
 echo "Quitting Spyder..."
-if [[ "\$OSTYPE" = "darwin"* ]]; then
+if [[ "\$OSTYPE" == "darwin"* ]]; then
     osascript -e 'quit app "$(basename "$shortcut_path")"' 2>/dev/null
 else
     pkill spyder 2>/dev/null
@@ -132,10 +131,7 @@ done
 
 # Remove shortcut and environment
 echo "Removing Spyder shortcut and environment..."
-${PREFIX}/bin/python - <<EOF
-from menuinst.api import remove
-remove("$menu", target_prefix="$spy_rt", base_prefix="$PREFIX")
-EOF
+$pythonexe $menuinst remove
 
 rm -rf ${PREFIX}
 
@@ -143,8 +139,8 @@ echo "Spyder successfully uninstalled."
 END
 chmod u+x ${u_spy_exe}
 
-# ----
-if [[ "$OSTYPE" = "linux"* ]]; then
+# ---- Linux post-install notes
+if [[ "$OSTYPE" == "linux"* ]]; then
     cat <<EOF
 
 ###############################################################################
@@ -157,7 +153,7 @@ distributions with the command:
 $ spyder
 
 EOF
-    if [[ "$mode" = "system" ]]; then
+    if [[ "$mode" == "system" ]]; then
         cat <<EOF
 This command will only be available in new shell sessions.
 
@@ -187,11 +183,11 @@ fi
 
 echo "*** Post install script for ${INSTALLER_NAME} complete"
 
-# ----
+# ---- Launch Spyder
 [[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
 
 echo "Launching Spyder now..."
-if [[ "$OSTYPE" = "darwin"* ]]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
     launch_script=${TMPDIR:-$SHARED_INSTALLER_TEMP}/post-install-launch.sh
     echo "Creating post-install launch script $launch_script..."
     cat <<EOF > $launch_script

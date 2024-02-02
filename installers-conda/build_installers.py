@@ -246,10 +246,6 @@ def _definitions():
                 "specs": [k + v for k, v in specs.items()],
             },
         },
-        "extra_files": [
-            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-            {condarc: ".condarc"},
-        ],
     }
 
     if not args.no_local:
@@ -267,6 +263,11 @@ def _definitions():
                 ),
                 "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -293,6 +294,11 @@ def _definitions():
                 "default_location_pkg": "Library",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -319,6 +325,11 @@ def _definitions():
                 "check_path_length": False,
                 "pre_install": str(RESOURCES / "pre-install.bat"),
                 "post_install": str(RESOURCES / "post-install.bat"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "Scripts/menuinst_cli.py"},
+                ],
             }
         )
 
