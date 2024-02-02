@@ -147,7 +147,7 @@ def test_init(editor_splitter_bot):
     # No menu actions in parameter call.
     assert not es.menu_actions
     # EditorStack adds its own menu actions to the existing actions.
-    assert es.editorstack.menu_actions != []
+    assert es.editorstack.get_actions() != []
 
     assert isinstance(es.editorstack, EditorStack)
     es.main_widget.register_editorstack.assert_called_with(es.editorstack)
