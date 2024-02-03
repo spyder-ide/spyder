@@ -31,6 +31,10 @@ HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 class ApplicationConfigPage(PluginConfigPage):
 
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+        self.pre_apply_callback = self.perform_checks
+
     def setup_page(self):
         newcb = self.create_checkbox
 
@@ -176,7 +180,7 @@ class ApplicationConfigPage(PluginConfigPage):
         screen_resolution_label.setWordWrap(True)
         screen_resolution_label.setOpenExternalLinks(True)
 
-        normal_radio = self.create_radiobutton(
+        self.normal_radio = self.create_radiobutton(
             _("Normal"),
             'normal_screen_resolution',
             button_group=screen_resolution_bg
@@ -189,7 +193,7 @@ class ApplicationConfigPage(PluginConfigPage):
             restart=True
         )
 
-        custom_scaling_radio = self.create_radiobutton(
+        self.custom_scaling_radio = self.create_radiobutton(
             _("Set a custom high DPI scaling"),
             'high_dpi_custom_scale_factor',
             button_group=screen_resolution_bg,
@@ -208,19 +212,21 @@ class ApplicationConfigPage(PluginConfigPage):
             restart=True
         )
 
-        normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
+        self.normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        custom_scaling_radio.toggled.connect(
-            self.custom_scaling_edit.setEnabled)
+        self.custom_scaling_radio.toggled.connect(
+            self.custom_scaling_edit.setEnabled
+        )
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
         screen_resolution_layout.addWidget(screen_resolution_label)
 
         screen_resolution_inner_layout = QGridLayout()
-        screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
+        screen_resolution_inner_layout.addWidget(self.normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
-        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_radio, 2, 0)
         screen_resolution_inner_layout.addWidget(
             self.custom_scaling_edit, 2, 1)
 
@@ -242,6 +248,14 @@ class ApplicationConfigPage(PluginConfigPage):
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
+    def perform_checks(self):
+        # Prevent setting an empty scale factor in case users try to do it.
+        # See spyder-ide/spyder#21733 for the details.
+        if self.custom_scaling_radio.isChecked():
+            scale_factor = self.custom_scaling_edit.textbox.text()
+            if scale_factor == "":
+                self.normal_radio.setChecked(True)
+                self.changed_options.add('high_dpi_custom_scale_factors')
 
     def _save_lang(self):
         """
