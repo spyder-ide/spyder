@@ -151,11 +151,10 @@ def get_edit_filters():
 
 def get_edit_extensions():
     """
-    Return extensions associated with the file types
-    supported by the Editor
+    Return extensions associated with the file types supported by the Editor.
     """
     edit_filetypes = get_edit_filetypes(ignore_pygments_extensions=False)
-    return _get_extensions(edit_filetypes) + ['']
+    return _get_extensions(edit_filetypes)
 
 
 #==============================================================================
