@@ -1,14 +1,14 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-import tempfile
 import os
+import tempfile
 from textwrap import dedent
 from unittest.mock import patch
+
 from pylsp import lsp, uris
 from pylsp.plugins import flake8_lint
 from pylsp.workspace import Document
-
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import pylsp

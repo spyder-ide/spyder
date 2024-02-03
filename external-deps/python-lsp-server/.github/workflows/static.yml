@@ -38,14 +38,12 @@ jobs:
       # If we don't install pycodestyle, pylint will throw an unused-argument error in pylsp/plugins/pycodestyle_lint.py:72
       # This error cannot be resolved by adding a pylint: disable=unused-argument comment ...
       - run: |
-          pip install -e .[pylint,pycodestyle,pyflakes]
-          pip install black
-      - name: Pylint checks
-        run: pylint pylsp test
-      - name: Code style checks with black
-        run: black --check pylsp test
-      - name: Pyflakes checks
-        run: pyflakes pylsp test
+          pip install -e .[pylint,pycodestyle]
+          pip install ruff
+      - name: ruff linter and code style checks
+        run: ruff check pylsp test
+      - name: ruff code formatter check
+        run: ruff format --check pylsp test
       - name: Validate JSON schema
         run: echo {} | jsonschema pylsp/config/schema.json
       - name: Ensure JSON schema and Markdown docs are in sync

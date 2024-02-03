@@ -6,7 +6,7 @@ import logging
 from rope.base import libutils
 from rope.refactor.rename import Rename
 
-from pylsp import hookimpl, uris, _utils
+from pylsp import _utils, hookimpl, uris
 
 log = logging.getLogger(__name__)
 

@@ -185,6 +185,13 @@ To run the test suite:
 pytest
 ```
 
+Running ruff as a linter and code formatter on the repo:
+```sh
+ruff check .  # linter
+ruff check --fix .  # fix all auto-fixable lint issues
+ruff format .  # format the document
+```
+
 After adding configuration options to `schema.json`, refresh the `CONFIGURATION.md` file with
 
 ```

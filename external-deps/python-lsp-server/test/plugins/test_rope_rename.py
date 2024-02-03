@@ -4,10 +4,10 @@
 import os
 
 import pytest
+
 from pylsp import uris
 from pylsp.plugins.rope_rename import pylsp_rename
 from pylsp.workspace import Document
-
 
 DOC_NAME = "test1.py"
 DOC = """class Test1():
@@ -26,7 +26,7 @@ def tmp_workspace(temp_workspace_factory):
     return temp_workspace_factory({DOC_NAME: DOC, DOC_NAME_SIMPLE: DOC_SIMPLE})
 
 
-def test_rope_rename(tmp_workspace, config):  # pylint: disable=redefined-outer-name
+def test_rope_rename(tmp_workspace, config):
     position = {"line": 0, "character": 6}
     DOC_URI = uris.from_fs_path(os.path.join(tmp_workspace.root_path, DOC_NAME))
     doc = Document(DOC_URI, tmp_workspace)

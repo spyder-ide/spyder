@@ -7,6 +7,7 @@ https://github.com/Microsoft/vscode-uri/blob/e59cab84f5df6265aed18ae5f43552d3eef
 """
 import re
 from urllib import parse
+
 from pylsp import IS_WIN
 
 RE_DRIVE_LETTER_PATH = re.compile(r"^\/[a-zA-Z]:")

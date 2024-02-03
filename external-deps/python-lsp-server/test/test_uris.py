@@ -2,7 +2,9 @@
 # Copyright 2021- Python Language Server Contributors.
 
 from test import unix_only, windows_only
+
 import pytest
+
 from pylsp import uris
 
 

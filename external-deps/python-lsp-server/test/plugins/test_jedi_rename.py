@@ -4,10 +4,10 @@
 import os
 
 import pytest
+
 from pylsp import uris
 from pylsp.plugins.jedi_rename import pylsp_rename
 from pylsp.workspace import Document
-
 
 DOC_NAME = "test1.py"
 DOC = """class Test1():
@@ -33,7 +33,7 @@ def tmp_workspace(temp_workspace_factory):
     )
 
 
-def test_jedi_rename(tmp_workspace, config):  # pylint: disable=redefined-outer-name
+def test_jedi_rename(tmp_workspace, config):
     # rename the `Test1` class
     position = {"line": 0, "character": 6}
     DOC_URI = uris.from_fs_path(os.path.join(tmp_workspace.root_path, DOC_NAME))
