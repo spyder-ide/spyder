@@ -30,7 +30,10 @@ HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
 class ApplicationConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
+
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+        self.pre_apply_callback = self.perform_checks
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -177,48 +180,53 @@ class ApplicationConfigPage(PluginConfigPage):
         screen_resolution_label.setWordWrap(True)
         screen_resolution_label.setOpenExternalLinks(True)
 
-        normal_radio = self.create_radiobutton(
-                                _("Normal"),
-                                'normal_screen_resolution',
-                                button_group=screen_resolution_bg)
+        self.normal_radio = self.create_radiobutton(
+            _("Normal"),
+            'normal_screen_resolution',
+            button_group=screen_resolution_bg
+        )
         auto_scale_radio = self.create_radiobutton(
-                                _("Enable auto high DPI scaling"),
-                                'high_dpi_scaling',
-                                button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays"),
-                                restart=True)
+            _("Enable auto high DPI scaling"),
+            'high_dpi_scaling',
+            button_group=screen_resolution_bg,
+            tip=_("Set this for high DPI displays"),
+            restart=True
+        )
 
-        custom_scaling_radio = self.create_radiobutton(
-                                _("Set a custom high DPI scaling"),
-                                'high_dpi_custom_scale_factor',
-                                button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays when "
-                                      "auto scaling does not work"),
-                                restart=True)
+        self.custom_scaling_radio = self.create_radiobutton(
+            _("Set a custom high DPI scaling"),
+            'high_dpi_custom_scale_factor',
+            button_group=screen_resolution_bg,
+            tip=_("Set this for high DPI displays when auto scaling does not "
+                  "work"),
+            restart=True
+        )
 
         self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
-            tip=_("Enter values for different screens "
-                  "separated by semicolons ';'.\n"
-                  "Float values are supported"),
+            tip=_("Enter values for different screens separated by semicolons "
+                  "';'.\n Float values are supported"),
             alignment=Qt.Horizontal,
-            regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
-            restart=True)
+            regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
+            restart=True
+        )
 
-        normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
+        self.normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
-        custom_scaling_radio.toggled.connect(
-            self.custom_scaling_edit.setEnabled)
+        self.custom_scaling_radio.toggled.connect(
+            self.custom_scaling_edit.setEnabled
+        )
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
         screen_resolution_layout.addWidget(screen_resolution_label)
 
         screen_resolution_inner_layout = QGridLayout()
-        screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
+        screen_resolution_inner_layout.addWidget(self.normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
-        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
+        screen_resolution_inner_layout.addWidget(
+            self.custom_scaling_radio, 2, 0)
         screen_resolution_inner_layout.addWidget(
             self.custom_scaling_edit, 2, 1)
 
@@ -240,29 +248,14 @@ class ApplicationConfigPage(PluginConfigPage):
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
-    def apply_settings(self, options):
-        if 'high_dpi_custom_scale_factors' in options:
-            scale_factors = self.get_option(
-                'high_dpi_custom_scale_factors').split(';')
-            change_min_scale_factor = False
-            for idx, scale_factor in enumerate(scale_factors[:]):
-                scale_factor = float(scale_factor)
-                if scale_factor < 1.0:
-                    change_min_scale_factor = True
-                    scale_factors[idx] = "1.0"
-            if change_min_scale_factor:
-                scale_factors_text = ";".join(scale_factors)
-                QMessageBox.critical(
-                    self, _("Error"),
-                    _("We're sorry but setting a scale factor bellow 1.0 "
-                      "isn't possible. Any scale factor bellow 1.0 will "
-                      "be set to 1.0"),
-                    QMessageBox.Ok)
-                self.custom_scaling_edit.textbox.setText(scale_factors_text)
-                self.set_option(
-                    'high_dpi_custom_scale_factors', scale_factors_text)
+    def perform_checks(self):
+        # Prevent setting an empty scale factor in case users try to do it.
+        # See spyder-ide/spyder#21733 for the details.
+        if self.custom_scaling_radio.isChecked():
+            scale_factor = self.custom_scaling_edit.textbox.text()
+            if scale_factor == "":
+                self.normal_radio.setChecked(True)
                 self.changed_options.add('high_dpi_custom_scale_factors')
-        self.plugin.apply_settings()
 
     def _save_lang(self):
         """
@@ -278,9 +271,11 @@ class ApplicationConfigPage(PluginConfigPage):
             self.set_option('interface_language', value)
         except Exception:
             QMessageBox.critical(
-                self, _("Error"),
+                self,
+                _("Error"),
                 _("We're sorry but the following error occurred while trying "
                   "to set your selected language:<br><br>"
                   "<tt>{}</tt>").format(traceback.format_exc()),
-                QMessageBox.Ok)
+                QMessageBox.Ok
+            )
             return
