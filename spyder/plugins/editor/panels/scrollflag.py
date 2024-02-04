@@ -130,8 +130,8 @@ class ScrollFlagArea(Panel):
             'breakpoint': [],
         }
 
-        # This prevents freezing the interface by running this computation on
-        # the main thread
+        # Run this computation in a different thread to prevent freezing 
+        # the interface
         self._update_flags_thread.start()
 
     def _update_flags(self):

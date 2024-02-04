@@ -179,8 +179,9 @@ class FoldingPanel(Panel):
                 collapsed = self.folding_status[line_number]
 
                 # Check if a block is folded by UI inspection.
-                # This is necesary because the algorithm that detects folded
-                # regions can fail under certain circumstances.
+                # This is necesary because the algorithm that detects the
+                # currently folded regions may fail, for instance, after
+                # pasting a big chunk of code.
                 ui_collapsed = (
                     block.isVisible() and not block.next().isVisible()
                 )
@@ -211,6 +212,7 @@ class FoldingPanel(Panel):
         super().paintEvent(event)
         painter = QPainter(self)
         self.paint_cell(painter)
+
         # Draw collapsed indicators
         if not self._display_folding and not self._key_pressed:
             for top_position, line_number, block in self.editor.visible_blocks:
