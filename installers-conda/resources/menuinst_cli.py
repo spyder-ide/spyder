@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
 """
 Command-line interface for menuinst in Spyder installer
 """
+
 import sys
 from pathlib import Path
 from argparse import ArgumentParser
+
 from menuinst import api
 
 _base = Path(sys.prefix)
