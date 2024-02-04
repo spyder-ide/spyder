@@ -51,7 +51,7 @@ class TextDecorationsManager(Manager, QObject):
         self.update_timer.timeout.connect(
             self._update)
 
-    def add(self, decorations, key=None):
+    def add(self, decorations, key="misc"):
         """
         Add text decorations on a CodeEditor instance.
 
@@ -63,7 +63,6 @@ class TextDecorationsManager(Manager, QObject):
         Returns:
             int: Amount of decorations added.
         """
-        key = "misc" if key is None else key
         if key != "misc" and self._decorations.get(key) is None:
             self._decorations[key] = []
 
@@ -88,7 +87,7 @@ class TextDecorationsManager(Manager, QObject):
         self._decorations[key] = decorations
         self.update()
 
-    def remove(self, decoration, key=None):
+    def remove(self, decoration, key="misc"):
         """
         Removes a text decoration from the editor.
 
@@ -98,7 +97,6 @@ class TextDecorationsManager(Manager, QObject):
             Set to False to avoid updating several times while removing
             several decorations
         """
-        key = "misc" if key is None else key
         try:
             self._decorations[key].remove(decoration)
             self.update()
