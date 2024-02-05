@@ -3267,14 +3267,14 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     base_run_cell_advance = CONF.get_shortcut(
         'editor', 'run cell and advance')  # Should be Shift+Return
     base_run_selection = CONF.get_shortcut(
-        '_', 'run selection')  # Should be F9
+        'editor', 'run selection and advance')  # Should be F9
     assert base_run_cell_advance == 'Shift+Return'
     assert base_run_selection == 'F9'
 
     CONF.set_shortcut(
         'editor', 'run cell and advance', '')
     CONF.set_shortcut(
-        '_', 'run selection', base_run_cell_advance)
+        'editor', 'run selection and advance', base_run_cell_advance)
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):
         main_window.shortcuts.apply_shortcuts()
 
@@ -3294,7 +3294,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     assert u'ññ' not in shell._control.toPlainText()
 
     # Reset shortcuts
-    CONF.set_shortcut('_', 'run selection', 'F9')
+    CONF.set_shortcut('editor', 'run selection and advance', 'F9')
     CONF.set_shortcut('editor', 'run cell and advance', 'Shift+Return')
 
     # Wait for shortcut change to actually be applied
