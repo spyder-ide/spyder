@@ -308,7 +308,7 @@ jobs:
 
       - name: Upload Artifact
         if: env.IS_RELEASE == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ env.PKG_GLOB }}*
           name: ${{ env.PKG_BASE_NAME }}
