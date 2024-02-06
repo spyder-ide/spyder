@@ -500,7 +500,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         mainmenu.remove_item_from_application_menu(
             IPythonConsoleWidgetMenus.Documentation,
             menu_id=ApplicationMenus.Help
-         )
+        )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -1024,7 +1024,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().save_working_directory(dirname)
 
-    def update_path(self, path_dict, new_path_dict):
+    def update_path(self, path_dict, new_path_dict, prioritize):
         """
         Update path on consoles.
 
@@ -1037,12 +1037,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             Corresponds to the previous state of the PYTHONPATH.
         new_path_dict : dict
             Corresponds to the new state of the PYTHONPATH.
+        prioritize : bool
+            Whether to prioritize PYTHONPATH in sys.path
 
         Returns
         -------
         None.
         """
-        self.get_widget().update_path(path_dict, new_path_dict)
+        self.get_widget().update_path(path_dict, new_path_dict, prioritize)
 
     def restart(self):
         """
