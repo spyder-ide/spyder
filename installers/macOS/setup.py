@@ -16,6 +16,7 @@ import shutil
 from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
 from setuptools import setup
+from platform import machine
 
 from spyder import get_versions
 
@@ -98,6 +99,18 @@ def make_app_bundle(dist_dir, make_lite=False):
     return
 
 
+def disk_image_name(make_lite=False):
+    """
+    Return disk image name
+    """
+    dmg_name = f'Spyder-{SPYVER}_{machine()}'
+    if make_lite:
+        dmg_name += '-Lite'
+    dmg_name += '.dmg'
+
+    return dmg_name
+
+
 def make_disk_image(dist_dir, make_lite=False):
     """
     Make macOS disk image containing Spyder.app application bundle.
@@ -117,12 +130,9 @@ def make_disk_image(dist_dir, make_lite=False):
     from dmgbuild.core import DMGError
 
     volume_name = '{}-{} Py-{}.{}.{}'.format(APP_BASE_NAME, SPYVER, *PYVER)
-    dmg_name = 'Spyder'
     if make_lite:
         volume_name += ' Lite'
-        dmg_name += '-Lite'
-    dmg_name += '.dmg'
-    dmgfile = (dist_dir / dmg_name).as_posix()
+    dmgfile = (dist_dir / disk_image_name(make_lite)).as_posix()
 
     settings_file = (THISDIR / 'dmg_settings.py').as_posix()
     settings = {
@@ -162,8 +172,16 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--bdist-base', dest='build_dir',
                         default='build',
                         help='Build directory; passed to py2app')
+    parser.add_argument(
+        '-m', '--dmg-name', dest='dmg_name', action='store_true',
+        help='Return the DMG name: Spyder-{VER}_{ARCH}-{LITE}.dmg'
+    )
 
     args, rem = parser.parse_known_args()
+
+    if args.dmg_name:
+        print(disk_image_name(args.make_lite))
+        sys.exit()
 
     # Groom sys.argv for py2app
     sys.argv = sys.argv[:1] + ['py2app'] + rem
