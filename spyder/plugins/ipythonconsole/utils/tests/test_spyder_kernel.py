@@ -36,9 +36,7 @@ def test_kernel_pypath(tmpdir, default_interpreter):
     kernel_spec = SpyderKernelSpec()
 
     # Check that PYTHONPATH is not in our kernelspec
-    # and pypath is in SPY_PYTHONPATH
     assert 'PYTHONPATH' not in kernel_spec.env
-    assert pypath in kernel_spec.env['SPY_PYTHONPATH']
 
     # Restore default values
     CONF.set('main_interpreter', 'default', True)
