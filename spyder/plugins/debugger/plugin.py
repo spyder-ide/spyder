@@ -302,7 +302,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         ]
         for name in editor_shortcuts:
             action = self.get_action(name)
-            editor.get_widget().pythonfile_dependent_actions.remove(action)
+            if action in editor.get_widget().pythonfile_dependent_actions:
+                editor.get_widget().pythonfile_dependent_actions.remove(action)
 
     @on_plugin_available(plugin=Plugins.VariableExplorer)
     def on_variable_explorer_available(self):
