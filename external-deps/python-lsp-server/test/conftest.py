@@ -3,6 +3,7 @@
 
 """ py.test configuration"""
 import logging
+
 from pylsp.__main__ import LOG_FORMAT
 
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)

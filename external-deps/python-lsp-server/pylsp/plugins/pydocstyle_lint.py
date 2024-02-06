@@ -8,6 +8,7 @@ import re
 import sys
 
 import pydocstyle
+
 from pylsp import hookimpl, lsp
 
 log = logging.getLogger(__name__)
@@ -28,7 +29,6 @@ def pylsp_settings():
 
 @hookimpl
 def pylsp_lint(config, workspace, document):
-    # pylint: disable=too-many-locals
     with workspace.report_progress("lint: pydocstyle"):
         settings = config.plugin_settings("pydocstyle", document_path=document.path)
         log.debug("Got pydocstyle settings: %s", settings)

@@ -7,7 +7,6 @@ from pylsp import uris
 from pylsp.plugins.definition import pylsp_definitions
 from pylsp.workspace import Document
 
-
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """def a():
     pass
@@ -21,8 +20,8 @@ class Directory(object):
 
     def add_member(self, id, name):
         self.members[id] = name
-        
-        
+
+
 subscripted_before_reference = {}
 subscripted_before_reference[0] = 0
 subscripted_before_reference

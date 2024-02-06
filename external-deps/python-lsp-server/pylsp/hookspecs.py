@@ -1,7 +1,6 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-# pylint: disable=redefined-builtin, unused-argument
 from pylsp import hookspec
 
 
