@@ -41,6 +41,7 @@ class PythonpathContainer(PluginMainContainer):
         self.path = ()
         self.not_active_path = ()
         self.project_path = ()
+        self.prioritize = None
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -175,7 +176,10 @@ class PythonpathContainer(PluginMainContainer):
             name for name in not_active_paths if osp.isdir(name)
         )
 
-    def _save_paths(self, new_path_dict):
+        # Load prioritize
+        self.prioritize = self.get_conf('prioritize', default=False)
+
+    def _save_paths(self, new_path_dict, new_prioritize):
         """
         Save tuples for all paths and not active ones to config system and
         update their associated attributes.
@@ -183,20 +187,36 @@ class PythonpathContainer(PluginMainContainer):
         `new_path_dict` is an OrderedDict that has the new paths as keys and
         the state as values. The state is `True` for active and `False` for
         inactive.
+
+        `prioritize` is a boolean indicating whether paths should be
+        prioritized over sys.path.
         """
         path = tuple(p for p in new_path_dict)
         not_active_path = tuple(
             p for p in new_path_dict if not new_path_dict[p]
         )
+        old_spyder_pythonpath = self.get_spyder_pythonpath()
 
         # Don't set options unless necessary
         if path != self.path:
+            logger.debug(f"Saving path: {path}")
             self.set_conf('path', path)
             self.path = path
 
         if not_active_path != self.not_active_path:
+            logger.debug(f"Saving inactive paths: {not_active_path}")
             self.set_conf('not_active_path', not_active_path)
             self.not_active_path = not_active_path
+
+        if new_prioritize != self.prioritize:
+            logger.debug(f"Saving prioritize: {new_prioritize}")
+            self.set_conf('prioritize', new_prioritize)
+            self.prioritize = new_prioritize
+
+        new_spyder_pythonpath = self.get_spyder_pythonpath()
+        if new_spyder_pythonpath != old_spyder_pythonpath:
+            logger.debug(f"Saving Spyder pythonpath: {new_spyder_pythonpath}")
+            self.set_conf('spyder_pythonpath', new_spyder_pythonpath)
 
     def _get_spyder_pythonpath_dict(self):
         """
@@ -220,7 +240,7 @@ class PythonpathContainer(PluginMainContainer):
 
         return path_dict
 
-    def _update_python_path(self, new_path_dict=None):
+    def _update_python_path(self, new_path_dict=None, new_prioritize=None):
         """
         Update Python path on language server and kernels.
 
@@ -228,19 +248,20 @@ class PythonpathContainer(PluginMainContainer):
         """
         # Load existing path plus project path
         old_path_dict_p = self._get_spyder_pythonpath_dict()
+        old_prioritize = self.prioritize
 
         # Save new path
-        if new_path_dict is not None:
-            self._save_paths(new_path_dict)
+        if new_path_dict is not None or new_prioritize is not None:
+            self._save_paths(new_path_dict, new_prioritize)
 
         # Load new path plus project path
         new_path_dict_p = self._get_spyder_pythonpath_dict()
 
         # Do not notify observers unless necessary
-        if new_path_dict_p != old_path_dict_p:
-            pypath = self.get_spyder_pythonpath()
-            logger.debug(f"Update Pythonpath to {pypath}")
-            self.set_conf('spyder_pythonpath', pypath)
+        if (
+            new_path_dict_p != old_path_dict_p
+            or new_prioritize != old_prioritize
+        ):
             self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
 
     def _migrate_to_config_options(self):
