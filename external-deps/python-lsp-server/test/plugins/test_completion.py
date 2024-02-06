@@ -4,21 +4,19 @@
 import math
 import os
 import sys
-
 from pathlib import Path
-from typing import NamedTuple, Dict
+from typing import Dict, NamedTuple
 
 import pytest
 
-from pylsp import uris, lsp
-from pylsp.workspace import Document
-from pylsp.plugins.jedi_completion import pylsp_completions as pylsp_jedi_completions
+from pylsp import lsp, uris
+from pylsp._utils import JEDI_VERSION
 from pylsp.plugins.jedi_completion import (
     pylsp_completion_item_resolve as pylsp_jedi_completion_item_resolve,
 )
+from pylsp.plugins.jedi_completion import pylsp_completions as pylsp_jedi_completions
 from pylsp.plugins.rope_completion import pylsp_completions as pylsp_rope_completions
-from pylsp._utils import JEDI_VERSION
-
+from pylsp.workspace import Document
 
 PY2 = sys.version[0] == "2"
 LINUX = sys.platform.startswith("linux")

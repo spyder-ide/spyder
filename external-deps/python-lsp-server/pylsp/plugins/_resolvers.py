@@ -1,14 +1,13 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from time import time
 
 from jedi.api.classes import Completion
 
 from pylsp import lsp
-
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class Resolver:
         try:
             sig = completion.get_signatures()
             return self.callback(completion, sig)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             log.warning(
                 f"Something went wrong when resolving label for {completion}: {e}"
             )

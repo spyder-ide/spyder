@@ -2,9 +2,10 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import os
+
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins import pydocstyle_lint
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(os.path.join(os.path.dirname(__file__), "pydocstyle.py"))
 TEST_DOC_URI = uris.from_fs_path(__file__)

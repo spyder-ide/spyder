@@ -4,18 +4,17 @@
 import multiprocessing
 import os
 import sys
-from threading import Thread
 import time
+from threading import Thread
 from typing import Any, Dict, List
 from unittest import mock
 
-from flaky import flaky
 from docstring_to_markdown import UnknownFormatError
+from flaky import flaky
 
 from pylsp import _utils
 from pylsp.lsp import NotebookCellKind
 from pylsp.python_lsp import PythonLSPServer, start_io_lang_server
-
 
 CALL_TIMEOUT_IN_SECONDS = 30
 

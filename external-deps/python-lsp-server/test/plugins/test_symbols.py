@@ -7,10 +7,9 @@ import sys
 import pytest
 
 from pylsp import uris
-from pylsp.plugins.symbols import pylsp_document_symbols
 from pylsp.lsp import SymbolKind
+from pylsp.plugins.symbols import pylsp_document_symbols
 from pylsp.workspace import Document
-
 
 PY2 = sys.version[0] == "2"
 LINUX = sys.platform.startswith("linux")
