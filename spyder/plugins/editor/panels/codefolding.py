@@ -594,6 +594,32 @@ class FoldingPanel(Panel):
 
             self.editor.new_text_set.disconnect(self._clear_block_decos)
 
+    def _in_folded_block(self):
+        """Check if the current block is folded."""
+        cursor = self.editor.textCursor()
+
+        if cursor.hasSelection():
+            block_start = self.editor.document().findBlock(
+                cursor.selectionStart()
+            )
+            block_end = self.editor.document().findBlock(cursor.selectionEnd())
+
+            if (
+                # The start block needs to be among the folded ones.
+                block_start.blockNumber() in self._block_decos
+                # This covers the case when there's some text selected in the
+                # folded line or when it's selected in its entirety. For the
+                # latter, Qt returns the next block as the final one, which
+                # is not visible.
+                and (block_start == block_end or not block_end.isVisible())
+            ):
+                return True
+            else:
+                return False
+        else:
+            current_block = self.editor.document().findBlock(cursor.position())
+            return current_block.blockNumber() in self._block_decos
+
     def _on_key_pressed(self, event):
         """
         Handle key press events in order to select a whole folded scope if the
@@ -609,19 +635,29 @@ class FoldingPanel(Panel):
         called when Key_Delete is pressed, and in several other places, which
         is handled by _expand_selection below.
         """
+        # This doesn't apply if there are not folded regions
         if not self._block_decos:
             return
 
-        delete_request = event.key() == Qt.Key_Backspace
+        if (
+            # We do nothing when Tab or Shift+Tab are pressed in a folded line
+            self._in_folded_block()
+            and event.key() in [Qt.Key_Tab, Qt.Key_Backtab]
 
-        enter_request = False
+        ):
+            event.accept()
+            return
+
+        delete_pressed = event.key() == Qt.Key_Backspace
+
+        enter_pressed = False
         cursor = self.editor.textCursor()
         if cursor.hasSelection():
             if event.key() == Qt.Key_Return:
-                enter_request = True
+                enter_pressed = True
 
         # A folded scope can also be removed by writing text on top of it.
-        if event.text() or delete_request or enter_request:
+        if event.text() or delete_pressed or enter_pressed:
             self._expand_selection()
 
     def _expand_selection(self):
