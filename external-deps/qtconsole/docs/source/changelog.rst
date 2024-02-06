@@ -8,6 +8,13 @@ Changes in Jupyter Qt console
 5.5
 ~~~
 
+5.5.1
+-----
+
+`5.5.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.5.1>`__
+
+* Fix error when getting code completions.
+
 5.5.0
 -----
 

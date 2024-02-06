@@ -1,19 +1,18 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import time
-from unittest.mock import patch, call
-
 from test.test_utils import (
     CALL_TIMEOUT_IN_SECONDS,
     send_initialize_request,
     send_notebook_did_open,
 )
+from unittest.mock import call, patch
 
 import pytest
-from pylsp.workspace import Notebook
 
 from pylsp import IS_WIN
 from pylsp.lsp import NotebookCellKind
+from pylsp.workspace import Notebook
 
 
 def wait_for_condition(condition, timeout=CALL_TIMEOUT_IN_SECONDS):

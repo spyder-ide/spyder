@@ -38,7 +38,6 @@ _ERRORS = ("error_node",)
 @hookimpl
 def pylsp_completions(config, document, position):
     """Get formatted completions for current code position"""
-    # pylint: disable=too-many-locals
     settings = config.plugin_settings("jedi_completion", document_path=document.path)
     resolve_eagerly = settings.get("eager", False)
     code_position = _utils.position_to_jedi_linecolumn(document, position)
@@ -209,7 +208,6 @@ def use_snippets(document, position):
 
 
 def _resolve_completion(completion, d, markup_kind: str):
-    # pylint: disable=broad-except
     completion["detail"] = _detail(d)
     try:
         docs = _utils.format_docstring(

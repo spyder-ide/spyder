@@ -4,7 +4,8 @@
 import logging
 
 import pycodestyle
-from autopep8 import fix_code, continued_indentation as autopep8_c_i
+from autopep8 import continued_indentation as autopep8_c_i
+from autopep8 import fix_code
 
 from pylsp import hookimpl
 from pylsp._utils import get_eol_chars
@@ -13,18 +14,14 @@ log = logging.getLogger(__name__)
 
 
 @hookimpl(tryfirst=True)  # Prefer autopep8 over YAPF
-def pylsp_format_document(
-    config, workspace, document, options
-):  # pylint: disable=unused-argument
+def pylsp_format_document(config, workspace, document, options):
     with workspace.report_progress("format: autopep8"):
         log.info("Formatting document %s with autopep8", document)
         return _format(config, document)
 
 
 @hookimpl(tryfirst=True)  # Prefer autopep8 over YAPF
-def pylsp_format_range(
-    config, workspace, document, range, options
-):  # pylint: disable=redefined-builtin,unused-argument
+def pylsp_format_range(config, workspace, document, range, options):
     log.info("Formatting document %s in range %s with autopep8", document, range)
 
     # First we 'round' the range up/down to full lines only
@@ -33,7 +30,7 @@ def pylsp_format_range(
     range["end"]["character"] = 0
 
     # Add 1 for 1-indexing vs LSP's 0-indexing
-    line_range = (range["start"]["line"] + 1, range["end"]["line"] + 1)
+    line_range = (range["start"]["line"] + 1, range["end"]["line"])
     return _format(config, document, line_range=line_range)
 
 

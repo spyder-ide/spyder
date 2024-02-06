@@ -4,8 +4,8 @@
 import sys
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins import pyflakes_lint
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys

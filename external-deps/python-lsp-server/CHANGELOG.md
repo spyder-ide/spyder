@@ -1,6 +1,51 @@
 # History of changes
 
+## Version 1.10.0 (2024/01/21)
+
+### New features
+
+* Add support for notebook document completions.
+* Add support for flake8 version 7.
+
+### Issues Closed
+
+* [Issue 513](https://github.com/python-lsp/python-lsp-server/issues/513) - Different versions of autopep can be installed as optional dependencies ([PR 514](https://github.com/python-lsp/python-lsp-server/pull/514) by [@doolio](https://github.com/doolio))
+* [Issue 478](https://github.com/python-lsp/python-lsp-server/issues/478) - Considering pointing to python-lsp-isort rather than pyls-isort in the README ([PR 483](https://github.com/python-lsp/python-lsp-server/pull/483) by [@doolio](https://github.com/doolio))
+* [Issue 474](https://github.com/python-lsp/python-lsp-server/issues/474) - AutoImport can break when being called by multiple threads ([PR 498](https://github.com/python-lsp/python-lsp-server/pull/498) by [@tkrabel](https://github.com/tkrabel))
+* [Issue 373](https://github.com/python-lsp/python-lsp-server/issues/373) - file path auto completion add \ in path string ([PR 497](https://github.com/python-lsp/python-lsp-server/pull/497) by [@i-aki-y](https://github.com/i-aki-y))
+* [Issue 256](https://github.com/python-lsp/python-lsp-server/issues/256) - Flake8 Severity too high ([PR 490](https://github.com/python-lsp/python-lsp-server/pull/490) by [@kunhtkun](https://github.com/kunhtkun))
+
+In this release 5 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 517](https://github.com/python-lsp/python-lsp-server/pull/517) - Combine ruff.toml into pyproject.toml, by [@doolio](https://github.com/doolio)
+* [PR 514](https://github.com/python-lsp/python-lsp-server/pull/514) - Fix optional dependency version for autopep8, by [@doolio](https://github.com/doolio) ([513](https://github.com/python-lsp/python-lsp-server/issues/513))
+* [PR 510](https://github.com/python-lsp/python-lsp-server/pull/510) - Bump flake8 to version 7, by [@bnavigator](https://github.com/bnavigator)
+* [PR 507](https://github.com/python-lsp/python-lsp-server/pull/507) - Fix extra end line increment in autopep8 plugin, by [@remisalmon](https://github.com/remisalmon)
+* [PR 502](https://github.com/python-lsp/python-lsp-server/pull/502) - Use ruff as linter and code formatter, by [@tkrabel](https://github.com/tkrabel)
+* [PR 499](https://github.com/python-lsp/python-lsp-server/pull/499) - Make autoimport cache generation non-blocking, by [@tkrabel](https://github.com/tkrabel)
+* [PR 498](https://github.com/python-lsp/python-lsp-server/pull/498) - Update rope to 1.11.0 for multi-threading capabilities, by [@tkrabel](https://github.com/tkrabel) ([474](https://github.com/python-lsp/python-lsp-server/issues/474))
+* [PR 497](https://github.com/python-lsp/python-lsp-server/pull/497) - Fix path completion when client doesn't support code snippets, by [@i-aki-y](https://github.com/i-aki-y) ([373](https://github.com/python-lsp/python-lsp-server/issues/373))
+* [PR 490](https://github.com/python-lsp/python-lsp-server/pull/490) - Refine diagnostic severity for flake8, by [@kunhtkun](https://github.com/kunhtkun) ([256](https://github.com/python-lsp/python-lsp-server/issues/256))
+* [PR 487](https://github.com/python-lsp/python-lsp-server/pull/487) - Replace call to `python` with `sys.executable` in Pylint plugin, by [@jspricke](https://github.com/jspricke)
+* [PR 486](https://github.com/python-lsp/python-lsp-server/pull/486) - Add support for notebook document completions, by [@smacke](https://github.com/smacke)
+* [PR 483](https://github.com/python-lsp/python-lsp-server/pull/483) - Point to a more up to date isort plugin in README, by [@doolio](https://github.com/doolio) ([478](https://github.com/python-lsp/python-lsp-server/issues/478))
+
+In this release 12 pull requests were closed.
+
+----
+
 ## Version 1.9.0 (2023/11/06)
+
+### New features
+
+* Support `initializationOptions` to configure the server.
+* Add code completions to the autoimport plugin.
+* Add support for Pylint 3.
+* Pass `extendIgnore` argument to Flake8.
+* Add new `pylsp_workspace_configuration_changed` hookspec so that plugins can
+  react when client sends a configuration change to the server.
 
 ### Issues Closed
 

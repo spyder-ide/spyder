@@ -1,19 +1,19 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import functools
 import io
 import logging
-from contextlib import contextmanager
 import os
 import re
 import uuid
-import functools
-from typing import Optional, Generator, Callable, List
+from contextlib import contextmanager
 from threading import RLock
+from typing import Callable, Generator, List, Optional
 
 import jedi
 
-from . import lsp, uris, _utils
+from . import _utils, lsp, uris
 
 log = logging.getLogger(__name__)
 
@@ -36,8 +36,6 @@ def lock(method):
 
 
 class Workspace:
-    # pylint: disable=too-many-public-methods
-
     M_PUBLISH_DIAGNOSTICS = "textDocument/publishDiagnostics"
     M_PROGRESS = "$/progress"
     M_INITIALIZE_PROGRESS = "window/workDoneProgress/create"
@@ -65,7 +63,6 @@ class Workspace:
         rope_config: Optional,
         memory: bool = False,
     ):
-        # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
 
         if self.__rope_autoimport is None:
@@ -74,7 +71,6 @@ class Workspace:
         return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base.project import Project
 
         # TODO: we could keep track of dirty files and validate only those
@@ -236,7 +232,6 @@ class Workspace:
         def dummy_progress_message(
             message: str, percentage: Optional[int] = None
         ) -> None:
-            # pylint: disable=unused-argument
             pass
 
         yield dummy_progress_message
@@ -255,7 +250,7 @@ class Workspace:
                 self._endpoint.request(
                     self.M_INITIALIZE_PROGRESS, {"token": token}
                 ).result(timeout=1.0)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:
                 log.warning(
                     "There was an error while trying to initialize progress reporting."
                     "Likely progress reporting was used in a synchronous LSP handler, "
@@ -412,7 +407,6 @@ class Document:
         return str(self.uri)
 
     def _rope_resource(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base import libutils
 
         return libutils.path_to_resource(
@@ -653,7 +647,7 @@ class Notebook:
             names.update(cell_document.jedi_names(all_scopes, definitions, references))
             if cell_uri == up_to_cell_uri:
                 break
-        return set(name.name for name in names)
+        return {name.name for name in names}
 
 
 class Cell(Document):

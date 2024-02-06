@@ -141,9 +141,7 @@ def run_flake8(flake8_executable, args, document, source):
         )
         cmd = [sys.executable, "-m", "flake8"]
         cmd.extend(args)
-        p = Popen(  # pylint: disable=consider-using-with
-            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, **popen_kwargs
-        )
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, **popen_kwargs)
     (stdout, stderr) = p.communicate(source.encode())
     if stderr:
         log.error("Error while running flake8 '%s'", stderr.decode())
