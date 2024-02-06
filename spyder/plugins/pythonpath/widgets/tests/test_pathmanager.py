@@ -277,6 +277,14 @@ def test_buttons_state(qtbot, pathmanager, tmpdir):
     pathmanager.remove_path(True)
     assert not pathmanager.button_ok.isEnabled()
 
+    # Check prioritize button
+    assert pathmanager.prioritize_button.isEnabled()
+    assert not pathmanager.prioritize_button.isChecked()
+    pathmanager.prioritize_button.animateClick()
+    qtbot.waitUntil(pathmanager.prioritize_button.isChecked)
+    assert pathmanager.prioritize_button.isChecked()
+    assert pathmanager.button_ok.isEnabled()
+
 
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])
