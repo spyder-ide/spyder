@@ -866,28 +866,6 @@ class TextEditBaseWidget(
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-    def delete_line(self, cursor=None):
-        """Delete current line."""
-        if cursor is None:
-            cursor = self.textCursor()
-        if self.has_selected_text():
-            self.extend_selection_to_complete_lines()
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
-        else:
-            start_pos = end_pos = cursor.position()
-        cursor.beginEditBlock()
-        cursor.setPosition(start_pos)
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        while cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
-            if cursor.atEnd():
-                break
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-        cursor.removeSelectedText()
-        cursor.endEditBlock()
-        self.ensureCursorVisible()
-
     def set_selection(self, start, end):
         cursor = self.textCursor()
         cursor.setPosition(start)

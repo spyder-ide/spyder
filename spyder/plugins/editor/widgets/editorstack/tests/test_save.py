@@ -532,7 +532,7 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     """
     Test that EditorStack.save_as() sends the expected LSP requests.
 
-    Regression test for spyder-ide/spyder#13085 and spyder-ide/spyder#20047
+    Regression test for spyder-ide/spyder#13085 and spyder-ide/spyder#20047.
     """
     file_path, editorstack, code_editor, completion_plugin = completions_editor
 
@@ -576,8 +576,9 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
 
     # Check response by LSP
-    assert code_editor.handle_folding_range.call_args == \
-           mocker.call({'params': [(1, 3)]})
+    assert code_editor.handle_folding_range.call_args == mocker.call(
+        {"params": [{"startLine": 1, "endLine": 3}]}
+    )
 
     symbols = [
         {
@@ -668,8 +669,14 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # responded to the requests).
 
     # Check that LSP responded with updated folding and symbols information
-    assert code_editor.handle_folding_range.call_args == \
-           mocker.call({'params': [(1, 5), (7, 9)]})
+    assert code_editor.handle_folding_range.call_args == mocker.call(
+        {
+            "params": [
+                {"startLine": 1, "endLine": 5},
+                {"startLine": 7, "endLine": 9},
+            ]
+        }
+    )
 
     # There must be 7 symbols (2 functions and 5 variables)
     assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7

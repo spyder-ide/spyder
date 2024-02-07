@@ -16,11 +16,6 @@ Original file:
 <https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/mode.py>
 """
 
-import logging
-
-
-logger = logging.getLogger(__name__)
-
 
 class EditorExtension(object):
     """
@@ -86,9 +81,6 @@ class EditorExtension(object):
         self._enabled = False
         self._editor = None
         self._on_close = False
-
-    def __del__(self):
-        logger.debug('%s.__del__', type(self))
 
     def on_install(self, editor):
         """

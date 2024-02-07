@@ -173,7 +173,7 @@ def test_update_decorations_when_scrolling(qtbot):
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
-        assert _update.call_count == 4
+        assert _update.call_count == 5
 
         # Simulate continuously pressing the up arrow key.
         for __ in range(200):
@@ -181,7 +181,7 @@ def test_update_decorations_when_scrolling(qtbot):
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
-        assert _update.call_count == 5
+        assert _update.call_count == 6
 
 
 if __name__ == "__main__":

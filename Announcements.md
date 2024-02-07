@@ -1,36 +1,24 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.0 is released!
+**Subject**: [ANN] Spyder 5.5.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.0** has been released and is available for
+I'm pleased to announce that Spyder **5.5.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes ten weeks after version 5.4.5 and it contains the
+This release comes three months after version 5.5.0 and it contains the
 following new features and important fixes:
 
-* Drop support for Python 3.7
-* Drop support for PyQt < 5.10
-* Improvements to the logic that checks available updates and the update messages
-* Improvements to the syntax highlighting for `match`/`case` keywords
-* Improved compatibility for the standalone installer with Windows Server 2016
-* Additional information about Spyder available through `spyder.appdata.xml`
-* Fix Outline Explorer `Display variables and attributes` option
-* Fix disabling completion and linting providers
-* Fix errors when removing language servers configurations
-* Fix Editor replace all occurences when using backslashes
-* Fix errors when restarting external kernels
-* Fix error when using the Online help with Python 3.11
-* Fix debugging after errors via the `%debug` magic
-* Fix compatibility with Python 2 environments/custom interpreters
-* Fix application window disappearing when changing monitors
-* Fix PYTHONPATH manager logic to get user environment variables and detect possible `site-packages` directories
+* Publish a new standalone installer for macOS computers with M1/M2 chips.
+* Add support to format selections with Black.
+* Fix several errors when trying to detect if a new Spyder version is available.
+* Fix using the Tkinter backend in our macOS application.
 
-In this release we fixed 26 issues and merged 42 pull requests that amount
-to more than 151 commits. For a full list of fixes, please see our
+In this release we fixed 10 issues and merged 20 pull requests that amount
+to more than 50 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -42,7 +30,7 @@ creating your favorite environment!
 
 Enjoy!
 
-Daniel
+Carlos
 
 
 ----

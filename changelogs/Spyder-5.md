@@ -1,5 +1,61 @@
 # History of changes for Spyder 5
 
+## Version 5.5.1 (2024-02-07)
+
+### New features
+
+* Publish a new standalone installer for macOS computers with M1/M2 chips.
+* Add support to format selections with Black.
+
+### Important fixes
+
+* Fix several errors when trying to detect if a new Spyder version is available.
+* Fix using the Tkinter backend in our macOS application.
+
+### Issues Closed
+
+* [Issue 21733](https://github.com/spyder-ide/spyder/issues/21733) - Crash after setting empty high DPI scaling factor ([PR 21763](https://github.com/spyder-ide/spyder/pull/21763) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21711](https://github.com/spyder-ide/spyder/issues/21711) - TypeError when trying to detect the conda channel from which Spyder was installed ([PR 21723](https://github.com/spyder-ide/spyder/pull/21723) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21694](https://github.com/spyder-ide/spyder/issues/21694) - Bug: Unexpected type 'float' when clicking in Spyder preferences ([PR 21704](https://github.com/spyder-ide/spyder/pull/21704) by [@dan123456-eng](https://github.com/dan123456-eng))
+* [Issue 21630](https://github.com/spyder-ide/spyder/issues/21630) - Release 5.5.1 ([PR 21764](https://github.com/spyder-ide/spyder/pull/21764) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21600](https://github.com/spyder-ide/spyder/issues/21600) - ZeroDivisionError in the Editor's scrollflag panel ([PR 21624](https://github.com/spyder-ide/spyder/pull/21624) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21570](https://github.com/spyder-ide/spyder/issues/21570) - Test `test_pdb_comprehension_namespace` failing with Python 3.12 ([PR 21581](https://github.com/spyder-ide/spyder/pull/21581) by [@juliangilbey](https://github.com/juliangilbey))
+* [Issue 21546](https://github.com/spyder-ide/spyder/issues/21546) - Error 403 (rate limit at github.com) is not handled when cheking for updates. ([PR 21548](https://github.com/spyder-ide/spyder/pull/21548) by [@mrclary](https://github.com/mrclary))
+* [Issue 21509](https://github.com/spyder-ide/spyder/issues/21509) - `RuntimeError: wrapped C/C++ object of type FrameWebView has been deleted` while doing basic operations (edit file, minimize/un-minimize Spyder window) ([PR 21613](https://github.com/spyder-ide/spyder/pull/21613) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21460](https://github.com/spyder-ide/spyder/issues/21460) - Format selection with Black does not work on indented code ([PR 21629](https://github.com/spyder-ide/spyder/pull/21629) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20232](https://github.com/spyder-ide/spyder/issues/20232) - Can't find a usable init.tcl ([PR 21766](https://github.com/spyder-ide/spyder/pull/21766) by [@mrclary](https://github.com/mrclary))
+
+In this release 10 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21770](https://github.com/spyder-ide/spyder/pull/21770) - PR: Use Python 3.9.14 for x86_64 macOS application build, by [@mrclary](https://github.com/mrclary)
+* [PR 21766](https://github.com/spyder-ide/spyder/pull/21766) - PR: Build arm64 versions of Spyder's standalone macOS application, by [@mrclary](https://github.com/mrclary) ([20232](https://github.com/spyder-ide/spyder/issues/20232), [19743](https://github.com/spyder-ide/spyder/issues/19743))
+* [PR 21764](https://github.com/spyder-ide/spyder/pull/21764) - PR: Update core dependencies for 5.5.1, by [@ccordoba12](https://github.com/ccordoba12) ([21630](https://github.com/spyder-ide/spyder/issues/21630))
+* [PR 21763](https://github.com/spyder-ide/spyder/pull/21763) - PR: Fix error when trying to set an empty scale factor (Preferences), by [@ccordoba12](https://github.com/ccordoba12) ([21733](https://github.com/spyder-ide/spyder/issues/21733))
+* [PR 21761](https://github.com/spyder-ide/spyder/pull/21761) - PR: Update to download-artifact@v4 and upload-artifact@v4 (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 21741](https://github.com/spyder-ide/spyder/pull/21741) - PR: Update actions to checkout@v4 and cache@v4 (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 21723](https://github.com/spyder-ide/spyder/pull/21723) - PR: Make `get_spyder_conda_channel` return a tuple of None's if it fails (Utils), by [@ccordoba12](https://github.com/ccordoba12) ([21711](https://github.com/spyder-ide/spyder/issues/21711))
+* [PR 21704](https://github.com/spyder-ide/spyder/pull/21704) - PR: Fix error when computing the size hint of `ItemDelegate` in Python 3.10+, by [@dan123456-eng](https://github.com/dan123456-eng) ([21694](https://github.com/spyder-ide/spyder/issues/21694))
+* [PR 21696](https://github.com/spyder-ide/spyder/pull/21696) - PR: Improve `renamed_tree` method (Editor), by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 21695](https://github.com/spyder-ide/spyder/pull/21695) - PR: Fix triple-quoted docstring of a method (Editor), by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 21692](https://github.com/spyder-ide/spyder/pull/21692) - PR: Fix some tests failing on Python 3.12, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 21654](https://github.com/spyder-ide/spyder/pull/21654) - PR: Fix extra line in range when formatting selection, by [@remisalmon](https://github.com/remisalmon)
+* [PR 21629](https://github.com/spyder-ide/spyder/pull/21629) - PR: Increase minimal required version of `python-lsp-black` to `>=2.0.0,<3.0.0`, by [@ccordoba12](https://github.com/ccordoba12) ([21460](https://github.com/spyder-ide/spyder/issues/21460))
+* [PR 21624](https://github.com/spyder-ide/spyder/pull/21624) - PR: Catch error when the scrollbar has zero height in the scrollflag panel (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([21600](https://github.com/spyder-ide/spyder/issues/21600))
+* [PR 21613](https://github.com/spyder-ide/spyder/pull/21613) - PR: Handle infowidget possible RuntimeError when hiding it (IPython Console), by [@dalthviz](https://github.com/dalthviz) ([21509](https://github.com/spyder-ide/spyder/issues/21509))
+* [PR 21581](https://github.com/spyder-ide/spyder/pull/21581) - PR: Fix list comprehension test for Python 3.12, by [@juliangilbey](https://github.com/juliangilbey) ([21570](https://github.com/spyder-ide/spyder/issues/21570))
+* [PR 21580](https://github.com/spyder-ide/spyder/pull/21580) - PR: Fix regex quoting, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 21578](https://github.com/spyder-ide/spyder/pull/21578) - PR: Fix two tests for Python 3.11, by [@juliangilbey](https://github.com/juliangilbey)
+* [PR 21553](https://github.com/spyder-ide/spyder/pull/21553) - PR: Pin IPykernel to 6.26.0, QDarkstyle to 3.2.0 and fix building the Linux installer (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21548](https://github.com/spyder-ide/spyder/pull/21548) - PR: Fix KeyError issue with format in update worker, by [@mrclary](https://github.com/mrclary) ([21546](https://github.com/spyder-ide/spyder/issues/21546))
+
+In this release 20 pull requests were closed.
+
+
+----
+
+
 ## Version 5.5.0 (2023-11-08)
 
 ### New features
@@ -10,7 +66,6 @@
 * Improvements to the syntax highlighting for `match`/`case` keywords
 * Improved compatibility for the standalone installer with Windows Server 2016
 * Additional information about Spyder available through `spyder.appdata.xml`
-
 
 ### Important fixes
 
