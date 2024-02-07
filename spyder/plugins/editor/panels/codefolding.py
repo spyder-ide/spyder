@@ -639,14 +639,19 @@ class FoldingPanel(Panel):
         if not self._block_decos:
             return
 
-        if (
-            # We do nothing when Tab or Shift+Tab are pressed in a folded line
-            self._in_folded_block()
-            and event.key() in [Qt.Key_Tab, Qt.Key_Backtab]
-
-        ):
-            event.accept()
-            return
+        if self._in_folded_block():
+            # We prevent the following events to change folded blocks to make
+            # them appear as read-only to users.
+            # See the last comments in spyder-ide/spyder#21669 for the details
+            # of this decision.
+            if (
+                # When Tab or Shift+Tab are pressed
+                event.key() in [Qt.Key_Tab, Qt.Key_Backtab]
+                # When text is trying to be written
+                or event.text() and event.key() != Qt.Key_Backspace
+            ):
+                event.accept()
+                return
 
         delete_pressed = event.key() == Qt.Key_Backspace
 
@@ -656,8 +661,8 @@ class FoldingPanel(Panel):
             if event.key() == Qt.Key_Return:
                 enter_pressed = True
 
-        # A folded scope can also be removed by writing text on top of it.
-        if event.text() or delete_pressed or enter_pressed:
+        # Delete a folded scope when pressing delete or enter
+        if delete_pressed or enter_pressed:
             self._expand_selection()
 
     def _expand_selection(self):
