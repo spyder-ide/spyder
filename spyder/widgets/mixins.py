@@ -102,7 +102,8 @@ class BaseEditMixin(object):
     def __init__(self):
         self.eol_chars = None
 
-    #------Line number area
+    # ---- Line number area
+    # -------------------------------------------------------------------------
     def get_linenumberarea_width(self):
         """Return line number area width"""
         # Implemented in CodeEditor, but needed for calltip/completion widgets
@@ -117,7 +118,8 @@ class BaseEditMixin(object):
         """
         return point
 
-    # --- Tooltips and Calltips
+    # ---- Tooltips and Calltips
+    # -------------------------------------------------------------------------
     def _calculate_position(self, at_line=None, at_point=None):
         """
         Calculate a global point position `QPoint(x, y)`, for a given
@@ -732,11 +734,13 @@ class BaseEditMixin(object):
         """Hide the calltip widget."""
         self.calltip_widget.hide()
 
-    # ----- Required methods for the LSP
+    # ---- Required methods for the LSP
+    # -------------------------------------------------------------------------
     def document_did_change(self, text=None):
         pass
 
-    #------EOL characters
+    # ---- EOL characters
+    # -------------------------------------------------------------------------
     def set_eol_chars(self, text=None, eol_chars=None):
         """
         Set widget end-of-line (EOL) characters.
@@ -785,7 +789,8 @@ class BaseEditMixin(object):
             text = text.replace(symbol, linesep)
         return text
 
-    #------Positions, coordinates (cursor, EOF, ...)
+    # ---- Positions, coordinates (cursor, EOF, ...)
+    # -------------------------------------------------------------------------
     def get_position(self, subject):
         """Get offset in character for the given subject from the start of
            text edit area"""
@@ -930,7 +935,8 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.MoveAnchor)
 
-    #------Selection
+    # ---- Selection
+    # -------------------------------------------------------------------------
     def extend_selection_to_next(self, what='word', direction='left'):
         """
         Extend selection to next *what* ('word' or 'character')
@@ -938,8 +944,8 @@ class BaseEditMixin(object):
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
 
-    #------Text: get, set, ...
-
+    # ---- Text: get, set, ...
+    # -------------------------------------------------------------------------
     def _select_text(self, position_from, position_to):
         """Select text and return cursor."""
         position_from = self.get_position(position_from)
@@ -957,18 +963,24 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
         return to_text_string(cursor.selectedText())
 
-    def get_text_region(self, start_line, end_line):
-        """Return text lines spanned from *start_line* to *end_line*."""
-        start_block = self.document().findBlockByNumber(start_line)
-        end_block = self.document().findBlockByNumber(end_line)
+    def get_text_region(self, start_line, end_line, lines=None):
+        """
+        Return text in a given region.
 
-        start_cursor = QTextCursor(start_block)
-        start_cursor.movePosition(QTextCursor.StartOfBlock)
-        end_cursor = QTextCursor(end_block)
-        end_cursor.movePosition(QTextCursor.EndOfBlock)
-        end_position = end_cursor.position()
-        start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
-        return self.get_selected_text(start_cursor)
+        Parameters
+        ----------
+        start_line: int
+            Start line of the region.
+        end_line: int
+            End line of the region.
+        lines: list, optional (default None)
+            File lines.
+        """
+        if lines is None:
+            lines = self.toPlainText().splitlines()
+
+        lines_in_region = lines[start_line:end_line + 1]
+        return self.get_line_separator().join(lines_in_region)
 
     def get_text(self, position_from, position_to, remove_newlines=True):
         """Returns text between *position_from* and *position_to*.
@@ -1240,6 +1252,8 @@ class BaseEditMixin(object):
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
+    # ---- Text selection
+    # -------------------------------------------------------------------------
     def get_selection_offsets(self, cursor=None):
         """Return selection start and end offset positions."""
         if cursor is None:
@@ -1247,7 +1261,6 @@ class BaseEditMixin(object):
         start, end = cursor.selectionStart(), cursor.selectionEnd()
         return start, end
 
-    #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected."""
         return bool(to_text_string(self.textCursor().selectedText()))
@@ -1261,8 +1274,9 @@ class BaseEditMixin(object):
         """
         if cursor is None:
             cursor = self.textCursor()
-        return to_text_string(cursor.selectedText()).replace(u"\u2029",
-                                                     self.get_line_separator())
+        return to_text_string(cursor.selectedText()).replace(
+            u"\u2029", self.get_line_separator()
+        )
 
     def remove_selected_text(self):
         """Delete selected text."""
@@ -1302,8 +1316,8 @@ class BaseEditMixin(object):
             self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
 
-
-    #------Find/replace
+    # ---- Find/replace
+    # -------------------------------------------------------------------------
     def find_multiline_pattern(self, regexp, cursor, findflag):
         """Reimplement QTextDocument's find method.
 
@@ -1440,7 +1454,8 @@ class BaseEditMixin(object):
                                                word=word)
         return match_number
 
-    # --- Array builder helper / See 'spyder/widgets/arraybuilder.py'
+    # ---- Array builder helper / See 'spyder/widgets/arraybuilder.py'
+    # -------------------------------------------------------------------------
     def enter_array_inline(self):
         """Enter array builder inline mode."""
         self._enter_array(True)
@@ -1500,7 +1515,6 @@ class TracebackLinksMixin(object):
         self.anchor = None
         self.setMouseTracking(True)
 
-    #------Mouse events
     def mouseReleaseEvent(self, event):
         """Go to error or link in anchor."""
         self.QT_CLASS.mouseReleaseEvent(self, event)
