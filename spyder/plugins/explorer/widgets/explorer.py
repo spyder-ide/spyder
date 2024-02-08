@@ -1684,7 +1684,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
-        self.fsmodel.setIconProvider(IconProvider(self))
+        self.fsmodel.setIconProvider(IconProvider())
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
