@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 3.0.0b4 (2024-02-08)
+
+### Pull Requests Merged
+
+* [PR 477](https://github.com/spyder-ide/spyder-kernels/pull/477) - PR: Handle new Inline backend options `fontsize` and `bottom`, by [@jitseniesen](https://github.com/jitseniesen)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 3.0.0b3 (2023-12-18)
 
 ### Pull Requests Merged
