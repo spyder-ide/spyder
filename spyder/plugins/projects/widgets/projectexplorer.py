@@ -105,6 +105,12 @@ class ProxyModel(QSortFilterProxyModel):
             root_dir = self.path_list[0].split(osp.sep)[-1]
             if index.data() == root_dir:
                 return osp.join(self.root_path, root_dir)
+            else:
+                # We can't set None or an empty string here because Qt will
+                # return the index's full path, which beats the purpose of
+                # this method.
+                return index.data()
+
         return QSortFilterProxyModel.data(self, index, role)
 
     def type(self, index):
