@@ -1585,6 +1585,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
+            editor.menu.MENUS.remove((editor, None, editor.menu))
+            editor.menu.setParent(None)
+            editor.readonly_menu.MENUS.remove((editor, None, editor.readonly_menu))
+            editor.readonly_menu.setParent(None)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
