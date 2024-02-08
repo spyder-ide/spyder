@@ -677,6 +677,9 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         # it to show any information on it.
         self.verticalHeader().hide()
 
+        # To use mouseMoveEvent
+        self.setMouseTracking(True)
+
         # Delay editing values for a bit so that when users do a double click
         # (the default behavior for editing since Spyder was created; now they
         # only have to do a single click), our editor dialogs are focused.
