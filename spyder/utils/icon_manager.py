@@ -17,8 +17,8 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.encoding import is_text_file
 from spyder.utils.palette import QStylePalette, SpyderPalette
 import qtawesome as qta
 
@@ -246,6 +246,7 @@ class IconManager():
             'MessageBoxInformation':   [('mdi.information-outline',), {'color': self.MAIN_FG_COLOR}],
             'DirOpenIcon':             [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
             'FileIcon':                [('mdi.file',), {'color': self.MAIN_FG_COLOR}],
+            'GenericFileIcon':         [('mdi.file-outline',), {'color': self.MAIN_FG_COLOR}],
             'ExcelFileIcon':           [('mdi.file-excel',), {'color': self.MAIN_FG_COLOR}],
             'WordFileIcon':            [('mdi.file-word',), {'color': self.MAIN_FG_COLOR}],
             'PowerpointFileIcon':      [('mdi.file-powerpoint',), {'color': self.MAIN_FG_COLOR}],
@@ -269,8 +270,7 @@ class IconManager():
             'MarkdownFileIcon':        [('mdi.markdown',), {'color': self.MAIN_FG_COLOR}],
             'JsonFileIcon':            [('mdi.json',), {'color': self.MAIN_FG_COLOR}],
             'ExclamationFileIcon':     [('mdi.exclamation',), {'color': self.MAIN_FG_COLOR}],
-            'CodeFileIcon':             [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
-            'project':                 [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
+            'CodeFileIcon':            [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
             'arrow':                   [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'collapse':                [('mdi.collapse-all',), {'color': self.MAIN_FG_COLOR}],
             'expand':                  [('mdi.expand-all',), {'color': self.MAIN_FG_COLOR}],
@@ -482,7 +482,7 @@ class IconManager():
         if osp.isdir(fname):
             icon_by_extension = self.icon('DirOpenIcon', scale_factor)
         else:
-            icon_by_extension = self.icon('binary')
+            icon_by_extension = self.icon('GenericFileIcon')
 
             if extension in self.OFFICE_FILES:
                 icon_by_extension = self.icon(
@@ -495,7 +495,7 @@ class IconManager():
                     icon_by_extension = self.icon('notebook')
                 elif extension == '.tex':
                     icon_by_extension = self.icon('file_type_tex')
-                elif is_text_file(fname):
+                elif extension in EDIT_EXTENSIONS:
                     icon_by_extension = self.icon('TextFileIcon', scale_factor)
                 elif mime_type is not None:
                     try:
