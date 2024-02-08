@@ -1597,12 +1597,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.sig_update_code_analysis_actions.emit()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
-
             if new_index is not None:
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
-
             # Give focus to the previous editor in the stack
             editor = self.get_current_editor()
             if editor:

@@ -1410,8 +1410,11 @@ class EditorMainWidget(PluginMainWidget):
             return fwidget
         else:
             for editorstack in self.editorstacks:
-                if editorstack.isAncestorOf(fwidget):
-                    return editorstack
+                try:
+                    if editorstack.isAncestorOf(fwidget):
+                        return editorstack
+                except RuntimeError:
+                    pass
 
     # ---- Public API
     # ------------------------------------------------------------------------
