@@ -195,20 +195,18 @@ def _generate_background_images(installer_type):
 
 
 def _get_condarc():
-    # we need defaults for tensorflow and others on windows only
-    defaults = "- defaults" if WINDOWS else ""
-    prompt = "[spyder]({default_env}) "
     contents = dedent(
-        f"""
+        """
         channels:  #!final
+          - conda-forge/label/spyder_kernels_rc
+          - conda-forge/label/spyder_dev
           - conda-forge
-          {defaults}
         repodata_fns:  #!final
           - repodata.json
         auto_update_conda: false  #!final
         notify_outdated_conda: false  #!final
-        channel_priority: strict  #!final
-        env_prompt: '{prompt}'  #! final
+        channel_priority: flexible  #!final
+        env_prompt: '[spyder]({default_env}) '  #! final
         """
     )
     # the undocumented #!final comment is explained here
@@ -227,13 +225,14 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
-            "napari/label/bundle_tools_3",
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
         "specs": [
             f"python={PY_VER}",
+            "conda >=23.11.0",
+            "menuinst >=2.0.2",
             "mamba",
         ],
         "installer_filename": OUTPUT_FILE.name,
@@ -241,15 +240,12 @@ def _definitions():
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
+        "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
             },
         },
-        "extra_files": [
-            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-            {condarc: ".condarc"},
-        ],
     }
 
     if not args.no_local:
@@ -265,7 +261,13 @@ def _definitions():
                 "default_prefix": os.path.join(
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -278,6 +280,8 @@ def _definitions():
 
         definitions.update(
             {
+                "progress_notifications": True,
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
@@ -290,6 +294,11 @@ def _definitions():
                 "default_location_pkg": "Library",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -314,7 +323,13 @@ def _definitions():
                     "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "check_path_length": False,
+                "pre_install": str(RESOURCES / "pre-install.bat"),
                 "post_install": str(RESOURCES / "post-install.bat"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "Scripts/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -348,7 +363,7 @@ def _constructor():
     cmd_args.append(str(BUILD))
 
     env = os.environ.copy()
-    env["CONDA_CHANNEL_PRIORITY"] = "strict"
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
     logger.info("Configuration:")
