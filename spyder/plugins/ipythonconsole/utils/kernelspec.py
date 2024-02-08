@@ -92,11 +92,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
-        # Part of spyder-ide/spyder#11819
-        is_different = is_different_interpreter(pyexec)
-
         # Command used to start kernels
-        if is_different and is_conda_env(pyexec=pyexec):
+        if is_conda_env(pyexec=pyexec):
             # If this is a conda environment we need to call an intermediate
             # activation script to correctly activate the spyder-kernel
 
