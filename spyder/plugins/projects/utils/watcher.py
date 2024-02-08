@@ -19,14 +19,12 @@ from watchdog.events import FileSystemEventHandler, PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserverVFS
 
 # Local imports
-from spyder.config.utils import get_edit_extensions
+from spyder.config.utils import EDIT_EXTENSIONS
 
 
 # ---- Constants
 # -----------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
-
-EDIT_EXTENSIONS = get_edit_extensions()
 
 FOLDERS_TO_IGNORE = [
     "__pycache__",
