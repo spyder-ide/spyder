@@ -212,6 +212,11 @@ class SpyderCondaPkg(BuildCondaPkg):
         )
         file.write_text(file_text)
 
+        self.repo.git.diff(
+            output=(self._fdstk_path / "recipe" / "version.patch").as_posix()
+        )
+        self.repo.git.stash()
+
     def _patch_meta(self, meta):
         # Get current Spyder requirements
         yaml = YAML()
@@ -239,6 +244,10 @@ class SpyderCondaPkg(BuildCondaPkg):
         meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
                       rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
+        # Add version patch
+        meta = re.sub(r'^(source:\n(.*\n)*  patches:\n)',
+                      r'\g<1>    - version.patch\n',
+                      meta, flags=re.MULTILINE)
         return meta
 
 

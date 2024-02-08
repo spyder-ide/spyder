@@ -39,7 +39,6 @@ cleanup(){
     log "Removing $KEYCHAIN..."
     security list-keychain -s login.keychain
     security delete-keychain $KEYCHAIN
-    rm -rf $CERTFILE
 }
 
 while getopts "hc" option; do
@@ -70,6 +69,7 @@ for cert in ${CERTS[@]}; do
         _cert=$cert
     else
         log "Decoding/importing base64 cert..."
+        mkdir -p $SPYTMPDIR
         echo $cert | base64 --decode > $CERTFILE
         _cert=$CERTFILE
     fi
