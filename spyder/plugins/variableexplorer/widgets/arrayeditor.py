@@ -780,8 +780,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         options_button.setMenu(options_menu)
 
         toolbar = self.create_toolbar('Editor toolbar', register=False)
-        toolbar.add_item(self.resize_action)
         toolbar.add_item(self.create_stretcher(id_='stretcher'))
+        toolbar.add_item(self.resize_action)
         toolbar.add_item(self.refresh_action)
         toolbar.add_item(options_button)
         toolbar._render()

@@ -218,7 +218,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             triggered=lambda x: self.reset_namespace(),
         )
 
-        search_action = self.create_action(
+        self.search_action = self.create_action(
             VariableExplorerWidgetActions.Search,
             text=_("Search variable names and types"),
             icon=self.create_icon('find'),
@@ -226,7 +226,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             register_shortcut=True
         )
 
-        refresh_action = self.create_action(
+        self.refresh_action = self.create_action(
             VariableExplorerWidgetActions.Refresh,
             text=_("Refresh variables"),
             icon=self.create_icon('refresh'),
@@ -390,14 +390,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             )
         save_action.setEnabled(False)
 
-        # Corner toolbar (i.e., buttons in front of options menu)
-        corner_toolbar = self.get_toolbar('corner_toolbar')
-        for item in [search_action, self.filter_button, refresh_action]:
-            self.add_item_to_toolbar(
-                item,
-                toolbar=corner_toolbar,
-                section='corner'
-            )
+        # Search, Filter and Refresh buttons are added in _setup()
 
         # ---- Context menu to show when there are variables present
         self.context_menu = self.create_menu(
@@ -442,6 +435,26 @@ class VariableExplorerWidget(ShellConnectMainWidget):
                 menu=self.empty_context_menu,
                 section=VariableExplorerContextMenuSections.Edit,
             )
+
+    def _setup(self):
+        """
+        Create options menu and adjacent toolbar buttons, etc.
+
+        This calls the parent's method to setup default actions, create the
+        spinner and the options menu, and connect signals. After that, it adds
+        the Search, Filter and Refresh buttons between the spinner and the
+        options menu.
+        """
+        super()._setup()
+
+        corner_widget = self._corner_widget
+        for action in corner_widget.actions():
+            if action.defaultWidget() == self.get_options_menu_button():
+                options_menu_action = action
+
+        corner_widget.insertAction(options_menu_action, self.search_action)
+        corner_widget.insertAction(options_menu_action, self.filter_button)
+        corner_widget.insertAction(options_menu_action, self.refresh_action)
 
     def update_actions(self):
         """Update the actions."""

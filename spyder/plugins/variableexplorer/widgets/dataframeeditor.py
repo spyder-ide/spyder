@@ -819,11 +819,12 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             MENU_SEPARATOR,
             self.insert_action_above,
             self.insert_action_below,
-            self.insert_action_after,
-            self.insert_action_before,
             self.duplicate_row_action,
-            self.duplicate_col_action,
             self.remove_row_action,
+            MENU_SEPARATOR,
+            self.insert_action_before,
+            self.insert_action_after,
+            self.duplicate_col_action,
             self.remove_col_action,
             MENU_SEPARATOR,
             self.convert_to_menu.menuAction()
@@ -1807,25 +1808,21 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.table_header.setRowHeight(0, self.table_header.height())
 
         self.toolbar.clear()
-        self.toolbar.addAction(self.dataTable.resize_action)
-        self.toolbar.addAction(self.dataTable.resize_columns_action)
+        self.toolbar.addAction(self.dataTable.insert_action_above)
+        self.toolbar.addAction(self.dataTable.insert_action_below)
+        self.toolbar.addAction(self.dataTable.duplicate_row_action)
+        self.toolbar.addAction(self.dataTable.remove_row_action)
         self.toolbar.addSeparator()
-        actions = [
-            self.dataTable.insert_action_above,
-            self.dataTable.insert_action_below,
-            self.dataTable.insert_action_after,
-            self.dataTable.insert_action_before,
-            self.dataTable.duplicate_row_action,
-            self.dataTable.duplicate_col_action,
-            self.dataTable.remove_row_action,
-            self.dataTable.remove_col_action
-        ]
-        for item in actions:
-            self.toolbar.addAction(item)
+        self.toolbar.addAction(self.dataTable.insert_action_before)
+        self.toolbar.addAction(self.dataTable.insert_action_after)
+        self.toolbar.addAction(self.dataTable.duplicate_col_action)
+        self.toolbar.addAction(self.dataTable.remove_col_action)
 
         stretcher = self.create_stretcher('Toolbar stretcher')
         self.toolbar.addWidget(stretcher)
 
+        self.toolbar.addAction(self.dataTable.resize_action)
+        self.toolbar.addAction(self.dataTable.resize_columns_action)
         self.toolbar.addAction(self.refresh_action)
 
         options_menu = self.create_menu('Options menu', register=False)

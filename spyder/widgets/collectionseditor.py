@@ -1519,10 +1519,6 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         )
 
         toolbar = self.create_toolbar('Editor toolbar', register=False)
-        toolbar.addAction(self.refresh_action)
-        toolbar.addAction(self.editor.resize_action)
-        toolbar.addAction(self.editor.resize_columns_action)
-        toolbar.addSeparator()
         toolbar.addAction(self.editor.insert_action)
         toolbar.addAction(self.editor.insert_action_above)
         toolbar.addAction(self.editor.insert_action_below)
@@ -1533,6 +1529,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         toolbar.addAction(self.editor.plot_action)
         toolbar.addAction(self.editor.hist_action)
         toolbar.addAction(self.editor.imshow_action)
+        toolbar.addWidget(self.create_stretcher('Toolbar stretcher'))
+        toolbar.addAction(self.editor.resize_action)
+        toolbar.addAction(self.editor.resize_columns_action)
+        toolbar.addAction(self.refresh_action)
 
         # Update the toolbar actions state
         self.editor.refresh_menu()
