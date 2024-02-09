@@ -12,7 +12,6 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
@@ -30,13 +29,6 @@ from spyder.utils.programs import is_python_interpreter
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
-
-
-def is_different_interpreter(pyexec):
-    """Check that pyexec is a different interpreter from sys.executable."""
-    executable_validation = osp.basename(pyexec).startswith('python')
-    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
-    return directory_validation and executable_validation
 
 
 def get_activation_script(quote=False):
@@ -92,11 +84,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
-        # Part of spyder-ide/spyder#11819
-        is_different = is_different_interpreter(pyexec)
-
         # Command used to start kernels
-        if is_different and is_conda_env(pyexec=pyexec):
+        if is_conda_env(pyexec=pyexec):
             # If this is a conda environment we need to call an intermediate
             # activation script to correctly activate the spyder-kernel
 
