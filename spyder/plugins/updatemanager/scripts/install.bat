@@ -4,10 +4,10 @@
 :: Create variables from arguments
 :parse
 IF "%~1"=="" GOTO endparse
-IF "%~1"=="-p" set prefix=%2 & SHIFT
-IF "%~1"=="-i" set install_exe=%2 & SHIFT
-IF "%~1"=="-c" set conda=%2 & SHIFT
-IF "%~1"=="-v" set spy_ver=%2 & SHIFT
+IF "%~1"=="-p" set prefix=%~2& SHIFT
+IF "%~1"=="-i" set install_exe=%~2& SHIFT
+IF "%~1"=="-c" set conda=%~2& SHIFT
+IF "%~1"=="-v" set spy_ver=%~2& SHIFT
 SHIFT
 GOTO parse
 :endparse
@@ -71,7 +71,7 @@ exit %ERRORLEVEL%
 
     call :wait_for_spyder_quit
 
-    %conda% install -p %prefix% -c conda-forge --override-channels -y spyder=%spy_ver%
+    %conda% install -p %prefix% -y spyder=%spy_ver%
     set /P CONT=Press any key to exit...
     goto :EOF
 
