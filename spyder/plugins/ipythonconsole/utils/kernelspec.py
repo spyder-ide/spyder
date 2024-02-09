@@ -12,7 +12,6 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
@@ -30,13 +29,6 @@ from spyder.utils.programs import is_python_interpreter
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
-
-
-def is_different_interpreter(pyexec):
-    """Check that pyexec is a different interpreter from sys.executable."""
-    executable_validation = osp.basename(pyexec).startswith('python')
-    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
-    return directory_validation and executable_validation
 
 
 def get_activation_script(quote=False):
