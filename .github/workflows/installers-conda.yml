@@ -25,8 +25,13 @@ on:
         required: false
         default: false
         type: boolean
-      mac:
-        description: 'Build macOS installer'
+      macos-x86_64:
+        description: 'Build macOS x86_64 installer'
+        required: false
+        default: true
+        type: boolean
+      macos-arm64:
+        description: 'Build macOS arm64 installer'
         required: false
         default: true
         type: boolean
@@ -50,7 +55,8 @@ name: Nightly conda-based installers
 env:
   IS_RELEASE: ${{ github.event_name == 'release' }}
   ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
-  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+  BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.macos-x86_64 }}
+  BUILD_ARM: ${{ github.event_name != 'workflow_dispatch' || inputs.macos-arm64 }}
   BUILD_LNX: ${{ github.event_name != 'workflow_dispatch' || inputs.linux }}
   BUILD_WIN: ${{ github.event_name != 'workflow_dispatch' || inputs.win }}
   USE_SUBREPOS: ${{ github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre) }}
@@ -72,6 +78,10 @@ jobs:
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
             include="{'os': 'macos-11', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
+        fi
+        if [[ $BUILD_ARM == "true" ]]; then
+            target_platform=${target_platform:+"$target_platform, "}"'osx-arm64'"
+            include=${include:+"$include, "}"{'os': 'macos-14', 'target-platform': 'osx-arm64', 'spyk-arch': 'unix'}"
         fi
         if [[ $BUILD_LNX == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'linux-64'"
