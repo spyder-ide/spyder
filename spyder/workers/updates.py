@@ -12,6 +12,8 @@ import tempfile
 import traceback
 
 # Third party imports
+from packaging.version import parse
+import platform
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
@@ -225,16 +227,37 @@ class WorkerDownloadInstaller(QObject):
     def _download_installer(self):
         """Donwload latest Spyder standalone installer executable."""
         tmpdir = tempfile.gettempdir()
-        is_full_installer = (is_module_installed('numpy') or
-                             is_module_installed('pandas'))
-        if os.name == 'nt':
-            name = 'Spyder_64bit_{}.exe'.format('full' if is_full_installer
-                                                else 'lite')
-        else:
-            name = 'Spyder{}.dmg'.format('' if is_full_installer else '-Lite')
 
-        url = ('https://github.com/spyder-ide/spyder/releases/latest/'
-               f'download/{name}')
+        # If running on macOS unde Rosetta, platform.machine will not be
+        # correct so check for ARM64 in version instead. All other
+        # platforms will be x86_64.
+        mach = "arm64" if "ARM64" in platform.version() else "x86_64"
+
+        if parse(self.latest_release_version) >= parse("5"):
+            # conda-based installer name
+            if os.name == 'nt':
+                plat, ext = 'Windows', 'exe'
+            elif platform.system == 'Darwin':
+                plat, ext = 'macOS', 'pkg'
+            else:
+                plat, ext = 'Linux', 'sh'
+            name = f'Spyder_{plat}_{mach}.{ext}'
+        else:
+            # 5.x installer name
+            is_full_installer = (is_module_installed('numpy') or
+                                 is_module_installed('pandas'))
+            if os.name == 'nt':
+                name = 'Spyder_64bit_{}.exe'.format(
+                    'full' if is_full_installer else 'lite'
+                )
+            else:
+                name = 'Spyder_{}{}.dmg'.format(
+                    mach, '' if is_full_installer else '_Lite'
+                )
+
+        url = ('https://github.com/spyder-ide/spyder/releases/download/'
+               f'v{self.latest_release_version}/{name}')
+
         dir_path = osp.join(tmpdir, 'spyder', 'updates')
         os.makedirs(dir_path, exist_ok=True)
         installer_dir_path = osp.join(
