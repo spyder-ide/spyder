@@ -12,7 +12,6 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
@@ -54,16 +53,6 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "<pre>"
     "    <tt>{3}</tt>"
     "</pre>")
-
-
-def is_different_interpreter(pyexec):
-    """Check that pyexec is a different interpreter from sys.executable."""
-    # Paths may be symlinks
-    real_pyexe = osp.realpath(pyexec)
-    real_sys_exe = osp.realpath(sys.executable)
-    executable_validation = osp.basename(real_pyexe).startswith('python')
-    directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
-    return directory_validation and executable_validation
 
 
 def has_spyder_kernels(pyexec):
@@ -127,9 +116,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
-        # Part of spyder-ide/spyder#11819
-        is_different = is_different_interpreter(pyexec)
-
         # Command used to start kernels
         kernel_cmd = [
             pyexec,
@@ -140,7 +126,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             '-f', '{connection_file}'
         ]
 
-        if is_different and is_conda_env(pyexec=pyexec):
+        if is_conda_env(pyexec=pyexec):
             # If executable is a conda environment and different from Spyder's
             # runtime environment, we need to activate the environment to run
             # spyder-kernels
