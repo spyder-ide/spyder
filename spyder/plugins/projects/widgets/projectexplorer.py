@@ -47,6 +47,10 @@ class ProxyModel(QSortFilterProxyModel):
         '.github'
     ]
 
+    EXTENSIONS_TO_HIDE = [
+        ".orig"
+    ]
+
     def __init__(self, parent):
         """Initialize the proxy model."""
         super(ProxyModel, self).__init__(parent)
@@ -78,8 +82,9 @@ class ProxyModel(QSortFilterProxyModel):
         if self.root_path is None:
             return True
         index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normcase(osp.normpath(
-            str(self.sourceModel().filePath(index))))
+        path = osp.normcase(
+            osp.normpath(str(self.sourceModel().filePath(index)))
+        )
 
         if osp.normcase(self.root_path).startswith(path):
             # This is necessary because parent folders need to be scanned
@@ -87,13 +92,24 @@ class ProxyModel(QSortFilterProxyModel):
         else:
             for p in [osp.normcase(p) for p in self.path_list]:
                 if path == p or path.startswith(p + os.sep):
-                    if not any([path.endswith(os.sep + d)
-                                for d in self.PATHS_TO_SHOW]):
-                        if any([path.endswith(os.sep + d)
-                                for d in self.PATHS_TO_HIDE]):
+                    if not any(
+                        [path.endswith(os.sep + d) for d in self.PATHS_TO_SHOW]
+                    ):
+                        if any(
+                            [
+                                path.endswith(os.sep + d)
+                                for d in self.PATHS_TO_HIDE
+                            ]
+                        ):
                             return False
                         else:
-                            return True
+                            if (
+                                osp.splitext(path)[1]
+                                in self.EXTENSIONS_TO_HIDE
+                            ):
+                                return False
+                            else:
+                                return True
                     else:
                         return True
             else:
