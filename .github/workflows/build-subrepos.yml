@@ -14,6 +14,12 @@ on:
         type: string
 
   workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: build-subrepos-${{ inputs.branch || github.ref_name }}
@@ -30,15 +36,14 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         pkg: [python-lsp-server, qtconsole, spyder-kernels]
+        python-version: ['3.11']
         include:
-          - python-version: '3.11'
           - cache-arch: noarch
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
           - os: windows-latest
             pkg: spyder-kernels
-            python-version: '3.11'
             cache-arch: win-64
     defaults:
       run:
@@ -48,6 +53,13 @@ jobs:
       pkg: ${{ matrix.pkg }}
 
     steps:
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout: 60
+        with:
+          detached: true
+
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
