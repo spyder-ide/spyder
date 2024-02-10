@@ -9,6 +9,7 @@
 # Standard library imports
 from collections import OrderedDict
 import configparser
+from contextlib import contextmanager
 import logging
 import os
 import os.path as osp
@@ -400,13 +401,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         self._add_to_recent(path)
 
         self.set_conf('current_project_path', self.get_active_project_path())
-
         self._setup_menu_actions()
 
-        if workdir and osp.isdir(workdir):
-            self.sig_project_loaded.emit(workdir)
-        else:
-            self.sig_project_loaded.emit(path)
+        with self._disable_pdb_prevent_closing():
+            if workdir and osp.isdir(workdir):
+                self.sig_project_loaded.emit(workdir)
+            else:
+                self.sig_project_loaded.emit(path)
 
         self.watcher.start(path)
 
@@ -440,8 +441,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.set_conf('current_project_path', None)
             self._setup_menu_actions()
 
-            self.sig_project_closed.emit(path)
-            self.sig_project_closed[bool].emit(True)
+            with self._disable_pdb_prevent_closing():
+                self.sig_project_closed.emit(path)
+                self.sig_project_closed[bool].emit(True)
 
             # Hide pane.
             self.set_conf('visible_if_project_open', self.isVisible())
@@ -999,6 +1001,28 @@ class ProjectExplorerWidget(PluginMainWidget):
         ]
 
         return valid_projects
+
+    @contextmanager
+    def _disable_pdb_prevent_closing(self):
+        """
+        Context manager to disable the pdb_prevent_closing option before
+        opening/closing the previous/current open project files.
+
+        Notes
+        -----
+        * This is necessary to correctly do that when a console was left in
+          debugging mode.
+        """
+        try:
+            pdb_prevent_closing = self.get_conf(
+                "pdb_prevent_closing", section="debugger"
+            )
+            self.set_conf("pdb_prevent_closing", False, section="debugger")
+            yield
+        finally:
+            self.set_conf(
+                "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
+            )
 
     # ---- Private API for the Switcher
     # -------------------------------------------------------------------------
