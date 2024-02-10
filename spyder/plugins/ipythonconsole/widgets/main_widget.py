@@ -1767,8 +1767,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         open_clients = self.clients.copy()
         for client in self.clients:
             is_last_client = (
-                len(self.get_related_clients(client, open_clients)) == 0)
-            client.close_client(is_last_client)
+                len(self.get_related_clients(client, open_clients)) == 0
+            )
+            client.close_client(is_last_client, close_console=True)
             open_clients.remove(client)
 
         # Wait for all KernelHandler threads to shutdown.
