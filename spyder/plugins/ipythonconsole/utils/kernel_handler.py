@@ -20,6 +20,7 @@ from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
     SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
@@ -488,7 +489,10 @@ class KernelHandler(QObject):
             km.stop_restarter()
             self.disconnect_std_pipes()
 
-            if now:
+            # This is probably necessary due to a weird interaction between
+            # `conda run --no-capture-output` and pytest capturing output
+            # facilities.
+            if now or running_under_pytest():
                 km.shutdown_kernel(now=True)
                 self.after_shutdown()
             else:
