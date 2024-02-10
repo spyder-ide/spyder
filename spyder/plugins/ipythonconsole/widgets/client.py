@@ -121,6 +121,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.allow_rename = True
         self.error_text = None
         self.give_focus = give_focus
+        self.__is_last_client = False
 
         css_path = self.get_conf('css_path', section='appearance')
         if css_path is None:
@@ -555,19 +556,38 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def close_client(self, is_last_client):
         """Close the client."""
+        self.__is_last_client = is_last_client
+        debugging = False
+
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
-            self.stop_button_click_handler()
+            # This is required after spyder-ide/spyder#21788 to prevent freezes
+            # when closing Spyder. That happens not only when a console is in
+            # debugging mode before closing, but also when a kernel restart is
+            # requested while debugging.
+            if self.shellwidget.is_debugging():
+                debugging = True
+                self.shellwidget.sig_prompt_ready.connect(self.finish_close)
+                self.shellwidget.stop_debugging()
+            else:
+                self.interrupt_kernel()
         except RuntimeError:
             pass
 
-        # Disconnect timer needed to update elapsed time
+        if not debugging:
+            self.finish_close()
+
+    def finish_close(self):
+        """Actions to take to finish closing the client."""
+        # Disconnect timer needed to update elapsed time and this slot in case
+        # it was connected.
         try:
+            self.shellwidget.sig_prompt_ready.disconnect(self.finish_close)
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
 
-        self.shutdown(is_last_client)
+        self.shutdown(self.__is_last_client)
 
         # Prevent errors in our tests
         try:
