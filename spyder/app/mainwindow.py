@@ -111,7 +111,7 @@ if os.name == 'nt':
 logger = logging.getLogger(__name__)
 
 #==============================================================================
-# Install Qt messaage handler
+# Install Qt message handler
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
 

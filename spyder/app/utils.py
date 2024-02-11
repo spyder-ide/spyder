@@ -18,13 +18,16 @@ import sys
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
 from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap, QPainter, QImage
-from qtpy.QtWidgets import QApplication, QSplashScreen
+from qtpy.QtWidgets import QSplashScreen
 from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_conda_based_app,
-    running_under_pytest)
+    get_conf_path,
+    get_debug_level,
+    is_conda_based_app,
+    running_under_pytest,
+)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
@@ -174,15 +177,18 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 
     On some operating systems, warning messages might be displayed
     even if the actual message does not apply. This filter adds a
-    blacklist for messages that are being printed for no apparent
-    reason. Anything else will get printed in the internal console.
-
-    In DEV mode, all messages are printed.
+    blacklist for messages that are unnecessary. Anything else will
+    get printed in the internal console.
     """
     BLACKLIST = [
         'QMainWidget::resizeDocks: all sizes need to be larger than 0',
+        # This is shown at startup due to our splash screen but it's harmless
+        "fromIccProfile: failed minimal tag size sanity",
+        # This is shown when expanding/collpasing folders in the Files plugin
+        # after spyder-ide/spyder#
+        "QFont::setPixelSize: Pixel size <= 0 (0)",
     ]
-    if DEV or msg_string not in BLACKLIST:
+    if msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
 
 
