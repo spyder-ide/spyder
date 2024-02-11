@@ -350,10 +350,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Update the list of envs at startup
         self.get_envs()
 
-    def on_close(self):
-        self.mainwindow_close = True
-        self.close_all_clients()
-
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
