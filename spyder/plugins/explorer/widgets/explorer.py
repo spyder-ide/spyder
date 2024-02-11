@@ -21,12 +21,36 @@ import sys
 # Third party imports
 from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QDir,
+    QMimeData,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    QUrl,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (
-    QAbstractItemView, QApplication, QDialog, QDialogButtonBox,
-    QFileSystemModel, QInputDialog, QLabel, QLineEdit, QMessageBox,
-    QProxyStyle, QStyle, QTextEdit, QToolTip, QTreeView, QVBoxLayout)
+    QAbstractItemView,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFileSystemModel,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProxyStyle,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTextEdit,
+    QToolTip,
+    QTreeView,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -147,6 +171,29 @@ class DirViewStyle(QProxyStyle):
             return 0
 
         return super().styleHint(hint, option, widget, return_data)
+
+
+class DirViewItemDelegate(QStyledItemDelegate):
+
+    def initStyleOption(self, option, index):
+        """
+        To change the item icon when expanding a folder.
+
+        From https://stackoverflow.com/a/48531349/438386
+        """
+        super().initStyleOption(option, index)
+
+        if isinstance(option, QStyleOptionViewItem):
+            model = index.model()
+
+            if isinstance(model, QSortFilterProxyModel):
+                # This is necessary for Projects because it has a proxy model
+                is_dir = model.sourceModel().isDir(model.mapToSource(index))
+            else:
+                is_dir = model.isDir(index)
+
+            if is_dir and (option.state & QStyle.State_Open):
+                option.icon = ima.icon("DirOpenIcon")
 
 
 # ---- Widgets
@@ -297,6 +344,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self._style = DirViewStyle(None)
         self._style.setParent(self)
         self.setStyle(self._style)
+        self.setItemDelegate(DirViewItemDelegate(self))
 
         # Setup
         self.setup_fs_model()

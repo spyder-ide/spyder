@@ -480,7 +480,7 @@ class IconManager():
             return self.ICONS_BY_EXTENSION[(extension, scale_factor)]
 
         if osp.isdir(fname):
-            icon_by_extension = self.icon('DirOpenIcon', scale_factor)
+            icon_by_extension = self.icon('DirClosedIcon', scale_factor)
         else:
             icon_by_extension = self.icon('GenericFileIcon')
 
