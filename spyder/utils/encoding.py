@@ -109,9 +109,18 @@ CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
           'utf-16']
 
 
-def get_coding(text, force_chardet=False):
+def get_coding(text, force_chardet=False, default_codec=None):
     """
     Function to get the coding of a text.
+
+    By default, first look for declarations of the form "coding=xxx" in the
+    first two lines of text. If none is found, then use the chardet library to
+    guess. If that also fails, then return None.
+
+    If force_chardet is set, then do not look for "coding=xxx" and only use
+    the chardet library. If default_codec is set, then do not use the chardet
+    library and return default_codec if there is no "coding=xxx" declaration.
+
     @param text text to inspect (string)
     @return coding string
     """
@@ -133,7 +142,7 @@ def get_coding(text, force_chardet=False):
                         return codec
 
     # Fallback using chardet
-    if is_binary_string(text):
+    if is_binary_string(text) and (force_chardet or default_codec is None):
         detector = UniversalDetector()
         for line in text.splitlines()[:2]:
             detector.feed(line)
@@ -142,9 +151,9 @@ def get_coding(text, force_chardet=False):
         detector.close()
         return detector.result['encoding']
 
-    return None
+    return default_codec
 
-def decode(text):
+def decode(text, default_codec=None):
     """
     Function to decode a text.
     @param text text to decode (string)
@@ -160,7 +169,7 @@ def decode(text):
         elif text.startswith(BOM_UTF32):
             # UTF-32 with BOM
             return to_text_string(text[len(BOM_UTF32):], 'utf-32'), 'utf-32'
-        coding = get_coding(text)
+        coding = get_coding(text, default_codec=default_codec)
         if coding:
             return to_text_string(text, coding), coding
     except (UnicodeError, LookupError):
@@ -301,7 +310,12 @@ def read(filename, encoding='utf-8'):
     Read text from file ('filename')
     Return text and encoding
     """
-    text, encoding = decode( open(filename, 'rb').read() )
+    if filename.endswith(('.py', '.pyw', '.ipy')):
+        default_codec = 'utf-8'  # Per PEP3120
+    else:
+        default_codec = None
+    contents = open(filename, 'rb').read()
+    text, encoding = decode(contents, default_codec=default_codec)
     return text, encoding
 
 def readlines(filename, encoding='utf-8'):

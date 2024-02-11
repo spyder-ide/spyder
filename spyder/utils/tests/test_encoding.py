@@ -12,7 +12,7 @@ import stat
 from flaky import flaky
 import pytest
 
-from spyder.utils.encoding import is_text_file, get_coding, write
+from spyder.utils.encoding import is_text_file, read, write
 from spyder.py3compat import to_text_string
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
@@ -99,11 +99,14 @@ def test_is_text_file(tmpdir):
      ('ascii', 'ascii.txt'),
      ('Big5', 'Big5.txt'),
      ('KOI8-R', 'KOI8-R.txt'),
-     ])
+     ('iso-8859-1', 'copyright.txt'),
+     ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
+     ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
+])
 def test_files_encodings(expected_encoding, text_file):
-    with open(os.path.join(__location__, text_file), 'rb') as f:
-        text = f.read()
-        assert get_coding(text).lower() == expected_encoding.lower()
+    file_path = os.path.join(__location__, text_file)
+    text, encoding = read(file_path)
+    assert encoding.lower() == expected_encoding.lower()
 
 
 if __name__ == '__main__':
