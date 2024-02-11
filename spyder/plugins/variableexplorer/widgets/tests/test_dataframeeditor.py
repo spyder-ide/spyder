@@ -130,6 +130,7 @@ def test_dataframe_to_type(qtbot):
     view.setCurrentIndex(view.model().index(0, 0))
 
     # Show context menu, go down until `Convert to`, and open submenu
+    view.menu.render()
     view.menu.show()
     for _ in range(100):
         activeAction = view.menu.activeAction()
@@ -657,6 +658,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     model_index = view.header_class.model().index(0, 2)
     view.header_class.setCurrentIndex(model_index)
     qtbot.wait(200)
+    view.menu_header_h.render()
     view.menu_header_h.show()
     qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
     qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
@@ -671,6 +673,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     index = editor.table_index.model()
     model_index = editor.table_index.model().index(5, 0)
     editor.table_index.setCurrentIndex(model_index)
+    editor.menu_header_v.render()
     editor.menu_header_v.show()
     qtbot.wait(200)
     qtbot.keyPress(editor.menu_header_v, Qt.Key_Down)

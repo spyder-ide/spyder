@@ -43,9 +43,12 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, keybinding, safe_disconnect
+from spyder.utils.qthelpers import keybinding, safe_disconnect
 from spyder.utils.stylesheet import AppStyle, MAC
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 
 class ArrayEditorActions:
     Copy = 'copy_action'
@@ -54,6 +57,16 @@ class ArrayEditorActions:
     Refresh = 'refresh_action'
     Resize = 'resize_action'
     ToggleBackgroundColor = 'toggle_background_color_action'
+
+
+class ArrayEditorMenus:
+    Options = 'options_menu'
+
+
+class ArrayEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
 
 
 # Note: string and unicode data types will be formatted with 's' (see below)
@@ -105,10 +118,10 @@ LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
 LARGE_COLS = 60
 
+#==============================================================================
+# ---- Utility functions
+#==============================================================================
 
-#==============================================================================
-# Utility functions
-#==============================================================================
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
@@ -127,8 +140,9 @@ def get_idx_rect(index_list):
 
 
 #==============================================================================
-# Main classes
+# ---- Main classes
 #==============================================================================
+
 class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     """Array Editor Table Model"""
 
@@ -539,7 +553,7 @@ class ArrayView(QTableView, SpyderWidgetMixin):
     def setup_menu(self):
         """Setup context menu"""
         self.copy_action = self.create_action(
-            name=None,
+            name=ArrayEditorActions.Copy,
             text=_('Copy'),
             icon=ima.icon('editcopy'),
             triggered=self.copy,
@@ -549,14 +563,17 @@ class ArrayView(QTableView, SpyderWidgetMixin):
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
 
         edit_action = self.create_action(
-            name=None,
+            name=ArrayEditorActions.Edit,
             text=_('Edit'),
             icon=ima.icon('edit'),
             triggered=self.edit_item,
             register_action=False
         )
+
         menu = self.create_menu('Editor menu', register=False)
-        add_actions(menu, [self.copy_action, edit_action])
+        for action in [self.copy_action, edit_action]:
+            self.add_item_to_menu(action, menu)
+
         return menu
 
     def contextMenuEvent(self, event):
@@ -766,12 +783,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Toolbar and options menu
 
-        options_menu = self.create_menu('Options menu', register=False)
+        options_menu = self.create_menu(
+            ArrayEditorMenus.Options,
+            register=False
+        )
         options_menu.add_action(self.toggle_bgcolor_action)
         options_menu.add_action(self.format_action)
 
         options_button = self.create_toolbutton(
-            name='Options toolbutton',
+            name=ArrayEditorWidgets.OptionsToolButton,
             text=_('Options'),
             icon=ima.icon('tooloptions'),
             register=False
@@ -779,11 +799,15 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         options_button.setPopupMode(QToolButton.InstantPopup)
         options_button.setMenu(options_menu)
 
-        toolbar = self.create_toolbar('Editor toolbar', register=False)
-        toolbar.add_item(self.create_stretcher(id_='stretcher'))
-        toolbar.add_item(self.resize_action)
-        toolbar.add_item(self.refresh_action)
-        toolbar.add_item(options_button)
+        toolbar = self.create_toolbar(
+            ArrayEditorWidgets.Toolbar,
+            register=False
+        )
+        stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
+        for item in [stretcher, self.resize_action, self.refresh_action,
+                     options_button]:
+            self.add_item_to_toolbar(item, toolbar)
+
         toolbar._render()
 
         # ---- Stack widget (empty)

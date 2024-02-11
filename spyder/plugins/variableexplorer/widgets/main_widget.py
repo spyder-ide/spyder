@@ -452,9 +452,9 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             if action.defaultWidget() == self.get_options_menu_button():
                 options_menu_action = action
 
-        corner_widget.insertAction(options_menu_action, self.search_action)
-        corner_widget.insertAction(options_menu_action, self.filter_button)
-        corner_widget.insertAction(options_menu_action, self.refresh_action)
+        for action in [self.search_action, self.filter_button,
+                       self.refresh_action]:
+            corner_widget.insertAction(options_menu_action, action)
 
     def update_actions(self):
         """Update the actions."""

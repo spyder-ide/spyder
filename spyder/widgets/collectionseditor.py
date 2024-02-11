@@ -51,7 +51,7 @@ from spyder.py3compat import (is_binary_string, to_text_string,
                               is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import add_actions, MENU_SEPARATOR, mimedata2url
+from spyder.utils.qthelpers import mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
@@ -60,6 +60,51 @@ from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
+
+
+class CollectionsEditorActions:
+    Copy = 'copy_action'
+    Duplicate = 'duplicate_action'
+    Edit = 'edit_action'
+    Histogram = 'histogram_action'
+    Insert = 'insert_action'
+    InsertAbove = 'insert_above_action'
+    InsertBelow = 'insert_below_action'
+    Paste = 'paste_action'
+    Plot = 'plot_action'
+    Refresh = 'refresh_action'
+    Remove = 'remove_action'
+    Rename = 'rename_action'
+    ResizeColumns = 'resize_columns_action'
+    ResizeRows = 'resize_rows_action'
+    Save = 'save_action'
+    ShowImage = 'show_image_action'
+    ViewObject = 'view_object_action'
+
+
+class CollectionsEditorMenus:
+    Context = 'context_menu'
+    ContextIfEmpty = 'context_menu_if_empty'
+    ConvertTo = 'convert_to_submenu'
+    Header = 'header_context_menu'
+    Index = 'index_context_menu'
+    Options = 'options_menu'
+
+
+class CollectionsEditorWidgets:
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
+
+
+class CollectionsEditorContextMenuSections:
+    Edit = 'edit_section'
+    AddRemove = 'add_remove_section'
+    View = 'view_section'
+
+
+class CollectionsEditorToolbarSections:
+    AddDelete = 'add_delete_section'
+    ViewAndRest = 'view_section'
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -644,42 +689,42 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
     def setup_menu(self):
         """Setup actions and context menu"""
         self.resize_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.ResizeRows,
             text=_("Resize rows to contents"),
             icon=ima.icon('collapse_row'),
             triggered=self.resizeRowsToContents,
             register_action=False
         )
         self.resize_columns_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.ResizeColumns,
             text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
             triggered=self.resize_column_contents,
             register_action=False
         )
         self.paste_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.ResizeRows,
             text=_("Paste"),
             icon=ima.icon('editpaste'),
             triggered=self.paste,
             register_action=False
         )
         self.copy_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Copy,
             text=_("Copy"),
             icon=ima.icon('editcopy'),
             triggered=self.copy,
             register_action=False
         )
         self.edit_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Edit,
             text=_("Edit"),
             icon=ima.icon('edit'),
             triggered=self.edit_item,
             register_action=False
         )
         self.plot_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Plot,
             text=_("Plot"),
             icon=ima.icon('plot'),
             triggered=lambda: self.plot_item('plot'),
@@ -687,7 +732,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         )
         self.plot_action.setVisible(False)
         self.hist_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Histogram,
             text=_("Histogram"),
             icon=ima.icon('hist'),
             triggered=lambda: self.plot_item('hist'),
@@ -695,7 +740,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         )
         self.hist_action.setVisible(False)
         self.imshow_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.ShowImage,
             text=_("Show image"),
             icon=ima.icon('imshow'),
             triggered=self.imshow_item,
@@ -703,7 +748,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         )
         self.imshow_action.setVisible(False)
         self.save_array_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Save,
             text=_("Save"),
             icon=ima.icon('filesave'),
             triggered=self.save_array,
@@ -711,81 +756,90 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         )
         self.save_array_action.setVisible(False)
         self.insert_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Insert,
             text=_("Insert"),
             icon=ima.icon('insert'),
             triggered=lambda: self.insert_item(below=False),
             register_action=False
         )
         self.insert_action_above = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.InsertAbove,
             text=_("Insert above"),
             icon=ima.icon('insert_above'),
             triggered=lambda: self.insert_item(below=False),
             register_action=False
         )
         self.insert_action_below = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.InsertBelow,
             text=_("Insert below"),
             icon=ima.icon('insert_below'),
             triggered=lambda: self.insert_item(below=True),
             register_action=False
         )
         self.remove_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Remove,
             text=_("Remove"),
             icon=ima.icon('editdelete'),
             triggered=self.remove_item,
             register_action=False
         )
         self.rename_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Rename,
             text=_("Rename"),
             icon=ima.icon('rename'),
             triggered=self.rename_item,
             register_action=False
         )
         self.duplicate_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Duplicate,
             text=_("Duplicate"),
             icon=ima.icon('edit_add'),
             triggered=self.duplicate_item,
             register_action=False
         )
         self.view_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.ViewObject,
             text=_("View with the Object Explorer"),
             icon=ima.icon('outline_explorer'),
             triggered=self.view_item,
             register_action=False
         )
 
-        menu = self.create_menu('Editor menu', register=False)
-        menu_actions = [
-            self.copy_action,
-            self.paste_action,
-            self.rename_action,
-            self.edit_action,
-            self.save_array_action,
-            MENU_SEPARATOR,
-            self.insert_action,
-            self.insert_action_above,
-            self.insert_action_below,
-            self.duplicate_action,
-            self.remove_action,
-            MENU_SEPARATOR,
-            self.view_action,
-            self.plot_action,
-            self.hist_action,
-            self.imshow_action
-        ]
-        add_actions(menu, menu_actions)
+        menu = self.create_menu(
+            CollectionsEditorMenus.Context,
+            register=False)
 
-        self.empty_ws_menu = self.create_menu('Empty ws', register=False)
-        add_actions(
-            self.empty_ws_menu,
-            [self.insert_action, self.paste_action]
+        for action in [self.copy_action, self.paste_action, self.rename_action,
+                       self.edit_action, self.save_array_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CollectionsEditorContextMenuSections.Edit
         )
+
+        for action in [self.insert_action, self.insert_action_above,
+                       self.insert_action_below, self.duplicate_action,
+                       self.remove_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CollectionsEditorContextMenuSections.AddRemove
+            )
+
+        for action in [self.view_action, self.plot_action,
+                       self.hist_action, self.imshow_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CollectionsEditorContextMenuSections.View
+            )
+
+        self.empty_ws_menu = self.create_menu(
+            CollectionsEditorMenus.ContextIfEmpty,
+            register=False)
+
+        for action in [self.insert_action, self.paste_action]:
+            self.add_item_to_menu(action, self.empty_ws_menu)
 
         return menu
 
@@ -1503,14 +1557,14 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         QWidget.__init__(self, parent)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
-                self, data, readonly)
+                self, data, readonly, create_menu=True)
         else:
             self.editor = CollectionsEditorTableView(
                 self, data, namespacebrowser, data_function, readonly, title
             )
 
         self.refresh_action = self.create_action(
-            name=None,
+            name=CollectionsEditorActions.Refresh,
             text=_('Refresh'),
             icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
@@ -1518,21 +1572,45 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             register_action=None
         )
 
-        toolbar = self.create_toolbar('Editor toolbar', register=False)
-        toolbar.addAction(self.editor.insert_action)
-        toolbar.addAction(self.editor.insert_action_above)
-        toolbar.addAction(self.editor.insert_action_below)
-        toolbar.addAction(self.editor.duplicate_action)
-        toolbar.addAction(self.editor.remove_action)
-        toolbar.addSeparator()
-        toolbar.addAction(self.editor.view_action)
-        toolbar.addAction(self.editor.plot_action)
-        toolbar.addAction(self.editor.hist_action)
-        toolbar.addAction(self.editor.imshow_action)
-        toolbar.addWidget(self.create_stretcher('Toolbar stretcher'))
-        toolbar.addAction(self.editor.resize_action)
-        toolbar.addAction(self.editor.resize_columns_action)
-        toolbar.addAction(self.refresh_action)
+        toolbar = self.create_toolbar(
+            CollectionsEditorWidgets.Toolbar,
+            register=False
+        )
+
+        stretcher = self.create_stretcher(
+            CollectionsEditorWidgets.ToolbarStretcher
+        )
+
+        for item in [
+            self.editor.insert_action,
+            self.editor.insert_action_above,
+            self.editor.insert_action_below,
+            self.editor.duplicate_action,
+            self.editor.remove_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar,
+                section=CollectionsEditorToolbarSections.AddDelete
+            )
+
+        for item in [
+            self.editor.view_action,
+            self.editor.plot_action,
+            self.editor.hist_action,
+            self.editor.imshow_action,
+            stretcher,
+            self.editor.resize_action,
+            self.editor.resize_columns_action,
+            self.refresh_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar,
+                section=CollectionsEditorToolbarSections.ViewAndRest
+            )
+
+        toolbar._render()
 
         # Update the toolbar actions state
         self.editor.refresh_menu()
@@ -2082,7 +2160,7 @@ def editor_test():
     """Test Collections editor."""
     dialog = CollectionsEditor()
     dialog.setup(get_test_data())
-    dialog.show()
+    dialog.exec_()
 
 
 def remote_editor_test():
@@ -2098,7 +2176,7 @@ def remote_editor_test():
     remote = make_remote_view(get_test_data(), settings)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
-    dialog.show()
+    dialog.exec_()
 
 
 if __name__ == "__main__":
@@ -2107,4 +2185,3 @@ if __name__ == "__main__":
     app = qapplication()  # analysis:ignore
     editor_test()
     remote_editor_test()
-    app.exec_()

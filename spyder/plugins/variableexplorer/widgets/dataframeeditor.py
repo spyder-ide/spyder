@@ -54,15 +54,70 @@ from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
+from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    add_actions, keybinding, MENU_SEPARATOR, qapplication)
-from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
-from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
+from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
+
+
+# =============================================================================
+# ---- Constants
+# =============================================================================
+
+class DataframeEditorActions:
+    ConvertToBool = 'convert_to_bool_action'
+    ConvertToComplex = 'convert_to_complex_action'
+    ConvertToFloat = 'convert_to_float_action'
+    ConvertToInt = 'convert_to_int_action'
+    ConvertToStr = 'convert_to_str_action'
+    Copy = 'copy_action'
+    DuplicateColumn = 'duplicate_column_action'
+    DuplicateRow = 'duplicate_row_action'
+    Edit = 'edit_action'
+    EditHeader = 'edit_header_action'
+    EditIndex = 'edit_index_action'
+    Format = 'format_action'
+    InsertAbove = 'insert_above_action'
+    InsertAfter = 'insert_after_action'
+    InsertBefore = 'insert_before_action'
+    InsertBelow = 'insert_below_action'
+    Refresh = 'refresh_action'
+    RemoveColumn = 'remove_column_action'
+    RemoveRow = 'remove_row_action'
+    ResizeColumns = 'resize_columns_action'
+    ResizeRows = 'resize_rows_action'
+    ToggleBackgroundColor = 'toggle_background_color_action'
+    ToggleBackgroundColorGlobal = 'toggle_background_color_global_action'
+
+
+class DataframeEditorMenus:
+    Context = 'context_menu'
+    ConvertTo = 'convert_to_submenu'
+    Header = 'header_context_menu'
+    Index = 'index_context_menu'
+    Options = 'options_menu'
+
+
+class DataframeEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
+
+
+class DataframeEditorContextMenuSections:
+    Edit = 'edit_section'
+    Row = 'row_section'
+    Column = 'column_section'
+    Convert = 'convert_section'
+
+
+class DataframeEditorToolbarSections:
+    Row = 'row_section'
+    ColumnAndRest = 'column_section'
 
 
 # Supported real and complex number types
@@ -92,6 +147,9 @@ BACKGROUND_NONNUMBER_COLOR = QStylePalette.COLOR_BACKGROUND_2
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
 
+# =============================================================================
+# ---- Utility functions
+# =============================================================================
 
 def is_any_real_numeric_dtype(dtype) -> bool:
     """
@@ -122,6 +180,9 @@ def global_max(col_vals, index):
     max_col, min_col = zip(*col_vals_without_None)
     return max(max_col), min(min_col)
 
+# =============================================================================
+# ---- Main classes
+# =============================================================================
 
 class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
     """
@@ -682,15 +743,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
     def setup_menu_header(self):
         """Setup context header menu."""
         edit_header_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.EditHeader,
             text=_("Edit"),
             icon=ima.icon('edit'),
             triggered=self.edit_header_item,
             register_action=False
         )
-        header_menu = [edit_header_action]
-        menu = self.create_menu('DataFrameView header menu', register=False)
-        add_actions(menu, header_menu)
+        menu = self.create_menu(DataframeEditorMenus.Header, register=False)
+        self.add_item_to_menu(edit_header_action, menu)
         return menu
 
     def refresh_menu(self):
@@ -721,85 +781,87 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
     def setup_menu(self):
         """Setup context menu."""
+        # ---- Create actions
+
         self.resize_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.ResizeRows,
             text=_("Resize rows to contents"),
             icon=ima.icon('collapse_row'),
             triggered=lambda: self.resize_to_contents(rows=True),
             register_action=False
         )
         self.resize_columns_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.ResizeColumns,
             text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
             triggered=self.resize_to_contents,
             register_action=False
         )
         self.edit_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.Edit,
             text=_("Edit"),
             icon=ima.icon('edit'),
             triggered=self.edit_item,
             register_action=False
         )
         self.insert_action_above = self.create_action(
-            name=None,
+            name=DataframeEditorActions.InsertAbove,
             text=_("Insert above"),
             icon=ima.icon('insert_above'),
             triggered=lambda: self.insert_item(axis=1, before_above=True),
             register_action=False
         )
         self.insert_action_below = self.create_action(
-            name=None,
+            name=DataframeEditorActions.InsertBelow,
             text=_("Insert below"),
             icon=ima.icon('insert_below'),
             triggered=lambda: self.insert_item(axis=1, before_above=False),
             register_action=False
         )
         self.insert_action_before = self.create_action(
-            name=None,
+            name=DataframeEditorActions.InsertBefore,
             text=_("Insert before"),
             icon=ima.icon('insert_before'),
             triggered=lambda: self.insert_item(axis=0, before_above=True),
             register_action=False
         )
         self.insert_action_after = self.create_action(
-            name=None,
+            name=DataframeEditorActions.InsertAfter,
             text=_("Insert after"),
             icon=ima.icon('insert_after'),
             triggered=lambda: self.insert_item(axis=0, before_above=False),
             register_action=False
         )
         self.remove_row_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.RemoveRow,
             text=_("Remove row"),
             icon=ima.icon('delete_row'),
             triggered=self.remove_item,
             register_action=False
         )
         self.remove_col_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.RemoveColumn,
             text=_("Remove column"),
             icon=ima.icon('delete_column'),
             triggered=lambda: self.remove_item(axis=1),
             register_action=False
         )
         self.duplicate_row_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.DuplicateRow,
             text=_("Duplicate row"),
             icon=ima.icon('duplicate_row'),
             triggered=lambda: self.duplicate_row_col(dup_row=True),
             register_action=False
         )
         self.duplicate_col_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.DuplicateColumn,
             text=_("Duplicate column"),
             icon=ima.icon('duplicate_column'),
             triggered=lambda: self.duplicate_row_col(dup_row=False),
             register_action=False
         )
         self.copy_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.Copy,
             text=_('Copy'),
             icon=ima.icon('editcopy'),
             triggered=self.copy,
@@ -808,52 +870,60 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.copy_action.setShortcut(keybinding('Copy'))
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
 
+        # ---- Create "Convert to" submenu and actions
+
         self.convert_to_menu = self.create_menu(
-            menu_id='Convert submenu',
+            menu_id=DataframeEditorMenus.ConvertTo,
             title=_('Convert to'),
             register=False
         )
-        menu_actions = [
-            self.copy_action,
-            self.edit_action,
-            MENU_SEPARATOR,
-            self.insert_action_above,
-            self.insert_action_below,
-            self.duplicate_row_action,
-            self.remove_row_action,
-            MENU_SEPARATOR,
-            self.insert_action_before,
-            self.insert_action_after,
-            self.duplicate_col_action,
-            self.remove_col_action,
-            MENU_SEPARATOR,
-            self.convert_to_menu.menuAction()
-        ]
-
         functions = (
-            (_("Bool"), bool),
-            (_("Complex"), complex),
-            (_("Int"), int),
-            (_("Float"), float),
-            (_("Str"), to_text_string)
+            (_("Bool"), bool, DataframeEditorActions.ConvertToBool),
+            (_("Complex"), complex, DataframeEditorActions.ConvertToComplex),
+            (_("Int"), int, DataframeEditorActions.ConvertToInt),
+            (_("Float"), float, DataframeEditorActions.ConvertToFloat),
+            (_("Str"), to_text_string, DataframeEditorActions.ConvertToStr)
         )
-        self.convert_to_actions = []
-        for text, func in functions:
+        for text, func, name in functions:
             def slot():
                 self.change_type(func)
-            self.convert_to_actions += [
-                self.create_action(
-                    name=None,
-                    text=text,
-                    triggered=slot,
-                    context=Qt.WidgetShortcut,
-                    register_action=False
-                )
-            ]
+            action = self.create_action(
+                name=name,
+                text=text,
+                triggered=slot,
+                context=Qt.WidgetShortcut,
+                register_action=False
+            )
+            self.add_item_to_menu(action, self.convert_to_menu)
 
-        menu = self.create_menu('DataFrameView menu', register=False)
-        add_actions(self.convert_to_menu, self.convert_to_actions)
-        add_actions(menu, menu_actions)
+        # ---- Create context menu and fill it
+
+        menu = self.create_menu(DataframeEditorMenus.Context, register=False)
+        for action in [self.copy_action, self.edit_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Edit
+            )
+        for action in [self.insert_action_above, self.insert_action_below,
+                       self.duplicate_row_action, self.remove_row_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Row
+            )
+        for action in [self.insert_action_before, self.insert_action_after,
+                       self.duplicate_col_action, self.remove_col_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Column
+            )
+        self.add_item_to_menu(
+            self.convert_to_menu,
+            menu,
+            section=DataframeEditorContextMenuSections.Convert
+        )
 
         return menu
 
@@ -1636,7 +1706,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.data_function = data_function
 
         self.refresh_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.Refresh,
             text=_('Refresh'),
             icon=ima.icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
@@ -1645,19 +1715,19 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         )
         self.refresh_action.setEnabled(self.data_function is not None)
         self.format_action = self.create_action(
-            name='Format',
+            name=DataframeEditorActions.Format,
             text=_('Format'),
             icon=self.create_icon('format_float'),
             tip=_('Set format of floating-point numbers'),
             triggered=self.change_format
         )
         self.bgcolor_action = self.create_action(
-            name='Background color',
+            name=DataframeEditorActions.ToggleBackgroundColor,
             text=_('Background color'),
             toggled=self.change_bgcolor_enable
         )
         self.bgcolor_global_action = self.create_action(
-            name='Background color global',
+            name=DataframeEditorActions.ToggleBackgroundColorGlobal,
             text=_('Column min/max'),
             toggled=self.toggle_bgcolor_global
         )
@@ -1694,7 +1764,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """
         # ---- Toolbar (to be filled later)
 
-        self.toolbar = self.create_toolbar('Editor toolbar', register=False)
+        self.toolbar = self.create_toolbar(
+            DataframeEditorWidgets.Toolbar,
+            register=False
+        )
 
         # ---- Grid layout with tables and scrollbars showing data frame
 
@@ -1807,37 +1880,60 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if self.table_header.rowHeight(0) == 0:
             self.table_header.setRowHeight(0, self.table_header.height())
 
-        self.toolbar.clear()
-        self.toolbar.addAction(self.dataTable.insert_action_above)
-        self.toolbar.addAction(self.dataTable.insert_action_below)
-        self.toolbar.addAction(self.dataTable.duplicate_row_action)
-        self.toolbar.addAction(self.dataTable.remove_row_action)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.dataTable.insert_action_before)
-        self.toolbar.addAction(self.dataTable.insert_action_after)
-        self.toolbar.addAction(self.dataTable.duplicate_col_action)
-        self.toolbar.addAction(self.dataTable.remove_col_action)
+        stretcher = self.create_stretcher(
+            DataframeEditorWidgets.ToolbarStretcher
+        )
 
-        stretcher = self.create_stretcher('Toolbar stretcher')
-        self.toolbar.addWidget(stretcher)
+        options_menu = self.create_menu(
+            DataframeEditorMenus.Options,
+            register=False)
+        for action in [self.bgcolor_action, self.bgcolor_global_action,
+                       self.format_action]:
+            self.add_item_to_menu(action, options_menu)
 
-        self.toolbar.addAction(self.dataTable.resize_action)
-        self.toolbar.addAction(self.dataTable.resize_columns_action)
-        self.toolbar.addAction(self.refresh_action)
-
-        options_menu = self.create_menu('Options menu', register=False)
-        options_menu.add_action(self.bgcolor_action)
-        options_menu.add_action(self.bgcolor_global_action)
-        options_menu.add_action(self.format_action)
         options_button = self.create_toolbutton(
-            name='Options toolbutton',
+            name=DataframeEditorWidgets.OptionsToolButton,
             text=_('Options'),
             icon=ima.icon('tooloptions'),
             register=False
         )
         options_button.setPopupMode(QToolButton.InstantPopup)
         options_button.setMenu(options_menu)
-        self.toolbar.addWidget(options_button)
+
+        self.toolbar.clear()
+        self.toolbar._section_items.clear()
+        self.toolbar._item_map.clear()
+
+        for item in [
+            self.dataTable.insert_action_above,
+            self.dataTable.insert_action_below,
+            self.dataTable.duplicate_row_action,
+            self.dataTable.remove_row_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                self.toolbar,
+                section=DataframeEditorToolbarSections.Row
+            )
+
+        for item in [
+            self.dataTable.insert_action_before,
+            self.dataTable.insert_action_after,
+            self.dataTable.duplicate_col_action,
+            self.dataTable.remove_col_action,
+            stretcher,
+            self.dataTable.resize_action,
+            self.dataTable.resize_columns_action,
+            self.refresh_action,
+            options_button
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                self.toolbar,
+                section=DataframeEditorToolbarSections.ColumnAndRest
+            )
+
+        self.toolbar._render()
 
         return True
 
@@ -1851,15 +1947,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     def setup_menu_header(self, header):
         """Setup context header menu."""
         edit_header_action = self.create_action(
-            name=None,
+            name=DataframeEditorActions.EditIndex,
             text=_("Edit"),
             icon=ima.icon('edit'),
             triggered=lambda: self.edit_header_item(header=header),
             register_action=False
         )
-        header_menu = [edit_header_action]
-        menu = self.create_menu('Context header menu', register=False)
-        add_actions(menu, header_menu)
+        menu = self.create_menu(DataframeEditorMenus.Index, register=False)
+        self.add_item_to_menu(edit_header_action, menu)
         return menu
 
     @Slot()

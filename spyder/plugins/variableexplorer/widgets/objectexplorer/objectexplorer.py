@@ -30,9 +30,25 @@ from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, qapplication
+from spyder.utils.qthelpers import qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
+
+
+class ObjectExplorerActions:
+    Refresh = 'refresh_action'
+    ShowCallable = 'show_callable_action'
+    ShowSpecialAttributes = 'show_special_attributes_action'
+
+
+class ObjectExplorerMenus:
+    Options = 'options_menu'
+
+
+class ObjectExplorerWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
 
 
 logger = logging.getLogger(__name__)
@@ -166,8 +182,8 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         obj_tree_header.setStretchLastSection(False)
 
         # Add menu item for toggling columns to the Options menu
-        add_actions(self.show_cols_submenu,
-                    self.obj_tree.toggle_column_actions_group.actions())
+        for action in self.obj_tree.toggle_column_actions_group.actions():
+            self.add_item_to_menu(action, self.show_cols_submenu)
         column_visible = [col.col_visible for col in self._attr_cols]
         for idx, visible in enumerate(column_visible):
             elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
@@ -200,13 +216,8 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             # a placeholder here.
             pass
 
-        self.toolbar = self.create_toolbar(
-            'Object explorer toolbar', register=False
-        )
-
-        # Show/hide callable objects
         self.toggle_show_callable_action = self.create_action(
-            name='Show callable attributes',
+            name=ObjectExplorerActions.ShowCallable,
             text=_("Show callable attributes"),
             icon=ima.icon("class"),
             tip=_("Shows/hides attributes that are callable "
@@ -215,11 +226,9 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             option='show_callable_attributes',
             register_action=False
         )
-        self.toolbar.add_item(self.toggle_show_callable_action)
 
-        # Show/hide special attributes
         self.toggle_show_special_attribute_action = self.create_action(
-            name='Show special attributes',
+            name=ObjectExplorerActions.ShowSpecialAttributes,
             text=_("Show __special__ attributes"),
             icon=ima.icon("private2"),
             tip=_("Shows or hides __special__ attributes"),
@@ -227,34 +236,47 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             option='show_special_attributes',
             register_action=False
         )
-        self.toolbar.add_item(self.toggle_show_special_attribute_action)
 
-        stretcher = self.create_stretcher('Toolbar stretcher')
-        self.toolbar.add_item(stretcher)
+        stretcher = self.create_stretcher(
+            ObjectExplorerWidgets.ToolbarStretcher
+        )
 
-        self.refresh_button = self.create_toolbutton(
-            name='Refresh toolbutton',
+        self.refresh_action = self.create_action(
+            name=ObjectExplorerActions.Refresh,
+            text=_('Refresh editor with current value of variable in console'),
             icon=ima.icon('refresh'),
-            tip=_('Refresh editor with current value of variable in console'),
             triggered=self.refresh_editor,
+            register_action=False
+        )
+        self.refresh_action.setEnabled(self.data_function is not None)
+
+        self.show_cols_submenu = self.create_menu(
+            ObjectExplorerMenus.Options,
             register=False
         )
-        self.refresh_button.setEnabled(self.data_function is not None)
-        self.toolbar.add_item(self.refresh_button)
-
         self.options_button = self.create_toolbutton(
-            name='Options toolbutton',
+            name=ObjectExplorerWidgets.OptionsToolButton,
             text=_('Options'),
             icon=ima.icon('tooloptions'),
             register=False
         )
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-
-        self.show_cols_submenu = self.create_menu(
-            'Options menu', register=False
-        )
         self.options_button.setMenu(self.show_cols_submenu)
-        self.toolbar.add_item(self.options_button)
+
+        self.toolbar = self.create_toolbar(
+            ObjectExplorerWidgets.Toolbar,
+            register=False
+        )
+
+        for item in [
+            self.toggle_show_callable_action,
+            self.toggle_show_special_attribute_action,
+            stretcher,
+            self.refresh_action,
+            self.options_button
+        ]:
+            self.add_item_to_toolbar(item, self.toolbar)
+
         self.toolbar._render()
 
     def _show_callable_attributes(self, value: bool):
@@ -290,8 +312,9 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         self.central_splitter.addWidget(bottom_pane_widget)
 
         group_box = QGroupBox(_("Details"))
-        group_box.setStyleSheet('QGroupBox '
-                                '{margin-bottom: 0px; margin-right: -2px;}')
+        group_box.setStyleSheet(
+            'QGroupBox {margin-bottom: 0px; margin-right: -2px;}'
+        )
         bottom_layout.addWidget(group_box)
 
         h_group_layout = QHBoxLayout()

@@ -168,8 +168,11 @@ class SpyderToolbarMixin:
             stretcher.ID = id_
         return stretcher
 
-    def create_toolbar(self, name: str,
-                       register: bool = True) -> SpyderToolbar:
+    def create_toolbar(
+            self,
+            name: str,
+            register: bool = True
+    ) -> SpyderToolbar:
         """
         Create a Spyder toolbar.
 
@@ -184,7 +187,8 @@ class SpyderToolbarMixin:
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
         if register:
             TOOLBAR_REGISTRY.register_reference(
-                toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
+                toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME
+            )
         return toolbar
 
     def get_toolbar(self, name: str, context: Optional[str] = None,
