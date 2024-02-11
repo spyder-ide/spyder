@@ -131,8 +131,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # runtime environment, we need to activate the environment to run
             # spyder-kernels
             kernel_cmd[:0] = [
-                find_conda(), 'run',
-                '-p', get_conda_env_path(pyexec),
+                find_conda(),
+                'run',
+                '--no-capture-output',
+                '--prefix',
+                get_conda_env_path(pyexec),
             ]
 
         logger.info('Kernel command: {}'.format(kernel_cmd))
