@@ -270,6 +270,15 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             left='0px',
         )
 
+        # Add padding to tree widget items to make them look better
+        css["QTreeWidget::item"].setValues(
+            padding=f"{AppStyle.MarginSize - 1}px 0px",
+        )
+
+        css["QTreeView::item"].setValues(
+            padding=f"{AppStyle.MarginSize - 1}px 0px",
+        )
+
 
 APP_STYLESHEET = AppStylesheet()
 
