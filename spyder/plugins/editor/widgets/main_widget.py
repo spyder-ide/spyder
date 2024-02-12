@@ -624,8 +624,6 @@ class EditorMainWidget(PluginMainWidget):
             'underline_errors': self.underline_errors
         }
 
-        stylesheet = qstylizer.style.StyleSheet()
-        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
         self.todo_list_action = self.create_action(
             EditorWidgetActions.ShowTodoList,
             text=_("Show todo list"),
@@ -633,12 +631,15 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
                   "HACK/BUG/OPTIMIZE/!!!/???)"),
             # TODO: This was removed at spyder-ide/spyder#21710 and
-            # without it a `spyder.api.exceptions.SpyderAPIError: Action must provide the toggled or triggered parameters!`
+            # without it a `spyder.api.exceptions.SpyderAPIError:
+            # Action must provide the toggled or triggered parameters!`
             # is raised. Should this be actually removed?
             triggered=self.go_to_next_todo
         )
         self.todo_menu = self.create_menu(EditorWidgetMenus.TodoList)
-        self.todo_menu.setStyleSheet(self.todo_menu.styleSheet() + stylesheet.toString())
+        todo_menu_css = self.todo_menu.css
+        todo_menu_css["QMenu"]["menu-scrollable"].setValue("1")
+        self.todo_menu.setStyleSheet(todo_menu_css.toString())
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
         self.warning_list_action = self.create_action(
@@ -651,7 +652,9 @@ class EditorMainWidget(PluginMainWidget):
         self.warning_menu = self.create_menu(
             EditorWidgetMenus.WarningErrorList
         )
-        self.warning_menu.setStyleSheet(self.warning_menu.styleSheet() + stylesheet.toString())
+        warning_menu_css = self.todo_menu.css
+        warning_menu_css["QMenu"]["menu-scrollable"].setValue("1")
+        self.warning_menu.setStyleSheet(warning_menu_css.toString())
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
         self.previous_warning_action = self.create_action(

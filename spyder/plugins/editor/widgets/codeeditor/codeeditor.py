@@ -90,14 +90,14 @@ logger = logging.getLogger(__name__)
 
 
 class CodeEditorContextMenuSections:
-      InspectSection = "inspect_section"
-      UndoRedoSection = "undo_redo_section"
-      EditSection = "edit_section"
-      NbformatSections = "nbformat_section"
-      ZoomSection = "zoom_section"
-      RefactorCodeSection = "refactor_code_section"
-      CopySection = "copy_section"
-      OtherSection = "others_section"
+    InspectSection = "inspect_section"
+    UndoRedoSection = "undo_redo_section"
+    EditSection = "edit_section"
+    NbformatSections = "nbformat_section"
+    ZoomSection = "zoom_section"
+    RefactorCodeSection = "refactor_code_section"
+    CopySection = "copy_section"
+    OtherSection = "others_section"
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget):
