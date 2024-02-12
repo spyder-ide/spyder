@@ -1024,7 +1024,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().save_working_directory(dirname)
 
-    def update_path(self, path_dict, new_path_dict, prioritize):
+    def update_path(self, old_path, new_path, prioritize):
         """
         Update path on consoles.
 
@@ -1033,9 +1033,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         Parameters
         ----------
-        path_dict : dict
+        old_path : list of str
             Corresponds to the previous state of the PYTHONPATH.
-        new_path_dict : dict
+        new_path : list of str
             Corresponds to the new state of the PYTHONPATH.
         prioritize : bool
             Whether to prioritize PYTHONPATH in sys.path
@@ -1044,7 +1044,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
-        self.get_widget().update_path(path_dict, new_path_dict, prioritize)
+        self.get_widget().update_path(old_path, new_path, prioritize)
 
     def restart(self):
         """
