@@ -532,17 +532,17 @@ class LanguageServerProvider(SpyderCompletionProvider):
             self.stop_completion_services_for_language(language)
 
     @Slot(object, object, bool)
-    def python_path_update(self, path_dict, new_path_dict, prioritize):
+    def python_path_update(self, old_path, new_path, prioritize):
         """
         Update server configuration after a change in Spyder's Python
         path.
 
-        `path_dict` corresponds to the previous state of the Python path.
-        `new_path_dict` corresponds to the new state of the Python path.
+        `old_path` corresponds to the previous state of the Python path.
+        `new_path` corresponds to the new state of the Python path.
         `prioritize` determines whether to prioritize Python path in sys.path.
         """
-        # Opening/closing a project will create a diff between path_dict
-        # and new_path_dict, but we don't know if prioritize changed.
+        # Opening/closing a project will create a diff between old_path
+        # and new_path, but we don't know if prioritize changed.
         # sig_pythonpath_changed is only emitted if there is a change so we
         # should always update the confguration when this method is called.
         logger.debug("Update server's sys.path")

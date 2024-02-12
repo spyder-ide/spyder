@@ -91,22 +91,20 @@ class PythonpathContainer(PluginMainContainer):
             path = (path,)
 
         # Old path
-        old_path_dict_p = self._get_spyder_pythonpath_dict()
+        old_path = self.get_spyder_pythonpath()
 
         # Change project path
         self.project_path = path
         self.path_manager_dialog.project_path = path
 
         # New path
-        new_path_dict_p = self._get_spyder_pythonpath_dict()
+        new_path = self.get_spyder_pythonpath()
 
         prioritize = self.get_conf('prioritize', default=False)
 
         # Update path
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
-        self.sig_pythonpath_changed.emit(
-            old_path_dict_p, new_path_dict_p, prioritize
-        )
+        self.set_conf('spyder_pythonpath', new_path)
+        self.sig_pythonpath_changed.emit(old_path, new_path, prioritize)
 
     def show_path_manager(self):
         """Show path manager dialog."""
@@ -248,10 +246,10 @@ class PythonpathContainer(PluginMainContainer):
         """
         Update Python path on language server and kernels.
 
-        The new_path_dict should not include the project path.
+        The `new_path_dict` should not include the project path.
         """
         # Load existing path plus project path
-        old_path_dict_p = self._get_spyder_pythonpath_dict()
+        old_path = self.get_spyder_pythonpath()
         old_prioritize = self.prioritize
 
         # Save new path
@@ -259,15 +257,15 @@ class PythonpathContainer(PluginMainContainer):
             self._save_paths(new_path_dict, new_prioritize)
 
         # Load new path plus project path
-        new_path_dict_p = self._get_spyder_pythonpath_dict()
+        new_path = self.get_spyder_pythonpath()
 
         # Do not notify observers unless necessary
         if (
-            new_path_dict_p != old_path_dict_p
+            new_path != old_path
             or new_prioritize != old_prioritize
         ):
             self.sig_pythonpath_changed.emit(
-                old_path_dict_p, new_path_dict_p, new_prioritize
+                old_path, new_path, new_prioritize
             )
 
     def _migrate_to_config_options(self):
