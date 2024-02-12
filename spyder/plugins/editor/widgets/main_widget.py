@@ -996,15 +996,18 @@ class EditorMainWidget(PluginMainWidget):
     def change_visibility(self, state, force_focus=None):
         """DockWidget visibility has changed"""
         super().change_visibility(state)
-        if self.dockwidget is None:
-            return
-        if self.dockwidget.isWindow():
-            self.dock_toolbar.show()
-        else:
-            self.dock_toolbar.hide()
-        if state:
-            self.refresh()
-        self.update_title()
+        try:
+            if self.dockwidget is None:
+                return
+            if self.dockwidget.isWindow():
+                self.dock_toolbar.show()
+            else:
+                self.dock_toolbar.hide()
+            if state:
+                self.refresh()
+            self.update_title()
+        except RuntimeError:
+            pass
 
     def update_actions(self):
         pass
