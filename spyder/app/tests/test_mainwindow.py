@@ -5520,10 +5520,11 @@ crash_func()
     # Click the run button
     qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
+    # Check segfault info is printed in the console
     qtbot.waitUntil(lambda: 'Segmentation fault' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'Segmentation fault' in control.toPlainText()
-    assert 'in crash_func' in control.toPlainText()
+    qtbot.waitUntil(lambda: 'in crash_func' in control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
 
 
 @flaky(max_runs=3)

@@ -350,10 +350,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Update the list of envs at startup
         self.get_envs()
 
-    def on_close(self):
-        self.mainwindow_close = True
-        self.close_all_clients()
-
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -1767,8 +1763,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         open_clients = self.clients.copy()
         for client in self.clients:
             is_last_client = (
-                len(self.get_related_clients(client, open_clients)) == 0)
-            client.close_client(is_last_client)
+                len(self.get_related_clients(client, open_clients)) == 0
+            )
+            client.close_client(is_last_client, close_console=True)
             open_clients.remove(client)
 
         # Wait for all KernelHandler threads to shutdown.

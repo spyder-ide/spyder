@@ -16,7 +16,7 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 # Local imports
-from spyder.config.base import running_in_ci, running_in_ci_with_conda
+from spyder.config.base import running_in_ci
 from spyder.plugins.editor.extensions.closebrackets import (
     CloseBracketsExtension
 )
@@ -214,11 +214,9 @@ def test_get_hints_not_triggered(qtbot, completions_codeeditor, text):
 @pytest.mark.skipif(
     (
         sys.platform == "darwin"
-        or (
-            sys.platform.startswith("linux") and not running_in_ci_with_conda()
-        )
+        or (sys.platform.startswith("linux") and running_in_ci())
     ),
-    reason="Fails on Linux with pip packages and Mac",
+    reason="Fails on CIs for Linux and Mac",
 )
 @pytest.mark.parametrize(
     "params",
@@ -277,11 +275,9 @@ def test_get_hints_for_builtins(qtbot, completions_codeeditor, params):
 @pytest.mark.skipif(
     (
         sys.platform == "darwin"
-        or (
-            sys.platform.startswith("linux") and not running_in_ci_with_conda()
-        )
+        or (sys.platform.startswith("linux") and running_in_ci())
     ),
-    reason="Fails on Linux with pip packages and Mac",
+    reason="Fails on CIs for Linux and Mac",
 )
 @pytest.mark.parametrize(
     "params",

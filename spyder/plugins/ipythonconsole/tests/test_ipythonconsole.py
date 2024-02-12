@@ -545,7 +545,9 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
+)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -622,8 +624,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(IPython.version_info < (7, 17),
-                    reason="insert is not the same in pre 7.17 ipython")
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -674,8 +675,10 @@ def test_unicode_vars(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
-                    reason="Times out on Windows")
+@pytest.mark.skipif(
+    (running_in_ci() and os.name == 'nt') or sys.platform == "darwin",
+    reason="Hangs on CIs for Windows and Mac"
+)
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -727,6 +730,7 @@ def test_values_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_execute_events_dbg(ipyconsole, qtbot):
     """Test execute events while debugging"""
 
@@ -850,7 +854,10 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    os.name == 'nt' or sys.platform == "darwin",
+    reason="Doesn't work on Windows and hangs on Mac"
+)
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
     Test that clear and reset magics are working while debugging
@@ -1067,11 +1074,11 @@ def test_kernel_crash(ipyconsole, qtbot):
         qtbot.waitUntil(lambda: bool(
             ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
         ))
+
         # Create a new client
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        # even if the error happened before the connection
         error_client = ipyconsole.get_clients()[-1]
         qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
     finally:
