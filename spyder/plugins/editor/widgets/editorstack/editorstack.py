@@ -1657,10 +1657,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.stop_completion_services()
+        try:
+            for index in range(self.get_stack_count()):
+                editor = self.tabs.widget(index)
+                if editor.language.lower() == language:
+                    editor.stop_completion_services()
+        except RuntimeError:
+            pass
 
     def close_all_files(self):
         """Close all opened scripts"""

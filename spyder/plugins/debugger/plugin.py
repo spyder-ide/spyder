@@ -466,12 +466,15 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         """
         The pdb state has changed.
         """
-        codeeditor = self._get_current_editor()
-        if codeeditor is None or codeeditor.breakpoints_manager is None:
-            return
-        filename, line_number = self.get_widget().get_pdb_last_step()
-        codeeditor.breakpoints_manager.update_pdb_state(
-            pdb_state, filename, line_number)
+        try:
+            codeeditor = self._get_current_editor()
+            if codeeditor is None or codeeditor.breakpoints_manager is None:
+                return
+            filename, line_number = self.get_widget().get_pdb_last_step()
+            codeeditor.breakpoints_manager.update_pdb_state(
+                pdb_state, filename, line_number)
+        except RuntimeError:
+            pass
 
     def _get_current_editor(self):
         """
