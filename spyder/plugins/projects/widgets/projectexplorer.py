@@ -199,9 +199,11 @@ class FilteredDirView(DirView):
             List with the folder names.
         """
         assert self.root_path is not None
-        path_list = [osp.join(self.root_path, dirname)
-                     for dirname in folder_names]
+        path_list = [
+            osp.join(self.root_path, dirname) for dirname in folder_names
+        ]
         self.proxymodel.setup_filter(self.root_path, path_list)
+        self.itemDelegate().set_project_dir(self.proxymodel.path_list[0])
 
     def get_filename(self, index):
         """

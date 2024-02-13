@@ -175,6 +175,13 @@ class DirViewStyle(QProxyStyle):
 
 class DirViewItemDelegate(QStyledItemDelegate):
 
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._project_dir = ""
+
+    def set_project_dir(self, project_dir):
+        self._project_dir = project_dir
+
     def initStyleOption(self, option, index):
         """
         To change the item icon when expanding a folder.
@@ -192,8 +199,20 @@ class DirViewItemDelegate(QStyledItemDelegate):
             else:
                 is_dir = model.isDir(index)
 
-            if is_dir and (option.state & QStyle.State_Open):
-                option.icon = ima.icon("DirOpenIcon")
+            if is_dir:
+                # This is necessary because Projects has a root directory and
+                # we want to set a different icon for it.
+                if isinstance(model, QSortFilterProxyModel):
+                    dir_path = model.sourceModel().filePath(
+                        model.mapToSource(index)
+                    )
+                else:
+                    dir_path = None
+
+                if dir_path == self._project_dir:
+                    option.icon = ima.icon("project_spyder")
+                elif (option.state & QStyle.State_Open):
+                    option.icon = ima.icon("DirOpenIcon")
 
 
 # ---- Widgets
