@@ -106,15 +106,17 @@ class ApplicationContainer(PluginMainContainer):
 
         # Attributes
         self.dialog_manager = DialogManager()
-        self.application_update_status = None
-        if is_pynsist() or running_in_mac_app():
-            self.application_update_status = ApplicationUpdateStatus(
-                parent=self)
-            (self.application_update_status.sig_check_for_updates_requested
-             .connect(self.check_updates))
-            (self.application_update_status.sig_install_on_close_requested
-                 .connect(self.set_installer_path))
-            self.application_update_status.set_no_status()
+
+        self.application_update_status = ApplicationUpdateStatus(
+            parent=self)
+        if not is_pynsist() and not running_in_mac_app():
+            self.application_update_status.hide()
+        (self.application_update_status.sig_check_for_updates_requested
+         .connect(self.check_updates))
+        (self.application_update_status.sig_install_on_close_requested
+             .connect(self.set_installer_path))
+        self.application_update_status.set_no_status()
+
         self.give_updates_feedback = False
         self.thread_updates = None
         self.worker_updates = None
