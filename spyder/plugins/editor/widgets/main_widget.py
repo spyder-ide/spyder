@@ -1661,12 +1661,15 @@ class EditorMainWidget(PluginMainWidget):
             filename_ext = filename_ext[1:]
             self.pending_run_files -= {(filename, filename_ext)}
 
-        for editorstack in self.editorstacks:
-            if str(id(editorstack)) != editorstack_id_str:
-                editorstack.blockSignals(True)
-                index = editorstack.get_index_from_filename(filename)
-                editorstack.close_file(index, force=True)
-                editorstack.blockSignals(False)
+        try:
+            for editorstack in self.editorstacks:
+                if str(id(editorstack)) != editorstack_id_str:
+                    editorstack.blockSignals(True)
+                    index = editorstack.get_index_from_filename(filename)
+                    editorstack.close_file(index, force=True)
+                    editorstack.blockSignals(False)
+        except RuntimeError:
+            pass
 
     @Slot(str, str, str)
     def file_saved_in_editorstack(self, editorstack_id_str,
