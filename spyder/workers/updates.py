@@ -228,7 +228,7 @@ class WorkerDownloadInstaller(QObject):
         """Donwload latest Spyder standalone installer executable."""
         tmpdir = tempfile.gettempdir()
 
-        # If running on macOS unde Rosetta, platform.machine will not be
+        # If running on macOS under Rosetta, platform.machine will not be
         # correct so check for ARM64 in version instead. All other
         # platforms will be x86_64.
         mach = "arm64" if "ARM64" in platform.version() else "x86_64"
@@ -241,7 +241,7 @@ class WorkerDownloadInstaller(QObject):
                 plat, ext = 'macOS', 'pkg'
             else:
                 plat, ext = 'Linux', 'sh'
-            name = f'Spyder_{plat}_{mach}.{ext}'
+            name = f'Spyder-{plat}-{mach}.{ext}'
         else:
             # 5.x installer name
             is_full_installer = (is_module_installed('numpy') or
@@ -251,8 +251,8 @@ class WorkerDownloadInstaller(QObject):
                     'full' if is_full_installer else 'lite'
                 )
             else:
-                name = 'Spyder_{}{}.dmg'.format(
-                    mach, '' if is_full_installer else '_Lite'
+                name = 'Spyder-{}{}.dmg'.format(
+                    mach, '' if is_full_installer else '-Lite'
                 )
 
         url = ('https://github.com/spyder-ide/spyder/releases/download/'

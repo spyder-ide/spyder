@@ -103,9 +103,9 @@ def disk_image_name(make_lite=False):
     """
     Return disk image name
     """
-    dmg_name = f'Spyder_{machine()}'
+    dmg_name = f'Spyder-{machine()}'
     if make_lite:
-        dmg_name += '_Lite'
+        dmg_name += '-Lite'
     dmg_name += '.dmg'
 
     return dmg_name
