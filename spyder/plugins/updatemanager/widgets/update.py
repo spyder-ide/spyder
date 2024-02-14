@@ -232,7 +232,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             plat, ext = 'Linux', 'sh'
 
         mach = platform.machine().lower().replace("amd64", "x86_64")
-        fname = f'Spyder_{plat}_{mach}.{ext}'
+        fname = f'Spyder-{plat}-{mach}.{ext}'
 
         dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
         self.installer_path = osp.join(dirname, fname)
