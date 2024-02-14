@@ -33,7 +33,7 @@ def run_pytest(run_slow=False, extra_args=None):
     """Run pytest tests for Spyder."""
     # Be sure to ignore subrepos
     pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
-                   '-W ignore::UserWarning', '--timeout=120', '--timeout_method=thread', '-s']
+                   '-W ignore::UserWarning', '--timeout=120', '--timeout_method=thread']
 
     if CI:
         # Show coverage
