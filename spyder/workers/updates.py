@@ -233,7 +233,7 @@ class WorkerDownloadInstaller(QObject):
         # platforms will be x86_64.
         mach = "arm64" if "ARM64" in platform.version() else "x86_64"
 
-        if parse(self.latest_release_version) >= parse("5"):
+        if parse(self.latest_release_version) > parse("5"):
             # conda-based installer name
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
@@ -251,8 +251,9 @@ class WorkerDownloadInstaller(QObject):
                     'full' if is_full_installer else 'lite'
                 )
             else:
-                name = 'Spyder-{}{}.dmg'.format(
-                    mach, '' if is_full_installer else '-Lite'
+                name = 'Spyder{}{}.dmg'.format(
+                    '-{mach}' if mach == 'arm64' else '',
+                    '' if is_full_installer else '-Lite'
                 )
 
         url = ('https://github.com/spyder-ide/spyder/releases/download/'
