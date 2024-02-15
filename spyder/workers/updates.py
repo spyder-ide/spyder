@@ -252,7 +252,7 @@ class WorkerDownloadInstaller(QObject):
                 )
             else:
                 name = 'Spyder{}{}.dmg'.format(
-                    '-{mach}' if mach == 'arm64' else '',
+                    '_{mach}' if mach == 'arm64' else '',
                     '' if is_full_installer else '-Lite'
                 )
 
