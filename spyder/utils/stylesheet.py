@@ -257,6 +257,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
         )
 
+        # We need to substract here a tiny bit bigger value to match the size
+        # of comboboxes and lineedits
+        css.QSpinBox.setValues(
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
+        )
+
         # Change QGroupBox style to avoid the "boxes within boxes" antipattern
         # in Preferences
         css.QGroupBox.setValues(
