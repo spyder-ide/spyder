@@ -71,6 +71,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     # Constants
     CONF_SECTION = None
+    LOAD_FROM_CONFIG = True
 
     def __init__(self, parent):
         SidebarPage.__init__(self, parent)
@@ -97,14 +98,19 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
-        self.main = parent.main
         self.tabs = None
         self.is_modified = False
+
+        if getattr(parent, "main", None):
+            self.main = parent.main
+        else:
+            self.main = None
 
     def initialize(self):
         """Initialize configuration page."""
         self.setup_page()
-        self.load_from_conf()
+        if self.LOAD_FROM_CONFIG:
+            self.load_from_conf()
 
     def _apply_settings_tabs(self, options):
         if self.tabs is not None:
