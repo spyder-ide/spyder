@@ -155,7 +155,7 @@ for spec in args.extra_specs:
     if k == "spyder":
         SPYVER = v[-1]
 
-OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{args.install_type}"
+OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
