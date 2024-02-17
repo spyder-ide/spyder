@@ -500,20 +500,33 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         content_type=None, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
-        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
+
+        if alignment == Qt.Vertical:
+            layout = QVBoxLayout()
+
+            # This is necessary to correctly align `label` and `edit` to the
+            # left when they are displayed vertically.
+            edit.setStyleSheet("margin-left: 5px")
+        else:
+            layout = QHBoxLayout()
+
         layout.addWidget(label)
         layout.addWidget(edit)
         layout.setContentsMargins(0, 0, 0, 0)
+
         if regex:
             edit.setValidator(
                 QRegularExpressionValidator(QRegularExpression(regex))
             )
+
         if placeholder:
             edit.setPlaceholderText(placeholder)
+
         self.lineedits[edit] = (section, option, default)
 
         widget = QWidget(self)
