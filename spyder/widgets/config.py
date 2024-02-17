@@ -512,11 +512,26 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             # This is necessary to correctly align `label` and `edit` to the
             # left when they are displayed vertically.
             edit.setStyleSheet("margin-left: 5px")
+
+            if tip is not None:
+                label_layout = QHBoxLayout()
+                label_layout.setSpacing(0)
+                label_layout.addWidget(label)
+                label_layout, help_label = self.add_help_info_label(
+                    label_layout, tip
+                )
+                layout.addLayout(label_layout)
+            else:
+                layout.addWidget(label)
+
+            layout.addWidget(edit)
         else:
             layout = QHBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(edit)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
 
-        layout.addWidget(label)
-        layout.addWidget(edit)
         layout.setContentsMargins(0, 0, 0, 0)
 
         if regex:
@@ -533,11 +548,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         widget.label = label
         widget.textbox = edit
         if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
             widget.help_label = help_label
+
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
+
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,
