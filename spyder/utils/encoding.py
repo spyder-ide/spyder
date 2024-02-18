@@ -35,6 +35,7 @@ from spyder.utils.external.binaryornot.check import is_binary
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
 
+
 def transcode(text, input=PREFERRED_ENCODING, output=PREFERRED_ENCODING):
     """Transcode a text string"""
     try:
@@ -45,10 +46,11 @@ def transcode(text, input=PREFERRED_ENCODING, output=PREFERRED_ENCODING):
         except UnicodeError:
             return text
 
-#------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 #  Functions for encoding and decoding bytes that come from
 #  the *file system*.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # The default encoding for file paths and environment variables should be set
 # to match the default encoding that the OS is using.
@@ -63,13 +65,15 @@ def getfilesystemencoding():
         encoding = PREFERRED_ENCODING
     return encoding
 
+
 FS_ENCODING = getfilesystemencoding()
+
 
 def to_unicode_from_fs(string):
     """
     Return a unicode version of string decoded using the file system encoding.
     """
-    if not is_string(string): # string is a QString
+    if not is_string(string):  # string is a QString
         string = to_text_string(string.toUtf8(), 'utf-8')
     else:
         if is_binary_string(string):
@@ -80,6 +84,7 @@ def to_unicode_from_fs(string):
             else:
                 return unic
     return string
+
 
 def to_fs_from_unicode(unic):
     """
@@ -95,18 +100,20 @@ def to_fs_from_unicode(unic):
             return string
     return unic
 
-#------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 #  Functions for encoding and decoding *text data* itself, usually originating
 #  from or destined for the *contents* of a file.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
-          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
-          'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
-          'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',
-          'utf-16']
+CODECS = [
+    'utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
+    'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
+    'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
+    'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 'utf-16'
+]
 
 
 def get_coding(text, force_chardet=False, default_codec=None):
@@ -146,12 +153,14 @@ def get_coding(text, force_chardet=False, default_codec=None):
         detector = UniversalDetector()
         for line in text.splitlines()[:2]:
             detector.feed(line)
-            if detector.done: break
+            if detector.done:
+                break
 
         detector.close()
         return detector.result['encoding']
 
     return default_codec
+
 
 def decode(text, default_codec=None):
     """
@@ -182,6 +191,7 @@ def decode(text, default_codec=None):
     # Assume Latin-1 (behaviour before 3.7.1)
     return to_text_string(text, "latin-1"), 'latin-1-guessed'
 
+
 def encode(text, orig_coding):
     """
     Function to encode a text.
@@ -206,8 +216,8 @@ def encode(text, orig_coding):
             return text.encode(coding), coding
         except (UnicodeError, LookupError):
             raise RuntimeError("Incorrect encoding (%s)" % coding)
-    if orig_coding and orig_coding.endswith('-default') or \
-      orig_coding.endswith('-guessed'):
+    if (orig_coding and orig_coding.endswith('-default')
+            or orig_coding.endswith('-guessed')):
         coding = orig_coding.replace("-default", "")
         coding = orig_coding.replace("-guessed", "")
         try:
@@ -217,6 +227,7 @@ def encode(text, orig_coding):
 
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
+
 
 def to_unicode(string):
     """Convert a string to unicode"""
@@ -305,6 +316,7 @@ def writelines(lines, filename, encoding='utf-8', mode='wb'):
     """
     return write(os.linesep.join(lines), filename, encoding, mode)
 
+
 def read(filename, encoding='utf-8'):
     """
     Read text from file ('filename')
@@ -317,6 +329,7 @@ def read(filename, encoding='utf-8'):
     contents = open(filename, 'rb').read()
     text, encoding = decode(contents, default_codec=default_codec)
     return text, encoding
+
 
 def readlines(filename, encoding='utf-8'):
     """

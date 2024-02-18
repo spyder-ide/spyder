@@ -89,7 +89,7 @@ def test_timestamp(tmpdir):
 def test_is_text_file(tmpdir):
     p = tmpdir.mkdir("sub").join("random_text.txt")
     p.write("Some random text")
-    assert is_text_file(str(p)) == True
+    assert is_text_file(str(p)) is True
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_is_text_file(tmpdir):
      ('iso-8859-1', 'copyright.txt'),
      ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
      ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
-])
+     ])
 def test_files_encodings(expected_encoding, text_file):
     file_path = os.path.join(__location__, text_file)
     text, encoding = read(file_path)
