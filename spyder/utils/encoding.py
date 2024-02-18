@@ -322,7 +322,7 @@ def read(filename, encoding='utf-8'):
     Read text from file ('filename')
     Return text and encoding
     """
-    if filename.endswith(('.py', '.pyw', '.ipy')):
+    if filename.endswith(('.py', '.pyw', '.ipy', '.pyi')):
         default_codec = 'utf-8'  # Per PEP3120
     else:
         default_codec = None
