@@ -13,7 +13,6 @@ import sys
 
 # Third-party imports
 import qdarkstyle
-from qdarkstyle.colorsystem import Gray
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
@@ -22,7 +21,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
 
 
 # =============================================================================
@@ -522,12 +521,6 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
-        self.color_tabs_separator = Gray.B70
-
-        if is_dark_interface():
-            self.color_selected_tab = QStylePalette.COLOR_ACCENT_2
-        else:
-            self.color_selected_tab = QStylePalette.COLOR_ACCENT_5
 
         # Center tabs to differentiate them from the regular ones.
         # See spyder-ide/spyder#9763 for details.
@@ -545,7 +538,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
                 QStylePalette.COLOR_TEXT_1 if is_dark_interface() else
                 QStylePalette.COLOR_BACKGROUND_1
             ),
-            backgroundColor=self.color_selected_tab,
+            backgroundColor=SpyderPalette.SPECIAL_TABS_SELECTED,
         )
 
         # Make scroll button icons smaller on Windows and Mac
@@ -591,7 +584,7 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
             border='0px',
             backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
             borderLeft=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
-            borderRight=f'1px solid {self.color_tabs_separator}',
+            borderRight=f'1px solid {SpyderPalette.SPECIAL_TABS_SEPARATOR}',
         )
 
         css['QTabBar::tab:!selected:hover'].setValues(
@@ -608,7 +601,7 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
         )
 
         css['QTabBar::tab:next-selected:hover'].setValues(
-            borderRightColor=self.color_tabs_separator,
+            borderRightColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
             backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
@@ -617,8 +610,8 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
         )
 
         css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderLeftColor=self.color_tabs_separator,
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+            borderLeftColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
         # -- First and last tabs have rounded borders
@@ -759,7 +752,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             border='0px',
             backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
             borderTop=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
-            borderBottom=f'1px solid {self.color_tabs_separator}',
+            borderBottom=f'1px solid {SpyderPalette.SPECIAL_TABS_SEPARATOR}',
         )
 
         css['QTabBar::tab:!selected:hover'].setValues(
@@ -773,7 +766,7 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         )
 
         css['QTabBar::tab:next-selected:hover'].setValues(
-            borderBottomColor=self.color_tabs_separator,
+            borderBottomColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
             backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
@@ -782,8 +775,8 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
         )
 
         css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderTopColor=self.color_tabs_separator,
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+            borderTopColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
         )
 
         # -- First and last tabs have rounded borders.
