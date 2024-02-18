@@ -275,6 +275,11 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             left='0px',
         )
 
+        # Add padding to tooltips
+        css.QToolTip.setValues(
+            padding="1px 2px",
+        )
+
         # Add padding to tree widget items to make them look better
         css["QTreeWidget::item"].setValues(
             padding=f"{AppStyle.MarginSize - 1}px 0px",
