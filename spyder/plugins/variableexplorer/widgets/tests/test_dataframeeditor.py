@@ -130,6 +130,7 @@ def test_dataframe_to_type(qtbot):
     view.setCurrentIndex(view.model().index(0, 0))
 
     # Show context menu, go down until `Convert to`, and open submenu
+    view.menu.render()
     view.menu.show()
     for _ in range(100):
         activeAction = view.menu.activeAction()
@@ -441,7 +442,7 @@ def test_dataframeeditor_refreshaction_disabled():
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    assert not editor.dataTable.refresh_action.isEnabled()
+    assert not editor.refresh_action.isEnabled()
 
 
 def test_dataframeeditor_refresh():
@@ -454,8 +455,8 @@ def test_dataframeeditor_refresh():
     editor = DataFrameEditor(data_function=lambda: df_new)
     editor.setup_and_check(df_zero)
     assert_frame_equal(editor.get_value(), df_zero)
-    assert editor.dataTable.refresh_action.isEnabled()
-    editor.dataTable.refresh_action.trigger()
+    assert editor.refresh_action.isEnabled()
+    editor.refresh_action.trigger()
     assert_frame_equal(editor.get_value(), df_new)
 
 
@@ -476,7 +477,7 @@ def test_dataframeeditor_refresh_after_edit(result):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.question',
                return_value=result) as mock_question:
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_question.assert_called_once()
     editor.accept()
     if result == QMessageBox.Yes:
@@ -496,7 +497,7 @@ def test_dataframeeditor_refresh_into_int(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 
@@ -514,7 +515,7 @@ def test_dataframeeditor_refresh_when_variable_deleted(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 
@@ -657,6 +658,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     model_index = view.header_class.model().index(0, 2)
     view.header_class.setCurrentIndex(model_index)
     qtbot.wait(200)
+    view.menu_header_h.render()
     view.menu_header_h.show()
     qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
     qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
@@ -671,6 +673,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     index = editor.table_index.model()
     model_index = editor.table_index.model().index(5, 0)
     editor.table_index.setCurrentIndex(model_index)
+    editor.menu_header_v.render()
     editor.menu_header_v.show()
     qtbot.wait(200)
     qtbot.keyPress(editor.menu_header_v, Qt.Key_Down)

@@ -635,7 +635,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         )
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = self.create_menu(
-            EditorStackMenus.OptionsMenu, register_menu=False
+            EditorStackMenus.OptionsMenu, register=False
         )
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)

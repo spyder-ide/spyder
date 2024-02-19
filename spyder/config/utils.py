@@ -157,6 +157,8 @@ def get_edit_extensions():
     return _get_extensions(edit_filetypes)
 
 
+EDIT_EXTENSIONS = get_edit_extensions()
+
 #==============================================================================
 # Detection of OS specific versions
 #==============================================================================
