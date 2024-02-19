@@ -108,9 +108,13 @@ class ApplicationContainer(PluginMainContainer):
         self.dialog_manager = DialogManager()
 
         self.application_update_status = ApplicationUpdateStatus(
-            parent=self)
+            parent=self
+        )
+
+        # Users can only use this widget in our apps.
         if not is_pynsist() and not running_in_mac_app():
             self.application_update_status.hide()
+
         (self.application_update_status.sig_check_for_updates_requested
          .connect(self.check_updates))
         (self.application_update_status.sig_install_on_close_requested
