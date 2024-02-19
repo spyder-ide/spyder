@@ -8,12 +8,12 @@
 import logging
 import os
 import os.path as osp
+import platform
 import tempfile
 import traceback
 
 # Third party imports
 from packaging.version import parse
-import platform
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
@@ -252,7 +252,7 @@ class WorkerDownloadInstaller(QObject):
                 )
             else:
                 name = 'Spyder{}{}.dmg'.format(
-                    '_{mach}' if mach == 'arm64' else '',
+                    f'_{mach}' if mach == 'arm64' else '',
                     '' if is_full_installer else '-Lite'
                 )
 
