@@ -63,6 +63,9 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
 
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 class CollectionsEditorActions:
     Copy = 'copy_action'
     Duplicate = 'duplicate_action'
@@ -119,6 +122,9 @@ ROWS_TO_LOAD = 50
 NUMERIC_TYPES = (int, float) + get_numeric_numpy_types()
 
 
+# =============================================================================
+# ---- Utility functions and classes
+# =============================================================================
 def natsort(s):
     """
     Natural sorting, e.g. test3 comes before test100.
@@ -172,6 +178,9 @@ class ProxyObject(object):
                 raise
 
 
+# =============================================================================
+# ---- Widgets
+# =============================================================================
 class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
     """CollectionsEditor Read-Only Table Model"""
 
@@ -677,6 +686,9 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         # it to show any information on it.
         self.verticalHeader().hide()
 
+        # To use mouseMoveEvent
+        self.setMouseTracking(True)
+
         # Delay editing values for a bit so that when users do a double click
         # (the default behavior for editing since Spyder was created; now they
         # only have to do a single click), our editor dialogs are focused.
@@ -817,7 +829,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         menu = self.create_menu(
             CollectionsEditorMenus.Context,
-            register=False)
+            register=False
+        )
 
         for action in [self.copy_action, self.paste_action, self.rename_action,
                        self.edit_action, self.save_array_action]:
@@ -846,7 +859,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         self.empty_ws_menu = self.create_menu(
             CollectionsEditorMenus.ContextIfEmpty,
-            register=False)
+            register=False
+        )
 
         for action in [self.insert_action, self.paste_action]:
             self.add_item_to_menu(action, self.empty_ws_menu)

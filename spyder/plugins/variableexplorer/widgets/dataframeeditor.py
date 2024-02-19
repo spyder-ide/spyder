@@ -1886,7 +1886,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         options_menu = self.create_menu(
             DataframeEditorMenus.Options,
-            register=False)
+            register=False
+        )
         for action in [self.bgcolor_action, self.bgcolor_global_action,
                        self.format_action]:
             self.add_item_to_menu(action, options_menu)
