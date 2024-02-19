@@ -16,7 +16,8 @@ from typing import Any, Callable, Optional
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import (
     QAbstractItemView, QActionGroup, QHeaderView, QTableWidget, QTreeView,
-    QTreeWidget)
+    QTreeWidget
+)
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin

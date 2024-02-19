@@ -169,9 +169,9 @@ class SpyderToolbarMixin:
         return stretcher
 
     def create_toolbar(
-            self,
-            name: str,
-            register: bool = True
+        self,
+        name: str,
+        register: bool = True
     ) -> SpyderToolbar:
         """
         Create a Spyder toolbar.

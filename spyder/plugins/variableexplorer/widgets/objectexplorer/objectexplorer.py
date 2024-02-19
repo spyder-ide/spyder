@@ -35,6 +35,9 @@ from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
+logger = logging.getLogger(__name__)
+
+
 class ObjectExplorerActions:
     Refresh = 'refresh_action'
     ShowCallable = 'show_callable_action'
@@ -49,10 +52,6 @@ class ObjectExplorerWidgets:
     OptionsToolButton = 'options_button_widget'
     Toolbar = 'toolbar'
     ToolbarStretcher = 'toolbar_stretcher'
-
-
-logger = logging.getLogger(__name__)
-
 
 # About message
 EDITOR_NAME = 'Object'
