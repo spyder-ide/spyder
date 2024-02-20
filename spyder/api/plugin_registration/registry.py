@@ -26,8 +26,8 @@ from spyder.api.plugins import (
 from spyder.utils.icon_manager import ima
 
 
-# TODO: Remove SpyderPlugin and SpyderPluginWidget once the migration
-# is complete. Should be removed now?
+# TODO: Remove SpyderPlugin and SpyderPluginWidget now that the migration
+# is complete
 Spyder5PluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
 Spyder4PluginClass = Union[SpyderPlugin, SpyderPluginWidget]
 SpyderPluginClass = Union[Spyder4PluginClass, Spyder5PluginClass]

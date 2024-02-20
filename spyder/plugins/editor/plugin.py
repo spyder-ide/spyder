@@ -176,6 +176,31 @@ class Editor(SpyderDockablePlugin):
     def on_initialize(self):
         widget = self.get_widget()
 
+        # TODO: Move these connections to the `on_<>_available` of each plugin?
+        # ---- Run related signals
+        widget.sig_register_run_configuration_metadata_requested.connect(
+            self._register_run_configuration_metadata
+        )
+        widget.sig_deregister_run_configuration_metadata_requested.connect(
+            self._deregister_run_configuration_metadata
+        )
+        widget.sig_switch_focused_run_configuration_requested.connect(
+            self._switch_focused_run_configuration
+        )
+
+        # ---- Completions related signals
+        widget.sig_send_completions_request_requested.connect(
+            self._send_completions_request
+        )
+        widget.sig_after_configuration_update_requested.connect(
+            self._after_configuration_update
+        )
+
+        # ---- Projects related signals
+        widget.sig_start_project_workspace_services_requested.connect(
+            self._start_project_workspace_services
+        )
+
         # ---- Help related signals
         widget.sig_help_requested.connect(self.sig_help_requested)
 
@@ -790,8 +815,7 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
-        outline = self.get_plugin(Plugins.OutlineExplorer)
-        # TODO: Check outline teardown
+        self.get_widget().set_outlineexplorer(None)
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
@@ -828,8 +852,7 @@ class Editor(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Switcher)
     def on_switcher_teardown(self):
-        switcher = self.get_plugin(Plugins.Switcher)
-        # TODO: Check switcher teardown
+        self.get_widget().set_switcher(None)
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -865,7 +888,7 @@ class Editor(SpyderDockablePlugin):
         state = widget.splitter.saveState()
         self.set_conf('splitter_state', qbytearray_to_str(state))
 
-        if not self.get_active_project_path():
+        if not self._get_active_project_path():
             filenames = widget.get_open_filenames()
             self.set_conf('filenames', filenames)
 
@@ -879,20 +902,17 @@ class Editor(SpyderDockablePlugin):
         )
         self.set_conf('recent_files', widget.recent_files)
 
-        # TODO: Should this be done inside the main_widget `on_close`?
-        # Stop autosave timer before closing windows
-        widget.autosave.stop_autosave_timer()
-
     # ---- Public API
     # ------------------------------------------------------------------------
+    def get_codeeditor_for_filename(self, filename):
+        return self.get_widget()._get_editor(filename)
+
     def refresh(self):
         """
         Refresh main widget.
         """
         self.get_widget().refresh()
 
-    # TODO: Should a `__getattr__` be implemented that connects all methods
-    # without `_` from the main_widget to the plugin?
     def load(self, *args, **kwargs):
         return self.get_widget().load(*args, **kwargs)
 
@@ -984,32 +1004,30 @@ class Editor(SpyderDockablePlugin):
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
-    # TODO: Is there any other way to do this?
-    def register_run_configuration_metadata(self, metadata):
+    def _register_run_configuration_metadata(self, metadata):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.register_run_configuration_metadata(
                 self.get_widget(), metadata
             )
 
-    def deregister_run_configuration_metadata(self, file_id):
+    def _deregister_run_configuration_metadata(self, file_id):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.deregister_run_configuration_metadata(file_id)
 
-    def get_currently_selected_run_configuration(self):
+    def _get_currently_selected_run_configuration(self):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             return run.get_currently_selected_configuration()
 
-    def switch_focused_run_configuration(self, file_id):
+    def _switch_focused_run_configuration(self, file_id):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.switch_focused_run_configuration(file_id)
 
     # ---- Completions related methods
-    # TODO: Is there any other way to do this?
-    def register_file_completions(self, language, filename, codeeditor):
+    def _register_file_completions(self, language, filename, codeeditor):
         completions = self.get_plugin(Plugins.Completions, error=False)
         status = None
         fallback_only = False
@@ -1025,36 +1043,34 @@ class Editor(SpyderDockablePlugin):
             fallback_only = completions.is_fallback_only(language.lower())
         return (status, fallback_only)
 
-    def send_completions_request(self, language, request, params):
+    def _send_completions_request(self, language, request, params):
         completions = self.get_plugin(Plugins.Completions, error=False)
         if completions is not None:
             completions.send_request(language, request, params)
 
-    def after_configuration_update(self, config):
+    def _after_configuration_update(self, config):
         completions = self.get_plugin(Plugins.Completions, error=False)
         if completions is not None:
             completions.after_configuration_update(config)
 
     # ---- Projects related methods
-    # TODO: Is there other way to do this?
-    def start_project_workspace_services(self):
+    def _start_project_workspace_services(self):
         projects = self.get_plugin(Plugins.Projects, error=False)
         if projects is not None:
             projects.start_workspace_services()
 
-    def get_project_filenames(self):
-        if self.get_active_project_path():
+    def _get_project_filenames(self):
+        if self._get_active_project_path():
             projects = self.get_plugin(Plugins.Projects, error=False)
             return projects.get_project_filenames()
 
-    def get_active_project_path(self):
+    def _get_active_project_path(self):
         projects = self.get_plugin(Plugins.Projects, error=False)
         if projects is not None:
             return projects.get_active_project_path()
 
     # ---- Debugger related methods
-    # TODO: Is there other way to do this?
-    def debugger_close_file(self, filename):
+    def _debugger_close_file(self, filename):
         debugger = self.get_plugin(Plugins.Debugger, error=False)
         if debugger is None:
             return True

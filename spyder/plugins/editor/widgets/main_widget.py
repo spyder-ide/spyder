@@ -24,7 +24,6 @@ from typing import Dict, Optional
 import uuid
 
 # Third party imports
-import qstylizer.style
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtGui import QTextCursor
@@ -197,13 +196,23 @@ class EditorMainWidget(PluginMainWidget):
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
 
-    # This signal is used to communicate with the run plugin
+    # ---- Run related signals
     sig_editor_focus_changed_uuid = Signal(str)
     sig_register_run_configuration_provider_requested = Signal(list)
     sig_deregister_run_configuration_provider_requested = Signal(list)
+    sig_register_run_configuration_metadata_requested = Signal(dict)
+    sig_deregister_run_configuration_metadata_requested = Signal(str)
+    sig_switch_focused_run_configuration_requested = Signal(str)
 
+    # ---- Completions related signals
+    sig_send_completions_request_requested = Signal(str, str, dict)
+    sig_after_configuration_update_requested = Signal(list)
     sig_update_active_languages_requested = Signal(set)
 
+    # ---- Projects related signals
+    sig_start_project_workspace_services_requested = Signal()
+
+    # ---- Other signals
     sig_help_requested = Signal(dict)
     """
     This signal is emitted to request help on a given object `name`.
@@ -1012,8 +1021,14 @@ class EditorMainWidget(PluginMainWidget):
     def update_actions(self):
         pass
 
+    def on_close(self):
+        self.autosave.stop_autosave_timer()
+
     # ---- Private API
     # ------------------------------------------------------------------------
+    def _get_mainwindow(self):
+        return self._plugin.main
+
     def get_color_scheme(self):
         # TODO: Workaround to get color scheme
         return self._plugin.get_color_scheme()
@@ -1060,9 +1075,7 @@ class EditorMainWidget(PluginMainWidget):
         self.file_per_id[file_id] = filename
         self.id_per_file[filename] = file_id
         self.metadata_per_id[file_id] = metadata
-
-        # TODO: main_widget calling run plugin
-        self._plugin.register_run_configuration_metadata(metadata)
+        self.sig_register_run_configuration_metadata_requested.emit(metadata)
 
     def deregister_file_run_metadata(self, filename):
         """Unregister files with the Run plugin."""
@@ -1072,13 +1085,12 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.pop(filename)
         self.file_per_id.pop(file_id)
         self.metadata_per_id.pop(file_id)
-        # TODO: main_widget calling run plugin
-        self._plugin.deregister_run_configuration_metadata(file_id)
+        self.sig_deregister_run_configuration_metadata_requested.emit(file_id)
 
     def change_register_file_run_metadata(self, old_filename, new_filename):
         """Change registered run metadata when renaming files."""
         run_selected_config = (
-            self._plugin.get_currently_selected_run_configuration()
+            self._plugin._get_currently_selected_run_configuration()
         )
 
         is_selected = (
@@ -1093,8 +1105,9 @@ class EditorMainWidget(PluginMainWidget):
             self.register_file_run_metadata(new_filename)
 
         if is_selected:
-            self._plugin.switch_focused_run_configuration(
-                self.id_per_file[new_filename])
+            self.sig_switch_focused_run_configuration_requested.emit(
+                self.id_per_file[new_filename]
+            )
 
     @Slot(dict)
     def report_open_file(self, options):
@@ -1119,8 +1132,7 @@ class EditorMainWidget(PluginMainWidget):
         if not able_to_run_file:
             self.pending_run_files |= {(filename, filename_ext)}
 
-        # TODO: main_widget logic calling things from the completions plugin
-        status, fallback_only = self._plugin.register_file_completions(
+        status, fallback_only = self._plugin._register_file_completions(
             language.lower(), filename, codeeditor
         )
 
@@ -1161,8 +1173,8 @@ class EditorMainWidget(PluginMainWidget):
         # This is required to start workspace before completion
         # services when Spyder starts with an open project.
         # TODO: Find a better solution for it in the future!!
-        # TODO: main_widget calling logic fro the projects plugin
-        self._plugin.start_project_workspace_services()
+        # TODO: main_widget calling logic for the projects plugin
+        self._plugin._start_project_workspace_services()
 
         self.completion_capabilities[language] = dict(capabilities)
         for editorstack in self.editorstacks:
@@ -1185,8 +1197,9 @@ class EditorMainWidget(PluginMainWidget):
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
         # TODO: main_widget calling logic from the completions plugin
-        # Maybe use signal to send request?
-        self._plugin.send_completions_request(language, request, params)
+        self.sig_send_completions_request_requested.emit(
+            language, request, params
+        )
 
     @Slot(str, tuple, dict)
     def _rpc_call(self, method, args, kwargs):
@@ -1407,7 +1420,7 @@ class EditorMainWidget(PluginMainWidget):
                     checked,
                     section='completions'
                 )
-            self._plugin.after_configuration_update([])
+            self.sig_after_configuration_update_requested.emit([])
 
     # ---- Focus tabwidget (private)
     def __get_focused_editorstack(self):
@@ -2090,7 +2103,7 @@ class EditorMainWidget(PluginMainWidget):
             basedir = getcwd_or_home()
 
             # TODO: main_widget call logic from the projects plugin
-            active_project_path = self._plugin.get_active_project_path()
+            active_project_path = self._plugin._get_active_project_path()
             if active_project_path is not None:
                 basedir = active_project_path
             else:
@@ -2444,7 +2457,7 @@ class EditorMainWidget(PluginMainWidget):
         """
         Check if a file can be closed taking into account debugging state.
         """
-        return self._plugin.debugger_close_file(filename)
+        return self._plugin._debugger_close_file(filename)
 
     @Slot()
     def close_file(self):
@@ -3460,10 +3473,10 @@ class EditorMainWidget(PluginMainWidget):
         """
         self.set_create_new_file_if_empty(False)
         # TODO: main_widget calling projects plugin logic
-        active_project_path = self._plugin.get_active_project_path()
+        active_project_path = self._plugin._get_active_project_path()
 
         if active_project_path:
-            filenames = self._plugin.get_project_filenames()
+            filenames = self._plugin._get_project_filenames()
         else:
             filenames = self.get_conf('filenames', default=[])
 

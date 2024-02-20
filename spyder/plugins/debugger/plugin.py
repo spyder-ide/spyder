@@ -490,8 +490,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
         if editor is None:
             return None
-        # TODO: Should this be added to the plugin API?
-        return editor.get_widget()._get_editor(filename)
+
+        return editor.get_codeeditor_for_filename(filename)
 
     def _get_current_editorstack(self):
         """

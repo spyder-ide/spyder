@@ -201,7 +201,7 @@ class AutosaveForPlugin(object):
         files_to_recover, pidfiles = self.get_files_to_recover()
         parent = (
             self.editor if running_under_pytest() else
-            self.editor._plugin.main
+            self.editor._get_mainwindow()
         )
         dialog = RecoveryDialog(files_to_recover, parent=parent)
         dialog.exec_if_nonempty()
