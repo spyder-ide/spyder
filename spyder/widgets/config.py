@@ -16,7 +16,7 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression, QSize
+from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QFileDialog, QGridLayout, QGroupBox,
@@ -33,6 +33,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
+from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.widgets.sidebardialog import SidebarPage
 
@@ -414,12 +415,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             self.changed_options.add((section, option))
 
     def add_help_info_label(self, layout, tip_text):
-        help_label = QLabel()
-        image = ima.icon('help_gray').pixmap(QSize(20, 20))
-        help_label.setPixmap(image)
-        help_label.setFixedWidth(23)
-        help_label.setFixedHeight(23)
-        help_label.setToolTip(tip_text)
+        help_label = TipWidget(
+            tip_text=tip_text,
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover')
+        )
+
         layout.addWidget(help_label)
         layout.addStretch(100)
 

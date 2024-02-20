@@ -16,15 +16,44 @@ import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QEvent, QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt,
-    Signal)
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegularExpressionValidator, QTextDocument)
+    QEvent,
+    QPoint,
+    QRegularExpression,
+    QSize,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    Signal,
+)
+from qtpy.QtGui import (
+    QAbstractTextDocumentLayout,
+    QColor,
+    QFontMetrics,
+    QIcon,
+    QPainter,
+    QRegularExpressionValidator,
+    QTextDocument,
+)
 from qtpy.QtWidgets import (
-    QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
-    QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
-    QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
-    QLabel, QFrame)
+    QAction,
+    QApplication,
+    QCheckBox,
+    QLineEdit,
+    QMessageBox,
+    QSpacerItem,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionFrame,
+    QStyleOptionViewItem,
+    QTableView,
+    QToolButton,
+    QToolTip,
+    QVBoxLayout,
+    QWidget,
+    QHBoxLayout,
+    QLabel,
+    QFrame,
+)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -782,6 +811,61 @@ class HoverRowsTableView(QTableView):
         if index.isValid():
             self.sig_hover_index_changed.emit(index)
             self.viewport().update()
+
+
+class TipWidget(QLabel):
+    """Icon widget to show information as a tooltip when clicked."""
+
+    def __init__(
+        self,
+        tip_text: str,
+        icon: QIcon,
+        hover_icon: QIcon,
+        size: int = 20
+    ):
+        super().__init__()
+        self.tip_text = tip_text
+        self.icon = icon.pixmap(QSize(size, size))
+        self.hover_icon = hover_icon.pixmap(QSize(size, size))
+
+        # Timer to show the tip if users don't click on the widget
+        self.tip_timer = QTimer(self)
+        self.tip_timer.setInterval(300)
+        self.tip_timer.setSingleShot(True)
+        self.tip_timer.timeout.connect(self.show_tip)
+
+        self.setPixmap(self.icon)
+        self.setFixedWidth(size + 3)
+        self.setFixedHeight(size + 3)
+
+    def show_tip(self):
+        """Show tooltip"""
+        if not QToolTip.isVisible():
+            QToolTip.showText(
+                self.mapToGlobal(QPoint(self.width(), 15)),
+                self.tip_text,
+                self
+            )
+
+    def enterEvent(self, event):
+        """
+        Change cursor shape and set hover icon when the mouse is on the widget.
+        """
+        self.setCursor(Qt.PointingHandCursor)
+        self.setPixmap(self.hover_icon)
+        self.tip_timer.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Hide tooltip and restore icon when the mouse leaves the widget."""
+        QToolTip.hideText()
+        self.setPixmap(self.icon)
+        self.tip_timer.stop()
+        super().leaveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Show tooltip when the widget is clicked."""
+        self.show_tip()
 
 
 def test_msgcheckbox():
