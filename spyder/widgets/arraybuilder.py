@@ -17,15 +17,25 @@
 import re
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import QEvent, QPoint, Qt
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                            QTableWidgetItem, QToolButton, QToolTip)
+from qtpy.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLineEdit,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolButton,
+    QToolTip,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.widgets.helperwidgets import HelperToolButton
+from spyder.utils.stylesheet import AppStyle
+from spyder.widgets.helperwidgets import TipWidget
 
 # Constants
 SHORTCUT_TABLE = "Ctrl+M"
@@ -219,62 +229,67 @@ class ArrayBuilderDialog(QDialog):
            """)
 
         # Widgets
-        self._button_warning = QToolButton()
-        self._button_help = HelperToolButton()
-        self._button_help.setIcon(ima.icon('MessageBoxInformation'))
+        button_close = QToolButton()
+        button_close.setIcon(ima.icon("fileclose"))
+        button_close.clicked.connect(self.reject)
 
-        style = (("""
-            QToolButton {{
-              border: 1px solid grey;
-              padding:0px;
-              border-radius: 2px;
-              background-color: qlineargradient(x1: 1, y1: 1, x2: 1, y2: 1,
-                  stop: 0 {stop_0}, stop: 1 {stop_1});
-            }}
-            """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
-                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
+        button_close_css = qstylizer.style.StyleSheet()
+        button_close_css.QToolButton.setValues(
+            height="16px",
+            width="16px",
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+        )
+        button_close.setStyleSheet(button_close_css.toString())
 
-        self._button_help.setStyleSheet(style)
+        button_help = TipWidget(
+            tip_text=self._help_inline if inline else self._help_table,
+            icon=ima.icon('info_tip'),
+            hover_icon=ima.icon('info_tip_hover')
+        )
 
         if inline:
-            self._button_help.setToolTip(self._help_inline)
             self._text = ArrayInline(self, options=self._options)
             self._widget = self._text
         else:
-            self._button_help.setToolTip(self._help_table)
             self._table = ArrayTable(self, options=self._options)
             self._widget = self._table
 
-        style = """
-            QDialog {
-              margin:0px;
-              border: 1px solid grey;
-              padding:0px;
-              border-radius: 2px;
-            }"""
-        self.setStyleSheet(style)
-
-        style = """
-            QToolButton {
-              margin:1px;
-              border: 0px solid grey;
-              padding:0px;
-              border-radius: 0px;
-            }"""
-        self._button_warning.setStyleSheet(style)
+        # Style
+        css = qstylizer.style.StyleSheet()
+        css.QDialog.setValues(
+            margin="0px",
+            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}",
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+        )
+        self.setStyleSheet(css.toString())
 
         # widget setup
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
-        self.setWindowOpacity(0.90)
         self._widget.setMinimumWidth(200)
 
         # layout
-        self._layout = QHBoxLayout()
-        self._layout.addWidget(self._widget)
-        self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
-        self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
-        self.setLayout(self._layout)
+        if inline:
+            buttons_layout = QHBoxLayout()
+            buttons_layout.addWidget(button_help, alignment=Qt.AlignVCenter)
+            buttons_layout.addWidget(button_close, alignment=Qt.AlignVCenter)
+        else:
+            buttons_layout = QVBoxLayout()
+            buttons_layout.addWidget(button_help, alignment=Qt.AlignTop)
+            buttons_layout.addSpacing(3)
+            buttons_layout.addWidget(button_close, alignment=Qt.AlignTop)
+            buttons_layout.addStretch()
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize
+        )
+        layout.addWidget(self._widget)
+        layout.addLayout(buttons_layout)
+        self.setLayout(layout)
 
         self._widget.setFocus()
 
@@ -385,14 +400,11 @@ class ArrayBuilderDialog(QDialog):
         """
         Updates the icon and tip based on the validity of the array content.
         """
-        widget = self._button_warning
         if not self.is_valid():
-            tip = _('Array dimensions not valid')
-            widget.setIcon(ima.icon('MessageBoxWarning'))
-            widget.setToolTip(tip)
-            QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
-        else:
-            self._button_warning.setToolTip('')
+            tip = _('Array dimensions are not valid')
+            QToolTip.showText(
+                self._widget.mapToGlobal(QPoint(3, 18)), tip, self
+            )
 
     def is_valid(self):
         """Return if the current array state is valid."""
@@ -410,7 +422,11 @@ class ArrayBuilderDialog(QDialog):
 
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
+    from spyder.utils.stylesheet import APP_STYLESHEET
+
     app = qapplication()
+    app.setStyleSheet(str(APP_STYLESHEET))
+
     dlg_table = ArrayBuilderDialog(None, inline=False)
     dlg_inline = ArrayBuilderDialog(None, inline=True)
     dlg_table.show()
