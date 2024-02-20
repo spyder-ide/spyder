@@ -71,34 +71,6 @@ VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔ�
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 
-class HelperToolButton(QToolButton):
-    """Subclasses QToolButton, to provide a simple tooltip on mousedown.
-    """
-    def __init__(self):
-        QToolButton.__init__(self)
-        self.setIcon(ima.get_std_icon('MessageBoxInformation'))
-        style = """
-            QToolButton {
-              padding:0px;
-              border-radius: 2px;
-            }
-            """
-        self.setStyleSheet(style)
-
-    def setToolTip(self, text):
-        self._tip_text = text
-
-    def toolTip(self):
-        return self._tip_text
-
-    def mousePressEvent(self, event):
-        QToolTip.hideText()
-
-    def mouseReleaseEvent(self, event):
-        QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())),
-                          self._tip_text)
-
-
 class MessageCheckBox(QMessageBox):
     """
     A QMessageBox derived widget that includes a QCheckBox aligned to the right
