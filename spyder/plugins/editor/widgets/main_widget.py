@@ -312,6 +312,7 @@ class EditorMainWidget(PluginMainWidget):
         # TODO: Is there any other way to do this. See `setup_other_windows`
         self.outline_plugin = None
         self.outlineexplorer = None
+        self.switcher_manager = None
 
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -1040,8 +1041,7 @@ class EditorMainWidget(PluginMainWidget):
     def _get_mainwindow(self):
         return self._plugin.main
 
-    def get_color_scheme(self):
-        # TODO: Workaround to get color scheme
+    def _get_color_scheme(self):
         return self._plugin.get_color_scheme()
 
     def restore_scrollbar_position(self):
@@ -1053,9 +1053,6 @@ class EditorMainWidget(PluginMainWidget):
             pass
 
     # ---- Run plugin related
-    # TODO: Change direct Run plugin call to signal to be register
-    # on_plugin_available or a _plugin call
-    # pylint plugin could be an example of how to handle this?
     def update_run_focus_file(self):
         """
         Inform run plugin that the current editor with focus has changed.
@@ -1321,8 +1318,7 @@ class EditorMainWidget(PluginMainWidget):
     def update_font(self, font):
         """Update font from Preferences"""
         self._font = font
-        # TODO: Should `get_color_scheme` be available for the main_widgets?
-        color_scheme = self.get_color_scheme()
+        color_scheme = self._get_color_scheme()
         for editorstack in self.editorstacks:
             editorstack.set_default_font(font, color_scheme)
             completion_size = self.get_conf('completion/size', section='main')
@@ -1456,15 +1452,19 @@ class EditorMainWidget(PluginMainWidget):
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?
-        self.switcher_manager = EditorSwitcherManager(
-            self,
-            switcher,
-            self.get_current_editor,
-            self.get_current_editorstack,
-            section=self.get_title()
-        )
+        switcher_available = switcher is not None
+        if switcher_available:
+            self.switcher_manager = EditorSwitcherManager(
+                self,
+                switcher,
+                self.get_current_editor,
+                self.get_current_editorstack,
+                section=self.get_title()
+            )
+        else:
+            self.switcher_manager = None
         for editorstack in self.editorstacks:
-            editorstack.set_switcher(switcher)
+            editorstack.update_switcher_actions(switcher_available)
 
     # ---- Focus tabwidget (public)
     def set_last_focused_editorstack(self, editorwindow, editorstack):
@@ -1518,6 +1518,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 
+        editorstack.update_switcher_actions(self.switcher_manager is not None)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -1590,9 +1591,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
         editorstack.set_edgeline_columns(edge_line_columns)
-        # TODO: Should be available for the main_widgets too?
-        # Or should be handled as with font?
-        color_scheme = self.get_color_scheme()
+        color_scheme = self._get_color_scheme()
         editorstack.set_default_font(self._font, color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)

@@ -83,8 +83,7 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
-            # TODO: Color scheme handling?
-            self.editorstack.set_color_scheme(main_widget.get_color_scheme())
+            self.editorstack.set_color_scheme(main_widget._get_color_scheme())
 
         self.setStyleSheet(self._stylesheet)
 

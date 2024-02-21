@@ -45,6 +45,7 @@ from spyder.plugins.explorer.widgets.explorer import (
 from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.plugins.switcher.api import SwitcherActions
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
@@ -225,9 +226,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # Actions
         self.switcher_action = None
         self.symbolfinder_action = None
-        # TODO: Change access to main and plugin/main_widget
-        if use_switcher and self.get_plugin()._plugin.main:
-            self.set_switcher(self.get_plugin()._plugin.main.switcher)
+        self.use_switcher = use_switcher
+
         self.copy_absolute_path_action = self.create_action(
             EditorStackActions.CopyAbsolutePath,
             text=_("Copy absolute path"),
@@ -608,6 +608,20 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 split_horizontally, close_split,
                 prevtab, nexttab, external_fileexp]
 
+    def update_switcher_actions(self, switcher_available):
+        if self.use_switcher and switcher_available:
+            self.switcher_action = self.get_action(
+                SwitcherActions.FileSwitcherAction,
+                plugin="switcher"
+            )
+            self.symbolfinder_action = self.get_action(
+                SwitcherActions.SymbolFinderAction,
+                plugin="switcher"
+            )
+        else:
+            self.switcher_action = None
+            self.symbolfinder_action = None
+
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)
@@ -753,9 +767,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
 
-    # TODO: Change from `get_plugin` to `get_main_widget`?
-    def get_plugin(self):
-        """Get the plugin of the parent widget."""
+    def get_main_widget(self):
+        """Get the main_widget of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#10684.
         return self.parent().main_widget
@@ -764,7 +777,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.get_plugin().get_title()
+        return self.get_main_widget().get_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
@@ -835,12 +848,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-
-    def set_switcher(self, switcher):
-        if switcher:
-            self.switcher_plugin = switcher
-            self.switcher_action = switcher.get_action("file switcher")
-            self.symbolfinder_action = switcher.get_action("symbol finder")
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path
