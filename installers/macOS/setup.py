@@ -15,8 +15,8 @@ import sys
 import shutil
 from logging import getLogger, StreamHandler, Formatter
 from pathlib import Path
+import platform
 from setuptools import setup
-from platform import machine
 
 from spyder import get_versions
 
@@ -103,7 +103,8 @@ def disk_image_name(make_lite=False):
     """
     Return disk image name
     """
-    dmg_name = f'Spyder-{SPYVER}_{machine()}'
+    mach = "_arm64" if "ARM64" in platform.version() else ""
+    dmg_name = f'Spyder{mach}'
     if make_lite:
         dmg_name += '-Lite'
     dmg_name += '.dmg'
