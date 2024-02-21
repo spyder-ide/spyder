@@ -1401,7 +1401,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def __get_new_window_and_close_actions(self):
         actions = []
         if self.parent() is not None:
-            main_widget = self.parent().main_widget
+            main_widget = self.get_main_widget()
         else:
             main_widget = None
 
@@ -1575,7 +1575,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             else:
                 new_index = current_index
 
-        can_close_file = self.parent().main_widget.can_close_file(
+        can_close_file = self.get_main_widget().can_close_file(
             self.data[index].filename) if self.parent() else True
         is_ok = (force or self.save_if_changed(cancelable=True, index=index)
                  and can_close_file)

@@ -1704,8 +1704,6 @@ class EditorMainWidget(PluginMainWidget):
                                                             filename)
 
     # ---- Handling editor windows
-    # TODO: args added as a workaround, should be removed. Maybe
-    # this should be moved to the plugin?
     def setup_other_windows(self, main, outline_plugin):
         """Setup toolbars and menus for 'New window' instances"""
         # Menus
@@ -1764,7 +1762,6 @@ class EditorMainWidget(PluginMainWidget):
         if not self.editorwindows:
             self.sig_switch_to_plugin_requested.emit()
 
-    # TODO: Move to the plugin?
     def create_new_window(self):
         """Create a new editor window."""
         window = EditorMainWindow(

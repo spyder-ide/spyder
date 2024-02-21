@@ -193,7 +193,6 @@ class EditorWidget(QSplitter):
             self.outlineexplorer.change_tree_visibility(True)
 
 
-# TODO: Should extend from SpyderToolbarMixin?
 class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
     sig_window_state_changed = Signal(object)
 
@@ -500,8 +499,7 @@ class EditorMainWidgetExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    # TODO: Should the main_widget have this?
-    def get_color_scheme(self):
+    def _get_color_scheme(self):
         pass
 
 
