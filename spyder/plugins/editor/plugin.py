@@ -883,24 +883,12 @@ class Editor(SpyderDockablePlugin):
         editorstack = self.get_widget().editorstacks[0]
         return editorstack.save_if_changed(cancelable=True)
 
-    def on_close(self, cancelable=True):
+    def on_close(self, cancelable=False):
         widget = self.get_widget()
-        state = widget.splitter.saveState()
-        self.set_conf('splitter_state', qbytearray_to_str(state))
 
         if not self._get_active_project_path():
             filenames = widget.get_open_filenames()
             self.set_conf('filenames', filenames)
-
-        self.set_conf(
-            'layout_settings',
-            widget.editorsplitter.get_layout_settings()
-        )
-        self.set_conf(
-            'windows_layout_settings',
-            [win.get_layout_settings() for win in widget.editorwindows]
-        )
-        self.set_conf('recent_files', widget.recent_files)
 
     # ---- Public API
     # ------------------------------------------------------------------------

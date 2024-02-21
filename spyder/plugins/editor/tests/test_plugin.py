@@ -233,7 +233,7 @@ def test_editor_calls_recoverydialog_exec_if_nonempty(
 def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     editor = editor_plugin
     assert editor.get_widget().autosave.timer.isActive()
-    editor.on_close()
+    editor.get_widget().close()
     assert not editor.get_widget().autosave.timer.isActive()
 
 

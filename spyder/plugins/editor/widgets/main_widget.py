@@ -39,7 +39,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import to_text_string
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, add_actions
@@ -1022,6 +1022,17 @@ class EditorMainWidget(PluginMainWidget):
         pass
 
     def on_close(self):
+        state = self.splitter.saveState()
+        self.set_conf('splitter_state', qbytearray_to_str(state))
+        self.set_conf(
+            'layout_settings',
+            self.editorsplitter.get_layout_settings()
+        )
+        self.set_conf(
+            'windows_layout_settings',
+            [win.get_layout_settings() for win in self.editorwindows]
+        )
+        self.set_conf('recent_files', self.recent_files)
         self.autosave.stop_autosave_timer()
 
     # ---- Private API
