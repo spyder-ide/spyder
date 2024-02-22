@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QSizePolicy, QToolBar, QToolButton)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
@@ -830,6 +831,160 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    @on_conf_change(
+        option=[
+            'highlight_current_line',
+            'highlight_current_cell',
+            'occurrence_highlighting',
+            'occurrence_highlighting/timeout'
+        ]
+    )
+    def on_syntax_highlight_changes(self, option, value):
+        # ---- syntax highlight and text rendering settings
+        option_to_method = {
+            'highlight_current_line': 'set_highlight_current_line_enabled',
+            'highlight_current_cell': 'set_highlight_current_cell_enabled',
+            'occurrence_highlighting': 'set_occurrence_highlighting_enabled',
+            'occurrence_highlighting/timeout': 'set_occurrence_highlighting_timeout'  # noqa
+        }
+        getattr(self, option_to_method[option])(value)
+
+    @on_conf_change(
+        option=[
+            'blank_spaces',
+            'scroll_past_end',
+            'indent_guides',
+            'code_folding',
+            'show_class_func_dropdown'
+        ]
+    )
+    def on_checkable_action_change(self, option, value):
+        option_to_method = {
+            'blank_spaces': 'set_blanks_enabled',
+            'scroll_past_end': 'set_scrollpastend_enabled',
+            'indent_guides': 'set_indent_guides',
+            'code_folding': 'set_code_folding_enabled',
+            'show_class_func_dropdown': 'set_classfunc_dropdown_visible'
+        }
+        getattr(self, option_to_method[option])(value)
+
+    @on_conf_change(
+        option=[
+            'show_tab_bar',
+            'wrap',
+            'line_numbers',
+            'tab_always_indent',
+            'strip_trailing_spaces_on_modify',
+            'intelligent_backspace',
+            'always_remove_trailing_spaces',
+            'add_newline',
+            'always_remove_trailing_newlines',
+            'convert_eol_on_save',
+            'convert_eol_on_save_to',
+            'close_parentheses',
+            'close_quotes',
+            'add_colons',
+            'auto_unindent',
+            'indent_chars',
+            'tab_stop_width_spaces'
+        ]
+    )
+    def on_general_option_change(self, option, value):
+        option_to_method = {
+            'show_tab_bar': 'set_tabbar_visible',
+            'wrap': 'set_wrap_enabled',
+            'line_numbers': 'set_linenumbers_enabled',
+            'tab_always_indent': 'set_tabmode_enabled',
+            'strip_trailing_spaces_on_modify': 'set_stripmode_enabled',
+            'intelligent_backspace': 'set_intelligent_backspace_enabled',
+            'always_remove_trailing_spaces': 'set_always_remove_trailing_spaces',  # noqa
+            'add_newline': 'set_add_newline',
+            'always_remove_trailing_newlines': 'set_remove_trailing_newlines',
+            'convert_eol_on_save': 'set_convert_eol_on_save',
+            'convert_eol_on_save_to': 'set_convert_eol_on_save_to',
+            'close_parentheses': 'set_close_parentheses_enabled',
+            'close_quotes': 'set_close_quotes_enabled',
+            'add_colons': 'set_add_colons_enabled',
+            'auto_unindent': 'set_auto_unindent_enabled',
+            'indent_chars': 'set_indent_chars',
+            'tab_stop_width_spaces': 'set_tab_stop_width_spaces'
+        }
+        getattr(self, option_to_method[option])(value)
+
+    @on_conf_change(option='connect_to_oi')
+    def on_help_connection_change(self, value):
+        help_option_value = self.get_conf('connect/editor', section='help')
+        self.set_help_enabled(help_option_value)
+
+    @on_conf_change(option='edge_line')
+    def on_edgeline_enabled_change(self, value):
+        logger.debug(f"Set edge line to {value}")
+        self.set_edgeline_enabled(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'pycodestyle/max_line_length'),
+        section='completions'
+    )
+    def on_edgeline_columns_change(self, value):
+        logger.debug(f"Set edge line columns to {value}")
+        self.set_edgeline_columns(value)
+
+    @on_conf_change(option='enable_code_snippets', section='completions')
+    def on_code_snippets_enabled_change(self, value):
+        logger.debug(f"Set code snippets to {value}")
+        self.set_code_snippets_enabled(value)
+
+    @on_conf_change(option='automatic_completions')
+    def set_automatic_completions_enabled(self, value):
+        logger.debug(f"Set automatic completions to {value}")
+        self.set_automatic_completions_enabled(value)
+
+    @on_conf_change(option='automatic_completions_after_chars')
+    def on_automatic_completions_after_chars_change(self, value):
+        logger.debug(f"Set chars for automatic completions to {value}")
+        self.set_automatic_completions_after_chars(value)
+
+    @on_conf_change(option='completions_hint')
+    def on_completions_hint_enabled_change(self, value):
+        logger.debug(f"Set completions hint to {value}")
+        self.set_completions_hint_enabled(value)
+
+    @on_conf_change(option='completions_hint_after_ms')
+    def on_completions_hint_after_ms_change(self, value):
+        logger.debug(f"Set completions hint after {value} ms")
+        self.set_completions_hint_after_ms(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'enable_hover_hints'),
+        section='completions'
+    )
+    def on_hover_hints_enabled_change(self, value):
+        logger.debug(f"Set hover hints to {value}")
+        self.set_hover_hints_enabled(value)
+
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
+        section='completions'
+    )
+    def on_format_on_save_change(self, value):
+        logger.debug(f"Set format on save to {value}")
+        self.set_format_on_save(value)
+
+    @on_conf_change(option='underline_errors')
+    def on_underline_errors_enabled_change(self, value):
+        logger.debug(f"Set underline errors to {value}")
+        self.set_underline_errors_enabled(value)
+
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def on_color_scheme_change(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
+        logger.debug(f"Set color scheme to {value}")
+        self.set_color_scheme(value)
+
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state

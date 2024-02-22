@@ -3237,29 +3237,6 @@ class EditorMainWidget(PluginMainWidget):
         editor.update_tab_stop_width_spaces()
 
     # ---- Options
-    # TODO: Use general mapping for all the settings and set methods
-    # to use in these methods instead of local `option_to_method` variable?
-    # Should these `@on_conf_change` be moved to the EditorStack class itself?
-    @on_conf_change(
-        option=[
-            'highlight_current_line',
-            'highlight_current_cell',
-            'occurrence_highlighting',
-            'occurrence_highlighting/timeout'
-        ]
-    )
-    def on_syntax_highlight_changes(self, option, value):
-        # ---- syntax highlight and text rendering settings
-        option_to_method = {
-            'highlight_current_line': 'set_highlight_current_line_enabled',
-            'highlight_current_cell': 'set_highlight_current_cell_enabled',
-            'occurrence_highlighting': 'set_occurrence_highlighting_enabled',
-            'occurrence_highlighting/timeout': 'set_occurrence_highlighting_timeout'  # noqa
-        }
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                getattr(editorstack, option_to_method[option])(value)
-
     @on_conf_change(
         option=[
             'blank_spaces',
@@ -3270,69 +3247,12 @@ class EditorMainWidget(PluginMainWidget):
         ]
     )
     def on_checkable_action_change(self, option, value):
-        option_to_method = {
-            'blank_spaces': 'set_blanks_enabled',
-            'scroll_past_end': 'set_scrollpastend_enabled',
-            'indent_guides': 'set_indent_guides',
-            'code_folding': 'set_code_folding_enabled',
-            'show_class_func_dropdown': 'set_classfunc_dropdown_visible'
-        }
-
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                getattr(editorstack, option_to_method[option])(value)
-
         action = self.checkable_actions[option]
         # Avoid triggering the action when it changes state
         action.blockSignals(True)
         action.setChecked(value)
         action.blockSignals(False)
         # See: spyder-ide/spyder#9915
-
-    @on_conf_change(
-        option=[
-            'show_tab_bar',
-            'wrap',
-            'line_numbers',
-            'tab_always_indent',
-            'strip_trailing_spaces_on_modify',
-            'intelligent_backspace',
-            'always_remove_trailing_spaces',
-            'add_newline',
-            'always_remove_trailing_newlines',
-            'convert_eol_on_save',
-            'convert_eol_on_save_to',
-            'close_parentheses',
-            'close_quotes',
-            'add_colons',
-            'auto_unindent',
-            'indent_chars',
-            'tab_stop_width_spaces'
-        ]
-    )
-    def on_general_option_change(self, option, value):
-        option_to_method = {
-            'show_tab_bar': 'set_tabbar_visible',
-            'wrap': 'set_wrap_enabled',
-            'line_numbers': 'set_linenumbers_enabled',
-            'tab_always_indent': 'set_tabmode_enabled',
-            'strip_trailing_spaces_on_modify': 'set_stripmode_enabled',
-            'intelligent_backspace': 'set_intelligent_backspace_enabled',
-            'always_remove_trailing_spaces': 'set_always_remove_trailing_spaces',  # noqa
-            'add_newline': 'set_add_newline',
-            'always_remove_trailing_newlines': 'set_remove_trailing_newlines',
-            'convert_eol_on_save': 'set_convert_eol_on_save',
-            'convert_eol_on_save_to': 'set_convert_eol_on_save_to',
-            'close_parentheses': 'set_close_parentheses_enabled',
-            'close_quotes': 'set_close_quotes_enabled',
-            'add_colons': 'set_add_colons_enabled',
-            'auto_unindent': 'set_auto_unindent_enabled',
-            'indent_chars': 'set_indent_chars',
-            'tab_stop_width_spaces': 'set_tab_stop_width_spaces'
-        }
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                getattr(editorstack, option_to_method[option])(value)
 
     @on_conf_change(
         option=[
@@ -3365,104 +3285,6 @@ class EditorMainWidget(PluginMainWidget):
     def on_autosave_interval_change(self, value):
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = value * 1000
-
-    @on_conf_change(option='connect_to_oi')
-    def on_help_connection_change(self, value):
-        help_option_value = self.get_conf('connect/editor', section='help')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_help_enabled(help_option_value)
-
-    @on_conf_change(option='edge_line')
-    def set_edgeline_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set edge line to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_edgeline_enabled(value)
-
-    @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
-                'pycodestyle/max_line_length'),
-        section='completions'
-    )
-    def set_edgeline_columns(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set edge line columns to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_edgeline_columns(value)
-
-    @on_conf_change(option='enable_code_snippets', section='completions')
-    def set_code_snippets_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set code snippets to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_code_snippets_enabled(value)
-
-    @on_conf_change(option='automatic_completions')
-    def set_automatic_completions_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set automatic completions to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_automatic_completions_enabled(value)
-
-    @on_conf_change(option='automatic_completions_after_chars')
-    def set_automatic_completions_after_chars(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set chars for automatic completions to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_automatic_completions_after_chars(value)
-
-    @on_conf_change(option='completions_hint')
-    def set_completions_hint_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set completions hint to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_completions_hint_enabled(value)
-
-    @on_conf_change(option='completions_hint_after_ms')
-    def set_completions_hint_after_ms(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set completions hint after {value} ms")
-            for editorstack in self.editorstacks:
-                editorstack.set_completions_hint_after_ms(value)
-
-    @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values',
-                'enable_hover_hints'),
-        section='completions'
-    )
-    def set_hover_hints_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set hover hints to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_hover_hints_enabled(value)
-
-    @on_conf_change(
-        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
-        section='completions'
-    )
-    def set_format_on_save(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set format on save to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_format_on_save(value)
-
-    @on_conf_change(option='underline_errors')
-    def set_underline_errors_enabled(self, value):
-        if self.editorstacks is not None:
-            logger.debug(f"Set underline errors to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_underline_errors_enabled(value)
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def set_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        if self.editorstacks is not None:
-            logger.debug(f"Set color scheme to {value}")
-            for editorstack in self.editorstacks:
-                editorstack.set_color_scheme(value)
 
     # ---- Open files
     def get_open_filenames(self):
