@@ -207,10 +207,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.setLayout(layout)
 
         self.menu = None
-        self.switcher_manager = None
         self.tabs = None
         self.tabs_switcher = None
-        self.switcher_plugin = None
 
         self.stack_history = StackHistory(self)
 

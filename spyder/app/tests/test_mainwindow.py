@@ -2547,10 +2547,10 @@ def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    assert editorstack.switcher_plugin
-    editorstack.switcher_plugin.open_switcher()
-    assert editorstack.switcher_plugin.is_visible()
-    assert (editorstack.switcher_plugin.count() ==
+    assert editorstack.switcher_action
+    editorstack.switcher_action.trigger()
+    assert main_window.switcher.is_visible()
+    assert (main_window.switcher.count() ==
             len(main_window.editor.get_filenames()))
 
 
