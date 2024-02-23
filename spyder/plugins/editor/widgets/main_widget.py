@@ -200,17 +200,10 @@ class EditorMainWidget(PluginMainWidget):
     sig_editor_focus_changed_uuid = Signal(str)
     sig_register_run_configuration_provider_requested = Signal(list)
     sig_deregister_run_configuration_provider_requested = Signal(list)
-    sig_register_run_configuration_metadata_requested = Signal(dict)
-    sig_deregister_run_configuration_metadata_requested = Signal(str)
-    sig_switch_focused_run_configuration_requested = Signal(str)
 
     # ---- Completions related signals
-    sig_send_completions_request_requested = Signal(str, str, dict)
     sig_after_configuration_update_requested = Signal(list)
     sig_update_active_languages_requested = Signal(set)
-
-    # ---- Projects related signals
-    sig_start_project_workspace_services_requested = Signal()
 
     # ---- Other signals
     sig_help_requested = Signal(dict)
@@ -1083,7 +1076,7 @@ class EditorMainWidget(PluginMainWidget):
         self.file_per_id[file_id] = filename
         self.id_per_file[filename] = file_id
         self.metadata_per_id[file_id] = metadata
-        self.sig_register_run_configuration_metadata_requested.emit(metadata)
+        self._plugin._register_run_configuration_metadata(metadata)
 
     def deregister_file_run_metadata(self, filename):
         """Unregister files with the Run plugin."""
@@ -1093,7 +1086,7 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.pop(filename)
         self.file_per_id.pop(file_id)
         self.metadata_per_id.pop(file_id)
-        self.sig_deregister_run_configuration_metadata_requested.emit(file_id)
+        self._plugin._deregister_run_configuration_metadata(file_id)
 
     def change_register_file_run_metadata(self, old_filename, new_filename):
         """Change registered run metadata when renaming files."""
@@ -1113,7 +1106,7 @@ class EditorMainWidget(PluginMainWidget):
             self.register_file_run_metadata(new_filename)
 
         if is_selected:
-            self.sig_switch_focused_run_configuration_requested.emit(
+            self._plugin._switch_focused_run_configuration(
                 self.id_per_file[new_filename]
             )
 
@@ -1205,7 +1198,7 @@ class EditorMainWidget(PluginMainWidget):
         logger.debug("Perform request {0} for: {1}".format(
             request, params['file']))
         # TODO: main_widget calling logic from the completions plugin
-        self.sig_send_completions_request_requested.emit(
+        self._plugin._send_completions_request(
             language, request, params
         )
 

@@ -33,7 +33,6 @@ from spyder.plugins.mainmenu.api import (
 )
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import RunContext
-from spyder.py3compat import qbytearray_to_str
 from spyder.utils.icon_manager import ima
 
 logger = logging.getLogger(__name__)
@@ -177,28 +176,9 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
 
         # TODO: Move these connections to the `on_<>_available` of each plugin?
-        # ---- Run related signals
-        widget.sig_register_run_configuration_metadata_requested.connect(
-            self._register_run_configuration_metadata
-        )
-        widget.sig_deregister_run_configuration_metadata_requested.connect(
-            self._deregister_run_configuration_metadata
-        )
-        widget.sig_switch_focused_run_configuration_requested.connect(
-            self._switch_focused_run_configuration
-        )
-
         # ---- Completions related signals
-        widget.sig_send_completions_request_requested.connect(
-            self._send_completions_request
-        )
         widget.sig_after_configuration_update_requested.connect(
             self._after_configuration_update
-        )
-
-        # ---- Projects related signals
-        widget.sig_start_project_workspace_services_requested.connect(
-            self._start_project_workspace_services
         )
 
         # ---- Help related signals
