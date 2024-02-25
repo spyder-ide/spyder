@@ -77,7 +77,7 @@ _REGISTERED_ARRAY_BUILDERS = {
 class ArrayInline(QLineEdit):
 
     def __init__(self, parent, options=None):
-        super(ArrayInline, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self._options = options
 
@@ -88,7 +88,7 @@ class ArrayInline(QLineEdit):
             if self._parent.is_valid():
                 self._parent.keyPressEvent(event)
         else:
-            super(ArrayInline, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     # To catch the Tab key event
     def event(self, event):
@@ -114,13 +114,13 @@ class ArrayInline(QLineEdit):
 
                 return False
 
-        return super(ArrayInline, self).event(event)
+        return super().event(event)
 
 
 class ArrayTable(QTableWidget):
 
     def __init__(self, parent, options=None):
-        super(ArrayTable, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self._options = options
 
@@ -214,7 +214,7 @@ class ArrayBuilderDialog(QDialog):
 
     def __init__(self, parent=None, inline=True, offset=0, force_float=False,
                  language='python'):
-        super(ArrayBuilderDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._language = language
         self._options = _REGISTERED_ARRAY_BUILDERS.get('python', None)
         self._parent = parent
@@ -317,7 +317,7 @@ class ArrayBuilderDialog(QDialog):
             self.process_text()
             self.accept()
         else:
-            super(ArrayBuilderDialog, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     def event(self, event):
         """
@@ -328,7 +328,7 @@ class ArrayBuilderDialog(QDialog):
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
             return False
 
-        return super(ArrayBuilderDialog, self).event(event)
+        return super().event(event)
 
     def process_text(self):
         """
