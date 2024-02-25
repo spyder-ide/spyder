@@ -19,7 +19,10 @@ import re
 # Third party imports
 import qstylizer.style
 from qtpy.QtCore import QEvent, QPoint, Qt
+from qtpy.QtGui import QKeyEvent
 from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
     QDialog,
     QHBoxLayout,
     QLineEdit,
@@ -31,7 +34,8 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
 from spyder.utils.stylesheet import AppStyle
@@ -49,7 +53,6 @@ class ArrayBuilderType:
     BRACES = None
     EXTRA_VALUES = None
     ARRAY_PREFIX = None
-    MATRIX_PREFIX = None
 
     def check_values(self):
         pass
@@ -64,7 +67,6 @@ class ArrayBuilderPython(ArrayBuilderType):
         'np.inf': ['inf', 'INF'],
     }
     ARRAY_PREFIX = 'np.array([['
-    MATRIX_PREFIX = 'np.matrix([['
 
 
 _REGISTERED_ARRAY_BUILDERS = {
@@ -73,6 +75,7 @@ _REGISTERED_ARRAY_BUILDERS = {
 
 
 class ArrayInline(QLineEdit):
+
     def __init__(self, parent, options=None):
         super(ArrayInline, self).__init__(parent)
         self._parent = parent
@@ -115,25 +118,40 @@ class ArrayInline(QLineEdit):
 
 
 class ArrayTable(QTableWidget):
+
     def __init__(self, parent, options=None):
         super(ArrayTable, self).__init__(parent)
         self._parent = parent
         self._options = options
+
+        # Default number of rows and columns
         self.setRowCount(2)
         self.setColumnCount(2)
+
+        # Select the first cell and send an Enter to it so users can start
+        # editing the array after it's displayed.
+        # Idea taken from https://stackoverflow.com/a/32205884/438386
+        if not running_under_pytest():
+            self.setCurrentCell(0, 0)
+            event = QKeyEvent(QEvent.KeyPress, Qt.Key_Enter, Qt.NoModifier)
+            QApplication.postEvent(self, event)
+
+        # Set headers
         self.reset_headers()
 
-        # signals
+        # Signals
         self.cellChanged.connect(self.cell_changed)
 
     def keyPressEvent(self, event):
-        """Override Qt method."""
-        super(ArrayTable, self).keyPressEvent(event)
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            # To avoid having to enter one final tab
-            self.setDisabled(True)
-            self.setDisabled(False)
-            self._parent.keyPressEvent(event)
+        shift = event.modifiers() & Qt.ShiftModifier
+
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return] and not shift:
+            # To edit a cell when pressing Enter.
+            # From https://stackoverflow.com/a/70166617/438386
+            if self.state() != QAbstractItemView.EditingState:
+                self.edit(self.currentIndex())
+
+        super().keyPressEvent(event)
 
     def cell_changed(self, row, col):
         item = self.item(row, col)
@@ -193,6 +211,7 @@ class ArrayTable(QTableWidget):
 
 
 class ArrayBuilderDialog(QDialog):
+
     def __init__(self, parent=None, inline=True, offset=0, force_float=False,
                  language='python'):
         super(ArrayBuilderDialog, self).__init__(parent=parent)
@@ -206,27 +225,23 @@ class ArrayBuilderDialog(QDialog):
         # TODO: add this as an option in the General Preferences?
         self._force_float = force_float
 
-        self._help_inline = _("""
-           <b>Numpy Array/Matrix Helper</b><br>
-           Type an array in Matlab    : <code>[1 2;3 4]</code><br>
-           or Spyder simplified syntax : <code>1 2;3 4</code>
-           <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
-           <br><br>
-           <b>Hint:</b><br>
-           Use two spaces or two tabs to generate a ';'.
-           """)
+        help_inline = _("""
+           <b>Numpy array helper</b><br><br>
+           * Type an array using the syntax: <tt>1 2;3 4</tt><br>
+           * Use two spaces or tabs to generate a <b>;</b>.<br>
+           * Hit <b>Shift+Enter</b> when you are done.
+           """
+        )
 
-        self._help_table = _("""
-           <b>Numpy Array/Matrix Helper</b><br>
-           Enter an array in the table. <br>
-           Use Tab to move between cells.
-           <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
-           <br><br>
-           <b>Hint:</b><br>
-           Use two tabs at the end of a row to move to the next row.
-           """)
+        help_table = _("""
+           <b>Numpy array helper</b><br><br>
+           * Introduce an array in the table.<br>
+           * Use <b>Tab</b> to move between cells or introduce additional
+             rows and columns.<br>
+           * Use two tabs at the end of a row to move to the next one.<br>
+           * Hit <b>Shift+Enter</b> when you are done.
+           """
+        )
 
         # Widgets
         button_close = QToolButton()
@@ -242,7 +257,7 @@ class ArrayBuilderDialog(QDialog):
         button_close.setStyleSheet(button_close_css.toString())
 
         button_help = TipWidget(
-            tip_text=self._help_inline if inline else self._help_table,
+            tip_text=help_inline if inline else help_table,
             icon=ima.icon('info_tip'),
             hover_icon=ima.icon('info_tip_hover')
         )
@@ -296,13 +311,10 @@ class ArrayBuilderDialog(QDialog):
     def keyPressEvent(self, event):
         """Override Qt method."""
         QToolTip.hideText()
-        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
 
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            if ctrl:
-                self.process_text(array=False)
-            else:
-                self.process_text(array=True)
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return] and shift:
+            self.process_text()
             self.accept()
         else:
             super(ArrayBuilderDialog, self).keyPressEvent(event)
@@ -318,14 +330,11 @@ class ArrayBuilderDialog(QDialog):
 
         return super(ArrayBuilderDialog, self).event(event)
 
-    def process_text(self, array=True):
+    def process_text(self):
         """
         Construct the text based on the entered content in the widget.
         """
-        if array:
-            prefix = self._options.ARRAY_PREFIX
-        else:
-            prefix = self._options.MATRIX_PREFIX
+        prefix = self._options.ARRAY_PREFIX
 
         suffix = ']])'
         values = self._widget.text().strip()
