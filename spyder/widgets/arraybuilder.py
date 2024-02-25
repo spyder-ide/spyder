@@ -229,7 +229,7 @@ class ArrayBuilderDialog(QDialog):
            <b>Numpy array helper</b><br><br>
            * Type an array using the syntax: <tt>1 2;3 4</tt><br>
            * Use two spaces or tabs to generate a <b>;</b>.<br>
-           * Hit <b>Shift+Enter</b> when you are done.
+           * You can press <b>Shift+Enter</b> when you are done.
            """
         )
 
@@ -239,22 +239,29 @@ class ArrayBuilderDialog(QDialog):
            * Use <b>Tab</b> to move between cells or introduce additional
              rows and columns.<br>
            * Use two tabs at the end of a row to move to the next one.<br>
-           * Hit <b>Shift+Enter</b> when you are done.
+           * You can press <b>Shift+Enter</b> when you are done.
            """
         )
 
         # Widgets
+        button_ok = QToolButton()
+        button_ok.setIcon(ima.icon("DialogApplyButton"))
+        button_ok.setToolTip(_("Introduce contents"))
+        button_ok.clicked.connect(self.accept)
+
         button_close = QToolButton()
-        button_close.setIcon(ima.icon("fileclose"))
+        button_close.setIcon(ima.icon("DialogCloseButton"))
+        button_close.setToolTip(_("Cancel"))
         button_close.clicked.connect(self.reject)
 
-        button_close_css = qstylizer.style.StyleSheet()
-        button_close_css.QToolButton.setValues(
+        buttons_css = qstylizer.style.StyleSheet()
+        buttons_css.QToolButton.setValues(
             height="16px",
             width="16px",
             borderRadius=QStylePalette.SIZE_BORDER_RADIUS
         )
-        button_close.setStyleSheet(button_close_css.toString())
+        for button in [button_ok, button_close]:
+            button.setStyleSheet(buttons_css.toString())
 
         button_help = TipWidget(
             tip_text=help_inline if inline else help_table,
@@ -287,19 +294,21 @@ class ArrayBuilderDialog(QDialog):
         if inline:
             buttons_layout = QHBoxLayout()
             buttons_layout.addWidget(button_help, alignment=Qt.AlignVCenter)
+            buttons_layout.addWidget(button_ok, alignment=Qt.AlignVCenter)
             buttons_layout.addWidget(button_close, alignment=Qt.AlignVCenter)
         else:
             buttons_layout = QVBoxLayout()
-            buttons_layout.addWidget(button_help, alignment=Qt.AlignTop)
+            buttons_layout.addWidget(button_ok)
             buttons_layout.addSpacing(3)
-            buttons_layout.addWidget(button_close, alignment=Qt.AlignTop)
+            buttons_layout.addWidget(button_close)
             buttons_layout.addStretch()
+            buttons_layout.addWidget(button_help)
 
         layout = QHBoxLayout()
         layout.setContentsMargins(
             3 * AppStyle.MarginSize,
             3 * AppStyle.MarginSize,
-            2 * AppStyle.MarginSize,
+            2 * AppStyle.MarginSize + 1,
             3 * AppStyle.MarginSize
         )
         layout.addWidget(self._widget)
@@ -314,7 +323,6 @@ class ArrayBuilderDialog(QDialog):
         shift = event.modifiers() & Qt.ShiftModifier
 
         if event.key() in [Qt.Key_Enter, Qt.Key_Return] and shift:
-            self.process_text()
             self.accept()
         else:
             super().keyPressEvent(event)
@@ -329,6 +337,10 @@ class ArrayBuilderDialog(QDialog):
             return False
 
         return super().event(event)
+
+    def accept(self):
+        self.process_text()
+        super().accept()
 
     def process_text(self):
         """
