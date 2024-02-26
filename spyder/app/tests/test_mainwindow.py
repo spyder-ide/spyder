@@ -2596,11 +2596,11 @@ def example_def_2():
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    editorstack.switcher_plugin.open_symbolfinder()
+    assert editorstack.symbolfinder_action
+    editorstack.symbolfinder_action.trigger()
     qtbot.wait(500)
-    assert editorstack.switcher_plugin
-    assert editorstack.switcher_plugin.is_visible()
-    assert editorstack.switcher_plugin.count() == 2
+    assert main_window.switcher.is_visible()
+    assert main_window.switcher.count() == 2
 
 
 @flaky(max_runs=3)
