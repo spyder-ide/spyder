@@ -101,7 +101,6 @@ class WorkerUpdate(QObject):
         error_msg = None
         pypi_url = "https://pypi.org/pypi/spyder/json"
         github_url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-        cf_url = 'https://conda.anaconda.org/conda-forge'
 
         if is_conda_based_app():
             url = github_url
@@ -112,8 +111,8 @@ class WorkerUpdate(QObject):
                 logger.debug(
                     f"channel = {self.channel}; channel_url = {channel_url}. "
                 )
-                # Spyder installed in development mode, use conda-forge
-                url = cf_url + '/channeldata.json'
+                # Spyder installed in development mode, use GitHub
+                url = github_url
             elif self.channel == "pypi":
                 url = pypi_url
             else:
