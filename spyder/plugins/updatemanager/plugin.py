@@ -9,14 +9,12 @@ Update Manager Plugin.
 """
 
 # Local imports
-from spyder import __version__
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown
 )
-from spyder.config.base import DEV
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
@@ -96,11 +94,7 @@ class UpdateManager(SpyderPluginV2):
         container = self.get_container()
 
         # Check for updates on startup
-        if (
-            DEV is None                   # Not bootstrap
-            and 'dev' not in __version__  # Not dev version
-            and self.get_conf('check_updates_on_startup')
-        ):
+        if self.get_conf('check_updates_on_startup'):
             container.start_check_update(startup=True)
 
     # ---- Private API
