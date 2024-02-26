@@ -100,21 +100,20 @@ class WorkerUpdate(QObject):
         self.update_available = False
         error_msg = None
         pypi_url = "https://pypi.org/pypi/spyder/json"
+        github_url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+        cf_url = 'https://conda.anaconda.org/conda-forge'
 
         if is_conda_based_app():
-            url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+            url = github_url
         elif is_anaconda():
             self.channel, channel_url = get_spyder_conda_channel()
 
             if self.channel is None or channel_url is None:
-                # Emit signal before returning so the slots connected to it
-                # can do their job.
-                try:
-                    self.sig_ready.emit()
-                except RuntimeError:
-                    pass
-
-                return
+                logger.debug(
+                    f"channel = {self.channel}; channel_url = {channel_url}. "
+                )
+                # Spyder installed in development mode, use conda-forge
+                url = cf_url + '/channeldata.json'
             elif self.channel == "pypi":
                 url = pypi_url
             else:
@@ -129,16 +128,17 @@ class WorkerUpdate(QObject):
             data = page.json()
 
             if self.releases is None:
-                if is_conda_based_app():
+                if url == github_url:
                     self.releases = [
                         item['tag_name'].replace('v', '') for item in data
                     ]
-                elif is_anaconda() and url != pypi_url:
+                elif url == pypi_url:
+                    self.releases = [data['info']['version']]
+                else:
+                    # Conda type url
                     spyder_data = data['packages'].get('spyder')
                     if spyder_data:
                         self.releases = [spyder_data["version"]]
-                else:
-                    self.releases = [data['info']['version']]
             self.releases.sort(key=parse)
 
             self._check_update_available()
