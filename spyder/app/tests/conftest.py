@@ -476,6 +476,7 @@ def main_window(request, tmpdir, qtbot):
                 try:
                     # Close or hide everything we can think of
                     window.switcher.hide()
+                    window.switcher.on_close()
 
                     # Close editor related elements
                     window.editor.close_all_files()
@@ -485,9 +486,6 @@ def main_window(request, tmpdir, qtbot):
                         pass
                     for editorwindow in window.editor.get_widget().editorwindows:
                         editorwindow.close()
-                    editorstack = window.editor.get_current_editorstack()
-                    if editorstack.switcher_plugin:
-                        editorstack.switcher_plugin.on_close()
 
                     window.projects.close_project()
 
