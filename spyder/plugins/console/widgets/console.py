@@ -147,6 +147,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
 
+    CONF_SECTION = 'internal_console'
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
