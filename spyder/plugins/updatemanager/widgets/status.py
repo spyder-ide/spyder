@@ -84,16 +84,19 @@ class UpdateManagerStatus(StatusBarWidget):
             self.spinner.hide()
             self.spinner.stop()
             self.custom_widget.show()
+            self.show()
         elif value == CHECKING:
             self.tooltip = self.BASE_TOOLTIP
             self.custom_widget.hide()
             self.spinner.show()
             self.spinner.start()
+            self.show()
         elif value == PENDING:
             self.tooltip = value
             self.custom_widget.hide()
             self.spinner.hide()
             self.spinner.stop()
+            self.show()
         else:
             self.tooltip = self.BASE_TOOLTIP
             if self.custom_widget:
@@ -101,8 +104,8 @@ class UpdateManagerStatus(StatusBarWidget):
             if self.spinner:
                 self.spinner.hide()
                 self.spinner.stop()
+            self.hide()
 
-        self.setVisible(True)
         self.update_tooltip()
         value = f"Spyder: {value}"
         logger.debug(f"Update manager status: {value}")
