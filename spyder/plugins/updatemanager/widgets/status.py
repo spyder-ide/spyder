@@ -10,10 +10,9 @@ Status widget for Spyder updates.
 
 # Standard library imports
 import logging
-import os
 
 # Third party imports
-from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QLabel
 
 # Local imports
@@ -29,7 +28,6 @@ from spyder.plugins.updatemanager.widgets.update import (
     PENDING
 )
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, create_action
 
 
 # Setup logger
@@ -131,18 +129,3 @@ class UpdateManagerStatus(StatusBarWidget):
             self.sig_show_progress_dialog.emit(True)
         elif self.value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
             self.sig_start_update.emit()
-        elif self.value == NO_STATUS:
-            self.menu.clear()
-            check_for_updates_action = create_action(
-                self,
-                text=_("Check for updates..."),
-                triggered=self.sig_check_update.emit
-            )
-
-            add_actions(self.menu, [check_for_updates_action])
-            rect = self.contentsRect()
-            os_height = 7 if os.name == 'nt' else 12
-            pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-10, -rect.height() - os_height)
-            )
-            self.menu.popup(pos)
