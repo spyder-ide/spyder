@@ -30,7 +30,7 @@ dependencies:
   - pyqtwebengine >=5.10,<5.16
   - python-lsp-black >=2.0.0,<3.0.0
   - python-lsp-server >=1.10.0,<1.11.0
-  - pyzmq >=22.1.0
+  - pyzmq >=24.0.0
   - qdarkstyle >=3.2.0,<3.3.0
   - qstylizer >=0.2.2
   - qtawesome >=1.2.1
