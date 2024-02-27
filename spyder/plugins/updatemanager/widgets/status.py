@@ -59,7 +59,7 @@ class UpdateManagerStatus(StatusBarWidget):
     def __init__(self, parent):
 
         self.tooltip = None
-        super().__init__(parent, show_spinner=True)
+        super().__init__(parent)
 
         # Check for updates action menu
         self.menu = SpyderMenu(self)
@@ -78,29 +78,20 @@ class UpdateManagerStatus(StatusBarWidget):
                 "Downloading the update will continue in the background.\n"
                 "Click here to show the download dialog again."
             )
-            self.spinner.hide()
-            self.spinner.stop()
             self.custom_widget.show()
             self.show()
         elif value == CHECKING:
             self.tooltip = value
             self.custom_widget.hide()
-            self.spinner.show()
-            self.spinner.start()
-            self.show()
+            self.hide()
         elif value == PENDING:
             self.tooltip = value
             self.custom_widget.hide()
-            self.spinner.hide()
-            self.spinner.stop()
             self.show()
         else:
             self.tooltip = None
             if self.custom_widget:
                 self.custom_widget.hide()
-            if self.spinner:
-                self.spinner.hide()
-                self.spinner.stop()
             self.hide()
 
         self.update_tooltip()
