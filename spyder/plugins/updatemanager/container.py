@@ -20,10 +20,7 @@ from qtpy.QtCore import Slot
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
-from spyder.plugins.updatemanager.widgets.update import (
-    UpdateManagerWidget,
-    NO_STATUS
-)
+from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 from spyder.utils.qthelpers import DialogManager
 
 # Logger setup
@@ -74,8 +71,6 @@ class UpdateManagerContainer(PluginMainContainer):
         self.update_manager_status.sig_start_update.connect(self.start_update)
         self.update_manager_status.sig_show_progress_dialog.connect(
             self.update_manager.show_progress_dialog)
-
-        self.set_status(NO_STATUS)
 
     def update_actions(self):
         pass

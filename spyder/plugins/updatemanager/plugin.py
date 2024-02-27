@@ -93,6 +93,9 @@ class UpdateManager(SpyderPluginV2):
         """Actions after the mainwindow in visible."""
         container = self.get_container()
 
+        # Hide statusbar widget on startup
+        container.update_manager_status.set_no_status()
+
         # Check for updates on startup
         if self.get_conf('check_updates_on_startup'):
             container.start_check_update(startup=True)
