@@ -36,15 +36,12 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 # Logger setup
 logger = logging.getLogger(__name__)
 
-# Update installation process statuses
+# Update manager process statuses
 NO_STATUS = __version__
 DOWNLOADING_INSTALLER = _("Downloading update")
 DOWNLOAD_FINISHED = _("Download finished")
-INSTALLING = _("Installing update")
-FINISHED = _("Installation finished")
 PENDING = _("Update available")
 CHECKING = _("Checking for updates")
-CANCELLED = _("Cancelled update")
 INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
