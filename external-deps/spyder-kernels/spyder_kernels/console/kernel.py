@@ -135,13 +135,15 @@ class SpyderKernel(IPythonKernel):
             # Do not use /tmp for temporary files
             try:
                 from xdg.BaseDirectory import xdg_data_home
-                fault_dir = xdg_data_home
+                fault_dir = os.path.join(xdg_data_home, "spyder")
                 os.makedirs(fault_dir, exist_ok=True)
             except Exception:
                 fault_dir = None
 
         self.faulthandler_handle = tempfile.NamedTemporaryFile(
-            'wt', suffix='.fault', dir=fault_dir)
+            'wt', suffix='.fault', dir=fault_dir
+        )
+
         main_id = threading.main_thread().ident
         system_ids = [
             thread.ident for thread in threading.enumerate()
@@ -172,9 +174,7 @@ class SpyderKernel(IPythonKernel):
         # Remove file
         try:
             os.remove(fault_filename)
-        except FileNotFoundError:
-            pass
-        except PermissionError:
+        except Exception:
             pass
 
         # Process file
@@ -721,13 +721,13 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "pylab":
-            import matplotlib
+            import matplotlib  # noqa
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
            
         if special == "sympy":
-            import sympy
+            import sympy  # noqa
             sympy_init = "\n".join([
                 "from sympy import *",
                 "x, y, z, t = symbols('x y z t')",
@@ -740,7 +740,7 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "cython":
-            import cython
+            import cython  # noqa
 
             # Import pyximport to enable Cython files support for
             # import statement
