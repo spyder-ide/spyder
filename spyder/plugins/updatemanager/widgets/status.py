@@ -38,7 +38,6 @@ logger = logging.getLogger(__name__)
 
 class UpdateManagerStatus(StatusBarWidget):
     """Status bar widget for update manager."""
-    BASE_TOOLTIP = _("Application update status")
     ID = 'update_manager_status'
 
     sig_check_update = Signal()
@@ -61,7 +60,7 @@ class UpdateManagerStatus(StatusBarWidget):
 
     def __init__(self, parent):
 
-        self.tooltip = self.BASE_TOOLTIP
+        self.tooltip = None
         super().__init__(parent, show_spinner=True)
 
         # Check for updates action menu
@@ -86,7 +85,7 @@ class UpdateManagerStatus(StatusBarWidget):
             self.custom_widget.show()
             self.show()
         elif value == CHECKING:
-            self.tooltip = self.BASE_TOOLTIP
+            self.tooltip = value
             self.custom_widget.hide()
             self.spinner.show()
             self.spinner.start()
@@ -98,7 +97,7 @@ class UpdateManagerStatus(StatusBarWidget):
             self.spinner.stop()
             self.show()
         else:
-            self.tooltip = self.BASE_TOOLTIP
+            self.tooltip = None
             if self.custom_widget:
                 self.custom_widget.hide()
             if self.spinner:
