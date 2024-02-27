@@ -107,7 +107,6 @@ class UpdateManagerStatus(StatusBarWidget):
             self.hide()
 
         self.update_tooltip()
-        value = f"Spyder: {value}"
         logger.debug(f"Update manager status: {value}")
         super().set_value(value)
 
@@ -129,12 +128,11 @@ class UpdateManagerStatus(StatusBarWidget):
     @Slot()
     def show_dialog_or_menu(self):
         """Show download dialog or status bar menu."""
-        value = self.value.split(":")[-1].strip()
-        if value == DOWNLOADING_INSTALLER:
+        if self.value == DOWNLOADING_INSTALLER:
             self.sig_show_progress_dialog.emit(True)
-        elif value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
+        elif self.value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
             self.sig_start_update.emit()
-        elif value == NO_STATUS:
+        elif self.value == NO_STATUS:
             self.menu.clear()
             check_for_updates_action = create_action(
                 self,
