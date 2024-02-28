@@ -35,6 +35,7 @@ PLUGIN = 'spyder plugins'
 # =============================================================================
 # Hard dependencies
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
+ASYNCSSH_REQVER = '>=2.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
@@ -98,6 +99,10 @@ DESCRIPTIONS = [
      'features': _("Notify macOS that Spyder can open Python files"),
      'required_version': APPLAUNCHSERVICES_REQVER,
      'display': sys.platform == "darwin" and not is_conda_based_app()},
+    {'modname': 'asyncssh',
+     'package_name': 'asyncssh',
+     'features': _('Connect to remote kernels through SSH'),
+     'required_version': ASYNCSSH_REQVER},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
