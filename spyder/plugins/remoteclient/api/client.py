@@ -6,6 +6,7 @@ import asyncssh
 
 from spyder.plugins.remoteclient.api.protocol import KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterHubAPI
+from spyder.plugins.remoteclient.api.ssh import SpyderSSHClient
 from spyder.plugins.remoteclient.utils.installation import get_installer_command
 
 
@@ -18,9 +19,10 @@ class SpyderRemoteClient:
     START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -a stdout spyder-remote-server --juptyerhub --show-port"
     CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -a stdout spyder-remote-server -h"
 
-    def __init__(self, conf_id, options: SSHClientOptions):
+    def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
         self.options = options
+        self._plugin = _plugin
 
         self.ssh_connection: asyncssh.SSHClientConnection = None
         self.remote_server_process: asyncssh.SSHClientProcess = None
@@ -33,8 +35,16 @@ class SpyderRemoteClient:
     async def close(self):
         """Closes the remote server and the SSH connection."""
         await self.close_port_forwarder()
-        await self.close_remote_server()
+        await self.stop_remote_server()
         await self.close_ssh_connection()
+
+    @property
+    def client_factory(self):
+        """Return the client factory."""
+        if self._plugin is None:
+            return lambda: asyncssh.SSHClient()
+
+        return lambda: SpyderSSHClient(self)
 
     @property
     def server_is_running(self):
@@ -92,7 +102,7 @@ class SpyderRemoteClient:
             return False
         
         if self.server_is_running:
-            self.close_remote_server()
+            self.stop_remote_server()
 
         try:
             self.remote_server_process = await self.ssh_connection.create_process(self.START_SERVER_COMMAND)
@@ -166,9 +176,9 @@ class SpyderRemoteClient:
             self.close_ssh_connection()
 
         conect_kwargs = {k: v for k, v in self.options.items() if k not in self._extra_options}
-
         try:
-            self.ssh_connection = await asyncssh.connect(**conect_kwargs)
+            self.ssh_connection = await asyncssh.connect(**conect_kwargs,
+                                                         client_factory=self.client_factory)
         except (OSError, asyncssh.Error) as e:
             self._logger.error(f"Failed to open ssh connection: {e}")
             return False
@@ -222,7 +232,7 @@ class SpyderRemoteClient:
             self.port_forwarder = None
             self._logger.debug(f"Port forwarder closed for host {self.options['host']} with local port {self.local_port}")
 
-    async def close_remote_server(self):
+    async def stop_remote_server(self):
         """Close remote server."""
         if self.server_is_running and not self.remote_server_process.is_closing():
             self.remote_server_process.close()
