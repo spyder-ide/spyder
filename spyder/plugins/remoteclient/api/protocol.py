@@ -7,7 +7,7 @@
 """
 Spyder Remote Client API.
 """
-from typing import TypedDict
+from typing import Optional, TypedDict, Union, Sequence
 
 
 class KernelsList(TypedDict):
@@ -32,3 +32,12 @@ class KernelConnectionInfo(TypedDict):
     signature_scheme: str
     kernel_name: str
 
+class SSHClientOptions(TypedDict):
+    host: str
+    port: Optional[int]
+    username: str
+    password: Optional[str]
+    client_keys: Optional[Union[str, Sequence[str]]]
+    known_hosts: Optional[Union[str, Sequence[str]]]
+    config: Optional[Sequence[str]]
+    platform: Optional[str]

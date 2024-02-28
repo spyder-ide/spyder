@@ -13,16 +13,14 @@ Remote Client Plugin.
 import logging
 
 # Third-party imports
-from qtpy.QtCore import Signal
-import zmq
-import asyncssh
+from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.plugins.remoteclient.api import DeleteKernel, KernelInfo, KernelsList
-from spyder.plugins.remoteclient.client.api import JupyterHubAPI
-
+from spyder.plugins.remoteclient.api.protocol import KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions
+from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
+from spyder.api.utils import AsSync
 
 _logger = logging.getLogger(__name__)
 
@@ -37,18 +35,21 @@ class RemoteClient(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    API_TOKEN = "GiJ96ujfLpPsq7oatW1IJuER01FbZsgyCM0xH6oMZXDAV6zUZsFy3xQBZakSBo6P"
+    CONF_SECTION_SERVERS = 'servers'
 
-    _SERVER_URL = "https://127.0.0.1:{port}"
-    _START_SERVER_COMMAND = "spyder-remote-server --show-port"
+    # ---- Signals
+    sig_connection_established = Signal()
+    sig_connection_lost = Signal()
+
+    sig_kernel_list = Signal(KernelsList)
+    sig_kernel_started = Signal(KernelConnectionInfo)
+    sig_kernel_info = Signal(KernelInfo)
+    sig_kernel_terminated = Signal(DeleteKernel)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.__ssh_connection: asyncssh.SSHClientConnection = None
-        self.__ssh_options: asyncssh.SSHClientConnectionOptions = None
-        self.__remote_server_process = None
-        self._server_port = None
+        self._remote_servers: dict[str, SpyderRemoteClient] = {}
 
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
@@ -72,107 +73,107 @@ class RemoteClient(SpyderPluginV2):
 
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
-        pass
 
     # ---- Public API
     # -------------------------------------------------------------------------
     # --- Remote Server Methods
-    async def install_remote_server(self):
+    def get_remote_server(self, config_id):
+        """Get remote server."""
+        if config_id in self._remote_servers:
+            return self._remote_servers[config_id]
+
+    @AsSync.as_sync
+    async def install_remote_server(self, config_id):
         """Install remote server."""
-        # Assuming installation command is known
-        install_command = "install spyder-remote-server command"
-        try:
-            async with asyncssh.connect(options=self.__ssh_options) as conn:
-                result = await conn.run(install_command)
-                _logger.info(f"Install command output: {result.stdout}")
-        except (OSError, asyncssh.Error) as e:
-            _logger.error(f"Error installing remote server: {e}")
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            await server.install_remote_server()
 
-    async def start_remote_server(self, port):
+    @AsSync.as_sync
+    async def start_remote_server(self, config_id):
         """Start remote server."""
-        try:
-            self.__ssh_connection = await asyncssh.connect(options=self.__ssh_options)
-            self.__remote_server_process = await self.__ssh_connection.create_process(self._START_SERVER_COMMAND)
-            port = self.__extract_server_port(self.__remote_server_process.stdout)
-            _logger.info(f"Remote server started on port {port}")
-        except (OSError, asyncssh.Error) as e:
-            _logger.error(f"Error starting remote server: {e}")
-            self.__remote_server_process = None
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            await server.connect_and_start_server()
+            self.sig_connection_established.emit()
 
-    async def stop_remote_server(self):
+    @AsSync.as_sync
+    async def stop_remote_server(self, config_id):
         """Stop remote server."""
-        if self.__remote_server_process:
-            self.__remote_server_process.terminate()
-            await self.__remote_server_process.wait_closed()
-            _logger.info("Remote server stopped")
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            await server.close()
+            self.sig_connection_lost.emit()
 
-    async def restart_remote_server(self, port):
+    def restart_remote_server(self, config_id):
         """Restart remote server."""
-        await self.stop_remote_server()
-        await self.start_remote_server(port)
+        self.stop_remote_server(config_id)
+        self.start_remote_server(config_id)
 
-    # --- Remote Server Kernel Methods
-    async def _get_kernels(self):
-        """Get opened kernels."""
-        async with JupyterHubAPI(self._SERVER_URL, api_token=self.API_TOKEN) as hub:
-            response = await hub.execute_get_service("spyder-service", "kernel")
-        _logger.warning(f'spyder-service-kernel-get: {response}')
-        return response
+    # --- Configuration Methods
+    def load_server_from_id(self, config_id):
+        """Load remote server from configuration id."""
+        options = self.load_conf(config_id)
+        self.load_server(config_id, options)    
 
-    async def get_kernel_info(self, kernel_key):
-        """Get kernel info."""
-        async with JupyterHubAPI(self._SERVER_URL, api_token=self.API_TOKEN) as hub:
-            response = await hub.execute_get_service("spyder-service", f"kernel/{kernel_key}")
-        _logger.info(f'spyder-service-kernel-get: {response}')
-        return response
+    def load_server(self, config_id: str, options: SSHClientOptions):
+        """Load remote server."""
+        server = SpyderRemoteClient(options)
+        self._remote_servers[config_id] = server
 
-    async def terminate_kernel(self, kernel_key):
-        """Terminate opened kernel."""
-        async with JupyterHubAPI(self._SERVER_URL, api_token=self.API_TOKEN) as hub:
-            response = await hub.execute_delete_service("spyder-service", f"kernel/{kernel_key}")
-        _logger.info(f'spyder-service-kernel-delete: {response}')
-        return response
+    def load_conf(self, config_id):
+        """Load remote server configuration."""
+        return SSHClientOptions(**self.get_conf(
+            self.CONF_SECTION_SERVERS, {}
+        ).get(config_id, {}))
 
-    async def start_new_kernel(self):
-        """Start new kernel."""
-        async with JupyterHubAPI(self._SERVER_URL, api_token=self.API_TOKEN) as hub:
-            response = await hub.execute_post_service("spyder-service", "kernel")
-        _logger.info(f'spyder-service-kernel-post: {response}')
-        return response
+    def get_loaded_servers(self):
+        """Get configured remote servers."""
+        return self._remote_servers.keys()
+
+    def get_conf_ids(self):
+        """Get configured remote servers ids."""
+        return self.get_conf(self.CONF_SECTION_SERVERS, {}).keys()
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    async def _ssh_is_connected(self):
-        """Check if SSH connection is open."""
-        if not self.__ssh_connection:
-            return False
+    # --- Remote Server Kernel Methods
+    @Slot(str)
+    @AsSync.as_sync
+    async def get_kernels(self, config_id):
+        """Get opened kernels."""
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            kernels_list = await server.get_kernels()
+            self.sig_kernel_list.emit(kernels_list)
+            return kernels_list
 
-        if self.__ssh_connection.is_closed:
-            return False
+    @Slot(str)
+    @AsSync.as_sync
+    async def get_kernel_info(self, config_id, kernel_key):
+        """Get kernel info."""
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            kernel_info = await server.get_kernel_info(kernel_key)
+            self.sig_kernel_info.emit(kernel_info)
+            return kernel_info
 
-        return True
+    @Slot(str)
+    @AsSync.as_sync
+    async def terminate_kernel(self, config_id, kernel_key):
+        """Terminate opened kernel."""
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            delete_kernel = await server.terminate_kernel(kernel_key)
+            self.sig_kernel_terminated.emit(delete_kernel)
+            return delete_kernel
 
-    async def _open_ssh_connection(self):
-        """Open an SSH connection."""
-        try:
-            self.__ssh_connection = await asyncssh.connect(
-                options=self.__ssh_options,
-            )
-        except (OSError, asyncssh.Error) as e:
-            _logger.error(f"Failed to connect to {self.__ssh_options.hostname}: {e}")
-            self.__ssh_connection = None
-
-    async def _close_ssh_connection(self):
-        """Close SSH connection."""
-        if self.__ssh_connection:
-            self.__ssh_connection.close()
-            await self.__ssh_connection.wait_closed()
-            self.__ssh_connection = None
-
-    @staticmethod
-    def __extract_server_port(server_stdout: asyncssh.SSHReader):
-        # extract port from first line of stdout: "{port}"
-        if (output := server_stdout.readline()):
-            return output.splitlines()[0]
-        
-        raise ValueError("Failed to extract port from server stdout")
+    @Slot(str)
+    @AsSync.as_sync
+    async def start_new_kernel(self, config_id):
+        """Start new kernel."""
+        if config_id in self._remote_servers:
+            server = self._remote_servers[config_id]
+            kernel_connection_info = await server.start_new_kernel()
+            self.sig_kernel_started.emit(kernel_connection_info)
+            return kernel_connection_info

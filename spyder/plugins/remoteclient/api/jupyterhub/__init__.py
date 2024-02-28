@@ -6,7 +6,7 @@ import asyncio
 import yarl
 import aiohttp
 
-from spyder.plugins.remoteclient.client import auth
+from spyder.plugins.remoteclient.api.jupyterhub import auth
 
 
 logger = logging.getLogger(__name__)
