@@ -8,6 +8,7 @@
 """
 API utilities.
 """
+import asyncio
 
 
 def get_class_values(cls):
@@ -64,3 +65,47 @@ class classproperty(property):
 
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()
+
+
+class AsSync:
+    """Decorator to convert a coroutine to a sync function.
+    
+    Helper class to facilitate the conversion of coroutines to sync functions
+    or to run a coroutine as a sync function without the need to call the event
+    loop method.
+
+    Usage
+    ------
+    As a decorator:
+    ```
+    @AsSync
+    async def my_coroutine():
+        pass
+        
+    my_coroutine()
+    ```
+
+    As a class wrapper:
+    ```
+    sync_coroutine = AsSync(my_coroutine)
+
+    sync_coroutine()
+    ```    
+    """
+    def __init__(self, coro, loop=None):
+        """Initialize the decorator.
+
+        Parameters
+        ----------
+        coro : coroutine
+            The coroutine to be wrapped.
+        loop : asyncio.AbstractEventLoop, optional
+            The event loop to be used, by default get the current event loop.
+        """
+        self.coro = coro
+        self.loop = loop or asyncio.get_event_loop()
+
+    def __call__(self, *args, **kwargs):
+        """Call the coroutine as a sync function."""
+        return self.loop.run_until_complete(self.coro(*args, **kwargs))
+
