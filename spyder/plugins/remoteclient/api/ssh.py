@@ -8,8 +8,8 @@ from typing import Optional
 _logger = logging.getLogger(__name__)
 
 class SpyderSSHClient(SSHClient):
-    def __init__(self, plugin):
-        self.plugin = plugin        
+    def __init__(self, client):
+        self.client = client        
 
     def connection_made(self, conn: SSHClientConnection) -> None:
         """Called when a connection is made
@@ -22,7 +22,7 @@ class SpyderSSHClient(SSHClient):
            :type conn: :class:`SSHClientConnection`
 
         """
-        self.plugin.sig_connection_established.emit()
+        self.client._plugin.sig_connection_established.emit(self.client.config_id)
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed
@@ -38,7 +38,7 @@ class SpyderSSHClient(SSHClient):
            :type exc: :class:`Exception`
 
         """
-        self.plugin.sig_connection_lost.emit()
+        self.client._plugin.sig_connection_lost.emit(self.client.config_id)
 
     def debug_msg_received(self, msg: str, lang: str,
                            always_display: bool) -> None:
