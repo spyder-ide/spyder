@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 2.5.1 (2024-02-28)
+
+### Pull Requests Merged
+
+* [PR 479](https://github.com/spyder-ide/spyder-kernels/pull/479) - PR: Fix hangs with Maplotlib interactive backends, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
 ## Version 2.5.0 (2023-11-06)
 
 ### New features
