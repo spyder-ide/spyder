@@ -56,8 +56,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
 
-    def __init__(self, parent, user_paths=None, project_paths=None,
-                 system_paths=None, sync=True):
+    def __init__(self, parent, sync=True):
         """Path manager dialog."""
         if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
@@ -65,21 +64,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
             QDialog.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
-        assert isinstance(user_paths, (OrderedDict, type(None)))
-
         # Style
         # NOTE: This needs to be here so all buttons are styled correctly
         self.setStyleSheet(self._stylesheet)
 
-        self.user_paths = user_paths or OrderedDict()
-        self.project_paths = project_paths or OrderedDict()
-        self.system_paths = system_paths or OrderedDict()
-
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
         self.user_path = []
-
-        self.original_prioritize = None
 
         # Widgets
         self.add_button = None
@@ -107,9 +98,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.setWindowIcon(self.create_icon('pythonpath'))
         self.resize(500, 400)
         self.export_button.setVisible(os.name == 'nt' and sync)
-        self.prioritize_button.setChecked(
-            self.get_conf('prioritize', default=False)
-        )
 
         # Description
         description = QLabel(
@@ -144,9 +132,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.listwidget.itemChanged.connect(lambda x: self.refresh())
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-
-        # Setup
-        self.setup()
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -196,7 +181,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             PathManagerToolbuttons.Prioritize,
             icon=self.create_icon('first_page'),
             option='prioritize',
-            triggered=self.prioritize,
+            triggered=self.refresh,
             tip=_("Place PYTHONPATH at the front of sys.path"))
         self.prioritize_button.setCheckable(True)
 
@@ -339,8 +324,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
+        # Prioritize
+        self.prioritize_button.setChecked(self.prioritize)
+
         self.listwidget.setCurrentRow(0)
-        self.original_prioritize = self.get_conf('prioritize', default=False)
         self.refresh()
 
     @Slot()
@@ -438,14 +425,26 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         return paths
 
-    def update_paths(self, user_paths=None, project_paths=None, system_paths=None):
-        """Update path attributes."""
-        if user_paths is not None:
-            self.user_paths = user_paths
-        if project_paths is not None:
-            self.project_paths = project_paths
-        if system_paths is not None:
-            self.system_paths = system_paths
+    def update_paths(
+        self,
+        project_paths=OrderedDict(),
+        user_paths=OrderedDict(),
+        system_paths=OrderedDict(),
+        prioritize=False
+    ):
+        """Update path attributes.
+
+        These attributes should only be set in this method and upon activating
+        the dialog. They should remain fixed while the dialog is active and are
+        used to compare with what is shown in the listwidget in order to detect
+        changes.
+        """
+        self.project_paths = project_paths
+        self.user_paths = user_paths
+        self.system_paths = system_paths
+        self.prioritize = prioritize
+
+        self.setup()
 
     def refresh(self):
         """Refresh toolbar widgets."""
@@ -489,7 +488,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.button_ok.setEnabled(
             self.user_paths != self.get_user_paths()
             or self.system_paths != self.get_system_paths()
-            or self.original_prioritize != self.prioritize_button.isChecked()
+            or self.prioritize != self.prioritize_button.isChecked()
         )
 
     @Slot()
@@ -621,10 +620,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.user_path = self.get_user_path()
         self.refresh()
 
-    def prioritize(self):
-        """Toggle prioritize setting."""
-        self.refresh()
-
     def current_row(self):
         """Returns the current row of the list."""
         return self.listwidget.currentRow()
@@ -690,8 +685,11 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        user_paths={p: True for p in sys.path[:1]},
-        project_paths={p: True for p in sys.path[-2:]},
+    )
+    dlg.update_paths(
+        user_paths={p: True for p in sys.path[1:-2]},
+        project_paths={p: True for p in sys.path[:1]},
+        system_paths={p: True for p in sys.path[-2:]}
     )
 
     def callback(path_dict, prioritize):
