@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
+from spyder.plugins.pythonpath.utils import check_path
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
@@ -56,8 +56,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
 
-    def __init__(self, parent, path=None, project_path=None,
-                 not_active_path=None, sync=True):
+    def __init__(self, parent, user_paths=None, project_paths=None,
+                 system_paths=None, sync=True):
         """Path manager dialog."""
         if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
@@ -65,26 +65,21 @@ class PathManager(QDialog, SpyderWidgetMixin):
             QDialog.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
-        assert isinstance(path, (tuple, type(None)))
+        assert isinstance(user_paths, (OrderedDict, type(None)))
 
         # Style
         # NOTE: This needs to be here so all buttons are styled correctly
         self.setStyleSheet(self._stylesheet)
 
-        self.path = path or ()
-        self.project_path = project_path or ()
-        self.not_active_path = not_active_path or ()
+        self.user_paths = user_paths or OrderedDict()
+        self.project_paths = project_paths or OrderedDict()
+        self.system_paths = system_paths or OrderedDict()
 
         self.last_path = getcwd_or_home()
         self.original_path_dict = None
-        self.system_path = ()
         self.user_path = []
 
         self.original_prioritize = None
-
-        # This is necessary to run our tests
-        if self.path:
-            self.update_paths(system_path=get_system_pythonpath())
 
         # Widgets
         self.add_button = None
@@ -213,19 +208,16 @@ class PathManager(QDialog, SpyderWidgetMixin):
             [self.prioritize_button]
         )
 
-    def _create_item(self, path):
+    def _create_item(self, path, active):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
 
-        if path in self.project_path:
+        if path in self.project_paths:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked)
-        elif path in self.not_active_path:
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
         else:
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.Checked if active else Qt.Unchecked)
 
         return item
 
@@ -282,9 +274,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         bottom_row = 0
 
         if self.project_header:
-            bottom_row += len(self.project_path) + 1
+            bottom_row += len(self.project_paths) + 1
         if self.user_header:
-            bottom_row += len(self.user_path)
+            bottom_row += len(self.get_user_paths())
 
         return bottom_row
 
@@ -294,7 +286,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         top_row = 0
 
         if self.project_header:
-            top_row += len(self.project_path) + 1
+            top_row += len(self.project_paths) + 1
         if self.user_header:
             top_row += 1
 
@@ -309,7 +301,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.system_header = None
 
         # Project path
-        if self.project_path:
+        if self.project_paths:
             self.project_header, project_widget = (
                 self._create_header(_("Project path"))
             )
@@ -317,12 +309,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
             self.listwidget.addItem(self.project_header)
             self.listwidget.setItemWidget(self.project_header, project_widget)
 
-            for path in self.project_path:
-                item = self._create_item(path)
+            for path, active in self.project_paths.items():
+                item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
         # Paths added by the user
-        if self.user_path:
+        if self.user_paths:
             self.user_header, user_widget = (
                 self._create_header(_("User paths"))
             )
@@ -330,12 +322,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
             self.listwidget.addItem(self.user_header)
             self.listwidget.setItemWidget(self.user_header, user_widget)
 
-            for path in self.user_path:
-                item = self._create_item(path)
+            for path, active in self.user_paths.items():
+                item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
         # System path
-        if self.system_path:
+        if self.system_paths:
             self.system_header, system_widget = (
                 self._create_header(_("System PYTHONPATH"))
             )
@@ -343,12 +335,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
             self.listwidget.addItem(self.system_header)
             self.listwidget.setItemWidget(self.system_header, system_widget)
 
-            for path in self.system_path:
-                item = self._create_item(path)
+            for path, active in self.system_paths.items():
+                item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
         self.listwidget.setCurrentRow(0)
-        self.original_path_dict = self.get_path_dict()
         self.original_prioritize = self.get_conf('prioritize', default=False)
         self.refresh()
 
@@ -401,50 +392,60 @@ class PathManager(QDialog, SpyderWidgetMixin):
         env['PYTHONPATH'] = list(ppath)
         set_user_env(env, parent=self)
 
-    def get_path_dict(self, project_path=False):
-        """
-        Return an ordered dict with the path entries as keys and the active
-        state as the value.
+    def get_user_paths(self):
+        """Get current user paths as displayed on listwidget."""
+        paths = OrderedDict()
 
-        If `project_path` is True, its entries are also included.
-        """
-        odict = OrderedDict()
+        if self.user_header is None:
+            return paths
+
+        is_user_path = False
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
-            path = item.text()
-            if item not in self.headers:
-                if path in self.project_path and not project_path:
-                    continue
-                odict[path] = item.checkState() == Qt.Checked
+            if item in (self.project_header, self.system_header):
+                is_user_path = False
+                continue
+            if item is self.user_header:
+                is_user_path = True
+                continue
+            if not is_user_path:
+                continue
 
-        return odict
+            paths.update({item.text(): item.checkState() == Qt.Checked})
 
-    def get_user_path(self):
-        """Get current user path as displayed on listwidget."""
-        user_path = []
+        return paths
+
+    def get_system_paths(self):
+        """Get current system paths as displayed on listwidget."""
+        paths = OrderedDict()
+
+        if self.system_header is None:
+            return paths
+
+        is_sys_path = False
         for row in range(self.listwidget.count()):
             item = self.listwidget.item(row)
-            path = item.text()
-            if item not in self.headers:
-                if path not in (self.project_path + self.system_path):
-                    user_path.append(path)
+            if item in (self.project_header, self.user_header):
+                is_sys_path = False
+                continue
+            if item is self.system_header:
+                is_sys_path = True
+                continue
+            if not is_sys_path:
+                continue
 
-        return user_path
+            paths.update({item.text(): item.checkState() == Qt.Checked})
 
-    def update_paths(self, path=None, not_active_path=None, system_path=None):
+        return paths
+
+    def update_paths(self, user_paths=None, project_paths=None, system_paths=None):
         """Update path attributes."""
-        if path is not None:
-            self.path = path
-        if not_active_path is not None:
-            self.not_active_path = not_active_path
-        if system_path is not None:
-            self.system_path = system_path
-
-        previous_system_path = self.get_conf('system_path', ())
-        self.user_path = [
-            path for path in self.path
-            if path not in (self.system_path + previous_system_path)
-        ]
+        if user_paths is not None:
+            self.user_paths = user_paths
+        if project_paths is not None:
+            self.project_paths = project_paths
+        if system_paths is not None:
+            self.system_paths = system_paths
 
     def refresh(self):
         """Refresh toolbar widgets."""
@@ -486,7 +487,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         # Ok button only enabled if actual changes occur
         self.button_ok.setEnabled(
-            self.original_path_dict != self.get_path_dict()
+            self.user_paths != self.get_user_paths()
+            or self.system_paths != self.get_system_paths()
             or self.original_prioritize != self.prioritize_button.isChecked()
         )
 
@@ -508,7 +510,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         directory = osp.abspath(directory)
         self.last_path = directory
 
-        if directory in self.get_path_dict():
+        if directory in self.user_paths:
             item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
             item.setCheckState(Qt.Checked)
             answer = QMessageBox.question(
@@ -541,7 +543,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                     )
 
                 # Add new path
-                item = self._create_item(directory)
+                item = self._create_item(directory, True)
                 self.listwidget.insertItem(self.editable_top_row, item)
                 self.listwidget.setCurrentRow(self.editable_top_row)
 
@@ -654,12 +656,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
         """
         # !!! If system path changed, then all changes made by user will be
         # applied even if though the user cancelled or closed the widget.
-        if self.system_path != self.get_conf('system_path', default=()):
+        if self.system_paths != self.get_conf('system_paths', default=()):
             self.sig_path_changed.emit(
                 self.get_path_dict(),
                 self.get_conf('prioritize', default=False)
             )
-        self.set_conf('system_path', self.system_path)
+        self.set_conf('system_paths', self.system_paths)
 
     def accept(self):
         """Override Qt method."""
@@ -688,8 +690,8 @@ def test():
     _ = qapplication()
     dlg = PathManager(
         None,
-        path=tuple(sys.path[:1]),
-        project_path=tuple(sys.path[-2:]),
+        user_paths={p: True for p in sys.path[:1]},
+        project_paths={p: True for p in sys.path[-2:]},
     )
 
     def callback(path_dict, prioritize):
