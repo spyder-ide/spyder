@@ -25,7 +25,6 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path
-from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
     AppStyle,
@@ -51,6 +50,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object, object, bool)
+    sig_export_pythonpath = Signal(object, object, bool)
 
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
@@ -349,32 +349,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
         if answer == QMessageBox.Cancel:
             return
 
-        env = get_user_env()
-
-        # This doesn't include the project path because it's a transient
-        # directory, i.e. only used in Spyder and during specific
-        # circumstances.
-        active_path = [k for k, v in self.get_path_dict().items() if v]
-
-        if answer == QMessageBox.Yes:
-            ppath = active_path
-        else:
-            ppath = env.get('PYTHONPATH', [])
-            if not isinstance(ppath, list):
-                ppath = [ppath]
-
-            ppath = [p for p in ppath if p not in active_path]
-            ppath = ppath + active_path
-
-        os.environ['PYTHONPATH'] = os.pathsep.join(ppath)
-
-        # Update widget so changes are reflected on it immediately
-        self.update_paths(system_path=tuple(ppath))
-        self.set_conf('system_path', tuple(ppath))
-        self.setup()
-
-        env['PYTHONPATH'] = list(ppath)
-        set_user_env(env, parent=self)
+        self.sig_export_pythonpath(
+            self.get_user_paths(), self.get_system_paths(),
+            answer == QMessageBox.Yes
+        )
 
     def get_user_paths(self):
         """Get current user paths as displayed on listwidget."""
