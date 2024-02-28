@@ -3,8 +3,8 @@ import difflib
 import logging
 import textwrap
 
-from client.api import JupyterHubAPI
-from client.utils import parse_notebook_cells
+from spyder.plugins.remoteclient.api.jupyterhub import JupyterHubAPI
+from spyder.plugins.remoteclient.api.jupyterhub.utils import parse_notebook_cells
 
 logger = logging.getLogger(__name__)
 
