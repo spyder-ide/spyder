@@ -51,7 +51,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
     """Path manager dialog."""
 
     redirect_stdio = Signal(bool)
-    sig_path_changed = Signal(object, bool)
+    sig_path_changed = Signal(object, object, bool)
 
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
@@ -69,7 +69,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.setStyleSheet(self._stylesheet)
 
         self.last_path = getcwd_or_home()
-        self.original_path_dict = None
         self.user_path = []
 
         # Widgets
@@ -644,37 +643,27 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    def _update_system_path(self):
-        """
-        Request to update path values on main window if current and previous
-        system paths are different.
-        """
-        # !!! If system path changed, then all changes made by user will be
-        # applied even if though the user cancelled or closed the widget.
-        if self.system_paths != self.get_conf('system_paths', default=()):
-            self.sig_path_changed.emit(
-                self.get_path_dict(),
-                self.get_conf('prioritize', default=False)
-            )
-        self.set_conf('system_paths', self.system_paths)
-
     def accept(self):
         """Override Qt method."""
-        path_dict = self.get_path_dict()
-        prioritize = self.prioritize_button.isChecked()
-        if (
-            self.original_path_dict != path_dict
-            or self.original_prioritize != prioritize
-        ):
-            self.sig_path_changed.emit(path_dict, prioritize)
+        self.sig_path_changed.emit(
+            self.get_user_paths(),
+            self.get_system_paths(),
+            self.prioritize_button.isChecked()
+        )
         super().accept()
 
     def reject(self):
-        self._update_system_path()
+        # Send back original paths (system_paths may be updated)
+        self.sig_path_changed.emit(
+            self.user_paths, self.system_paths, self.prioritize
+        )
         super().reject()
 
     def closeEvent(self, event):
-        self._update_system_path()
+        # Send back original paths (system_paths may be updated)
+        self.sig_path_changed.emit(
+            self.user_paths, self.system_paths, self.prioritize
+        )
         super().closeEvent(event)
 
 
@@ -692,9 +681,17 @@ def test():
         system_paths={p: True for p in sys.path[-2:]}
     )
 
-    def callback(path_dict, prioritize):
-        sys.stdout.write(f"prioritize: {prioritize}\n")
-        sys.stdout.write(str(path_dict))
+    def callback(user_paths, system_paths, prioritize):
+        sys.stdout.write(f"Prioritize: {prioritize}")
+        sys.stdout.write("\n---- User paths ----\n")
+        sys.stdout.write(
+            '\n'.join([f'{k}: {v}' for k, v in user_paths.items()])
+        )
+        sys.stdout.write("\n---- System paths ----\n")
+        sys.stdout.write(
+            '\n'.join([f'{k}: {v}' for k, v in system_paths.items()])
+        )
+        sys.stdout.write('\n')
 
     dlg.sig_path_changed.connect(callback)
     sys.exit(dlg.exec_())
