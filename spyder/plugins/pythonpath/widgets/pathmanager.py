@@ -69,7 +69,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.setStyleSheet(self._stylesheet)
 
         self.last_path = getcwd_or_home()
-        self.user_path = []
 
         # Widgets
         self.add_button = None
@@ -508,7 +507,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         directory = osp.abspath(directory)
         self.last_path = directory
 
-        if directory in self.user_paths:
+        if directory in self.get_user_paths():
             item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
             item.setCheckState(Qt.Checked)
             answer = QMessageBox.question(
@@ -516,7 +515,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 _("Add path"),
                 _("This directory is already included in the list."
                   "<br> "
-                  "Do you want to move it to the top of it?"),
+                  "Do you want to move it to the top of the list?"),
                 QMessageBox.Yes | QMessageBox.No)
 
             if answer == QMessageBox.Yes:
@@ -544,8 +543,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 item = self._create_item(directory, True)
                 self.listwidget.insertItem(self.editable_top_row, item)
                 self.listwidget.setCurrentRow(self.editable_top_row)
-
-                self.user_path.insert(0, directory)
             else:
                 answer = QMessageBox.warning(
                     self,
@@ -582,15 +579,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
                     QMessageBox.Yes | QMessageBox.No)
 
             if force or answer == QMessageBox.Yes:
-                # Remove current item from user_path
-                item = self.listwidget.currentItem()
-                self.user_path.remove(item.text())
-
                 # Remove selected item from view
                 self.listwidget.takeItem(self.listwidget.currentRow())
 
                 # Remove user header if there are no more user paths
-                if len(self.user_path) == 0:
+                if len(self.get_user_paths()) == 0:
                     self.listwidget.takeItem(
                         self.listwidget.row(self.user_header)
                     )
@@ -616,7 +609,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.listwidget.insertItem(new_index, item)
         self.listwidget.setCurrentRow(new_index)
 
-        self.user_path = self.get_user_path()
         self.refresh()
 
     def current_row(self):
