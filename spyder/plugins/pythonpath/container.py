@@ -9,6 +9,7 @@
 
 from collections import OrderedDict
 import logging
+import os
 import os.path as osp
 
 from qtpy.QtCore import Signal
@@ -256,17 +257,57 @@ class PythonpathContainer(PluginMainContainer):
         """
         path_file = get_conf_path('path')
         not_active_path_file = get_conf_path('not_active_path')
+        config_path = self.get_conf('path', None)
+        config_not_active_path = self.get_conf('not_active_path', None)
+        paths_in_conf_files = self.get_conf('paths_in_conf_files', None)
+        system_path = self.get_conf('system_path', None)
+
+        if (
+            not osp.isfile(path_file)
+            and not osp.isfile(not_active_path_file)
+            and config_path is not None
+            and config_not_active_path is not None
+            and paths_in_conf_files is not None
+            and system_path is not None
+        ):
+            # The configuration does not need to be updated
+            return None
 
         path = []
+        not_active_path = []
+
+        # Get path from file
         if osp.isfile(path_file):
             with open(path_file, 'r', encoding='utf-8') as f:
                 path = f.read().splitlines()
+            os.remove(path_file)
 
-        not_active_path = []
+        # Get inactive paths from file
         if osp.isfile(not_active_path_file):
             with open(not_active_path_file, 'r', encoding='utf-8') as f:
                 not_active_path = f.read().splitlines()
+            os.remove(not_active_path_file)
 
-        self.set_conf('path', tuple(path))
-        self.set_conf('not_active_path', tuple(not_active_path))
-        self.set_conf('paths_in_conf_files', False)
+        # Get path from config; supercedes paths from file
+        if config_path is not None:
+            path = config_path
+            self.remove_conf('path')
+
+        # Get inactive path from config; supercedes paths from file
+        if config_not_active_path is not None:
+            not_active_path = config_not_active_path
+            self.remove_conf('not_active_path')
+
+        if paths_in_conf_files is not None:
+            self.remove_conf('paths_in_conf_files')
+
+        # Get system path
+        if system_path is not None:
+            self.remove_conf('system_path')
+
+        # path config has all user and system paths; only want user paths
+        user_paths = {
+            p: p not in not_active_path for p in path if p not in system_path
+        }
+
+        return user_paths
