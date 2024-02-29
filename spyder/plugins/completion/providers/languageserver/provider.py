@@ -531,13 +531,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         for language in self.clients:
             self.stop_completion_services_for_language(language)
 
-    @Slot(object, object, bool)
-    def python_path_update(self, old_path, new_path, prioritize):
+    @Slot(object, bool)
+    def python_path_update(self, new_path, prioritize):
         """
         Update server configuration after a change in Spyder's Python
         path.
 
-        `old_path` corresponds to the previous state of the Python path.
         `new_path` corresponds to the new state of the Python path.
         `prioritize` determines whether to prioritize Python path in sys.path.
         """
@@ -584,8 +583,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def on_code_snippets_enabled_disabled(self, value):
         self.update_lsp_configuration()
 
-    @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
-    def on_pythonpath_option_update(self, value):
+    @on_conf_change(
+        section='pythonpath_manager',
+        option=['spyder_pythonpath', 'prioritize']
+    )
+    def on_pythonpath_option_update(self, option, value):
         # This is only useful to run some self-contained tests
         if running_under_pytest():
             self.update_lsp_configuration(python_only=True)

@@ -124,15 +124,13 @@ class CompletionPlugin(SpyderPluginV2):
         Name of the completion client.
     """
 
-    sig_pythonpath_changed = Signal(object, object, bool)
+    sig_pythonpath_changed = Signal(object, bool)
     """
     This signal is used to receive changes on the PYTHONPATH.
 
     Parameters
     ----------
-    prev_path: dict
-        Previous PythonPath settings.
-    new_path: dict
+    new_path: list of str
         New PythonPath settings.
     prioritize
         Whether to prioritize PYTHONPATH in sys.path

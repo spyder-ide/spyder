@@ -1059,16 +1059,14 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         pass
 
-    @Slot(object, object, bool)
-    def python_path_update(self, previous_path, new_path, prioritize):
+    @Slot(object, bool)
+    def python_path_update(self, new_path, prioritize):
         """
         Handle Python path updates on Spyder.
 
         Parameters
         ----------
-        previous_path: Dict
-            Dictionary containing the previous Python path values.
-        new_path: Dict
+        new_path: list of str
             Dictionary containing the current Python path values.
         prioritize
             Whether to prioritize Python path values in sys.path
