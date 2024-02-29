@@ -67,29 +67,19 @@ class PythonpathContainer(PluginMainContainer):
     # ---- Public API
     # -------------------------------------------------------------------------
     def update_active_project_path(self, path):
-        """Update active project path."""
+        """Update active project path.
+
+        _project_paths is initialized and set here, and nowhere else.
+        """
+        self._project_paths = OrderedDict()
         if path is None:
-            logger.debug("Update Pythonpath because project was closed")
-            path = ()
+            logger.debug("Update Spyder PYTHONPATH because project was closed")
         else:
-            logger.debug(f"Add to Pythonpath project's path -> {path}")
-            path = (path,)
+            logger.debug(f"Add project paths to Spyder PYTHONPATH: {path}")
+            path = [path] if isinstance(path, str) else path
+            self._project_paths.update({p: True for p in path})
 
-        # Old path
-        old_path = self.get_spyder_pythonpath()
-
-        # Change project path
-        self.project_path = path
-        self.path_manager_dialog.project_path = path
-
-        # New path
-        new_path = self.get_spyder_pythonpath()
-
-        prioritize = self.get_conf('prioritize', default=False)
-
-        # Update path
-        self.set_conf('spyder_pythonpath', new_path)
-        self.sig_pythonpath_changed.emit(old_path, new_path, prioritize)
+        self._save_paths()
 
     def show_path_manager(self):
         """Show path manager dialog."""
