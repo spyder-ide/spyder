@@ -38,24 +38,12 @@ class PythonpathContainer(PluginMainContainer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.path = ()
-        self.not_active_path = ()
-        self.project_path = ()
-        self.prioritize = None
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-
-        # Migrate from old conf files to config options
-        if self.get_conf('paths_in_conf_files', default=True):
-            self._migrate_to_config_options()
-
-        # Load Python path
-        self._load_pythonpath()
-
-        # Save current Pythonpath at startup so plugins can use it afterwards
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+        # Load Python paths
+        self._load_paths()
 
         # Path manager dialog
         self.path_manager_dialog = PathManager(parent=self, sync=True)
@@ -135,51 +123,42 @@ class PythonpathContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _load_pythonpath(self):
-        """Load Python paths."""
+    def _load_paths(self):
+        """Load Python paths.
+
+        The attributes _project_paths, _user_paths, _system_paths, _prioritize,
+        and _spyder_pythonpath, are initialize here and should be updated only
+        in _save_paths. They are only used to detect changes.
+        """
+        self._project_paths = OrderedDict()
+        self._user_paths = OrderedDict()
+        self._system_paths = OrderedDict()
+        self._prioritize = False
+        self._spyder_pythonpath = []
+
+        # Get user paths. Check migration from old conf files
+        user_paths = self._migrate_to_config_options()
+        if user_paths is None:
+            user_paths = self.get_conf('user_paths', {})
+        user_paths = OrderedDict(user_paths)
+
         # Get current system PYTHONPATH
-        system_path = get_system_pythonpath()
+        system_paths = self._get_system_paths()
 
-        # Get previous system PYTHONPATH
-        previous_system_path = self.get_conf('system_path', default=())
+        # Get prioritize
+        prioritize = self.get_conf('prioritize', False)
 
-        # Load all paths
-        paths = []
-        previous_paths = self.get_conf('path')
-        for path in previous_paths:
-            # Path was removed since last time or it's not a directory
-            # anymore
-            if not osp.isdir(path):
-                continue
+        self._save_paths(user_paths, system_paths, prioritize)
 
-            # Path was removed from system path
-            if path in previous_system_path and path not in system_path:
-                continue
+    def _get_system_paths(self):
+        system_paths = get_system_pythonpath()
+        conf_system_paths = self.get_conf('system_paths', {})
 
-            paths.append(path)
-
-        self.path = tuple(paths)
-
-        # Update path option. This avoids loading paths that were removed in
-        # this session in later ones.
-        self.set_conf('path', self.path)
-
-        # Update system path so that path_manager_dialog can work with its
-        # latest contents.
-        self.set_conf('system_path', system_path)
-
-        # Add system path
-        if system_path:
-            self.path = self.path + system_path
-
-        # Load not active paths
-        not_active_paths = self.get_conf('not_active_path')
-        self.not_active_path = tuple(
-            name for name in not_active_paths if osp.isdir(name)
+        system_paths = OrderedDict(
+            {p: conf_system_paths.get(p, True) for p in system_paths}
         )
 
-        # Load prioritize
-        self.prioritize = self.get_conf('prioritize', default=False)
+        return system_paths
 
     def _save_paths(self, new_path_dict, new_prioritize):
         """
