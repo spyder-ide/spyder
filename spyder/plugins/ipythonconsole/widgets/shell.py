@@ -420,7 +420,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         prioritize = self.get_conf(
             "prioritize", section="pythonpath_manager"
         )
-        self.update_syspath(paths, paths, prioritize)
+        self.update_syspath(paths, prioritize)
 
         run_lines = self.get_conf('startup/run_lines')
         if run_lines:
@@ -721,14 +721,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             "color scheme", "dark" if not dark_color else "light"
         )
 
-    def update_syspath(self, path, new_path, prioritize):
+    def update_syspath(self, new_paths, prioritize):
         """Update sys.path contents in the kernel."""
         # Prevent error when the kernel is not available and users open/close
         # projects or use the Python path manager.
         # Fixes spyder-ide/spyder#21563
         if self.kernel_handler is not None:
             self.call_kernel(interrupt=True, blocking=False).update_syspath(
-                path, new_path, prioritize
+                new_paths, prioritize
             )
 
     def request_syspath(self):
