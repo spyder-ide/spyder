@@ -82,17 +82,23 @@ class PythonpathContainer(PluginMainContainer):
         self._save_paths()
 
     def show_path_manager(self):
-        """Show path manager dialog."""
-        # Do not update paths or run setup if widget is already open,
-        # see spyder-ide/spyder#20808
-        if not self.path_manager_dialog.isVisible():
-            # Set main attributes saved here
-            self.path_manager_dialog.update_paths(
-                self.path, self.not_active_path, get_system_pythonpath()
-            )
+        """Show path manager dialog.
 
-            # Setup its contents again
-            self.path_manager_dialog.setup()
+        Send the most up-to-date system paths to the dialog in case they have
+        changed. But do not _save_paths until after the dialog exits, in order
+        to consolodate possible changes and avoid emitting multiple signals.
+        This requires that the dialog return its original paths on cancel or
+        close.
+        """
+        # Do not update paths or run setup if widget is already open,
+        # see spyder-ide/spyder#20808.
+        if not self.path_manager_dialog.isVisible():
+            self.path_manager_dialog.update_paths(
+                project_paths=self._project_paths,
+                user_paths=self._user_paths,
+                system_paths=self._get_system_paths(),
+                prioritize=self._prioritize
+            )
 
         # Show and give it focus
         self.path_manager_dialog.show()
