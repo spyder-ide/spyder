@@ -38,7 +38,7 @@ from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.misc import get_python_executable
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
@@ -57,8 +57,8 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 # TODO: There should be some palette from the appearance plugin so this
 # is easier to use
-MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
-MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = SpyderPalette.COLOR_TEXT_1
+MAIN_PREVRATE_COLOR = SpyderPalette.COLOR_TEXT_1
 
 
 class PylintWidgetActions:

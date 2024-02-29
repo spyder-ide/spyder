@@ -49,7 +49,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons,
@@ -648,7 +648,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         css.QToolBar.setValues(
             margin='0px',
             padding='4px',
-            borderBottom=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}'
+            borderBottom=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}'
         )
         self.top_toolbar.setStyleSheet(css.toString())
 

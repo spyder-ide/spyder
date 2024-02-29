@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
 # Local imports
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import HelperToolButton
 
 # Constants
@@ -231,8 +231,8 @@ class ArrayBuilderDialog(QDialog):
               background-color: qlineargradient(x1: 1, y1: 1, x2: 1, y2: 1,
                   stop: 0 {stop_0}, stop: 1 {stop_1});
             }}
-            """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
-                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
+            """).format(stop_0=SpyderPalette.COLOR_BACKGROUND_4,
+                        stop_1=SpyderPalette.COLOR_BACKGROUND_2))
 
         self._button_help.setStyleSheet(style)
 

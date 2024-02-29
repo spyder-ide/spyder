@@ -26,7 +26,7 @@ from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.plugins.debugger.widgets.breakpoint_table_view import (
     BreakpointTableView, BreakpointTableViewActions)
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 # =============================================================================
@@ -187,7 +187,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         # This is necessary so that the border radius is maintained when
         # showing/hiding the breakpoints table
         self.splitter.setStyleSheet(
-            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+            f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
 
         # Layout
@@ -765,7 +765,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         if is_table_shown:
             border_radius = '0px'
         else:
-            border_radius = QStylePalette.SIZE_BORDER_RADIUS
+            border_radius = SpyderPalette.SIZE_BORDER_RADIUS
 
         css = qstylizer.style.StyleSheet()
         css.setValues(

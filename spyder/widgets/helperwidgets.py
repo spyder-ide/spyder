@@ -33,7 +33,7 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -166,7 +166,7 @@ class HTMLDelegate(QStyledItemDelegate):
         # row (see HoverRowsTableView for an example).
         if index.row() == self._hovered_row:
             painter.fillRect(
-                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+                options.rect, QColor(SpyderPalette.COLOR_BACKGROUND_3)
             )
 
         # Note: We need to pass the options widget as an argument of
@@ -339,7 +339,7 @@ class IconLineEdit(QLineEdit):
             fm = QFontMetrics(self.font())
             text = fm.elidedText(self.text(), self.ellipsis_place,
                                  text_rect.width())
-            painter.setPen(QColor(QStylePalette.COLOR_TEXT_1))
+            painter.setPen(QColor(SpyderPalette.COLOR_TEXT_1))
             painter.drawText(text_rect, int(Qt.AlignLeft | Qt.AlignVCenter),
                              text)
             return
@@ -698,16 +698,16 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def _apply_stylesheet(self, focus):
         if focus:
-            border_color = QStylePalette.COLOR_ACCENT_3
+            border_color = SpyderPalette.COLOR_ACCENT_3
         else:
-            border_color = QStylePalette.COLOR_BACKGROUND_4
+            border_color = SpyderPalette.COLOR_BACKGROUND_4
 
         qss = qstylizer.style.StyleSheet()
         qss.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
         self.setStyleSheet(qss.toString())
@@ -756,7 +756,7 @@ class HoverRowsTableView(QTableView):
         # over the widget.
         css = qstylizer.style.StyleSheet()
         css["QTableView::item"].setValues(
-            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+            backgroundColor=f"{SpyderPalette.COLOR_BACKGROUND_1}"
         )
         self._stylesheet = css.toString()
 

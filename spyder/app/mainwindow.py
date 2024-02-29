@@ -84,7 +84,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import select_port, getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, qapplication, start_file
 from spyder.utils.stylesheet import APP_STYLESHEET
 
@@ -301,7 +301,7 @@ class MainWindow(
                       "restart your computer: <br><br><span "
                       "style=\'color: {color}\'><b>netsh winsock reset "
                       "</b></span><br>").format(
-                          color=QStylePalette.COLOR_BACKGROUND_4)
+                          color=SpyderPalette.COLOR_BACKGROUND_4)
                 )
         else:
             self.open_files_server = socket.socket(socket.AF_INET,

@@ -26,7 +26,7 @@ from spyder.plugins.findinfiles.widgets.combobox import (
     MAX_PATH_HISTORY, SearchInComboBox)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette, SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.helperwidgets import PaneEmptyWidget
@@ -34,7 +34,7 @@ from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 # ---- Constants
 # -----------------------------------------------------------------------------
-MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = SpyderPalette.COLOR_TEXT_1
 MAX_COMBOBOX_WIDTH = AppStyle.FindMinWidth + 80  # In pixels
 MIN_COMBOBOX_WIDTH = AppStyle.FindMinWidth - 80  # In pixels
 
@@ -168,7 +168,7 @@ class FindInFilesWidget(PluginMainWidget):
             _("Search the content of text files in any directory using the "
               "search box.")
         )
-        
+
         self.search_text_edit = PatternComboBox(
             self,
             items=search_text,

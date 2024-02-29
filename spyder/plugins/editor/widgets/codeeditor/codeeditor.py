@@ -2126,6 +2126,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
+                title_color=SpyderPalette.COLOR_ACCENT_4,
                 at_line=line_number,
                 with_html_format=True
             )
@@ -2271,6 +2272,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
+            title_color=SpyderPalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
 
@@ -3050,7 +3052,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.insertText(firstline)
         cursor.endEditBlock()
-        
+
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team

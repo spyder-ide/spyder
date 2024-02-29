@@ -15,6 +15,9 @@ from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import MAC, WIN
 from spyder.widgets.sidebardialog import SidebarDialog
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import (
+    AppStyle, MAC, PREFERENCES_TABBAR_STYLESHEET, WIN)
 
 
 class ConfigDialog(SidebarDialog):

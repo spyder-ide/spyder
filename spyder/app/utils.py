@@ -32,7 +32,7 @@ from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import running_installer_test
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, qapplication
 
 # For spyder-ide/spyder#7447.
@@ -264,7 +264,7 @@ def set_links_color(app):
 
     This was taken from QDarkstyle, which is MIT licensed.
     """
-    color = QStylePalette.COLOR_ACCENT_4
+    color = SpyderPalette.COLOR_ACCENT_4
     qcolor = QColor(color)
 
     app_palette = app.palette()

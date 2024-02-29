@@ -30,7 +30,7 @@ from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
@@ -169,16 +169,16 @@ class CloseTabButton(QToolButton):
         self.setIconSize(QSize(size, size))
 
         # Colors for different states
-        self._selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
-        self._not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_4
+        self._selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
+        self._not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_4
 
-        self._hover_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
-        self._hover_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+        self._hover_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
+        self._hover_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
 
         self._clicked_selected_tab_color = (
             Gray.B70 if is_dark_interface() else Gray.B80
         )
-        self._clicked_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+        self._clicked_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
 
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color

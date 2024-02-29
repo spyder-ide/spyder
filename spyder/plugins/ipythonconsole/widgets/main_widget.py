@@ -51,7 +51,7 @@ from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # ---- Constants
 # =============================================================================
-MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
 # --- Widgets
@@ -295,12 +295,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         pager_label_css = qstylizer.style.StyleSheet()
         pager_label_css.setValues(**{
-            'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
-            'color': f'{QStylePalette.COLOR_TEXT_1}',
+            'background-color': f'{SpyderPalette.COLOR_ACCENT_2}',
+            'color': f'{SpyderPalette.COLOR_TEXT_1}',
             'margin': '2px 1px 1px 1px',
             'padding': '5px',
             'qproperty-alignment': 'AlignCenter',
-            'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
+            'border-radius': f'{SpyderPalette.SIZE_BORDER_RADIUS}'
         })
         self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()

@@ -26,7 +26,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
 from spyder.utils.qthelpers import SpyderAction
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -122,7 +122,7 @@ class MainMenu(SpyderPluginV2):
 
         # Set the same color as the one used for the app toolbar
         css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
         )
 
         # Give more padding and margin to items
@@ -140,11 +140,11 @@ class MainMenu(SpyderPluginV2):
         for state in ['selected', 'pressed']:
             # Don't use a different color for the QMenuBar pressed state
             # because a lighter color has too little contrast with the text.
-            bg_color = QStylePalette.COLOR_BACKGROUND_5
+            bg_color = SpyderPalette.COLOR_BACKGROUND_5
 
             css[f"QMenuBar::item:{state}"].setValues(
                 backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
             )
 
         return css.toString()

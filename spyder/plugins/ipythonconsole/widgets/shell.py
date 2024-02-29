@@ -38,7 +38,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette, SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
@@ -1039,7 +1039,7 @@ the sympy module (e.g. plot)
         # This makes the header text have good contrast against its background
         # for the light theme.
         if is_dark_interface():
-            font_color = QStylePalette.COLOR_TEXT_1
+            font_color = SpyderPalette.COLOR_TEXT_1
         else:
             font_color = 'white'
 
