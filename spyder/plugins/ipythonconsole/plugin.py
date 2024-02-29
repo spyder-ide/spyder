@@ -877,7 +877,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().save_working_directory(dirname)
 
-    def update_path(self, old_path, new_path, prioritize):
+    def update_path(self, new_path, prioritize):
         """
         Update path on consoles.
 
@@ -886,8 +886,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         Parameters
         ----------
-        old_path : list of str
-            Corresponds to the previous state of the PYTHONPATH.
         new_path : list of str
             Corresponds to the new state of the PYTHONPATH.
         prioritize : bool
@@ -897,7 +895,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
-        self.get_widget().update_path(old_path, new_path, prioritize)
+        self.get_widget().update_path(new_path, prioritize)
 
     def restart(self):
         """
