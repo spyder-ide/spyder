@@ -362,18 +362,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
         if self.user_header is None:
             return paths
 
-        is_user_path = False
-        for row in range(self.listwidget.count()):
-            item = self.listwidget.item(row)
-            if item in (self.project_header, self.system_header):
-                is_user_path = False
-                continue
-            if item is self.user_header:
-                is_user_path = True
-                continue
-            if not is_user_path:
-                continue
+        start = self.listwidget.row(self.user_header) + 1
+        stop = self.listwidget.count()
+        if self.system_header is not None:
+            stop = self.listwidget.row(self.system_header)
 
+        for row in range(start, stop):
+            item = self.listwidget.item(row)
             paths.update({item.text(): item.checkState() == Qt.Checked})
 
         return paths
@@ -385,18 +380,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
         if self.system_header is None:
             return paths
 
-        is_sys_path = False
-        for row in range(self.listwidget.count()):
+        start = self.listwidget.row(self.system_header) + 1
+        for row in range(start, self.listwidget.count()):
             item = self.listwidget.item(row)
-            if item in (self.project_header, self.user_header):
-                is_sys_path = False
-                continue
-            if item is self.system_header:
-                is_sys_path = True
-                continue
-            if not is_sys_path:
-                continue
-
             paths.update({item.text(): item.checkState() == Qt.Checked})
 
         return paths
