@@ -111,12 +111,12 @@ class PythonpathContainer(PluginMainContainer):
         self.path_manager_dialog.setFocus()
 
     def get_spyder_pythonpath(self):
-        """
-        Return active Spyder PYTHONPATH plus project path as a list of paths.
-        """
-        path_dict = self._get_spyder_pythonpath_dict()
-        path = [k for k, v in path_dict.items() if v]
-        return path
+        """Return active Spyder PYTHONPATH as a list of paths."""
+        # Place project path first so that modules developed in a
+        # project are not shadowed by those present in other paths.
+        all_paths = self._project_paths | self._user_paths | self._system_paths
+
+        return [p for p, v in all_paths.items() if v]
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -202,28 +202,6 @@ class PythonpathContainer(PluginMainContainer):
             self.sig_pythonpath_changed.emit(
                 self._spyder_pythonpath, self._prioritize
             )
-
-    def _get_spyder_pythonpath_dict(self):
-        """
-        Return Spyder PYTHONPATH plus project path as dictionary of paths.
-
-        The returned ordered dictionary has the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
-
-        Example:
-            OrderedDict([('/some/path, True), ('/some/other/path, False)])
-        """
-        path_dict = OrderedDict()
-
-        # Make project path to be the first one so that modules developed in a
-        # project are not shadowed by those present in other paths.
-        for path in self.project_path:
-            path_dict[path] = True
-
-        for path in self.path:
-            path_dict[path] = path not in self.not_active_path
-
-        return path_dict
 
     def _migrate_to_config_options(self):
         """
