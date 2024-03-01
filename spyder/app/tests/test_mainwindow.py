@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+from collections import OrderedDict
 import gc
 import os
 import os.path as osp
@@ -5337,7 +5338,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "            print()\n"
         "        def c():\n"
         "            print()\n"
-        )
+    )
 
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -5383,7 +5384,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "\n"
         "            def c():\n"
         "                print()\n"
-        )
+    )
     assert expected in code_editor.toPlainText()
 
 
@@ -5698,7 +5699,7 @@ def test_out_runfile_runcell(main_window, qtbot):
         "a = 1 + 3; a;": (4, False),
         "a = 1 + 5\na": (6, True),
         "a = 1 + 7\na;": (8, False)
-        }
+    }
     for code in codes:
         num, shown = codes[code]
         # create new file
@@ -6381,9 +6382,10 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     # users
     user_dir = tmp_path / 'user_dir'
     user_dir.mkdir()
+    user_paths = OrderedDict({str(user_dir): True})
     if os.name != "nt":
-        assert ppm.get_container().path == ()
-    ppm.get_container().path = (str(user_dir),) + ppm.get_container().path
+        assert ppm.get_container()._spyder_pythonpath == []
+    ppm.get_container()._save_paths(user_paths=user_paths)
 
     # Open Pythonpath dialog to detect sys_dir
     ppm.show_path_manager()
