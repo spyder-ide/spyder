@@ -83,14 +83,17 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(quote=False):
+def get_conda_activation_script(pyexec=None, quote=False):
     """
     Return full path to conda activation script.
+
+    `pyexec` is optional python executable, the relative location from which to
+    attempt to find the activation script.
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
     # Use micromamba bundled with Spyder installers or find conda exe
-    exe = get_spyder_umamba_path() or find_conda()
+    exe = get_spyder_umamba_path() or find_conda(pyexec)
 
     if osp.basename(exe).startswith('micromamba'):
         # For Micromamba, use the executable
@@ -130,14 +133,24 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
-def find_conda():
-    """Find conda executable."""
+def find_conda(pyexec=None):
+    """
+    Find conda executable.
+
+    `pyexec` is a python executable, the relative location from which to
+    attempt to locate a conda executable.
+    """
     # First try the environment variables
     conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
     if conda is None:
         # Try searching for the executable
         conda_exec = 'conda.bat' if WINDOWS else 'conda'
-        conda = find_program(conda_exec)
+        extra_paths = [
+            osp.join(get_conda_root_prefix(_pyexec), 'condabin')
+            for _pyexec in [sys.executable, pyexec]
+        ]
+        conda = find_program(conda_exec, extra_paths)
+
     return conda
 
 
