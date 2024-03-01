@@ -8,6 +8,7 @@
 Tests for pathmanager.py
 """
 # Standard library imports
+from collections import OrderedDict
 import sys
 import os
 
@@ -25,20 +26,24 @@ from spyder.plugins.pythonpath.widgets import pathmanager as pathmanager_mod
 @pytest.fixture
 def pathmanager(qtbot, request):
     """Set up PathManager."""
-    path, project_path, not_active_path = request.param
-    widget = pathmanager_mod.PathManager(
-        None,
-        path=tuple(path),
-        project_path=tuple(project_path),
-        not_active_path=tuple(not_active_path))
+    user_paths, project_paths, system_paths = request.param
+
+    widget = pathmanager_mod.PathManager(None)
+    widget.update_paths(
+        user_paths=OrderedDict({p: True for p in user_paths}),
+        project_paths=OrderedDict({p: True for p in project_paths}),
+        system_paths=OrderedDict({p: True for p in system_paths})
+    )
     widget.show()
     qtbot.addWidget(widget)
     return widget
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(sys.path[:-10], sys.path[-10:], ())],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'pathmanager',
+    [(sys.path[:-10], sys.path[-10:], ())],
+    indirect=True
+)
 def test_pathmanager(pathmanager, qtbot):
     """Run PathManager test"""
     pathmanager.show()
@@ -207,7 +212,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     pathmanager.add_path(dir2)
     pathmanager.add_path(dir3)
     pathmanager.set_row_check_state(2, Qt.Unchecked)
-    assert not all(pathmanager.get_path_dict().values())
+    assert not all(pathmanager.get_user_paths().values())
 
     def interact_message_box():
         messagebox = pathmanager.findChild(QMessageBox)
@@ -222,12 +227,12 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     timer.timeout.connect(interact_message_box)
     timer.start(500)
     pathmanager.add_path(dir2)
-    print(pathmanager.get_path_dict())
+    print(pathmanager.get_user_paths())
 
     # Back to main thread
     assert pathmanager.count() == 4
-    assert list(pathmanager.get_path_dict().keys())[0] == dir2
-    assert all(pathmanager.get_path_dict().values())
+    assert list(pathmanager.get_user_paths().keys())[0] == dir2
+    assert all(pathmanager.get_user_paths().values())
 
 
 @pytest.mark.parametrize('pathmanager',
