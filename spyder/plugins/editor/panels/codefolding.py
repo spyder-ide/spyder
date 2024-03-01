@@ -35,7 +35,7 @@ from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import EOL_SYMBOLS
 
 
 class FoldingPanel(Panel):
@@ -485,7 +485,6 @@ class FoldingPanel(Panel):
         deco.block = block
         deco.select_line()
         deco.set_background(self._get_scope_highlight_color())
-        deco.set_foreground(QColor(SpyderPalette.COLOR_TEXT_4))
         deco.set_full_width(flag=True, clear=True)
         self._block_decos[start_line] = deco
         self.editor.decorations.add(deco, key='folded')
