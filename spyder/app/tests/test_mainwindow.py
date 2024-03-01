@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+from collections import OrderedDict
 import gc
 import os
 import os.path as osp
@@ -6562,9 +6563,10 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     # users
     user_dir = tmp_path / 'user_dir'
     user_dir.mkdir()
+    user_paths = OrderedDict({str(user_dir): True})
     if os.name != "nt":
-        assert ppm.get_container().path == ()
-    ppm.get_container().path = (str(user_dir),) + ppm.get_container().path
+        assert ppm.get_container()._spyder_pythonpath == []
+    ppm.get_container()._save_paths(user_paths=user_paths)
 
     # Open Pythonpath dialog to detect sys_dir
     ppm.show_path_manager()
