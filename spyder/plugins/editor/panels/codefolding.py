@@ -35,7 +35,7 @@ from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import EOL_SYMBOLS
+from spyder.widgets.mixins import EOL_SYMBOLS
 
 
 class FoldingPanel(Panel):
