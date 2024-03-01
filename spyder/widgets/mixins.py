@@ -62,8 +62,8 @@ EOL_SYMBOLS = [
 ]
 
 # Tips style
-TIP_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
-TIP_PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
+TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
+TIP_PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_TEXT_1
 TIP_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
 TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
 

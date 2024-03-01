@@ -31,12 +31,12 @@ from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
 
 # Local imports
 from spyder.config.gui import is_dark_interface
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 BACKGROUND_COLOR = (
-    QStylePalette.COLOR_BACKGROUND_4 if is_dark_interface() else
-    QStylePalette.COLOR_BACKGROUND_2
+    SpyderPalette.COLOR_BACKGROUND_4 if is_dark_interface() else
+    SpyderPalette.COLOR_BACKGROUND_2
 )
 
 
@@ -137,7 +137,7 @@ class ToolTipWidget(QLabel):
 
         css["ToolTipWidget"].setValues(
             backgroundColor=BACKGROUND_COLOR,
-            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+            border=f"1px solid {SpyderPalette.COLOR_TEXT_4}"
         )
 
         return css.toString()
@@ -682,7 +682,7 @@ class CallTipWidget(QLabel):
 
         css["CallTipWidget"].setValues(
             backgroundColor=BACKGROUND_COLOR,
-            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+            border=f"1px solid {SpyderPalette.COLOR_TEXT_4}"
         )
 
         return css.toString()
