@@ -434,8 +434,10 @@ class ApplicationContainer(PluginMainContainer):
 
         self.set_conf(option, box.is_checked())
 
-        # Enable check_updates_action after the thread has finished
+        # Enable check_updates_action and restore its text after the thread has
+        # finished
         self.check_updates_action.setDisabled(False)
+        self.check_updates_action.setText(_("Check for updates..."))
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
@@ -443,8 +445,11 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def check_updates(self, startup=False):
         """Check for spyder updates on github releases using a QThread."""
-        # Disable check_updates_action while the thread is working
+        # Disable check_updates_action and change its text while the thread is
+        # working
         self.check_updates_action.setDisabled(True)
+        self.check_updates_action.setText(_("Checking for updates..."))
+
         if self.application_update_status.isVisible():
             self.application_update_status.set_status_checking()
 
