@@ -26,6 +26,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path
+from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
     AppStyle,
@@ -51,7 +52,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     redirect_stdio = Signal(bool)
     sig_path_changed = Signal(object, object, bool)
-    sig_export_pythonpath = Signal(object, object, bool)
 
     # This is required for our tests
     CONF_SECTION = 'pythonpath_manager'
@@ -333,6 +333,15 @@ class PathManager(QDialog, SpyderWidgetMixin):
         """
         Export to PYTHONPATH environment variable
         Only apply to: current user.
+
+        If the user chooses to clear the contents of the system PYTHONPATH,
+        then the active user paths are prepended to active system paths and
+        the resulting list is saved to the system PYTHONPATH. Inactive system
+        paths are discarded. If the user chooses not to clear the contents of
+        the system PYTHONPATH, then the new system PYTHONPATH comprises the
+        inactive system paths + active user paths + active system paths, and
+        inactive system paths remain inactive. With either choice, inactive
+        user paths are retained in the user paths and remain inactive.
         """
         answer = QMessageBox.question(
             self,
@@ -350,9 +359,24 @@ class PathManager(QDialog, SpyderWidgetMixin):
         if answer == QMessageBox.Cancel:
             return
 
-        self.sig_export_pythonpath(
-            self.get_user_paths(), self.get_system_paths(),
-            answer == QMessageBox.Yes
+        user_paths = self.get_user_paths()
+        active_user_paths = OrderedDict({p: v for p, v in user_paths.items() if v})
+        new_user_paths = OrderedDict({p: v for p, v in user_paths.items() if not v})
+
+        system_paths = self.get_system_paths()
+        active_system_paths = OrderedDict({p: v for p, v in system_paths.items() if v})
+        inactive_system_paths = OrderedDict({p: v for p, v in system_paths.items() if not v})
+
+        new_system_paths = active_user_paths | active_system_paths
+        if answer == QMessageBox.No:
+            new_system_paths = inactive_system_paths | new_system_paths
+
+        env = get_user_env()
+        env['PYTHONPATH'] = list(new_system_paths.keys())
+        set_user_env(env, parent=self)
+
+        self.update_paths(
+            user_paths=new_user_paths, system_paths=new_system_paths
         )
 
     def get_user_paths(self):
@@ -389,10 +413,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     def update_paths(
         self,
-        project_paths=OrderedDict(),
-        user_paths=OrderedDict(),
-        system_paths=OrderedDict(),
-        prioritize=False
+        project_paths=None,
+        user_paths=None,
+        system_paths=None,
+        prioritize=None
     ):
         """Update path attributes.
 
@@ -401,10 +425,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
         used to compare with what is shown in the listwidget in order to detect
         changes.
         """
-        self.project_paths = project_paths
-        self.user_paths = user_paths
-        self.system_paths = system_paths
-        self.prioritize = prioritize
+        if project_paths is not None:
+            self.project_paths = project_paths
+        if user_paths is not None:
+            self.user_paths = user_paths
+        if system_paths is not None:
+            self.system_paths = system_paths
+        if prioritize is not None:
+            self.prioritize = prioritize
 
         self.setup()
 
@@ -634,7 +662,8 @@ def test():
     dlg.update_paths(
         user_paths={p: True for p in sys.path[1:-2]},
         project_paths={p: True for p in sys.path[:1]},
-        system_paths={p: True for p in sys.path[-2:]}
+        system_paths={p: True for p in sys.path[-2:]},
+        prioritize=False
     )
 
     def callback(user_paths, system_paths, prioritize):
