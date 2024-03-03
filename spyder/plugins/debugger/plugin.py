@@ -228,7 +228,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)
         run.deregister_executor_configuration(
-            self, self.executor_configuration)
+            self, self.executor_configuration
+        )
         run.destroy_run_in_executor_button(RunContext.File, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
@@ -249,8 +250,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget = self.get_widget()
 
         for run_config in [
-                self.python_editor_run_configuration,
-                self.ipython_editor_run_configuration
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration
         ]:
             editor.add_supported_run_configuration(run_config)
 
@@ -283,8 +284,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget = self.get_widget()
 
         for run_config in [
-                self.python_editor_run_configuration,
-                self.ipython_editor_run_configuration
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration
         ]:
             editor.remove_supported_run_configuration(run_config)
 

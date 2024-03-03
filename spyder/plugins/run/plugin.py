@@ -192,7 +192,8 @@ class Run(SpyderPluginV2):
             if count > 0:
                 shortcut_context = self.shortcut_actions[key]
                 shortcuts.unregister_shortcut(
-                    action, shortcut_context, action_id)
+                    action, shortcut_context, action_id
+                )
         shortcuts.apply_shortcuts()
 
     # ---- Public API

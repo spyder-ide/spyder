@@ -5,16 +5,19 @@
 # (see spyder/__init__.py for details)
 
 """Editor Plugin"""
+
 import logging
 import sys
 
 from qtpy.QtCore import Signal
 
+from spyder.api.translations import _
 from spyder.api.config.fonts import SpyderFontType
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
-from spyder.config.base import _
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
@@ -33,7 +36,7 @@ from spyder.plugins.mainmenu.api import (
 )
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import RunContext
-from spyder.utils.icon_manager import ima
+
 
 logger = logging.getLogger(__name__)
 
@@ -168,9 +171,9 @@ class Editor(SpyderDockablePlugin):
             "Edit Python, Markdown, Cython and many other types of text files."
         )
 
-    @staticmethod
-    def get_icon():
-        return ima.icon('edit')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('edit')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -386,6 +389,7 @@ class Editor(SpyderDockablePlugin):
                 section=FileMenuSections.Print,
                 before_section=FileMenuSections.Close
             )
+
         # Close
         close_actions = [
             widget.close_action,
@@ -398,6 +402,7 @@ class Editor(SpyderDockablePlugin):
                 section=FileMenuSections.Close,
                 before_section=FileMenuSections.Restart
             )
+
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -411,6 +416,7 @@ class Editor(SpyderDockablePlugin):
                     section=FileMenuSections.Navigation,
                     before_section=FileMenuSections.Restart
                 )
+
         # Open section
         open_actions = [
             widget.open_action,
@@ -424,6 +430,7 @@ class Editor(SpyderDockablePlugin):
                 section=FileMenuSections.Open,
                 before_section=FileMenuSections.Save
             )
+
         # Save section
         save_actions = [
             widget.save_action,
@@ -439,6 +446,7 @@ class Editor(SpyderDockablePlugin):
                 section=FileMenuSections.Save,
                 before_section=FileMenuSections.Print
             )
+
         # New Section
         mainmenu.add_item_to_application_menu(
             widget.new_action,
@@ -459,6 +467,7 @@ class Editor(SpyderDockablePlugin):
                 section=EditMenuSections.UndoRedo,
                 before_section=EditMenuSections.Editor
             )
+
         # Copy section
         for action in [
                 widget.cut_action, widget.copy_action, widget.paste_action,
@@ -469,6 +478,7 @@ class Editor(SpyderDockablePlugin):
                 section=EditMenuSections.Copy,
                 before_section=EditMenuSections.Editor
             )
+
         # Editor section
         for edit_item in widget.edit_menu_actions:
             mainmenu.add_item_to_application_menu(
@@ -508,6 +518,7 @@ class Editor(SpyderDockablePlugin):
                 section=SourceMenuSections.Cursor,
                 before_section=SourceMenuSections.Formatting
             )
+
         # Formatting section
         source_menu_formatting_actions = [
             widget.eol_menu,
@@ -522,6 +533,7 @@ class Editor(SpyderDockablePlugin):
                 section=SourceMenuSections.Formatting,
                 before_section=SourceMenuSections.CodeAnalysis
             )
+
         # Options section
         source_menu_option_actions = widget.checkable_actions.values()
         for option_item in source_menu_option_actions:
@@ -531,6 +543,7 @@ class Editor(SpyderDockablePlugin):
                 section=SourceMenuSections.Options,
                 before_section=SourceMenuSections.Linting
             )
+
         # Linting section
         source_menu_linting_actions = [
             widget.todo_list_action,
@@ -561,6 +574,7 @@ class Editor(SpyderDockablePlugin):
                 print_action,
                 menu_id=ApplicationMenus.File
             )
+
         # Close
         close_actions = [
             widget.close_action,
@@ -571,6 +585,7 @@ class Editor(SpyderDockablePlugin):
                 close_action,
                 menu_id=ApplicationMenus.File
             )
+
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -582,6 +597,7 @@ class Editor(SpyderDockablePlugin):
                     tab_navigation_action,
                     menu_id=ApplicationMenus.File
                 )
+
         # Open section
         open_actions = [
             widget.open_action,
@@ -593,6 +609,7 @@ class Editor(SpyderDockablePlugin):
                 open_action,
                 menu_id=ApplicationMenus.File
             )
+
         # Save section
         save_actions = [
             widget.save_action,
@@ -606,6 +623,7 @@ class Editor(SpyderDockablePlugin):
                 save_action,
                 menu_id=ApplicationMenus.File
             )
+
         # New Section
         mainmenu.remove_item_from_application_menu(
             widget.new_action,
@@ -622,6 +640,7 @@ class Editor(SpyderDockablePlugin):
                 action,
                 menu_id=ApplicationMenus.Edit
             )
+
         # Copy section
         for action in [
                 widget.cut_action, widget.copy_action, widget.paste_action,
@@ -630,6 +649,7 @@ class Editor(SpyderDockablePlugin):
                 action,
                 menu_id=ApplicationMenus.Edit
             )
+
         # Editor section
         for edit_item in widget.edit_menu_actions:
             mainmenu.remove_item_from_application_menu(
@@ -664,6 +684,7 @@ class Editor(SpyderDockablePlugin):
                 cursor_item,
                 menu_id=ApplicationMenus.Source
             )
+
         # Formatting section
         source_menu_formatting_actions = [
             widget.eol_menu,
@@ -676,6 +697,7 @@ class Editor(SpyderDockablePlugin):
                 formatting_item,
                 menu_id=ApplicationMenus.Source
             )
+
         # Options section
         source_menu_option_actions = widget.checkable_actions.values()
         for option_item in source_menu_option_actions:
@@ -683,6 +705,7 @@ class Editor(SpyderDockablePlugin):
                 option_item,
                 menu_id=ApplicationMenus.Source
             )
+
         # Linting section
         source_menu_linting_actions = [
             widget.todo_list_action,
@@ -735,12 +758,15 @@ class Editor(SpyderDockablePlugin):
         completions = self.get_plugin(Plugins.Completions)
 
         self.sig_file_opened_closed_or_updated.connect(
-            completions.file_opened_closed_or_updated)
+            completions.file_opened_closed_or_updated
+        )
+
         # TODO: Seems like `update_client_status` is only availabel from the
         # LSP provider?
         # widget.sig_update_active_languages_requested.connect(
         #     completions.update_client_status
         # )
+
         # TODO: Should this be moved to the Completions plugin
         # as done with the console/internal console plugin connections?
         completions.sig_language_completions_available.connect(
@@ -755,7 +781,9 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         completions = self.get_plugin(Plugins.Completions)
         self.sig_file_opened_closed_or_updated.disconnect(
-            completions.file_opened_closed_or_updated)
+            completions.file_opened_closed_or_updated
+        )
+
         # TODO: Seems like `update_client_status` is only availabel from the
         # LSP provider?
         # widget.sig_update_active_languages_requested.disconnect(
@@ -777,6 +805,7 @@ class Editor(SpyderDockablePlugin):
         outline_widget = outline.get_widget()
 
         widget.set_outlineexplorer(outline_widget)
+
         # TODO: Should the above be done from the Outline Explorer plugin
         # as done with the console/internal console plugin?
         outline_widget.edit_goto.connect(
@@ -872,6 +901,8 @@ class Editor(SpyderDockablePlugin):
 
     # ---- Public API
     # ------------------------------------------------------------------------
+    # TODO: Add docstrings for all methods in this section because they are
+    # public API.
     def get_codeeditor_for_filename(self, filename):
         return self.get_widget()._get_editor(filename)
 

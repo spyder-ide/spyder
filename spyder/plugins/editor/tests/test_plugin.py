@@ -267,11 +267,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     Regression test for spyder-ide/spyder#8000.
     """
     filenames, tmpdir = python_files
-    editor_main_widget = editor_plugin.get_widget()
+    main_widget = editor_plugin.get_widget()
     editorstack = editor_plugin.get_current_editorstack()
 
     expected_cursor_undo_history = []
-    assert editor_main_widget.cursor_undo_history == expected_cursor_undo_history
+    assert main_widget.cursor_undo_history == expected_cursor_undo_history
     # Load the Python test files (4).
     editor_plugin.load(filenames)
     # Open a new file.
@@ -290,7 +290,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
         (filenames[-1], len(editorstack.data[-1].get_source_code())),
         (filenames[2], 5)
         ]
-    for history, expected_history in zip(editor_main_widget.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
@@ -306,19 +306,19 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_pos_indexes = [1, 2, 2, 1, 0, 0, 1, 0]
     for move, index in zip(cursor_index_moves, expected_cursor_pos_indexes):
         if move == -1:
-            editor_main_widget.go_to_previous_cursor_position()
+            main_widget.go_to_previous_cursor_position()
         elif move == 1:
-            editor_main_widget.go_to_next_cursor_position()
-        assert len(editor_main_widget.cursor_undo_history) - 1 == index
+            main_widget.go_to_next_cursor_position()
+        assert len(main_widget.cursor_undo_history) - 1 == index
         assert (editor_plugin.get_current_filename(),
                 editor_plugin.get_current_editor().get_position('cursor')
                 ) == expected_cursor_undo_history[index]
 
-    for history, expected_history in zip(editor_main_widget.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history[:1]):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
-    for history, expected_history in zip(editor_main_widget.cursor_redo_history,
+    for history, expected_history in zip(main_widget.cursor_redo_history,
                                          expected_cursor_undo_history[:0:-1]):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
@@ -333,11 +333,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_undo_history = expected_cursor_undo_history[:1]
     expected_cursor_undo_history.append((filenames[3], 0))
 
-    for history, expected_history in zip(editor_main_widget.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
-    assert editor_main_widget.cursor_redo_history == []
+    assert main_widget.cursor_redo_history == []
 
 
 def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):

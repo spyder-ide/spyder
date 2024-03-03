@@ -3009,7 +3009,9 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
     # Create a editor split
-    main_window.editor.get_widget().editorsplitter.split(orientation=Qt.Vertical)
+    main_window.editor.get_widget().editorsplitter.split(
+        orientation=Qt.Vertical
+    )
     qtbot.wait(500)
 
     # Open other files

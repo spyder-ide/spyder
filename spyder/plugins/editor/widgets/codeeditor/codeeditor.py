@@ -115,7 +115,7 @@ class CodeEditorContextMenuSections:
     ZoomSection = "zoom_section"
     RefactorCodeSection = "refactor_code_section"
     CopySection = "copy_section"
-    OtherSection = "others_section"
+    OthersSection = "others_section"
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget):
@@ -3344,6 +3344,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # -------------------------------------------------------------------------
     def setup_context_menu(self):
         """Setup context menu"""
+        # -- Actions
         self.undo_action = self.create_action(
             CodeEditorActions.Undo,
             text=_('Undo'),
@@ -3419,16 +3420,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Go to definition'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.go_to_definition_from_cursor)
+            triggered=self.go_to_definition_from_cursor
+        )
         self.inspect_current_object_action = self.create_action(
             CodeEditorActions.InspectCurrentObject,
             text=_('Inspect current object'),
             icon=self.create_icon('MessageBoxInformation'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.sig_show_object_info)
-
-        # Run actions
+            triggered=self.sig_show_object_info
+        )
 
         # Zoom actions
         zoom_in_action = self.create_action(
@@ -3475,17 +3476,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             CodeEditorActions.Autoformat,
             text=_('Format file or selection with {0}').format(
                     formatter.capitalize()),
+            icon=self.create_icon("transparent"),
             register_shortcut=True,
             register_action=False,
             triggered=self.format_document_or_range
         )
         self.format_action.setEnabled(False)
 
-        # Build menu
+        # -- Build menu
         self.menu = self.create_menu(
             CodeEditorMenus.ContextMenu, register=False
         )
-        # inspect section
+
+        # Inspect section
         inspect_actions = [
             self.gotodef_action, self.inspect_current_object_action
         ]
@@ -3495,7 +3498,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.menu,
                 section=CodeEditorContextMenuSections.InspectSection
             )
-        # undo/redo section
+
+        # Undo/redo section
         undo_redo_actions = [self.undo_action, self.redo_action]
         for menu_action in undo_redo_actions:
             self.add_item_to_menu(
@@ -3503,7 +3507,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.menu,
                 section=CodeEditorContextMenuSections.UndoRedoSection
             )
-        # edit section
+
+        # Edit section
         edit_actions = [
             self.cut_action,
             self.copy_action,
@@ -3516,8 +3521,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.menu,
                 section=CodeEditorContextMenuSections.EditSection
             )
+
+        # Nbformat section
         if nbformat is not None:
-            # nbformat section
             nb_actions = [
                 self.clear_all_output_action, self.ipynb_convert_action
             ]
@@ -3527,7 +3533,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     self.menu,
                     section=CodeEditorContextMenuSections.NbformatSections
                 )
-        # zoom section
+
+        # Zoom section
         zoom_actions = [
             zoom_in_action, zoom_out_action, zoom_reset_action
         ]
@@ -3537,7 +3544,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.menu,
                 section=CodeEditorContextMenuSections.ZoomSection
             )
-        # refactor/code section
+
+        # Refactor/code section
         refactor_code_actions = [
             toggle_comment_action, self.docstring_action, self.format_action
         ]
@@ -3548,23 +3556,25 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 section=CodeEditorContextMenuSections.RefactorCodeSection
             )
 
-        # Read-only context-menu
+        # -- Read-only context-menu
         self.readonly_menu = self.create_menu(
             CodeEditorMenus.ReadOnlyMenu, register=False
         )
-        # copy section
+
+        # Copy section
         self.add_item_to_menu(
             self.copy_action,
             self.readonly_menu,
             section=CodeEditorContextMenuSections.CopySection
         )
-        # other section
+
+        # Others section
         other_actions = [selectall_action, self.gotodef_action]
         for menu_action in other_actions:
             self.add_item_to_menu(
                 self.copy_action,
                 self.readonly_menu,
-                section=CodeEditorContextMenuSections.OtherSection
+                section=CodeEditorContextMenuSections.OthersSection
             )
 
     def keyReleaseEvent(self, event):

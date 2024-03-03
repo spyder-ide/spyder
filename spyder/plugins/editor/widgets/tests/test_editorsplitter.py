@@ -85,9 +85,11 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     mock_main_widget = Mock(wraps=EditorMainWidgetExample())
     EditorSplitter.CONF_SECTION = "Editor"
     editorsplitter = EditorSplitter(
-        None, mock_main_widget, [],
+        None,
+        mock_main_widget,
+        [],
         register_editorstack_cb=register_editorstack,
-        unregister_editorstack_cb=unregister_editorstack
+        unregister_editorstack_cb=unregister_editorstack,
     )
 
     editorsplitter.editorstack.set_find_widget(Mock())
@@ -142,7 +144,9 @@ def test_init(editor_splitter_bot):
     assert not es.toolbar_list
     assert not es.menu_list
     assert es.register_editorstack_cb == es.main_widget.register_editorstack
-    assert es.unregister_editorstack_cb == es.main_widget.unregister_editorstack
+    assert (
+        es.unregister_editorstack_cb == es.main_widget.unregister_editorstack
+    )
 
     # No menu actions in parameter call.
     assert not es.menu_actions

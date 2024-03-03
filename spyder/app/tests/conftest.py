@@ -287,6 +287,7 @@ def cleanup(request, qapp):
             CONF.reset_to_defaults(notification=False)
             CONF.reset_manager()
             PLUGIN_REGISTRY.reset()
+
         if qapp.instance():
             for widget in qapp.allWidgets():
                 try:
@@ -482,9 +483,10 @@ def main_window(request, tmpdir, qtbot):
                     window.editor.close_all_files()
 
                     # Force close all files
-                    while window.editor.get_widget().editorstacks[0].close_file(force=True):
+                    editor_widget = window.editor.get_widget()
+                    while editor_widget.editorstacks[0].close_file(force=True):
                         pass
-                    for editorwindow in window.editor.get_widget().editorwindows:
+                    for editorwindow in editor_widget.editorwindows:
                         editorwindow.close()
 
                     window.projects.close_project()

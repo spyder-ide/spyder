@@ -40,7 +40,10 @@ def mock_RecoveryDialog(monkeypatch):
 @pytest.fixture
 def editor_plugin(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    monkeypatch.setattr('spyder.plugins.editor.widgets.main_widget.add_actions', Mock())
+    monkeypatch.setattr(
+        'spyder.plugins.editor.widgets.main_widget.add_actions',
+        Mock()
+    )
 
     class MainMock(QMainWindow):
         def __getattr__(self, attr):
@@ -129,11 +132,24 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             # From help section:
             'connect/editor': False,
             # From completions:
-            ('provider_configuration', 'lsp', 'values', 'enable_hover_hints'): True,
-            ('provider_configuration', 'lsp', 'values', 'format_on_save'): False,
-            ('provider_configuration', 'lsp', 'values',
-             'pycodestyle/max_line_length'): 79,
-            
+            (
+                'provider_configuration',
+                'lsp',
+                'values',
+                'enable_hover_hints'
+            ): True,
+            (
+                'provider_configuration',
+                'lsp',
+                'values',
+                'format_on_save'
+            ): False,
+            (
+                "provider_configuration",
+                "lsp",
+                "values",
+                "pycodestyle/max_line_length",
+            ): 79,
         }
 
         if last_focused_filename is not None:

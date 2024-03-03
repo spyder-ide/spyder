@@ -24,8 +24,8 @@ from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
-                            QMessageBox, QVBoxLayout, QWidget,
-                            QSizePolicy, QToolBar, QToolButton)
+                            QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
+                            QToolBar, QToolButton)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -51,11 +51,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (
-    create_toolbutton,
-    mimedata2url,
-    create_waitspinner
-)
+from spyder.utils.qthelpers import mimedata2url, create_waitspinner
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
 
@@ -74,6 +70,10 @@ class EditorStackActions:
     SplitHorizontally = "split horizontally"
     CloseSplitPanel = "close split panel"
     CloseWindow = "close_window_action"
+
+
+class EditorStackButtons:
+    OptionsButton = "editor_stack_options_button"
 
 
 class EditorStackMenus:
@@ -641,14 +641,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         layout.addWidget(self.top_toolbar)
 
         # Tabbar
-        menu_btn = create_toolbutton(
-            self,
+        menu_btn = self.create_toolbutton(
+            EditorStackButtons.OptionsButton,
             icon=self.create_icon('tooloptions'),
-            tip=_('Options')
+            tip=_('Options'),
+            register=False
         )
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = self.create_menu(
-            EditorStackMenus.OptionsMenu, register=False
+            EditorStackMenus.OptionsMenu,
+            register=False
         )
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
@@ -1474,15 +1476,18 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
             for menu_action in actions:
                 self.menu.add_action(menu_action)
+
         for split_actions in self.__get_split_actions():
             self.menu.add_action(
                 split_actions,
                 section=EditorStackMenuSections.SplitCloseSection
             )
+
         for window_actions in self.__get_window_actions():
             self.menu.add_action(
                 window_actions, section=EditorStackMenuSections.WindowSection
             )
+
         for new_window_and_close_action in (
                 self.__get_new_window_and_close_actions()
                 ):
@@ -1490,6 +1495,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 new_window_and_close_action,
                 section=EditorStackMenuSections.NewWindowCloseSection
             )
+
         self.menu.render()
 
     # ---- Hor/Ver splitting actions
@@ -1526,7 +1532,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.close_split_action.setEnabled(self.is_closable)
 
         actions = [
-            self.versplit_action, self.horsplit_action, self.close_split_action
+            self.versplit_action,
+            self.horsplit_action,
+            self.close_split_action
         ]
 
         return actions
@@ -1544,6 +1552,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 triggered=window.close,
                 register_action=False
             )
+
             if self.new_window_action:
                 actions += [self.new_window_action]
             actions += [close_window_action]
@@ -1747,7 +1756,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.completion_widget.setParent(None)
             editor.menu.MENUS.remove((editor, None, editor.menu))
             editor.menu.setParent(None)
-            editor.readonly_menu.MENUS.remove((editor, None, editor.readonly_menu))
+            editor.readonly_menu.MENUS.remove(
+                (editor, None, editor.readonly_menu)
+            )
             editor.readonly_menu.setParent(None)
 
             # We pass self object ID as a QString, because otherwise it would

@@ -113,6 +113,7 @@ class EditorWidgetActions:
     RemoveTrailingSpaces = "remove_trailing_spaces_action"
     FormatCode = "autoformating"
     FixIndentation = "fix_indentation_action"
+
     # Checkable operations
     ShowBlanks = "blank_spaces_action"
     ScrollPastEnd = "scroll_past_end_action"
@@ -453,7 +454,6 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Print current file..."),
             triggered=self.print_file
         )
-        # Shortcut for close_action is defined in widgets/editor.py
         self.close_file_action = self.create_action(
             EditorWidgetActions.CloseFile,
             text=_("&Close"),
@@ -493,6 +493,7 @@ class EditorMainWidget(PluginMainWidget):
                   "directory to current script directory"),
             triggered=self.__set_workdir
         )
+
         # Fixes spyder-ide/spyder#6055.
         # See: https://bugreports.qt.io/browse/QTBUG-8596
         if sys.platform == 'darwin':
@@ -565,8 +566,6 @@ class EditorMainWidget(PluginMainWidget):
             self.gotoline_action
         ]
 
-        # ---- Run operations ----
-
         # ---- Source code operations ----
         # Checkable actions
         self.showblanks_action = self._create_checkable_action(
@@ -627,17 +626,14 @@ class EditorMainWidget(PluginMainWidget):
             'underline_errors': self.underline_errors
         }
 
+        # Todo menu
         self.todo_list_action = self.create_action(
             EditorWidgetActions.ShowTodoList,
             text=_("Show todo list"),
             icon=self.create_icon('todo_list'),
             tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
                   "HACK/BUG/OPTIMIZE/!!!/???)"),
-            # TODO: This was removed at spyder-ide/spyder#21710 and
-            # without it a `spyder.api.exceptions.SpyderAPIError:
-            # Action must provide the toggled or triggered parameters!`
-            # is raised. Should this be actually removed?
-            triggered=self.go_to_next_todo
+            triggered=lambda: None
         )
         self.todo_menu = self.create_menu(EditorWidgetMenus.TodoList)
         todo_menu_css = self.todo_menu.css
@@ -645,12 +641,14 @@ class EditorMainWidget(PluginMainWidget):
         self.todo_menu.setStyleSheet(todo_menu_css.toString())
         self.todo_list_action.setMenu(self.todo_menu)
         self.todo_menu.aboutToShow.connect(self.update_todo_menu)
+
+        # Warnings menu
         self.warning_list_action = self.create_action(
             EditorWidgetActions.ShowCodeAnalysisList,
             text=_("Show warning/error list"),
             icon=self.create_icon('wng_list'),
             tip=_("Show code analysis warnings/errors"),
-            triggered=self.go_to_next_warning
+            triggered=lambda: None
         )
         self.warning_menu = self.create_menu(
             EditorWidgetMenus.WarningErrorList
@@ -660,6 +658,7 @@ class EditorMainWidget(PluginMainWidget):
         self.warning_menu.setStyleSheet(warning_menu_css.toString())
         self.warning_list_action.setMenu(self.warning_menu)
         self.warning_menu.aboutToShow.connect(self.update_warning_menu)
+
         self.previous_warning_action = self.create_action(
             EditorWidgetActions.GoToPreviousWarning,
             text=_("Previous warning/error"),
@@ -678,6 +677,8 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
+
+        # Cursor actions
         self.previous_edit_cursor_action = self.create_action(
             EditorWidgetActions.GoToLastEditLocation,
             text=_("Last edit location"),
@@ -705,6 +706,8 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
+
+        # Eol menu
         self.win_eol_action = self.create_action(
             EditorWidgetActions.WinEOL,
             text=_("CRLF (Windows)"),
@@ -720,18 +723,22 @@ class EditorMainWidget(PluginMainWidget):
             text=_("CR (macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
+
         eol_action_group = QActionGroup(self)
-        eol_actions = (
-            self.win_eol_action,
-            self.linux_eol_action,
-            self.mac_eol_action
-        )
-        add_actions(eol_action_group, eol_actions)
         self.eol_menu = self.create_menu(
             EditorWidgetMenus.EOL,
             title=_("Convert end-of-line characters")
         )
-        self.eol_menu.addActions(eol_actions)
+
+        for eol_action in [
+            self.win_eol_action,
+            self.linux_eol_action,
+            self.mac_eol_action,
+        ]:
+            eol_action_group.addAction(eol_action)
+            self.add_item_to_menu(eol_action, self.eol_menu)
+
+        # Format actions
         self.trailingspaces_action = self.create_action(
             EditorWidgetActions.RemoveTrailingSpaces,
             text=_("Remove trailing spaces"),
@@ -794,6 +801,7 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
+
         # ---------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
@@ -816,6 +824,7 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
+
         # ---------------------------------------------------------------------
         self.text_uppercase_action = self.create_action(
             EditorWidgetActions.TransformToUppercase,
@@ -911,9 +920,11 @@ class EditorMainWidget(PluginMainWidget):
         self.stack_menu_actions = [self.gotoline_action, self.workdir_action]
 
         # ---- Finish child widgets and actions setup ----
-        layout = QVBoxLayout()
+        # TODO: Remove this after spyder-ide/spyder#19784 is merged
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
+
+        layout = QVBoxLayout()
         layout.addWidget(self.dock_toolbar)
 
         # Tabbed editor widget + Find/Replace widget
@@ -1045,7 +1056,8 @@ class EditorMainWidget(PluginMainWidget):
         except AttributeError:
             pass
 
-    # ---- Run plugin related
+    # ---- Related to the Run plugin
+    # -------------------------------------------------------------------------
     def update_run_focus_file(self):
         """
         Inform run plugin that the current editor with focus has changed.
@@ -1110,6 +1122,8 @@ class EditorMainWidget(PluginMainWidget):
                 self.id_per_file[new_filename]
             )
 
+    # ---- Related to the completions plugin
+    # -------------------------------------------------------------------------
     @Slot(dict)
     def report_open_file(self, options):
         """Report that a file was opened to other plugins."""
@@ -1213,8 +1227,8 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.refresh()
         self.refresh_save_all_action()
 
-    # ---- Private API
-    # ------------------------------------------------------------------------
+    # ---- Update menus
+    # -------------------------------------------------------------------------
     def _base_edit_actions_callback(self):
         """Callback for base edit actions of text based widgets."""
         widget = QApplication.focusWidget()
@@ -1247,9 +1261,11 @@ class EditorMainWidget(PluginMainWidget):
             # Case where the current editor has the focus
             if not self.is_file_opened():
                 return
+
             # Undo, redo
             self.undo_action.setEnabled(editor.document().isUndoAvailable())
             self.redo_action.setEnabled(editor.document().isRedoAvailable())
+
             # Editor only actions
             for action in self.edit_menu_actions:
                 action.setEnabled(True)
@@ -1338,7 +1354,6 @@ class EditorMainWidget(PluginMainWidget):
         -------
         action : SpyderAction
             The created action.
-
         """
         nameseq = name.split(' ')
         method_name = nameseq[0].lower() + "".join(nameseq[1:])
@@ -1435,8 +1450,8 @@ class EditorMainWidget(PluginMainWidget):
                 except RuntimeError:
                     pass
 
-    # ---- Public API
-    # ------------------------------------------------------------------------
+    # ---- For other plugins
+    # -------------------------------------------------------------------------
     def set_outlineexplorer(self, outlineexplorer_widget):
         # TODO: Is there another way to do this?
         self.outlineexplorer = outlineexplorer_widget
@@ -1460,6 +1475,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.update_switcher_actions(switcher_available)
 
     # ---- Focus tabwidget (public)
+    # -------------------------------------------------------------------------
     def set_last_focused_editorstack(self, editorwindow, editorstack):
         self.last_focused_editorstack[editorwindow] = editorstack
         # very last editorstack
@@ -1482,6 +1498,7 @@ class EditorMainWidget(PluginMainWidget):
                     self.set_last_focused_editorstack(win, editorstack)
 
     # ---- Handling editorstacks
+    # -------------------------------------------------------------------------
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
@@ -1516,6 +1533,11 @@ class EditorMainWidget(PluginMainWidget):
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
+        # *********************************************************************
+        # TODO: Review if this is necessary now that the editor is using the
+        # new API.
+        # It shouldn't be because the methods listed here are observing their
+        # corresponding options in EditorStack.
         settings = (
             ('set_todolist_enabled',                'todo_list'),
             ('set_blanks_enabled',                  'blank_spaces'),
@@ -1543,8 +1565,8 @@ class EditorMainWidget(PluginMainWidget):
              'completions_hint_after_ms'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
-            ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),  # noqa
-            ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),  # noqa
+            ('set_occurrence_highlighting_enabled', 'occurrence_highlighting'),  # noqa
+            ('set_occurrence_highlighting_timeout', 'occurrence_highlighting/timeout'),  # noqa
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),  # noqa
@@ -1553,7 +1575,7 @@ class EditorMainWidget(PluginMainWidget):
             ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
-                    )
+        )
 
         for method, setting in settings:
             getattr(editorstack, method)(self.get_conf(setting))
@@ -1584,13 +1606,15 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_hover_hints_enabled(hover_hints)
         editorstack.set_format_on_save(format_on_save)
         editorstack.set_edgeline_columns(edge_line_columns)
+        # *********************************************************************
+
         color_scheme = self._get_color_scheme()
         editorstack.set_default_font(self._font, color_scheme)
 
         editorstack.starting_long_process.connect(self.starting_long_process)
         editorstack.ending_long_process.connect(self.ending_long_process)
 
-        # Redirect signals
+        # Signals
         editorstack.redirect_stdio.connect(self.sig_redirect_stdio_requested)
         editorstack.update_plugin_title.connect(self.update_title)
         editorstack.editor_focus_changed.connect(self.save_focused_editorstack)
@@ -1697,6 +1721,7 @@ class EditorMainWidget(PluginMainWidget):
                                                             filename)
 
     # ---- Handling editor windows
+    # -------------------------------------------------------------------------
     def setup_other_windows(self, main, outline_plugin):
         """Setup toolbars and menus for 'New window' instances"""
         # Menus
@@ -1748,10 +1773,7 @@ class EditorMainWidget(PluginMainWidget):
             win.set_layout_settings(layout_settings)
 
     def switch_to_plugin(self):
-        """
-        Reimplemented method to deactivate shortcut when
-        opening a new window.
-        """
+        """Deactivate shortcut when opening a new window."""
         if not self.editorwindows:
             self.sig_switch_to_plugin_requested.emit()
 
@@ -1787,6 +1809,7 @@ class EditorMainWidget(PluginMainWidget):
         self.editorwindows.pop(idx)
 
     # ---- Accessors
+    # -------------------------------------------------------------------------
     def get_filenames(self):
         return [finfo.filename for finfo in self.editorstacks[0].data]
 
@@ -1838,9 +1861,11 @@ class EditorMainWidget(PluginMainWidget):
         return editorstack.set_current_filename(filename, focus)
 
     # ---- Refresh methods
+    # -------------------------------------------------------------------------
     def refresh_file_dependent_actions(self):
-        """Enable/disable file dependent actions
-        (only if dockwidget is visible)"""
+        """
+        Enable/disable file dependent actions (only if dockwidget is visible).
+        """
         if self.dockwidget and self.dockwidget.isVisible():
             enable = self.get_current_editor() is not None
             for action in self.file_dependent_actions:
@@ -1892,8 +1917,8 @@ class EditorMainWidget(PluginMainWidget):
 
     def todo_results_changed(self):
         """
-        Synchronize todo results between editorstacks
-        Refresh todo list navigation buttons
+        Synchronize todo results between editorstacks and refresh todo list
+        navigation buttons.
         """
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
@@ -1925,6 +1950,7 @@ class EditorMainWidget(PluginMainWidget):
             default='',
             section='completions'
         )
+
         self.formatting_action.setText(
             _('Format file or selection with {0}').format(
                 formatter.capitalize()))
@@ -1971,6 +1997,7 @@ class EditorMainWidget(PluginMainWidget):
             self.todo_list_action.setEnabled(state)
 
     # ---- Bookmarks
+    # -------------------------------------------------------------------------
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
         filename = to_text_string(filename)
@@ -1983,6 +2010,7 @@ class EditorMainWidget(PluginMainWidget):
             self.set_conf('bookmarks', new_slots)
 
     # ---- File I/O
+    # -------------------------------------------------------------------------
     def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
         if not osp.isfile(self.TEMPFILE_PATH):
@@ -2021,9 +2049,12 @@ class EditorMainWidget(PluginMainWidget):
             self.recent_files.pop(-1)
 
     def _clone_file_everywhere(self, finfo):
-        """Clone file (*src_editor* widget) in all editorstacks
+        """
+        Clone file (*src_editor* widget) in all editorstacks.
+
         Cloning from the first editorstack in which every single new editor
-        is created (when loading or creating a new file)"""
+        is created (when loading or creating a new file).
+        """
         for editorstack in self.editorstacks[1:]:
             editorstack.clone_editor_from(finfo, set_current=False)
 
@@ -2031,7 +2062,7 @@ class EditorMainWidget(PluginMainWidget):
     @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
-        Create a new file - Untitled
+        Create a new file.
 
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
@@ -2045,6 +2076,7 @@ class EditorMainWidget(PluginMainWidget):
                                       text)
                 if enc_match:
                     enc = enc_match.group(1)
+
                 # Initialize template variables
                 # Windows
                 username = encoding.to_unicode_from_fs(
@@ -2070,11 +2102,13 @@ class EditorMainWidget(PluginMainWidget):
             default_content = True
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)  # noqa
+
         # Creating editor widget
         if editorstack is None:
             current_es = self.get_current_editorstack()
         else:
             current_es = editorstack
+
         created_from_here = fname is None
         if created_from_here:
             if self.untitled_num == 0:
@@ -2085,6 +2119,7 @@ class EditorMainWidget(PluginMainWidget):
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
+
                         try:
                             act_num = int(
                                 fname_data[0].split(_("untitled"))[-1])
@@ -2095,13 +2130,14 @@ class EditorMainWidget(PluginMainWidget):
                             # part.
                             # Please see spyder-ide/spyder#12892
                             self.untitled_num = 0
+
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd_or_home()
 
+            basedir = getcwd_or_home()
             # TODO: main_widget call logic from the projects plugin
             active_project_path = self._plugin._get_active_project_path()
             if active_project_path is not None:
@@ -2142,6 +2178,7 @@ class EditorMainWidget(PluginMainWidget):
         for fname in self.recent_files:
             if osp.isfile(fname):
                 recent_files.append(fname)
+
         self.recent_file_menu.clear_actions()
         if recent_files:
             for fname in recent_files:
@@ -2151,17 +2188,20 @@ class EditorMainWidget(PluginMainWidget):
                         fname, scale_factor=1.0))
                 action.triggered[bool].connect(self.load)
                 action.setData(to_qvariant(fname))
+
                 self.recent_file_menu.add_action(
                     action,
                     section="recent_files_section",
                     omit_id=True,
                     before_section="recent_files_actions_section"
                 )
+
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
         for menu_action in (self.max_recent_action, self.clear_recent_action):
             self.recent_file_menu.add_action(
                 menu_action, section="recent_files_actions_section"
             )
+
         self.recent_file_menu.render()
 
     @Slot()
@@ -2181,6 +2221,7 @@ class EditorMainWidget(PluginMainWidget):
             1,
             35
         )
+
         if valid:
             self.set_conf('max_recent_files', mrf)
 
@@ -2192,7 +2233,8 @@ class EditorMainWidget(PluginMainWidget):
              editorwindow=None, processevents=True, start_column=None,
              end_column=None, set_focus=True, add_where='end'):
         """
-        Load a text file
+        Load a text file.
+
         editorwindow: load in this editorwindow (useful when clicking on
         outline explorer with multiple editor windows)
         processevents: determines if processEvents() should be called at the
@@ -2219,11 +2261,13 @@ class EditorMainWidget(PluginMainWidget):
             filename0 = self.get_current_filename()
         else:
             filename0 = None
+
         if not filenames:
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
+
         if not filenames:
             basedir = getcwd_or_home()
             if self.edit_filetypes is None:
@@ -2313,6 +2357,7 @@ class EditorMainWidget(PluginMainWidget):
 
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
+
             return fname
 
         if hasattr(filenames, 'replaceInStrings'):
@@ -2358,7 +2403,6 @@ class EditorMainWidget(PluginMainWidget):
                                                                  focus=focus)
                 slots = self.get_conf('bookmarks', default={})
                 current_editor.set_bookmarks(load_bookmarks(filename, slots))
-                # self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
 
@@ -2512,7 +2556,7 @@ class EditorMainWidget(PluginMainWidget):
 
     @Slot()
     def find_next(self):
-        """Fnd next slot"""
+        """Find next slot"""
         editorstack = self.get_current_editorstack()
         editorstack.find_widget.find_next()
 
@@ -2529,7 +2573,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.find_widget.show_replace()
 
     def open_last_closed(self):
-        """ Reopens the last closed tab."""
+        """Reopens the last closed tab."""
         editorstack = self.get_current_editorstack()
         last_closed_files = editorstack.get_last_closed_files()
         if (len(last_closed_files) > 0):
@@ -2538,7 +2582,8 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.set_last_closed_files(last_closed_files)
             self.load(file_to_open)
 
-    # ---- Explorer widget
+    # ---- Related to the Files/Projects plugins
+    # -------------------------------------------------------------------------
     def close_file_from_name(self, filename):
         """Close file from its name"""
         filename = osp.abspath(to_text_string(filename))
@@ -2596,6 +2641,7 @@ class EditorMainWidget(PluginMainWidget):
                 self.renamed(source=fname, dest=new_filename)
 
     # ---- Source code
+    # -------------------------------------------------------------------------
     @Slot()
     def indent(self):
         """Indent current line or selection"""
@@ -2646,15 +2692,6 @@ class EditorMainWidget(PluginMainWidget):
             editor.unblockcomment()
 
     @Slot()
-    def go_to_next_todo(self):
-        self.switch_to_plugin()
-        editor = self.get_current_editor()
-        editor.go_to_next_todo()
-        filename = self.get_current_filename()
-        cursor = editor.textCursor()
-        self.add_cursor_to_history(filename, cursor)
-
-    @Slot()
     def go_to_next_warning(self):
         self.switch_to_plugin()
         editor = self.get_current_editor()
@@ -2700,6 +2737,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.fix_indentation()
 
     # ---- Cursor position history management
+    # -------------------------------------------------------------------------
     def update_cursorpos_actions(self):
         self.previous_edit_cursor_action.setEnabled(
             self.last_edit_cursor_pos is not None)
@@ -2906,6 +2944,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.go_to_line(line)
 
     # ---- Handlers for the IPython Console kernels
+    # -------------------------------------------------------------------------
     def _get_editorstack(self):
         """
         Get the current editorstack.
@@ -2983,6 +3022,7 @@ class EditorMainWidget(PluginMainWidget):
         return editor.toPlainText()
 
     # ---- Run files
+    # -------------------------------------------------------------------------
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
         extensions = config['extension']
@@ -3175,6 +3215,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.set_current_filename(fname)
 
     # ---- Code bookmarks
+    # -------------------------------------------------------------------------
     @Slot(int)
     def save_bookmark(self, slot_num):
         """Save current line and position as bookmark."""
@@ -3215,6 +3256,7 @@ class EditorMainWidget(PluginMainWidget):
                 editor.go_to_line(line_num + 1, linelength)
 
     # ---- Zoom in/out/reset
+    # -------------------------------------------------------------------------
     def zoom(self, factor):
         """Zoom in/out/reset"""
         editor = self.get_current_editorstack().get_current_editor()
@@ -3230,6 +3272,7 @@ class EditorMainWidget(PluginMainWidget):
         editor.update_tab_stop_width_spaces()
 
     # ---- Options
+    # -------------------------------------------------------------------------
     @on_conf_change(
         option=[
             'blank_spaces',
@@ -3280,6 +3323,7 @@ class EditorMainWidget(PluginMainWidget):
         self.autosave.interval = value * 1000
 
     # ---- Open files
+    # -------------------------------------------------------------------------
     def get_open_filenames(self):
         """Get the list of open files in the current stack"""
         editorstack = self.editorstacks[0]
@@ -3389,6 +3433,7 @@ class EditorMainWidget(PluginMainWidget):
             editorstack.create_new_file_if_empty = value
 
     # ---- File Menu actions (Mac only)
+    # -------------------------------------------------------------------------
     @Slot()
     def go_to_next_file(self):
         """Switch to next file tab on the current editor stack."""
@@ -3401,6 +3446,8 @@ class EditorMainWidget(PluginMainWidget):
         editorstack = self.get_current_editorstack()
         editorstack.tabs.tab_navigate(-1)
 
+    # ---- Misc
+    # -------------------------------------------------------------------------
     def set_current_project_path(self, root_path=None):
         """
         Set the current active project root path.

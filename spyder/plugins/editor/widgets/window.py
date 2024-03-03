@@ -411,7 +411,7 @@ class EditorMainWidgetExample(QSplitter):
     def register_editorstack(self, editorstack):
         logger.debug(
             "FakeEditorMainWidget.register_editorstack: %r" % editorstack
-            )
+        )
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the EditorMainWidget

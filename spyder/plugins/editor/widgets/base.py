@@ -24,7 +24,6 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-# from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
@@ -38,7 +37,10 @@ from spyder.widgets.mixins import BaseEditMixin
 
 
 class TextEditBaseWidget(
-    QPlainTextEdit, BaseEditMixin, SpyderFontsMixin, SpyderWidgetMixin
+    QPlainTextEdit,
+    BaseEditMixin,
+    SpyderFontsMixin,
+    SpyderWidgetMixin
 ):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
