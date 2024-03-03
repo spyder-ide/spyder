@@ -27,6 +27,7 @@ from spyder.utils.programs import check_version
 # Logger setup
 logger = logging.getLogger(__name__)
 
+
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
     '<br><br>Make sure your connection is working properly.'
@@ -105,6 +106,13 @@ class WorkerUpdate(QObject):
             self.channel, channel_url = get_spyder_conda_channel()
 
             if self.channel is None or channel_url is None:
+                # Emit signal before returning so the slots connected to it
+                # can do their job.
+                try:
+                    self.sig_ready.emit()
+                except RuntimeError:
+                    pass
+
                 return
             elif self.channel == "pypi":
                 url = pypi_url
