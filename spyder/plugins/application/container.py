@@ -114,12 +114,13 @@ class ApplicationContainer(PluginMainContainer):
         # Users can only use this widget in our apps.
         if not is_pynsist() and not running_in_mac_app():
             self.application_update_status.hide()
+        else:
+            self.application_update_status.set_no_status()
 
         (self.application_update_status.sig_check_for_updates_requested
          .connect(self.check_updates))
         (self.application_update_status.sig_install_on_close_requested
              .connect(self.set_installer_path))
-        self.application_update_status.set_no_status()
 
         self.give_updates_feedback = False
         self.thread_updates = None
@@ -296,10 +297,10 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(error_msg)
             box.set_check_visible(False)
             box.show()
-            if self.application_update_status:
+            if self.application_update_status.isVisible():
                 self.application_update_status.set_no_status()
         elif update_available:
-            if self.application_update_status:
+            if self.application_update_status.isVisible():
                 self.application_update_status.set_status_pending(
                     latest_release)
 
@@ -425,16 +426,18 @@ class ApplicationContainer(PluginMainContainer):
         elif feedback:
             box.setText(_("Spyder is up to date."))
             box.show()
-            if self.application_update_status:
+            if self.application_update_status.isVisible():
                 self.application_update_status.set_no_status()
         else:
-            if self.application_update_status:
+            if self.application_update_status.isVisible():
                 self.application_update_status.set_no_status()
 
         self.set_conf(option, box.is_checked())
 
-        # Enable check_updates_action after the thread has finished
+        # Enable check_updates_action and restore its text after the thread has
+        # finished
         self.check_updates_action.setDisabled(False)
+        self.check_updates_action.setText(_("Check for updates..."))
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
@@ -442,9 +445,12 @@ class ApplicationContainer(PluginMainContainer):
     @Slot()
     def check_updates(self, startup=False):
         """Check for spyder updates on github releases using a QThread."""
-        # Disable check_updates_action while the thread is working
+        # Disable check_updates_action and change its text while the thread is
+        # working
         self.check_updates_action.setDisabled(True)
-        if self.application_update_status:
+        self.check_updates_action.setText(_("Checking for updates..."))
+
+        if self.application_update_status.isVisible():
             self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:

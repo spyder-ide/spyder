@@ -99,19 +99,15 @@ class Application(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
-        # Add status widget if created
-        if self.application_update_status:
-            statusbar = self.get_plugin(Plugins.StatusBar)
-            statusbar.add_status_widget(self.application_update_status)
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        statusbar.add_status_widget(self.application_update_status)
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
-        # Remove status widget if created
-        if self.application_update_status:
-            statusbar = self.get_plugin(Plugins.StatusBar)
-            statusbar.remove_status_widget(self.application_update_status.ID)
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        statusbar.remove_status_widget(self.application_update_status.ID)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -150,6 +146,11 @@ class Application(SpyderPluginV2):
         if DEV is None and self.get_conf('check_updates_on_startup'):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
+
+        # Hide status bar widget for updates if it doesn't need to be visible.
+        # Note: This can only be done at this point to take effect.
+        if not self.application_update_status.isVisible():
+            self.application_update_status.setVisible(False)
 
         # Handle DPI scale and window changes to show a restart message.
         # Don't activate this functionality on macOS because it's being

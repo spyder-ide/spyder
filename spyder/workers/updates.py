@@ -118,6 +118,13 @@ class WorkerUpdates(QObject):
             channel, channel_url = get_spyder_conda_channel()
 
             if channel is None or channel_url is None:
+                # Emit signal before returning so the slots connected to it
+                # can do their job.
+                try:
+                    self.sig_ready.emit()
+                except RuntimeError:
+                    pass
+
                 return
             elif channel == "pypi":
                 self.url = pypi_url
