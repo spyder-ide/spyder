@@ -32,7 +32,8 @@ def pathmanager(qtbot, request):
     widget.update_paths(
         user_paths=OrderedDict({p: True for p in user_paths}),
         project_paths=OrderedDict({p: True for p in project_paths}),
-        system_paths=OrderedDict({p: True for p in system_paths})
+        system_paths=OrderedDict({p: True for p in system_paths}),
+        prioritize=False
     )
     widget.show()
     qtbot.addWidget(widget)
