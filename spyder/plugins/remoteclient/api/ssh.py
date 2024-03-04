@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 
 class SpyderSSHClient(SSHClient):
     def __init__(self, client):
-        self.client = client        
+        self.client = client
 
     def connection_made(self, conn: SSHClientConnection) -> None:
         """Called when a connection is made

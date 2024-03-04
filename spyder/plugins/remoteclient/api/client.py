@@ -1,6 +1,7 @@
-from hashlib import sha256
+import asyncio
 import logging
-import pickle
+import signal
+import socket
 
 import asyncssh
 
@@ -16,8 +17,8 @@ class SpyderRemoteClient:
     _extra_options = ['platform', 'id']
 
     API_TOKEN = "GiJ96ujfLpPsq7oatW1IJuER01FbZsgyCM0xH6oMZXDAV6zUZsFy3xQBZakSBo6P"
-    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -a stdout spyder-remote-server --juptyerhub --show-port"
-    CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -a stdout spyder-remote-server -h"
+    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --juptyerhub"
+    CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server -h"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -88,6 +89,13 @@ class SpyderRemoteClient:
         return f"http://127.0.0.1:{self.local_port}"
 
     # -- Connection and server management
+    async def connect_and_install_remote_server(self) -> bool:
+        """Connect to the remote server and install the server."""
+        if await self.create_new_connection():
+            return await self.install_remote_server()
+
+        return False
+
     async def connect_and_start_server(self) -> bool:
         """Connect to the remote server and start the server."""
         if await self.create_new_connection():
@@ -100,25 +108,25 @@ class SpyderRemoteClient:
         if not self.ssh_is_connected:
             self._logger.error("SSH connection is not open")
             return False
-        
+
         if self.server_is_running:
-            self.stop_remote_server()
+            await self.stop_remote_server()
 
         try:
-            self.remote_server_process = await self.ssh_connection.create_process(self.START_SERVER_COMMAND)
+            self.remote_server_process = (
+                await self.ssh_connection.create_process(
+                    self.START_SERVER_COMMAND,
+                    stderr=asyncssh.STDOUT,
+                )
+            )
         except (OSError, asyncssh.Error, ValueError) as e:
             self._logger.error(f"Error starting remote server: {e}")
             self.remote_server_process = None
             return False
 
-        server_port = await self.__extract_server_port()
-        if server_port != self.server_port and self.port_forwarder:
-            self.server_port = server_port
-            await self.close_port_forwarder()
-            return await self.forward_local_port()
+        self.server_port = await self.__extract_server_port()
 
         return await self.forward_local_port()
-
 
     async def check_server_installed(self) -> bool:
         """Check if remote server is installed."""
@@ -173,7 +181,7 @@ class SpyderRemoteClient:
             True if the connection was successful, False otherwise.
         """
         if self.ssh_is_connected:
-            self.close_ssh_connection()
+            await self.close_ssh_connection()
 
         conect_kwargs = {k: v for k, v in self.options.items() if k not in self._extra_options}
         try:
@@ -201,11 +209,19 @@ class SpyderRemoteClient:
         if not self.remote_server_process:
             return None
 
-        if (output := await self.remote_server_process.stdout.readline()):
-            port = int(output.splitlines()[0])
-            self._logger.debug(f"Found spyder-remote-server jupyterhub's port: {port}")
+        port = None
+        while port is None:
+            line = await self.remote_server_process.stdout.readline()
+            if not line:
+                break
+            if 'JupyterHub is now running at' in line:
+                port = int(line.splitlines()[0].split(':')[-1].split('/')[0])
+                break
 
-        raise ValueError("Failed to extract port from server stdout")
+        if not port:
+            raise ValueError("Failed to extract port from server stdout")
+        
+        return port
 
     async def forward_local_port(self):
         """Forward local port."""
@@ -216,11 +232,22 @@ class SpyderRemoteClient:
         if not self.ssh_is_connected:
             self._logger.error("SSH connection is not open")
             return False
+        
+        if self.port_forwarder:
+            await self.close_port_forwarder()
+
+        local_port = self.get_free_port()
 
         self.port_forwarder = await self.ssh_connection.forward_local_port(
-            '', self.server_port, 'localhost', self.server_port)
+            '',
+            local_port,
+            self.options['host'],
+            self.server_port,
+        )
 
-        self._logger.debug(f"Forwarding local port {self.local_port} to remote port {self.server_port}")
+        self.local_port = local_port
+
+        self._logger.debug(f"Forwarding local port {local_port} to remote port {self.server_port}")
 
         return True
 
@@ -235,6 +262,11 @@ class SpyderRemoteClient:
     async def stop_remote_server(self):
         """Close remote server."""
         if self.server_is_running and not self.remote_server_process.is_closing():
+            # bug in jupyterhub, need to send SIGINT twice
+            self.remote_server_process.send_signal(signal.SIGINT)
+            await asyncio.sleep(3)
+            self.remote_server_process.send_signal(signal.SIGINT)
+            self.remote_server_process.terminate()
             self.remote_server_process.close()
             await self.remote_server_process.wait_closed()
             self.remote_server_process = None
@@ -297,3 +329,10 @@ class SpyderRemoteClient:
             response = await hub.execute_delete_service("spyder-service", f"kernel/{kernel_key}")
         self._logger.info(f'spyder-service-kernel-delete: {response}')
         return response
+
+    @staticmethod
+    def get_free_port():
+        """Request a free port from the OS."""
+        with socket.socket() as s:
+            s.bind(('', 0))
+            return s.getsockname()[1]
