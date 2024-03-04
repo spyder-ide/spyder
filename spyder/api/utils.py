@@ -8,6 +8,7 @@
 """
 API utilities.
 """
+import functools
 import asyncio
 
 
@@ -102,10 +103,17 @@ class AsSync:
         loop : asyncio.AbstractEventLoop, optional
             The event loop to be used, by default get the current event loop.
         """
-        self.coro = coro
-        self.loop = loop or asyncio.get_event_loop()
+        self.__coro = coro
+        self.__loop = loop or asyncio.get_event_loop()
+        functools.update_wrapper(self, coro)
 
     def __call__(self, *args, **kwargs):
-        """Call the coroutine as a sync function."""
-        return self.loop.run_until_complete(self.coro(*args, **kwargs))
+        return self.__loop.run_until_complete(self.__coro(*args, **kwargs))
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            bound_method = self.__coro.__get__(instance, owner)
+            return functools.partial(self.__class__(bound_method, self.__loop))
 
