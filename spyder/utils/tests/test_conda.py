@@ -65,7 +65,16 @@ def test_get_conda_root_prefix():
 
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_find_conda():
+    # Temporarily remove CONDA_EXE and MAMBA_EXE, if present
+    conda_exe = os.environ.pop('CONDA_EXE', None)
+    mamba_exe = os.environ.pop('MAMBA_EXE', None)
+
     assert find_conda()
+
+    if conda_exe is not None:
+        os.environ['CONDA_EXE'] = conda_exe
+    if mamba_exe is not None:
+        os.environ['MAMBA_EXE'] = mamba_exe
 
 
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
