@@ -56,17 +56,16 @@ chmod +x "${{BIN_FOLDER}}/micromamba"
 # Activate micromamba shell hook
 eval "$("${{BIN_FOLDER}}/micromamba" shell hook --shell bash)"
 
-micromamba create -y -n {ENVIROMENT_NAME} python pip -c conda-forge
+git clone https://github.com/spyder-ide/spyder-remote-server
+cd spyder-remote-server
+
+micromamba create -y -n {ENVIROMENT_NAME} -f environment.yml
 
 # Activate the environment
 micromamba activate {ENVIROMENT_NAME}
 
 # Install the spyder-remote-server package
 #pip install {PACKAGE_NAME}
-
-pip install poetry
-git clone https://github.com/spyder-ide/spyder-remote-server
-cd spyder-remote-server
 poetry install
 
 """

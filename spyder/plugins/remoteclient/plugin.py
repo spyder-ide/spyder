@@ -20,7 +20,6 @@ from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.plugins.remoteclient.api.protocol import KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions
 from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
-from spyder.plugins.remoteclient.api.ssh import SpyderSSHClient
 from spyder.api.utils import AsSync
 
 _logger = logging.getLogger(__name__)
@@ -42,10 +41,10 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_established = Signal(str)
     sig_connection_lost = Signal(str)
 
-    sig_kernel_list = Signal(KernelsList)
-    sig_kernel_started = Signal(KernelConnectionInfo)
-    sig_kernel_info = Signal(KernelInfo)
-    sig_kernel_terminated = Signal(DeleteKernel)
+    sig_kernel_list = Signal(dict)
+    sig_kernel_started = Signal(dict)
+    sig_kernel_info = Signal(dict)
+    sig_kernel_terminated = Signal(dict)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -85,21 +84,21 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             return self._remote_clients[config_id]
 
-    @AsSync.as_sync
+    @AsSync
     async def install_remote_server(self, config_id):
         """Install remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            await client.install_remote_server()
+            return await client.connect_and_install_remote_server()
 
-    @AsSync.as_sync
+    @AsSync
     async def start_remote_server(self, config_id):
         """Start remote server."""
         if config_id in self._remote_clients:
             server = self._remote_clients[config_id]
-            await server.connect_and_start_server()
+            return await server.connect_and_start_server()
 
-    @AsSync.as_sync
+    @AsSync
     async def stop_remote_server(self, config_id):
         """Stop remote server."""
         if config_id in self._remote_clients:
@@ -140,7 +139,7 @@ class RemoteClient(SpyderPluginV2):
     # -------------------------------------------------------------------------
     # --- Remote Server Kernel Methods
     @Slot(str)
-    @AsSync.as_sync
+    @AsSync
     async def get_kernels(self, config_id):
         """Get opened kernels."""
         if config_id in self._remote_clients:
@@ -150,7 +149,7 @@ class RemoteClient(SpyderPluginV2):
             return kernels_list
 
     @Slot(str)
-    @AsSync.as_sync
+    @AsSync
     async def get_kernel_info(self, config_id, kernel_key):
         """Get kernel info."""
         if config_id in self._remote_clients:
@@ -160,7 +159,7 @@ class RemoteClient(SpyderPluginV2):
             return kernel_info
 
     @Slot(str)
-    @AsSync.as_sync
+    @AsSync
     async def terminate_kernel(self, config_id, kernel_key):
         """Terminate opened kernel."""
         if config_id in self._remote_clients:
@@ -170,7 +169,7 @@ class RemoteClient(SpyderPluginV2):
             return delete_kernel
 
     @Slot(str)
-    @AsSync.as_sync
+    @AsSync
     async def start_new_kernel(self, config_id):
         """Start new kernel."""
         if config_id in self._remote_clients:
