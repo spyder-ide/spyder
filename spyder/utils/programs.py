@@ -68,7 +68,7 @@ def get_temp_dir(suffix=None):
     return tempdir
 
 
-def is_program_installed(basename):
+def is_program_installed(basename, extra_paths=[]):
     """
     Return program absolute path if installed in PATH.
     Otherwise, return None.
@@ -76,7 +76,7 @@ def is_program_installed(basename):
     Also searches specific platform dependent paths that are not already in
     PATH. This permits general use without assuming user profiles are
     sourced (e.g. .bash_Profile), such as when login shells are not used to
-    launch Spyder.
+    launch Spyder. Additionally, extra_paths are searched.
 
     On macOS systems, a .app is considered installed if it exists.
     """
@@ -107,15 +107,15 @@ def is_program_installed(basename):
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
     conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-    req_paths.extend(pyenv + conda)
+    req_paths.extend(pyenv + conda + extra_paths)
 
-    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
+    for path in set(os.environ['PATH'].split(os.pathsep) + req_paths):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
 
 
-def find_program(basename):
+def find_program(basename, extra_paths=[]):
     """
     Find program in PATH and return absolute path
 
@@ -129,7 +129,7 @@ def find_program(basename):
         if not basename.endswith(extensions):
             names = [basename + ext for ext in extensions] + [basename]
     for name in names:
-        path = is_program_installed(name)
+        path = is_program_installed(name, extra_paths)
         if path:
             return path
 
