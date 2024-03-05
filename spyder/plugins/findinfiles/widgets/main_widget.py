@@ -307,6 +307,7 @@ class FindInFilesWidget(PluginMainWidget):
         self.set_max_results_action = self.create_action(
             FindInFilesWidgetActions.MaxResults,
             text=_('Set maximum number of results'),
+            icon=self.create_icon("transparent"),
             tip=_('Set maximum number of results'),
             triggered=lambda x=None: self.set_max_results(),
         )
