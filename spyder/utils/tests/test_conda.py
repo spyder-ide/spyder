@@ -17,11 +17,11 @@ import pytest
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.utils import is_anaconda
+from spyder.plugins.ipythonconsole.tests.conftest import get_conda_test_env
 from spyder.utils.conda import (
     add_quotes, find_conda, get_conda_activation_script, get_conda_env_path,
     get_conda_root_prefix, get_list_conda_envs, get_list_conda_envs_cache,
     get_spyder_conda_channel)
-
 
 if not is_anaconda():
     pytest.skip("Requires conda to be installed", allow_module_level=True)
@@ -65,12 +65,19 @@ def test_get_conda_root_prefix():
 
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_find_conda():
+    # Standard test
+    assert find_conda()
+
+    # Test with test environment
+    pyexec = get_conda_test_env()[1]
+
     # Temporarily remove CONDA_EXE and MAMBA_EXE, if present
     conda_exe = os.environ.pop('CONDA_EXE', None)
     mamba_exe = os.environ.pop('MAMBA_EXE', None)
 
-    assert find_conda()
+    assert find_conda(pyexec)
 
+    # Restore os.environ
     if conda_exe is not None:
         os.environ['CONDA_EXE'] = conda_exe
     if mamba_exe is not None:
