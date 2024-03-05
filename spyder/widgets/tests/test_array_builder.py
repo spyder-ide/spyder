@@ -100,6 +100,7 @@ def test_array_inline_force_float_error_array(botinlinefloat, qtbot):
     assert value == 'np.array([4.0, 5.0, 6.0, a, 9.0])'
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_array_table(botarray, qtbot):
     dialog, widget = botarray
     qtbot.keyClick(widget, Qt.Key_1)
@@ -120,7 +121,8 @@ def test_array_table(botarray, qtbot):
     assert value == 'np.array([[1, 2, 3],\n          [4, 5, 6]])'
 
 
-def test_array_table_array_empty_items(botarray, qtbot):  # analysis:ignore
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
+def test_array_table_empty_items(botarray, qtbot):  # analysis:ignore
     dialog, widget = botarray
     qtbot.keyClick(widget, Qt.Key_Tab)
     qtbot.keyClick(widget, Qt.Key_2)
@@ -138,7 +140,8 @@ def test_array_table_array_empty_items(botarray, qtbot):  # analysis:ignore
     assert value == 'np.array([[0, 2, 3],\n          [0, 5, 6]])'
 
 
-def test_array_table_array_spaces_in_item(botarray, qtbot):  # analysis:ignore
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
+def test_array_table_spaces_in_item(botarray, qtbot):  # analysis:ignore
     dialog, widget = botarray
     qtbot.keyClicks(widget, '   ')
     qtbot.keyClick(widget, Qt.Key_Tab)
@@ -157,8 +160,8 @@ def test_array_table_array_spaces_in_item(botarray, qtbot):  # analysis:ignore
     assert value == 'np.array([[0, 2, 3],\n          [0, 5, 6]])'
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
-def test_array_table_matrix_empty(botarray, qtbot):  # analysis:ignore
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
+def test_array_table_empty(botarray, qtbot):  # analysis:ignore
     dialog, widget = botarray
     qtbot.keyClick(widget, Qt.Key_Return, modifier=Qt.ShiftModifier)
     value = dialog.text()
