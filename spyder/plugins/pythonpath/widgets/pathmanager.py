@@ -177,10 +177,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
             tip=_("Export to PYTHONPATH environment variable"))
         self.prioritize_button = self.create_toolbutton(
             PathManagerToolbuttons.Prioritize,
-            icon=self.create_icon('first_page'),
             option='prioritize',
             triggered=self.refresh,
-            tip=_("Place PYTHONPATH at the front of sys.path"))
+        )
         self.prioritize_button.setCheckable(True)
 
         self.selection_widgets = [self.movetop_button, self.moveup_button,
@@ -471,6 +470,13 @@ class PathManager(QDialog, SpyderWidgetMixin):
             current_item not in self.headers
             and (self.editable_top_row <= row <= self.editable_bottom_row)
         )
+
+        if self.prioritize_button.isChecked():
+            self.prioritize_button.setIcon(self.create_icon('prepend'))
+            self.prioritize_button.setToolTip(_("Paths are prpended to sys.path"))
+        else:
+            self.prioritize_button.setIcon(self.create_icon('append'))
+            self.prioritize_button.setToolTip(_("Paths are appended to sys.path"))
 
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
