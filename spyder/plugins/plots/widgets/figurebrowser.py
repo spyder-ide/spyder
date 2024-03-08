@@ -12,6 +12,7 @@ This is the main widget used in the Plots plugin
 
 # Standard library imports
 import datetime
+import math
 import os.path as osp
 import sys
 
@@ -427,7 +428,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         """Set a new figure in the figure canvas."""
         self.figcanvas.load_figure(fig, fmt)
         self.sig_figure_loaded.emit()
-        self.scale_image()
+        self.scale_image(auto_fit_when_loading=not self.auto_fit_plotting)
         self.figcanvas.repaint()
 
     def eventFilter(self, widget, event):
@@ -493,15 +494,15 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         if self._scalefactor >= self._sfmin:
             self._scalefactor -= 1
             self.scale_image()
-            self._adjust_scrollbar(1/self._scalestep)
+            self._adjust_scrollbar(1 / self._scalestep)
 
-    def scale_image(self):
+    def scale_image(self, auto_fit_when_loading=False):
         """Scale the image size."""
         fwidth = self.figcanvas.fwidth
         fheight = self.figcanvas.fheight
 
         # Don't auto fit plotting
-        if not self.auto_fit_plotting:
+        if not self.auto_fit_plotting and not auto_fit_when_loading:
             new_width = int(fwidth * self._scalestep ** self._scalefactor)
             new_height = int(fheight * self._scalestep ** self._scalefactor)
 
@@ -516,7 +517,9 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
+
             self.figcanvas.setToolTip('')
+
             try:
                 if (fwidth / fheight) > (width / height):
                     new_width = int(width)
@@ -528,12 +531,21 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
                 icon = self.create_icon('broken_image')
                 self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
                 self.figcanvas.setToolTip(
-                    _('The image is broken, please try to generate it again'))
+                    _('The image is broken, please try to generate it again')
+                )
                 new_width = fwidth
                 new_height = fheight
+                auto_fit_when_loading = False
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
+
+            # Adjust the scale factor according to the scaling of the fitted
+            # image. This is necessary so that zoom in/out increases/decreases
+            # the image size in factors of of +1/-1 of the one computed below.
+            if auto_fit_when_loading:
+                self._scalefactor = self.get_scale_factor()
+
             self.sig_zoom_changed.emit(self.get_scaling())
 
     def get_scaling(self):
@@ -544,6 +556,10 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             return round(width / fwidth * 100)
         else:
             return 100
+
+    def get_scale_factor(self):
+        """Get scale factor according to the current scaling."""
+        return math.log(self.get_scaling() / 100) / math.log(self._scalestep)
 
     def reset_original_image(self):
         """Reset the image to its original size."""
