@@ -166,15 +166,10 @@ class WorkerUpdates(QObject):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.debug(err, stack_info=True)
         except Exception as err:
-            error = traceback.format_exc()
-            formatted_error = error.replace('\n', '<br>').replace(' ', '&nbsp;')
-
-            error_msg = _(
-                'It was not possible to check for Spyder updates due to the '
-                'following error:'
-                '<br><br>'
-                '<tt>{}</tt>'
-            ).format(formatted_error)
+            # Only log the error when it's a generic one because we can't give
+            # users proper feedback on how to address it. Otherwise we'd show
+            # a long traceback that most probably would be incomprehensible to
+            # them.
             logger.debug(err, stack_info=True)
 
         # At this point we **must** emit the signal below so that the "Check
