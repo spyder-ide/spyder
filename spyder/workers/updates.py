@@ -177,13 +177,14 @@ class WorkerUpdates(QObject):
             ).format(formatted_error)
             logger.debug(err, stack_info=True)
 
-        # Don't show dialog when starting up spyder and an error occur
-        if not (self.startup and error_msg is not None):
-            self.error = error_msg
-            try:
-                self.sig_ready.emit()
-            except RuntimeError:
-                pass
+        # At this point we **must** emit the signal below so that the "Check
+        # for updates" action in the Help menu is enabled again after the check
+        # has finished (it's disabled while the check is running).
+        self.error = error_msg
+        try:
+            self.sig_ready.emit()
+        except RuntimeError:
+            pass
 
 
 class WorkerDownloadInstaller(QObject):
@@ -336,6 +337,7 @@ class WorkerDownloadInstaller(QObject):
                 '<tt>{}</tt>'
             ).format(formatted_error)
             logger.debug(err, stack_info=True)
+
         self.error = error_msg
         try:
             self.sig_ready.emit(self.installer_path)
