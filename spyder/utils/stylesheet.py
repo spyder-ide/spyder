@@ -260,7 +260,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # is not perfect because (oddly enough) Qt doesn't set the same height
         # for both when using the same value, but it's close enough.
         css.QLineEdit.setValues(
-            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
         # We need to substract here a tiny bit bigger value to match the size
