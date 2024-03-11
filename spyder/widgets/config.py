@@ -16,7 +16,7 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
+from qtpy.QtCore import Qt, QRegularExpression, QSize, Signal, Slot
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QFileDialog, QGridLayout, QGroupBox,
@@ -32,6 +32,7 @@ from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.comboboxes import FileComboBox
@@ -607,11 +608,14 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
 
         if alignment == Qt.Vertical:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 27px")
+            browse_btn.setStyleSheet("margin-top: 28px")
 
             layout = QGridLayout()
             layout.setContentsMargins(0, 0, 0, 0)
@@ -666,11 +670,14 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+        browse_btn.setIconSize(
+           QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
 
         if alignment == Qt.Vertical:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 27px")
+            browse_btn.setStyleSheet("margin-top: 28px")
 
             layout = QGridLayout()
             layout.setContentsMargins(0, 0, 0, 0)

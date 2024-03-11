@@ -10,6 +10,7 @@ Helper widgets.
 
 # Standard imports
 import re
+from typing import Optional
 
 # Third party imports
 import qtawesome as qta
@@ -793,10 +794,12 @@ class TipWidget(QLabel):
         tip_text: str,
         icon: QIcon,
         hover_icon: QIcon,
-        size: int = 20
+        size: Optional[int] = None
     ):
         super().__init__()
         self.tip_text = tip_text
+
+        size = size if size is not None else AppStyle.ConfigPageIconSize
         self.icon = icon.pixmap(QSize(size, size))
         self.hover_icon = hover_icon.pixmap(QSize(size, size))
 

@@ -44,6 +44,9 @@ class AppStyle(SpyderFontsMixin):
     # To have it for quick access because it's needed a lot in Mac
     MacScrollBarWidth = 16  # px
 
+    # Icon size in config pages
+    ConfigPageIconSize = 20
+
     @classproperty
     def _fs(cls):
         """Interface font size in points."""
