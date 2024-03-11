@@ -331,5 +331,31 @@ def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
         assert errors
 
 
+def test_get_environment_windows(mocker):
+    """Test that the environment variables match the Windows OS."""
+    mocker.patch("spyder.plugins.pylint.main_widget.os.name",
+                 "nt")
+    mocker.patch("spyder.plugins.pylint.main_widget.is_conda_based_app",
+                 return_value=False)
+    mocker.patch("spyder.plugins.pylint.main_widget.is_anaconda",
+                 return_value=False)
+    mocker.patch("spyder.plugins.pylint.main_widget.get_home_dir",
+                 return_value='')
+
+    process_environment = Pylint.WIDGET_CLASS.get_environment()
+
+    assert process_environment.keys() ==\
+        ["APPDATA", "PYTHONIOENCODING", "USERPROFILE"]
+
+
+def test_get_environment_nonwindows(mocker):
+    """Test that the environment variables match the Linux and Mac OS."""
+    mocker.patch("spyder.plugins.pylint.main_widget.os.name",
+                 "posix")
+    process_environment = Pylint.WIDGET_CLASS.get_environment()
+
+    assert process_environment.keys() == ["PYTHONIOENCODING"]
+
+
 if __name__ == "__main__":
     pytest.main([osp.basename(__file__), '-vv', '-rw'])
