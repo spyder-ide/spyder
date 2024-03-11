@@ -373,21 +373,7 @@ class PylintWidget(PluginMainWidget):
             lambda ec, es=QProcess.ExitStatus: self._finished(ec, es))
 
         command_args = self.get_command(self.get_filename())
-        processEnvironment = QProcessEnvironment()
-        processEnvironment.insert("PYTHONIOENCODING", "utf8")
-
-        if os.name == 'nt':
-            # Needed due to changes in Pylint 2.14.0
-            # See spyder-ide/spyder#18175
-            home_dir = get_home_dir()
-            user_profile = os.environ.get("USERPROFILE", home_dir)
-            processEnvironment.insert("USERPROFILE", user_profile)
-            # Needed for Windows installations using standalone Python and pip.
-            # See spyder-ide/spyder#19385
-            if not is_conda_env(sys.prefix):
-                processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
-
-        process.setProcessEnvironment(processEnvironment)
+        process.setProcessEnvironment(self.get_environment())
         process.start(sys.executable, command_args)
         running = process.waitForStarted()
         if not running:
@@ -945,6 +931,25 @@ class PylintWidget(PluginMainWidget):
 
         command_args.append(filename)
         return command_args
+
+    @staticmethod
+    def get_environment() -> QProcessEnvironment:
+        """Get evironment variables for pylint command."""
+        process_environment = QProcessEnvironment()
+        process_environment.insert("PYTHONIOENCODING", "utf8")
+
+        if os.name == 'nt':
+            # Needed due to changes in Pylint 2.14.0
+            # See spyder-ide/spyder#18175
+            home_dir = get_home_dir()
+            user_profile = os.environ.get("USERPROFILE", home_dir)
+            process_environment.insert("USERPROFILE", user_profile)
+            # Needed for Windows installations using standalone Python and pip.
+            # See spyder-ide/spyder#19385
+            if not is_conda_env(sys.prefix):
+                process_environment.insert("APPDATA", os.environ.get("APPDATA"))
+
+        return process_environment
 
     def parse_output(self, output):
         """
