@@ -584,24 +584,51 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         edit.label_text = text
         return widget
 
-    def create_browsedir(self, text, option, default=NoDefault, tip=None,
-                         section=None):
-        widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+    def create_browsedir(self, text, option, default=NoDefault, section=None,
+                         tip=None, alignment=Qt.Horizontal):
+        widget = self.create_lineedit(
+            text,
+            option,
+            default,
+            section=section,
+            alignment=alignment,
+            # We need the tip to be added by the lineedit if the alignment is
+            # vertical. If not, it'll be added below when setting the layout.
+            tip=tip if (tip and alignment == Qt.Vertical) else None,
+        )
+
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
+
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
+
         browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
-        layout = QHBoxLayout()
-        layout.addWidget(widget)
-        layout.addWidget(browse_btn)
-        layout.setContentsMargins(0, 0, 0, 0)
-        if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
+
+        if alignment == Qt.Vertical:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 27px")
+
+            layout = QGridLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget, 0, 0)
+            layout.addWidget(browse_btn, 0, 1)
+        else:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 2px")
+
+            layout = QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget)
+            layout.addWidget(browse_btn)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
         browsedir = QWidget(self)
         browsedir.setLayout(layout)
         return browsedir
@@ -616,24 +643,51 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         if directory:
             edit.setText(directory)
 
-    def create_browsefile(self, text, option, default=NoDefault, tip=None,
-                          filters=None, section=None):
-        widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+    def create_browsefile(self, text, option, default=NoDefault, section=None,
+                          tip=None, filters=None, alignment=Qt.Horizontal):
+        widget = self.create_lineedit(
+            text,
+            option,
+            default,
+            section=section,
+            alignment=alignment,
+            # We need the tip to be added by the lineedit if the alignment is
+            # vertical. If not, it'll be added below when setting the layout.
+            tip=tip if (tip and alignment == Qt.Vertical) else None,
+        )
+
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
+
         msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
-        layout = QHBoxLayout()
-        layout.addWidget(widget)
-        layout.addWidget(browse_btn)
-        layout.setContentsMargins(0, 0, 0, 0)
-        if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
+
+        if alignment == Qt.Vertical:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 27px")
+
+            layout = QGridLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget, 0, 0)
+            layout.addWidget(browse_btn, 0, 1)
+        else:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 2px")
+
+            layout = QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget)
+            layout.addWidget(browse_btn)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
         browsedir = QWidget(self)
         browsedir.setLayout(layout)
         return browsedir
