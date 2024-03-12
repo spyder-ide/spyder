@@ -329,22 +329,31 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         """Save settings to configuration file"""
         for checkbox, (sec, option, _default) in list(
                 self.checkboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 value = checkbox.isChecked()
                 self.set_option(option, value, section=sec,
                                 recursive_notification=False)
 
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
 
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = lineedit.text()
                 content_type = getattr(lineedit, 'content_type', None)
                 if content_type == list:
@@ -355,8 +364,11 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                                 recursive_notification=False)
 
         for textedit, (sec, option, _default) in list(self.textedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = textedit.toPlainText()
                 content_type = getattr(textedit, 'content_type', None)
                 if content_type == dict:
@@ -372,35 +384,47 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                                 recursive_notification=False)
 
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option, spinbox.value(), section=sec,
                                 recursive_notification=False)
 
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if option in self.changed_options:
+            if option in self.changed_options or not self.LOAD_FROM_CONFIG:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
                 self.set_font(font, option)
 
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
 
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
