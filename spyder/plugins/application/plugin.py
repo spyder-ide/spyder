@@ -25,7 +25,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.widgets.menus import MENU_SEPARATOR
 from spyder.config.base import (DEV, get_module_path, get_debug_level,
-                                is_pynsist, running_in_mac_app,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
@@ -150,7 +149,7 @@ class Application(SpyderPluginV2):
 
         # Users only need to see this widget in our apps.
         # Note: This can only be done at this point to take effect.
-        if not (is_pynsist() or running_in_mac_app()):
+        if not container.is_installer():
             self.application_update_status.setVisible(False)
 
         # Handle DPI scale and window changes to show a restart message.
