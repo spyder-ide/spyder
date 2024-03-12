@@ -4600,11 +4600,11 @@ test = 3.14
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
             nsb.editor.source_model._data['test']['view'] == '3')
-    
+
     # Run magic
     with qtbot.waitSignal(shell.executed):
         shell.execute("%runcell -i 1")
-    
+
     # check value of test
     with qtbot.waitSignal(shell.executed):
         shell.execute("print('test =', test)")
@@ -6687,33 +6687,33 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "801" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
-    
+
     # Create an untitled file
     main_window.editor.new()
-    
+
     assert "untitled" in main_window.editor.get_current_filename()
-    
+
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text("print(20 + 780)")
-    
+
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
     assert "800" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "untitled" in control.toPlainText()
-    
+
     # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
-    
+
     with tempfile.TemporaryDirectory() as td:
-    
+
         editorstack = main_window.editor.get_current_editorstack()
         editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
         main_window.editor.save()
         with qtbot.waitSignal(shell.executed):
             qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
-    
+
         assert "799" in control.toPlainText()
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()
