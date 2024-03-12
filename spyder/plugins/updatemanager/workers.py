@@ -151,21 +151,18 @@ class WorkerUpdate(QObject):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except Exception as err:
-            error = traceback.format_exc()
-            formatted_error = (
-                error.replace('\n', '<br>')
-                .replace(' ', '&nbsp;')
-            )
-
-            error_msg = _(
-                'It was not possible to check for Spyder updates due to the '
-                'following error:'
-                '<br><br>'
-                '<tt>{}</tt>'
-            ).format(formatted_error)
+            # Only log the error when it's a generic one because we can't give
+            # users proper feedback on how to address it. Otherwise we'd show
+            # a long traceback that most probably would be incomprehensible to
+            # them.
             logger.warning(err, exc_info=err)
         finally:
             self.error = error_msg
+
+            # At this point we **must** emit the signal below so that the
+            # "Check for updates" action in the Help menu is enabled again
+            # after the check has finished (it's disabled while the check is
+            # running).
             try:
                 self.sig_ready.emit()
             except RuntimeError:
@@ -287,6 +284,7 @@ class WorkerDownloadInstaller(QObject):
             self._clean_installer_path()
         finally:
             self.error = error_msg
+
             try:
                 self.sig_ready.emit()
             except RuntimeError:
