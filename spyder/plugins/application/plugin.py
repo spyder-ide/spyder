@@ -147,9 +147,9 @@ class Application(SpyderPluginV2):
             container.give_updates_feedback = False
             container.check_updates(startup=True)
 
-        # Hide status bar widget for updates if it doesn't need to be visible.
+        # Users only need to see this widget in our apps.
         # Note: This can only be done at this point to take effect.
-        if not self.application_update_status.isVisible():
+        if not container.is_installer():
             self.application_update_status.setVisible(False)
 
         # Handle DPI scale and window changes to show a restart message.

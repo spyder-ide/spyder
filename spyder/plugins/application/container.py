@@ -111,10 +111,7 @@ class ApplicationContainer(PluginMainContainer):
             parent=self
         )
 
-        # Users can only use this widget in our apps.
-        if not is_pynsist() and not running_in_mac_app():
-            self.application_update_status.hide()
-        else:
+        if self.is_installer():
             self.application_update_status.set_no_status()
 
         (self.application_update_status.sig_check_for_updates_requested
@@ -297,10 +294,10 @@ class ApplicationContainer(PluginMainContainer):
             box.setText(error_msg)
             box.set_check_visible(False)
             box.show()
-            if self.application_update_status.isVisible():
+            if self.is_installer():
                 self.application_update_status.set_no_status()
         elif update_available:
-            if self.application_update_status.isVisible():
+            if self.is_installer():
                 self.application_update_status.set_status_pending(
                     latest_release)
 
@@ -312,7 +309,7 @@ class ApplicationContainer(PluginMainContainer):
                 box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 box.setDefaultButton(QMessageBox.Yes)
 
-                if not is_pynsist() and not running_in_mac_app():
+                if not self.is_installer():
                     installers_url = url_i + "#standalone-installers"
                     msg = (
                         header +
@@ -342,8 +339,7 @@ class ApplicationContainer(PluginMainContainer):
                 not box.result()  # The installer dialog was skipped
                 or (
                     box.result() == QMessageBox.No
-                    and not is_pynsist()
-                    and not running_in_mac_app()
+                    and not self.is_installer()
                 )
             ):
                 # Update-at-startup checkbox visible only if manual update
@@ -426,10 +422,10 @@ class ApplicationContainer(PluginMainContainer):
         elif feedback:
             box.setText(_("Spyder is up to date."))
             box.show()
-            if self.application_update_status.isVisible():
+            if self.is_installer():
                 self.application_update_status.set_no_status()
         else:
-            if self.application_update_status.isVisible():
+            if self.is_installer():
                 self.application_update_status.set_no_status()
 
         self.set_conf(option, box.is_checked())
@@ -450,7 +446,7 @@ class ApplicationContainer(PluginMainContainer):
         self.check_updates_action.setDisabled(True)
         self.check_updates_action.setText(_("Checking for updates..."))
 
-        if self.application_update_status.isVisible():
+        if self.is_installer():
             self.application_update_status.set_status_checking()
 
         if self.thread_updates is not None:
@@ -480,6 +476,9 @@ class ApplicationContainer(PluginMainContainer):
     def set_installer_path(self, installer_path):
         """Set installer executable path to be run when closing."""
         self.installer_path = installer_path
+
+    def is_installer(self):
+        return is_pynsist() or running_in_mac_app()
 
     # ---- Dependencies
     # -------------------------------------------------------------------------
