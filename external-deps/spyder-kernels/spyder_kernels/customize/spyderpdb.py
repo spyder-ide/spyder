@@ -181,6 +181,7 @@ class SpyderPdb(ipyPdb):
                         # The pdb command is masked by something
                         self.print_exclamation_warning()
         try:
+            is_magic = line.startswith("%")
             line = TransformerManager().transform_cell(line)
             save_stdout = sys.stdout
             save_stdin = sys.stdin
@@ -203,7 +204,16 @@ class SpyderPdb(ipyPdb):
 
                 globals["__spyder_builtins__"] = builtins
 
+                use_locals_hack = False
                 if locals is not globals:
+                    if not is_magic:
+                        # For runcell and all magic using locals
+                        # Because the locals() can not be modified
+                        use_locals_hack = False
+                else:
+                    locals = None
+
+                if use_locals_hack:
                     # Mitigates a behaviour of CPython that makes it difficult
                     # to work with exec and the local namespace
                     # See:
@@ -262,16 +272,16 @@ class SpyderPdb(ipyPdb):
                     code_ast = fun_ast
 
                 try:
-                    exec(compile(code_ast, "<stdin>", "exec"), globals)
+                    exec(compile(code_ast, "<stdin>", "exec"), globals, locals)
                 finally:
-                    if locals is not globals:
-                        # CLeanup code
+                    if use_locals_hack:
+                        # Cleanup code
                         globals.pop("_spyderpdb_code", None)
                         if len(globals["_spyderpdb_locals"]) > 1:
                             del globals["_spyderpdb_locals"][-1]
                         else:
                             del globals["_spyderpdb_locals"]
-                        
+
 
                 if capture_last_expression:
                     out = globals.pop("_spyderpdb_out", None)
@@ -360,7 +370,7 @@ class SpyderPdb(ipyPdb):
             # This is spyder-kernels internals
             return False
         return True
-    
+
     def should_continue(self, frame):
         """
         Jump to first breakpoint if needed.
