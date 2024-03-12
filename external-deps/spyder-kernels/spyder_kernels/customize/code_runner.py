@@ -41,7 +41,9 @@ from spyder_kernels.comms.frontendcomm import frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.customize.utils import capture_last_Expr, canonic
+from spyder_kernels.customize.utils import (
+    capture_last_Expr, canonic, exec_encapsulate_locals
+)
 
 
 # For logging
@@ -500,7 +502,9 @@ class SpyderCodeRunner(Magics):
                 )
                 ns_globals["__spyder_builtins__"] = builtins
 
-            exec_fun(compile(ast_code, filename, "exec"), ns_globals, ns_locals)
+            exec_encapsulate_locals(
+                ast_code, ns_globals, ns_locals, exec_fun, filename
+            )
 
             if capture_last_expression:
                 out = ns_globals.pop("_spyder_out", None)

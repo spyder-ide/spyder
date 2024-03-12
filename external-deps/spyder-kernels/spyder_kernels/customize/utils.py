@@ -131,6 +131,87 @@ def capture_last_Expr(code_ast, out_varname):
     return code_ast, capture_last_expression
 
 
+def exec_encapsulate_locals(
+    code_ast, globals, locals, exec_fun=None, filename=None
+):
+    """
+    Execute by encapsulating locals if needed.
+    """
+    use_locals_hack = locals is not None and locals is not globals
+    if use_locals_hack:
+        # Mitigates a behaviour of CPython that makes it difficult
+        # to work with exec and the local namespace
+        # See:
+        #  - https://bugs.python.org/issue41918
+        #  - https://bugs.python.org/issue46153
+        #  - https://bugs.python.org/issue21161
+        #  - spyder-ide/spyder#13909
+        #  - spyder-ide/spyder-kernels#345
+        #
+        # The idea here is that the best way to emulate being in a
+        # function is to actually execute the code in a function.
+        # A function called `_spyderpdb_code` is created and
+        # called. It will first load the locals, execute the code,
+        # and then update the locals.
+        #
+        # One limitation of this approach is that locals() is only
+        # a copy of the curframe locals. This means that closures
+        # for example are early binding instead of late binding.
+
+        # Create a function
+        indent = "    "
+        code = ["def _spyderpdb_code():"]
+
+        # Add locals in globals
+        # If the debugger is recursive, the globals could already
+        # have a _spyderpdb_locals as it might be shared between
+        # levels
+        if "_spyderpdb_locals" in globals:
+            globals["_spyderpdb_locals"].append(locals)
+        else:
+            globals["_spyderpdb_locals"] = [locals]
+
+        # Load locals if they have a valid name
+        # In comprehensions, locals could contain ".0" for example
+        code += [indent + "{k} = _spyderpdb_locals[-1]['{k}']".format(
+            k=k) for k in locals if k.isidentifier()]
+
+        # The code comes here
+
+        # Update the locals
+        code += [indent + "_spyderpdb_locals[-1].update("
+                 "__spyder_builtins__.locals())"]
+
+        # Run the function
+        code += ["_spyderpdb_code()"]
+
+        # Parse the function
+        fun_ast = ast.parse('\n'.join(code) + '\n')
+
+        # Inject code_ast in the function before the locals update
+        fun_ast.body[0].body = (
+            fun_ast.body[0].body[:-1]  # The locals
+            + code_ast.body  # Code to run
+            + fun_ast.body[0].body[-1:]  # Locals update
+        )
+        code_ast = fun_ast
+
+    try:
+        if exec_fun is None:
+            exec_fun = exec
+        if filename is None:
+            filename = "<stdin>"
+        exec_fun(compile(code_ast, filename, "exec"), globals)
+    finally:
+        if use_locals_hack:
+            # Cleanup code
+            globals.pop("_spyderpdb_code", None)
+            if len(globals["_spyderpdb_locals"]) > 1:
+                del globals["_spyderpdb_locals"][-1]
+            else:
+                del globals["_spyderpdb_locals"]
+
+
 def canonic(filename):
     """
     Return canonical form of filename.
