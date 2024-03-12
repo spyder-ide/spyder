@@ -9,6 +9,7 @@
 
 # Standard library imports
 from io import open
+import os
 import os.path as osp
 from unittest.mock import Mock, MagicMock
 
@@ -64,6 +65,7 @@ enable=blacklisted-name
 bad-names={bad_names}
 good-names=e
 """
+
 
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
@@ -333,8 +335,8 @@ def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
 
 def test_get_environment_windows(mocker):
     """Test that the environment variables match the Windows OS."""
-    mocker.patch("spyder.plugins.pylint.main_widget.os.name",
-                 "nt")
+    os_name_original = os.name
+    mocker.patch("spyder.plugins.pylint.main_widget.os.name", "nt")
     mocker.patch("spyder.plugins.pylint.main_widget.is_conda_based_app",
                  return_value=False)
     mocker.patch("spyder.plugins.pylint.main_widget.is_anaconda",
@@ -342,19 +344,30 @@ def test_get_environment_windows(mocker):
     mocker.patch("spyder.plugins.pylint.main_widget.get_home_dir",
                  return_value='')
 
-    process_environment = Pylint.WIDGET_CLASS.get_environment()
+    process_environment = Pylint.WIDGET_CLASS.get_environment(
+        pythonpath_manager_values=["project_dir"])
 
-    assert process_environment.keys() ==\
-        ["APPDATA", "PYTHONIOENCODING", "USERPROFILE"]
+    try:
+        assert sorted(process_environment.keys()) ==\
+            ["APPDATA", "PYTHONIOENCODING", "PYTHONPATH", "USERPROFILE"]
+    finally:
+        mocker.patch("spyder.plugins.pylint.main_widget.os.name",
+                     os_name_original)
 
 
 def test_get_environment_nonwindows(mocker):
     """Test that the environment variables match the Linux and Mac OS."""
-    mocker.patch("spyder.plugins.pylint.main_widget.os.name",
-                 "posix")
-    process_environment = Pylint.WIDGET_CLASS.get_environment()
+    os_name_original = os.name
+    mocker.patch("spyder.plugins.pylint.main_widget.os.name", "posix")
+    process_environment = Pylint.WIDGET_CLASS.get_environment(
+        pythonpath_manager_values=["project_dir"])
 
-    assert process_environment.keys() == ["PYTHONIOENCODING"]
+    try:
+        assert sorted(process_environment.keys()) == \
+            ["PYTHONIOENCODING", "PYTHONPATH"]
+    finally:
+        mocker.patch("spyder.plugins.pylint.main_widget.os.name",
+                     os_name_original)
 
 
 if __name__ == "__main__":
