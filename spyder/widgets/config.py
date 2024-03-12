@@ -97,6 +97,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.coloredits = {}
         self.scedits = {}
         self.cross_section_options = {}
+
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
@@ -189,6 +190,20 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         if not status:
                             return status
         return status
+
+    def reset_widget_dicts(self):
+        """Reset the dicts of widgets tracked in the page."""
+        self.checkboxes = {}
+        self.radiobuttons = {}
+        self.lineedits = {}
+        self.textedits = {}
+        self.validate_data = {}
+        self.spinboxes = {}
+        self.comboboxes = {}
+        self.fontboxes = {}
+        self.coloredits = {}
+        self.scedits = {}
+        self.cross_section_options = {}
 
     def load_from_conf(self):
         """Load settings from configuration file."""
