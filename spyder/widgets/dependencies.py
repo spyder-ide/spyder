@@ -10,18 +10,20 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QTreeWidget, QTreeWidgetItem)
+                            QStackedWidget, QTreeWidget, QTreeWidgetItem)
 
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
-from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
+from spyder.config.gui import is_dark_interface
+from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import SpyderPalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 class DependenciesTreeWidget(QTreeWidget):
@@ -55,15 +57,28 @@ class DependenciesTreeWidget(QTreeWidget):
                                     dependency.required_version,
                                     dependency.installed_version,
                                     dependency.features])
+
             # Format content
             if dependency.check():
                 item.setIcon(0, ima.icon('dependency_ok'))
             elif dependency.kind == OPTIONAL:
                 item.setIcon(0, ima.icon('dependency_warning'))
                 item.setBackground(2, QColor(SpyderPalette.COLOR_WARN_1))
+
+                # Fix foreground color in the light theme
+                if not is_dark_interface():
+                    item.setForeground(
+                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                    )
             else:
                 item.setIcon(0, ima.icon('dependency_error'))
                 item.setBackground(2, QColor(SpyderPalette.COLOR_ERROR_1))
+
+                # Fix foreground color in the light theme
+                if not is_dark_interface():
+                    item.setForeground(
+                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                    )
 
             # Add to tree
             if dependency.kind == OPTIONAL:
@@ -86,46 +101,95 @@ class DependenciesDialog(QDialog):
         QDialog.__init__(self, parent)
 
         # Widgets
-        self.label = QLabel(_("Optional modules are not required to run "
-                              "Spyder but enhance its functions."))
-        self.label2 = QLabel(_("<b>Note:</b> New dependencies or changed ones "
-                               "will be correctly detected only after Spyder "
-                               "is restarted."))
+        note1 = _(
+            "Optional modules are not required to run Spyder but enhance "
+            "its functions."
+        )
+
+        note2 = _(
+            "New dependencies or changed ones will be correctly detected only "
+            "after Spyder is restarted."
+        )
+
+        notes_vmargin = "0.4em" if WIN else "0.3em"
+        label = QLabel(
+            (
+                "<style>"
+                "ul, li {{margin-left: -15px}}"
+                "li {{margin-bottom: {}}}"
+                "</style>"
+                "<ul>"
+                "<li>{}</li>"
+                "<li>{}</li>"
+                "</ul>"
+            ).format(notes_vmargin, note1, note2)
+        )
+
         self.treewidget = DependenciesTreeWidget(self)
-        btn = QPushButton(_("Copy to clipboard"), )
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        self.copy_btn = QPushButton(_("Copy to clipboard"))
+        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
-        self.setWindowTitle("Spyder %s: %s" % (__version__,
-                                               _("Dependencies")))
-        self.setWindowIcon(ima.icon('tooloptions'))
+        self.setWindowTitle(
+            _("Dependencies for Spyder {}").format(__version__)
+        )
         self.setModal(False)
+        self.copy_btn.setEnabled(False)
+
+        # Create a QStackedWidget
+        self.stacked_widget = QStackedWidget()
+
+        # Create a loading message
+        self.loading_pane = PaneEmptyWidget(
+            self,
+            "dependencies",
+            _("Dependency information will be retrieved shortly. "
+              "Please wait..."),
+            bottom_stretch=1,
+            spinner=True,
+        )
+
+        # Add the loading label and tree widget to the stacked widget
+        self.stacked_widget.addWidget(self.loading_pane)
+        self.stacked_widget.addWidget(self.treewidget)
+
+        # Make sure the loading label is the one shown initially
+        self.stacked_widget.setCurrentWidget(self.loading_pane)
 
         # Layout
         hlayout = QHBoxLayout()
-        hlayout.addWidget(btn)
+        hlayout.addWidget(self.copy_btn)
         hlayout.addStretch()
-        hlayout.addWidget(bbox)
+        hlayout.addWidget(ok_btn)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(self.treewidget)
-        vlayout.addWidget(self.label)
-        vlayout.addWidget(self.label2)
+        vlayout.setContentsMargins(*((5 * AppStyle.MarginSize,) * 4))
+        vlayout.addWidget(self.stacked_widget)
+        vlayout.addSpacing(AppStyle.MarginSize)
+        vlayout.addWidget(label)
+        vlayout.addSpacing((-2 if MAC else 1) * AppStyle.MarginSize)
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
-        self.resize(860, 560)
+        self.setFixedSize(860, 560)
 
         # Signals
-        btn.clicked.connect(self.copy_to_clipboard)
-        bbox.accepted.connect(self.accept)
+        self.copy_btn.clicked.connect(self.copy_to_clipboard)
+        ok_btn.accepted.connect(self.accept)
 
     def set_data(self, dependencies):
         self.treewidget.update_dependencies(dependencies)
         self.treewidget.resize_columns_to_contents()
 
+        # Once data is loaded, switch to the tree widget
+        self.stacked_widget.setCurrentWidget(self.treewidget)
+
+        # Enable copy button
+        self.copy_btn.setEnabled(True)
+
     def copy_to_clipboard(self):
         from spyder.dependencies import status
+
         QApplication.clipboard().setText(status())
 
 
@@ -145,7 +209,7 @@ def test():
                      ">=0.10", kind=OPTIONAL)
 
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     dlg = DependenciesDialog(None)
     dlg.set_data(dependencies.DEPENDENCIES)
     dlg.show()

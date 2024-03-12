@@ -5,134 +5,72 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-import qstylizer.style
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
-                            QListView, QListWidget, QListWidgetItem,
-                            QPushButton, QScrollArea, QSplitter,
-                            QStackedWidget, QVBoxLayout)
+from qtpy.QtCore import QSize, Signal, Slot
+from qtpy.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QPushButton
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.stylesheet import MAC, WIN
+from spyder.widgets.sidebardialog import SidebarDialog
 
 
-class ConfigDialog(QDialog):
-    """Spyder configuration ('Preferences') dialog box"""
+class ConfigDialog(SidebarDialog):
+    """Preferences dialog."""
 
     # Signals
     check_settings = Signal()
-    size_change = Signal(QSize)
+    sig_size_changed = Signal(QSize)
     sig_reset_preferences_requested = Signal()
 
+    # Constants
+    TITLE = _("Preferences")
+    ICON = ima.icon('configure')
+    MIN_WIDTH = 940 if MAC else (875 if WIN else 920)
+    MIN_HEIGHT = 700 if MAC else (660 if WIN else 670)
+
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        SidebarDialog.__init__(self, parent)
 
+        # Attributes
         self.main = parent
-
-        # Widgets
-        self.pages_widget = QStackedWidget()
-        self.pages_widget.setMinimumWidth(600)
-        self.contents_widget = QListWidget()
-        self.button_reset = QPushButton(_('Reset to defaults'))
-
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
-                                QDialogButtonBox.Cancel)
-        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
-        self.ok_btn = bbox.button(QDialogButtonBox.Ok)
-
-        # Widgets setup
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle(_('Preferences'))
-        self.setWindowIcon(ima.icon('configure'))
-        self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setSpacing(1)
-        self.contents_widget.setCurrentRow(0)
-        self.contents_widget.setMinimumWidth(220)
-        self.contents_widget.setMinimumHeight(400)
-
-        # Layout
-        hsplitter = QSplitter()
-        hsplitter.addWidget(self.contents_widget)
-        hsplitter.addWidget(self.pages_widget)
-        hsplitter.setStretchFactor(0, 1)
-        hsplitter.setStretchFactor(1, 2)
-
-        btnlayout = QHBoxLayout()
-        btnlayout.addWidget(self.button_reset)
-        btnlayout.addStretch(1)
-        btnlayout.addWidget(bbox)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(hsplitter)
-        vlayout.addLayout(btnlayout)
-
-        self.setLayout(vlayout)
-
-        # Stylesheet
-        self.setStyleSheet(self._stylesheet)
-
-        # Signals and slots
-        self.button_reset.clicked.connect(self.sig_reset_preferences_requested)
-        self.pages_widget.currentChanged.connect(self.current_page_changed)
-        self.contents_widget.currentRowChanged.connect(
-                                             self.pages_widget.setCurrentIndex)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        bbox.clicked.connect(self.button_clicked)
 
         # Ensures that the config is present on spyder first run
         CONF.set('main', 'interface_language', load_lang_conf())
 
-    def get_current_index(self):
-        """Return current page index"""
-        return self.contents_widget.currentRow()
-
-    def set_current_index(self, index):
-        """Set current page index"""
-        self.contents_widget.setCurrentRow(index)
-
-    def get_page(self, index=None):
-        """Return page widget"""
-        if index is None:
-            widget = self.pages_widget.currentWidget()
-        else:
-            widget = self.pages_widget.widget(index)
-
-        if widget:
-            return widget.widget()
-
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def get_index_by_name(self, name):
         """Return page index by CONF_SECTION name."""
         for idx in range(self.pages_widget.count()):
-            widget = self.pages_widget.widget(idx)
-            widget = widget.widget()
+            page = self.get_page(idx)
+
+            # This is the case for separators
+            if page is None:
+                continue
+
             try:
                 # New API
-                section = widget.plugin.NAME
+                section = page.plugin.NAME
             except AttributeError:
-                section = widget.CONF_SECTION
+                section = page.CONF_SECTION
 
             if section == name:
                 return idx
         else:
             return None
 
-    @Slot()
-    def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.pages_widget.count()):
-            configpage = self.get_page(index)
-            if not configpage.is_valid():
-                return
-            configpage.apply_changes()
-        QDialog.accept(self)
+    def check_all_settings(self):
+        """
+        This method is called to check all configuration page settings after
+        configuration dialog has been shown.
+        """
+        self.check_settings.emit()
 
+    # ---- SidebarDialog API
+    # -------------------------------------------------------------------------
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
@@ -146,44 +84,59 @@ class ConfigDialog(QDialog):
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
 
-    def add_page(self, widget):
-        self.check_settings.connect(widget.check_settings)
-        widget.show_this_page.connect(lambda row=self.contents_widget.count():
-                                      self.contents_widget.setCurrentRow(row))
-        widget.apply_button_enabled.connect(self.apply_btn.setEnabled)
-        scrollarea = QScrollArea(self)
-        scrollarea.setWidgetResizable(True)
-        scrollarea.setWidget(widget)
-        self.pages_widget.addWidget(scrollarea)
-        item = QListWidgetItem(self.contents_widget)
-        try:
-            item.setIcon(widget.get_icon())
-        except TypeError:
-            pass
-        item.setText(widget.get_name())
-        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
-        item.setSizeHint(QSize(0, 25))
+    def add_page(self, page):
+        # Signals
+        self.check_settings.connect(page.check_settings)
+        page.apply_button_enabled.connect(self.apply_btn.setEnabled)
+        super().add_page(page)
 
-    def check_all_settings(self):
-        """This method is called to check all configuration page settings
-        after configuration dialog has been shown"""
-        self.check_settings.emit()
+    def create_buttons(self):
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
+                                QDialogButtonBox.Cancel)
+        self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+
+        # This is needed for our tests
+        self.ok_btn = bbox.button(QDialogButtonBox.Ok)
+
+        button_reset = QPushButton(_('Reset to defaults'))
+        button_reset.clicked.connect(self.sig_reset_preferences_requested)
+
+        layout = QHBoxLayout()
+        layout.addWidget(button_reset)
+        layout.addStretch(1)
+        layout.addWidget(bbox)
+
+        return bbox, layout
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    @Slot()
+    def accept(self):
+        for index in range(self.pages_widget.count()):
+            configpage = self.get_page(index)
+
+            # This can be the case for separators, which doesn't have a config
+            # page.
+            if configpage is None:
+                continue
+
+            if not configpage.is_valid():
+                return
+
+            configpage.apply_changes()
+
+        QDialog.accept(self)
 
     def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._on_resize()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    @qdebounced(timeout=40)
+    def _on_resize(self):
         """
-        Reimplement Qt method to be able to save the widget's size from the
-        main application
+        We name this method differently from SidebarDialog._on_resize_event
+        because we want to debounce this as well.
         """
-        QDialog.resizeEvent(self, event)
-        self.size_change.emit(self.size())
-
-    @property
-    def _stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Show tabs aligned to the left
-        css['QTabWidget::tab-bar'].setValues(
-            alignment='left'
-        )
-
-        return css.toString()
+        self.sig_size_changed.emit(self.size())

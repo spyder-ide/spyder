@@ -17,19 +17,20 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPainter, QPixmap
-from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
+from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QStackedLayout)
 
 # Local library imports
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # TODO:
@@ -134,19 +135,19 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.shellwidget = None
-        self.is_visible = True
         self.figviewer = None
         self.setup_in_progress = False
         self.background_color = background_color
         self.mute_inline_plotting = None
         self.zoom_disp_value = None
+        self._update_when_shown = True
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(parent=self,
@@ -170,18 +171,33 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
+        # Widget empty pane
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "plots",
+            _("No plots to show"),
+            _("Run plot-generating code in the Editor or IPython console to "
+              "see your figures appear here. This pane only supports "
+              "static images, so it can't display interactive plots "
+              "like Bokeh, Plotly or Altair.")
+        )
+
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
         splitter.addWidget(self.thumbnails_sb)
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
+        splitter.setStyleSheet(
+            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+        )
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(splitter)
-        self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.stack_layout = QStackedLayout()
+        self.stack_layout.addWidget(splitter)
+        self.stack_layout.addWidget(self.pane_empty)
+        self.setLayout(self.stack_layout)
+        self.stack_layout.setContentsMargins(0, 0, 0, 0)
+        self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
 
     def _update_zoom_value(self, value):
@@ -205,6 +221,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
                 self.show_fig_outline_in_viewer(value)
             elif option == 'save_dir':
                 self.thumbnails_sb.save_dir = value
+
+    def set_pane_empty(self, empty):
+        if empty:
+            self.stack_layout.setCurrentWidget(self.pane_empty)
+        else:
+            self.stack_layout.setCurrentWidget(self.splitter)
 
     def update_splitter_widths(self, base_width):
         """
@@ -238,13 +260,15 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Bind the shellwidget instance to the figure browser"""
         self.shellwidget = shellwidget
         self.shellwidget.set_mute_inline_plotting(self.mute_inline_plotting)
-        shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+        shellwidget.sig_new_inline_figure.connect(self.add_figure)
         shellwidget.executing.connect(self._handle_new_execution)
 
-    def _handle_new_figure(self, fig, fmt):
+    def add_figure(self, fig, fmt):
         """
-        Handle when a new figure is sent to the IPython console by the
-        kernel.
+        Add a figure to the figure browser.
+
+        This is called when a new figure is sent to the IPython console by the
+        kernel, but can also be called directly.
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
 
@@ -296,6 +320,17 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         if self.figviewer and self.figviewer.figcanvas.fig:
             self.figviewer.figcanvas.copy_figure()
 
+    # ---- Qt methods
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if self._update_when_shown:
+            # We only do this the first time the widget is shown to not change
+            # the splitter widths that users can set themselves.
+            self.update_splitter_widths(self.width())
+            self._update_when_shown = False
+
+        super().showEvent(event)
+
 
 class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """
@@ -327,7 +362,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QScrollArea.__init__(self, parent)
@@ -1015,17 +1050,16 @@ class FigureThumbnail(QWidget):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
-        layout.setSizeConstraint(layout.SetFixedSize)
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
     def highlight_canvas(self, highlight):
         """
         Set a colored frame around the FigureCanvas if highlight is True.
         """
         if highlight:
-            # Highlighted figure is not clear in dark mode with blue color.
-            # See spyder-ide/spyder#10255.
+            # See spyder-ide/spyder#21598 for choice of styling.
             self.canvas.setStyleSheet(
-                "FigureCanvas{border: 2px solid %s;}" %
+                "FigureCanvas{border: 3px solid %s;}" %
                 QStylePalette.COLOR_ACCENT_3
             )
         else:

@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+# *** DON'T remove this line! ***
+# It's necessary to make this script error out in case the pipes below fail.
+set -o pipefail
+
 # Add CONDA_EXE to the environment for our conda tests
 if [ "$OS" = "win" ]; then
     export CONDA_EXE=$CONDA\\Scripts\\conda

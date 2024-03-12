@@ -23,11 +23,10 @@ from _thread import interrupt_main
 from ipykernel.zmqshell import ZMQInteractiveShell
 
 # Local imports
-import spyder_kernels
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
-from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
 
@@ -50,16 +49,12 @@ class SpyderShell(ZMQInteractiveShell):
         # Create _namespace_stack before __init__
         self._namespace_stack = []
         self._request_pdb_stop = False
+        self.special = None
         self._pdb_conf = {}
         super(SpyderShell, self).__init__(*args, **kwargs)
         self._allow_kbdint = False
         self.register_debugger_sigint()
-
-        # Used for checking correct version by spyder
-        self._spyder_kernels_version = (
-            spyder_kernels.__version__,
-            sys.executable
-        )
+        self.update_gui_frontend = False
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -93,10 +88,13 @@ class SpyderShell(ZMQInteractiveShell):
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
         gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
-        try:
-            self.kernel.frontend_call(blocking=False).update_matplotlib_gui(gui)
-        except Exception:
-            pass
+        if self.update_gui_frontend:
+            try:
+                self.kernel.frontend_call(
+                    blocking=False
+                ).update_matplotlib_gui(gui)
+            except Exception:
+                pass
         return gui, backend
 
     # --- For Pdb namespace integration
@@ -143,13 +141,6 @@ class SpyderShell(ZMQInteractiveShell):
         # Set config to pdb obj
         self.set_pdb_configuration(self._pdb_conf)
 
-        try:
-            self.kernel.frontend_call(blocking=False).set_debug_state(
-                len([s for s in self._namespace_stack
-                     if isinstance(s, SpyderPdb)]))
-        except (CommError, TimeoutError):
-            logger.debug("Could not send debugging state to the frontend.")
-
     def remove_pdb_session(self, pdb_obj):
         """Remove a pdb object from the stack."""
         if self.pdb_session != pdb_obj:
@@ -160,13 +151,6 @@ class SpyderShell(ZMQInteractiveShell):
         if self.pdb_session:
             # Set config to newly active pdb obj
             self.set_pdb_configuration(self._pdb_conf)
-
-        try:
-            self.kernel.frontend_call(blocking=False).set_debug_state(
-                len([s for s in self._namespace_stack
-                     if isinstance(s, SpyderPdb)]))
-        except (CommError, TimeoutError):
-            logger.debug("Could not send debugging state to the frontend.")
 
     def add_namespace_manager(self, ns_manager):
         """Add namespace manager to stack."""
@@ -275,10 +259,6 @@ class SpyderShell(ZMQInteractiveShell):
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
                 stack = traceback.extract_tb(tb.tb_next)
-                for f_summary, f in zip(
-                        stack, traceback.walk_tb(tb.tb_next)):
-                    f_summary.locals = self.kernel.get_namespace_view(
-                        frame=f[0])
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:
@@ -288,6 +268,7 @@ class SpyderShell(ZMQInteractiveShell):
         """Register sigint handler."""
         signal.signal(signal.SIGINT, self.spyderkernel_sigint_handler)
 
+    @comm_handler
     def raise_interrupt_signal(self):
         """Raise interrupt signal."""
         if os.name == "nt":
@@ -307,6 +288,7 @@ class SpyderShell(ZMQInteractiveShell):
             else:
                 self.kernel._send_interrupt_children()
 
+    @comm_handler
     def request_pdb_stop(self):
         """Request pdb to stop at the next possible position."""
         pdb_session = self.pdb_session
@@ -365,6 +347,7 @@ class SpyderShell(ZMQInteractiveShell):
         except KeyboardInterrupt:
             self.showtraceback()
 
+    @comm_handler
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
         debugger = self.pdb_session

@@ -1,14 +1,13 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from time import time
 
 from jedi.api.classes import Completion
 
 from pylsp import lsp
-
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +15,6 @@ log = logging.getLogger(__name__)
 # ---- Base class
 # -----------------------------------------------------------------------------
 class Resolver:
-
     def __init__(self, callback, resolve_on_error, time_to_live=60 * 30):
         self.callback = callback
         self.resolve_on_error = resolve_on_error
@@ -25,7 +23,7 @@ class Resolver:
         self._cache_ttl = defaultdict(set)
         self._clear_every = 2
         # see https://github.com/davidhalter/jedi/blob/master/jedi/inference/helpers.py#L194-L202
-        self._cached_modules = {'pandas', 'numpy', 'tensorflow', 'matplotlib'}
+        self._cached_modules = {"pandas", "numpy", "tensorflow", "matplotlib"}
 
     @property
     def cached_modules(self):
@@ -37,11 +35,7 @@ class Resolver:
 
     def clear_outdated(self):
         now = self.time_key()
-        to_clear = [
-            timestamp
-            for timestamp in self._cache_ttl
-            if timestamp < now
-        ]
+        to_clear = [timestamp for timestamp in self._cache_ttl if timestamp < now]
         for time_key in to_clear:
             for key in self._cache_ttl[time_key]:
                 del self._cache[key]
@@ -54,7 +48,7 @@ class Resolver:
         if not completion.full_name:
             use_cache = False
         else:
-            module_parts = completion.full_name.split('.')
+            module_parts = completion.full_name.split(".")
             use_cache = module_parts and module_parts[0] in self._cached_modules
 
         if use_cache:
@@ -71,31 +65,35 @@ class Resolver:
 
     def _create_completion_id(self, completion: Completion):
         return (
-            completion.full_name, completion.module_path,
-            completion.line, completion.column,
-            self.time_key()
+            completion.full_name,
+            completion.module_path,
+            completion.line,
+            completion.column,
+            self.time_key(),
         )
 
     def resolve(self, completion):
         try:
             sig = completion.get_signatures()
             return self.callback(completion, sig)
-        except Exception as e:  # pylint: disable=broad-except
-            log.warning(f'Something went wrong when resolving label for {completion}: {e}')
+        except Exception as e:
+            log.warning(
+                f"Something went wrong when resolving label for {completion}: {e}"
+            )
             return self.resolve_on_error
 
 
 # ---- Label resolver
 # -----------------------------------------------------------------------------
 def format_label(completion, sig):
-    if sig and completion.type in ('function', 'method'):
-        params = ', '.join(param.name for param in sig[0].params)
-        label = '{}({})'.format(completion.name, params)
+    if sig and completion.type in ("function", "method"):
+        params = ", ".join(param.name for param in sig[0].params)
+        label = "{}({})".format(completion.name, params)
         return label
     return completion.name
 
 
-LABEL_RESOLVER = Resolver(callback=format_label, resolve_on_error='')
+LABEL_RESOLVER = Resolver(callback=format_label, resolve_on_error="")
 
 
 # ---- Snippets resolver
@@ -106,25 +104,27 @@ def format_snippet(completion, sig):
 
     snippet_completion = {}
 
-    positional_args = [param for param in sig[0].params
-                       if '=' not in param.description and
-                       param.name not in {'/', '*'}]
+    positional_args = [
+        param
+        for param in sig[0].params
+        if "=" not in param.description and param.name not in {"/", "*"}
+    ]
 
     if len(positional_args) > 1:
         # For completions with params, we can generate a snippet instead
-        snippet_completion['insertTextFormat'] = lsp.InsertTextFormat.Snippet
-        snippet = completion.name + '('
+        snippet_completion["insertTextFormat"] = lsp.InsertTextFormat.Snippet
+        snippet = completion.name + "("
         for i, param in enumerate(positional_args):
-            snippet += '${%s:%s}' % (i + 1, param.name)
+            snippet += "${%s:%s}" % (i + 1, param.name)
             if i < len(positional_args) - 1:
-                snippet += ', '
-        snippet += ')$0'
-        snippet_completion['insertText'] = snippet
+                snippet += ", "
+        snippet += ")$0"
+        snippet_completion["insertText"] = snippet
     elif len(positional_args) == 1:
-        snippet_completion['insertTextFormat'] = lsp.InsertTextFormat.Snippet
-        snippet_completion['insertText'] = completion.name + '($0)'
+        snippet_completion["insertTextFormat"] = lsp.InsertTextFormat.Snippet
+        snippet_completion["insertText"] = completion.name + "($0)"
     else:
-        snippet_completion['insertText'] = completion.name + '()'
+        snippet_completion["insertText"] = completion.name + "()"
 
     return snippet_completion
 

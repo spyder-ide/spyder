@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 7):
-    error = "ERROR: Spyder requires Python version 3.7 and above."
+if v[0] >= 3 and v[:2] < (3, 8):
+    error = "ERROR: Spyder requires Python version 3.8 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -97,8 +97,7 @@ def get_data_files():
                       ('share/metainfo',
                        ['scripts/org.spyder_ide.spyder.appdata.xml'])]
     elif os.name == 'nt':
-        data_files = [('scripts', ['img_src/spyder.ico',
-                                   'img_src/spyder_reset.ico'])]
+        data_files = [('scripts', ['img_src/spyder.ico'])]
     else:
         data_files = []
 
@@ -180,16 +179,18 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -209,8 +210,9 @@ install_requires = [
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree>=3.0.2',
-    'ipython>=7.31.1,<9.0.0,!=8.8.0,!=8.9.0,!=8.10.0,!=8.11.0,!=8.12.0,!=8.12.1',
-    'jedi>=0.17.2,<0.19.0',
+    'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
+    'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
+    'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
@@ -223,24 +225,26 @@ install_requires = [
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
-    'pylint>=2.5.0,<3.0',
+    'pylint>=2.5.0,<3.1',
     'pylint-venv>=3.0.2',
-    'python-lsp-black>=1.2.0,<3.0.0',
     'pyls-spyder>=0.4.0',
-    'pyqt5<5.16',
-    'pyqtwebengine<5.16',
-    'python-lsp-server[all]>=1.7.2,<1.8.0',
+    'pyqt5>=5.15,<5.16',
+    'pyqtwebengine>=5.15,<5.16',
+    'python-lsp-black>=2.0.0,<3.0.0',
+    'python-lsp-server[all]>=1.10.0,<1.11.0',
+    'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq>=22.1.0',
-    'qdarkstyle>=3.0.2,<3.2.0',
+    'pyzmq>=24.0.0',
+    'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
-    'qtawesome>=1.2.1',
-    'qtconsole>=5.4.2,<5.5.0',
-    'qtpy>=2.1.0',
+    'qtawesome>=1.3.0',
+    'qtconsole>=5.5.1,<5.6.0',
+    'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0b1,<3.0.0b2',
+    'spyder-kernels>=3.0.0b4,<3.0.0b5',
+    'superqt>=0.6.1,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3'
@@ -251,9 +255,9 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.7.2,<1.9.0')
-    install_requires.append('qtconsole>=5.4.2,<5.6.0')
-    install_requires.append('spyder-kernels>=3.0.0b1,<3.1.0')
+    install_requires.append('python-lsp-server[all]>=1.10.0,<1.12.0')
+    install_requires.append('qtconsole>=5.5.1,<5.7.0')
+    install_requires.append('spyder-kernels>=3.0.0b4,<3.1.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],
@@ -281,12 +285,11 @@ extras_require = {
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
     'application = spyder.plugins.application.plugin:Application',
-    'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
     'completions = spyder.plugins.completion.plugin:CompletionPlugin',
     'debugger = spyder.plugins.debugger.plugin:Debugger',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
-    'external_console = spyder.plugins.externalconsole.plugin:ExternalConsole',
+    'external_terminal = spyder.plugins.externalterminal.plugin:ExternalTerminal',
     'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'historylog = spyder.plugins.history.plugin:HistoryLog',
@@ -309,6 +312,7 @@ spyder_plugins_entry_points = [
     'switcher = spyder.plugins.switcher.plugin:Switcher',
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
+    'update_manager = spyder.plugins.updatemanager.plugin:UpdateManager',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]

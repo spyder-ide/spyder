@@ -24,12 +24,14 @@ from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-DEFAULT_COMPLETION_ITEM_HEIGHT = 15
-DEFAULT_COMPLETION_ITEM_WIDTH = 250
+COMPLETION_ITEM_HEIGHT = 15
+COMPLETION_ITEM_WIDTH = 250
+COMPLETION_DELTA_FOR_SCROLLBAR = 7 if sys.platform.startswith("linux") else 0
 
 
 class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
+
     ITEM_TYPE_MAP = {
         CompletionItemKind.TEXT: 'text',
         CompletionItemKind.METHOD: 'method',
@@ -50,6 +52,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         CompletionItemKind.FILE: 'file',
         CompletionItemKind.REFERENCE: 'reference',
     }
+
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)
@@ -78,12 +81,11 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
-        self.setMinimumWidth(DEFAULT_COMPLETION_ITEM_WIDTH)
+        self.setMinimumWidth(COMPLETION_ITEM_WIDTH)
 
         # Initial item height and width
         fm = QFontMetrics(self.textedit.font())
         self.item_height = fm.height()
-        self.item_width = self.width()
 
     def setup_appearance(self, size, font):
         """Setup size and font of the completion widget."""
@@ -116,7 +118,6 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # hide the text as we moved away from the position
             self.hide()
             return
-
         else:
             self.completion_position = position
 
@@ -144,6 +145,14 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.show()
         self.setFocus()
         self.raise_()
+
+        if self.verticalScrollBar().isVisible():
+            # This is necessary to avoid the scrollbar cropping item types
+            self.setMinimumWidth(
+                COMPLETION_ITEM_WIDTH - COMPLETION_DELTA_FOR_SCROLLBAR
+            )
+        else:
+            self.setMinimumWidth(COMPLETION_ITEM_WIDTH)
 
         self.textedit.position_widget_at_cursor(self)
 
@@ -181,7 +190,22 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         self.display_index = []
         height = self.item_height
-        width = self.item_width
+
+        # This heuristics tells us if the amount of items is taller than the
+        # widget's height, which makes it display the vertical scrollbar (we
+        # can't check if it's visible because the widget can't be shown when
+        # this function is called).
+        if (
+            # The +4 here is the vertical amount of padding around each item
+            (height + 4) * len(self.completion_list)
+            + self.horizontalScrollBar().height()
+        ) > self.height() - 10:
+            # This is necessary to avoid the scrollbar cropping item types
+            width = COMPLETION_ITEM_WIDTH - COMPLETION_DELTA_FOR_SCROLLBAR
+        else:
+            # This is necessary to make the item type closer to the widget's
+            # right border.
+            width = COMPLETION_ITEM_WIDTH + COMPLETION_DELTA_FOR_SCROLLBAR
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
@@ -250,8 +274,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                                      icon_provider=None,
                                      img_height=0,
                                      img_width=0,
-                                     height=DEFAULT_COMPLETION_ITEM_HEIGHT,
-                                     width=DEFAULT_COMPLETION_ITEM_WIDTH):
+                                     height=COMPLETION_ITEM_HEIGHT,
+                                     width=COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
         height = to_text_string(height)
         width = to_text_string(width)
@@ -305,7 +329,12 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         tooltip = getattr(self.textedit, 'tooltip_widget', None)
         if tooltip:
-            tooltip.hide()
+            # This is necessary to reuse this widget as a tooltip or hover.
+            tooltip.reset_state()
+
+            # Use this method to hide the widget immediately instead of using a
+            # time, which can generate odd UX situations.
+            tooltip._hide()
 
         QListWidget.hide(self)
         QToolTip.hideText()
@@ -508,7 +537,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 insert_text = insert_text.split(ch)[0]
         return insert_text
 
-    def trigger_completion_hint(self, row=None):
+    def request_completion_hint(self, row=None):
+        """Request LSP for completion hint"""
         self.current_selected_item_label = None
         self.current_selected_item_point = None
 
@@ -526,24 +556,18 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.current_selected_item_label = item['label']
         self.current_selected_item_point = item['point']
 
-        insert_text = self._get_insert_text(item)
-
+        # Ask LSP for completion hint
         if hasattr(self.textedit, 'resolve_completion_item'):
             if item.get('resolve', False):
                 to_resolve = item.copy()
                 to_resolve.pop('point')
                 to_resolve.pop('resolve')
                 self.textedit.resolve_completion_item(to_resolve)
-
-        if isinstance(item['documentation'], dict):
-            item['documentation'] = item['documentation']['value']
-
-        self.sig_completion_hint.emit(
-            insert_text,
-            item['documentation'],
-            item['point'])
+            else:
+                self.textedit.hide_tooltip()
 
     def augment_completion_info(self, item):
+        """Augment completion info with hints that come from the server."""
         if self.current_selected_item_label == item['label']:
             insert_text = self._get_insert_text(item)
 
@@ -557,5 +581,5 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
     @Slot(int)
     def row_changed(self, row):
-        """Set completion hint info and show it."""
-        self.trigger_completion_hint(row)
+        """Actions to take when the row has changed."""
+        self.request_completion_hint(row)

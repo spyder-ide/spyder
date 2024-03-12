@@ -15,7 +15,8 @@ https://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 
 # Third party imports
 from qtpy.QtCore import QPoint, QRect, QSize, Qt, Signal
-from qtpy.QtGui import QColor, QPainter, QTextCursor, QTextFormat, QTextOption
+from qtpy.QtGui import (
+    QColor, QFont, QPainter, QTextCursor, QTextFormat, QTextOption)
 from qtpy.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 # Local imports
@@ -388,12 +389,12 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                     number = block_number + 1
 
                     if number == active_line_number:
-                        font.setWeight(font.Bold)
+                        font.setWeight(QFont.Weight.Bold)
                         painter.setFont(font)
                         painter.setPen(
                             self._highlighter.get_foreground_color())
                     else:
-                        font.setWeight(font.Normal)
+                        font.setWeight(QFont.Weight.Normal)
                         painter.setFont(font)
                         painter.setPen(QColor(Qt.darkGray))
                     right_padding = self.linenumberarea._right_padding
@@ -565,6 +566,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         if self._highlighter:
             self._highlighter.rehighlight()
+            self._apply_current_line_highlight()
 
 
 if __name__ == "__main__":

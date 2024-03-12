@@ -9,21 +9,27 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
+import sys
 from typing import List
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
-from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsolePyConfiguration,
+    IPythonConsoleWidgetMenus
+)
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
-    IPythonConsoleWidget, IPythonConsoleWidgetOptionsMenus)
+    IPythonConsoleWidget
+)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
 from spyder.plugins.run.api import (
@@ -140,6 +146,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         The shellwigdet.
     """
 
+    sig_shellwidget_errored = Signal(object)
+    """
+    This signal is emitted when the current shellwidget failed to start.
+
+    Parameters
+    ----------
+    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        The shellwigdet.
+    """
+
     sig_render_plain_text_requested = Signal(str)
     """
     This signal is emitted to request a plain text help render.
@@ -190,11 +206,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def get_name():
         return _('IPython console')
 
-    def get_description(self):
-        return _('IPython console')
+    @staticmethod
+    def get_description():
+        return _(
+            "Run Python files, cells, code and commands interactively."
+        )
 
-    def get_icon(self):
-        return self.create_icon('ipython_console')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('ipython_console')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -207,6 +227,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_shellwidget_created.connect(self.sig_shellwidget_created)
         widget.sig_shellwidget_deleted.connect(self.sig_shellwidget_deleted)
         widget.sig_shellwidget_changed.connect(self.sig_shellwidget_changed)
+        widget.sig_shellwidget_errored.connect(self.sig_shellwidget_errored)
         widget.sig_render_plain_text_requested.connect(
             self.sig_render_plain_text_requested)
         widget.sig_render_rich_text_requested.connect(
@@ -228,7 +249,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': 'py',
+            'extension': ['py', 'ipy'],
             'contexts': [
                 {
                     'name': 'File'
@@ -244,7 +265,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -254,7 +275,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Cell'
                 },
@@ -264,7 +285,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'Selection'
                 },
@@ -315,12 +336,19 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Add signal to update actions state before showing the menu
         console_menu = mainmenu.get_application_menu(
             ApplicationMenus.Consoles)
-        console_menu.aboutToShow.connect(
-            widget.update_actions)
+        console_menu.aboutToShow.connect(widget.update_actions)
+
+        if sys.platform == "darwin":
+            # Avoid changing the aspect of the tabs context menu when it's
+            # visible and the user shows the console menu at the same time.
+            console_menu.aboutToShow.connect(
+                lambda: widget.tabwidget.menu.hide()
+            )
 
         # Main menu actions for the IPython Console
         new_consoles_actions = [
             widget.create_client_action,
+            widget.console_environment_menu,
             widget.special_console_menu,
             widget.connect_to_kernel_action
         ]
@@ -400,7 +428,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         # IPython documentation menu
         mainmenu.remove_item_from_application_menu(
-            IPythonConsoleWidgetOptionsMenus.Documentation,
+            IPythonConsoleWidgetMenus.Documentation,
             menu_id=ApplicationMenus.Help
          )
 
@@ -440,9 +468,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_font()
-        rich_font = self.get_font(rich_text=True)
-        self.get_widget().update_font(font, rich_font)
+        font = self.get_font(SpyderFontType.Monospace)
+        app_font = self.get_font(SpyderFontType.Interface)
+        self.get_widget().update_font(font, app_font)
 
     def on_close(self, cancelable=False):
         """Perform actions when plugin is closed"""
@@ -518,6 +546,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Return the shellwidget of the current client"""
         return self.get_widget().get_current_shellwidget()
 
+    def set_current_shellwidget(self, shellwidget):
+        """Activate client associated to given shellwidget."""
+        self.get_widget().select_tab(shellwidget)
+
     def rename_client_tab(self, client, given_name):
         """
         Rename a client's tab.
@@ -535,9 +567,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().rename_client_tab(client, given_name)
 
-    def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False, given_name=None,
-                          path_to_custom_interpreter=None):
+    def create_new_client(self, give_focus=True, filename='', special=None,
+                          given_name=None, path_to_custom_interpreter=None):
         """
         Create a new client.
 
@@ -548,15 +579,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             focus, False otherwise. The default is True.
         filename : str, optional
             Filename associated with the client. The default is ''.
-        is_cython : bool, optional
-            True if the client is expected to preload Cython support,
-            False otherwise. The default is False.
-        is_pylab : bool, optional
-            True if the client is expected to preload PyLab support,
-            False otherwise. The default is False.
-        is_sympy : bool, optional
-            True if the client is expected to preload Sympy support,
-            False otherwise. The default is False.
+        special : str, optional
+            Type of special support to preload. It can be "pylab", "cython",
+            "sympy", or None.
         given_name : str, optional
             Initial name displayed in the tab of the client.
             The default is None.
@@ -572,9 +597,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().create_new_client(
             give_focus=give_focus,
             filename=filename,
-            is_cython=is_cython,
-            is_pylab=is_pylab,
-            is_sympy=is_sympy,
+            special=special,
             given_name=given_name,
             path_to_custom_interpreter=path_to_custom_interpreter)
 

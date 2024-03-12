@@ -13,6 +13,7 @@ from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
                             QVBoxLayout)
+from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
@@ -63,7 +64,7 @@ class KeyPressFilter(QObject):
             elif (e.key() == Qt.Key_Return):
                 self.sig_enter_key_pressed.emit()
                 return True
-        return super(KeyPressFilter, self).eventFilter(src, e)
+        return super().eventFilter(src, e)
 
 
 class SwitcherDelegate(HTMLDelegate):
@@ -77,7 +78,7 @@ class SwitcherDelegate(HTMLDelegate):
         Override Qt method to force this delegate to look active at all times.
         """
         option.state |= QStyle.State_Active
-        super(SwitcherDelegate, self).paint(painter, option, index)
+        super().paint(painter, option, index)
 
 
 class Switcher(QDialog):
@@ -97,16 +98,6 @@ class Switcher(QDialog):
     sig_rejected = Signal()
     """
     This signal is emitted when the plugin is dismissed.
-    """
-
-    sig_text_changed = Signal(str)
-    """
-    This signal is emitted when the plugin search/filter text changes.
-
-    Parameters
-    ----------
-    search_text: str
-        The current search/filter text.
     """
 
     sig_item_changed = Signal(object)
@@ -139,6 +130,16 @@ class Switcher(QDialog):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
+    sig_search_text_available = Signal(str)
+    """
+    This signal is emitted when the user stops typing in the filter line edit.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search text.
+    """
+
     _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
     _MIN_HEIGHT = 200
@@ -148,7 +149,9 @@ class Switcher(QDialog):
     def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
                  item_separator_styles=ITEM_SEPARATOR_STYLES):
         """Multi purpose switcher."""
-        super(Switcher, self).__init__(parent)
+        super().__init__(parent)
+
+        # Attributes
         self._modes = {}
         self._mode_on = ''
         self._item_styles = item_styles
@@ -164,15 +167,21 @@ class Switcher(QDialog):
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
-#        self.setMinimumHeight(self._MIN_HEIGHT)
+        # self.setMinimumHeight(self._MIN_HEIGHT)
         self.setMaximumHeight(self._MAX_HEIGHT)
+
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
+
         self.list.setMinimumWidth(self._MIN_WIDTH)
         self.list.setItemDelegate(SwitcherDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
-        self.list.setSelectionBehavior(self.list.SelectItems)
-        self.list.setSelectionMode(self.list.SingleSelection)
+        self.list.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectItems
+        )
+        self.list.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         self.proxy.setSourceModel(self.model)
         self.list.setModel(self.proxy)
@@ -187,29 +196,34 @@ class Switcher(QDialog):
         self.filter.sig_up_key_pressed.connect(self.previous_row)
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
-        self.edit.textChanged.connect(self.setup)
-        self.edit.textChanged.connect(self.sig_text_changed)
+
+        self.edit.textChanged.connect(self._on_search_text_changed)
         self.edit.returnPressed.connect(self.enter)
+
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
         self.list.selectionModel().currentChanged.connect(
             self.current_item_changed)
+
+        # Gives focus to text edit
         self.edit.setFocus()
 
     # ---- Helper methods
+    # -------------------------------------------------------------------------
     def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
+
         if last_item:
             # Only set the current row to the first item when the added item is
             # the last one in order to prevent performance issues when
             # adding multiple items
             self.set_current_row(0)
             self.set_height()
-        self.setup_sections()
 
     # ---- API
+    # -------------------------------------------------------------------------
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
@@ -245,7 +259,7 @@ class Switcher(QDialog):
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True):
+                 last_item=True, score=-1, use_score=True):
         """Add switcher list item."""
         item = SwitcherItem(
             parent=self.list,
@@ -257,39 +271,41 @@ class Switcher(QDialog):
             section=section,
             action_item=action_item,
             tool_tip=tool_tip,
-            styles=self._item_styles
+            styles=self._item_styles,
+            score=score,
+            use_score=use_score
         )
         self._add_item(item, last_item=last_item)
 
     def add_separator(self):
         """Add separator item."""
-        item = SwitcherSeparatorItem(parent=self.list,
-                                     styles=self._item_separator_styles)
+        item = SwitcherSeparatorItem(
+            parent=self.list, styles=self._item_separator_styles
+        )
         self._add_item(item)
 
     def setup(self):
-        """Set-up list widget content based on the filtering."""
-        # Check exited mode
-        mode = self._mode_on
-        if mode:
-            search_text = self.search_text()[len(mode):]
-        else:
-            search_text = self.search_text()
+        """Setup list widget content based on filtering."""
+        search_text = self.search_text_without_mode()
 
-        # Check exited mode
+        # Build default view
         if self.search_text() == '':
             self._mode_on = ''
             self.clear()
             self.proxy.set_filter_by_score(False)
             self.sig_mode_selected.emit(self._mode_on)
-            return
 
-        # Check entered mode
-        for key in self._modes:
-            if self.search_text().startswith(key) and not mode:
-                self._mode_on = key
-                self.sig_mode_selected.emit(key)
-                return
+            # This is necessary to show the Editor items first when results
+            # come back from the Editor and Projects.
+            self.proxy.sortBy('_score')
+
+            # Show sections
+            self.setup_sections()
+
+            # Give focus to the first row
+            self.set_current_row(0)
+
+            return
 
         # Filter by text
         titles = []
@@ -299,6 +315,7 @@ class Switcher(QDialog):
                 title = item.get_title()
             else:
                 title = ''
+
             titles.append(title)
 
         search_text = clean_string(search_text)
@@ -310,48 +327,69 @@ class Switcher(QDialog):
             if not self._is_separator(item) and not item.is_action_item():
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
-            item.set_score(score_value)
-        self.proxy.set_filter_by_score(True)
 
+            item.set_score(score_value)
+
+        self.proxy.set_filter_by_score(True)
+        self.proxy.sortBy('_score')
+
+        # Graphical setup
         self.setup_sections()
+
         if self.count():
             self.set_current_row(0)
         else:
             self.set_current_row(-1)
+
         self.set_height()
 
     def setup_sections(self):
-        """Set-up which sections appear on the item list."""
-        mode = self._mode_on
-        if mode:
-            search_text = self.search_text()[len(mode):]
-        else:
-            search_text = self.search_text()
+        """Setup which sections appear on the item list."""
+        sections = []
+        search_text = self.search_text_without_mode()
 
-        if search_text:
-            for row in range(self.model.rowCount()):
-                item = self.model.item(row)
-                if isinstance(item, SwitcherItem):
-                    item.set_section_visible(False)
-        else:
-            sections = []
-            for row in range(self.model.rowCount()):
-                item = self.model.item(row)
-                if isinstance(item, SwitcherItem):
-                    sections.append(item.get_section())
-                    item.set_section_visible(bool(search_text))
-                else:
-                    sections.append('')
+        for row in range(self.model.rowCount()):
+            item_row = row
 
-                if row != 0:
-                    visible = sections[row] != sections[row - 1]
-                    if not self._is_separator(item):
-                        item.set_section_visible(visible)
-                else:
+            # When there is search_text, we need to use the proxy model to get
+            # the actual item's row.
+            if search_text:
+                model_index = self.proxy.mapToSource(self.proxy.index(row, 0))
+                item_row = model_index.row()
+
+            # Get item
+            item = self.model.item(item_row)
+
+            # When searching gives no result, the mapped items are None
+            if item is None:
+                continue
+
+            # Get item section
+            if isinstance(item, SwitcherItem):
+                sections.append(item.get_section())
+            else:
+                sections.append('')
+
+            # Decide if we need to make the item's section visible
+            if row != 0:
+                visible = sections[row] != sections[row - 1]
+                if not self._is_separator(item):
+                    item.set_section_visible(visible)
+            else:
+                # We need to remove this when a mode has several sections
+                if not self._mode_on:
                     item.set_section_visible(True)
 
-        self.proxy.sortBy('_score')
-        self.sig_item_changed.emit(self.current_item())
+    def remove_section(self, section):
+        """Remove all items in a section of the switcher."""
+        # As we are removing items from the model, we need to iterate backwards
+        # so that the indexes are not affected.
+        for row in range(self.model.rowCount() - 1, -1, -1):
+            item = self.model.item(row)
+            if isinstance(item, SwitcherItem):
+                if item._section == section:
+                    self.model.removeRow(row)
+                    continue
 
     def set_height(self):
         """Set height taking into account the number of items."""
@@ -393,7 +431,7 @@ class Switcher(QDialog):
         self.sig_item_changed.emit(self.current_item())
 
     # ---- Qt overrides
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @Slot()
     @Slot(QListWidgetItem)
     def enter(self, itemClicked=None):
@@ -403,33 +441,67 @@ class Switcher(QDialog):
         item = self.model.item(model_index.row())
         if item:
             mode = self._mode_on
-            self.sig_item_selected.emit(item, mode,
-                                        self.search_text()[len(mode):])
-
-    def accept(self):
-        """Override Qt method."""
-        super(Switcher, self).accept()
+            self.sig_item_selected.emit(
+                item, mode, self.search_text_without_mode()
+            )
 
     def reject(self):
         """Override Qt method."""
-        self.set_search_text('')
-        self.sig_rejected.emit()
-        super(Switcher, self).reject()
+        # This prevents calling _on_search_text_changed, which unnecessarily
+        # tries to populate the switcher when we're closing it.
+        with signals_blocked(self.edit):
+            self.set_search_text('')
 
-    def resizeEvent(self, event):
-        """Override Qt method."""
-        super(Switcher, self).resizeEvent(event)
+        # Reset mode
+        self._mode_on = ""
+
+        self.sig_rejected.emit()
+        super().reject()
 
     # ---- Helper methods: Lineedit widget
+    # -------------------------------------------------------------------------
     def search_text(self):
         """Get the normalized (lowecase) content of the search text."""
         return to_text_string(self.edit.text()).lower()
+
+    def search_text_without_mode(self):
+        """Get search text without mode."""
+        mode = self._mode_on
+        if mode:
+            search_text = self.search_text()[len(mode):]
+        else:
+            search_text = self.search_text()
+
+        return search_text
 
     def set_search_text(self, string):
         """Set the content of the search text."""
         self.edit.setText(string)
 
+    @qdebounced(timeout=250)
+    def _on_search_text_changed(self):
+        """Actions to take when the search text has changed."""
+        if self.search_text() != "":
+            search_text = self.search_text_without_mode()
+
+            # Inform if mode has changed
+            for key in self._modes:
+                if search_text.startswith(key) and not self._mode_on:
+                    self._mode_on = key
+                    self.sig_mode_selected.emit(key)
+                    break
+
+            # Emit this signal only for the files mode for now. We'll see if
+            # it's necessary for other modes later.
+            if self._mode_on == "":
+                self.sig_search_text_available.emit(clean_string(search_text))
+            else:
+                self.setup()
+        else:
+            self.setup()
+
     # ---- Helper methods: List widget
+    # -------------------------------------------------------------------------
     def _is_separator(self, item):
         """Check if item is an separator item (SwitcherSeparatorItem)."""
         return isinstance(item, SwitcherSeparatorItem)
@@ -465,7 +537,8 @@ class Switcher(QDialog):
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(
-            proxy_index, selection_model.ClearAndSelect)
+            proxy_index, selection_model.ClearAndSelect
+        )
 
         # Ensure that the selected item is visible
         self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)

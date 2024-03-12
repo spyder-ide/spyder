@@ -7,7 +7,7 @@
 """Switcher Proxy Model."""
 
 # Third party imports
-from qtpy.QtCore import (QSortFilterProxyModel, Qt)
+from qtpy.QtCore import QSortFilterProxyModel, Qt
 
 
 class SwitcherProxyModel(QSortFilterProxyModel):
@@ -15,7 +15,7 @@ class SwitcherProxyModel(QSortFilterProxyModel):
 
     def __init__(self, parent=None):
         """Proxy model to perform sorting on the scored items."""
-        super(SwitcherProxyModel, self).__init__(parent)
+        super().__init__(parent)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)
@@ -58,4 +58,3 @@ class SwitcherProxyModel(QSortFilterProxyModel):
             left_data = getattr(left_item, self.__sort_by)
             right_data = getattr(right_item, self.__sort_by)
             return left_data < right_data
-

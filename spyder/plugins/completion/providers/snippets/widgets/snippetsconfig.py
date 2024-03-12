@@ -17,14 +17,14 @@ from jsonschema.exceptions import ValidationError
 from jsonschema import validate as json_validate
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QDialog,
                             QDialogButtonBox, QGroupBox, QGridLayout, QLabel,
                             QLineEdit, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
-from spyder.config.manager import CONF
-from spyder.config.gui import get_font
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.snippets.ast import build_snippet_ast
 from spyder.widgets.helperwidgets import ItemDelegate
@@ -215,7 +215,7 @@ class Snippet:
                             recursive_notification=False)
 
 
-class SnippetEditor(QDialog):
+class SnippetEditor(QDialog, SpyderFontsMixin):
     SNIPPET_VALID = _('Valid snippet')
     SNIPPET_INVALID = _('Invalid snippet')
     INVALID_CB_CSS = "QComboBox {border: 1px solid red;}"
@@ -254,7 +254,7 @@ class SnippetEditor(QDialog):
 
         # Trigger text
         self.trigger_text_label = QLabel(_('Trigger text:'))
-        self.trigger_text_cb = QComboBox(self)
+        self.trigger_text_cb = SpyderComboBox(self)
         self.trigger_text_cb.setEditable(True)
 
         # Description
@@ -305,7 +305,7 @@ class SnippetEditor(QDialog):
             color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
-            font=get_font()
+            font=self.get_font(SpyderFontType.MonospaceInterface)
         )
         self.snippet_input.set_language(language)
         self.snippet_input.setToolTip(_('Snippet text completion to insert'))
@@ -406,7 +406,7 @@ class SnippetsModel(QAbstractTableModel):
     TRIGGER = 0
     DESCRIPTION = 1
 
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent):
         QAbstractTableModel.__init__(self)
         self.parent = parent
 
@@ -418,19 +418,6 @@ class SnippetsModel(QAbstractTableModel):
         self.letters = ''
         self.label = QLabel()
         self.widths = []
-
-        # Needed to compensate for the HTMLDelegate color selection unawareness
-        palette = parent.palette()
-        if text_color is None:
-            self.text_color = palette.text().color().name()
-        else:
-            self.text_color = text_color
-
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
 
     def sortByName(self):
         self.snippets = sorted(self.snippets, key=lambda x: x.trigger_text)
@@ -494,9 +481,9 @@ class SnippetModelsProxy:
         self.awaiting_queue = {}
         self.parent = parent
 
-    def get_model(self, table, language, text_color=None):
+    def get_model(self, table, language):
         if language not in self.models:
-            language_model = SnippetsModel(table, text_color=text_color)
+            language_model = SnippetsModel(table)
             to_add = self.awaiting_queue.pop(language, [])
             self.load_snippets(language, language_model, to_add=to_add)
             self.models[language] = language_model
@@ -661,13 +648,12 @@ class SnippetModelsProxy:
 
 
 class SnippetTable(QTableView):
-    def __init__(self, parent, proxy, language=None, text_color=None):
+    def __init__(self, parent, proxy, language=None):
         super(SnippetTable, self).__init__()
         self._parent = parent
         self.language = language
         self.proxy = proxy
-        self.source_model = proxy.get_model(
-            self, language.lower(), text_color=text_color)
+        self.source_model = proxy.get_model(self, language.lower())
         self.setModel(self.source_model)
         self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)

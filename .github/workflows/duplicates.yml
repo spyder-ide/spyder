@@ -97,13 +97,19 @@ jobs:
              },
              {
                "pattern": "TypeError: _show_prompt() got an unexpected keyword argument 'separator'",
-               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
              {
                "pattern": "AttributeError: '_asyncio.Future' object has no attribute 'index'",
                "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run the following command there:<br><br>`conda install jupyter_client=7.3.1`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'DataFrame' object has no attribute 'iteritems'",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
                "labels": ["resolution:Duplicate"],
                "close": true
              }

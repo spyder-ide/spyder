@@ -14,13 +14,14 @@ from uuid import uuid4
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout, QComboBox,
+from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout,
                             QTableView, QAbstractItemView, QPushButton,
-                            QGridLayout, QHeaderView, QTabWidget, QWidget)
+                            QGridLayout, QHeaderView, QWidget)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters, SupportedExecutionRunConfiguration)
 from spyder.plugins.run.container import RunContainer
@@ -170,7 +171,7 @@ class RunConfigPage(PluginConfigPage):
         )
         about_label.setWordWrap(True)
 
-        self.executor_combo = QComboBox(self)
+        self.executor_combo = SpyderComboBox(self)
         self.executor_combo.currentIndexChanged.connect(
             self.executor_index_changed)
         self.executor_combo.setModel(self.executor_model)
@@ -230,21 +231,17 @@ class RunConfigPage(PluginConfigPage):
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
-        vlayout.addSpacing(10)
+        vlayout.addSpacing(9)
         vlayout.addWidget(self.executor_combo)
+        vlayout.addSpacing(9)
         vlayout.addWidget(params_group)
         vlayout.addLayout(sn_buttons_layout)
         vlayout.addStretch(1)
         executor_widget = QWidget()
         executor_widget.setLayout(vlayout)
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(executor_widget), _("Run executors"))
-        self.tabs.addTab(
-            self.create_tab(run_widget), _("Editor interactions"))
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.tabs)
-        self.setLayout(main_layout)
+        self.create_tab(_("Run executors"), executor_widget)
+        self.create_tab(_("Editor interactions"), run_widget)
 
     def executor_index_changed(self, index: int):
         # Save previous executor configuration

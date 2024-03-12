@@ -106,3 +106,155 @@ def get_font(family, fallback=None):
     if fallback is not None and font_info.family() != family:
         font = QtGui.QFont(fallback)
     return font
+
+
+# -----------------------------------------------------------------------------
+# Vendored from ipython_genutils
+# -----------------------------------------------------------------------------
+def _chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i : i + n]
+
+
+def _find_optimal(rlist, *, separator_size, displaywidth):
+    """Calculate optimal info to columnize a list of strings"""
+    for nrow in range(1, len(rlist) + 1):
+        chk = list(map(max, _chunks(rlist, nrow)))
+        sumlength = sum(chk)
+        ncols = len(chk)
+        if sumlength + separator_size * (ncols - 1) <= displaywidth:
+            break
+
+    return {
+        "columns_numbers": ncols,
+        "rows_numbers": nrow,
+        "columns_width": chk,
+    }
+
+
+def _get_or_default(mylist, i, *, default):
+    """return list item number, or default if don't exist"""
+    if i >= len(mylist):
+        return default
+    else:
+        return mylist[i]
+
+
+def compute_item_matrix(items, empty=None, *, separator_size=2, displaywidth=80):
+    """Returns a nested list, and info to columnize items
+
+    Parameters
+    ----------
+    items
+        list of strings to columnize
+    empty : (default None)
+        Default value to fill list if needed
+    separator_size : int (default=2)
+        How much characters will be used as a separation between each column.
+    displaywidth : int (default=80)
+        The width of the area onto which the columns should enter
+
+    Returns
+    -------
+
+    strings_matrix
+
+        nested list of strings, the outer most list contains as many list as
+        rows, the innermost lists have each as many element as column. If the
+        total number of elements in `items` does not equal the product of
+        rows*columns, the last element of some lists are filled with `None`.
+
+    dict_info
+        Some info to make columnize easier:
+
+        columns_numbers
+          number of columns
+        rows_numbers
+          number of rows
+        columns_width
+          list of width of each columns
+
+    Examples
+    --------
+    ::
+
+        In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
+           ...: compute_item_matrix(l,displaywidth=12)
+        Out[1]:
+            ([['aaa', 'f', 'k'],
+            ['b', 'g', 'l'],
+            ['cc', 'h', None],
+            ['d', 'i', None],
+            ['eeeee', 'j', None]],
+            {'columns_numbers': 3,
+            'columns_width': [5, 1, 1],
+            'rows_numbers': 5})
+    """
+    info = _find_optimal(
+        [len(it) for it in items], separator_size=separator_size, displaywidth=displaywidth
+    )
+    nrow, ncol = info["rows_numbers"], info["columns_numbers"]
+    return (
+        [
+            [_get_or_default(items, c * nrow + i, default=empty) for c in range(ncol)]
+            for i in range(nrow)
+        ],
+        info,
+    )
+
+
+def columnize(items, separator="  ", displaywidth=80):
+    """Transform a list of strings into a single string with columns.
+
+    Parameters
+    ----------
+    items : sequence of strings
+        The strings to process.
+
+    Returns
+    -------
+    The formatted string.
+    """
+    if not items:
+        return "\n"
+    matrix, info = compute_item_matrix(
+        items, separator_size=len(separator), displaywidth=displaywidth
+    )
+    fmatrix = [filter(None, x) for x in matrix]
+    sjoin = lambda x: separator.join(
+        [y.ljust(w, " ") for y, w in zip(x, info["columns_width"])]
+    )
+    return "\n".join(map(sjoin, fmatrix)) + "\n"
+
+
+def import_item(name):
+    """Import and return ``bar`` given the string ``foo.bar``.
+
+    Calling ``bar = import_item("foo.bar")`` is the functional equivalent of
+    executing the code ``from foo import bar``.
+
+    Parameters
+    ----------
+    name : string
+      The fully qualified name of the module/package being imported.
+
+    Returns
+    -------
+    mod : module object
+       The module that was imported.
+    """
+    parts = name.rsplit(".", 1)
+
+    if len(parts) == 2:
+        # called with 'foo.bar....'
+        package, obj = parts
+        module = __import__(package, fromlist=[obj])
+        try:
+            pak = getattr(module, obj)
+        except AttributeError:
+            raise ImportError("No module named %s" % obj)
+        return pak
+    else:
+        # called with un-dotted string
+        return __import__(parts[0])

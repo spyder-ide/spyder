@@ -14,7 +14,6 @@ import builtins
 import keyword
 import os
 import re
-import weakref
 
 # Third party imports
 from pygments.lexer import RegexLexer, bygroups
@@ -436,11 +435,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    number_regex = [r"\b[+-]?[0-9]+[lLjJ]?\b",
-                    r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-                    r"\b[+-]?0[oO][0-7]+[lL]?\b",
-                    r"\b[+-]?0[bB][01]+[lL]?\b",
-                    r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
+    match_kw = r"\s*(?P<match_kw>match)(?=\s+.+:)"
+    case_kw = r"\s+(?P<case_kw>case)(?=\s+.+:)"
+
     prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
     dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
@@ -454,6 +451,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                    % prefix
     uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
                    % prefix
+
     # Needed to achieve correct highlighting in Python 3.6+
     # See spyder-ide/spyder#7324.
     # Based on
@@ -462,14 +460,15 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
     # Pointfloat + Exponent, Expfloat, Imagnumber
     number_regex = [
-            r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
-            r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
-            r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
-            r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
-            r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
-            "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-            r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
-            r"\b[0-9](?:_?[0-9])*[jJ]\b"]
+        r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
+        r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
+        r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
+        r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
+        r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
+        "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+        r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+        r"\b[0-9](?:_?[0-9])*[jJ]\b"
+    ]
     number = any("number", number_regex)
 
     string = any("string", [sq3string, dq3string, sqstring, dqstring])
@@ -479,7 +478,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     ufstring4 = any("uf_dq3string", [uf_dq3string])
     ufstring5 = any("ufe_sqstring", [ufe_sqstring])
     ufstring6 = any("ufe_dqstring", [ufe_dqstring])
-    return "|".join([instance, kw, builtin, comment,
+    return "|".join([instance, kw, builtin, comment, match_kw, case_kw,
                      ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
                      ufstring6, string, number, any("SYNC", [r"\n"])])
 
@@ -505,16 +504,18 @@ def get_code_cell_name(text):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    add_kw = ['async', 'await', 'match', 'case']
+    add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r"\b(as)\b")
+
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
      INSIDE_SQSTRING, INSIDE_DQSTRING,
      INSIDE_NON_MULTILINE_STRING) = list(range(6))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
+
     # Comments suitable for Outline Explorer
     OECOMMENT = re.compile(r'^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
 
@@ -529,9 +530,10 @@ class PythonSH(BaseSH):
                         state, import_stmt, oedata):
         """Highlight a single match."""
         start, end = get_span(match, key)
-        start = max([0, start+offset])
-        end = max([0, end+offset])
+        start = max([0, start + offset])
+        end = max([0, end + offset])
         length = end - start
+
         if key == "uf_sq3string":
             self.setFormat(start, length, self.formats["string"])
             state = self.INSIDE_SQ3STRING
@@ -547,6 +549,8 @@ class PythonSH(BaseSH):
         elif key in ["ufe_sqstring", "ufe_dqstring"]:
             self.setFormat(start, length, self.formats["string"])
             state = self.INSIDE_NON_MULTILINE_STRING
+        elif key in ["match_kw", "case_kw"]:
+            self.setFormat(start, length, self.formats["keyword"])
         else:
             self.setFormat(start, length, self.formats[key])
             if key == "comment":

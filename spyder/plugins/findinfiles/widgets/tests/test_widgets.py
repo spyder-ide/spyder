@@ -24,8 +24,9 @@ from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.widgets.main_widget import FindInFilesWidget
 from spyder.plugins.findinfiles.widgets.combobox import (
-    CWD, CLEAR_LIST, EXTERNAL_PATHS, FILE_PATH, PROJECT, SearchInComboBox,
-    SELECT_OTHER)
+    SearchInComboBox,
+    SearchInComboBoxItems
+)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
 from spyder.utils.palette import QStylePalette, SpyderPalette
 from spyder.utils.stylesheet import APP_STYLESHEET
@@ -366,10 +367,15 @@ def test_add_external_paths(searchin_combobox, mocker):
             osp.dirname(osp.dirname(osp.dirname(LOCATION))),
             osp.dirname(LOCATION)
             ]
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
     for i, expected_result in enumerate(expected_results):
-        assert expected_result == searchin_combobox.itemText(i+EXTERNAL_PATHS)
+        assert expected_result == searchin_combobox.itemText(
+            i + SearchInComboBoxItems.ExternalPaths
+        )
 
     # Add a new external path to the combobox. The new path is added at the
     # end of the combobox.
@@ -378,10 +384,15 @@ def test_add_external_paths(searchin_combobox, mocker):
         'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
         return_value=new_path
     )
-    searchin_combobox.setCurrentIndex(SELECT_OTHER)
+    searchin_combobox.setCurrentIndex(
+        SearchInComboBoxItems.SelectAnotherDirectory
+    )
 
     expected_results.append(new_path)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
 
@@ -392,11 +403,16 @@ def test_add_external_paths(searchin_combobox, mocker):
         'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
         return_value=new_path
     )
-    searchin_combobox.setCurrentIndex(SELECT_OTHER)
+    searchin_combobox.setCurrentIndex(
+        SearchInComboBoxItems.SelectAnotherDirectory
+    )
 
     expected_results.pop(0)
     expected_results.append(new_path)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
 
@@ -406,11 +422,16 @@ def test_add_external_paths(searchin_combobox, mocker):
         'spyder.plugins.findinfiles.widgets.combobox.getexistingdirectory',
         return_value=''
     )
-    searchin_combobox.setCurrentIndex(SELECT_OTHER)
+    searchin_combobox.setCurrentIndex(
+        SearchInComboBoxItems.SelectAnotherDirectory
+    )
 
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
 
 
 def test_clear_this_list(searchin_combobox, mocker):
@@ -422,7 +443,7 @@ def test_clear_this_list(searchin_combobox, mocker):
 
     # Cancel the Clear the list action and assert the result.
     mocker.patch.object(QMessageBox, 'question', return_value=QMessageBox.No)
-    searchin_combobox.setCurrentIndex(CLEAR_LIST)
+    searchin_combobox.setCurrentIndex(SearchInComboBoxItems.ClearList)
 
     expected_results = [
             LOCATION,
@@ -430,18 +451,21 @@ def test_clear_this_list(searchin_combobox, mocker):
             osp.dirname(osp.dirname(osp.dirname(LOCATION))),
             osp.dirname(LOCATION)
             ]
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
 
     # Clear the list of external paths and assert that the list of
     # external paths is empty.
     mocker.patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
-    searchin_combobox.setCurrentIndex(CLEAR_LIST)
+    searchin_combobox.setCurrentIndex(SearchInComboBoxItems.ClearList)
 
-    assert searchin_combobox.count() == EXTERNAL_PATHS
+    assert searchin_combobox.count() == SearchInComboBoxItems.ExternalPaths
     assert searchin_combobox.get_external_paths() == []
-    assert searchin_combobox.currentIndex() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
 
 
 def test_delete_path(searchin_combobox, qtbot, mocker):
@@ -452,48 +476,75 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     searchin_combobox.show()
 
     expected_results = [
-            LOCATION,
-            osp.dirname(osp.dirname(LOCATION)),
-            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
-            osp.dirname(LOCATION)
-            ]
+        LOCATION,
+        osp.dirname(osp.dirname(LOCATION)),
+        osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+        osp.dirname(LOCATION)
+    ]
 
     searchin_combobox.showPopup()
-    assert searchin_combobox.currentIndex() == CWD
-    assert searchin_combobox.view().currentIndex().row() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
+    assert (
+        searchin_combobox.view().currentIndex().row()
+        == SearchInComboBoxItems.Cwd
+    )
 
     # Assert that the delete action does nothing when the selected item in
     # the combobox view is not an external path.
-    for i in range(EXTERNAL_PATHS):
+    for i in range(SearchInComboBoxItems.ExternalPaths):
         searchin_combobox.view().setCurrentIndex(
             searchin_combobox.model().index(i, 0))
         qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
 
     # Delete the first external path in the list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS, 0))
+        searchin_combobox.model().index(SearchInComboBoxItems.ExternalPaths, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop(0)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == EXTERNAL_PATHS
-    assert searchin_combobox.view().currentIndex().row() == EXTERNAL_PATHS
+    assert (
+        searchin_combobox.currentIndex() == SearchInComboBoxItems.ExternalPaths
+    )
+    assert (
+        searchin_combobox.view().currentIndex().row()
+        == SearchInComboBoxItems.ExternalPaths
+    )
 
     # Delete the second external path in the remaining list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS+1, 0))
+        searchin_combobox.model().index(
+            SearchInComboBoxItems.ExternalPaths + 1, 0
+        )
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop(1)
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
-    assert searchin_combobox.currentIndex() == EXTERNAL_PATHS+1
-    assert searchin_combobox.view().currentIndex().row() == EXTERNAL_PATHS+1
+    assert (
+        searchin_combobox.currentIndex()
+        == SearchInComboBoxItems.ExternalPaths + 1
+    )
+    assert (
+        searchin_combobox.view().currentIndex().row()
+        == SearchInComboBoxItems.ExternalPaths + 1
+    )
 
     # Delete the last external path in the list.
     searchin_combobox.view().setCurrentIndex(
@@ -501,7 +552,10 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
     expected_results.pop()
-    assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
     assert (searchin_combobox.view().currentIndex().row() ==
@@ -509,13 +563,17 @@ def test_delete_path(searchin_combobox, qtbot, mocker):
 
     # Delete the last remaining external path in the list.
     searchin_combobox.view().setCurrentIndex(
-            searchin_combobox.model().index(EXTERNAL_PATHS, 0))
+        searchin_combobox.model().index(SearchInComboBoxItems.ExternalPaths, 0)
+    )
     qtbot.keyPress(searchin_combobox.view(), Qt.Key_Delete)
 
-    assert searchin_combobox.count() == EXTERNAL_PATHS
+    assert searchin_combobox.count() == SearchInComboBoxItems.ExternalPaths
     assert searchin_combobox.get_external_paths() == []
-    assert searchin_combobox.currentIndex() == CWD
-    assert searchin_combobox.view().currentIndex().row() == CWD
+    assert searchin_combobox.currentIndex() == SearchInComboBoxItems.Cwd
+    assert (
+        searchin_combobox.view().currentIndex().row()
+        == SearchInComboBoxItems.Cwd
+    )
 
 
 def test_set_project_path(findinfiles, qtbot):
@@ -526,25 +584,40 @@ def test_set_project_path(findinfiles, qtbot):
     path_selection_combo = findinfiles.path_selection_combo
     findinfiles.show()
 
-    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
-    assert findinfiles.project_path is None
-    assert path_selection_combo.project_path is None
+    assert (
+        path_selection_combo.model().item(
+            SearchInComboBoxItems.Project, 0
+        ).isEnabled()
+        is False
+    )
+    assert findinfiles.project_path == ""
+    assert path_selection_combo.project_path == ""
 
     # Set the project path to an existing directory. For the purpose of this
     # test, it doesn't need to be a valid Spyder project path.
     project_path = NONASCII_DIR
     findinfiles.set_project_path(project_path)
-    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is True
+    assert (
+        path_selection_combo.model().item(
+            SearchInComboBoxItems.Project, 0
+        ).isEnabled()
+        is True
+    )
     assert findinfiles.project_path == project_path
     assert path_selection_combo.project_path == project_path
 
     # Disable the project path search in the widget.
-    path_selection_combo.setCurrentIndex(PROJECT)
+    path_selection_combo.setCurrentIndex(SearchInComboBoxItems.Project)
     findinfiles.disable_project_search()
-    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
-    assert findinfiles.project_path is None
-    assert path_selection_combo.project_path is None
-    assert path_selection_combo.currentIndex() == CWD
+    assert (
+        path_selection_combo.model().item(
+            SearchInComboBoxItems.Project, 0
+        ).isEnabled()
+        is False
+    )
+    assert findinfiles.project_path == ""
+    assert path_selection_combo.project_path == ""
+    assert path_selection_combo.currentIndex() == SearchInComboBoxItems.Cwd
 
 
 @pytest.mark.parametrize('findinfiles',
@@ -593,20 +666,22 @@ def test_current_search_path(findinfiles, qtbot):
     # Assert that the good path is returned for each option selected.
 
     # Test for the current working directory :
-    path_selection_combo.setCurrentIndex(CWD)
+    path_selection_combo.setCurrentIndex(SearchInComboBoxItems.Cwd)
     assert path_selection_combo.get_current_searchpath() == directory
     assert path_selection_combo.is_file_search() is False
     # Test for the project path :
-    path_selection_combo.setCurrentIndex(PROJECT)
+    path_selection_combo.setCurrentIndex(SearchInComboBoxItems.Project)
     assert path_selection_combo.get_current_searchpath() == project_path
     assert path_selection_combo.is_file_search() is False
     # Test for the file path :
-    path_selection_combo.setCurrentIndex(FILE_PATH)
+    path_selection_combo.setCurrentIndex(SearchInComboBoxItems.File)
     assert path_selection_combo.get_current_searchpath() == file_path
     assert path_selection_combo.is_file_search() is True
     # Test for the external file path :
     for i, path in enumerate(external_paths):
-        path_selection_combo.setCurrentIndex(EXTERNAL_PATHS+i)
+        path_selection_combo.setCurrentIndex(
+            SearchInComboBoxItems.ExternalPaths + i
+        )
         assert path_selection_combo.get_current_searchpath() == path
         assert path_selection_combo.is_file_search() is False
 
@@ -627,7 +702,10 @@ def test_max_history(searchin_combobox):
             osp.dirname(osp.dirname(osp.dirname(LOCATION))),
             osp.dirname(LOCATION)
     ]
-    assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
+    assert (
+        searchin_combobox.count()
+        == len(expected_results) + SearchInComboBoxItems.ExternalPaths
+    )
     assert searchin_combobox.get_external_paths() == expected_results
 
 
@@ -659,7 +737,7 @@ def test_find_in_single_file(findinfiles, qtbot):
     """
     findinfiles.set_search_text("spam")
     findinfiles.set_file_path(osp.join(LOCATION, "data", 'spam.txt'))
-    findinfiles.path_selection_combo.setCurrentIndex(FILE_PATH)
+    findinfiles.path_selection_combo.setCurrentIndex(SearchInComboBoxItems.File)
 
     with qtbot.waitSignal(findinfiles.sig_finished):
         findinfiles.find()

@@ -19,7 +19,7 @@ from collections import namedtuple
 
 # Third party imports
 from qtconsole.styles import dark_color
-from qtpy import PYQT_VERSION
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
@@ -27,7 +27,6 @@ from qtpy.QtWidgets import QShortcut
 # Local imports
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
-from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 
 
@@ -35,17 +34,11 @@ from spyder.utils import syntaxhighlighters as sh
 # preferences page)
 Shortcut = namedtuple('Shortcut', 'data')
 
-# Stylesheet to remove the indicator that appears on tool buttons with a menu.
-STYLE_BUTTON_CSS = "QToolButton::menu-indicator{image: none;}"
-
-# Check for old PyQt versions
-OLD_PYQT = programs.check_version(PYQT_VERSION, "5.12", "<")
-
 
 def font_is_installed(font):
     """Check if font is installed"""
-    return [fam for fam in QFontDatabase().families()
-            if to_text_string(fam)==font]
+    db = QFontDatabase() if QT_VERSION.startswith("5") else QFontDatabase
+    return [fam for fam in db.families() if str(fam) == font]
 
 
 def get_family(families):
@@ -64,7 +57,7 @@ FONT_CACHE = {}
 
 def get_font(section='appearance', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
-    font = FONT_CACHE.get((section, option))
+    font = FONT_CACHE.get((section, option, font_size_delta))
 
     if font is None:
         families = CONF.get(section, option+"/family", None)
@@ -82,7 +75,7 @@ def get_font(section='appearance', option='font', font_size_delta=0):
         size = CONF.get(section, option+'/size', 9) + font_size_delta
         font = QFont(family, size, weight)
         font.setItalic(italic)
-        FONT_CACHE[(section, option)] = font
+        FONT_CACHE[(section, option, font_size_delta)] = font
 
     size = CONF.get(section, option+'/size', 9) + font_size_delta
     font.setPointSize(size)
@@ -90,12 +83,17 @@ def get_font(section='appearance', option='font', font_size_delta=0):
 
 
 def set_font(font, section='appearance', option='font'):
-    """Set font"""
+    """Set font properties in our config system."""
     CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
-    FONT_CACHE[(section, option)] = font
+
+    # This function is only used to set fonts that were changed through
+    # Preferences. And in that case it's not possible to set a delta.
+    font_size_delta = 0
+
+    FONT_CACHE[(section, option, font_size_delta)] = font
 
 
 def _config_shortcut(action, context, name, keystr, parent):

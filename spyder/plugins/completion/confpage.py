@@ -67,21 +67,27 @@ class CompletionConfigPage(PluginConfigPage):
         completions_layout.addWidget(completions_after_characters.plabel, 3, 0)
         completions_layout.addWidget(
             completions_after_characters.spinbox, 3, 1)
+        completions_layout.addWidget(
+            completions_after_characters.help_label, 3, 2)
         completions_layout.addWidget(completions_hint_after_idle.plabel, 5, 0)
         completions_layout.addWidget(completions_hint_after_idle.spinbox, 5, 1)
+        completions_layout.addWidget(
+            completions_hint_after_idle.help_label, 5, 2)
         completions_layout.addWidget(completions_wait_for_ms.plabel, 6, 0)
         completions_layout.addWidget(completions_wait_for_ms.spinbox, 6, 1)
-        completions_layout.setColumnStretch(2, 6)
+        completions_layout.addWidget(completions_wait_for_ms.help_label, 6, 2)
+        completions_layout.setColumnStretch(3, 6)
         self.completions_group.setLayout(completions_layout)
 
         def disable_completion_after_characters(state):
             completions_after_characters.plabel.setEnabled(state)
             completions_after_characters.spinbox.setEnabled(state)
 
-        automatic_completion_box.toggled.connect(
+        automatic_completion_box.checkbox.toggled.connect(
             disable_completion_after_characters)
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.completions_group)
         layout.addWidget(self.providers_group)
         layout.addStretch(1)

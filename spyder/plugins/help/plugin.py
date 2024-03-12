@@ -15,13 +15,13 @@ import os
 from qtpy.QtCore import Signal
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.config.base import get_conf_path
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
 
@@ -44,7 +44,6 @@ class Help(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = HelpConfigPage
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
-    FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
@@ -62,12 +61,15 @@ class Help(SpyderDockablePlugin):
     def get_name():
         return _('Help')
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _(
-            'Get rich text documentation from the editor and the console')
+            "Get documentation for objects in the Editor and IPython console."
+        )
 
-    def get_icon(self):
-        return self.create_icon('help')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('help')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -177,12 +179,12 @@ class Help(SpyderDockablePlugin):
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
-        font = self.get_font()
-        rich_font = self.get_font(rich_text=True)
+        font = self.get_font(SpyderFontType.Monospace)
+        app_font = self.get_font(SpyderFontType.Interface)
 
         widget = self.get_widget()
         widget.set_plain_text_font(font, color_scheme=color_scheme)
-        widget.set_rich_text_font(rich_font, font)
+        widget.set_rich_text_font(app_font, font)
         widget.set_plain_text_color_scheme(color_scheme)
 
     def on_close(self, cancelable=False):
@@ -356,7 +358,7 @@ class Help(SpyderDockablePlugin):
 
         See Also
         --------
-        :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+        :py:meth:spyder.plugins.editor.widgets.editorstack.EditorStack.send_to_help
         """
         force_refresh = help_data.pop('force_refresh', False)
         self.switch_to_plugin()

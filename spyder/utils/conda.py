@@ -7,6 +7,7 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+from glob import glob
 import json
 import os
 import os.path as osp
@@ -17,6 +18,24 @@ from spyder.config.base import is_conda_based_app
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
+
+
+def _env_for_conda():
+    """
+    Required environment variables for Conda to work as expected.
+
+    Notes
+    -----
+    This is needed on Windows since Conda 23.9.0
+    """
+    env = {}
+    if os.name == 'nt':
+        env_vars = [("HOMEDRIVE", "C:"), ("HOMEPATH", "\\Users\\xxxxx")]
+        for var, default in env_vars:
+            value = os.environ.get(var, default)
+            env[var] = value
+
+    return env
 
 
 def add_quotes(path):
@@ -82,8 +101,13 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
-def find_conda():
-    """Find conda executable."""
+def find_conda(pyexec=None):
+    """
+    Find conda executable.
+
+    `pyexec` is a python executable, the relative location from which to
+    attempt to locate a conda executable.
+    """
     conda = None
 
     # First try Spyder's conda executable
@@ -98,7 +122,11 @@ def find_conda():
     # Next try searching for the executable
     if conda is None:
         conda_exec = 'conda.bat' if WINDOWS else 'conda'
-        conda = find_program(conda_exec)
+        extra_paths = [
+            osp.join(get_conda_root_prefix(_pyexec), 'condabin')
+            for _pyexec in [sys.executable, pyexec]
+        ]
+        conda = find_program(conda_exec, extra_paths)
 
     return conda
 
@@ -113,8 +141,9 @@ def get_list_conda_envs():
         return env_list
 
     cmdstr = ' '.join([conda, 'env', 'list', '--json'])
+
     try:
-        out, __ = run_shell_command(cmdstr, env={}).communicate()
+        out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
         out = out.decode()
         out = json.loads(out)
     except Exception:
@@ -124,6 +153,10 @@ def get_list_conda_envs():
         name = env.split(osp.sep)[-1]
         path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
             env, 'bin', 'python')
+
+        # In case the environment doesn't have Python
+        if not osp.isfile(path):
+            continue
 
         try:
             version, __ = run_program(path, ['--version']).communicate()
@@ -143,3 +176,41 @@ def get_list_conda_envs():
 def get_list_conda_envs_cache():
     """Return a cache of envs to avoid computing them again."""
     return CONDA_ENV_LIST_CACHE
+
+
+def is_anaconda_pkg(prefix=sys.prefix):
+    """Detect if the anaconda meta package is installed."""
+    if is_conda_env(prefix):
+        conda_meta = osp.join(prefix, "conda-meta")
+        if glob(f"{conda_meta}{os.sep}anaconda-[0-9]*.json"):
+            return True
+
+    return False
+
+
+def get_spyder_conda_channel():
+    """Get the conda channel from which Spyder was installed."""
+    conda = find_conda()
+
+    if conda is None:
+        return None, None
+
+    env = get_conda_env_path(sys.executable)
+    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+
+    try:
+        out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
+        out = out.decode()
+        out = json.loads(out)
+    except Exception:
+        return None, None
+
+    for package_info in out:
+        if package_info["name"] == 'spyder':
+            channel = package_info["channel"]
+            channel_url = package_info["base_url"]
+
+    if "<develop>" in channel_url:
+        channel_url = None
+
+    return channel, channel_url

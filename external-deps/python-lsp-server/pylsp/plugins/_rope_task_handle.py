@@ -5,6 +5,7 @@ from typing import Callable, ContextManager, List, Optional, Sequence
 
 from rope.base.taskhandle import BaseJobSet, BaseTaskHandle
 
+from pylsp._utils import throttle
 from pylsp.workspace import Workspace
 
 log = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ class PylspJobSet(BaseJobSet):
         self.count += 1
         self._report()
 
+    @throttle(0.5)
     def _report(self):
         percent = int(self.get_percent_done())
         message = f"{self.job_name} {self.done}/{self.count}"
@@ -76,7 +78,9 @@ class PylspTaskHandle(BaseTaskHandle):
         self.observers = []
 
     def create_jobset(self, name="JobSet", count: Optional[int] = None):
-        report_iter = self.workspace.report_progress(name, None, None)
+        report_iter = self.workspace.report_progress(
+            name, None, None, skip_token_initialization=True
+        )
         result = PylspJobSet(count, report_iter)
         self.job_sets.append(result)
         self._inform_observers()

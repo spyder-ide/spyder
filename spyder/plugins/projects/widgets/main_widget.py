@@ -9,6 +9,7 @@
 # Standard library imports
 from collections import OrderedDict
 import configparser
+from contextlib import contextmanager
 import logging
 import os
 import os.path as osp
@@ -27,6 +28,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
@@ -38,8 +40,12 @@ from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
+from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.programs import find_program
+from spyder.utils.workers import WorkerManager
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # For logging
@@ -74,8 +80,14 @@ class RecentProjectsMenuSections:
 # -----------------------------------------------------------------------------
 @class_register
 class ProjectExplorerWidget(PluginMainWidget):
-    """Project Explorer"""
+    """Project explorer main widget."""
 
+    # ---- Constants
+    # -------------------------------------------------------------------------
+    MAX_SWITCHER_RESULTS = 50
+
+    # ---- Signals
+    # -------------------------------------------------------------------------
     sig_open_file_requested = Signal(str)
     """
     This signal is emitted when a file is requested to be opened.
@@ -147,11 +159,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin=plugin, parent=parent)
 
-        # Attributes from conf
+        # -- Attributes from conf
         self.name_filters = self.get_conf('name_filters')
         self.show_hscrollbar = self.get_conf('show_hscrollbar')
 
-        # Main attributes
+        # -- Main attributes
         self.recent_projects = self._get_valid_recent_projects(
             self.get_conf('recent_projects', [])
         )
@@ -159,8 +171,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.current_active_project = None
         self.latest_project = None
         self.completions_available = False
+        self._fzf = find_program('fzf')
+        self._default_switcher_paths = []
 
-        # Tree widget
+        # -- Tree widget
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
@@ -168,19 +182,35 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
 
-        # Empty widget to show when there's no active project
-        self.emptywidget = ProjectExplorerTreeWidget(self)
+        self.pane_empty = PaneEmptyWidget(
+            self,
+            "projects",
+            _("No project opened"),
+            _("Create one using the menu entry Projects > New project.")
+        )
 
-        # Watcher
+        # -- Watcher
         self.watcher = WorkspaceWatcher(self)
         self.watcher.connect_signals(self)
 
-        # Signals
-        self.sig_project_loaded.connect(self._update_explorer)
+        # -- Worker manager for calls to fzf
+        self._worker_manager = WorkerManager(self)
 
-        # Layout
+        # -- Signals
+        self.sig_project_loaded.connect(self._setup_project)
+
+        # This is necessary to populate the switcher with some default list of
+        # paths instead of computing that list every time it's shown.
+        self.sig_project_loaded.connect(
+            lambda p: self._update_default_switcher_paths()
+        )
+
+        # Clear saved paths for the switcher when closing the project.
+        self.sig_project_closed.connect(lambda p: self._clear_switcher_paths())
+
+        # -- Layout
         layout = QVBoxLayout()
-        layout.addWidget(self.emptywidget)
+        layout.addWidget(self.pane_empty)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
         self.setMinimumWidth(200)
@@ -191,7 +221,7 @@ class ProjectExplorerWidget(PluginMainWidget):
     # ---- PluginMainWidget API
     # -------------------------------------------------------------------------
     def get_title(self):
-        return _("Projects")
+        return _("Project")
 
     def setup(self):
         """Setup the widget."""
@@ -199,22 +229,26 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.create_action(
             ProjectsActions.NewProject,
             text=_("New Project..."),
-            triggered=self.create_new_project)
+            triggered=self.create_new_project,
+            icon=self.create_icon("project_new"))
 
         self.create_action(
             ProjectsActions.OpenProject,
             text=_("Open Project..."),
-            triggered=lambda v: self.open_project())
+            triggered=lambda v: self.open_project(),
+            icon=self.create_icon("project_open"))
 
         self.close_project_action = self.create_action(
             ProjectsActions.CloseProject,
             text=_("Close Project"),
-            triggered=self.close_project)
+            triggered=self.close_project,
+            icon=self.create_icon("project_close"))
 
         self.delete_project_action = self.create_action(
             ProjectsActions.DeleteProject,
             text=_("Delete Project"),
-            triggered=self.delete_project)
+            triggered=self.delete_project,
+            icon=self.create_icon("project_delete"))
 
         self.clear_recent_projects_action = self.create_action(
             ProjectsActions.ClearRecentProjects,
@@ -224,11 +258,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.max_recent_action = self.create_action(
             ProjectsActions.MaxRecent,
             text=_("Maximum number of recent projects..."),
+            icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
         self.recent_project_menu = self.create_menu(
             ProjectsMenuSubmenus.RecentProjects,
-            _("Recent Projects")
+            _("Recent Projects"),
+            reposition=False
         )
         self.recent_project_menu.aboutToShow.connect(self._setup_menu_actions)
         self._setup_menu_actions()
@@ -244,8 +280,15 @@ class ProjectExplorerWidget(PluginMainWidget):
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main)
 
+    def set_pane_empty(self):
+        self.treewidget.hide()
+        self.pane_empty.show()
+
     def update_actions(self):
         pass
+
+    def on_close(self):
+        self._worker_manager.terminate_all()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -356,13 +399,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         self._add_to_recent(path)
 
         self.set_conf('current_project_path', self.get_active_project_path())
-
         self._setup_menu_actions()
 
-        if workdir and osp.isdir(workdir):
-            self.sig_project_loaded.emit(workdir)
-        else:
-            self.sig_project_loaded.emit(path)
+        with self._disable_pdb_prevent_closing():
+            if workdir and osp.isdir(workdir):
+                self.sig_project_loaded.emit(workdir)
+            else:
+                self.sig_project_loaded.emit(path)
 
         self.watcher.start(path)
 
@@ -396,8 +439,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.set_conf('current_project_path', None)
             self._setup_menu_actions()
 
-            self.sig_project_closed.emit(path)
-            self.sig_project_closed[bool].emit(True)
+            with self._disable_pdb_prevent_closing():
+                self.sig_project_closed.emit(path)
+                self.sig_project_closed[bool].emit(True)
 
             # Hide pane.
             self.set_conf('visible_if_project_open', self.isVisible())
@@ -598,6 +642,52 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.raise_()
         self.update()
 
+    # ---- Public API for the Switcher
+    # -------------------------------------------------------------------------
+    def display_default_switcher_items(self):
+        """Populate switcher with a default set of files in the project."""
+        if not self._default_switcher_paths:
+            return
+
+        self._display_paths_in_switcher(
+            self._default_switcher_paths, setup=False, clear_section=False
+        )
+
+    def handle_switcher_selection(self, item, mode, search_text):
+        """
+        Handle user selecting item in switcher.
+
+        If the selected item is not in the section of the switcher that
+        corresponds to this plugin, then ignore it. Otherwise, switch to
+        selected project file and hide the switcher.
+
+        Parameters
+        ----------
+        item: object
+            The current selected item from the switcher list (QStandardItem).
+        mode: str
+            The current selected mode (open files "", symbol "@" or line ":").
+        search_text: str
+            Cleaned search/filter text.
+        """
+        if item.get_section() != self.get_title():
+            return
+
+        # Open file in editor
+        self.sig_open_file_requested.emit(item.get_data())
+
+    def handle_switcher_search(self, search_text):
+        """
+        Handle user typing in switcher to filter results.
+
+        Load switcher results when a search text is typed for projects.
+        Parameters
+        ----------
+        text: str
+            The current search text in the switcher dialog box.
+        """
+        self._call_fzf(search_text)
+
     # ---- Public API for the LSP
     # -------------------------------------------------------------------------
     def start_workspace_services(self):
@@ -630,6 +720,9 @@ class ProjectExplorerWidget(PluginMainWidget):
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         """Notify LSP server about file creation."""
+        self._update_default_switcher_paths()
+
+        # LSP specification only considers file updates
         if is_dir:
             return
 
@@ -646,7 +739,8 @@ class ProjectExplorerWidget(PluginMainWidget):
              requires_response=False)
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
-        # LSP specification only considers file updates
+        self._update_default_switcher_paths()
+
         if is_dir:
             return
 
@@ -671,6 +765,8 @@ class ProjectExplorerWidget(PluginMainWidget):
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         """Notify LSP server about file deletion."""
+        self._update_default_switcher_paths()
+
         if is_dir:
             return
 
@@ -750,11 +846,11 @@ class ProjectExplorerWidget(PluginMainWidget):
     def _clear(self):
         """Show an empty view"""
         self.treewidget.hide()
-        self.emptywidget.show()
+        self.pane_empty.show()
 
     def _setup_project(self, directory):
         """Setup project"""
-        self.emptywidget.hide()
+        self.pane_empty.hide()
         self.treewidget.show()
 
         # Setup the directory shown by the tree
@@ -840,7 +936,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                         action = self.create_action(
                             name,
                             text=name,
-                            icon=self.create_icon('project'),
+                            icon=self.create_icon('project_spyder'),
                             triggered=self._build_opener(project),
                         )
 
@@ -858,7 +954,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 section=RecentProjectsMenuSections.Extras)
 
         self._update_project_actions()
-        self.recent_project_menu._render()
+        self.recent_project_menu.render()
 
     def _build_opener(self, project):
         """Build function opening passed project"""
@@ -889,10 +985,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
 
-    def _update_explorer(self, _unused):
-        """Update explorer tree"""
-        self._setup_project(self.get_active_project_path())
-
     def _get_valid_recent_projects(self, recent_projects):
         """
         Get the list of valid recent projects.
@@ -908,6 +1000,139 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         return valid_projects
 
+    @contextmanager
+    def _disable_pdb_prevent_closing(self):
+        """
+        Context manager to disable the pdb_prevent_closing option before
+        opening/closing the previous/current open project files.
+
+        Notes
+        -----
+        * This is necessary to correctly do that when a console was left in
+          debugging mode.
+        """
+        try:
+            pdb_prevent_closing = self.get_conf(
+                "pdb_prevent_closing", section="debugger"
+            )
+            self.set_conf("pdb_prevent_closing", False, section="debugger")
+            yield
+        finally:
+            self.set_conf(
+                "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
+            )
+
+    # ---- Private API for the Switcher
+    # -------------------------------------------------------------------------
+    def _call_fzf(self, search_text=""):
+        """
+        Call fzf in a worker to get the list of files in the current project
+        that match with `search_text`.
+
+        Parameters
+        ----------
+        search_text: str, optional
+            The search text to pass to fzf.
+        """
+        project_path = self.get_active_project_path()
+        if self._fzf is None or project_path is None:
+            return
+
+        self._worker_manager.terminate_all()
+
+        worker = self._worker_manager.create_process_worker(
+            [self._fzf, "--filter", search_text],
+            os.environ.copy()
+        )
+
+        worker.set_cwd(project_path)
+        worker.sig_finished.connect(self._process_fzf_output)
+        worker.start()
+
+    def _process_fzf_output(self, worker, output, error):
+        """Process output that comes from the fzf worker."""
+        if output is None or error:
+            return
+
+        # Get list of paths from fzf output
+        relative_path_list = output.decode('utf-8').strip().split("\n")
+
+        # List of results with absolute path
+        if relative_path_list != ['']:
+            project_path = self.get_active_project_path()
+            result_list = [
+                osp.normpath(os.path.join(project_path, path))
+                for path in relative_path_list
+            ]
+        else:
+            result_list = []
+
+        # Filter files that can be opened in the editor
+        result_list = [
+            path for path in result_list
+            if osp.splitext(path)[1] in EDIT_EXTENSIONS
+        ]
+
+        # Limit the number of results to not introduce lags when displaying
+        # them in the switcher.
+        if len(result_list) > self.MAX_SWITCHER_RESULTS:
+            result_list = result_list[:self.MAX_SWITCHER_RESULTS]
+
+        if not self._default_switcher_paths:
+            self._default_switcher_paths = result_list
+        else:
+            self._display_paths_in_switcher(
+                result_list, setup=True, clear_section=True
+            )
+
+    def _convert_paths_to_switcher_items(self, paths):
+        """
+        Convert a list of paths to items that can be shown in the switcher.
+        """
+        # The paths that are opened in the editor need to be excluded because
+        # they are already shown in the Editor section of the switcher.
+        open_files = self.get_plugin()._get_open_filenames()
+        for file in open_files:
+            normalized_path = osp.normpath(file)
+            if normalized_path in paths:
+                paths.remove(normalized_path)
+
+        is_unsaved = [False] * len(paths)
+        short_paths = shorten_paths(paths, is_unsaved)
+        section = self.get_title()
+
+        items = []
+        for i, (path, short_path) in enumerate(zip(paths, short_paths)):
+            title = osp.basename(path)
+            icon = get_file_icon(path)
+            description = osp.dirname(path)
+            if len(path) > 75:
+                description = short_path
+            is_last_item = (i + 1 == len(paths))
+
+            item_tuple = (
+                title, description, icon, section, path, is_last_item
+            )
+            items.append(item_tuple)
+
+        return items
+
+    def _display_paths_in_switcher(self, paths, setup, clear_section):
+        """Display a list of paths in the switcher."""
+        items = self._convert_paths_to_switcher_items(paths)
+
+        # Call directly the plugin's method instead of emitting a signal
+        # because it's faster.
+        self._plugin._display_items_in_switcher(items, setup, clear_section)
+
+    def _clear_switcher_paths(self):
+        """Clear saved switcher results."""
+        self._default_switcher_paths = []
+
+    def _update_default_switcher_paths(self):
+        """Update default paths to be shown in the switcher."""
+        self._default_switcher_paths = []
+        self._call_fzf()
 
 # =============================================================================
 # Tests

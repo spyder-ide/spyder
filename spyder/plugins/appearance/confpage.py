@@ -6,6 +6,8 @@
 
 """Appearance entry in Preferences."""
 
+import sys
+
 from qtconsole.styles import dark_color
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import (QFontComboBox, QGridLayout, QGroupBox, QMessageBox,
@@ -18,7 +20,18 @@ from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
+
+
+PREVIEW_TEXT = (
+    '"""A string"""\n\n'
+    '# A comment\n\n'
+    'class Foo(object):\n'
+    '    def __init__(self):\n'
+    '        bar = 42\n'
+    '        print(bar)\n'
+)
 
 
 class AppearanceConfigPage(PluginConfigPage):
@@ -56,16 +69,10 @@ class AppearanceConfigPage(PluginConfigPage):
         )
         self.ui_combobox = ui_theme_combo.combobox
 
-        themes = ['Spyder 2', 'Spyder 3']
-        icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
-        icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
-                                           'icon_theme', restart=True)
 
         theme_comboboxes_layout = QGridLayout()
         theme_comboboxes_layout.addWidget(ui_theme_combo.label, 0, 0)
         theme_comboboxes_layout.addWidget(ui_theme_combo.combobox, 0, 1)
-        theme_comboboxes_layout.addWidget(icons_combo.label, 1, 0)
-        theme_comboboxes_layout.addWidget(icons_combo.combobox, 1, 1)
 
         theme_layout = QVBoxLayout()
         theme_layout.addLayout(theme_comboboxes_layout)
@@ -81,9 +88,17 @@ class AppearanceConfigPage(PluginConfigPage):
         self.reset_button = QPushButton(_("Reset to defaults"))
 
         self.preview_editor = SimpleCodeEditor(self)
+        self.preview_editor.setMinimumWidth(210)
+        self.preview_editor.set_language('Python')
+        self.preview_editor.set_text(PREVIEW_TEXT)
+        self.preview_editor.set_blanks_enabled(False)
+        self.preview_editor.set_scrollpastend_enabled(False)
+
         self.stacked_widget = QStackedWidget(self)
-        self.scheme_editor_dialog = SchemeEditor(parent=self,
-                                                 stack=self.stacked_widget)
+        self.scheme_editor_dialog = SchemeEditor(
+            parent=self,
+            stack=self.stacked_widget
+        )
 
         self.scheme_choices_dict = {}
         schemes_combobox_widget = self.create_combobox('', [('', '')],
@@ -107,26 +122,47 @@ class AppearanceConfigPage(PluginConfigPage):
         # Fonts widgets
         self.plain_text_font = self.create_fontgroup(
             option='font',
-            title=_("Plain text"),
+            title=_("Monospace"),
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
-        self.rich_text_font = self.create_fontgroup(
-            option='rich_font',
-            title=_("Rich text"),
+        self.app_font = self.create_fontgroup(
+            option='app_font',
+            title=_("Interface"),
+            fontfilters=QFontComboBox.ProportionalFonts,
+            restart=True,
             without_group=True)
 
-        # Fonts layouts
-        fonts_layout = QGridLayout(fonts_group)
-        fonts_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
-        fonts_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
-        fonts_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
-        fonts_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
-        fonts_layout.addWidget(self.rich_text_font.fontlabel, 1, 0)
-        fonts_layout.addWidget(self.rich_text_font.fontbox, 1, 1)
-        fonts_layout.addWidget(self.rich_text_font.sizelabel, 1, 2)
-        fonts_layout.addWidget(self.rich_text_font.sizebox, 1, 3)
-        fonts_layout.setRowStretch(fonts_layout.rowCount(), 1)
+        # System font checkbox
+        if sys.platform == 'darwin':
+            system_font_tip = _("Changing the interface font does not work "
+                                "reliably on macOS")
+        else:
+            system_font_tip = None
+
+        system_font_checkbox = self.create_checkbox(
+            _("Use the system default interface font"),
+            'use_system_font',
+            restart=True,
+            tip=system_font_tip
+        )
+
+        # Fonts layout
+        fonts_grid_layout = QGridLayout()
+        fonts_grid_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
+        fonts_grid_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
+        fonts_grid_layout.addWidget(self.plain_text_font.sizebox, 0, 2)
+        fonts_grid_layout.addWidget(self.app_font.fontlabel, 2, 0)
+        fonts_grid_layout.addWidget(self.app_font.fontbox, 2, 1)
+        fonts_grid_layout.addWidget(self.app_font.sizebox, 2, 2)
+        fonts_grid_layout.setRowStretch(fonts_grid_layout.rowCount(), 1)
+
+        fonts_layout = QVBoxLayout()
+        fonts_layout.addLayout(fonts_grid_layout)
+        fonts_layout.addSpacing(5)
+        fonts_layout.addWidget(system_font_checkbox)
+
+        fonts_group.setLayout(fonts_layout)
 
         # Left options layout
         options_layout = QVBoxLayout()
@@ -142,19 +178,36 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Combined layout
         combined_layout = QGridLayout()
-        combined_layout.setRowStretch(0, 1)
-        combined_layout.setColumnStretch(1, 100)
+        combined_layout.setHorizontalSpacing(AppStyle.MarginSize * 5)
         combined_layout.addLayout(options_layout, 0, 0)
         combined_layout.addWidget(preview_group, 0, 1)
-        self.setLayout(combined_layout)
+
+        # Final layout
+        # Note: This is necessary to prevent the layout from growing downward
+        # indefinitely.
+        final_layout = QVBoxLayout()
+        final_layout.addLayout(combined_layout)
+        final_layout.addStretch()
+        self.setLayout(final_layout)
 
         # Signals and slots
         create_button.clicked.connect(self.create_new_scheme)
         edit_button.clicked.connect(self.edit_scheme)
         self.reset_button.clicked.connect(self.reset_to_default)
         self.delete_button.clicked.connect(self.delete_scheme)
-        self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
+        self.schemes_combobox.currentIndexChanged.connect(
+            lambda index: self.update_preview()
+        )
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+        self.plain_text_font.fontbox.currentFontChanged.connect(
+            lambda font: self.update_preview()
+        )
+        self.plain_text_font.sizebox.valueChanged.connect(
+            lambda value: self.update_preview()
+        )
+        system_font_checkbox.checkbox.stateChanged.connect(
+            self.update_app_font_group
+        )
 
         # Setup
         for name in names:
@@ -163,6 +216,9 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in custom_names:
             self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
 
+        if sys.platform == 'darwin':
+            system_font_checkbox.checkbox.setEnabled(False)
+        self.update_app_font_group(system_font_checkbox.checkbox.isChecked())
         self.update_combobox()
         self.update_preview()
 
@@ -172,11 +228,14 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def set_font(self, font, option):
         """Set global font used in Spyder."""
-        # Update fonts in all plugins
         set_font(font, option=option)
-        plugins = self.main.widgetlist + self.main.thirdparty_plugins
-        for plugin in plugins:
-            plugin.update_font()
+
+        # The app font can't be set in place. Instead, it requires a restart
+        if option != 'app_font':
+            # Update fonts for all plugins
+            plugins = self.main.widgetlist + self.main.thirdparty_plugins
+            for plugin in plugins:
+                plugin.update_font()
 
     def apply_settings(self):
         ui_theme = self.get_option('ui_theme')
@@ -284,34 +343,29 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
 
-    def update_preview(self, index=None, scheme_name=None):
-        """
-        Update the color scheme of the preview editor and adds text.
-
-        Note
-        ----
-        'index' is needed, because this is triggered by a signal that sends
-        the selected index.
-        """
-        text = ('"""A string"""\n\n'
-                '# A comment\n\n'
-                'class Foo(object):\n'
-                '    def __init__(self):\n'
-                '        bar = 42\n'
-                '        print(bar)\n'
-                )
-
+    def update_preview(self, scheme_name=None):
+        """Update the color scheme of the preview editor and adds text."""
         if scheme_name is None:
             scheme_name = self.current_scheme
 
+        plain_text_font = self.plain_text_font.fontbox.currentFont()
+        plain_text_font.setPointSize(self.plain_text_font.sizebox.value())
+
         self.preview_editor.setup_editor(
-            font=get_font(),
-            color_scheme=scheme_name,
-            show_blanks=False,
-            scroll_past_end=False,
+            font=plain_text_font,
+            color_scheme=scheme_name
         )
-        self.preview_editor.set_language('Python')
-        self.preview_editor.set_text(text)
+
+    def update_app_font_group(self, state):
+        """Update app font group enabled state."""
+        subwidgets = ['fontlabel', 'fontbox', 'sizebox']
+
+        if state:
+            for widget in subwidgets:
+                getattr(self.app_font, widget).setEnabled(False)
+        else:
+            for widget in subwidgets:
+                getattr(self.app_font, widget).setEnabled(True)
 
     # Actions
     # -------------------------------------------------------------------------

@@ -16,7 +16,7 @@ from typing import Set
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.api.utils import PrefixedTuple
-from spyder.plugins.preferences.api import SpyderConfigPage, BaseConfigTab
+from spyder.widgets.config import SpyderConfigPage, BaseConfigTab
 
 
 OptionSet = Set[ConfigurationKey]
@@ -64,6 +64,11 @@ class SpyderPreferencesTab(BaseConfigTab):
             return getattr(self.parent, attr)
         else:
             return super().__getattr__(attr)
+
+    def setLayout(self, layout):
+        """Remove default margins by default."""
+        layout.setContentsMargins(0, 0, 0, 0)
+        super().setLayout(layout)
 
 
 class PluginConfigPage(SpyderConfigPage):

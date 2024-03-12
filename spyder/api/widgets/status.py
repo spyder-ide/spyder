@@ -8,9 +8,9 @@
 """Status bar widgets."""
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
-from qtpy.QtGui import QFont, QIcon
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
@@ -74,7 +74,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -109,12 +109,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         if self.show_label:
             self.label_value = QLabel(self)
             self.set_value('')
-
-            # See spyder-ide/spyder#9044.
-            self.text_font = QFont(QFont().defaultFamily(),
-                                   weight=QFont.Normal)
             self.label_value.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.label_value.setFont(self.text_font)
 
         # Custom widget
         if self.CUSTOM_WIDGET_CLASS:

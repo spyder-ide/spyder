@@ -3,7 +3,7 @@
 
 import logging
 
-from pylsp import hookimpl, _utils
+from pylsp import _utils, hookimpl
 
 log = logging.getLogger(__name__)
 
@@ -24,26 +24,27 @@ def pylsp_hover(config, document, position):
         definition = definitions[0]
 
     if not definition:
-        return {'contents': ''}
+        return {"contents": ""}
 
-    hover_capabilities = config.capabilities.get('textDocument', {}).get('hover', {})
-    supported_markup_kinds = hover_capabilities.get('contentFormat', ['markdown'])
+    hover_capabilities = config.capabilities.get("textDocument", {}).get("hover", {})
+    supported_markup_kinds = hover_capabilities.get("contentFormat", ["markdown"])
     preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
 
     # Find first exact matching signature
     signature = next(
         (
-            x.to_string() for x in definition.get_signatures()
+            x.to_string()
+            for x in definition.get_signatures()
             if (x.name == word and x.type not in ["module"])
         ),
-        ''
+        "",
     )
 
     return {
-        'contents': _utils.format_docstring(
+        "contents": _utils.format_docstring(
             # raw docstring returns only doc, without signature
             definition.docstring(raw=True),
             preferred_markup_kind,
-            signatures=[signature] if signature else None
+            signatures=[signature] if signature else None,
         )
     }

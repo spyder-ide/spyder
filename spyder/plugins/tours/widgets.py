@@ -20,17 +20,16 @@ from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
                          Signal)
 from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
-from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAction, QApplication, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
-                            QLayout, QMainWindow, QMenu, QMessageBox,
+                            QLayout, QMainWindow, QMessageBox,
                             QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
-from spyder import __docs_url__
-from spyder.api.panel import Panel
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.translations import _
-from spyder.config.base import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima
@@ -335,7 +334,7 @@ class FadingTipBox(FadingDialog):
         self.label_image = QLabel()
 
         self.label_title = QLabel()
-        self.combo_title = QComboBox()
+        self.combo_title = SpyderComboBox()
         self.label_current = QLabel()
         self.label_content = QLabel()
 
@@ -377,6 +376,7 @@ class FadingTipBox(FadingDialog):
                              image: url({});
                              }}
                              '''.format(self.combobox_background.name(), arrow)
+
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
@@ -580,7 +580,7 @@ class FadingTipBox(FadingDialog):
 
     def context_menu_requested(self, event):
         pos = QPoint(event.x(), event.y())
-        menu = QMenu(self)
+        menu = SpyderMenu(self)
 
         actions = []
         action_title = create_action(self, _('Go to step: '), icon=QIcon())
@@ -1094,7 +1094,6 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
         start_tour_color = QStylePalette.COLOR_ACCENT_2
         start_tour_hover = QStylePalette.COLOR_ACCENT_3
         start_tour_pressed = QStylePalette.COLOR_ACCENT_4
@@ -1187,7 +1186,7 @@ class OpenTourDialog(QDialog):
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        self.setStyleSheet(f"background-color:{dialog_tour_color}")
+        self.setStyleSheet(f"background-color:{DialogStyle.BackgroundColor}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)

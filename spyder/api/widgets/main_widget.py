@@ -14,31 +14,32 @@ subclass of PluginMainWidget.
 # Standard library imports
 from collections import OrderedDict
 import logging
-import sys
 from typing import Optional
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
-from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
-                                      PluginMainWidgetMenus)
+from spyder.api.widgets.menus import (
+    PluginMainWidgetOptionsMenu,
+    OptionsMenuSections,
+    PluginMainWidgetMenus
+)
 from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.py3compat import qbytearray_to_str
-from spyder.utils.qthelpers import create_waitspinner, set_menu_icons
-from spyder.utils.registries import (
-    ACTION_REGISTRY, TOOLBAR_REGISTRY, MENU_REGISTRY)
+from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.utils.stylesheet import (
-    APP_STYLESHEET, PANES_TABBAR_STYLESHEET, PANES_TOOLBAR_STYLESHEET)
+    AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
+    PANES_TOOLBAR_STYLESHEET)
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
@@ -110,6 +111,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
     If actions, toolbars, toolbuttons or menus belong to the global scope of
     the plugin, then this attribute should have a `None` value.
+    """
+
+    MARGIN_TOP = 0
+    """
+    Use this attribute to adjust the widget's top margin in pixels.
     """
 
     # ---- Signals
@@ -213,7 +219,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)
@@ -273,7 +279,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             title=_("Main widget corner toolbar"),
         )
-        self._corner_toolbar.ID = 'corner_toolbar',
+        self._corner_toolbar.ID = 'corner_toolbar'
 
         TOOLBAR_REGISTRY.register_reference(
             self._corner_toolbar, self._corner_toolbar.ID,
@@ -281,18 +287,26 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         self._corner_toolbar.setSizePolicy(QSizePolicy.Minimum,
                                            QSizePolicy.Expanding)
-        self._options_menu = self.create_menu(
+
+        self._options_menu = self._create_menu(
             PluginMainWidgetMenus.Options,
             title=_('Options menu'),
+            MenuClass=PluginMainWidgetOptionsMenu
         )
+
+        # Margins
+        # --------------------------------------------------------------------
+        # These margins are necessary to give some space between the widgets
+        # inside this one and the window separator and borders.
+        self._margin_right = AppStyle.MarginSize
+        self._margin_bottom = AppStyle.MarginSize
+        if not self.get_conf('vertical_tabs', section='main'):
+            self._margin_left = AppStyle.MarginSize
+        else:
+            self._margin_left = 0
 
         # Layout
         # --------------------------------------------------------------------
-        # These margins are necessary to give some space between the widgets
-        # inside this widget and the window vertical separator.
-        self._margin_left = 1
-        self._margin_right = 1
-
         self._main_layout = QVBoxLayout()
         self._toolbars_layout = QVBoxLayout()
         self._main_toolbar_layout = QHBoxLayout()
@@ -400,11 +414,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._update_actions)
 
-        # Hide icons in Mac plugin menus
-        if sys.platform == 'darwin':
-            self._options_menu.aboutToHide.connect(
-                lambda menu=self._options_menu: set_menu_icons(menu, False))
-
         # For widgets that do not use tabs, we add the corner widget to the
         # corner toolbar
         if not self._is_tab:
@@ -428,16 +437,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self.lock_unlock_action.setVisible(show_dock_actions)
         self.dock_action.setVisible(not show_dock_actions)
 
-        if sys.platform == 'darwin':
-            try:
-                set_menu_icons(
-                    self.get_menu(PluginMainWidgetMenus.Options), True)
-            except KeyError:
-                # Prevent unexpected errors on the test suite.
-                pass
-
         # Widget setup
-        # --------------------------------------------------------------------
         self.update_actions()
 
     @Slot(bool)
@@ -480,7 +480,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         """
         self._main_layout.addLayout(layout, stretch=1000000)
         super().setLayout(self._main_layout)
-        layout.setContentsMargins(self._margin_left, 0, self._margin_right, 0)
+        layout.setContentsMargins(
+            self._margin_left, self.MARGIN_TOP, self._margin_right,
+            self._margin_bottom
+        )
         layout.setSpacing(0)
 
     def closeEvent(self, event):
@@ -588,45 +591,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._toolbars_layout.addWidget(toolbar)
 
         return toolbar
-
-    def create_menu(self, menu_id, title='', icon=None):
-        """
-        Override SpyderMenuMixin method to use a different menu class.
-
-        Parameters
-        ----------
-        menu_id: str
-            Unique toolbar string identifier.
-        title: str
-            Toolbar localized title.
-        icon: QIcon or None
-            Icon to use for the menu.
-
-        Returns
-        -------
-        MainWidgetMenu
-            The main widget menu.
-        """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
-
-        if menu_id in self._menus:
-            raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(menu_id)
-            )
-
-        menu = MainWidgetMenu(parent=self, title=title, menu_id=menu_id)
-
-        MENU_REGISTRY.register_reference(
-            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
-
-        if icon is not None:
-            menu.menuAction().setIconVisibleInMenu(True)
-            menu.setIcon(icon)
-
-        self._menus[menu_id] = menu
-        return menu
 
     def get_options_menu(self):
         """
@@ -765,7 +729,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
             # self._toolbars_already_rendered = True
 
-    # ---- SpyderDockwidget handling ------------------------------------------
+    # ---- SpyderDockwidget handling
     # -------------------------------------------------------------------------
     @Slot()
     def create_window(self):
@@ -794,6 +758,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
                 window.restoreGeometry(
                     QByteArray().fromHex(str(geometry).encode('utf-8'))
                 )
+
+                # Move to the primary screen if the window is not placed in a
+                # visible location.
+                window.move_to_primary_screen()
             except Exception:
                 pass
 

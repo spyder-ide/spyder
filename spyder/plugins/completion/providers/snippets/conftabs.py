@@ -14,12 +14,12 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import getsavefilename, getopenfilename
-from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QComboBox, QGroupBox, QGridLayout, QLabel,
-                            QMessageBox, QPushButton, QTabWidget, QVBoxLayout,
-                            QWidget, QFileDialog)
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
+                            QMessageBox, QPushButton, QVBoxLayout, QFileDialog)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets import (
@@ -48,7 +48,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         snippets_info_label.setWordWrap(True)
         snippets_info_label.setAlignment(Qt.AlignJustify)
 
-        self.snippets_language_cb = QComboBox(self)
+        self.snippets_language_cb = SpyderComboBox(self)
         self.snippets_language_cb.setToolTip(
             _('Programming language provided by the LSP server'))
         self.snippets_language_cb.addItems(SUPPORTED_LANGUAGES_PY)
@@ -57,6 +57,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
             self.change_language_snippets)
 
         snippet_lang_group = QGroupBox(_('Language'))
+        snippet_lang_group.setStyleSheet('margin-bottom: 3px')
         snippet_lang_layout = QVBoxLayout()
         snippet_lang_layout.addWidget(self.snippets_language_cb)
         snippet_lang_group.setLayout(snippet_lang_layout)
@@ -103,6 +104,7 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         # Snippets layout
         snippets_layout = QVBoxLayout()
         snippets_layout.addWidget(snippets_info_label)
+        snippets_layout.addSpacing(9)
         snippets_layout.addWidget(snippet_lang_group)
         snippets_layout.addWidget(snippet_table_group)
         snippets_layout.addLayout(sn_buttons_layout)

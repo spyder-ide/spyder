@@ -150,6 +150,12 @@ class RunExecutorListModel(QAbstractListModel):
     def __contains__(self, exec_input: Tuple[str, str]) -> bool:
         return exec_input in self.executor_configurations
 
+    def __len__(self):
+        return len(self.executor_configurations)
+
+    def __iter__(self):
+        return iter(self.executor_configurations)
+
     def __getitem__(
             self, input_executor: tuple) -> SupportedExecutionRunConfiguration:
         (input, executor) = input_executor
@@ -175,6 +181,9 @@ class RunConfigurationListModel(QAbstractListModel):
 
     def set_current_run_configuration(self, uuid: str):
         self.current_configuration = uuid
+    
+    def get_current_run_configuration(self):
+        return self.current_configuration
 
     def get_initial_index(self) -> int:
         return self.inverted_index[self.current_configuration]
@@ -237,6 +246,8 @@ class RunConfigurationListModel(QAbstractListModel):
         item = self.run_configurations.pop(uuid)
         self.metadata_index = dict(enumerate(self.run_configurations))
         self.inverted_index = {v: k for k, v in self.metadata_index.items()}
+        if self.current_configuration not in self.inverted_index:
+            self.current_configuration = None
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(len(self.metadata_index), 0))
         return item

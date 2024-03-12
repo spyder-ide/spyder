@@ -19,14 +19,38 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QDir,
+    QMimeData,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    QUrl,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
-                            QToolTip, QTreeView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFileSystemModel,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProxyStyle,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTextEdit,
+    QToolTip,
+    QTreeView,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -149,6 +173,48 @@ class DirViewStyle(QProxyStyle):
         return super().styleHint(hint, option, widget, return_data)
 
 
+class DirViewItemDelegate(QStyledItemDelegate):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._project_dir = ""
+
+    def set_project_dir(self, project_dir):
+        self._project_dir = project_dir
+
+    def initStyleOption(self, option, index):
+        """
+        To change the item icon when expanding a folder.
+
+        From https://stackoverflow.com/a/48531349/438386
+        """
+        super().initStyleOption(option, index)
+
+        if isinstance(option, QStyleOptionViewItem):
+            model = index.model()
+
+            if isinstance(model, QSortFilterProxyModel):
+                # This is necessary for Projects because it has a proxy model
+                is_dir = model.sourceModel().isDir(model.mapToSource(index))
+            else:
+                is_dir = model.isDir(index)
+
+            if is_dir:
+                # This is necessary because Projects has a root directory and
+                # we want to set a different icon for it.
+                if isinstance(model, QSortFilterProxyModel):
+                    dir_path = model.sourceModel().filePath(
+                        model.mapToSource(index)
+                    )
+                else:
+                    dir_path = None
+
+                if dir_path == self._project_dir:
+                    option.icon = ima.icon("project_spyder")
+                elif (option.state & QStyle.State_Open):
+                    option.icon = ima.icon("DirOpenIcon")
+
+
 # ---- Widgets
 # ----------------------------------------------------------------------------
 class DirView(QTreeView, SpyderWidgetMixin):
@@ -267,7 +333,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QTreeView.__init__(self, parent)
@@ -297,10 +363,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self._style = DirViewStyle(None)
         self._style.setParent(self)
         self.setStyle(self._style)
+        self.setItemDelegate(DirViewItemDelegate(self))
 
         # Setup
         self.setup_fs_model()
-        self.setSelectionMode(self.ExtendedSelection)
+        self.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection
+        )
         header.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Track mouse movements. This activates the mouseMoveEvent declared
@@ -1682,7 +1751,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
-        self.fsmodel.setIconProvider(IconProvider(self))
+        self.fsmodel.setIconProvider(IconProvider())
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""

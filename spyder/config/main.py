@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -16,7 +17,6 @@ import sys
 
 # Local import
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
-from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
@@ -75,16 +75,19 @@ DEFAULTS = [
               'window/position': (10, 10),
               'window/is_maximized': True,
               'window/is_fullscreen': False,
-              'window/prefs_dialog_size': (1050, 530),
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
-              'check_updates_on_startup': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
+              }),
+            ('update_manager',
+             {
+              'check_updates_on_startup': True,
+              'check_stable_only': True,
               }),
             ('toolbar',
              {
@@ -144,11 +147,13 @@ DEFAULTS = [
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
-              'pylab/backend': 0,
-              'pylab/inline/figure_format': 0,
-              'pylab/inline/resolution': 72,
+              'pylab/backend': 'inline',
+              'pylab/inline/figure_format': 'png',
+              'pylab/inline/resolution': 144,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/fontsize': 10.0,
+              'pylab/inline/bottom': 0.11,
               'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
@@ -156,6 +161,7 @@ DEFAULTS = [
               'greedy_completer': False,
               'jedi_completer': False,
               'autocall': 0,
+              'autoreload': not WIN,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
@@ -180,19 +186,19 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
-              'show_special_attributes': False
+              'show_special_attributes': False,
+              'filter_on': True
              }),
             ('debugger',
              {
               'exclude_internal': True,
-              'capture_locals': False,
-              'show_locals_on_click': False,
               'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': True,
               'pdb_stop_first_line': True,
-              'breakpoints_panel': True,
+              'editor_debugger_panel': True,
+              'breakpoints_table_visible': False,
              }),
             ('run',
              {
@@ -207,10 +213,6 @@ DEFAULTS = [
              }),
             ('editor',
              {
-              'printer_header/font/family': SANS_SERIF,
-              'printer_header/font/size': MEDIUM,
-              'printer_header/font/italic': False,
-              'printer_header/font/bold': False,
               'wrap': False,
               'wrapflag': True,
               'todo_list': True,
@@ -297,6 +299,13 @@ DEFAULTS = [
               'follow_cursor': True,
               'display_variables': False
               }),
+            ('preferences',
+             {
+              'enable': True,
+              'dialog_size': (
+                  (1010, 725) if MAC else ((900, 670) if WIN else (950, 690))
+              ),
+              }),
             ('project_explorer',
              {
               'name_filters': NAME_FILTERS,
@@ -334,10 +343,6 @@ DEFAULTS = [
               'case_sensitive': False,
               'exclude_case_sensitive': False,
               'max_results': 1000,
-              }),
-            ('breakpoints',
-             {
-              'enable': True,
               }),
             ('completions',
              {
@@ -486,6 +491,8 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run cell': 'Alt+Return',
+              'editor/scroll line down': '',
+              'editor/scroll line up': '',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
@@ -534,6 +541,7 @@ DEFAULTS = [
               'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
+              'debugger/show breakpoint table': "",
               # -- Plots --
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -575,7 +583,6 @@ NAME_MAP = {
             'current_version',
             'historylog_filename',
             'window/position',
-            'window/prefs_dialog_size',
             'window/size',
             'window/state',
             ]
@@ -619,6 +626,10 @@ NAME_MAP = {
             'scrollbar_position',
             ],
          ),
+        ('preferences', [
+            'dialog_size',
+            ],
+         ),
         ('project_explorer', [
             'current_project_path',
             'expanded_state',
@@ -652,7 +663,7 @@ NAME_MAP = {
 
 
 # =============================================================================
-# Config instance
+# Config version
 # =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
@@ -661,4 +672,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '77.0.0'
+CONF_VERSION = '82.2.0'

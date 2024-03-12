@@ -4,8 +4,8 @@
 import sys
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins import pyflakes_lint
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys
@@ -33,11 +33,11 @@ def test_pyflakes(workspace):
     diags = pyflakes_lint.pylsp_lint(workspace, doc)
 
     # One we're expecting is:
-    msg = '\'sys\' imported but unused'
-    unused_import = [d for d in diags if d['message'] == msg][0]
+    msg = "'sys' imported but unused"
+    unused_import = [d for d in diags if d["message"] == msg][0]
 
-    assert unused_import['range']['start'] == {'line': 0, 'character': 0}
-    assert unused_import['severity'] == lsp.DiagnosticSeverity.Warning
+    assert unused_import["range"]["start"] == {"line": 0, "character": 0}
+    assert unused_import["severity"] == lsp.DiagnosticSeverity.Warning
 
 
 def test_syntax_error_pyflakes(workspace):
@@ -45,20 +45,20 @@ def test_syntax_error_pyflakes(workspace):
     diag = pyflakes_lint.pylsp_lint(workspace, doc)[0]
 
     if sys.version_info[:2] >= (3, 10):
-        assert diag['message'] == "expected ':'"
+        assert diag["message"] == "expected ':'"
     else:
-        assert diag['message'] == 'invalid syntax'
-    assert diag['range']['start'] == {'line': 0, 'character': 12}
-    assert diag['severity'] == lsp.DiagnosticSeverity.Error
+        assert diag["message"] == "invalid syntax"
+    assert diag["range"]["start"] == {"line": 0, "character": 12}
+    assert diag["severity"] == lsp.DiagnosticSeverity.Error
 
 
 def test_undefined_name_pyflakes(workspace):
     doc = Document(DOC_URI, workspace, DOC_UNDEFINED_NAME_ERR)
     diag = pyflakes_lint.pylsp_lint(workspace, doc)[0]
 
-    assert diag['message'] == 'undefined name \'b\''
-    assert diag['range']['start'] == {'line': 0, 'character': 4}
-    assert diag['severity'] == lsp.DiagnosticSeverity.Error
+    assert diag["message"] == "undefined name 'b'"
+    assert diag["range"]["start"] == {"line": 0, "character": 4}
+    assert diag["severity"] == lsp.DiagnosticSeverity.Error
 
 
 def test_unicode_encoding(workspace):
@@ -66,4 +66,4 @@ def test_unicode_encoding(workspace):
     diags = pyflakes_lint.pylsp_lint(workspace, doc)
 
     assert len(diags) == 1
-    assert diags[0]['message'] == '\'sys\' imported but unused'
+    assert diags[0]["message"] == "'sys' imported but unused"

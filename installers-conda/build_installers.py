@@ -64,11 +64,14 @@ if TARGET_PLATFORM == "osx-arm64":
 else:
     ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 if WINDOWS:
-    EXT, OS = "exe", "Windows"
+    OS = "Windows"
+    INSTALL_CHOICES = ["exe"]
 elif LINUX:
-    EXT, OS = "sh", "Linux"
+    OS = "Linux"
+    INSTALL_CHOICES = ["sh"]
 elif MACOS:
-    EXT, OS = "pkg", "macOS"
+    OS = "macOS"
+    INSTALL_CHOICES = ["pkg", "sh"]
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
@@ -121,6 +124,10 @@ p.add_argument(
     "--cert-id", default=None,
     help="Apple Developer ID Application certificate common name."
 )
+p.add_argument(
+    "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
+    help="Installer type."
+)
 args = p.parse_args()
 
 yaml = YAML()
@@ -132,8 +139,6 @@ SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
 specs = {
     "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
-    "paramiko": "",
-    "pyxdg": "",
 }
 specs.update(scientific_packages)
 
@@ -150,7 +155,7 @@ for spec in args.extra_specs:
     if k == "spyder":
         SPYVER = v[-1]
 
-OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{EXT}"
+OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
@@ -190,20 +195,18 @@ def _generate_background_images(installer_type):
 
 
 def _get_condarc():
-    # we need defaults for tensorflow and others on windows only
-    defaults = "- defaults" if WINDOWS else ""
-    prompt = "[spyder]({default_env}) "
     contents = dedent(
-        f"""
+        """
         channels:  #!final
+          - conda-forge/label/spyder_kernels_rc
+          - conda-forge/label/spyder_dev
           - conda-forge
-          {defaults}
         repodata_fns:  #!final
           - repodata.json
         auto_update_conda: false  #!final
         notify_outdated_conda: false  #!final
-        channel_priority: strict  #!final
-        env_prompt: '{prompt}'  #! final
+        channel_priority: flexible  #!final
+        env_prompt: '[spyder]({default_env}) '  #! final
         """
     )
     # the undocumented #!final comment is explained here
@@ -222,33 +225,35 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
-            "napari/label/bundle_tools_2",
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
         "conda_default_channels": ["conda-forge"],
         "specs": [
             f"python={PY_VER}",
+            "conda >=23.11.0",
+            "menuinst >=2.0.2",
             "mamba",
         ],
         "installer_filename": OUTPUT_FILE.name,
+        "installer_type": args.install_type,
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
-        "license_file": str(RESOURCES / "bundle_license.rtf"),
+        "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
                 "specs": [k + v for k, v in specs.items()],
             },
         },
-        "extra_files": [
-            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-            {condarc: ".condarc"},
-        ],
     }
 
     if not args.no_local:
         definitions["channels"].insert(0, "local")
+
+    definitions["license_file"] = str(RESOURCES / "bundle_license.rtf")
+    if args.install_type == "sh":
+        definitions["license_file"] = str(SPYREPO / "LICENSE.txt")
 
     if LINUX:
         definitions.update(
@@ -256,9 +261,13 @@ def _definitions():
                 "default_prefix": os.path.join(
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
-                "license_file": str(SPYREPO / "LICENSE.txt"),
-                "installer_type": "sh",
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -269,18 +278,27 @@ def _definitions():
         welcome_file.write_text(
             welcome_text_tmpl.replace("__VERSION__", SPYVER))
 
-        # These two options control the default install location:
-        # ~/<default_location_pkg>/<pkg_name>
         definitions.update(
             {
-                "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
-                "default_location_pkg": "Library",
-                "installer_type": "pkg",
-                "welcome_image": str(WELCOME_IMG_MAC),
-                "welcome_file": str(welcome_file),
+                "progress_notifications": True,
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
+                # For sh installer
+                "default_prefix": os.path.join(
+                    "$HOME", "Library", INSTALLER_DEFAULT_PATH_STEM
+                ),
+                # For pkg installer
+                "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
+                "default_location_pkg": "Library",
+                "welcome_image": str(WELCOME_IMG_MAC),
+                "welcome_file": str(welcome_file),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -305,7 +323,13 @@ def _definitions():
                     "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "check_path_length": False,
-                "installer_type": "exe",
+                "pre_install": str(RESOURCES / "pre-install.bat"),
+                "post_install": str(RESOURCES / "post-install.bat"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "Scripts/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -339,7 +363,7 @@ def _constructor():
     cmd_args.append(str(BUILD))
 
     env = os.environ.copy()
-    env["CONDA_CHANNEL_PRIORITY"] = "strict"
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
     logger.info("Configuration:")
@@ -393,7 +417,7 @@ if __name__ == "__main__":
         print(ARCH)
         sys.exit()
     if args.ext:
-        print(EXT)
+        print(args.install_type)
         sys.exit()
     if args.artifact_name:
         print(OUTPUT_FILE)

@@ -20,6 +20,7 @@ from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
@@ -76,10 +77,6 @@ class PlotsWidget(ShellConnectMainWidget):
         self.zoom_disp.setSuffix(' %')
         self.zoom_disp.setRange(0, 9999)
         self.zoom_disp.setValue(100)
-
-        # Resize to a huge width to get the right size of the thumbnail
-        # scrollbar at startup.
-        self.resize(50000, self.height())
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -157,7 +154,7 @@ class PlotsWidget(ShellConnectMainWidget):
             name=PlotsWidgetActions.CloseAll,
             text=_("Remove all plots"),
             tip=_("Remove all plots"),
-            icon=self.create_icon('filecloseall'),
+            icon=self.create_icon('editdelete'),
             triggered=self.remove_all_plots,
             register_shortcut=True,
         )
@@ -220,11 +217,12 @@ class PlotsWidget(ShellConnectMainWidget):
         value = False
         widget = self.current_widget()
         figviewer = None
-        if widget:
+        if widget and not self.is_current_widget_empty():
             figviewer = widget.figviewer
             thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
 
+            widget.set_pane_empty(not value)
         for __, action in self.get_actions().items():
             try:
                 if action and action not in [self.mute_action,
@@ -271,13 +269,11 @@ class PlotsWidget(ShellConnectMainWidget):
                 widget.setup({option: value})
                 self.update_actions()
 
-    # ---- Public API:
+    # ---- Public API
     # ------------------------------------------------------------------------
-
     def create_new_widget(self, shellwidget):
         fig_browser = FigureBrowser(parent=self,
                                     background_color=MAIN_BG_COLOR)
-        fig_browser.update_splitter_widths(self.width())
         fig_browser.set_shellwidget(shellwidget)
         fig_browser.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
@@ -379,6 +375,14 @@ class PlotsWidget(ShellConnectMainWidget):
                 # Reset the toolbar buttons to use the figviewer and not the thumbnail
                 # selection
                 self._right_clicked_thumbnail = None
+
+    def add_plot(self, fig, fmt, shellwidget):
+        """
+        Add a plot to the figure browser with the given shellwidget, if any.
+        """
+        fig_browser = self.get_widget_for_shellwidget(shellwidget)
+        if fig_browser and not isinstance(fig_browser, PaneEmptyWidget):
+            fig_browser.add_figure(fig, fmt)
 
     def remove_plot(self):
         """

@@ -17,12 +17,13 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
-from spyder.config.gui import get_font
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
 from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -184,7 +185,8 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(OneColumnTree):
+class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
+
     sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
@@ -197,7 +199,7 @@ class ResultsBrowser(OneColumnTree):
         self.error_flag = None
         self.completed = None
         self.sorting = {}
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.files = None
         self.root_items = None
@@ -249,7 +251,7 @@ class ResultsBrowser(OneColumnTree):
             self.activated(item)
 
     def clear_title(self, search_text):
-        self.font = get_font()
+        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.clear()
         self.setSortingEnabled(False)
         self.num_files = 0
@@ -320,6 +322,9 @@ class ResultsBrowser(OneColumnTree):
 
     def set_width(self):
         """Set widget width according to its longest item."""
+        if not self.data:
+            return
+
         # File item width
         file_item_size = self.fontMetrics().size(
             Qt.TextSingleLine,
@@ -340,5 +345,19 @@ class ResultsBrowser(OneColumnTree):
         else:
             width = line_item_width
 
-        # Increase width a bit to not be too near to the edge
-        self.itemDelegate().width = width + 10
+        # Compare obtained value with the available width (we have two
+        # indentation levels here and the -6 is necessary to avoid showing the
+        # horizontal scrollbar)
+        available_width = self.width() - 2 * self.indentation() - 6
+
+        if width < available_width:
+            width = available_width
+        else:
+            # Increase computed width so that the longest item is not too close
+            # to the right edge
+            if self.verticalScrollBar().isVisible():
+                width = width + self.verticalScrollBar().width()
+            else:
+                width = width + 2 * AppStyle.MarginSize
+
+        self.itemDelegate().width = width

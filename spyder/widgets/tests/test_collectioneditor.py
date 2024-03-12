@@ -16,7 +16,7 @@ from os import path
 import copy
 import datetime
 from xml.dom.minidom import parseString
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 # Third party imports
 import numpy
@@ -24,13 +24,14 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QWidget, QDateEdit
+from qtpy.QtWidgets import QDateEdit, QMessageBox, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
 from spyder.widgets.collectionseditor import (
-    RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
+    CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
+    CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
+    ROWS_TO_LOAD)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
@@ -264,6 +265,27 @@ def test_filter_rows(qtbot):
     assert editor.model.rowCount() == 0
 
 
+def test_remote_make_data_function():
+    """
+    Test that the function returned by make_data_function() is the expected
+    one.
+    """
+    variables = {'a': {'type': 'int',
+                       'size': 1,
+                       'view': '1',
+                       'python_type': 'int',
+                       'numpy_type': 'Unknown'}}
+    mock_shellwidget = Mock()
+    editor = RemoteCollectionsEditorTableView(
+        None, variables, mock_shellwidget
+    )
+    index = editor.model.index(0, 0)
+    data_function = editor.delegate.make_data_function(index)
+    value = data_function()
+    mock_shellwidget.get_value.assert_called_once_with('a')
+    assert value == mock_shellwidget.get_value.return_value
+
+
 def test_create_dataframeeditor_with_correct_format(qtbot):
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
@@ -475,6 +497,91 @@ def test_rename_and_duplicate_item_in_collection_editor():
         if isinstance(coll, list):
             editor.duplicate_item()
             assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
+
+
+def test_collectioneditorwidget_refresh_action_disabled():
+    """
+    Test that the Refresh button is disabled by default.
+    """
+    lst = [1, 2, 3, 4]
+    widget = CollectionsEditorWidget(None, lst.copy())
+    assert not widget.refresh_action.isEnabled()
+
+
+def test_collectioneditor_refresh():
+    """
+    Test that after pressing the refresh button, the value of the editor is
+    replaced by the return value of the data_function.
+    """
+    old_list = [1, 2, 3, 4]
+    new_list = [3, 1, 4, 1, 5]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    assert editor.get_value() == old_list
+    assert editor.widget.refresh_action.isEnabled()
+    editor.widget.refresh_action.trigger()
+    assert editor.get_value() == new_list
+
+
+@pytest.mark.parametrize('result', [QMessageBox.Yes, QMessageBox.No])
+def test_collectioneditor_refresh_after_edit(result):
+    """
+    Test that after changing a value in the collections editor, refreshing the
+    editor opens a dialog box (which asks for confirmation), and that the
+    editor is only refreshed if the user clicks Yes.
+    """
+    old_list = [1, 2, 3, 4]
+    edited_list = [1, 2, 3, 5]
+    new_list = [3, 1, 4, 1, 5]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    editor.show()
+    model = editor.widget.editor.source_model
+    model.setData(model.index(3, 3), '5')
+    with patch('spyder.widgets.collectionseditor.QMessageBox.question',
+               return_value=result) as mock_question:
+        editor.widget.refresh_action.trigger()
+    mock_question.assert_called_once()
+    editor.accept()
+    if result == QMessageBox.Yes:
+        assert editor.get_value() == new_list
+    else:
+        assert editor.get_value() == edited_list
+
+
+def test_collectioneditor_refresh_when_variable_deleted(qtbot):
+    """
+    Test that if the variable is deleted and then the editor is refreshed
+    (resulting in data_function raising a KeyError), a critical dialog box
+    is displayed and that the editor is closed.
+    """
+    def datafunc():
+        raise KeyError
+    lst = [1, 2, 3, 4]
+    editor = CollectionsEditor(None, data_function=datafunc)
+    editor.setup(lst)
+    with patch('spyder.widgets.collectionseditor.QMessageBox'
+               '.critical') as mock_critical, \
+         qtbot.waitSignal(editor.rejected, timeout=0):
+        editor.widget.refresh_action.trigger()
+    mock_critical.assert_called_once()
+
+
+def test_collectioneditor_refresh_nested():
+    """
+    Open an editor for a list with a tuple nested inside, and then open another
+    editor for the nested tuple. Test that refreshing the second editor works.
+    """
+    old_list = [1, 2, 3, (4, 5)]
+    new_list = [1, 2, 3, (4,)]
+    editor = CollectionsEditor(None, data_function=lambda: new_list)
+    editor.setup(old_list)
+    view = editor.widget.editor
+    view.edit(view.model.index(3, 3))
+    nested_editor = list(view.delegate._editors.values())[0]['editor']
+    assert nested_editor.get_value() == (4, 5)
+    nested_editor.widget.refresh_action.trigger()
+    assert nested_editor.get_value() == (4,)
 
 
 def test_edit_datetime(monkeypatch):
@@ -920,6 +1027,21 @@ def test_dicts_natural_sorting_mixed_types():
     assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
                                     ['Series', 'dict', 'list', 'str'],
                                     ['(0,)', 2, 3, str_size]]
+
+
+def test_collectioneditor_plot(qtbot):
+    """
+    Test that plotting a list from the collection editor calls the .plot()
+    function in the associated namespace browser.
+    """
+    my_list = [4, 2]
+    mock_namespacebrowser = Mock()
+    cew = CollectionsEditorWidget(
+        None, {'list': my_list}, namespacebrowser=mock_namespacebrowser)
+    qtbot.addWidget(cew)
+
+    cew.editor.plot('list', 'plot')
+    mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
 
 
 if __name__ == "__main__":

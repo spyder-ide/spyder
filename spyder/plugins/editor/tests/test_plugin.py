@@ -19,7 +19,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.editor.widgets import editor as editor_module
+from spyder.plugins.editor.widgets.editorstack import editorstack as editor_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
 
@@ -136,19 +136,36 @@ def test_renamed_tree(editor_plugin, mocker):
     editor = editor_plugin
     mocker.patch.object(editor, 'get_filenames')
     mocker.patch.object(editor, 'renamed')
-    editor.get_filenames.return_value = ['/test/directory/file1.py',
-                                         '/test/directory/file2.txt',
-                                         '/home/spyder/testing/file3.py',
-                                         '/test/directory/file4.rst']
+    if os.name == "nt":
+        filenames = [r'C:\test\directory\file1.py',
+                     r'C:\test\directory\file2.txt',
+                     r'C:\home\spyder\testing\file3.py',
+                     r'C:\test\directory\file4.rst']
+        expected = [r'C:\test\dir\file1.py',
+                    r'C:\test\dir\file2.txt',
+                    r'C:\home\spyder\testing\file3.py',
+                    r'C:\test\dir\file4.rst']
+        sourcedir = r'C:\test\directory'
+        destdir = r'C:\test\dir'
+    else:
+        filenames = ['/test/directory/file1.py',
+                     '/test/directory/file2.txt',
+                     '/home/spyder/testing/file3.py',
+                     '/test/directory/file4.rst']
+        expected = ['/test/dir/file1.py',
+                    '/test/dir/file2.txt',
+                    '/home/spyder/testing/file3.py',
+                    '/test/dir/file4.rst']
+        sourcedir = '/test/directory'
+        destdir = '/test/dir'
 
-    editor.renamed_tree('/test/directory', '/test/dir')
+    editor.get_filenames.return_value = filenames
+
+    editor.renamed_tree(sourcedir, destdir)
     assert editor.renamed.call_count == 3
-    assert editor.renamed.called_with(source='/test/directory/file1.py',
-                                      dest='test/dir/file1.py')
-    assert editor.renamed.called_with(source='/test/directory/file2.txt',
-                                      dest='test/dir/file2.txt')
-    assert editor.renamed.called_with(source='/test/directory/file4.rst',
-                                      dest='test/dir/file4.rst')
+    for file in [0, 1, 3]:
+        editor.renamed.assert_any_call(source=filenames[file],
+                                       dest=expected[file])
 
 
 def test_no_template(editor_plugin):

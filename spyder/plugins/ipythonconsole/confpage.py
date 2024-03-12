@@ -12,7 +12,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QTabWidget, QVBoxLayout)
+                            QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -24,36 +24,45 @@ class IPythonConsoleConfigPage(PluginConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # Interface Group
-        interface_group = QGroupBox(_("Interface"))
+        # Display group
+        display_group = QGroupBox(_("Display"))
         banner_box = newcb(_("Display initial banner"), 'show_banner',
                            tip=_("This option lets you hide the message "
                                  "shown at\nthe top of the console when "
                                  "it's opened."))
         calltips_box = newcb(_("Show calltips"), 'show_calltips')
-        ask_box = newcb(_("Ask for confirmation before closing"),
-                        'ask_before_closing')
-        reset_namespace_box = newcb(
-                _("Ask for confirmation before removing all user-defined "
-                  "variables"),
-                'show_reset_namespace_warning',
-                tip=_("This option lets you hide the warning message shown\n"
-                      "when resetting the namespace from Spyder."))
         show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
-        ask_restart_box = newcb(
-                _("Ask for confirmation before restarting"),
-                'ask_before_restart',
-                tip=_("This option lets you hide the warning message shown\n"
-                      "when restarting the kernel."))
 
-        interface_layout = QVBoxLayout()
-        interface_layout.addWidget(banner_box)
-        interface_layout.addWidget(calltips_box)
-        interface_layout.addWidget(ask_box)
-        interface_layout.addWidget(reset_namespace_box)
-        interface_layout.addWidget(show_time_box)
-        interface_layout.addWidget(ask_restart_box)
-        interface_group.setLayout(interface_layout)
+        display_layout = QVBoxLayout()
+        display_layout .addWidget(banner_box)
+        display_layout .addWidget(calltips_box)
+        display_layout.addWidget(show_time_box)
+        display_group.setLayout(display_layout)
+
+        # Confirmations group
+        confirmations_group = QGroupBox(_("Confirmations"))
+        ask_box = newcb(
+            _("Ask for confirmation before closing"), 'ask_before_closing'
+        )
+        reset_namespace_box = newcb(
+            _("Ask for confirmation before removing all user-defined "
+              "variables"),
+            'show_reset_namespace_warning',
+            tip=_("This option lets you hide the warning message shown\n"
+                  "when resetting the namespace from Spyder.")
+        )
+        ask_restart_box = newcb(
+            _("Ask for confirmation before restarting"),
+            'ask_before_restart',
+            tip=_("This option lets you hide the warning message shown\n"
+                  "when restarting the kernel.")
+        )
+
+        confirmations_layout = QVBoxLayout()
+        confirmations_layout.addWidget(ask_box)
+        confirmations_layout.addWidget(reset_namespace_box)
+        confirmations_layout.addWidget(ask_restart_box)
+        confirmations_group.setLayout(confirmations_layout)
 
         comp_group = QGroupBox(_("Completion type"))
         comp_label = QLabel(_("Decide what type of completion to use"))
@@ -61,6 +70,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         completers = [(_("Graphical"), 0), (_("Terminal"), 1), (_("Plain"), 2)]
         comp_box = self.create_combobox(_("Completion:")+"   ", completers,
                                         'completion_type')
+
         comp_layout = QVBoxLayout()
         comp_layout.addWidget(comp_label)
         comp_layout.addWidget(comp_box)
@@ -78,6 +88,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 tip=_("Set the maximum number of lines of text shown in the\n"
                       "console before truncation. Specifying -1 disables it\n"
                       "(not recommended!)"))
+
         source_code_layout = QVBoxLayout()
         source_code_layout.addWidget(buffer_spin)
         source_code_group.setLayout(source_code_layout)
@@ -94,7 +105,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                   "plotting libraries different to Matplotlib or to develop\n"
                   "GUIs with Spyder."))
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
+        pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
@@ -113,16 +124,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Tkinter", 3)]
+        backends = [
+            (inline, 'inline'),
+            (automatic, 'auto'),
+            ("Qt5", 'qt'),
+            ("Tkinter", 'tk')
+        ]
 
         if sys.platform == 'darwin':
-            backends.append(("macOS", 4))
+            backends.append(("macOS", 'osx'))
         backends = tuple(backends)
 
         backend_box = self.create_combobox(
             _("Backend:") + "   ",
             backends,
-            'pylab/backend', default=0,
+            'pylab/backend', default='inline',
             tip=_("This option will be applied the next time a console is "
                   "opened."))
 
@@ -131,17 +147,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(backend_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(backend_group.setEnabled)
 
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
         inline_label = QLabel(_("Decide how to render the figures created by "
                                 "this backend"))
         inline_label.setWordWrap(True)
-        formats = (("PNG", 0), ("SVG", 1))
+        formats = (("PNG", 'png'), ("SVG", 'svg'))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                           'pylab/inline/figure_format',
-                                          default=0)
+                                          default='png')
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
                         'pylab/inline/resolution', min_=50, max_=999, step=0.1,
@@ -155,6 +171,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
+        fontsize_spin = self.create_spinbox(
+            _("Font size:") + "  ",
+            " " + _("points"),
+            'pylab/inline/fontsize',
+            min_=5,
+            max_=48,
+            step=1.0,
+            tip=_("Default is 10")
+        )
+        bottom_spin = self.create_spinbox(
+            _("Bottom edge:") + "  ",
+            " " + _("of figure height"),
+            'pylab/inline/bottom',
+            min_=0,
+            max_=0.3,
+            step=0.01,
+            tip=_("The position of the bottom edge of the subplots,\nas a "
+                  "fraction of the figure height.\nThe default is 0.11.")
+        )
+        bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),
             'pylab/inline/bbox_inches',
@@ -169,16 +205,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout = QGridLayout()
         inline_layout.addWidget(format_box.label, 1, 0)
         inline_layout.addWidget(format_box.combobox, 1, 1)
-        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
-        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
-        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
-        inline_layout.addWidget(width_spin.plabel, 3, 0)
-        inline_layout.addWidget(width_spin.spinbox, 3, 1)
-        inline_layout.addWidget(width_spin.slabel, 3, 2)
-        inline_layout.addWidget(height_spin.plabel, 4, 0)
-        inline_layout.addWidget(height_spin.spinbox, 4, 1)
-        inline_layout.addWidget(height_spin.slabel, 4, 2)
-        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
+        spinboxes = [resolution_spin, width_spin, height_spin,
+                     fontsize_spin, bottom_spin]
+        for counter, spinbox in enumerate(spinboxes):
+            inline_layout.addWidget(spinbox.plabel, counter + 2, 0)
+            inline_layout.addWidget(spinbox.spinbox, counter + 2, 1)
+            inline_layout.addWidget(spinbox.slabel, counter + 2, 2)
+            inline_layout.addWidget(spinbox.help_label, counter + 2, 3)
+
+        inline_layout.addWidget(bbox_inches_box, len(spinboxes) + 2, 0, 1, 4)
 
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)
@@ -186,7 +222,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_v_layout.addLayout(inline_h_layout)
         inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab'))
-        pylab_box.toggled.connect(inline_group.setEnabled)
+        pylab_box.checkbox.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -215,7 +251,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            'startup/use_run_file', False)
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
-        file_radio.toggled.connect(run_file_browser.setEnabled)
+        file_radio.checkbox.toggled.connect(run_file_browser.setEnabled)
 
         run_file_layout = QVBoxLayout()
         run_file_layout.addWidget(run_file_label)
@@ -257,7 +293,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "<tt>&lt;Space&gt;</tt> for some completions; "
                                 "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
                                 "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
-                                "</tt> doesn't."))
+                                "</tt> doesn't.<br><br>"))
         greedy_label.setWordWrap(True)
         greedy_box = newcb(_("Use greedy completion in the IPython console"),
                            "greedy_completer",
@@ -294,6 +330,32 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_layout.addWidget(autocall_label)
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
+
+        # Autoreload group
+        autoreload_group = QGroupBox(_("Autoreload"))
+        autoreload_label = QLabel(
+            _("Autoreload reloads modules automatically every time before "
+              "executing your Python code.<br>"
+              "This is a different mechanism than the User Module Reloader "
+              "(UMR) and it can be slow on Windows due to limitations of its "
+              "file system."
+            )
+        )
+        autoreload_label.setWordWrap(True)
+
+        autoreload_box = newcb(
+            _("Use autoreload"),
+            "autoreload",
+            tip=_(
+                "This option enables the autoreload magic.<br>"
+                "Please refer to its documentation to learn how to use it."
+            )
+        )
+
+        autoreload_layout = QVBoxLayout()
+        autoreload_layout.addWidget(autoreload_label)
+        autoreload_layout.addWidget(autoreload_box)
+        autoreload_group.setLayout(autoreload_layout)
 
         # Sympy group
         sympy_group = QGroupBox(_("Symbolic mathematics"))
@@ -333,13 +395,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
               '%i&lt;/span&gt;]:'),
             alignment=Qt.Horizontal)
 
-        prompts_layout = QVBoxLayout()
-        prompts_layout.addWidget(prompts_label)
         prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
         prompts_g_layout.addWidget(in_prompt_edit.textbox, 0, 1)
+        prompts_g_layout.addWidget(in_prompt_edit.help_label, 0, 2)
         prompts_g_layout.addWidget(out_prompt_edit.label, 1, 0)
         prompts_g_layout.addWidget(out_prompt_edit.textbox, 1, 1)
+        prompts_g_layout.addWidget(out_prompt_edit.help_label, 1, 2)
+
+        prompts_layout = QVBoxLayout()
+        prompts_layout.addWidget(prompts_label)
         prompts_layout.addLayout(prompts_g_layout)
         prompts_group.setLayout(prompts_layout)
 
@@ -354,18 +419,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group.setLayout(windows_layout)
 
         # --- Tabs organization ---
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(interface_group, comp_group,
-                                         source_code_group), _("Display"))
-        self.tabs.addTab(self.create_tab(
-            pylab_group, backend_group, inline_group), _("Graphics"))
-        self.tabs.addTab(self.create_tab(
-            run_lines_group, run_file_group), _("Startup"))
-        self.tabs.addTab(self.create_tab(
-            jedi_group, greedy_group, autocall_group,
-            sympy_group, prompts_group,
-            windows_group), _("Advanced settings"))
+        self.create_tab(
+            _("Interface"),
+            [display_group, confirmations_group, comp_group, source_code_group]
+        )
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.tabs)
-        self.setLayout(vlayout)
+        self.create_tab(
+            _("Graphics"),
+            [pylab_group, backend_group, inline_group]
+        )
+
+        self.create_tab(
+            _("Startup"),
+            [run_lines_group, run_file_group]
+        )
+
+        self.create_tab(
+            _("Advanced settings"),
+            [jedi_group, greedy_group, autocall_group, autoreload_group,
+             sympy_group, prompts_group, windows_group]
+        )

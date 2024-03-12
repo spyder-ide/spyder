@@ -3,10 +3,47 @@
 Changes in Jupyter Qt console
 =============================
 
+.. _5.5:
+
+5.5
+~~~
+
+5.5.1
+-----
+
+`5.5.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.5.1>`__
+
+* Fix error when getting code completions.
+
+5.5.0
+-----
+
+`5.5.0 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.5.0>`__
+
+Changes
++++++++
+
+* Drop support for Python 3.7.
+* Remove ``ipython_genutils`` as a dependency.
+
 .. _5.4:
 
 5.4
 ~~~
+
+5.4.4
+-----
+
+`5.4.4 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.4>`__
+
+* Improve compatibility with PyQt6/PySide6.
+
+5.4.3
+-----
+
+`5.4.3 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.4.3>`__
+
+* Add missing closed method to QtInProcessChannel.
 
 5.4.2
 -----

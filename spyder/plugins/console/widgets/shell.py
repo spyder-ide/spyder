@@ -25,9 +25,10 @@ import time
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Property, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
-from qtpy.QtWidgets import QApplication, QMenu
+from qtpy.QtWidgets import QApplication
 
 # Local import
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
 from spyder.py3compat import is_string, is_text_string, to_text_string
@@ -123,7 +124,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     #------ Context menu
     def setup_context_menu(self):
         """Setup shell context menu"""
-        self.menu = QMenu(self)
+        self.menu = SpyderMenu(self)
         self.cut_action = create_action(self, _("Cut"),
                                         shortcut=keybinding('Cut'),
                                         icon=ima.icon('editcut'),

@@ -1316,7 +1316,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         return self.main.get_action(name, context=context, plugin=plugin)
 
-    def create_application_menu(self, menu_id, title, dynamic=True):
+    def create_application_menu(self, menu_id, title):
         """
         Create a Spyder application menu.
 
@@ -1327,7 +1327,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         title: str
             The localized menu title to be displayed.
         """
-        self.main.create_application_menu(menu_id, title, dynamic=dynamic)
+        self.main.create_application_menu(menu_id, title)
 
     def create_menu(self, name, text=None, icon=None):
         """
@@ -1347,7 +1347,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         self.main.create_menu(name, text=text, icon=icon)
 
-    def get_menu(name, context: Optional[str] = None,
+    def get_menu(self, name, context: Optional[str] = None,
                  plugin: Optional[str] = None):
         """Retrieve a menu by its id."""
         if context is None and plugin is None:

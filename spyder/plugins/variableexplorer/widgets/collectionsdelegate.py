@@ -12,21 +12,22 @@ import copy
 import datetime
 import functools
 import operator
+from typing import Any, Callable, Optional
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QDateTime, Qt, Signal
-from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
-                            QItemDelegate, QLineEdit, QMessageBox, QTableView)
+from qtpy.QtCore import QDateTime, QModelIndex, Qt, Signal
+from qtpy.QtWidgets import (
+    QAbstractItemDelegate, QDateEdit, QDateTimeEdit, QItemDelegate, QLineEdit,
+    QMessageBox, QTableView)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, is_conda_based_app
-from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
@@ -38,14 +39,21 @@ LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
 
 
-class CollectionsDelegate(QItemDelegate):
+class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
     sig_editor_shown = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent=None,
+        namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         QItemDelegate.__init__(self, parent)
+        self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
         self._editors = {}  # keep references on opened editors
 
     def get_value(self, index):
@@ -55,6 +63,49 @@ class CollectionsDelegate(QItemDelegate):
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
+
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        This is used to refresh editors created from this piece of data.
+        For instance, if `self` is the delegate for an editor that displays
+        the dict `xxx` and the user opens another editor for `xxx["aaa"]`,
+        then to refresh the data of the second editor, the nested function
+        `datafun` first gets the refreshed data for `xxx` and then gets the
+        item with key "aaa".
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        if self.data_function is None:
+            return None
+        key = index.model().keys[index.row()]
+
+        def datafun():
+            data = self.data_function()
+            if isinstance(data, (tuple, list, dict, set)):
+                return data[key]
+
+            try:
+                return getattr(data, key)
+            except (NotImplementedError, AttributeError,
+                    TypeError, ValueError):
+                return None
+
+        return datafun
 
     def show_warning(self, index):
         """
@@ -162,7 +213,11 @@ class CollectionsDelegate(QItemDelegate):
         # CollectionsEditor for a list, tuple, dict, etc.
         elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.widgets.collectionseditor import CollectionsEditor
-            editor = CollectionsEditor(parent=parent)
+            editor = CollectionsEditor(
+                parent=parent,
+                namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index)
+            )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -173,7 +228,10 @@ class CollectionsDelegate(QItemDelegate):
                 np.ndarray is not FakeObject and not object_explorer):
             # We need to leave this import here for tests to pass.
             from .arrayeditor import ArrayEditor
-            editor = ArrayEditor(parent=parent)
+            editor = ArrayEditor(
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 self.sig_editor_shown.emit()
                 return
@@ -204,7 +262,10 @@ class CollectionsDelegate(QItemDelegate):
                 and pd.DataFrame is not FakeObject and not object_explorer):
             # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
-            editor = DataFrameEditor(parent=parent)
+            editor = DataFrameEditor(
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key):
                 self.sig_editor_shown.emit()
                 return
@@ -229,7 +290,9 @@ class CollectionsDelegate(QItemDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
@@ -249,7 +312,9 @@ class CollectionsDelegate(QItemDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after
@@ -266,6 +331,8 @@ class CollectionsDelegate(QItemDelegate):
                 value,
                 name=key,
                 parent=parent,
+                namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index),
                 readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
@@ -408,8 +475,12 @@ class CollectionsDelegate(QItemDelegate):
 
 class ToggleColumnDelegate(CollectionsDelegate):
     """ToggleColumn Item Delegate"""
-    def __init__(self, parent=None):
-        CollectionsDelegate.__init__(self, parent)
+
+    def __init__(self, parent=None, namespacebrowser=None,
+                 data_function: Optional[Callable[[], Any]] = None):
+        CollectionsDelegate.__init__(
+            self, parent, namespacebrowser, data_function
+        )
         self.current_index = None
         self.old_obj = None
 
@@ -428,6 +499,51 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
+
+    def make_data_function(
+        self,
+        index: QModelIndex
+    ) -> Optional[Callable[[], Any]]:
+        """
+        Construct function which returns current value of data.
+
+        This is used to refresh editors created from this piece of data.
+        For instance, if `self` is the delegate for an editor displays the
+        object `obj` and the user opens another editor for `obj.xxx.yyy`,
+        then to refresh the data of the second editor, the nested function
+        `datafun` first gets the refreshed data for `obj` and then gets the
+        `xxx` attribute and then the `yyy` attribute.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of item whose current value is to be returned by the
+            function constructed here.
+
+        Returns
+        -------
+        Optional[Callable[[], Any]]
+            Function which returns the current value of the data, or None if
+            such a function cannot be constructed.
+        """
+        if self.data_function is None:
+            return None
+
+        obj_path = index.model().get_key(index).obj_path
+        path_elements = obj_path.split('.')
+        del path_elements[0]  # first entry is variable name
+
+        def datafun():
+            data = self.data_function()
+            try:
+                for attribute_name in path_elements:
+                    data = getattr(data, attribute_name)
+                return data
+            except (NotImplementedError, AttributeError,
+                    TypeError, ValueError):
+                return None
+
+        return datafun
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
@@ -464,7 +580,11 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
             from spyder.widgets.collectionseditor import CollectionsEditor
-            editor = CollectionsEditor(parent=parent)
+            editor = CollectionsEditor(
+                parent=parent,
+                namespacebrowser=self.namespacebrowser,
+                data_function=self.make_data_function(index)
+            )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -473,7 +593,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # ArrayEditor for a Numpy array
         elif (isinstance(value, (np.ndarray, np.ma.MaskedArray)) and
                 np.ndarray is not FakeObject):
-            editor = ArrayEditor(parent=parent)
+            editor = ArrayEditor(
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -494,7 +617,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject):
-            editor = DataFrameEditor(parent=parent)
+            editor = DataFrameEditor(
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
             if not editor.setup_and_check(value, title=key):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -510,7 +636,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 return editor
         # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
@@ -528,7 +656,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 return None
             else:
                 editor = QLineEdit(parent=parent)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setFont(
+                    self.get_font(SpyderFontType.MonospaceInterface)
+                )
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
                 # been modified is removed and a new one is created after

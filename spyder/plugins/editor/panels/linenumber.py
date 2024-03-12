@@ -15,12 +15,12 @@ import math
 # Third party imports
 from qtpy.QtCore import QSize, Qt, QPointF
 from qtpy.QtGui import (
-    QColor, QFontMetricsF, QPainter, QStaticText, QTextOption
+    QColor, QFont, QFontMetricsF, QPainter, QStaticText, QTextOption
 )
 
 # Local imports
 from spyder.utils.icon_manager import ima
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.completion.api import DiagnosticSeverity
 
 
@@ -155,7 +155,7 @@ class LineNumberArea(Panel):
         # be the same as the text one when zooming
         # See spyder-ide/spyder#2296 and spyder-ide/spyder#4811.
         font = self.editor.font()
-        font.setWeight(font.Normal)
+        font.setWeight(QFont.Weight.Normal)
         painter.setFont(font)
         painter.setPen(self.linenumbers_color)
 
@@ -178,7 +178,7 @@ class LineNumberArea(Panel):
             QPointF(left, top), self._static_line_numbers)
 
         if active_top is not None:
-            font.setWeight(font.Bold)
+            font.setWeight(QFont.Weight.Bold)
             painter.setFont(font)
             painter.setPen(self.editor.normal_color)
 
@@ -218,11 +218,11 @@ class LineNumberArea(Panel):
         for top, line_number, block in self.editor.visible_blocks:
             if self._margin:
                 if line_number == active_line_number:
-                    font.setWeight(font.Bold)
+                    font.setWeight(QFont.Weight.Bold)
                     painter.setFont(font)
                     painter.setPen(self.editor.normal_color)
                 else:
-                    font.setWeight(font.Normal)
+                    font.setWeight(QFont.Weight.Normal)
                     painter.setFont(font)
                     painter.setPen(self.linenumbers_color)
 
@@ -241,15 +241,16 @@ class LineNumberArea(Panel):
         Show code analisis, if left button pressed select lines.
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
-        block = self.editor.document().findBlockByNumber(line_number-1)
+        block = self.editor.document().findBlockByNumber(line_number - 1)
         data = block.userData()
 
-        # this disables pyflakes messages if there is an active drag/selection
-        # operation
+        # This disables messages if there is an active drag/selection operation
         check = self._released == -1
-        if data and data.code_analysis and check:
-            self.editor.show_code_analysis_results(line_number,
-                                                   data)
+        if check and data:
+            if data.code_analysis:
+                self.editor.show_code_analysis_results(line_number, data)
+            elif data.todo:
+                self.editor.show_todo(line_number, data)
         else:
             self.editor.hide_tooltip()
 

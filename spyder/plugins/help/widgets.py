@@ -14,17 +14,18 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
-from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
-                            QMessageBox, QSizePolicy, QStackedLayout,
+from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
+                            QMessageBox, QSizePolicy, QStackedWidget,
                             QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_module_source_path
@@ -151,7 +152,7 @@ class RichText(QWidget, SpyderWidgetMixin):
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -315,7 +316,7 @@ class HelpWidget(PluginMainWidget):
         self.source_label = QLabel(_("Source"))
         self.source_label.ID = HelpWidgetToolbarItems.SourceLabel
 
-        self.source_combo = QComboBox(self)
+        self.source_combo = SpyderComboBox(self)
         self.source_combo.ID = HelpWidgetToolbarItems.SourceCombo
 
         self.object_label = QLabel(_("Object"))
@@ -339,9 +340,12 @@ class HelpWidget(PluginMainWidget):
             self.source_label.hide()
 
         # Layout
-        self.stack_layout = layout = QStackedLayout()
-        layout.addWidget(self.rich_text)
-        layout.addWidget(self.plain_text)
+        self.stacked_widget = QStackedWidget()
+        self.stacked_widget.addWidget(self.rich_text)
+        self.stacked_widget.addWidget(self.plain_text)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.stacked_widget)
         self.setLayout(layout)
 
         # Signals
@@ -519,13 +523,13 @@ class HelpWidget(PluginMainWidget):
         if value:
             # Plain Text OFF / Rich text ON
             self.docstring = not value
-            self.stack_layout.setCurrentWidget(self.rich_text)
+            self.stacked_widget.setCurrentWidget(self.rich_text)
             self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
                 False)
         else:
             # Plain Text ON / Rich text OFF
             self.docstring = value
-            self.stack_layout.setCurrentWidget(self.plain_text)
+            self.stacked_widget.setCurrentWidget(self.plain_text)
 
         if self._should_display_welcome_page():
             self.show_intro_message()
@@ -1094,7 +1098,6 @@ class HelpWidget(PluginMainWidget):
         fixed_font: QFont
             The current rich text font to use.
         """
-
         self.rich_text.set_font(font, fixed_font=fixed_font)
 
     def set_plain_text_font(self, font, color_scheme=None):

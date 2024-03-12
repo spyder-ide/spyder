@@ -13,9 +13,11 @@ Tests for the IPython console plugin.
 # Standard library imports
 import os
 import os.path as osp
+import re
 import shutil
 import sys
 from textwrap import dedent
+from unittest.mock import patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -39,9 +41,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY)
-from spyder.plugins.ipythonconsole.utils.kernel_handler import (
-    KernelConnectionState)
+    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
 
@@ -74,21 +74,40 @@ def test_banners(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-    "function,signature,documentation",
-    [("arange",
+    "function, signature, documentation",
+    [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval ..."]),
-     ("vectorize",
+       "open interval<br>..."]),
+     ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
-      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+      ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
        "<br>",
-       "Define a vectorized function which takes a nested sequence ..."]),
-     ("absolute",
+       "Define a vectorized function which takes a nested<br>..."]),
+     ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
-      ["Parameters<br>", "x : array_like ..."])]
-    )
-@pytest.mark.skipif(not os.name == 'nt',
+      ["Calculate the absolute value"]),
+     ("np.where",  # Python gives an error when getting its signature
+      ["condition", "/"],
+      ["Return elements chosen from `x`"]),
+     ("np.array",  # Signature is splitted into several lines
+      ["object", "dtype=None"],
+      ["Create an array.<br><br>", "Parameters"]),
+     ("np.linalg.norm",  # Includes IPython default signature in inspect reply
+      ["x", "ord=None"],
+      ["Matrix or vector norm"]),
+     ("range",  # Check we display the first signature among several
+      ["stop"],
+      ["range(stop) -> range object"]),
+     ("dict",  # Check we skip an empty signature
+      ["mapping"],
+      ["dict() -> new empty dictionary"]),
+     ("foo",  # Check we display the right tooltip for interactive objects
+      ["x", "y"],
+      ["My function"])
+    ]
+)
+@pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
 @pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
                     reason="Documentation for np.vectorize is different")
@@ -101,10 +120,22 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import numpy as np')
 
+    if function == "foo":
+        with qtbot.waitSignal(shell.executed):
+            code = dedent('''
+            def foo(x, y):
+                """
+                My function
+                """
+                return x + y
+            ''')
+
+            shell.execute(code)
+
     # Write an object in the console that should generate a calltip
     # and wait for the kernel to send its response.
     with qtbot.waitSignal(shell.kernel_client.shell_channel.message_received):
-        qtbot.keyClicks(control, 'np.' + function + '(')
+        qtbot.keyClicks(control, function + '(')
 
     # Wait a little bit for the calltip to appear
     qtbot.waitUntil(lambda: control.calltip_widget.isVisible())
@@ -339,10 +370,10 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
     # Get a CONF env var
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+        shell.execute("import os; a = os.environ.get('SPY_TESTING')")
 
     # Assert we get the assigned value correctly
-    assert shell.get_value('a') == 'False'
+    assert shell.get_value('a') == 'True'
 
 
 @flaky(max_runs=3)
@@ -425,7 +456,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
     shell = ipyconsole.get_current_shellwidget()
 
     # spyder-ide/spyder#6451.
-    savetemp = shell._cwd
+    savetemp = shell.get_cwd()
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
@@ -447,9 +478,9 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     shell = ipyconsole.get_current_shellwidget()
 
     # spyder-ide/spyder#6451.
-    savetemp = shell._cwd
+    savetemp = shell.get_cwd()
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
-    assert shell._cwd != tempdir
+    assert shell.get_cwd() != tempdir
 
     # Need to escape \ on Windows.
     if os.name == 'nt':
@@ -462,7 +493,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     if os.name == 'nt':
         tempdir = tempdir.replace(u"\\\\", u"\\")
 
-    assert shell._cwd == tempdir
+    assert shell.get_cwd() == tempdir
 
     shell.set_cwd(savetemp)
 
@@ -514,7 +545,9 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
+)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -591,8 +624,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(IPython.version_info < (7, 17),
-                    reason="insert is not the same in pre 7.17 ipython")
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -643,8 +675,10 @@ def test_unicode_vars(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
-                    reason="Times out on Windows")
+@pytest.mark.skipif(
+    (running_in_ci() and os.name == 'nt') or sys.platform == "darwin",
+    reason="Hangs on CIs for Windows and Mac"
+)
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -696,6 +730,7 @@ def test_values_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_execute_events_dbg(ipyconsole, qtbot):
     """Test execute events while debugging"""
 
@@ -715,7 +750,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to True
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': True
     })
 
@@ -729,7 +765,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to False
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
-    shell.call_kernel(interrupt=True).set_pdb_configuration({
+    shell.set_kernel_configuration(
+        "pdb", {
         'pdb_execute_events': False
     })
 
@@ -817,7 +854,10 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    os.name == 'nt' or sys.platform == "darwin",
+    reason="Doesn't work on Windows and hangs on Mac"
+)
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
     Test that clear and reset magics are working while debugging
@@ -1034,11 +1074,11 @@ def test_kernel_crash(ipyconsole, qtbot):
         qtbot.waitUntil(lambda: bool(
             ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
         ))
+
         # Create a new client
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        # even if the error happened before the connection
         error_client = ipyconsole.get_clients()[-1]
         qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
     finally:
@@ -1322,30 +1362,57 @@ def test_conda_env_activation(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.parametrize("external_interpreter", [True, False])
 @pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
-def test_kernel_kill(ipyconsole, qtbot):
+def test_kernel_kill(ipyconsole, qtbot, external_interpreter):
     """
     Test that the kernel correctly restarts after a kill.
     """
+    if external_interpreter:
+        if running_in_ci():
+            ipyconsole.set_conf('default', False, section='main_interpreter')
+            pyexec = get_conda_test_env()[1]
+            ipyconsole.set_conf(
+                'executable', pyexec, section='main_interpreter'
+            )
+            ipyconsole.create_new_client()
+        else:
+            # We can't check this locally
+            return
+
     shell = ipyconsole.get_current_shellwidget()
+
     # Wait for the restarter to start
     qtbot.wait(3000)
     crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+
     # Check only one comm is open
     old_open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
     assert len(old_open_comms) == 1
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
         shell.execute(crash_string)
-    assert crash_string in shell._control.toPlainText()
-    assert "Restarting kernel..." in shell._control.toPlainText()
+
+    console_text = shell._control.toPlainText()
+    assert crash_string in console_text
+    assert "The kernel died, restarting..." in console_text
+
+    # Check we don't show error generated by `conda run`
+    assert "conda.cli.main_run" not in console_text
+
+    # Check IPython version is shown as expected
+    assert list(re.finditer(r"IPython \d+\.", console_text))
+
     # Check a new comm replaced the old one
     new_open_comms = list(shell.kernel_handler.kernel_comm._comms.keys())
     assert len(new_open_comms) == 1
     assert old_open_comms[0] != new_open_comms[0]
+
     # Wait until the comm replies
     qtbot.waitUntil(
         lambda: shell.kernel_handler.kernel_comm._comms[new_open_comms[0]][
-            'status'] == 'ready')
+            'status'] == 'ready'
+    )
+
     assert shell.kernel_handler.kernel_comm._comms[new_open_comms[0]][
         'status'] == 'ready'
 
@@ -1499,7 +1566,7 @@ def test_startup_code_pdb(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "backend",
-    ['inline', 'qt5', 'tk', 'osx']
+    ['inline', 'qt', 'tk', 'osx']
 )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Hangs frequently on Mac")
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
@@ -1507,7 +1574,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
     # Skip failing tests
     if backend == 'osx' and sys.platform != "darwin":
         return
-    if backend == 'qt5' and not os.name == "nt" and running_in_ci():
+    if backend == 'qt' and not os.name == "nt" and running_in_ci():
         return
 
     shell = ipyconsole.get_current_shellwidget()
@@ -1586,7 +1653,7 @@ def test_stop_pdb(ipyconsole, qtbot):
     # Start and interrupt a long execution
     shell.execute("import time; time.sleep(10)")
     qtbot.wait(500)
-    with qtbot.waitSignal(shell.executed, timeout=1000):
+    with qtbot.waitSignal(shell.executed, timeout=10000):
         qtbot.mouseClick(stop_button, Qt.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
@@ -1810,8 +1877,9 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"%debugfile {repr(str(file))}")
 
-    # steps 4 times
-    for i in range(4):
+    # steps into the comprehension
+    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
     assert "Error" not in control.toPlainText()
@@ -1832,11 +1900,10 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
      'excluded_names': [],
      'minmax': False,
      'show_callable_attributes': True,
-     'show_special_attributes': False}
+     'show_special_attributes': False,
+     'filter_on': True}
 
-    shell.call_kernel(
-            interrupt=True
-        ).set_namespace_view_settings(settings)
+    shell.set_kernel_configuration("namespace_view_settings", settings)
     namespace = shell.call_kernel(blocking=True).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
@@ -1844,14 +1911,30 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-def test_restart_intertactive_backend(ipyconsole):
+def test_restart_intertactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart after switching to a different interactive
     backend in preferences.
     """
     main_widget = ipyconsole.get_widget()
-    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 3)
+    qtbot.wait(1000)
+    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+
+def test_mpl_conf(ipyconsole, qtbot):
+    """
+    Test that after setting matplotlib-related config options, the member
+    function send_mpl_backend of the shellwidget is called with the new value.
+    """
+    main_widget = ipyconsole.get_widget()
+    client = main_widget.get_current_client()
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/fontsize', 20.5)
+    mock.assert_called_once_with({'pylab/inline/fontsize': 20.5})
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/bottom', 0.314)
+    mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
 @flaky(max_runs=3)
@@ -1932,6 +2015,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
     assert get_cwd_of_new_client() == fixed_dir
 
 
+@flaky(max_runs=10)
 def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     """
     Test 'startup/run_lines' config works with code from an active project.
@@ -2017,12 +2101,12 @@ def test_old_kernel_version(ipyconsole, qtbot):
     w = ipyconsole.get_widget()
 
     kernel_handler = w._cached_kernel_properties[-1]
+    kernel_handler.kernel_client.sig_spyder_kernel_info.disconnect()
 
     # Wait until it is launched
     qtbot.waitUntil(
         lambda: (
-            kernel_handler.connection_state ==
-            KernelConnectionState.SpyderKernelReady
+            kernel_handler._comm_ready_received
         ),
         timeout=SHELL_TIMEOUT)
 

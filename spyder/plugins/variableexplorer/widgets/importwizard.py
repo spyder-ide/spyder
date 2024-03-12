@@ -18,15 +18,16 @@ from itertools import zip_longest
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QIntValidator
-from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
+from qtpy.QtWidgets import (QCheckBox, QFrame, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QMenu, QMessageBox, QRadioButton,
+                            QPushButton, QMessageBox, QRadioButton,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd)
 
 # Local import
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
 from spyder.py3compat import INT_TYPES, TEXT_TYPES, to_text_string
 from spyder.utils import programs
@@ -335,6 +336,7 @@ class PreviewTableModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
+
 class PreviewTable(QTableView):
     """Import wizard preview widget"""
     def __init__(self, parent):
@@ -358,15 +360,15 @@ class PreviewTable(QTableView):
             triggered=ft_partial(self.parse_to_type, atype="float"))
 
         # Setting up menus
-        self.date_menu = QMenu()
+        self.date_menu = SpyderMenu(self)
         self.date_menu.setTitle("Date")
         add_actions( self.date_menu, (self.date_dayfirst_action,
                                       self.date_monthfirst_action))
-        self.parse_menu = QMenu(self)
+        self.parse_menu = SpyderMenu(self)
         self.parse_menu.addMenu(self.date_menu)
         add_actions( self.parse_menu, (self.perc_action, self.acc_action))
         self.parse_menu.setTitle("String to")
-        self.opt_menu = QMenu(self)
+        self.opt_menu = SpyderMenu(self)
         self.opt_menu.addMenu(self.parse_menu)
         add_actions( self.opt_menu, (self.str_action, self.int_action,
                                      self.float_action))

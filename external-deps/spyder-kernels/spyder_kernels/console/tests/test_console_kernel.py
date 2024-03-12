@@ -32,7 +32,6 @@ import numpy as np
 
 # Local imports
 from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.mpl import MPL_BACKENDS_FROM_SPYDER
 from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.commbase import CommBase
@@ -227,7 +226,8 @@ def kernel(request):
             'False_',
             'True_'
         ],
-        'minmax': False
+        'minmax': False,
+        'filter_on':True
     }
 
     # Teardown
@@ -286,6 +286,31 @@ def test_get_namespace_view(kernel):
     assert "'view': '1'" in nsview
     assert "'numpy_type': 'Unknown'" in nsview
     assert "'python_type': 'int'" in nsview
+
+
+@pytest.mark.parametrize("filter_on", [True, False])
+def test_get_namespace_view_filter_on(kernel, filter_on):
+    """
+    Test the namespace view of the kernel with filters on and off.
+    """
+    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('TestFilterOff = 1', True))
+
+    settings = kernel.namespace_view_settings
+    settings['filter_on'] = filter_on
+    settings['exclude_capitalized'] = True
+    nsview = kernel.get_namespace_view()
+
+    if not filter_on:
+        assert 'a' in nsview
+        assert 'TestFilterOff' in nsview
+    else:
+        assert 'TestFilterOff' not in nsview
+        assert 'a' in nsview
+
+    # Restore settings for other tests
+    settings['filter_on'] = True
+    settings['exclude_capitalized'] = False
 
 
 def test_get_var_properties(kernel):
@@ -1112,7 +1137,7 @@ def test_locals_globals_in_pdb(kernel):
 
 
 @flaky(max_runs=3)
-@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt5'])
+@pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages")
@@ -1143,11 +1168,14 @@ def test_get_interactive_backend(backend):
         user_expressions = reply['content']['user_expressions']
         value = user_expressions['output']['data']['text/plain']
 
+        # remove quotes
+        value = value[1:-1]
+
         # Assert we got the right interactive backend
         if backend is not None:
-            assert MPL_BACKENDS_FROM_SPYDER[value] == backend
+            assert value == backend
         else:
-            assert value == '0'
+            assert value == 'inline'
 
 
 def test_global_message(tmpdir):

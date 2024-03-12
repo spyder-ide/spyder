@@ -1,0 +1,76 @@
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - '**.gitrepo'
+      - '.github/workflows/build-subrepos.yml'
+
+  workflow_call:
+
+  workflow_dispatch:
+
+concurrency:
+  group: build-subrepos-${{ github.ref }}
+  cancel-in-progress: true
+
+name: Create Subrepo Conda Packages
+
+jobs:
+  build-pkgs:
+    name: Build ${{ matrix.pkg }} ${{ matrix.cache-arch }} Python-${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        pkg: [python-lsp-server, qtconsole, spyder-kernels]
+        include:
+          - python-version: '3.10'
+          - cache-arch: noarch
+          - os: ubuntu-latest
+            pkg: spyder-kernels
+            cache-arch: unix
+          - os: windows-latest
+            pkg: spyder-kernels
+            python-version: '3.10'
+            cache-arch: win-64
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}/installers-conda
+    env:
+      pkg: ${{ matrix.pkg }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
+          lookup-only: true
+          enableCrossOsArchive: true
+
+      - name: Setup Build Environment
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: installers-conda/build-environment.yml
+          environment-name: spy-inst
+          create-args: >-
+            --channel-priority=flexible
+            python=${{ matrix.python-version }}
+          cache-downloads: true
+          cache-environment: true
+
+      - name: Build ${{ matrix.pkg }} Conda Package
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
+        run: python build_conda_pkgs.py --build $pkg

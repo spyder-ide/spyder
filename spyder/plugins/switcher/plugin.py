@@ -20,19 +20,11 @@ from spyder.api.translations import _
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (on_plugin_available,
                                                        on_plugin_teardown)
+from spyder.plugins.switcher.api import SwitcherActions
 from spyder.plugins.switcher.container import SwitcherContainer
 from spyder.plugins.mainmenu.api import ApplicationMenus, FileMenuSections
 
 
-# --- Constants
-# ----------------------------------------------------------------------------
-class SwitcherActions:
-    FileSwitcherAction = 'file switcher'
-    SymbolFinderAction = 'symbol finder'
-
-
-# --- Plugin
-# ----------------------------------------------------------------------------
 class Switcher(SpyderPluginV2):
     """
     Switcher plugin.
@@ -50,19 +42,9 @@ class Switcher(SpyderPluginV2):
     This signal is emitted when the plugin is dismissed.
     """
 
-    sig_text_changed = Signal(str)
-    """
-    This signal is emitted when the plugin search/filter text changes.
-
-    Parameters
-    ----------
-    search_text: str
-        The current search/filter text.
-    """
-
     sig_item_changed = Signal(object)
     """
-    This signal is emitted when the plugin current item changes.
+    This signal is emitted when the current item changes.
     """
 
     sig_item_selected = Signal(object, str, str)
@@ -90,27 +72,41 @@ class Switcher(SpyderPluginV2):
         The selected mode (open files "", symbol "@" or line ":").
     """
 
-    # --- SpyderPluginV2 API
-    # ------------------------------------------------------------------------
+    sig_search_text_available = Signal(str)
+    """
+    This signal is emitted when the user stops typing the search/filter text.
+
+    Parameters
+    ----------
+    search_text: str
+        The current search/filter text.
+    """
+
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Switcher")
 
-    def get_description(self):
-        return _("A multi-purpose switcher.")
+    @staticmethod
+    def get_description():
+        return _("Quickly switch between files and other items.")
 
-    def get_icon(self):
-        return self.create_icon('filelist')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('switcher')
 
     def on_initialize(self):
         container = self.get_container()
         self._switcher = container.switcher
 
         self._switcher.sig_rejected.connect(self.sig_rejected)
-        self._switcher.sig_text_changed.connect(self.sig_text_changed)
         self._switcher.sig_item_changed.connect(self.sig_item_changed)
         self._switcher.sig_item_selected.connect(self.sig_item_selected)
         self._switcher.sig_mode_selected.connect(self.sig_mode_selected)
+        self._switcher.sig_search_text_available.connect(
+            self.sig_search_text_available
+        )
 
     def on_close(self, cancellable=True):
         """Close switcher widget."""
@@ -146,16 +142,15 @@ class Switcher(SpyderPluginV2):
                 menu_id=ApplicationMenus.File
             )
 
-    # --- Public API
-    # ------------------------------------------------------------------------
-
-    # Switcher methods
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    # --- Switcher methods
     def set_placeholder_text(self, text):
         """Set the text appearing on the empty line edit."""
         self._switcher.set_placeholder_text(text)
 
     def setup(self):
-        """Set-up list widget content based on the filtering."""
+        """Setup list widget content based on filtering."""
         self._switcher.setup()
 
     def open_switcher(self, symbol=False):
@@ -166,7 +161,7 @@ class Switcher(SpyderPluginV2):
         """Open symbol list management dialog."""
         self.get_container().open_symbolfinder()
 
-    # QDialog methods
+    # --- QDialog methods
     def show(self):
         """Show switcher."""
         self._switcher.show()
@@ -183,18 +178,22 @@ class Switcher(SpyderPluginV2):
         """Return if the switcher is visible."""
         return self._switcher.isVisible()
 
-    # Item methods
+    # --- Item methods
     def current_item(self):
         """Return the current selected item in the list widget."""
         return self._switcher.current_item()
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
                  section=None, data=None, tool_tip=None, action_item=False,
-                 last_item=True):
+                 last_item=True, score=-1, use_score=True):
         """Add a switcher list item."""
         self._switcher.add_item(icon, title, description, shortcut,
                                 section, data, tool_tip, action_item,
-                                last_item)
+                                last_item, score, use_score)
+
+    def set_current_row(self, row):
+        """Set the current selected row in the switcher."""
+        self._switcher.set_current_row(row)
 
     def add_separator(self):
         """Add a separator item."""
@@ -208,14 +207,18 @@ class Switcher(SpyderPluginV2):
         """Get the item count in the list widget."""
         return self._switcher.count()
 
-    # Mode methods
+    def remove_section(self, section):
+        """Remove all items in a section of the switcher."""
+        self._switcher.remove_section(section)
+
+    # --- Mode methods
     def add_mode(self, token, description):
         """Add mode by token key and description."""
         self._switcher.add_mode(token, description)
 
     def get_mode(self):
         """Get the current mode the switcher is in."""
-        self._switcher.get_mode()
+        return self._switcher.get_mode()
 
     def remove_mode(self, token):
         """Remove mode by token key."""
@@ -225,7 +228,7 @@ class Switcher(SpyderPluginV2):
         """Delete all modes spreviously defined."""
         self._switcher.clear_modes()
 
-    # Lineedit methods
+    # --- Lineedit methods
     def set_search_text(self, string):
         """Set the content of the search text."""
         self._switcher.set_search_text(string)

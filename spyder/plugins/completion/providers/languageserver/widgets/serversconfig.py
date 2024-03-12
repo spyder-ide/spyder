@@ -17,15 +17,17 @@ from qtpy.compat import to_qvariant
 from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex,
                          QSize)
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
+                            QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                             QSpinBox, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
+from spyder.utils.palette import QStylePalette
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -107,7 +109,7 @@ class LSPServer(object):
             self.remove_option(language)
 
 
-class LSPServerEditor(QDialog):
+class LSPServerEditor(QDialog, SpyderFontsMixin):
     DEFAULT_HOST = '127.0.0.1'
     DEFAULT_PORT = 2084
     DEFAULT_CMD = ''
@@ -149,7 +151,7 @@ class LSPServerEditor(QDialog):
 
         # Widgets
         self.server_settings_description = QLabel(description)
-        self.lang_cb = QComboBox(self)
+        self.lang_cb = SpyderComboBox(self)
         self.external_cb = QCheckBox(_('External server'), self)
         self.host_label = QLabel(_('Host:'))
         self.host_input = QLineEdit(self)
@@ -208,7 +210,7 @@ class LSPServerEditor(QDialog):
             color_scheme=get_option('selected', section='appearance'),
             wrap=False,
             highlight_current_line=True,
-            font=get_font()
+            font=self.get_font(SpyderFontType.MonospaceInterface)
         )
         self.conf_input.set_language('json')
         self.conf_input.setToolTip(_('Additional LSP server configuration '
@@ -484,7 +486,7 @@ LANGUAGE, ADDR, CMD = [0, 1, 2]
 
 
 class LSPServersModel(QAbstractTableModel):
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -498,17 +500,7 @@ class LSPServersModel(QAbstractTableModel):
         self.widths = []
 
         # Needed to compensate for the HTMLDelegate color selection unawareness
-        palette = parent.palette()
-        if text_color is None:
-            self.text_color = palette.text().color().name()
-        else:
-            self.text_color = text_color
-
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
+        self.text_color = QStylePalette.COLOR_TEXT_1
 
     def sortByName(self):
         """Qt Override."""
@@ -582,11 +574,11 @@ class LSPServersModel(QAbstractTableModel):
 
 
 class LSPServerTable(QTableView):
-    def __init__(self, parent, text_color=None):
+    def __init__(self, parent):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.delete_queue = []
-        self.source_model = LSPServersModel(self, text_color=text_color)
+        self.source_model = LSPServersModel(self)
         self.setModel(self.source_model)
         self.setItemDelegateForColumn(CMD, ItemDelegate(self))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)

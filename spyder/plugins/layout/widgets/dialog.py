@@ -12,11 +12,12 @@ import sys
 # Third party imports
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QDialog,
+from qtpy.QtWidgets import (QAbstractItemView, QDialog,
                             QDialogButtonBox, QGroupBox, QHBoxLayout,
                             QPushButton, QTableView, QVBoxLayout)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
@@ -58,16 +59,16 @@ class LayoutModel(QAbstractTableModel):
         ui_name, name, state = self.row(row)
 
         if name in self.read_only:
-            return Qt.NoItemFlags
+            return Qt.ItemFlag(0)
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
         column = index.column()
         if column in [0]:
-            return Qt.ItemFlags(int(Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                                    Qt.ItemIsUserCheckable |
-                                    Qt.ItemIsEditable))
+            return (Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable |
+                    Qt.ItemFlag.ItemIsUserCheckable |
+                    Qt.ItemFlag.ItemIsEditable)
         else:
-            return Qt.ItemFlags(Qt.ItemIsEnabled)
+            return Qt.ItemFlag.ItemIsEnabled
 
     def data(self, index, role=Qt.DisplayRole):
         """Override Qt method"""
@@ -141,7 +142,7 @@ class LayoutSaveDialog(QDialog):
         self._parent = parent
 
         # widgets
-        self.combo_box = QComboBox(self)
+        self.combo_box = SpyderComboBox(self)
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
         self.combo_box.clearEditText()

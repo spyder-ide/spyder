@@ -60,11 +60,13 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     def get_name():
         return _("Profiler")
 
-    def get_description(self):
-        return _("Profile your scripts and find bottlenecks.")
+    @staticmethod
+    def get_description():
+        return _("Profile Python files to find execution bottlenecks.")
 
-    def get_icon(self):
-        return self.create_icon('profiler')
+    @classmethod
+    def get_icon(cls):
+        return cls.create_icon('profiler')
 
     def on_initialize(self):
         widget = self.get_widget()
@@ -73,7 +75,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': 'py',
+                'input_extension': ['py', 'ipy'],
                 'context': {
                     'name': 'File'
                 },
@@ -81,7 +83,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 'configuration_widget': ProfilerPyConfigurationGroup,
                 'requires_cwd': True,
                 'priority': 3
-            }
+            },
         ]
 
     @on_plugin_available(plugin=Plugins.Editor)

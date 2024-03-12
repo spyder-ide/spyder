@@ -23,13 +23,16 @@ from urllib.parse import unquote
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, QUrl, Signal, Slot)
-from qtpy.QtGui import QDesktopServices, QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtGui import (
+    QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle,
-                            QToolButton, QVBoxLayout, QWidget)
+                            QPushButton, QStyle, QToolButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
@@ -100,12 +103,7 @@ def qapplication(translate=True, test_time=3):
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
-    if sys.platform == "darwin":
-        SpyderApplication = MacApplication
-    else:
-        SpyderApplication = QApplication
-
-    app = SpyderApplication.instance()
+    app = QApplication.instance()
     if app is None:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
@@ -170,7 +168,12 @@ def keyevent_to_keysequence_str(event):
     """Get key sequence corresponding to a key event as a string."""
     try:
         # See https://stackoverflow.com/a/20656496/438386 for context
-        return QKeySequence(event.modifiers() | event.key()).toString()
+        if hasattr(event, "keyCombination"):
+            key_combination = event.keyCombination()  # Qt 6
+        else:
+            key_combination = event.modifiers() | event.key()  # Qt 5
+
+        return QKeySequence(key_combination).toString()
     except TypeError:
         # This error appears in old PyQt versions (e.g. 5.12) which are
         # running under Python 3.10+. In that case, we need to build the
@@ -360,29 +363,21 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    # Workround for Mac because setting context=Qt.WidgetShortcut
-    # there doesn't have any effect
+    if shortcut is not None:
+        action.setShortcut(shortcut)
+    action.setShortcutContext(context)
+
+    # This is necessary to show shortcuts in any regular menu (i.e. not app
+    # ones).
+    # Fixes spyder-ide/spyder#15659.
     if sys.platform == 'darwin':
-        action._shown_shortcut = None
-        if context == Qt.WidgetShortcut:
-            if shortcut is not None:
-                action._shown_shortcut = shortcut
-            else:
-                # This is going to be filled by
-                # main.register_shortcut
-                action._shown_shortcut = 'missing'
-        else:
-            if shortcut is not None:
-                action.setShortcut(shortcut)
-            action.setShortcutContext(context)
-    else:
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        action.setShortcutContext(context)
+        action.setShortcutVisibleInContextMenu(True)
 
     if register_action:
         ACTION_REGISTRY.register_reference(
-            action, id_, plugin, context_name, overwrite)
+            action, id_, plugin, context_name, overwrite
+        )
+
     return action
 
 
@@ -702,33 +697,23 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-def set_menu_icons(menu, state):
+def set_menu_icons(menu, state, in_app_menu=False):
     """Show/hide icons for menu actions."""
     menu_actions = menu.actions()
     for action in menu_actions:
         try:
             if action.menu() is not None:
-                # This is submenu, so we need to call this again
-                set_menu_icons(action.menu(), state)
+                # This is necessary to decide if we need to show icons or not
+                action.menu()._in_app_menu = in_app_menu
+
+                # This is a submenu, so we need to call this again
+                set_menu_icons(action.menu(), state, in_app_menu)
             elif action.isSeparator():
                 continue
             else:
                 action.setIconVisibleInMenu(state)
         except RuntimeError:
             continue
-
-
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 class QInputDialogMultiline(QDialog):
@@ -761,22 +746,23 @@ class QInputDialogMultiline(QDialog):
         cancel_button.clicked.connect(self.reject)
 
 
-# =============================================================================
-# Only for macOS
-# =============================================================================
-class MacApplication(QApplication):
-    """Subclass to be able to open external files with our Mac app"""
+class SpyderApplication(QApplication, SpyderConfigurationAccessor,
+                        SpyderFontsMixin):
+    """Subclass with several adjustments for Spyder."""
+
     sig_open_external_file = Signal(str)
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+
         self._never_shown = True
         self._has_started = False
         self._pending_file_open = []
         self._original_handlers = {}
 
     def event(self, event):
-        if event.type() == QEvent.FileOpen:
+
+        if sys.platform == 'darwin' and event.type() == QEvent.FileOpen:
             fname = str(event.file())
             if sys.argv and sys.argv[0] == fname:
                 # Ignore requests to open own script
@@ -786,7 +772,65 @@ class MacApplication(QApplication):
                 self.sig_open_external_file.emit(fname)
             else:
                 self._pending_file_open.append(fname)
+
         return QApplication.event(self, event)
+
+    def set_font(self):
+        """Set font for the entire application."""
+        # This selects the system font by default
+        if self.get_conf('use_system_font', section='appearance'):
+            family = self.font().family()
+            size = self.font().pointSize()
+
+            self.set_conf('app_font/family', family, section='appearance')
+            self.set_conf('app_font/size', size, section='appearance')
+        else:
+            family = self.get_conf('app_font/family', section='appearance')
+            size = self.get_conf('app_font/size', section='appearance')
+
+        app_font = self.font()
+        app_font.setFamily(family)
+        app_font.setPointSize(size)
+
+        self.set_monospace_interface_font(app_font)
+        self.setFont(app_font)
+
+    def set_monospace_interface_font(self, app_font):
+        """
+        Set monospace interface font in our config system according to the app
+        one.
+        """
+        x_height = QFontMetrics(app_font).xHeight()
+        size = app_font.pointSize()
+        plain_font = self.get_font(SpyderFontType.Monospace)
+        plain_font.setPointSize(size)
+
+        # Select a size that matches the app font one, so that the UI looks
+        # consistent. We only check three point sizes above and below the app
+        # font to avoid getting stuck in an infinite loop.
+        monospace_size = size
+        while (
+            QFontMetrics(plain_font).xHeight() != x_height
+            and ((size - 4) < monospace_size < (size + 4))
+        ):
+            if QFontMetrics(plain_font).xHeight() > x_height:
+                monospace_size -= 1
+            else:
+                monospace_size += 1
+            plain_font.setPointSize(monospace_size)
+
+        # There are some fonts (e.g. MS Serif) for which it seems that Qt
+        # can't detect their xHeight's as expected. So, we check below
+        # if the monospace font size ends up being too big or too small after
+        # the above xHeight comparison and set it to the interface size if
+        # that's the case.
+        if not ((size - 4) < monospace_size < (size + 4)):
+            monospace_size = size
+
+        self.set_conf('monospace_app_font/family', plain_font.family(),
+                      section='appearance')
+        self.set_conf('monospace_app_font/size', monospace_size,
+                      section='appearance')
 
 
 def restore_launchservices():
@@ -827,6 +871,15 @@ def register_app_launchservices(
                 uniform_type_identifier, role, bundle_identifier)
 
     app.applicationStateChanged.connect(handle_applicationStateChanged)
+
+
+def safe_disconnect(signal):
+    """Disconnect a Qt signal, ignoring TypeError."""
+    try:
+        signal.disconnect()
+    except TypeError:
+        # Raised when no slots are connected to the signal
+        pass
 
 
 if __name__ == "__main__":

@@ -47,11 +47,6 @@ PYTHON_CONFIG = {
                 'autopep8': {
                     'enabled': True
                 },
-                'pylsp_black': {
-                    # This is necessary for python-lsp-black less than 2.0.
-                    # See python-lsp/python-lsp-black#41
-                    'enabled': False
-                },
                 'black': {
                     'enabled': False,
                     'line_length': 79,

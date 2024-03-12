@@ -7,3 +7,7 @@
 """
 Spyder Switcher API.
 """
+
+class SwitcherActions:
+    FileSwitcherAction = 'file switcher'
+    SymbolFinderAction = 'symbol finder'

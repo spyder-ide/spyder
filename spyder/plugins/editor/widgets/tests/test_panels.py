@@ -13,7 +13,7 @@ from qtpy.QtGui import QPainter, QColor, QFontMetrics
 import pytest
 
 # Local imports
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 
 
 # --- External Example Panel

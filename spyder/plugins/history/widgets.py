@@ -25,7 +25,7 @@ from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
-from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
+from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
 
 
 # --- Constants
@@ -270,6 +270,10 @@ class HistoryWidget(PluginMainWidget):
         self.tabwidget.setCurrentIndex(index)
         self.tabwidget.setTabToolTip(index, filename)
 
+        # Hide close button
+        tab_bar = self.tabwidget.tabBar()
+        tab_bar.setTabButton(index, tab_bar.close_btn_side, None)
+
         # Signals
         editor.sig_focus_changed.connect(self.sig_focus_changed)
 
@@ -313,22 +317,32 @@ class HistoryWidget(PluginMainWidget):
         """
         tabs_stylesheet = PANES_TABBAR_STYLESHEET.get_copy()
         css = tabs_stylesheet.get_stylesheet()
+        margin_top = PANES_TABBAR_STYLESHEET.TOP_MARGIN.split('px')[0]
+
+        if WIN:
+            padding = '8px 10px'
+        elif MAC:
+            padding = '6px 10px 7px 10px'
+        else:
+            padding = '6px 10px'
 
         css['QTabBar::tab'].setValues(
-            marginTop='1.0em',
-            padding='4px'
+            marginTop=f'{margin_top}px',
+            padding=f'{padding}',
         )
+
+        for state in ['selected', 'selected:hover', 'hover']:
+            css[f'QTabBar::tab:{state}'].setValues(
+                padding=f'{padding}',
+            )
 
         css['QTabWidget::pane'].setValues(
             border='1px',
         )
 
         css['QTabWidget::left-corner'].setValues(
-            left='0px',
-        )
-
-        css['QTabWidget::right-corner'].setValues(
-            right='0px'
+            left='-1px',
+            right='-1px'
         )
 
         return str(tabs_stylesheet)

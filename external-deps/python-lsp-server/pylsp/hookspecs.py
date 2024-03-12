@@ -1,7 +1,6 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-# pylint: disable=redefined-builtin, unused-argument
 from pylsp import hookspec
 
 
@@ -25,7 +24,7 @@ def pylsp_commands(config, workspace):
 
 
 @hookspec
-def pylsp_completions(config, workspace, document, position):
+def pylsp_completions(config, workspace, document, position, ignored_names):
     pass
 
 
@@ -126,4 +125,9 @@ def pylsp_settings(config):
 
 @hookspec(firstresult=True)
 def pylsp_signature_help(config, workspace, document, position):
+    pass
+
+
+@hookspec
+def pylsp_workspace_configuration_changed(config, workspace):
     pass

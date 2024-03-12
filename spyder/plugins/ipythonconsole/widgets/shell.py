@@ -9,33 +9,38 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
-import ast
 import os
 import os.path as osp
 import time
 from textwrap import dedent
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMessageBox
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
+from qtpy.QtWidgets import QApplication, QMessageBox
 from traitlets import observe
 
 # Local imports
+from spyder.api.plugins import Plugins
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
-from spyder.py3compat import to_text_string
-from spyder.utils.palette import QStylePalette, SpyderPalette
-from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
-from spyder.utils import syntaxhighlighters as sh
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetMenus,
+    ClientContextMenuActions,
+    ClientContextMenuSections
+)
 from spyder.plugins.ipythonconsole.utils.style import (
     create_qss_style, create_style_class)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
-from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
+from spyder.utils import syntaxhighlighters as sh
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 MODULES_FAQ_URL = (
@@ -43,12 +48,14 @@ MODULES_FAQ_URL = (
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget):
+                  FigureBrowserWidget, SpyderWidgetMixin):
     """
     Shell widget for the IPython Console
 
     This is the widget in charge of executing code
     """
+    PLUGIN_NAME = Plugins.IPythonConsole
+
     # NOTE: Signals can't be assigned separately to each widget
     #       That's why we define all needed signals here.
 
@@ -100,7 +107,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # For ShellWidget
     sig_focus_changed = Signal()
     sig_new_client = Signal()
-    sig_kernel_restarted_message = Signal(str)
 
     # Kernel died and restarted (not user requested)
     sig_prompt_ready = Signal()
@@ -118,9 +124,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
-    # To notify of kernel connection / disconnection
+    # To notify of kernel connection, disconnection and kernel errors
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
+    sig_shellwidget_errored = Signal(object)
 
     # To request restart
     sig_restart_kernel = Signal()
@@ -137,7 +144,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     """
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, **kw):
+                 handlers, *args, special_kernel=None, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -147,8 +154,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
-        self.kernel_handler = None
-        self._cwd = ''
+        self.special_kernel = special_kernel
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -162,11 +168,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutting_down = False
         self.kernel_manager = None
         self.kernel_client = None
+        self.kernel_handler = None
+        self._kernel_configuration = {}
+        self.is_kernel_configured = False
         self._init_kernel_setup = False
+
+        if handlers is None:
+            handlers = {}
+        else:
+            # Avoid changing the plugin dict
+            handlers = handlers.copy()
         handlers.update({
             'show_pdb_output': self.show_pdb_output,
-            'set_debug_state': self.set_debug_state,
-            'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
         })
@@ -179,7 +192,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # modules that don't come with them.
         self.show_modules_message = is_conda_based_app()
 
-    # ---- Public API ---------------------------------------------------------
+        # The Qtconsole shortcuts for the actions below don't work in Spyder,
+        # so we disable them.
+        self._copy_raw_action.setShortcut('')
+        self.export_action.setShortcut('')
+        self.select_all_action.setShortcut('')
+        self.print_action.setShortcut('')
+
+    # ---- Public API
     @property
     def is_spyder_kernel(self):
         if self.kernel_handler is None:
@@ -224,7 +244,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
-        kernel_handler.connect()
+        kernel_handler.connect_()
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
@@ -275,7 +295,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
-            return
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -302,12 +321,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._prompt_requested = False
         self._pdb_recursion_level = 0
         self._reading = False
-
-    def print_restart_message(self):
-        """Print restart message."""
-        self._append_html(
-            _("<br>Restarting kernel...<br>"), before_prompt=True)
-        self.insert_horizontal_ruler()
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None, display_error=False):
@@ -371,18 +384,27 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Check for fault and send config
         self.kernel_handler.poll_fault_text()
 
-        # Show possible errors when setting Matplotlib backend
-        self.call_kernel().show_mpl_backend_errors()
-
-        # Check if the dependecies for special consoles are available.
-        self.call_kernel(
-            callback=self.ipyclient._show_special_console_error
-            ).is_special_kernel_valid()
-
         self.send_spyder_kernel_configuration()
+
+        run_lines = self.get_conf('startup/run_lines')
+        if run_lines:
+            self.execute(run_lines, hidden=True)
+
+        if self.get_conf('startup/use_run_file'):
+            run_file = self.get_conf('startup/run_file')
+            if run_file:
+                self.call_kernel().safe_exec(run_file)
 
     def send_spyder_kernel_configuration(self):
         """Send kernel configuration to spyder kernel."""
+        self.is_kernel_configured = False
+
+        # Set matplotlib backend
+        self.send_mpl_backend()
+
+        # set special kernel
+        self.set_special_kernel()
+
         # Set current cwd
         self.set_cwd()
 
@@ -390,10 +412,50 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_color_scheme(self.syntax_style, reset=False)
 
         # Enable faulthandler
-        self.kernel_handler.enable_faulthandler()
+        self.set_kernel_configuration("faulthandler", True)
 
         # Give a chance to plugins to configure the kernel
         self.sig_config_spyder_kernel.emit()
+
+        if self.is_external_kernel:
+            # Enable wurlitzer
+            # Not necessary if started by spyder
+            # Does not work if the external kernel is on windows
+            self.set_kernel_configuration("wurlitzer", True)
+
+        if self.get_conf('autoreload'):
+            # Enable autoreload_magic
+            self.set_kernel_configuration("autoreload_magic", True)
+
+        self.call_kernel(
+            interrupt=self.is_debugging(),
+            callback=self.kernel_configure_callback
+        ).set_configuration(self._kernel_configuration)
+
+        self.is_kernel_configured = True
+
+    def set_kernel_configuration(self, key, value):
+        """Set kernel configuration."""
+        if self.is_kernel_configured:
+            if (
+                key not in self._kernel_configuration
+                or self._kernel_configuration[key] != value
+            ):
+                # Do not send twice
+                self.call_kernel(
+                    interrupt=self.is_debugging(),
+                    callback=self.kernel_configure_callback
+                ).set_configuration({key: value})
+
+        self._kernel_configuration[key] = value
+
+    def kernel_configure_callback(self, dic):
+        """Kernel configuration callback"""
+        for key, value in dic.items():
+            if key == "faulthandler":
+                self.kernel_handler.faulthandler_setup(value)
+            elif key == "special_kernel_error":
+                self.ipyclient._show_special_console_error(value)
 
     def pop_execute_queue(self):
         """Pop one waiting instruction."""
@@ -465,23 +527,110 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
 
         if dirname is None:
-            if not self._cwd:
+            if not self.get_cwd():
                 return
-            dirname = self._cwd
+            dirname = self.get_cwd()
         elif os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
+        self.set_kernel_configuration("cwd", dirname)
 
-        if self.spyder_kernel_ready:
-            # Otherwise cwd will be sent later
-            self.call_kernel(
-                interrupt=self.is_debugging()
-            ).set_cwd(dirname)
-
-        self._cwd = dirname
         if emit_cwd_change:
-            self.sig_working_directory_changed.emit(self._cwd)
+            self.sig_working_directory_changed.emit(dirname)
+
+    def send_mpl_backend(self, option=None):
+        """
+        Send matplotlib backend.
+
+        If `option` is not None only send the related options.
+        """
+        if not self.spyder_kernel_ready:
+            # will be sent later
+            return
+
+        # Set Matplotlib backend with Spyder options
+        pylab_n = 'pylab'
+        pylab_o = self.get_conf(pylab_n)
+
+        if option is not None and not pylab_o:
+            # The options are only related to pylab_o
+            # So no need to change the backend
+            return
+
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        figure_format_n = 'pylab/inline/figure_format'
+        resolution_n = 'pylab/inline/resolution'
+        width_n = 'pylab/inline/width'
+        height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
+        bbox_inches_n = 'pylab/inline/bbox_inches'
+        backend_o = self.get_conf(pylab_backend_n)
+
+        inline_backend = 'inline'
+        matplotlib_conf = {}
+
+        if pylab_o:
+            # Figure format
+            format_o = self.get_conf(figure_format_n)
+            if format_o and (option is None or figure_format_n in option):
+                matplotlib_conf[figure_format_n] = format_o
+
+            # Resolution
+            resolution_o = self.get_conf(resolution_n)
+            if resolution_o is not None and (
+                    option is None or resolution_n in option):
+                matplotlib_conf[resolution_n] = resolution_o
+
+            # Figure size
+            width_o = float(self.get_conf(width_n))
+            height_o = float(self.get_conf(height_n))
+            if option is None or (width_n in option or height_n in option):
+                if width_o is not None:
+                    matplotlib_conf[width_n] = width_o
+                if height_o is not None:
+                    matplotlib_conf[height_n] = height_o
+
+            # Font size
+            fontsize_o = float(self.get_conf(fontsize_n))
+            if (
+                fontsize_o is not None
+                and (option is None or fontsize_n in option)
+            ):
+                matplotlib_conf[fontsize_n] = fontsize_o
+
+            # Bottom part
+            bottom_o = float(self.get_conf(bottom_n))
+            if (
+                bottom_o is not None
+                and (option is None or bottom_n in option)
+            ):
+                matplotlib_conf[bottom_n] = bottom_o
+
+            # Print figure kwargs
+            bbox_inches_o = self.get_conf(bbox_inches_n)
+            if option is None or bbox_inches_n in option:
+                matplotlib_conf[bbox_inches_n] = bbox_inches_o
+
+        if pylab_o and backend_o is not None:
+            mpl_backend = backend_o
+        else:
+            # Set Matplotlib backend to inline for external kernels.
+            # Fixes issue spyder-ide/spyder-kernels#108
+            mpl_backend = inline_backend
+
+        # Automatically load Pylab and Numpy, or only set Matplotlib
+        # backend
+        autoload_pylab_o = self.get_conf(pylab_autoload_n)
+        if option is None or pylab_backend_n in option:
+            matplotlib_conf[pylab_backend_n] = mpl_backend
+        if option is None or pylab_autoload_n in option:
+            matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
+
+        if matplotlib_conf:
+            self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
         """
@@ -494,17 +643,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         * We do it for performance reasons because we call this method when
           switching consoles to update the Working Directory toolbar.
         """
-        return self._cwd
+        return self._kernel_configuration.get("cwd", '')
 
     def update_state(self, state):
         """
         New state received from kernel.
         """
         cwd = state.pop("cwd", None)
-        if cwd and self._cwd and cwd != self._cwd:
-            # Only set it if self._cwd is already set
-            self._cwd = cwd
-            self.sig_working_directory_changed.emit(self._cwd)
+        if cwd and self.get_cwd() and cwd != self.get_cwd():
+            # Only set it if self.get_cwd() is already set
+            self._kernel_configuration["cwd"] = cwd
+            self.sig_working_directory_changed.emit(cwd)
 
         if state:
             self.sig_kernel_state_arrived.emit(state)
@@ -527,13 +676,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
-        if not dark_color:
-            # Needed to change the colors of tracebacks
-            self.silent_execute("%colors linux")
-            self.call_kernel().set_sympy_forecolor(background_color='dark')
-        else:
-            self.silent_execute("%colors lightbg")
-            self.call_kernel().set_sympy_forecolor(background_color='light')
+        self.set_kernel_configuration(
+            "color scheme", "dark" if not dark_color else "light"
+        )
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
@@ -583,45 +728,23 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             interrupt=True,
             blocking=True).get_mpl_interactive_backend()
 
-    def set_matplotlib_backend(self, backend_option, pylab=False):
-        """Set matplotlib backend given a backend name."""
-        cmd = "get_ipython().kernel.set_matplotlib_backend('{}', {})"
-        self.execute(cmd.format(backend_option, pylab), hidden=True)
-
-    def set_mpl_inline_figure_format(self, figure_format):
-        """Set matplotlib inline figure format."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_format('{}')"
-        self.execute(cmd.format(figure_format), hidden=True)
-
-    def set_mpl_inline_resolution(self, resolution):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_resolution({})"
-        self.execute(cmd.format(resolution), hidden=True)
-
-    def set_mpl_inline_figure_size(self, width, height):
-        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_figure_size({}, {})"
-        self.execute(cmd.format(width, height), hidden=True)
-
-    def set_mpl_inline_bbox_inches(self, bbox_inches):
-        """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
-        cmd = "get_ipython().kernel.set_mpl_inline_bbox_inches({})"
-        self.execute(cmd.format(bbox_inches), hidden=True)
-
     def set_jedi_completer(self, use_jedi):
         """Set if jedi completions should be used."""
-        cmd = "get_ipython().kernel.set_jedi_completer({})"
-        self.execute(cmd.format(use_jedi), hidden=True)
+        self.set_kernel_configuration(
+            "jedi_completer", use_jedi
+        )
 
     def set_greedy_completer(self, use_greedy):
         """Set if greedy completions should be used."""
-        cmd = "get_ipython().kernel.set_greedy_completer({})"
-        self.execute(cmd.format(use_greedy), hidden=True)
+        self.set_kernel_configuration(
+            "greedy_completer", use_greedy
+        )
 
     def set_autocall(self, autocall):
         """Set if autocall functionality is enabled or not."""
-        cmd = "get_ipython().kernel.set_autocall({})"
-        self.execute(cmd.format(autocall), hidden=True)
+        self.set_kernel_configuration(
+            "autocall", autocall
+        )
 
     # --- To handle the banner
     def long_banner(self):
@@ -634,8 +757,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'Python %s\n' % py_ver,
             'Type "copyright", "credits" or "license" for more information.',
             '\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
+
+        if ipy_ver:
+            banner_parts.append(
+                'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+            )
+        else:
+            banner_parts.append('IPython -- An enhanced Interactive Python.\n')
+
         banner = ''.join(banner_parts)
 
         # Pylab additions
@@ -743,14 +873,6 @@ the sympy module (e.g. plot)
             Whether to show a message in the console telling users the
             namespace was reset.
         """
-        # This is necessary to make resetting variables work in external
-        # kernels.
-        # See spyder-ide/spyder#9505.
-        try:
-            kernel_env = self.kernel_manager._kernel_spec.env
-        except AttributeError:
-            kernel_env = {}
-
         try:
             if self.is_waiting_pdb_input():
                 self.execute('%reset -f')
@@ -763,24 +885,23 @@ the sympy module (e.g. plot)
                     )
                     self.insert_horizontal_ruler()
                 self.silent_execute("%reset -f")
-                if kernel_env.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
-                    self.silent_execute("from pylab import *")
-                if kernel_env.get('SPY_SYMPY_O') == 'True':
-                    sympy_init = """
-                        from sympy import *
-                        x, y, z, t = symbols('x y z t')
-                        k, m, n = symbols('k m n', integer=True)
-                        f, g, h = symbols('f g h', cls=Function)
-                        init_printing()"""
-                    self.silent_execute(dedent(sympy_init))
-                if kernel_env.get('SPY_RUN_CYTHON') == 'True':
-                    self.silent_execute("%reload_ext Cython")
+                self.set_special_kernel()
 
                 if self.spyder_kernel_ready:
                     self.call_kernel().close_all_mpl_figures()
                     self.send_spyder_kernel_configuration()
         except AttributeError:
             pass
+
+    def set_special_kernel(self):
+        """Reset special kernel"""
+        if not self.special_kernel:
+            return
+
+        # Check if the dependecies for special consoles are available.
+        self.set_kernel_configuration(
+            "special_kernel", self.special_kernel
+        )
 
     def _update_reset_options(self, message_box):
         """
@@ -853,7 +974,7 @@ the sympy module (e.g. plot)
             if self.is_debugging():
                 self.pdb_execute(code, hidden=True)
             else:
-                self.kernel_client.execute(to_text_string(code), silent=True)
+                self.kernel_client.execute(str(code), silent=True)
         except AttributeError:
             pass
 
@@ -948,31 +1069,8 @@ the sympy module (e.g. plot)
         """
         self._control.insert_horizontal_ruler()
 
-    # ---- Public methods (overrode by us) ------------------------------------
-    def _event_filter_console_keypress(self, event):
-        """Filter events to send to qtconsole code."""
-        key = event.key()
-        if self._control_key_down(event.modifiers(), include_command=False):
-            if key == QtCore.Qt.Key_Period:
-                # Do not use ctrl + . to restart kernel
-                # Handled by IPythonConsoleWidget
-                return False
-        return super()._event_filter_console_keypress(event)
-
-    def adjust_indentation(self, line, indent_adjustment):
-        """Adjust indentation."""
-        if indent_adjustment == 0 or line == "":
-            return line
-
-        if indent_adjustment > 0:
-            return ' ' * indent_adjustment + line
-
-        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
-        indent_adjustment = min(max_indent, -indent_adjustment)
-
-        return line[indent_adjustment:]
-
-    def paste(self, mode=QtGui.QClipboard.Clipboard):
+    # ---- Public methods (overrode by us)
+    def paste(self, mode=QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
 
         Parameters
@@ -983,14 +1081,14 @@ the sympy module (e.g. plot)
             used to access the selection clipboard in X11 and the Find buffer
             in Mac OS. By default, the regular clipboard is used.
         """
-        if self._control.textInteractionFlags() & QtCore.Qt.TextEditable:
+        if self._control.textInteractionFlags() & Qt.TextEditable:
             # Make sure the paste is safe.
             self._keep_cursor_in_buffer()
             cursor = self._control.textCursor()
 
             # Remove any trailing newline, which confuses the GUI and forces
             # the user to backspace.
-            text = QtWidgets.QApplication.clipboard().text(mode).rstrip()
+            text = QApplication.clipboard().text(mode).rstrip()
 
             # Adjust indentation of multilines pastes
             if len(text.splitlines()) > 1:
@@ -999,7 +1097,7 @@ the sympy module (e.g. plot)
                 eol_chars = "\n"
                 first_line, *remaining_lines = (text + eol_chars).splitlines()
                 remaining_lines = [
-                    self.adjust_indentation(line, lines_adjustment)
+                    self._adjust_indentation(line, lines_adjustment)
                     for line in remaining_lines]
                 text = eol_chars.join([first_line, *remaining_lines])
 
@@ -1013,6 +1111,35 @@ the sympy module (e.g. plot)
 
             self._insert_plain_text_into_buffer(cursor, dedent(text))
 
+    def copy(self):
+        """
+        Copy the currently selected text to the clipboard.
+        """
+        super().copy()
+        self._save_clipboard_indentation()
+
+    def cut(self):
+        """
+        Copy the currently selected text to the clipboard and delete it
+        if it's inside the input buffer.
+        """
+        super().cut()
+        self._save_clipboard_indentation()
+
+    # ---- Private API
+    def _adjust_indentation(self, line, indent_adjustment):
+        """Adjust indentation."""
+        if indent_adjustment == 0 or line == "":
+            return line
+
+        if indent_adjustment > 0:
+            return ' ' * indent_adjustment + line
+
+        max_indent = CLIPBOARD_HELPER.get_line_indentation(line)
+        indent_adjustment = min(max_indent, -indent_adjustment)
+
+        return line[indent_adjustment:]
+
     def _get_preceding_text(self):
         """Get preciding text."""
         cursor = self._control.textCursor()
@@ -1021,8 +1148,7 @@ the sympy module (e.g. plot)
             return ""
         first_line_selection = text.splitlines()[0]
         cursor.setPosition(cursor.selectionStart())
-        cursor.setPosition(cursor.block().position(),
-                           QtGui.QTextCursor.KeepAnchor)
+        cursor.setPosition(cursor.block().position(), QTextCursor.KeepAnchor)
         preceding_text = cursor.selection().toPlainText()
         first_line = preceding_text + first_line_selection
         len_with_prompt = len(first_line)
@@ -1044,22 +1170,17 @@ the sympy module (e.g. plot)
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
-    def copy(self):
-        """
-        Copy the currently selected text to the clipboard.
-        """
-        super().copy()
-        self._save_clipboard_indentation()
+    # ---- Private API (overrode by us)
+    def _event_filter_console_keypress(self, event):
+        """Filter events to send to qtconsole code."""
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == Qt.Key_Period:
+                # Do not use ctrl + . to restart kernel
+                # Handled by IPythonConsoleWidget
+                return False
+        return super()._event_filter_console_keypress(event)
 
-    def cut(self):
-        """
-        Copy the currently selected text to the clipboard and delete it
-        if it's inside the input buffer.
-        """
-        super().cut()
-        self._save_clipboard_indentation()
-
-    # ---- Private API (overrode by us) ---------------------------------------
     def _handle_execute_reply(self, msg):
         """
         Reimplemented to handle communications between Spyder
@@ -1108,9 +1229,94 @@ the sympy module (e.g. plot)
         self._process_execute_error(msg)
 
     def _context_menu_make(self, pos):
-        """Reimplement the IPython context menu"""
-        menu = super(ShellWidget, self)._context_menu_make(pos)
-        return self.ipyclient.add_actions_to_context_menu(menu)
+        """Reimplement the Qtconsole context menu using our API for menus."""
+        context_menu = self.get_menu(
+            IPythonConsoleWidgetMenus.ClientContextMenu
+        )
+        context_menu.clear_actions()
+
+        fmt = self._control.cursorForPosition(pos).charFormat()
+        img_name = fmt.stringProperty(QTextFormat.ImageName)
+
+        if img_name:
+            # Add image/svg actions to menu
+            for name in [ClientContextMenuActions.CopyImage,
+                         ClientContextMenuActions.SaveImage]:
+                action = self.get_action(name)
+                action.setData(img_name)
+                self.add_item_to_menu(
+                    action,
+                    context_menu,
+                    section=ClientContextMenuSections.Image
+                )
+
+            svg = self._name_to_svg_map.get(img_name, None)
+            if svg is not None:
+                for name in [ClientContextMenuActions.CopySvg,
+                             ClientContextMenuActions.SaveSvg]:
+                    action = self.get_action(name)
+                    action.setData(svg)
+                    self.add_item_to_menu(
+                        action,
+                        context_menu,
+                        section=ClientContextMenuSections.SVG
+                    )
+        else:
+            # Enable/disable edit actions
+            cut_action = self.get_action(ClientContextMenuActions.Cut)
+            cut_action.setEnabled(self.can_cut())
+
+            for name in [ClientContextMenuActions.Copy,
+                         ClientContextMenuActions.CopyRaw]:
+                action = self.get_action(name)
+                action.setEnabled(self.can_copy())
+
+            paste_action = self.get_action(ClientContextMenuActions.Paste)
+            paste_action.setEnabled(self.can_paste())
+
+            # Add regular actions to menu
+            for name in [ClientContextMenuActions.Cut,
+                         ClientContextMenuActions.Copy,
+                         ClientContextMenuActions.CopyRaw,
+                         ClientContextMenuActions.Paste,
+                         ClientContextMenuActions.SelectAll]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Edit
+                )
+
+            self.add_item_to_menu(
+                self.get_action(ClientContextMenuActions.InspectObject),
+                context_menu,
+                section=ClientContextMenuSections.Inspect
+            )
+
+            for name in [ClientContextMenuActions.ArrayTable,
+                         ClientContextMenuActions.ArrayInline]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Array
+                )
+
+            for name in [ClientContextMenuActions.Export,
+                         ClientContextMenuActions.Print]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Export
+                )
+
+            for name in [ClientContextMenuActions.ClearConsole,
+                         ClientContextMenuActions.ClearLine]:
+                self.add_item_to_menu(
+                    self.get_action(name),
+                    context_menu,
+                    section=ClientContextMenuSections.Clear
+                )
+
+        return context_menu
 
     def _banner_default(self):
         """
@@ -1127,7 +1333,10 @@ the sympy module (e.g. plot)
             return self.short_banner()
 
     def _kernel_restarted_message(self, died=True):
-        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        msg = (
+            _("The kernel died, restarting...") if died
+            else _("Restarting kernel...")
+        )
 
         if died and self.kernel_manager is None:
             # The kernel might never restart, show position of fault file
@@ -1136,14 +1345,12 @@ the sympy module (e.g. plot)
                 + self.kernel_handler.fault_filename()
             )
 
-        self.sig_kernel_restarted_message.emit(msg)
+        self._append_html(f"<br>{msg}<br>", before_prompt=False)
+        self.insert_horizontal_ruler()
 
     def _handle_kernel_restarted(self, *args, **kwargs):
         """The kernel restarted."""
         super()._handle_kernel_restarted(*args, **kwargs)
-
-        # Print restart message
-        self.print_restart_message()
 
         # Reset Pdb state
         self.reset_kernel_state()
@@ -1207,7 +1414,7 @@ the sympy module (e.g. plot)
                 )
             self.show_modules_message = False
 
-    # --- Qt methods ----------------------------------------------------------
+    # ---- Qt methods
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()

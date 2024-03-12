@@ -84,11 +84,11 @@ def pytest_collection_modifyitems(config, items):
         ]
 
         if os.name == 'nt':
-            percentage = 0.6
-        elif sys.platform == 'darwin':
-            percentage = 0.6
-        else:
             percentage = 0.5
+        elif sys.platform == 'darwin':
+            percentage = 0.5
+        else:
+            percentage = 0.4
 
         for i, item in enumerate(ipyconsole_items):
             if i < len(ipyconsole_items) * percentage:

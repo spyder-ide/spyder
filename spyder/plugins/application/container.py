@@ -12,7 +12,6 @@ Holds references for base actions in the Application of Spyder.
 
 # Standard library imports
 import os
-import subprocess
 import sys
 import glob
 
@@ -22,22 +21,18 @@ from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
 
 # Local imports
-from spyder import __docs_url__, __forum_url__, __trouble_url__, __version__
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.utils.installers import InstallerMissingDependencies
-from spyder.config.utils import is_anaconda
-from spyder.config.base import (get_conf_path, get_debug_level,
-                                is_conda_based_app)
-from spyder.plugins.application.widgets.status import ApplicationUpdateStatus
+from spyder.config.base import get_conf_path, get_debug_level
+from spyder.plugins.application.widgets import AboutDialog
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
-from spyder.widgets.about import AboutDialog
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder.workers.updates import WorkerUpdates
 
 
 class ApplicationPluginMenus:
@@ -59,7 +54,6 @@ class ApplicationActions:
     SpyderDocumentationVideoAction = "spyder_documentation_video_action"
     SpyderTroubleshootingAction = "spyder_troubleshooting_action"
     SpyderDependenciesAction = "spyder_dependencies_action"
-    SpyderCheckUpdatesAction = "spyder_check_updates_action"
     SpyderSupportAction = "spyder_support_action"
     SpyderAbout = "spyder_about_action"
 
@@ -92,31 +86,16 @@ class ApplicationContainer(PluginMainContainer):
         self.current_dpi = None
         self.dpi_messagebox = None
 
-        # Keep track of the downloaded installer executable for updates
-        self.installer_path = None
-
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
 
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
+        self.dependencies_dialog = DependenciesDialog(self)
 
         # Attributes
         self.dialog_manager = DialogManager()
-        self.application_update_status = None
-        if is_conda_based_app():
-            self.application_update_status = ApplicationUpdateStatus(
-                parent=self)
-            (self.application_update_status.sig_check_for_updates_requested
-             .connect(self.check_updates))
-            (self.application_update_status.sig_install_on_close_requested
-                 .connect(self.set_installer_path))
-            self.application_update_status.set_no_status()
-        self.give_updates_feedback = False
-        self.thread_updates = None
-        self.worker_updates = None
-        self.updates_timer = None
 
         # Actions
         # Documentation actions
@@ -152,10 +131,6 @@ class ApplicationContainer(PluginMainContainer):
             _("Dependencies..."),
             triggered=self.show_dependencies,
             icon=self.create_icon('advanced'))
-        self.check_updates_action = self.create_action(
-            ApplicationActions.SpyderCheckUpdatesAction,
-            _("Check for updates..."),
-            triggered=self.check_updates)
         self.support_group_action = self.create_action(
             ApplicationActions.SpyderSupportAction,
             _("Spyder support..."),
@@ -223,19 +198,9 @@ class ApplicationContainer(PluginMainContainer):
     def on_close(self):
         """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
-        if self.updates_timer is not None:
-            self.updates_timer.stop()
-        if self.thread_updates is not None:
-            self.thread_updates.quit()
-            self.thread_updates.wait()
         if self.dependencies_thread is not None:
             self.dependencies_thread.quit()
             self.dependencies_thread.wait()
-
-        # Run installer after Spyder is closed
-        cmd = ('start' if os.name == 'nt' else 'open')
-        if self.installer_path:
-            subprocess.Popen(' '.join([cmd, self.installer_path]), shell=True)
 
     @Slot()
     def show_about(self):
@@ -248,167 +213,16 @@ class ApplicationContainer(PluginMainContainer):
         """Show Windows current user environment variables."""
         self.dialog_manager.show(UserEnvDialog(self))
 
-    # ---- Updates
-    # -------------------------------------------------------------------------
-
-    def _check_updates_ready(self):
-        """Show results of the Spyder update checking process."""
-
-        # `feedback` = False is used on startup, so only positive feedback is
-        # given. `feedback` = True is used when after startup (when using the
-        # menu action, and gives feeback if updates are, or are not found.
-        feedback = self.give_updates_feedback
-
-        # Get results from worker
-        update_available = self.worker_updates.update_available
-        latest_release = self.worker_updates.latest_release
-        error_msg = self.worker_updates.error
-
-        # Release url
-        if sys.platform == 'darwin':
-            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
-                     'download/Spyder.dmg')
-        else:
-            url_r = ('https://github.com/spyder-ide/spyder/releases/latest/'
-                     'download/Spyder_64bit_full.exe')
-        url_i = 'https://docs.spyder-ide.org/installation.html'
-
-        # Define the custom QMessageBox
-        box = MessageCheckBox(icon=QMessageBox.Information,
-                              parent=self)
-        box.setWindowTitle(_("New Spyder version"))
-        box.setAttribute(Qt.WA_ShowWithoutActivating)
-        box.set_checkbox_text(_("Check for updates at startup"))
-        box.setStandardButtons(QMessageBox.Ok)
-        box.setDefaultButton(QMessageBox.Ok)
-
-        # Adjust the checkbox depending on the stored configuration
-        option = 'check_updates_on_startup'
-        check_updates = self.get_conf(option)
-        box.set_checked(check_updates)
-
-        if error_msg is not None:
-            msg = error_msg
-            box.setText(msg)
-            box.set_check_visible(False)
-            box.exec_()
-            check_updates = box.is_checked()
-        else:
-            if update_available:
-                if self.application_update_status:
-                    self.application_update_status.set_status_pending(
-                        latest_release=latest_release)
-
-                header = _("<b>Spyder {} is available!</b> "
-                           "<i>(you have {})</i><br><br>").format(
-                    latest_release, __version__)
-                content = ""
-                footer = _(
-                    "For more information, visit our "
-                    "<a href=\"{}\">installation guide</a>."
-                ).format(url_i)
-                if is_anaconda():
-                    content = _(
-                        "<b>Important note:</b> Since you installed "
-                        "Spyder with Anaconda, please <b>don't</b> use "
-                        "<code>pip</code> to update it as that will break "
-                        "your installation.<br><br>"
-                        "Instead, run the following commands in a "
-                        "terminal:<br>"
-                        "<code>conda update anaconda</code><br>"
-                        "<code>conda install spyder={}</code><br><br>"
-                    ).format(latest_release)
-                elif is_conda_based_app():
-                    box.setStandardButtons(QMessageBox.Yes |
-                                           QMessageBox.No)
-                    content = _(
-                        "Would you like to automatically download and "
-                        "install it?<br><br>"
-                    )
-
-                msg = header + content + footer
-                box.setText(msg)
-                box.set_check_visible(True)
-                box.exec_()
-                if self.application_update_status:
-                    if box.result() == QMessageBox.Yes:
-                        self.application_update_status.start_installation(
-                            latest_release=latest_release)
-                    elif box.result() == QMessageBox.No:
-                        self.application_update_status.set_status_pending(
-                            latest_release=latest_release)
-                check_updates = box.is_checked()
-            elif feedback:
-                msg = _("Spyder is up to date.")
-                box.setText(msg)
-                box.set_check_visible(False)
-                box.exec_()
-                check_updates = box.is_checked()
-                if self.application_update_status:
-                    self.application_update_status.set_no_status()
-            else:
-                if self.application_update_status:
-                    self.application_update_status.set_no_status()
-        # Update checkbox based on user interaction
-        self.set_conf(option, check_updates)
-
-        # Enable check_updates_action after the thread has finished
-        self.check_updates_action.setDisabled(False)
-
-        # Provide feeback when clicking menu if check on startup is on
-        self.give_updates_feedback = True
-
-    @Slot()
-    def check_updates(self, startup=False):
-        """Check for spyder updates on github releases using a QThread."""
-        # Disable check_updates_action while the thread is working
-        self.check_updates_action.setDisabled(True)
-        # !!! >>> Disable signals until alpha1
-        if is_conda_based_app():
-            self.application_update_status.blockSignals(True)
-            return
-        # !!! <<< Disable signals until alpha1
-        if self.application_update_status:
-            self.application_update_status.set_status_checking()
-
-        if self.thread_updates is not None:
-            self.thread_updates.quit()
-            self.thread_updates.wait()
-
-        self.thread_updates = QThread(None)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
-        self.worker_updates.sig_ready.connect(self._check_updates_ready)
-        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
-        self.worker_updates.moveToThread(self.thread_updates)
-        self.thread_updates.started.connect(self.worker_updates.start)
-
-        # Delay starting this check to avoid blocking the main window
-        # while loading.
-        # Fixes spyder-ide/spyder#15839
-        self.updates_timer = QTimer(self)
-        self.updates_timer.setInterval(60000)
-        self.updates_timer.setSingleShot(True)
-        self.updates_timer.timeout.connect(self.thread_updates.start)
-        self.updates_timer.start()
-
-    @Slot(str)
-    def set_installer_path(self, installer_path):
-        """Set installer executable path to be run when closing."""
-        self.installer_path = installer_path
-
     # ---- Dependencies
     # -------------------------------------------------------------------------
+    def _set_dependencies(self):
+        if dependencies.DEPENDENCIES:
+            self.dependencies_dialog.set_data(dependencies.DEPENDENCIES)
+
     @Slot()
     def show_dependencies(self):
         """Show Spyder Dependencies dialog."""
-        # This is here in case the user tries to display the dialog before
-        # dependencies_thread has finished.
-        if not dependencies.DEPENDENCIES:
-            dependencies.declare_dependencies()
-
-        dlg = DependenciesDialog(self)
-        dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.show()
+        self.dependencies_dialog.show()
 
     def _compute_dependencies(self):
         """Compute dependencies without errors."""
@@ -425,10 +239,11 @@ class ApplicationContainer(PluginMainContainer):
         self.dependencies_thread.run = self._compute_dependencies
         self.dependencies_thread.finished.connect(
             self.report_missing_dependencies)
+        self.dependencies_thread.finished.connect(self._set_dependencies)
 
         # This avoids computing missing deps before the window is fully up
         dependencies_timer = QTimer(self)
-        dependencies_timer.setInterval(10000)
+        dependencies_timer.setInterval(30000)
         dependencies_timer.setSingleShot(True)
         dependencies_timer.timeout.connect(self.dependencies_thread.start)
         dependencies_timer.start()
@@ -544,7 +359,7 @@ class ApplicationContainer(PluginMainContainer):
             )
 
         # Render menu
-        self.menu_debug_logs._render()
+        self.menu_debug_logs.render()
 
     def load_log_file(self, file):
         """Load log file in editor"""

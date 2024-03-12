@@ -115,7 +115,10 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == spyder/plugins/editor/panels/__init__.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/external/pybloom_pyqt/*.py ]]; then
+    if [[ $f == spyder/plugins/findinfiles/widgets/main_widget.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/application/widgets/__init__.py ]]; then
         continue
     fi
     python "$f"
@@ -137,6 +140,9 @@ for f in spyder/*/*/*/*/*.py; do
         continue
     fi
     if [[ $f == spyder/plugins/editor/widgets/codeeditor/__init__.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/editor/widgets/editorstack/__init__.py ]]; then
         continue
     fi
     python "$f"

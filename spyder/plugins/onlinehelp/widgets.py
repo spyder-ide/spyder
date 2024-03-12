@@ -9,6 +9,7 @@ PyDoc widget.
 """
 
 # Standard library imports
+import os
 import os.path as osp
 import pydoc
 import sys
@@ -66,6 +67,10 @@ try:
     pydoc.safeimport = spyder_safeimport
 except Exception:
     pass
+
+# Needed to prevent showing a warning message regarding debugging.
+# Fixes spyder-ide/spyder#20390 and spyder-ide/spyder#21171
+os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 
 
 class PydocServer(QThread):
@@ -175,7 +180,6 @@ class PydocBrowser(PluginMainWidget):
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.webview)
-        layout.addSpacing(1)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
 

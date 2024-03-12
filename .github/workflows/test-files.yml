@@ -14,8 +14,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   pull_request:
     branches:
@@ -30,8 +31,9 @@ on:
       - '**.bat'
       - '**.py'
       - '**.sh'
-      - '!installers*/**'
-      - '!.github/workflows/installer*.yml'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
 
@@ -41,6 +43,8 @@ concurrency:
 
 jobs:
   build:
+    # Use this to disable the workflow
+    # if: false
     name: Linux - Py${{ matrix.PYTHON_VERSION }}
     runs-on: ubuntu-latest
     env:
@@ -51,17 +55,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.8', '3.10']
+        PYTHON_VERSION: ['3.9', '3.10']
     timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Fetch branches
         if: github.event_name == 'pull_request'
         run: git fetch --prune --unshallow
@@ -71,7 +75,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this value to reset cache if requirements/*.yml has not changed
           CACHE_NUMBER: 0
@@ -79,18 +83,17 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
-          extra-specs: |
-            python=${{ matrix.PYTHON_VERSION }}
+          create-args: python=${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh

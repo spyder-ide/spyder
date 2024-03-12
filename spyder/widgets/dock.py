@@ -8,28 +8,37 @@
 Dock widgets for plugins
 """
 
+import qstylizer.style
 from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
                             QToolButton, QWidget)
-import qstylizer.style
 
 from spyder.api.translations import _
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import PanesToolbarStyleSheet
+from spyder.utils.stylesheet import (
+    PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
+    VERTICAL_DOCK_TABBAR_STYLESHEET)
 
 
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject):
+class TabFilter(QObject, SpyderConfigurationAccessor):
     """Filter event attached to each DockWidget QTabBar."""
+
+    CONF_SECTION = 'main'
+
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
-        self.dock_tabbar = dock_tabbar
+        self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None
-        self.dock_tabbar.setStyleSheet(self._tabbar_stylesheet)
+
+        self._set_tabbar_stylesheet()
+        self.dock_tabbar.setElideMode(Qt.ElideNone)
+        self.dock_tabbar.setUsesScrollButtons(True)
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -69,23 +78,13 @@ class TabFilter(QObject):
         menu = self.main.createPopupMenu()
         menu.exec_(self.dock_tabbar.mapToGlobal(event.pos()))
 
-    @property
-    def _tabbar_stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Center tabs to differentiate them from plugin ones.
-        # See spyder-ide/spyder#9763
-        css.QTabBar.setValues(
-            alignment='center'
-        )
-
-        # Also add a border below selected tabs so they don't touch either the
-        # window separator or the status bar.
-        css['QTabBar::tab:bottom:selected'].setValues(
-            borderBottom=f'2px solid {QStylePalette.COLOR_BACKGROUND_1}'
-        )
-
-        return css.toString()
+    def _set_tabbar_stylesheet(self):
+        if self.get_conf('vertical_tabs'):
+            self.dock_tabbar.setStyleSheet(
+                str(VERTICAL_DOCK_TABBAR_STYLESHEET))
+        else:
+            self.dock_tabbar.setStyleSheet(
+                str(HORIZONTAL_DOCK_TABBAR_STYLESHEET))
 
 
 # =============================================================================
@@ -248,9 +247,13 @@ class SpyderDockWidget(QDockWidget):
     sig_title_bar_shown = Signal(bool)
 
     def __init__(self, title, parent):
-        super(SpyderDockWidget, self).__init__(title, parent)
-        self.title = title
+        super().__init__(title, parent)
 
+        # Attributes
+        self.title = title
+        self._is_shown = False
+
+        # Set features
         self.setFeatures(self.FEATURES)
 
         # Widgets
@@ -274,27 +277,34 @@ class SpyderDockWidget(QDockWidget):
         self.remove_title_bar()
 
         # Signals
-        # To track dockwidget changes the filter is installed when dockwidget
-        # visibility changes. This installs the filter on startup and also
-        # on dockwidgets that are undocked and then docked to a new location.
-        self.visibilityChanged.connect(self.install_tab_event_filter)
+        # This installs the tab filter when dockwidgets are undocked and then
+        # docked to a new location.
+        self.dockLocationChanged.connect(
+            lambda area: self.install_tab_event_filter()
+        )
 
     def closeEvent(self, event):
-        """
-        Reimplement Qt method to send a signal on close so that "Panes" main
-        window menu can be updated correctly
-        """
+        """Send a signal on close so that the "Panes" menu can be updated."""
         self.sig_plugin_closed.emit()
 
-    def install_tab_event_filter(self, value):
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            # This installs the tab filter at startup
+            self.install_tab_event_filter()
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def install_tab_event_filter(self):
         """
         Install an event filter to capture mouse events in the tabs of a
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
 
-        # This is necessary to catch an error when closing the app
-        # in macOS with PyQt 5.15
+        # This is necessary to catch an error when closing the app on macOS
+        # with PyQt 5.15
         try:
             tabbars = self.main.findChildren(QTabBar)
         except RuntimeError:

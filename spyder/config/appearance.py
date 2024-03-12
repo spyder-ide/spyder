@@ -11,7 +11,8 @@ Spyder appearance configuration
 import os
 import sys
 
-from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
+from spyder.config.base import running_under_pytest
+from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 
 WIN = os.name == 'nt'
@@ -21,16 +22,29 @@ LINUX = sys.platform.startswith('linux')
 APPEARANCE = {
     'css_path': CSS_PATH,
     'icon_theme': 'spyder 3',
-    # Global Spyder fonts
+    # This is our monospace font
     'font/family': MONOSPACE,
     'font/size': MEDIUM,
     'font/italic': False,
     'font/bold': False,
-    'rich_font/family': SANS_SERIF,
-    'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
-    'rich_font/italic': False,
-    'rich_font/bold': False,
+    # We set the app font used in the system when Spyder starts, so we don't
+    # need to do it here.
+    'app_font/family': 'Arial' if running_under_pytest() else '',
+    # This default value helps to do visual checks in our tests when run
+    # independently and avoids Qt warnings related to a null font size. It can
+    # also be useful in case we fail to detect the interface font.
+    'app_font/size': 10,
+    'app_font/italic': False,
+    'app_font/bold': False,
+    'use_system_font': True,
+    # We set these values at startup too.
+    'monospace_app_font/family': '',
+    'monospace_app_font/size': 0,
+    'monospace_app_font/italic': False,
+    'monospace_app_font/bold': False,
+    # UI theme
     'ui_theme': 'automatic',
+    # Syntax highlighting theme names
     'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
               'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
               'solarized/dark', 'inkpot', 'minimal', 'nightlion',

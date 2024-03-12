@@ -14,7 +14,8 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
-from qtpy.QtWidgets import QApplication, QDesktopWidget
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -32,7 +33,7 @@ from spyder.plugins.layout.layouts import (DefaultLayouts,
                                            HorizontalSplitLayout,
                                            MatlabLayout, RLayout,
                                            SpyderLayout, VerticalSplitLayout)
-from spyder.plugins.preferences.widgets.container import PreferencesActions
+from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
 from spyder.py3compat import qbytearray_to_str  # FIXME:
@@ -80,11 +81,13 @@ class Layout(SpyderPluginV2):
     def get_name():
         return _("Layout")
 
-    def get_description(self):
+    @staticmethod
+    def get_description():
         return _("Layout manager")
 
-    def get_icon(self):
-        return self.create_icon("history")  # FIXME:
+    @classmethod
+    def get_icon(cls):
+        return QIcon()
 
     def on_initialize(self):
         self._last_plugin = None
@@ -413,9 +416,9 @@ class Layout(SpyderPluginV2):
         container = self.get_container()
         try:
             settings = self.load_window_settings(
-                'layout_{}/'.format(index_or_layout_id), section=section)
-            (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-             is_fullscreen) = settings
+                'layout_{}/'.format(index_or_layout_id), section=section
+            )
+            hexstate, window_size, pos, is_maximized, is_fullscreen = settings
 
             # The defaults layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
@@ -471,8 +474,6 @@ class Layout(SpyderPluginV2):
         """
         get_func = self.get_conf_default if default else self.get_conf
         window_size = get_func(prefix + 'size', section=section)
-        prefs_dialog_size = get_func(
-            prefix + 'prefs_dialog_size', section=section)
 
         if default:
             hexstate = None
@@ -488,7 +489,7 @@ class Layout(SpyderPluginV2):
         # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
-        screen_shape = QApplication.desktop().geometry()
+        screen_shape = self.main.screen().geometry()
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
@@ -496,8 +497,7 @@ class Layout(SpyderPluginV2):
 
         is_maximized = get_func(prefix + 'is_maximized', section=section)
         is_fullscreen = get_func(prefix + 'is_fullscreen', section=section)
-        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                is_fullscreen)
+        return (hexstate, window_size, pos, is_maximized, is_fullscreen)
 
     def get_window_settings(self):
         """
@@ -515,25 +515,19 @@ class Layout(SpyderPluginV2):
             is_maximized = self.main.isMaximized()
 
         pos = (self.window_position.x(), self.window_position.y())
-        prefs_dialog_size = (self.prefs_dialog_size.width(),
-                             self.prefs_dialog_size.height())
 
         hexstate = qbytearray_to_str(
             self.main.saveState(version=WINDOW_STATE_VERSION)
         )
-        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
-                is_fullscreen)
+        return (hexstate, window_size, pos, is_maximized, is_fullscreen)
 
-    def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
-                            pos, is_maximized, is_fullscreen):
+    def set_window_settings(self, hexstate, window_size, pos, is_maximized,
+                            is_fullscreen):
         """
         Set window settings Symetric to the 'get_window_settings' accessor.
         """
         main = self.main
         main.setUpdatesEnabled(False)
-        self.prefs_dialog_size = QSize(prefs_dialog_size[0],
-                                       prefs_dialog_size[1])  # width,height
-        main.set_prefs_size(self.prefs_dialog_size)
         self.window_size = QSize(window_size[0],
                                  window_size[1])  # width, height
         self.window_position = QPoint(pos[0], pos[1])  # x,y
@@ -582,16 +576,10 @@ class Layout(SpyderPluginV2):
         # Fixes spyder-ide/spyder#13882
         win_size = self.main.size()
         pos = self.main.pos()
-        prefs_size = self.prefs_dialog_size
 
         self.set_conf(
             prefix + 'size',
             (win_size.width(), win_size.height()),
-            section=section,
-        )
-        self.set_conf(
-            prefix + 'prefs_dialog_size',
-            (prefs_size.width(), prefs_size.height()),
             section=section,
         )
         self.set_conf(
@@ -868,11 +856,7 @@ class Layout(SpyderPluginV2):
                                     | Qt.FramelessWindowHint
                                     | Qt.WindowStaysOnTopHint)
 
-                screen_number = QDesktopWidget().screenNumber(main)
-                if screen_number < 0:
-                    screen_number = 0
-
-                r = QApplication.desktop().screenGeometry(screen_number)
+                r = main.screen().geometry()
                 main.setGeometry(
                     r.left() - 1, r.top() - 1, r.width() + 2, r.height() + 2)
                 main.showNormal()
@@ -892,7 +876,7 @@ class Layout(SpyderPluginV2):
         order = ['editor', 'ipython_console', 'variable_explorer',
                  'debugger', 'help', 'plots', None, 'explorer',
                  'outline_explorer', 'project_explorer', 'find_in_files', None,
-                 'historylog', 'profiler', 'breakpoints', 'pylint', None,
+                 'historylog', 'profiler', 'pylint', None,
                  'onlinehelp', 'internal_console', None]
 
         for plugin in self.get_dockable_plugins():
@@ -905,7 +889,13 @@ class Layout(SpyderPluginV2):
                 action.action_id = f'switch to {plugin.CONF_SECTION}'
 
             if action:
-                action.setChecked(plugin.dockwidget.isVisible())
+                # Plugins that fail their compatibility checks don't have a
+                # dockwidget. So, we need to skip them from the plugins menu.
+                # Fixes spyder-ide/spyder#21074
+                if plugin.dockwidget is None:
+                    continue
+                else:
+                    action.setChecked(plugin.dockwidget.isVisible())
 
             try:
                 name = plugin.CONF_SECTION
@@ -935,6 +925,12 @@ class Layout(SpyderPluginV2):
         self._update_lock_interface_action()
         # Apply lock to panes
         for plugin in self.get_dockable_plugins():
+            # Plugins that fail their compatibility checks don't have a
+            # dockwidget. So, we need to skip them from the code below.
+            # Fixes spyder-ide/spyder#21074
+            if plugin.dockwidget is None:
+                continue
+
             if self._interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
@@ -965,7 +961,12 @@ class Layout(SpyderPluginV2):
         # Restore visible plugins
         for plugin in visible_plugins:
             plugin_class = self.get_plugin(plugin, error=False)
-            if plugin_class and plugin_class.dockwidget.isVisible():
+            if (
+                plugin_class
+                # This check is necessary for spyder-ide/spyder#21074
+                and plugin_class.dockwidget is not None
+                and plugin_class.dockwidget.isVisible()
+            ):
                 plugin_class.dockwidget.raise_()
 
     def save_visible_plugins(self):

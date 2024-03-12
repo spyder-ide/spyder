@@ -21,7 +21,7 @@ from qtpy.QtCore import QObject, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 
 
 # Timeout to avoid almost simultaneous calls to update decorations, which
@@ -41,8 +41,7 @@ class TextDecorationsManager(Manager, QObject):
     widget.
     """
     def __init__(self, editor):
-        super(TextDecorationsManager, self).__init__(editor)
-        QObject.__init__(self, None)
+        super().__init__(editor)
         self._decorations = {"misc": []}
 
         # Timer to not constantly update decorations.
@@ -52,7 +51,7 @@ class TextDecorationsManager(Manager, QObject):
         self.update_timer.timeout.connect(
             self._update)
 
-    def add(self, decorations):
+    def add(self, decorations, key="misc"):
         """
         Add text decorations on a CodeEditor instance.
 
@@ -64,15 +63,19 @@ class TextDecorationsManager(Manager, QObject):
         Returns:
             int: Amount of decorations added.
         """
-        current_decorations = self._decorations["misc"]
+        if key != "misc" and self._decorations.get(key) is None:
+            self._decorations[key] = []
+
+        current_decorations = self._decorations[key]
         added = 0
+
         if isinstance(decorations, list):
             not_repeated = set(decorations) - set(current_decorations)
             current_decorations.extend(list(not_repeated))
-            self._decorations["misc"] = current_decorations
+            self._decorations[key] = current_decorations
             added = len(not_repeated)
         elif decorations not in current_decorations:
-            self._decorations["misc"].append(decorations)
+            self._decorations[key].append(decorations)
             added = 1
 
         if added > 0:
@@ -84,7 +87,7 @@ class TextDecorationsManager(Manager, QObject):
         self._decorations[key] = decorations
         self.update()
 
-    def remove(self, decoration):
+    def remove(self, decoration, key="misc"):
         """
         Removes a text decoration from the editor.
 
@@ -95,10 +98,10 @@ class TextDecorationsManager(Manager, QObject):
             several decorations
         """
         try:
-            self._decorations["misc"].remove(decoration)
+            self._decorations[key].remove(decoration)
             self.update()
             return True
-        except ValueError:
+        except (ValueError, KeyError):
             return False
 
     def remove_key(self, key):

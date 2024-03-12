@@ -57,9 +57,6 @@ EVAL_TIMEOUT = 3000
 # Time to wait for the completion services to be up or give a response
 COMPLETION_TIMEOUT = 30000
 
-# Python 3.7
-PY37 = sys.version_info[:2] == (3, 7)
-
 
 # =============================================================================
 # ---- Auxiliary functions
@@ -227,14 +224,14 @@ def preferences_dialog_helper(qtbot, main_window, section):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     main_window.show_preferences()
     preferences = main_window.preferences
     container = preferences.get_container()
 
-    qtbot.waitUntil(lambda: container.dialog is not None,
-                    timeout=5000)
+    qtbot.waitUntil(lambda: container.dialog is not None, timeout=5000)
     dlg = container.dialog
     index = dlg.get_index_by_name(section)
     page = dlg.get_page(index)
@@ -252,8 +249,8 @@ def generate_run_parameters(mainwindow, filename, selected=None,
     file_run_params = StoredRunConfigurationExecutor(
         executor=executor,
         selected=selected,
-        display_dialog=False,
-        first_execution=False)
+        display_dialog=False
+    )
 
     return {file_uuid: file_run_params}
 
@@ -301,18 +298,15 @@ def main_window(request, tmpdir, qtbot):
     # fails
     super_processEvents = QApplication.processEvents
 
-    # Disable Kite provider
-    CONF.set('completions', 'enabled_providers', {'kite': False})
-
     # Don't show tours message
     CONF.set('tours', 'show_tour_message', False)
 
     # Tests assume inline backend
-    CONF.set('ipython_console', 'pylab/backend', 0)
+    CONF.set('ipython_console', 'pylab/backend', 'inline')
 
     # Test assume the plots are rendered in the console as png
     CONF.set('plots', 'mute_inline_plotting', False)
-    CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
+    CONF.set('ipython_console', 'pylab/inline/figure_format', "png")
 
     # Set exclamation mark to True
     CONF.set('debugger', 'pdb_use_exclamation_mark', True)
@@ -348,8 +342,10 @@ def main_window(request, tmpdir, qtbot):
     preload_complex_project = request.node.get_closest_marker(
         'preload_complex_project')
     if preload_complex_project:
+        CONF.set('editor', 'show_class_func_dropdown', True)
         create_complex_project(tmpdir)
     else:
+        CONF.set('editor', 'show_class_func_dropdown', False)
         if not preload_project:
             CONF.set('project_explorer', 'current_project_path', None)
 
@@ -466,12 +462,13 @@ def main_window(request, tmpdir, qtbot):
                 CONF.reset_to_defaults(notification=False)
             else:
                 try:
-                    # Close everything we can think of
-                    window.switcher.close()
+                    # Close or hide everything we can think of
+                    window.switcher.hide()
 
                     # Close editor related elements
                     window.editor.close_all_files()
-                    # force close all files
+
+                    # Force close all files
                     while window.editor.editorstacks[0].close_file(force=True):
                         pass
                     for editorwindow in window.editor.editorwindows:
@@ -502,7 +499,6 @@ def main_window(request, tmpdir, qtbot):
                     (window.ipyconsole.get_widget()
                         .create_new_client_if_empty) = False
                     window.ipyconsole.restart()
-
                 except Exception:
                     main_window.window = None
                     window.close()

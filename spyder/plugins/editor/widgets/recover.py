@@ -223,7 +223,7 @@ class RecoveryDialog(QDialog):
 
     def center(self):
         """Center the dialog."""
-        screen = QApplication.desktop().screenGeometry(0)
+        screen = self.screen().geometry()
         x = int(screen.center().x() - self.width() / 2)
         y = int(screen.center().y() - self.height() / 2)
         self.move(x, y)

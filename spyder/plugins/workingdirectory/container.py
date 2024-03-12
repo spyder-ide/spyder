@@ -201,7 +201,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Signals
         self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
-        self.pathedit.activated[str].connect(self.chdir)
+        self.pathedit.textActivated.connect(self.chdir)
 
         # Actions
         self.previous_action = self.create_action(

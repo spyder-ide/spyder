@@ -14,13 +14,12 @@ class Plugins:
     All = "all"   # Wildcard to populate REQUIRES with all available plugins
     Appearance = 'appearance'
     Application = 'application'
-    Breakpoints = 'breakpoints'
     Completions = 'completions'
     Console = 'internal_console'
     Debugger = 'debugger'
     Editor = 'editor'
     Explorer = 'explorer'
-    ExternalConsole = 'external_console'
+    ExternalTerminal = 'external_terminal'
     Find = 'find_in_files'
     Help = 'help'
     History = 'historylog'
@@ -42,12 +41,12 @@ class Plugins:
     Switcher = 'switcher'
     Toolbar = "toolbar"
     Tours = 'tours'
+    UpdateManager = 'update_manager'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 
 
 class DockablePlugins:
-    Breakpoints = 'breakpoints'
     Console = 'internal_console'
     Debugger = 'debugger'
     Editor = 'editor'

@@ -70,7 +70,7 @@ def get_temp_dir(suffix=None):
     return tempdir
 
 
-def is_program_installed(basename):
+def is_program_installed(basename, extra_paths=[]):
     """
     Return program absolute path if installed in PATH.
     Otherwise, return None.
@@ -78,7 +78,7 @@ def is_program_installed(basename):
     Also searches specific platform dependent paths that are not already in
     PATH. This permits general use without assuming user profiles are
     sourced (e.g. .bash_Profile), such as when login shells are not used to
-    launch Spyder.
+    launch Spyder. Additionally, extra_paths are searched.
 
     On macOS systems, a .app is considered installed if it exists.
     """
@@ -109,15 +109,15 @@ def is_program_installed(basename):
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
     conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-    req_paths.extend(pyenv + conda)
+    req_paths.extend(pyenv + conda + extra_paths)
 
-    for path in os.environ['PATH'].split(os.pathsep) + req_paths:
+    for path in set(os.environ['PATH'].split(os.pathsep) + req_paths):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath
 
 
-def find_program(basename):
+def find_program(basename, extra_paths=[]):
     """
     Find program in PATH and return absolute path
 
@@ -131,7 +131,7 @@ def find_program(basename):
         if not basename.endswith(extensions):
             names = [basename + ext for ext in extensions] + [basename]
     for name in names:
-        path = is_program_installed(name)
+        path = is_program_installed(name, extra_paths)
         if path:
             return path
 
@@ -974,8 +974,32 @@ def check_version(actver, version, cmp_op):
         return True
 
 
-def get_module_version(module_name):
+def get_module_version(module_name, interpreter=None):
     """Return module version or None if version can't be retrieved."""
+    if interpreter:
+        cmd = dedent("""
+            try:
+                import {} as mod
+            except Exception:
+                print('No Module')  # spyder: test-skip
+            print(
+                getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+            )  # spyder: test-skip
+            """
+        ).format(module_name)
+
+        # Use clean environment
+        proc = run_program(interpreter, ['-c', cmd], env={})
+        stdout, stderr = proc.communicate()
+        stdout = stdout.decode().strip()
+
+        if 'No Module' in stdout:
+            raise RuntimeError("No module named " + str(module_name))
+        if stdout != 'None':
+            # the module is installed and it has a version attribute
+            return stdout
+        return None
+
     mod = __import__(module_name)
     ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
     if not ver:
@@ -1016,28 +1040,10 @@ def is_module_installed(module_name, version=None, interpreter=None,
     """
     if interpreter is not None:
         if is_python_interpreter(interpreter):
-            cmd = dedent("""
-                try:
-                    import {} as mod
-                except Exception:
-                    print('No Module')  # spyder: test-skip
-                print(getattr(mod, '__version__', getattr(mod, 'VERSION', None)))  # spyder: test-skip
-                """).format(module_name)
             try:
-                # use clean environment
-                proc = run_program(interpreter, ['-c', cmd], env={})
-                stdout, stderr = proc.communicate()
-                stdout = stdout.decode().strip()
+                module_version = get_module_version(module_name, interpreter)
             except Exception:
                 return False
-
-            if 'No Module' in stdout:
-                return False
-            elif stdout != 'None':
-                # the module is installed and it has a version attribute
-                module_version = stdout
-            else:
-                module_version = None
         else:
             # Try to not take a wrong decision if interpreter check fails
             return True

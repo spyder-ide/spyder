@@ -18,6 +18,7 @@ from typing import Union
 
 # Third-party imports
 from packaging.version import parse, Version
+from pyuca import Collator
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
@@ -26,17 +27,22 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.config.base import _
+from spyder.api.plugin_registration.registry import PreferencesAdapter
+from spyder.config.base import _, running_under_pytest
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
+from spyder.plugins.preferences import MOST_IMPORTANT_PAGES
 from spyder.plugins.preferences.widgets.container import (
     PreferencesActions, PreferencesContainer)
 from spyder.plugins.pythonpath.api import PythonpathActions
 from spyder.plugins.toolbar.api import ApplicationToolbars, MainToolbarSections
 
+
+# Logger
 logger = logging.getLogger(__name__)
 
+# Types
 BaseType = Union[int, float, bool, complex, str, bytes]
 IterableType = Union[list, tuple]
 BasicType = Union[BaseType, IterableType]
@@ -65,11 +71,18 @@ class Preferences(SpyderPluginV2):
         super().__init__(parent, configuration)
         self.config_pages = {}
         self.config_tabs = {}
+        self._config_pages_ordered = False
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def register_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]) -> None:
-        if (hasattr(plugin, 'CONF_WIDGET_CLASS') and
-                plugin.CONF_WIDGET_CLASS is not None):
+        self,
+        plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ) -> None:
+        if (
+            hasattr(plugin, 'CONF_WIDGET_CLASS')
+            and plugin.CONF_WIDGET_CLASS is not None
+        ):
             # New API
             Widget = plugin.CONF_WIDGET_CLASS
 
@@ -96,9 +109,10 @@ class Preferences(SpyderPluginV2):
                     plugin_tabs = self.config_tabs.get(plugin_name, [])
                     plugin_tabs += tabs_to_add
                     self.config_tabs[plugin_name] = plugin_tabs
-
-        elif (hasattr(plugin, 'CONFIGWIDGET_CLASS') and
-                plugin.CONFIGWIDGET_CLASS is not None):
+        elif (
+            hasattr(plugin, 'CONFIGWIDGET_CLASS')
+            and plugin.CONFIGWIDGET_CLASS is not None
+        ):
             # Old API
             Widget = plugin.CONFIGWIDGET_CLASS
 
@@ -106,7 +120,9 @@ class Preferences(SpyderPluginV2):
                 self.OLD_API, Widget, plugin)
 
     def deregister_plugin_preferences(
-            self, plugin: Union[SpyderPluginV2, SpyderPlugin]):
+        self,
+        plugin: Union[SpyderPluginV2, SpyderPlugin]
+    ) -> None:
         """Remove a plugin preference page and additional configuration tabs."""
         name = (getattr(plugin, 'NAME', None) or
                     getattr(plugin, 'CONF_SECTION', None))
@@ -179,11 +195,13 @@ class Preferences(SpyderPluginV2):
             self.set_conf(
                 conf_key, new_value, section=conf_section)
 
-
-    def merge_defaults(self, prev_default: BasicType,
-                       new_default: BasicType,
-                       allow_replacement: bool = False,
-                       allow_deletions: bool = False) -> BasicType:
+    def merge_defaults(
+        self,
+        prev_default: BasicType,
+        new_default: BasicType,
+        allow_replacement: bool = False,
+        allow_deletions: bool = False
+    ) -> BasicType:
         """Compare and merge two versioned values."""
         prev_type = type(prev_default)
         new_type = type(new_default)
@@ -216,7 +234,10 @@ class Preferences(SpyderPluginV2):
             return prev_default
 
     def merge_configurations(
-            self, current_value: BasicType, new_value: BasicType) -> BasicType:
+        self,
+        current_value: BasicType,
+        new_value: BasicType
+    ) -> BasicType:
         """
         Recursively match and merge a new configuration value into a
         previous one.
@@ -255,29 +276,52 @@ class Preferences(SpyderPluginV2):
                            f'by {new_value}')
             return current_value
 
-    def open_dialog(self, prefs_dialog_size):
+    def open_dialog(self):
         container = self.get_container()
-        container.create_dialog(
-            self.config_pages, self.config_tabs, prefs_dialog_size,
-            self.get_main())
 
-    # ---------------- Public Spyder API required methods ---------------------
+        self.before_long_process('')
+
+        if not running_under_pytest():
+            self._reorder_config_pages()
+
+        container.create_dialog(
+            self.config_pages, self.config_tabs, self.get_main()
+        )
+
+        self.after_long_process()
+
+    @Slot()
+    def reset(self):
+        answer = QMessageBox.warning(
+            self.main,
+            _("Warning"),
+            _("Spyder will restart and reset to default settings:"
+              "<br><br>"
+              "Do you want to continue?"),
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if answer == QMessageBox.Yes:
+            os.environ['SPYDER_RESET'] = 'True'
+            self.sig_restart_requested.emit()
+
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name() -> str:
         return _('Preferences')
 
-    def get_description(self) -> str:
-        return _('This plugin provides access to Spyder preferences page')
+    @staticmethod
+    def get_description() -> str:
+        return _("Manage Spyder's preferences.")
 
-    def get_icon(self) -> QIcon:
-        return self.create_icon('configure')
+    @classmethod
+    def get_icon(cls) -> QIcon:
+        return cls.create_icon('configure')
 
     def on_initialize(self):
         container = self.get_container()
-        main = self.get_main()
-
-        container.sig_show_preferences_requested.connect(
-            lambda: self.open_dialog(main.prefs_dialog_size))
+        container.sig_show_preferences_requested.connect(self.open_dialog)
         container.sig_reset_preferences_requested.connect(self.reset)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
@@ -330,18 +374,38 @@ class Preferences(SpyderPluginV2):
             toolbar_id=ApplicationToolbars.Main
         )
 
-    @Slot()
-    def reset(self):
-        answer = QMessageBox.warning(self.main, _("Warning"),
-             _("Spyder will restart and reset to default settings: <br><br>"
-               "Do you want to continue?"),
-             QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            os.environ['SPYDER_RESET'] = 'True'
-            self.sig_restart_requested.emit()
-
     def on_close(self, cancelable=False):
         container = self.get_container()
         if container.is_preferences_open():
             container.close_preferences()
         return True
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _reorder_config_pages(self):
+        if self._config_pages_ordered:
+            return
+
+        plugins_page = [PreferencesAdapter.NAME]
+
+        # Order pages alphabetically by plugin name
+        pages = []
+        for k, v in self.config_pages.items():
+            pages.append((k, v[2].get_name()))
+
+        collator = Collator()
+        pages.sort(key=lambda p: collator.sort_key(p[1]))
+
+        # Get pages from the previous list without including the most important
+        # ones and the plugins page because they'll be added in a different
+        # order.
+        other_pages = [
+            page[0] for page in pages
+            if page[0] not in (MOST_IMPORTANT_PAGES + plugins_page)
+        ]
+
+        # Show most important pages first and the Plugins page last
+        ordering = MOST_IMPORTANT_PAGES + other_pages + plugins_page
+        self.config_pages = {k: self.config_pages[k] for k in ordering}
+
+        self._config_pages_ordered = True

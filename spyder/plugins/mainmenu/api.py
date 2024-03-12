@@ -7,9 +7,9 @@
 """
 Spyder application menu constants.
 """
+
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
-
 
 class ApplicationContextMenu:
     Documentation = 'context_documentation_section'
@@ -69,7 +69,6 @@ class DebugMenuSections:
     StartDebug = 'start_debug_section'
     ControlDebug = 'control_debug_section'
     EditBreakpoints = 'edit_breakpoints_section'
-    ListBreakpoints = 'list_breakpoints_section'
 
 
 class ConsolesMenuSections:
@@ -106,8 +105,9 @@ class HelpMenuSections:
 
 class ApplicationMenu(SpyderMenu):
     """
-    Spyder Main Window application Menu.
+    Spyder main window application menu.
 
-    This class provides application menus with some predefined functionality
-    and section definition.
+    This class provides application menus with some predefined functionality.
     """
+
+    APP_MENU = True

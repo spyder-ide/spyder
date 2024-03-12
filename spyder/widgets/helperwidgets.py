@@ -12,55 +12,63 @@ Helper widgets.
 import re
 
 # Third party imports
+import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt, Signal)
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, )
-from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
-                            QSpacerItem, QStyle, QStyledItemDelegate,
-                            QStyleOptionFrame, QStyleOptionViewItem,
-                            QToolButton, QToolTip, QVBoxLayout,
-                            QWidget, QHBoxLayout)
+    QEvent,
+    QPoint,
+    QRegularExpression,
+    QSize,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    Signal,
+)
+from qtpy.QtGui import (
+    QAbstractTextDocumentLayout,
+    QColor,
+    QFontMetrics,
+    QIcon,
+    QPainter,
+    QRegularExpressionValidator,
+    QTextDocument,
+)
+from qtpy.QtWidgets import (
+    QAction,
+    QApplication,
+    QCheckBox,
+    QLineEdit,
+    QMessageBox,
+    QSpacerItem,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionFrame,
+    QStyleOptionViewItem,
+    QTableView,
+    QToolButton,
+    QToolTip,
+    QVBoxLayout,
+    QWidget,
+    QHBoxLayout,
+    QLabel,
+    QFrame,
+)
 
 # Local imports
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.widgets.mixins import SvgToScaledPixmap
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.stylesheet import AppStyle
+
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
-
-class HelperToolButton(QToolButton):
-    """Subclasses QToolButton, to provide a simple tooltip on mousedown.
-    """
-    def __init__(self):
-        QToolButton.__init__(self)
-        self.setIcon(ima.get_std_icon('MessageBoxInformation'))
-        style = """
-            QToolButton {
-              padding:0px;
-              border-radius: 2px;
-            }
-            """
-        self.setStyleSheet(style)
-
-    def setToolTip(self, text):
-        self._tip_text = text
-
-    def toolTip(self):
-        return self._tip_text
-
-    def mousePressEvent(self, event):
-        QToolTip.hideText()
-
-    def mouseReleaseEvent(self, event):
-        QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())),
-                          self._tip_text)
 
 
 class MessageCheckBox(QMessageBox):
@@ -110,14 +118,18 @@ class MessageCheckBox(QMessageBox):
 
 
 class HTMLDelegate(QStyledItemDelegate):
-    """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
+    """
+    With this delegate, a QListWidgetItem or a QTableItem can render HTML.
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
 
-    def __init__(self, parent, margin=0):
+    def __init__(self, parent, margin=0, wrap_text=False, align_vcenter=False):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
+        self._wrap_text = wrap_text
+        self._hovered_row = -1
+        self._align_vcenter = align_vcenter
 
     def _prepare_text_document(self, option, index):
         # This logic must be shared between paint and sizeHint for consistency
@@ -127,7 +139,21 @@ class HTMLDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setDocumentMargin(self._margin)
         doc.setHtml(options.text)
+        if self._wrap_text:
+            # The -25 here is used to avoid the text to go totally up to the
+            # right border of the widget that contains the delegate, which
+            # doesn't look good.
+            doc.setTextWidth(option.rect.width() - 25)
+
         return options, doc
+
+    def on_hover_index_changed(self, index):
+        """
+        This can be used by a widget that inherits from HoverRowsTableView to
+        connect its sig_hover_index_changed signal to this method to paint an
+        entire row when it's hovered.
+        """
+        self._hovered_row = index.row()
 
     def paint(self, painter, option, index):
         options, doc = self._prepare_text_document(option, index)
@@ -135,6 +161,14 @@ class HTMLDelegate(QStyledItemDelegate):
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
         options.text = ""
+
+        # This paints the entire row associated to the delegate when it's
+        # hovered and the table that holds it informs it what's the current
+        # row (see HoverRowsTableView for an example).
+        if index.row() == self._hovered_row:
+            painter.fillRect(
+                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+            )
 
         # Note: We need to pass the options widget as an argument of
         # drawCrontol to make sure the delegate is painted with a style
@@ -151,18 +185,21 @@ class HTMLDelegate(QStyledItemDelegate):
 
         # Adjustments for the file switcher
         if hasattr(options.widget, 'files_list'):
-            if style.objectName() in ['oxygen', 'qtcurve', 'breeze']:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, -9))
-                else:
-                    painter.translate(textRect.topLeft())
+            if options.widget.files_list:
+                painter.translate(textRect.topLeft() + QPoint(4, 4))
             else:
-                if options.widget.files_list:
-                    painter.translate(textRect.topLeft() + QPoint(4, 4))
-                else:
-                    painter.translate(textRect.topLeft() + QPoint(2, 4))
+                painter.translate(textRect.topLeft() + QPoint(2, 4))
         else:
-            painter.translate(textRect.topLeft() + QPoint(0, -3))
+            if not self._align_vcenter:
+                painter.translate(textRect.topLeft() + QPoint(0, -3))
+
+        # Center text vertically if requested.
+        # Take from https://stackoverflow.com/a/32911270/438386
+        if self._align_vcenter:
+            doc.setTextWidth(option.rect.width())
+            offset_y = (option.rect.height() - doc.size().height()) / 2
+            painter.translate(options.rect.x(), options.rect.y() + offset_y)
+            doc.drawContents(painter)
 
         # Type check: Prevent error in PySide where using
         # doc.documentLayout().draw() may fail because doc.documentLayout()
@@ -215,7 +252,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
 
-        return QSize(doc.idealWidth(), doc.size().height())
+        return QSize(int(doc.idealWidth()), int(doc.size().height()))
 
 
 class IconLineEdit(QLineEdit):
@@ -251,7 +288,13 @@ class IconLineEdit(QLineEdit):
         css = qstylizer.style.StyleSheet()
         css.QLineEdit.setValues(
             border='none',
-            paddingRight=f"{padding}px"
+            paddingLeft=f"{AppStyle.MarginSize}px",
+            paddingRight=f"{padding}px",
+            # This is necessary to correctly center the text
+            paddingTop="0px",
+            paddingBottom="0px",
+            # Prevent jitter when giving focus to the line edit
+            marginLeft=f"-{2 if self._focus_in else 0}px",
         )
 
         self.setStyleSheet(css.toString())
@@ -317,7 +360,7 @@ class IconLineEdit(QLineEdit):
             else:
                 pixmap = self._invalid_icon.pixmap(h, h)
 
-            painter.drawPixmap(w, 2, pixmap)
+            painter.drawPixmap(w, 1, pixmap)
 
         # Small hack to guarantee correct padding on Spyder start
         if self._paint_count < 5:
@@ -337,18 +380,67 @@ class IconLineEdit(QLineEdit):
         super().focusOutEvent(event)
 
 
-class FinderLineEdit(QLineEdit):
+class ClearLineEdit(QLineEdit):
+    """QLineEdit with a clear button."""
+
+    def __init__(self, parent, reposition_button=False):
+        super().__init__(parent)
+
+        # Add button to clear text inside the line edit.
+        self.clear_action = QAction(self)
+        self.clear_action.setIcon(ima.icon('clear_text'))
+        self.clear_action.setToolTip(_('Clear text'))
+        self.clear_action.triggered.connect(self.clear)
+        self.addAction(self.clear_action, QLineEdit.TrailingPosition)
+
+        # Button that corresponds to the clear_action above
+        self.clear_button = self.findChildren(QToolButton)[0]
+
+        # Hide clear_action by default because lineEdit is empty when the
+        # combobox is created, so it doesn't make sense to show it.
+        self.clear_action.setVisible(False)
+
+        # Signals
+        self.textChanged.connect(self._on_text_changed)
+
+        # Event filter
+        if reposition_button:
+            self.installEventFilter(self)
+
+    def _on_text_changed(self, text):
+        """Actions to take when text has changed on the line edit widget."""
+        if text:
+            self.clear_action.setVisible(True)
+        else:
+            self.clear_action.setVisible(False)
+
+    def eventFilter(self, widget, event):
+        """
+        Event filter for this widget used to reduce the space between
+        clear_button and the right border of the line edit.
+        """
+        if event.type() == QEvent.Paint:
+            self.clear_button.move(self.width() - 22, self.clear_button.y())
+
+        return super().eventFilter(widget, event)
+
+
+class FinderLineEdit(ClearLineEdit):
+
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None):
-        super(FinderLineEdit, self).__init__(parent)
+        super().__init__(parent)
         self.key_filter_dict = key_filter_dict
+
+        self._combobox = SpyderComboBox(self)
+        self._is_shown = False
 
         if regex_base is not None:
             # Widget setup
-            regex = QRegExp(regex_base + "{100}")
-            self.setValidator(QRegExpValidator(regex))
+            regex = QRegularExpression(regex_base + "{100}")
+            self.setValidator(QRegularExpressionValidator(regex))
 
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
@@ -360,16 +452,35 @@ class FinderLineEdit(QLineEdit):
         elif key in [Qt.Key_Enter, Qt.Key_Return]:
             self.sig_find_requested.emit()
         else:
-            super(FinderLineEdit, self).keyPressEvent(event)
+            super().keyPressEvent(event)
+
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            height = self._combobox.size().height()
+            self._combobox.hide()
+
+            # Only set a min width so it grows with the parent's width.
+            self.setMinimumWidth(AppStyle.FindMinWidth)
+
+            # Set a fixed height so that it looks the same as our comboboxes.
+            self.setMinimumHeight(height)
+            self.setMaximumHeight(height)
+
+            self._is_shown = True
+
+        super().showEvent(event)
 
 
 class FinderWidget(QWidget):
+
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 
     def __init__(self, parent, regex_base=None, key_filter_dict=None,
                  find_on_change=False):
         super().__init__(parent)
+
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
@@ -390,7 +501,13 @@ class FinderWidget(QWidget):
         finder_layout = QHBoxLayout()
         finder_layout.addWidget(self.finder_close_button)
         finder_layout.addWidget(self.text_finder)
-        finder_layout.setContentsMargins(0, 0, 0, 0)
+        finder_layout.addStretch()
+        finder_layout.setContentsMargins(
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            2 * AppStyle.MarginSize,
+            0
+        )
         self.setLayout(finder_layout)
         self.setVisible(False)
 
@@ -409,6 +526,7 @@ class FinderWidget(QWidget):
             self.do_find()
         else:
             self.sig_find_text.emit("")
+
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom column filter based on regex."""
@@ -442,9 +560,289 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
+class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
+    """Widget to show a pane/plugin functionality description."""
+
+    def __init__(
+        self,
+        parent,
+        icon_filename,
+        text=None,
+        description=None,
+        top_stretch: int = 1,
+        middle_stretch: int = 1,
+        bottom_stretch: int = 0,
+        spinner: bool = False,
+    ):
+        super().__init__(parent)
+
+        # Attributes
+        self._is_shown = False
+        self._spin = None
+
+        interface_font_size = self.get_font(
+            SpyderFontType.Interface).pointSize()
+
+        # Image (icon)
+        image_label = QLabel(self)
+        image_label.setPixmap(
+            self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
+        )
+        image_label.setAlignment(Qt.AlignCenter)
+        image_label_qss = qstylizer.style.StyleSheet()
+        image_label_qss.QLabel.setValues(border="0px")
+        image_label.setStyleSheet(image_label_qss.toString())
+
+        # Main text
+        if text is not None:
+            text_label = QLabel(text, parent=self)
+            text_label.setAlignment(Qt.AlignCenter)
+            text_label.setWordWrap(True)
+            text_label_qss = qstylizer.style.StyleSheet()
+            text_label_qss.QLabel.setValues(
+                fontSize=f"{interface_font_size + 5}pt", border="0px"
+            )
+            text_label.setStyleSheet(text_label_qss.toString())
+
+        # Description text
+        if description is not None:
+            description_label = QLabel(description, parent=self)
+            description_label.setAlignment(Qt.AlignCenter)
+            description_label.setWordWrap(True)
+            description_label_qss = qstylizer.style.StyleSheet()
+            description_label_qss.QLabel.setValues(
+                fontSize=f"{interface_font_size}pt",
+                backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
+                border="0px",
+                padding="20px",
+            )
+            description_label.setStyleSheet(description_label_qss.toString())
+
+        # Setup layout
+        pane_empty_layout = QVBoxLayout()
+
+        # Add the top stretch
+        pane_empty_layout.addStretch(top_stretch)
+
+        # add the image_lebel (icon)
+        pane_empty_layout.addWidget(image_label)
+
+        # Display spinner if requested
+        if spinner:
+            spin_widget = qta.IconWidget()
+            self._spin = qta.Spin(spin_widget, interval=3, autostart=False)
+            spin_icon = qta.icon(
+                "mdi.loading",
+                color=ima.MAIN_FG_COLOR,
+                animation=self._spin
+            )
+
+            spin_widget.setIconSize(QSize(32, 32))
+            spin_widget.setIcon(spin_icon)
+            spin_widget.setStyleSheet(image_label_qss.toString())
+            spin_widget.setAlignment(Qt.AlignCenter)
+
+            pane_empty_layout.addWidget(spin_widget)
+            pane_empty_layout.addItem(QSpacerItem(20, 20))
+
+        # If text, display text and stretch
+        if text is not None:
+            pane_empty_layout.addWidget(text_label)
+            pane_empty_layout.addStretch(middle_stretch)
+
+        # If description, display description
+        if description is not None:
+            pane_empty_layout.addWidget(description_label)
+
+        pane_empty_layout.addStretch(bottom_stretch)
+        pane_empty_layout.setContentsMargins(20, 0, 20, 20)
+        self.setLayout(pane_empty_layout)
+
+        # Setup border style
+        self.setFocusPolicy(Qt.StrongFocus)
+        self._apply_stylesheet(False)
+
+    # ---- Public methods
+    # -------------------------------------------------------------------------
+    def setup(self, *args, **kwargs):
+        """
+        This method is needed when using this widget to show a "no connected
+        console" message in plugins that inherit from ShellConnectMainWidget.
+        """
+        pass
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            self._start_spinner()
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def hideEvent(self, event):
+        """Adjustments when the widget is hidden."""
+        self._stop_spinner()
+        self._is_shown = False
+        super().hideEvent(event)
+
+    def focusInEvent(self, event):
+        self._apply_stylesheet(True)
+        super().focusOutEvent(event)
+
+    def focusOutEvent(self, event):
+        self._apply_stylesheet(False)
+        super().focusOutEvent(event)
+
+    # ---- Private methods
+    # -------------------------------------------------------------------------
+    def _apply_stylesheet(self, focus):
+        if focus:
+            border_color = QStylePalette.COLOR_ACCENT_3
+        else:
+            border_color = QStylePalette.COLOR_BACKGROUND_4
+
+        qss = qstylizer.style.StyleSheet()
+        qss.QFrame.setValues(
+            border=f'1px solid {border_color}',
+            margin='0px',
+            padding='0px',
+            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+        )
+
+        self.setStyleSheet(qss.toString())
+
+    def _start_spinner(self):
+        """
+        Start spinner when requested, in case the widget has one (it's stopped
+        by default).
+        """
+        if self._spin is not None:
+            self._spin.start()
+
+    def _stop_spinner(self):
+        """Stop spinner when requested, in case the widget has one."""
+        if self._spin is not None:
+            self._spin.stop()
+
+
+class HoverRowsTableView(QTableView):
+    """
+    QTableView subclass that can highlight an entire row when hovered.
+
+    Notes
+    -----
+    * Classes that inherit from this one need to connect a slot to
+      sig_hover_index_changed that handles how the row is painted.
+    """
+
+    sig_hover_index_changed = Signal(object)
+    """
+    This is emitted when the index that is currently hovered has changed.
+
+    Parameters
+    ----------
+    index: object
+        QModelIndex that has changed on hover.
+    """
+
+    def __init__(self, parent):
+        QTableView.__init__(self, parent)
+
+        # For mouseMoveEvent
+        self.setMouseTracking(True)
+
+        # To remove background color for the hovered row when the mouse is not
+        # over the widget.
+        css = qstylizer.style.StyleSheet()
+        css["QTableView::item"].setValues(
+            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+        )
+        self._stylesheet = css.toString()
+
+    # ---- Qt methods
+    def mouseMoveEvent(self, event):
+        self._inform_hover_index_changed(event)
+
+    def wheelEvent(self, event):
+        super().wheelEvent(event)
+        self._inform_hover_index_changed(event)
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.setStyleSheet(self._stylesheet)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.setStyleSheet("")
+
+    # ---- Private methods
+    def _inform_hover_index_changed(self, event):
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            self.sig_hover_index_changed.emit(index)
+            self.viewport().update()
+
+
+class TipWidget(QLabel):
+    """Icon widget to show information as a tooltip when clicked."""
+
+    def __init__(
+        self,
+        tip_text: str,
+        icon: QIcon,
+        hover_icon: QIcon,
+        size: int = 20
+    ):
+        super().__init__()
+        self.tip_text = tip_text
+        self.icon = icon.pixmap(QSize(size, size))
+        self.hover_icon = hover_icon.pixmap(QSize(size, size))
+
+        # Timer to show the tip if users don't click on the widget
+        self.tip_timer = QTimer(self)
+        self.tip_timer.setInterval(300)
+        self.tip_timer.setSingleShot(True)
+        self.tip_timer.timeout.connect(self.show_tip)
+
+        self.setPixmap(self.icon)
+        self.setFixedWidth(size + 3)
+        self.setFixedHeight(size + 3)
+
+    def show_tip(self):
+        """Show tooltip"""
+        if not QToolTip.isVisible():
+            QToolTip.showText(
+                self.mapToGlobal(QPoint(self.width(), 15)),
+                self.tip_text,
+                self
+            )
+
+    def enterEvent(self, event):
+        """
+        Change cursor shape and set hover icon when the mouse is on the widget.
+        """
+        self.setCursor(Qt.PointingHandCursor)
+        self.setPixmap(self.hover_icon)
+        self.tip_timer.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Hide tooltip and restore icon when the mouse leaves the widget."""
+        QToolTip.hideText()
+        self.setPixmap(self.icon)
+        self.tip_timer.stop()
+        super().leaveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Show tooltip when the widget is clicked."""
+        self.show_tip()
+
+
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # noqa
     box = MessageCheckBox()
     box.setWindowTitle(_("Spyder updates"))
     box.setText("Testing checkbox")

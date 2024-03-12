@@ -17,6 +17,7 @@ import sys
 import traceback
 import threading
 from collections import namedtuple
+from functools import lru_cache
 
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.debugger import Pdb as ipyPdb
@@ -102,6 +103,9 @@ class SpyderPdb(ipyPdb):
 
         # Keep track of interrupting state to avoid several interruptions
         self.interrupting = False
+
+        # Should the frontend force go to the current line?
+        self._request_where = False
 
         # Turn off IPython's debugger skip funcionality by default because
         # it makes our debugger quite slow. It's also important to remark
@@ -394,11 +398,8 @@ class SpyderPdb(ipyPdb):
 
         Take a number as argument as an (optional) number of context line to
         print"""
-        super(SpyderPdb, self).do_where(arg)
-        try:
-            frontend_request(blocking=False).do_where()
-        except (CommError, TimeoutError):
-            logger.debug("Could not send where request to the frontend.")
+        self._request_where = True
+        return super(SpyderPdb, self).do_where(arg)
 
     do_w = do_where
 
@@ -678,6 +679,21 @@ class SpyderPdb(ipyPdb):
                       "For copying text while debugging, use Ctrl+Shift+C",
                       file=self.stdout)
 
+    @lru_cache
+    def canonic(self, filename):
+        """Return canonical form of filename."""
+        return super().canonic(filename)
+
+    def do_exitdb(self, arg):
+        """Exit the debugger"""
+        self._set_stopinfo(self.botframe, None, -1)
+        sys.settrace(None)
+        frame = sys._getframe().f_back
+        while frame and frame is not self.botframe:
+            del frame.f_trace
+            frame = frame.f_back
+        return 1
+
     def cmdloop(self, intro=None):
         """
         Repeatedly issue a prompt, accept input, parse an initial prefix
@@ -810,6 +826,10 @@ class SpyderPdb(ipyPdb):
             self._previous_step = None
             return state
 
+        if self._request_where:
+            self._request_where = False
+            state["do_where"] = True
+
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
         if fname == self.mainpyfile and self.remote_filename is not None:
@@ -841,7 +861,7 @@ class SpyderPdb(ipyPdb):
                 hidden = self.hidden_frames(self.stack)
                 pdb_stack = [f for f, h in zip(pdb_stack, hidden) if not h]
                 # Adjust the index
-                pdb_index -= sum(hidden[:pdb_index])
+                pdb_index -= sum([bool(i) for i in hidden[:pdb_index]])
 
             state['stack'] = (pdb_stack, pdb_index)
 

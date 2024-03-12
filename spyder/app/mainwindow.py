@@ -46,8 +46,8 @@ requirements.check_qt()
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QMainWindow, QMessageBox, QShortcut,
-                            QStyleFactory)
+from qtpy.QtWidgets import (
+    QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -72,18 +72,18 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.utils import IMPORT_EXT
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
-from spyder.utils.misc import (select_port, getcwd_or_home,
-                               get_python_executable)
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import file_uri, qapplication, start_file
 from spyder.utils.stylesheet import APP_STYLESHEET
@@ -111,7 +111,7 @@ if os.name == 'nt':
 logger = logging.getLogger(__name__)
 
 #==============================================================================
-# Install Qt messaage handler
+# Install Qt message handler
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
 
@@ -119,7 +119,11 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderConfigurationAccessor):
+class MainWindow(
+    QMainWindow,
+    SpyderMainWindowMixin,
+    SpyderConfigurationAccessor
+):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -153,15 +157,11 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
 
-        if running_under_pytest():
-            self._proxy_style = None
-        else:
-            from spyder.utils.qthelpers import SpyderProxyStyle
-            # None is needed, see: https://bugreports.qt.io/browse/PYSIDE-922
-            self._proxy_style = SpyderProxyStyle(None)
-
-        # Enabling scaling for high dpi
-        qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
+        # Enabling scaling for high dpi. This is not required with Qt 6 where
+        # it is always enabled.
+        # See https://doc.qt.io/qt-6/portingguide.html#high-dpi
+        if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+            qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set Windows app icon to use .ico file
         if os.name == "nt":
@@ -224,7 +224,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         self.thirdparty_plugins = []
 
         # Preferences
-        self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
 
         # Actions
@@ -357,17 +356,32 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         if status_bar.isVisible():
             status_bar.showMessage(message, timeout)
 
-    def show_plugin_compatibility_message(self, message):
+    def show_plugin_compatibility_message(self, plugin_name, message):
         """
         Show a compatibility message.
         """
         messageBox = QMessageBox(self)
+
+        # Set attributes
         messageBox.setWindowModality(Qt.NonModal)
         messageBox.setAttribute(Qt.WA_DeleteOnClose)
-        messageBox.setWindowTitle(_('Compatibility Check'))
-        messageBox.setText(message)
+        messageBox.setWindowTitle(_('Plugin compatibility check'))
+        messageBox.setText(
+            _("It was not possible to load the {} plugin. The problem "
+              "was:<br><br>{}").format(plugin_name, message)
+        )
         messageBox.setStandardButtons(QMessageBox.Ok)
+
+        # Show message.
+        # Note: All adjustments that require graphical properties of the widget
+        # need to be done after this point.
         messageBox.show()
+
+        # Center message
+        screen_geometry = self.screen().geometry()
+        x = (screen_geometry.width() - messageBox.width()) / 2
+        y = (screen_geometry.height() - messageBox.height()) / 2
+        messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
         """
@@ -384,7 +398,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         plugin.get_description()
 
         if not is_compatible:
-            self.show_plugin_compatibility_message(message)
+            self.show_plugin_compatibility_message(plugin.get_name(), message)
             return
 
         # Connect plugin signals to main window methods
@@ -636,6 +650,26 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
                 action.setShortcut(shortcut)
 
+    def _prevent_freeze_when_moving_dockwidgets(self):
+        """
+        This is necessary to prevent an ugly freeze when moving dockwidgets to
+        different locations (see `SpyderDockWidget` for how that's handled).
+
+        Perhaps this is due to the new special style for tabbars, but now Qt
+        takes a long time to run `findChildren(QTabBar)` when it hasn't done it
+        in a while. So we do it here every minute.
+        """
+        def find_tabbars():
+            # Catch an error when closing the app on macOS with PyQt 5.15
+            try:
+                self.findChildren(QTabBar)
+            except RuntimeError:
+                pass
+
+        tabbars_timer = QTimer(self)
+        tabbars_timer.timeout.connect(find_tabbars)
+        tabbars_timer.start(60 * 1000)
+
     def setup(self):
         """Setup main window."""
         PLUGIN_REGISTRY.sig_plugin_ready.connect(
@@ -644,52 +678,35 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         PLUGIN_REGISTRY.set_main(self)
 
+        logger.info("*** Start of MainWindow setup ***")
+
+        # Applying app stylesheet
+        logger.info("Applying main stylesheet...")
+        self.setStyleSheet(str(APP_STYLESHEET))
+
+        # This needs to done after applying the stylesheet to the window
+        logger.info("Set color for links in Qt widgets")
+        qapp = QApplication.instance()
+        set_links_color(qapp)
+
+        # Set css_path as a configuration to be used by the plugins.
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-        logger.info("*** Start of MainWindow setup ***")
 
-        logger.info("Applying theme configuration...")
         ui_theme = self.get_conf('ui_theme', section='appearance')
         color_scheme = self.get_conf('selected', section='appearance')
 
         if ui_theme == 'dark':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
-                qapp.setStyle(self._proxy_style)
-            dark_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(dark_qss)
-            self.statusBar().setStyleSheet(dark_qss)
             css_path = DARK_CSS_PATH
-
         elif ui_theme == 'light':
-            if not running_under_pytest():
-                # Set style proxy to fix combobox popup on mac and qdark
-                qapp = QApplication.instance()
-                qapp.setStyle(self._proxy_style)
-            light_qss = str(APP_STYLESHEET)
-            self.setStyleSheet(light_qss)
-            self.statusBar().setStyleSheet(light_qss)
             css_path = CSS_PATH
-
         elif ui_theme == 'automatic':
             if not is_dark_font_color(color_scheme):
-                if not running_under_pytest():
-                    # Set style proxy to fix combobox popup on mac and qdark
-                    qapp = QApplication.instance()
-                    qapp.setStyle(self._proxy_style)
-                dark_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(dark_qss)
-                self.statusBar().setStyleSheet(dark_qss)
                 css_path = DARK_CSS_PATH
             else:
-                light_qss = str(APP_STYLESHEET)
-                self.setStyleSheet(light_qss)
-                self.statusBar().setStyleSheet(light_qss)
                 css_path = CSS_PATH
 
-        # Set css_path as a configuration to be used by the plugins
         self.set_conf('css_path', css_path, section='appearance')
 
         # Status bar
@@ -703,30 +720,47 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         all_plugins = external_plugins.copy()
         all_plugins.update(internal_plugins.copy())
 
-        # Determine 'enable' config for the plugins that have it
+        # Determine 'enable' config for plugins that have it.
         enabled_plugins = {}
         registry_internal_plugins = {}
         registry_external_plugins = {}
+
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable panes that use web widgets (currently Help and Online
+            # Disable plugins that use web widgets (currently Help and Online
             # Help) if the user asks for it.
             # See spyder-ide/spyder#16518
             if self._cli_options.no_web_widgets:
                 if "help" in plugin_name:
                     continue
+
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
                 else plugin_name)
+
             if plugin_name in internal_plugins:
                 registry_internal_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+                enable_option = "enable"
+                enable_section = plugin_main_attribute_name
             else:
                 registry_external_plugins[plugin_name] = (
                     plugin_main_attribute_name, plugin)
+
+                # This is a workaround to allow disabling external plugins.
+                # Because of the way the current config implementation works,
+                # an external plugin config option (e.g. 'enable') can only be
+                # read after the plugin is loaded. But here we're trying to
+                # decide if the plugin should be loaded if it's enabled. So,
+                # for now we read (and save, see the config page associated to
+                # PLUGIN_REGISTRY) that option in our internal config options.
+                # See spyder-ide/spyder#17464 for more details.
+                enable_option = f"{plugin_main_attribute_name}/enable"
+                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
+
             try:
-                if self.get_conf("enable", section=plugin_main_attribute_name):
+                if self.get_conf(enable_option, section=enable_section):
                     enabled_plugins[plugin_name] = plugin
                     PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
             except (cp.NoOptionError, cp.NoSectionError):
@@ -804,6 +838,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """
         logger.info("Setting up window...")
 
+        if self.get_conf('vertical_tabs'):
+            self.DOCKOPTIONS = self.DOCKOPTIONS | QMainWindow.VerticalTabs
+        self.setDockOptions(self.DOCKOPTIONS)
+
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             try:
@@ -850,6 +888,10 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         QApplication.processEvents()
         if self.splash is not None:
             self.splash.hide()
+
+        # Move the window to the primary screen if the previous location is not
+        # visible to the user.
+        self.move_to_primary_screen()
 
         # To avoid regressions. We shouldn't have loaded the modules below at
         # this point.
@@ -899,6 +941,9 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
 
         # Restore undocked plugins
         self.restore_undocked_plugins()
+
+        # Prevent freezes when moving panes
+        self._prevent_freeze_when_moving_dockwidgets()
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
@@ -1151,31 +1196,6 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
             else:
                 console.restore_stds()
 
-    def open_external_console(self, fname, wdir, args, interact, debug, python,
-                              python_args, systerm, post_mortem=False):
-        """Open external console"""
-        if systerm:
-            # Running script in an external system terminal
-            try:
-                if self.get_conf('default', section='main_interpreter'):
-                    executable = get_python_executable()
-                else:
-                    executable = self.get_conf(
-                        'executable',
-                        section='main_interpreter'
-                    )
-                pypath = self.get_conf('spyder_pythonpath', default=None,
-                                       section='pythonpath_manager')
-                programs.run_python_script_in_terminal(
-                    fname, wdir, args, interact, debug, python_args,
-                    executable, pypath
-                )
-            except NotImplementedError:
-                QMessageBox.critical(self, _("Run"),
-                                     _("Running an external system terminal "
-                                       "is not supported on platform %s."
-                                       ) % os.name)
-
     def open_file(self, fname, external=False):
         """
         Open filename with the appropriate application
@@ -1237,21 +1257,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
         """Apply main window settings."""
         qapp = QApplication.instance()
 
-        # Set 'gtk+' as the default theme in Gtk-based desktops
-        # Fixes spyder-ide/spyder#2036.
-        if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
-            try:
-                qapp.setStyle('gtk+')
-            except:
-                pass
-
-        default = self.DOCKOPTIONS
-        if self.get_conf('vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
-        self.setDockOptions(default)
-
         self.apply_panes_settings()
-
         if self.get_conf('use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(
                 self.get_conf('custom_cursor_blinking'))
@@ -1278,11 +1284,7 @@ class MainWindow(QMainWindow, SpyderConfigurationAccessor):
     @Slot()
     def show_preferences(self):
         """Edit Spyder preferences."""
-        self.preferences.open_dialog(self.prefs_dialog_size)
-
-    def set_prefs_size(self, size):
-        """Save preferences dialog size."""
-        self.prefs_dialog_size = size
+        self.preferences.open_dialog()
 
     # ---- Open files server
     # -------------------------------------------------------------------------
@@ -1435,9 +1437,6 @@ def main(options, args):
             pass
     CONF.set('main', 'previous_crash', previous_crash)
 
-    # **** Set color for links ****
-    set_links_color(app)
-
     # **** Create main window ****
     mainwindow = None
     try:
@@ -1453,12 +1452,15 @@ def main(options, args):
     except FontError:
         QMessageBox.information(
             None, "Spyder",
-            "Spyder was unable to load the <i>Spyder 3</i> "
-            "icon theme. That's why it's going to fallback to the "
-            "theme used in Spyder 2.<br><br>"
-            "For that, please close this window and start Spyder again."
+            "It was not possible to load Spyder's icon theme, so Spyder "
+            "cannot start on your system. The most probable causes for this "
+            "are either that you are using a Windows version earlier than "
+            "Windows 10 1803/Windows Server 2019, which is no longer "
+            "supported by Spyder or Microsoft, or your system administrator "
+            "has disabled font installation for non-admin users. Please "
+            "upgrade Windows or ask your system administrator for help to "
+            "allow Spyder to start."
         )
-        CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred
         if splash is not None:

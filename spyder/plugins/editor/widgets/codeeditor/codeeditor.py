@@ -31,7 +31,8 @@ from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QRegExp, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
@@ -40,18 +41,16 @@ from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
                             QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 
-
 # Local imports
-from spyder.api.panel import Panel
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.panels import (
     ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
     LineNumberArea, PanelsManager, ScrollFlagArea)
@@ -69,11 +68,12 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import SpyderPalette, QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
+from spyder.widgets.mixins import HINT_MAX_WIDTH
 
 
 try:
@@ -208,6 +208,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # Used to request saving a file
     sig_save_requested = Signal()
 
+    # Used to signal that a text deletion was triggered
+    sig_delete_requested = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -255,12 +258,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._last_hover_pattern_text = None
 
         # 79-col edge line
-        self.edge_line = self.panels.register(EdgeLine(),
-                                              Panel.Position.FLOATING)
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            Panel.Position.FLOATING
+        )
 
         # indent guides
-        self.indent_guides = self.panels.register(IndentationGuide(),
-                                                  Panel.Position.FLOATING)
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            Panel.Position.FLOATING
+        )
+
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -273,10 +281,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.background = QColor('white')
 
         # Folding
-        self.panels.register(FoldingPanel())
+        self.folding_panel = self.panels.register(FoldingPanel())
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
+
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
@@ -330,8 +342,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(),
-                                                   Panel.Position.RIGHT)
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            Panel.Position.RIGHT
+        )
+
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -375,7 +390,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.update_decorations_timer.start())
+            lambda value: self.update_decorations_timer.start()
+        )
+
+        # Hide calltip when scrolling
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.hide_calltip()
+        )
 
         # QTextEdit + LSPMixin
         self.textChanged.connect(self._schedule_document_did_change)
@@ -471,8 +492,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
-            key, pattern_text, cursor = self.get_pattern_at(pos)
-            text = self.get_word_at(pos)
+            # --- Show Ctrl/Cmd click tooltips
+            key, pattern_text, __ = self.get_pattern_at(pos)
             if pattern_text:
                 ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
                 if key in ['file']:
@@ -489,10 +510,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.show_tooltip(text=hint_text, at_point=pos)
                 return
 
+            # --- Show LSP hovers
+            # This prevents requesting a new hover while trying to reach the
+            # current one to click on it.
+            if (
+                self.tooltip_widget.is_hover()
+                and self.tooltip_widget.is_hovered()
+            ):
+                return
+
+            text = self.get_word_at(pos)
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
             self._last_point = pos
+
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
                     self._last_hover_word = text
@@ -579,7 +611,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
              self.writer_docstring.write_docstring_for_shortcut),
             ('editor', 'autoformatting', self.format_document_or_range),
             ('array_builder', 'enter array inline', self.enter_array_inline),
-            ('array_builder', 'enter array table', self.enter_array_table)
+            ('array_builder', 'enter array table', self.enter_array_table),
+            ('editor', 'scroll line down', self.scroll_line_down),
+            ('editor', 'scroll line up', self.scroll_line_up)
             )
 
         shortcuts = []
@@ -877,14 +911,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         self.set_strip_mode(strip_mode)
 
-    # ---- Debug panel
-    # -------------------------------------------------------------------------
     # ---- Set different attributes
     # -------------------------------------------------------------------------
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.setVisible(folding)
+        self.folding_panel.setVisible(folding)
 
     def set_tab_mode(self, enable):
         """
@@ -1261,13 +1292,52 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
+        self.sig_delete_requested.emit()
+
         if not self.has_selected_text():
             cursor = self.textCursor()
             if not cursor.atEnd():
                 cursor.setPosition(
-                    self.next_cursor_position(), QTextCursor.KeepAnchor)
+                    self.next_cursor_position(), QTextCursor.KeepAnchor
+                )
             self.setTextCursor(cursor)
+
         self.remove_selected_text()
+
+    def delete_line(self):
+        """Delete current line."""
+        cursor = self.textCursor()
+
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start_pos)
+        else:
+            start_pos = end_pos = cursor.position()
+
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            if cursor.atEnd():
+                break
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
+        self.delete()
+        self.ensureCursorVisible()
+
+    # ---- Scrolling
+    # -------------------------------------------------------------------------
+    def scroll_line_down(self):
+        """Scroll the editor down by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() + vsb.singleStep())
+
+    def scroll_line_up(self):
+        """Scroll the editor up by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() - vsb.singleStep())
 
     # ---- Find occurrences
     # -------------------------------------------------------------------------
@@ -1277,7 +1347,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor = self.textCursor()
         # Scanning whole document
         cursor.movePosition(QTextCursor.Start)
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         self.__find_first_pos = cursor.position()
         return cursor
@@ -1285,7 +1357,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def __find_next(self, text, cursor):
         """Find next occurrence"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        regexp = QRegularExpression(
+            r"\b%s\b" % QRegularExpression.escape(text)
+        )
         cursor = self.document().find(regexp, cursor, flags)
         if cursor.position() != self.__find_first_pos:
             return cursor
@@ -1427,6 +1501,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
+
         extra_selections = []
         self.found_results = []
         has_unicode = len(text) != qstring_length(text)
@@ -1776,10 +1851,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Align multiline text based on first line
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        cursor.removeSelectedText()
+
+        # We use delete here instead of cursor.removeSelectedText so that
+        # removing folded regions works as expected.
+        if cursor.hasSelection():
+            self.delete()
+
         cursor.setPosition(cursor.selectionStart())
         cursor.setPosition(cursor.block().position(),
                            QTextCursor.KeepAnchor)
+
         preceding_text = cursor.selectedText()
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
@@ -1858,6 +1939,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
+        self.sig_delete_requested.emit()
         TextEditBaseWidget.cut(self)
         self._save_clipboard_indentation()
         self.sig_text_was_inserted.emit()
@@ -1908,6 +1990,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                    end_column=end_column, move=True,
                                    word=word)
 
+        # This is necessary to update decoratios after moving to `line` (some
+        # tests fail without it).
+        self.update_decorations_timer.start()
+
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
         dlg = GoToLineDialog(self)
@@ -1926,12 +2012,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._timer_mouse_moving.stop()
         self._last_hover_word = None
         self.clear_extra_selections('code_analysis_highlight')
-        if self.tooltip_widget.isVisible():
+        if (
+            self.tooltip_widget.isVisible()
+            and not self.tooltip_widget.is_hint()
+        ):
             self.tooltip_widget.hide()
 
     def _set_completions_hint_idle(self):
         self._completions_hint_idle = True
-        self.completion_widget.trigger_completion_hint()
+        self.completion_widget.request_completion_hint()
 
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
@@ -1941,21 +2030,34 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                               'signature': documentation}
 
             if documentation and len(documentation) > 0:
+                # This means that only the object's signature could be resolved
+                # by the server, which won't update the hint contents.
+                if (
+                    len(documentation.split('\n\n')) == 2
+                    and documentation.startswith(word)
+                ):
+                    self.hide_tooltip()
+                    return
+
                 self.show_hint(
                     documentation,
                     inspect_word=word,
                     at_point=at_point,
                     completion_doc=completion_doc,
-                    max_lines=self._DEFAULT_MAX_LINES,
-                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
+                )
                 self.tooltip_widget.move(at_point)
-                return
-        self.hide_tooltip()
+            else:
+                self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
             self.underline_errors()
+
+        if self.folding_supported and self.code_folding:
+            self.highlight_folded_regions()
 
         # This is required to update decorations whether there are or not
         # underline errors in the visible portion of the screen.
@@ -1964,28 +2066,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        # Diagnostic severity
-        icons = {
-            DiagnosticSeverity.ERROR: 'error',
-            DiagnosticSeverity.WARNING: 'warning',
-            DiagnosticSeverity.INFORMATION: 'information',
-            DiagnosticSeverity.HINT: 'hint',
-        }
-
         code_analysis = block_data.code_analysis
-
-        # Size must be adapted from font
-        fm = self.fontMetrics()
-        size = fm.height()
-        template = (
-            '<img src="data:image/png;base64, {}"'
-            ' height="{size}" width="{size}" />&nbsp;'
-            '{} <i>({} {})</i>'
-        )
-
         msglist = []
         max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
+
         for src, code, sev, msg in sorted_code_analysis:
             if src == 'pylint' and '[' in msg and ']' in msg:
                 # Remove extra redundant info from pylint messages
@@ -2007,7 +2092,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             for paragraph in paragraphs:
                 new_paragraph = textwrap.wrap(
                     paragraph,
-                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                    width=HINT_MAX_WIDTH
+                )
+
                 if lines_per_message > 2:
                     if len(new_paragraph) > 1:
                         new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
@@ -2032,16 +2119,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             else:
                 msg = '<br>'.join(new_paragraphs)
 
-            base_64 = ima.base64_from_icon(icons[sev], size, size)
             if max_lines_msglist >= 0:
-                msglist.append(template.format(base_64, msg, src,
-                                               code, size=size))
+                msglist.append(f'{msg} <i>({src} {code})</i>')
 
         if msglist:
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
-                title_color=QStylePalette.COLOR_ACCENT_4,
                 at_line=line_number,
                 with_html_format=True
             )
@@ -2180,28 +2264,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     # ---- Tasks management
     # -------------------------------------------------------------------------
-    def go_to_next_todo(self):
-        """Go to next todo and return new cursor position"""
-        block = self.textCursor().block()
-        line_count = self.document().blockCount()
-        while True:
-            if block.blockNumber()+1 < line_count:
-                block = block.next()
-            else:
-                block = self.document().firstBlock()
-            data = block.userData()
-            if data and data.todo:
-                break
-        line_number = block.blockNumber()+1
-        self.go_to_line(line_number)
+    def show_todo(self, line_number, data):
+        """
+        Show TODO tooltip when hovering their markers in the line number area.
+        """
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color=QStylePalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
-
-        return self.get_position('cursor')
 
     def process_todo(self, todo_results):
         """Process todo finder results"""
@@ -2360,43 +2431,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the removal of the prefix for a single line."""
-        start_with_space = line_text.startswith(' ')
-        if start_with_space:
-            left_spaces = self.__even_number_of_spaces(line_text)
-        else:
-            left_spaces = False
-        if start_with_space:
-            right_number_spaces = self.__number_of_spaces(line_text, group=1)
-        else:
-            right_number_spaces = self.__number_of_spaces(line_text)
+        cursor.movePosition(QTextCursor.Right,
+                            QTextCursor.MoveAnchor,
+                            line_text.find(prefix))
         # Handle prefix remove for comments with spaces
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            if (right_number_spaces == 1
-                    and (left_spaces or not start_with_space)
-                    or (not start_with_space and right_number_spaces % 2 != 0)
-                    or (left_spaces and right_number_spaces % 2 != 0)):
-                # Handle inserted '# ' with the count of the number of spaces
-                # at the right and left of the prefix.
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix + ' '))
-            else:
-                # Handle manual insertion of '#'
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+                                QTextCursor.KeepAnchor, len(prefix + ' '))
         # Check for prefix without space
         elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                 or line_text.startswith(prefix)):
             cursor.movePosition(QTextCursor.Right,
-                                QTextCursor.MoveAnchor,
-                                line_text.find(prefix))
-            cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
-            cursor.removeSelectedText()
+        cursor.removeSelectedText()
 
     def __even_number_of_spaces(self, line_text, group=0):
         """
@@ -3091,7 +3139,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         block = cursor.block()
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
-        block_formats = layout.additionalFormats()
+        block_formats = layout.formats()
 
         if block_formats:
             # To easily grab current format for autoinsert_colons
@@ -3342,6 +3390,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.format_action.setEnabled(False)
 
         # Build menu
+        # TODO: Change to SpyderMenu when the editor is migrated to the new
+        # API
         self.menu = QMenu(self)
         actions_1 = [self.gotodef_action, self.inspect_current_object_action,
                      None, self.undo_action, self.redo_action, None,
@@ -3360,6 +3410,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             add_actions(self.menu, actions)
 
         # Read-only context-menu
+        # TODO: Change to SpyderMenu when the editor is migrated to the new
+        # API
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action,
@@ -3376,8 +3428,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Update decorations after releasing these keys because they don't
         # trigger the emission of the valueChanged signal in
         # verticalScrollBar.
-        # See https://bugreports.qt.io/browse/QTBUG-25365
-        if key in {Qt.Key_Up,  Qt.Key_Down}:
+        # See https://bugreports.qt.io/browse/QTBUG-25365, which should be
+        # fixed in Qt 6.
+        if key in {Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown}:
             self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
@@ -3453,9 +3506,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if text:
             self.clear_occurrences()
 
-
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
+
+        if key in {Qt.Key_PageUp, Qt.Key_PageDown}:
+            self.hide_tooltip()
+            self.hide_calltip()
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
@@ -4027,25 +4083,27 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __move_line_or_selection(self, after_current_line=True):
         cursor = self.textCursor()
+
         # Unfold any folded code block before moving lines up/down
-        folding_panel = self.panels.get('FoldingPanel')
         fold_start_line = cursor.blockNumber() + 1
         block = cursor.block().next()
 
-        if fold_start_line in folding_panel.folding_status:
-            fold_status = folding_panel.folding_status[fold_start_line]
+        if fold_start_line in self.folding_panel.folding_status:
+            fold_status = self.folding_panel.folding_status[fold_start_line]
             if fold_status:
-                folding_panel.toggle_fold_trigger(block)
+                self.folding_panel.toggle_fold_trigger(block)
 
         if after_current_line:
             # Unfold any folded region when moving lines down
             fold_start_line = cursor.blockNumber() + 2
             block = cursor.block().next().next()
 
-            if fold_start_line in folding_panel.folding_status:
-                fold_status = folding_panel.folding_status[fold_start_line]
+            if fold_start_line in self.folding_panel.folding_status:
+                fold_status = self.folding_panel.folding_status[
+                    fold_start_line
+                ]
                 if fold_status:
-                    folding_panel.toggle_fold_trigger(block)
+                    self.folding_panel.toggle_fold_trigger(block)
         else:
             # Unfold any folded region when moving lines up
             block = cursor.block()
@@ -4059,9 +4117,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
-                folding_panel.current_tree[fold_start_line]))
+                self.folding_panel.current_tree[fold_start_line]))
 
-            folding_status = folding_panel.folding_status
+            folding_status = self.folding_panel.folding_status
             if len(enclosing_regions) > 0:
                 for region in enclosing_regions:
                     fold_start_line = region.begin
@@ -4069,10 +4127,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     if fold_start_line in folding_status:
                         fold_status = folding_status[fold_start_line]
                         if fold_status:
-                            folding_panel.toggle_fold_trigger(block)
+                            self.folding_panel.toggle_fold_trigger(block)
 
         self._TextEditBaseWidget__move_line_or_selection(
-            after_current_line=after_current_line)
+            after_current_line=after_current_line
+        )
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -4095,10 +4154,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 event.accept()
                 return
 
-        if self.has_selected_text():
-            TextEditBaseWidget.mouseMoveEvent(self, event)
-            return
-
         if self.go_to_definition_enabled and ctrl:
             if self._handle_goto_definition_event(pos):
                 event.accept()
@@ -4107,8 +4162,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if (not self._should_display_hover(pos)
-                    and not self.is_completion_widget_visible()):
+            if (
+                not self._should_display_hover(pos)
+                and not self.is_completion_widget_visible()
+            ):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)

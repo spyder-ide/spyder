@@ -14,6 +14,8 @@ from qtpy.QtCore import Qt
 from spyder.config.base import _
 
 
+# --- Fixtures
+# -----------------------------------------------------------------------------
 @pytest.fixture
 def dlg_switcher(qtbot):
     """Set up switcher widget."""
@@ -45,12 +47,19 @@ def dlg_switcher(qtbot):
 
     dlg_switcher.sig_mode_selected.connect(handle_modes)
     dlg_switcher.sig_item_selected.connect(item_selected)
+    dlg_switcher.sig_search_text_available.connect(
+        lambda text: dlg_switcher.setup()
+    )
 
     qtbot.addWidget(dlg_switcher)
+    dlg_switcher.show()
     create_vcs_example_switcher(dlg_switcher)
+
     return dlg_switcher
 
 
+# --- Tests
+# -----------------------------------------------------------------------------
 def test_switcher(dlg_switcher, qtbot):
     """Test that shortcut summary is visible and is not empty"""
     # Test that the dialog exists and is shown
@@ -76,24 +85,28 @@ def test_switcher_filter_and_mode(dlg_switcher, qtbot):
 
     # Help mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText("?")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 5
 
     # Symbol mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText("@")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 2
 
     # Commands mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText(">")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 7
 
     # Text mode
     edit.setText("")
+    qtbot.wait(1000)
     edit.setText(":")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 1
@@ -111,9 +124,9 @@ def test_switcher_filter_unicode(dlg_switcher, qtbot):
     qtbot.wait(1000)
     assert dlg_switcher.count() == 2
 
-# Helper functions for tests
 
-
+# --- Helper functions for tests
+# -----------------------------------------------------------------------------
 def create_vcs_example_switcher(sw):
     """Add example data for vcs."""
     from spyder.utils.icon_manager import ima

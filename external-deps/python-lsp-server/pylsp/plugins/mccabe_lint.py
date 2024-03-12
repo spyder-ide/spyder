@@ -3,19 +3,23 @@
 
 import ast
 import logging
+
 import mccabe
+
 from pylsp import hookimpl, lsp
 
 log = logging.getLogger(__name__)
 
-THRESHOLD = 'threshold'
+THRESHOLD = "threshold"
 DEFAULT_THRESHOLD = 15
 
 
 @hookimpl
 def pylsp_lint(config, workspace, document):
     with workspace.report_progress("lint: mccabe"):
-        threshold = config.plugin_settings('mccabe', document_path=document.path).get(THRESHOLD, DEFAULT_THRESHOLD)
+        threshold = config.plugin_settings("mccabe", document_path=document.path).get(
+            THRESHOLD, DEFAULT_THRESHOLD
+        )
         log.debug("Running mccabe lint with threshold: %s", threshold)
 
         try:
@@ -30,14 +34,23 @@ def pylsp_lint(config, workspace, document):
         diags = []
         for graph in visitor.graphs.values():
             if graph.complexity() >= threshold:
-                diags.append({
-                    'source': 'mccabe',
-                    'range': {
-                        'start': {'line': graph.lineno - 1, 'character': graph.column},
-                        'end': {'line': graph.lineno - 1, 'character': len(document.lines[graph.lineno])},
-                    },
-                    'message': 'Cyclomatic complexity too high: %s (threshold %s)' % (graph.complexity(), threshold),
-                    'severity': lsp.DiagnosticSeverity.Warning
-                })
+                diags.append(
+                    {
+                        "source": "mccabe",
+                        "range": {
+                            "start": {
+                                "line": graph.lineno - 1,
+                                "character": graph.column,
+                            },
+                            "end": {
+                                "line": graph.lineno - 1,
+                                "character": len(document.lines[graph.lineno]),
+                            },
+                        },
+                        "message": "Cyclomatic complexity too high: %s (threshold %s)"
+                        % (graph.complexity(), threshold),
+                        "severity": lsp.DiagnosticSeverity.Warning,
+                    }
+                )
 
         return diags
