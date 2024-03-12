@@ -4538,6 +4538,8 @@ def hello():
     test = 1
     print('test ==', test)
 hello()
+#%%
+test = 3.14
 """)
 
     # Wait until the window is fully up
@@ -4598,6 +4600,22 @@ hello()
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
             nsb.editor.source_model._data['test']['view'] == '3')
+    
+    # Run magic
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runcell -i 1")
+    
+    # check value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('test =', test)")
+
+    qtbot.waitUntil(lambda: "test = 3.14" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
+    assert "test = 3.14" in shell._control.toPlainText()
+
+    # Check the namespace browser is updated
+    assert ('test' in nsb.editor.source_model._data and
+            nsb.editor.source_model._data['test']['view'] == '3.14')
 
 
 @flaky(max_runs=3)
