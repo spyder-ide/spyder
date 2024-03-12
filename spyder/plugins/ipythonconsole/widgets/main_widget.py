@@ -416,6 +416,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self.tab_name_editor,
         )
 
+        self.create_action(
+            IPythonConsoleWidgetActions.GoRight,
+            text=_("Go to the next console"),
+            icon=self.create_icon('Next'),
+            triggered=lambda: self.tabs.tab_navigate(+1),
+            register_shortcut=True
+        )
+        self.create_action(
+            IPythonConsoleWidgetActions.GoLeft,
+            text=_("Go to the previous console"),
+            icon=self.create_icon('Previous'),
+            triggered=lambda: self.tabs.tab_navigate(-1),
+            register_shortcut=True
+        )
+
         # --- For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,

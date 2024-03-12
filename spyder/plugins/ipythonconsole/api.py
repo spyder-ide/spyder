@@ -68,6 +68,10 @@ class IPythonConsoleWidgetActions:
     ConsoleHelp = 'console help'
     QuickReference = 'quick reference'
 
+    # Navigation
+    GoRight = "go to next console"
+    GoLeft = "go to previous console"
+
 
 class IPythonConsoleWidgetMenus:
     SpecialConsoles = 'special_consoles_submenu'
