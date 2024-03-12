@@ -4605,7 +4605,7 @@ print([test for i in range(3)])
     # Run magic
     with qtbot.waitSignal(shell.executed):
         shell.execute("%runcell -i 1")
-    
+
     qtbot.waitUntil(lambda: "[9, 9, 9]" in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
 
