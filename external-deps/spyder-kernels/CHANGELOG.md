@@ -1,5 +1,31 @@
 # History of changes
 
+## Version 3.0.0b4 (2024-02-08)
+
+### Pull Requests Merged
+
+* [PR 477](https://github.com/spyder-ide/spyder-kernels/pull/477) - PR: Handle new Inline backend options `fontsize` and `bottom`, by [@jitseniesen](https://github.com/jitseniesen)
+
+In this release 1 pull request was closed.
+
+
+----
+
+
+## Version 3.0.0b3 (2023-12-18)
+
+### Pull Requests Merged
+
+* [PR 476](https://github.com/spyder-ide/spyder-kernels/pull/476) - PR: Send back pickling error correctly, by [@impact27](https://github.com/impact27)
+* [PR 467](https://github.com/spyder-ide/spyder-kernels/pull/467) - PR: Fix index when skipping hidden frames (Debugger), by [@impact27](https://github.com/impact27)
+* [PR 466](https://github.com/spyder-ide/spyder-kernels/pull/466) - PR: Simplify kernel configuration, by [@impact27](https://github.com/impact27)
+
+In this release 3 pull requests were closed.
+
+
+----
+
+
 ## Version 3.0.0b2 (2023-08-22)
 
 ### Pull Requests Merged
@@ -55,6 +81,15 @@ In this release 2 issues were closed.
 * [PR 171](https://github.com/spyder-ide/spyder-kernels/pull/171) - PR: Publish Pdb stack frames to Spyder, by [@impact27](https://github.com/impact27)
 
 In this release 25 pull requests were closed.
+
+
+----
+
+## Version 2.5.1 (2024-02-28)
+
+### Pull Requests Merged
+
+* [PR 479](https://github.com/spyder-ide/spyder-kernels/pull/479) - PR: Fix hangs with Maplotlib interactive backends, by [@ccordoba12](https://github.com/ccordoba12)
 
 
 ----

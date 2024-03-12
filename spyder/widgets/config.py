@@ -16,15 +16,16 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegExp, QSize
-from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
-                            QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
+from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
+from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
+from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
+                            QFileDialog, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
@@ -32,7 +33,9 @@ from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
+from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.comboboxes import FileComboBox
+from spyder.widgets.sidebardialog import SidebarPage
 
 
 class BaseConfigTab(QWidget):
@@ -59,51 +62,70 @@ class ConfigAccessMixin(object):
         CONF.remove_option(section, option)
 
 
-class ConfigPage(QWidget):
-    """Base class for configuration page in Preferences"""
+class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
+    """
+    Page that can display graphical elements connected to our config system.
+    """
 
     # Signals
     apply_button_enabled = Signal(bool)
-    show_this_page = Signal()
 
-    def __init__(self, parent, apply_callback=None):
-        QWidget.__init__(self, parent)
+    # Constants
+    CONF_SECTION = None
+    LOAD_FROM_CONFIG = True
+
+    def __init__(self, parent):
+        SidebarPage.__init__(self, parent)
 
         # Callback to call before saving settings to disk
         self.pre_apply_callback = None
 
         # Callback to call after saving settings to disk
-        self.apply_callback = apply_callback
+        self.apply_callback = lambda: self._apply_settings_tabs(
+            self.changed_options
+        )
 
+        self.checkboxes = {}
+        self.radiobuttons = {}
+        self.lineedits = {}
+        self.textedits = {}
+        self.validate_data = {}
+        self.spinboxes = {}
+        self.comboboxes = {}
+        self.fontboxes = {}
+        self.coloredits = {}
+        self.scedits = {}
+        self.cross_section_options = {}
+        self.changed_options = set()
+        self.restart_options = dict()  # Dict to store name and localized text
+        self.default_button_group = None
+        self.tabs = None
         self.is_modified = False
 
+        if getattr(parent, "main", None):
+            self.main = parent.main
+        else:
+            self.main = None
+
     def initialize(self):
-        """
-        Initialize configuration page:
-            * setup GUI widgets
-            * load settings and change widgets accordingly
-        """
+        """Initialize configuration page."""
         self.setup_page()
-        self.load_from_conf()
+        if self.LOAD_FROM_CONFIG:
+            self.load_from_conf()
 
-    def get_name(self):
-        """Return configuration page name"""
-        raise NotImplementedError
+    def _apply_settings_tabs(self, options):
+        if self.tabs is not None:
+            for i in range(self.tabs.count()):
+                tab = self.tabs.widget(i)
+                layout = tab.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if hasattr(widget, 'apply_settings'):
+                        if issubclass(type(widget), BaseConfigTab):
+                            options |= widget.apply_settings()
+        self.apply_settings(options)
 
-    def get_icon(self):
-        """Return configuration page icon (24x24)"""
-        raise NotImplementedError
-
-    def setup_page(self):
-        """Setup configuration page widget"""
-        raise NotImplementedError
-
-    def set_modified(self, state):
-        self.is_modified = state
-        self.apply_button_enabled.emit(state)
-
-    def is_valid(self):
-        """Return True if all widget contents are valid"""
+    def apply_settings(self, options):
         raise NotImplementedError
 
     def apply_changes(self):
@@ -122,7 +144,7 @@ class ConfigPage(QWidget):
             # ensure that when changes are applied, they are copied to a
             # specific file storing the language value. This only applies to
             # the main section config.
-            if self.CONF_SECTION == u'main':
+            if self.CONF_SECTION == 'main':
                 self._save_lang()
 
             for restart_option in self.restart_options:
@@ -131,76 +153,14 @@ class ConfigPage(QWidget):
                     break  # Ensure a single popup is displayed
             self.set_modified(False)
 
-    def load_from_conf(self):
-        """Load settings from configuration file"""
-        raise NotImplementedError
-
-    def save_to_conf(self):
-        """Save settings to configuration file"""
-        raise NotImplementedError
-
-
-class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
-    """Plugin configuration dialog box page widget"""
-    CONF_SECTION = None
-    MAX_WIDTH = 620
-    MIN_HEIGHT = 550
-
-    def __init__(self, parent):
-        ConfigPage.__init__(
-            self,
-            parent,
-            apply_callback=lambda: self._apply_settings_tabs(
-                self.changed_options)
-        )
-
-        self.checkboxes = {}
-        self.radiobuttons = {}
-        self.lineedits = {}
-        self.textedits = {}
-        self.validate_data = {}
-        self.spinboxes = {}
-        self.comboboxes = {}
-        self.fontboxes = {}
-        self.coloredits = {}
-        self.scedits = {}
-        self.cross_section_options = {}
-        self.changed_options = set()
-        self.restart_options = dict()  # Dict to store name and localized text
-        self.default_button_group = None
-        self.main = parent.main
-        self.tabs = None
-
-        # Set dimensions
-        self.setMaximumWidth(self.MAX_WIDTH)
-        self.setMinimumHeight(self.MIN_HEIGHT)
-
-    def sizeHint(self):
-        """Default page size."""
-        return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
-
-    def _apply_settings_tabs(self, options):
-        if self.tabs is not None:
-            for i in range(self.tabs.count()):
-                tab = self.tabs.widget(i)
-                layout = tab.layout()
-                for i in range(layout.count()):
-                    widget = layout.itemAt(i).widget()
-                    if hasattr(widget, 'apply_settings'):
-                        if issubclass(type(widget), BaseConfigTab):
-                            options |= widget.apply_settings()
-        self.apply_settings(options)
-
-    def apply_settings(self, options):
-        raise NotImplementedError
-
     def check_settings(self):
         """This method is called to check settings after configuration
         dialog has been shown"""
         pass
 
     def set_modified(self, state):
-        ConfigPage.set_modified(self, state)
+        self.is_modified = state
+        self.apply_button_enabled.emit(state)
         if not state:
             self.changed_options = set()
 
@@ -455,12 +415,12 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             self.changed_options.add((section, option))
 
     def add_help_info_label(self, layout, tip_text):
-        help_label = QLabel()
-        image = ima.icon('help_gray').pixmap(QSize(20, 20))
-        help_label.setPixmap(image)
-        help_label.setFixedWidth(23)
-        help_label.setFixedHeight(23)
-        help_label.setToolTip(tip_text)
+        help_label = TipWidget(
+            tip_text=tip_text,
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover')
+        )
+
         layout.addWidget(help_label)
         layout.addStretch(100)
 
@@ -541,29 +501,60 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         content_type=None, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
-        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(edit)
+
+        if alignment == Qt.Vertical:
+            layout = QVBoxLayout()
+
+            # This is necessary to correctly align `label` and `edit` to the
+            # left when they are displayed vertically.
+            edit.setStyleSheet("margin-left: 5px")
+
+            if tip is not None:
+                label_layout = QHBoxLayout()
+                label_layout.setSpacing(0)
+                label_layout.addWidget(label)
+                label_layout, help_label = self.add_help_info_label(
+                    label_layout, tip
+                )
+                layout.addLayout(label_layout)
+            else:
+                layout.addWidget(label)
+
+            layout.addWidget(edit)
+        else:
+            layout = QHBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(edit)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
         layout.setContentsMargins(0, 0, 0, 0)
+
         if regex:
-            edit.setValidator(QRegExpValidator(QRegExp(regex)))
+            edit.setValidator(
+                QRegularExpressionValidator(QRegularExpression(regex))
+            )
+
         if placeholder:
             edit.setPlaceholderText(placeholder)
+
         self.lineedits[edit] = (section, option, default)
 
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
         if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
             widget.help_label = help_label
+
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
+
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,
@@ -762,7 +753,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
-        combobox = QComboBox()
+        combobox = SpyderComboBox()
         for name, key in choices:
             if not (name is None and key is None):
                 combobox.addItem(name, to_qvariant(key))
@@ -844,7 +835,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         else:
             fontlabel = QLabel(_("Font"))
 
-        fontbox = QFontComboBox()
+        fontbox = SpyderFontComboBox()
         fontbox.restart_required = restart
         fontbox.label_text = _("{} font").format(title)
 

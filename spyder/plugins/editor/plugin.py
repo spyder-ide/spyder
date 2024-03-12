@@ -57,8 +57,6 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWindow
-from spyder.plugins.editor.widgets.printer import (
-    SpyderPrinter, SpyderPrintPreviewDialog)
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    update_bookmarks)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -73,6 +71,7 @@ from spyder.plugins.run.api import (
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.mixins import BaseEditMixin
+from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -858,8 +857,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
                 tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
-                      "HACK/BUG/OPTIMIZE/!!!/???)"),
-                triggered=self.go_to_next_todo)
+                      "HACK/BUG/OPTIMIZE/!!!/???)"))
         self.todo_menu = QMenu(self)
         self.todo_menu.setStyleSheet("QMenu {menu-scrollable: 1;}")
         self.todo_list_action.setMenu(self.todo_menu)
@@ -997,7 +995,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
         eol_menu = SpyderMenu(parent=self, title=_("Convert end-of-line characters"))
-        eol_menu.setObjectName('checkbox-padding')
         add_actions(eol_menu, eol_actions)
 
         trailingspaces_action = create_action(
@@ -2331,7 +2328,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
 
     @Slot()
     def change_max_recent_files(self):
-        "Change max recent files entries"""
+        """Change max recent files entries"""
         editorstack = self.get_current_editorstack()
         mrf, valid = QInputDialog.getInt(editorstack, _('Editor'),
                                _('Maximum number of recent files'),
@@ -2748,7 +2745,9 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         tofile = to_text_string(dest)
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                new_filename = fname.replace(dirname, tofile)
+                source_re = "^" + re.escape(source)
+                dest_quoted = dest.replace("\\", r"\\")
+                new_filename = re.sub(source_re, dest_quoted, fname)
                 self.renamed(source=fname, dest=new_filename)
 
     #------ Source code
@@ -2800,14 +2799,6 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-    @Slot()
-    def go_to_next_todo(self):
-        self.switch_to_plugin()
-        editor = self.get_current_editor()
-        editor.go_to_next_todo()
-        filename = self.get_current_filename()
-        cursor = editor.textCursor()
-        self.add_cursor_to_history(filename, cursor)
 
     @Slot()
     def go_to_next_warning(self):

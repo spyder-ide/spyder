@@ -251,15 +251,10 @@ class DocumentProvider:
 
     @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
     def process_folding_range(self, result, req_id):
-        results = []
-        for folding_range in result:
-            start_line = folding_range['startLine']
-            end_line = folding_range['endLine']
-            results.append((start_line, end_line))
         if req_id in self.req_reply:
             self.req_reply[req_id](
                 CompletionRequestTypes.DOCUMENT_FOLDING_RANGE,
-                {'params': results})
+                {'params': result})
 
     @send_notification(method=CompletionRequestTypes.DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):

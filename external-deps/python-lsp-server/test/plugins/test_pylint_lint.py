@@ -3,13 +3,13 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import contextlib
-from pathlib import Path
 import os
 import tempfile
+from pathlib import Path
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document, Workspace
 from pylsp.plugins import pylint_lint
+from pylsp.workspace import Document, Workspace
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys

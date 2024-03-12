@@ -340,7 +340,7 @@ def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
 
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.NextBlock)
-    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
     editor.writer_docstring.write_docstring_for_shortcut()
@@ -376,7 +376,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
 
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.NextBlock)
-    cursor.setPosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
     qtbot.keyPress(editor, Qt.Key_Space)
@@ -618,7 +618,7 @@ def test_docstring_annotated_call(editor_auto_docstring, text, expected):
 
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.NextBlock)
-    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
     editor.writer_docstring.write_docstring_for_shortcut()
@@ -659,7 +659,7 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
 
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.NextBlock)
-    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
     editor.writer_docstring.write_docstring_for_shortcut()

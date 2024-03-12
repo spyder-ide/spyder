@@ -24,6 +24,16 @@ from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
+PREVIEW_TEXT = (
+    '"""A string"""\n\n'
+    '# A comment\n\n'
+    'class Foo(object):\n'
+    '    def __init__(self):\n'
+    '        bar = 42\n'
+    '        print(bar)\n'
+)
+
+
 class AppearanceConfigPage(PluginConfigPage):
 
     def __init__(self, plugin, parent):
@@ -79,9 +89,16 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.preview_editor = SimpleCodeEditor(self)
         self.preview_editor.setMinimumWidth(210)
+        self.preview_editor.set_language('Python')
+        self.preview_editor.set_text(PREVIEW_TEXT)
+        self.preview_editor.set_blanks_enabled(False)
+        self.preview_editor.set_scrollpastend_enabled(False)
+
         self.stacked_widget = QStackedWidget(self)
-        self.scheme_editor_dialog = SchemeEditor(parent=self,
-                                                 stack=self.stacked_widget)
+        self.scheme_editor_dialog = SchemeEditor(
+            parent=self,
+            stack=self.stacked_widget
+        )
 
         self.scheme_choices_dict = {}
         schemes_combobox_widget = self.create_combobox('', [('', '')],
@@ -178,10 +195,19 @@ class AppearanceConfigPage(PluginConfigPage):
         edit_button.clicked.connect(self.edit_scheme)
         self.reset_button.clicked.connect(self.reset_to_default)
         self.delete_button.clicked.connect(self.delete_scheme)
-        self.schemes_combobox.currentIndexChanged.connect(self.update_preview)
+        self.schemes_combobox.currentIndexChanged.connect(
+            lambda index: self.update_preview()
+        )
         self.schemes_combobox.currentIndexChanged.connect(self.update_buttons)
+        self.plain_text_font.fontbox.currentFontChanged.connect(
+            lambda font: self.update_preview()
+        )
+        self.plain_text_font.sizebox.valueChanged.connect(
+            lambda value: self.update_preview()
+        )
         system_font_checkbox.checkbox.stateChanged.connect(
-            self.update_app_font_group)
+            self.update_app_font_group
+        )
 
         # Setup
         for name in names:
@@ -317,34 +343,18 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button.setEnabled(delete_enabled)
         self.reset_button.setEnabled(not delete_enabled)
 
-    def update_preview(self, index=None, scheme_name=None):
-        """
-        Update the color scheme of the preview editor and adds text.
-
-        Note
-        ----
-        'index' is needed, because this is triggered by a signal that sends
-        the selected index.
-        """
-        text = ('"""A string"""\n\n'
-                '# A comment\n\n'
-                'class Foo(object):\n'
-                '    def __init__(self):\n'
-                '        bar = 42\n'
-                '        print(bar)\n'
-                )
-
+    def update_preview(self, scheme_name=None):
+        """Update the color scheme of the preview editor and adds text."""
         if scheme_name is None:
             scheme_name = self.current_scheme
 
+        plain_text_font = self.plain_text_font.fontbox.currentFont()
+        plain_text_font.setPointSize(self.plain_text_font.sizebox.value())
+
         self.preview_editor.setup_editor(
-            font=get_font(),
-            color_scheme=scheme_name,
-            show_blanks=False,
-            scroll_past_end=False,
+            font=plain_text_font,
+            color_scheme=scheme_name
         )
-        self.preview_editor.set_language('Python')
-        self.preview_editor.set_text(text)
 
     def update_app_font_group(self, state):
         """Update app font group enabled state."""

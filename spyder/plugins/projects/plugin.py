@@ -95,7 +95,7 @@ class Projects(SpyderDockablePlugin):
 
     @classmethod
     def get_icon(cls):
-        return cls.create_icon('project')
+        return cls.create_icon('project_spyder')
 
     def on_initialize(self):
         """Register plugin in Spyder's main window"""

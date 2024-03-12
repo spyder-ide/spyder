@@ -15,7 +15,7 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QApplication, QDesktopWidget
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -489,7 +489,7 @@ class Layout(SpyderPluginV2):
         # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
-        screen_shape = QApplication.desktop().geometry()
+        screen_shape = self.main.screen().geometry()
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
@@ -856,11 +856,7 @@ class Layout(SpyderPluginV2):
                                     | Qt.FramelessWindowHint
                                     | Qt.WindowStaysOnTopHint)
 
-                screen_number = QDesktopWidget().screenNumber(main)
-                if screen_number < 0:
-                    screen_number = 0
-
-                r = QApplication.desktop().screenGeometry(screen_number)
+                r = main.screen().geometry()
                 main.setGeometry(
                     r.left() - 1, r.top() - 1, r.width() + 2, r.height() + 2)
                 main.showNormal()

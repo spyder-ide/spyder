@@ -27,8 +27,8 @@ from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle,
-                            QToolButton, QVBoxLayout, QWidget)
+                            QPushButton, QStyle, QToolButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -168,7 +168,12 @@ def keyevent_to_keysequence_str(event):
     """Get key sequence corresponding to a key event as a string."""
     try:
         # See https://stackoverflow.com/a/20656496/438386 for context
-        return QKeySequence(event.modifiers() | event.key()).toString()
+        if hasattr(event, "keyCombination"):
+            key_combination = event.keyCombination()  # Qt 6
+        else:
+            key_combination = event.modifiers() | event.key()  # Qt 5
+
+        return QKeySequence(key_combination).toString()
     except TypeError:
         # This error appears in old PyQt versions (e.g. 5.12) which are
         # running under Python 3.10+. In that case, we need to build the
@@ -358,29 +363,21 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if menurole is not None:
         action.setMenuRole(menurole)
 
-    # Workround for Mac because setting context=Qt.WidgetShortcut
-    # there doesn't have any effect
+    if shortcut is not None:
+        action.setShortcut(shortcut)
+    action.setShortcutContext(context)
+
+    # This is necessary to show shortcuts in any regular menu (i.e. not app
+    # ones).
+    # Fixes spyder-ide/spyder#15659.
     if sys.platform == 'darwin':
-        action._shown_shortcut = None
-        if context == Qt.WidgetShortcut:
-            if shortcut is not None:
-                action._shown_shortcut = shortcut
-            else:
-                # This is going to be filled by
-                # main.register_shortcut
-                action._shown_shortcut = 'missing'
-        else:
-            if shortcut is not None:
-                action.setShortcut(shortcut)
-            action.setShortcutContext(context)
-    else:
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        action.setShortcutContext(context)
+        action.setShortcutVisibleInContextMenu(True)
 
     if register_action:
         ACTION_REGISTRY.register_reference(
-            action, id_, plugin, context_name, overwrite)
+            action, id_, plugin, context_name, overwrite
+        )
+
     return action
 
 
@@ -700,33 +697,23 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-def set_menu_icons(menu, state):
+def set_menu_icons(menu, state, in_app_menu=False):
     """Show/hide icons for menu actions."""
     menu_actions = menu.actions()
     for action in menu_actions:
         try:
             if action.menu() is not None:
-                # This is submenu, so we need to call this again
-                set_menu_icons(action.menu(), state)
+                # This is necessary to decide if we need to show icons or not
+                action.menu()._in_app_menu = in_app_menu
+
+                # This is a submenu, so we need to call this again
+                set_menu_icons(action.menu(), state, in_app_menu)
             elif action.isSeparator():
                 continue
             else:
                 action.setIconVisibleInMenu(state)
         except RuntimeError:
             continue
-
-
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        """Override Qt method."""
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combo-box popup top & bottom areas
-            # See: https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 class QInputDialogMultiline(QDialog):
@@ -884,6 +871,15 @@ def register_app_launchservices(
                 uniform_type_identifier, role, bundle_identifier)
 
     app.applicationStateChanged.connect(handle_applicationStateChanged)
+
+
+def safe_disconnect(signal):
+    """Disconnect a Qt signal, ignoring TypeError."""
+    try:
+        signal.disconnect()
+    except TypeError:
+        # Raised when no slots are connected to the signal
+        pass
 
 
 if __name__ == "__main__":

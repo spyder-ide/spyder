@@ -15,12 +15,13 @@ from uuid import uuid4
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
-from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
                             QGroupBox, QHBoxLayout, QLabel, QLineEdit, QLayout,
                             QRadioButton, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
@@ -178,11 +179,11 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         ext_combo_label = QLabel(_("Select a file extension:"))
         context_combo_label = QLabel(_("Select a run context:"))
 
-        self.extension_combo = QComboBox()
+        self.extension_combo = SpyderComboBox(self)
         self.extension_combo.currentIndexChanged.connect(
             self.extension_changed)
 
-        self.context_combo = QComboBox()
+        self.context_combo = SpyderComboBox(self)
         self.context_combo.currentIndexChanged.connect(self.context_changed)
 
         self.stack = QStackedWidget()
@@ -434,11 +435,11 @@ class RunDialog(BaseRunConfigDialog):
         combo_label = QLabel(_("Select a run configuration:"))
         executor_label = QLabel(_("Select a run executor:"))
 
-        self.configuration_combo = QComboBox()
-        self.executor_combo = QComboBox()
+        self.configuration_combo = SpyderComboBox(self)
+        self.executor_combo = SpyderComboBox(self)
 
         parameters_label = QLabel(_("Select the run parameters:"))
-        self.parameters_combo = QComboBox()
+        self.parameters_combo = SpyderComboBox(self)
         self.stack = QStackedWidget()
         executor_layout = QVBoxLayout()
         executor_layout.addWidget(parameters_label)

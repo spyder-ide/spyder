@@ -91,7 +91,7 @@ class TextEditBaseWidget(
         self.setup_completion()
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
-        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
+        self.tooltip_widget = ToolTipWidget(self)
 
         self.highlight_current_cell_enabled = False
 
@@ -866,28 +866,6 @@ class TextEditBaseWidget(
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-    def delete_line(self, cursor=None):
-        """Delete current line."""
-        if cursor is None:
-            cursor = self.textCursor()
-        if self.has_selected_text():
-            self.extend_selection_to_complete_lines()
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
-        else:
-            start_pos = end_pos = cursor.position()
-        cursor.beginEditBlock()
-        cursor.setPosition(start_pos)
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        while cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
-            if cursor.atEnd():
-                break
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-        cursor.removeSelectedText()
-        cursor.endEditBlock()
-        self.ensureCursorVisible()
-
     def set_selection(self, start, end):
         cursor = self.textCursor()
         cursor.setPosition(start)
@@ -1193,8 +1171,7 @@ class TextEditBaseWidget(
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(widget))
+        srect = self.screen().availableGeometry()
 
         left, top, right, bottom = (srect.left(), srect.top(),
                                     srect.right(), srect.bottom())
@@ -1208,10 +1185,12 @@ class TextEditBaseWidget(
         point = self.cursorRect().bottomRight()
         point = self.calculate_real_position(point)
         point = self.mapToGlobal(point)
+
         # Move to left of cursor if not enough space on right
         widget_right = point.x() + widget.width()
         if widget_right > right:
             point.setX(point.x() - widget.width())
+
         # Push to right if not enough space on left
         if point.x() < left:
             point.setX(left)
@@ -1224,6 +1203,13 @@ class TextEditBaseWidget(
             point = self.mapToGlobal(point)
             point.setX(x_position)
             point.setY(point.y() - widget.height())
+            delta_y = -2
+        else:
+            delta_y = 5 if sys.platform == "darwin" else 6
+
+        # Add small delta to the vertical position so that the widget is not
+        # shown too close to the text
+        point.setY(point.y() + delta_y)
 
         if ancestor is not None:
             # Useful only if we set parent to 'ancestor' in __init__

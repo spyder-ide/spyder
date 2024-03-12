@@ -1,35 +1,41 @@
 # Copyright 2022- Python Language Server Contributors.
 
+from test.test_notebook_document import wait_for_condition
+from test.test_utils import send_initialize_request, send_notebook_did_open
 from typing import Any, Dict, List
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import jedi
 import parso
 import pytest
 
-from pylsp import lsp, uris
+from pylsp import IS_WIN, lsp, uris
 from pylsp.config.config import Config
 from pylsp.plugins.rope_autoimport import (
     _get_score,
     _should_insert,
+    cache,
     get_name_or_module,
     get_names,
 )
 from pylsp.plugins.rope_autoimport import (
     pylsp_completions as pylsp_autoimport_completions,
 )
-from pylsp.plugins.rope_autoimport import pylsp_initialize
 from pylsp.workspace import Workspace
-
 
 DOC_URI = uris.from_fs_path(__file__)
 
 
-def contains_autoimport(suggestion: Dict[str, Any], module: str) -> bool:
-    """Checks if `suggestion` contains an autoimport for `module`."""
+def contains_autoimport_completion(suggestion: Dict[str, Any], module: str) -> bool:
+    """Checks if `suggestion` contains an autoimport completion for `module`."""
     return suggestion.get("label", "") == module and "import" in suggestion.get(
         "detail", ""
     )
+
+
+def contains_autoimport_quickfix(suggestion: Dict[str, Any], module: str) -> bool:
+    """Checks if `suggestion` contains an autoimport quick fix for `module`."""
+    return suggestion.get("title", "") == f"import {module}"
 
 
 @pytest.fixture(scope="session")
@@ -49,12 +55,11 @@ def autoimport_workspace(tmp_path_factory) -> Workspace:
             }
         }
     )
-    pylsp_initialize(workspace._config, workspace)
+    cache.reload_cache(workspace._config, workspace, single_thread=True)
     yield workspace
     workspace.close()
 
 
-# pylint: disable=redefined-outer-name
 @pytest.fixture
 def completions(config: Config, autoimport_workspace: Workspace, request):
     document, position = request.param
@@ -224,7 +229,7 @@ def test_get_names():
         sfiosifo
     """
     results = get_names(jedi.Script(code=source))
-    assert results == set(["blah", "bleh", "e", "hello", "someone", "sfa", "a", "b"])
+    assert results == {"blah", "bleh", "e", "hello", "someone", "sfa", "a", "b"}
 
 
 # Tests ruff, flake8 and pyflakes messages
@@ -248,82 +253,94 @@ def test_autoimport_code_actions_get_correct_module_name(autoimport_workspace, m
     assert module_name == "os"
 
 
-# rope autoimport launches a sqlite database which checks from which thread it is called.
-# This makes the test below fail because we access the db from a different thread.
-# See https://stackoverflow.com/questions/48218065/objects-created-in-a-thread-can-only-be-used-in-that-same-thread
-# @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-# def test_autoimport_completions_for_notebook_document(
-#     client_server_pair,
-# ):
-#     client, server = client_server_pair
-#     send_initialize_request(client)
+def make_context(module_name, line, character_start, character_end):
+    return {
+        "diagnostics": [
+            {
+                "message": f"undefined name '{module_name}'",
+                "range": {
+                    "start": {"line": line, "character": character_start},
+                    "end": {"line": line, "character": character_end},
+                },
+            }
+        ]
+    }
 
-#     with patch.object(server._endpoint, "notify") as mock_notify:
-#         # Expectations:
-#         # 1. We receive an autoimport suggestion for "os" in the first cell because
-#         #    os is imported after that.
-#         # 2. We don't receive an autoimport suggestion for "os" in the second cell because it's
-#         #    already imported in the second cell.
-#         # 3. We don't receive an autoimport suggestion for "os" in the third cell because it's
-#         #    already imported in the second cell.
-#         # 4. We receive an autoimport suggestion for "sys" because it's not already imported
-#         send_notebook_did_open(client, ["os", "import os\nos", "os", "sys"])
-#         wait_for_condition(lambda: mock_notify.call_count >= 3)
 
-#     server.m_workspace__did_change_configuration(
-#         settings={
-#             "pylsp": {
-#                 "plugins": {
-#                     "rope_autoimport": {
-#                         "memory": True,
-#                         "completions": {"enabled": True},
-#                     },
-#                 }
-#             }
-#         }
-#     )
-#     rope_autoimport_settings = server.workspace._config.plugin_settings(
-#         "rope_autoimport"
-#     )
-#     assert rope_autoimport_settings.get("completions", {}).get("enabled", False) is True
-#     assert rope_autoimport_settings.get("memory", False) is True
+def position(line, character):
+    return {"line": line, "character": character}
 
-#     # 1.
-#     suggestions = server.completions("cell_1_uri", {"line": 0, "character": 2}).get(
-#         "items"
-#     )
-#     assert any(
-#         suggestion
-#         for suggestion in suggestions
-#         if contains_autoimport(suggestion, "os")
-#     )
 
-#     # 2.
-#     suggestions = server.completions("cell_2_uri", {"line": 1, "character": 2}).get(
-#         "items"
-#     )
-#     assert not any(
-#         suggestion
-#         for suggestion in suggestions
-#         if contains_autoimport(suggestion, "os")
-#     )
+@pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
+def test_autoimport_code_actions_and_completions_for_notebook_document(
+    client_server_pair,
+):
+    client, server = client_server_pair
+    send_initialize_request(
+        client,
+        {
+            "pylsp": {
+                "plugins": {
+                    "rope_autoimport": {
+                        "memory": True,
+                        "enabled": True,
+                        "completions": {"enabled": True},
+                    },
+                }
+            }
+        },
+    )
+    with patch.object(server._endpoint, "notify") as mock_notify:
+        # Expectations:
+        # 1. We receive an autoimport suggestion for "os" in the first cell because
+        #    os is imported after that.
+        # 2. We don't receive an autoimport suggestion for "os" in the second cell because it's
+        #    already imported in the second cell.
+        # 3. We don't receive an autoimport suggestion for "os" in the third cell because it's
+        #    already imported in the second cell.
+        # 4. We receive an autoimport suggestion for "sys" because it's not already imported.
+        # 5. If diagnostics doesn't contain "undefined name ...", we send empty quick fix suggestions.
+        send_notebook_did_open(client, ["os", "import os\nos", "os", "sys"])
+        wait_for_condition(lambda: mock_notify.call_count >= 4)
+        # We received diagnostics messages for every cell
+        assert all(
+            "textDocument/publishDiagnostics" in c.args
+            for c in mock_notify.call_args_list
+        )
 
-#     # 3.
-#     suggestions = server.completions("cell_3_uri", {"line": 0, "character": 2}).get(
-#         "items"
-#     )
-#     assert not any(
-#         suggestion
-#         for suggestion in suggestions
-#         if contains_autoimport(suggestion, "os")
-#     )
+    rope_autoimport_settings = server.workspace._config.plugin_settings(
+        "rope_autoimport"
+    )
+    assert rope_autoimport_settings.get("completions", {}).get("enabled", False) is True
+    assert rope_autoimport_settings.get("memory", False) is True
+    wait_for_condition(lambda: not cache.thread.is_alive())
 
-#     # 4.
-#     suggestions = server.completions("cell_4_uri", {"line": 0, "character": 3}).get(
-#         "items"
-#     )
-#     assert any(
-#         suggestion
-#         for suggestion in suggestions
-#         if contains_autoimport(suggestion, "sys")
-#     )
+    # 1.
+    quick_fixes = server.code_actions("cell_1_uri", {}, make_context("os", 0, 0, 2))
+    assert any(s for s in quick_fixes if contains_autoimport_quickfix(s, "os"))
+
+    completions = server.completions("cell_1_uri", position(0, 2)).get("items")
+    assert any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 2.
+    # We don't test code actions here as in this case, there would be no code actions sent bc
+    # there wouldn't be a diagnostics message.
+    completions = server.completions("cell_2_uri", position(1, 2)).get("items")
+    assert not any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 3.
+    # Same as in 2.
+    completions = server.completions("cell_3_uri", position(0, 2)).get("items")
+    assert not any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 4.
+    quick_fixes = server.code_actions("cell_4_uri", {}, make_context("sys", 0, 0, 3))
+    assert any(s for s in quick_fixes if contains_autoimport_quickfix(s, "sys"))
+
+    completions = server.completions("cell_4_uri", position(0, 3)).get("items")
+    assert any(s for s in completions if contains_autoimport_completion(s, "sys"))
+
+    # 5.
+    context = {"diagnostics": [{"message": "A random message"}]}
+    quick_fixes = server.code_actions("cell_4_uri", {}, context)
+    assert len(quick_fixes) == 0

@@ -50,6 +50,7 @@ class BuildCondaPkg:
     norm = True
     source = None
     feedstock = None
+    feedstock_branch = None
     shallow_ver = None
 
     def __init__(self, data={}, debug=False, shallow=False):
@@ -66,10 +67,10 @@ class BuildCondaPkg:
         self._get_source(shallow=shallow)
         self._get_version()
 
-        self._patch_source()
-
         self.data = {'version': self.version}
         self.data.update(data)
+
+        self._patch_source()
 
         self._recipe_patched = False
 
@@ -104,7 +105,10 @@ class BuildCondaPkg:
 
         # Clone feedstock
         self.logger.info("Cloning feedstock...")
-        Repo.clone_from(self.feedstock, to_path=self._fdstk_path)
+        kwargs = dict(to_path=self._fdstk_path)
+        if self.feedstock_branch:
+            kwargs.update(branch=self.feedstock_branch)
+        Repo.clone_from(self.feedstock, **kwargs)
 
     def _build_cleanup(self):
         """Remove cloned source and feedstock repositories"""
@@ -123,9 +127,6 @@ class BuildCondaPkg:
 
     def _patch_meta(self, meta):
         return meta
-
-    def _patch_build_script(self):
-        pass
 
     def patch_recipe(self):
         """
@@ -158,8 +159,6 @@ class BuildCondaPkg:
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
-        self._patch_build_script()
-
         self._recipe_patched = True
 
     def build(self):
@@ -177,7 +176,7 @@ class BuildCondaPkg:
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call([
-                "mamba", "mambabuild",
+                "conda", "mambabuild",
                 "--no-test", "--skip-existing", "--build-id-pat={n}",
                 str(self._fdstk_path / "recipe")
             ])
@@ -197,27 +196,28 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
+    feedstock_branch = "dev"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
-        self.logger.info("Creating Spyder menu file...")
-        _menufile = RESOURCES / "spyder-menu.json"
-        self.menufile = BUILD / "spyder-menu.json"
-        commit, branch = self.repo.head.commit.name_rev.split()
-        text = _menufile.read_text()
-        text = text.replace("__PKG_VERSION__", self.version)
-        text = text.replace("__SPY_BRANCH__", branch)
-        text = text.replace("__SPY_COMMIT__", commit[:8])
-        self.menufile.write_text(text)
+        self.logger.info("Patching Spyder source...")
+        file = self._bld_src / "spyder/__init__.py"
+        file_text = file.read_text()
+        ver_str = tuple(self.version.split('.'))
+        file_text = re.sub(
+            r'^(version_info = ).*',
+            rf'\g<1>{ver_str}',
+            file_text,
+            flags=re.MULTILINE
+        )
+        file.write_text(file_text)
+
+        self.repo.git.diff(
+            output=(self._fdstk_path / "recipe" / "version.patch").as_posix()
+        )
+        self.repo.git.stash()
 
     def _patch_meta(self, meta):
-        # Remove osx_is_app
-        meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
-                      r'\g<1>', meta, flags=re.MULTILINE)
-
-        # Remove app node
-        meta = re.sub(r'^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
-
         # Get current Spyder requirements
         yaml = YAML()
         current_requirements = ['python']
@@ -244,51 +244,18 @@ class SpyderCondaPkg(BuildCondaPkg):
         meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
                       rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
 
+        # Add version patch
+        meta = re.sub(r'^(source:\n(.*\n)*  patches:\n)',
+                      r'\g<1>    - version.patch\n',
+                      meta, flags=re.MULTILINE)
         return meta
-
-    def _patch_build_script(self):
-        self.logger.info("Patching build script...")
-
-        rel_menufile = self.menufile.relative_to(HERE.parent)
-
-        if os.name == 'posix':
-            logomark = "branding/logo/logomark/spyder-logomark-background.png"
-            file = self._fdstk_path / "recipe" / "build.sh"
-            text = file.read_text()
-            text += dedent(
-                f"""
-                # Create the Menu directory
-                mkdir -p "${{PREFIX}}/Menu"
-
-                # Copy menu.json template
-                cp "${{SRC_DIR}}/{rel_menufile}" "${{PREFIX}}/Menu/spyder-menu.json"
-
-                # Copy application icons
-                if [[ $OSTYPE == "darwin"* ]]; then
-                    cp "${{SRC_DIR}}/img_src/spyder.icns" "${{PREFIX}}/Menu/spyder.icns"
-                else
-                    cp "${{SRC_DIR}}/{logomark}" "${{PREFIX}}/Menu/spyder.png"
-                fi
-                """
-            )
-
-        if os.name == 'nt':
-            file = self._fdstk_path / "recipe" / "bld.bat"
-            text = file.read_text()
-            text = text.replace(
-                r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                fr"copy %SRC_DIR%\{rel_menufile} %MENU_DIR%\spyder-menu.json"
-            )
-        file.rename(file.parent / ("_" + file.name))  # keep copy of original
-        file.write_text(text)
-
-        self.logger.info(f"Patched build script contents:\n{file.read_text()}")
 
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
     source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "v1.4.1"
 
 
@@ -296,6 +263,7 @@ class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
     source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "5.3.1"
 
 
@@ -303,6 +271,7 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
+    feedstock_branch = "rc"
     shallow_ver = "v2.3.1"
 
 

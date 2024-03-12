@@ -17,10 +17,10 @@ Breakpoint widget.
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
-from qtpy.QtWidgets import QTableView
+from qtpy.QtWidgets import QAbstractItemView, QTableView
 
 # Local imports
 from spyder.api.translations import _
@@ -175,7 +175,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
     sig_conditional_breakpoint_requested = Signal()
 
     def __init__(self, parent, data):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QTableView.__init__(self, parent)
@@ -186,8 +186,10 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
 
         # Setup
         self.setSortingEnabled(False)
-        self.setSelectionBehavior(self.SelectRows)
-        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setModel(self.model)
         self._adjust_columns()
         self.horizontalHeader().setStretchLastSection(True)
@@ -203,8 +205,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         css.setValues(
             borderTopLeftRadius='0px',
             borderBottomLeftRadius='0px',
-            borderTopRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
-            borderBottomRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+            borderTopRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
         )
         self.setStyleSheet(css.toString())
 

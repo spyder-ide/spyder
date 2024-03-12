@@ -135,13 +135,15 @@ class SpyderKernel(IPythonKernel):
             # Do not use /tmp for temporary files
             try:
                 from xdg.BaseDirectory import xdg_data_home
-                fault_dir = xdg_data_home
+                fault_dir = os.path.join(xdg_data_home, "spyder")
                 os.makedirs(fault_dir, exist_ok=True)
             except Exception:
                 fault_dir = None
 
         self.faulthandler_handle = tempfile.NamedTemporaryFile(
-            'wt', suffix='.fault', dir=fault_dir)
+            'wt', suffix='.fault', dir=fault_dir
+        )
+
         main_id = threading.main_thread().ident
         system_ids = [
             thread.ident for thread in threading.enumerate()
@@ -172,9 +174,7 @@ class SpyderKernel(IPythonKernel):
         # Remove file
         try:
             os.remove(fault_filename)
-        except FileNotFoundError:
-            pass
-        except PermissionError:
+        except Exception:
             pass
 
         # Process file
@@ -557,6 +557,8 @@ class SpyderKernel(IPythonKernel):
         resolution_n = 'pylab/inline/resolution'
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
         inline_backend = 'inline'
 
@@ -579,6 +581,15 @@ class SpyderKernel(IPythonKernel):
             self._set_mpl_inline_rc_config(
                 'figure.figsize',
                 (conf[width_n], conf[height_n])
+            )
+
+        if fontsize_n in conf:
+            self._set_mpl_inline_rc_config('font.size', conf[fontsize_n])
+
+        if bottom_n in conf:
+            self._set_mpl_inline_rc_config(
+                'figure.subplot.bottom',
+                conf[bottom_n]
             )
 
         if bbox_inches_n in conf:
@@ -710,13 +721,13 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "pylab":
-            import matplotlib
+            import matplotlib  # noqa
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
            
         if special == "sympy":
-            import sympy
+            import sympy  # noqa
             sympy_init = "\n".join([
                 "from sympy import *",
                 "x, y, z, t = symbols('x y z t')",
@@ -729,7 +740,7 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "cython":
-            import cython
+            import cython  # noqa
 
             # Import pyximport to enable Cython files support for
             # import statement

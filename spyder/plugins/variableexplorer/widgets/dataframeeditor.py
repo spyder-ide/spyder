@@ -35,6 +35,7 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 # Standard library imports
 import io
 from time import perf_counter
+from typing import Any, Callable, Optional
 
 # Third party imports
 from packaging.version import parse
@@ -44,26 +45,79 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QCheckBox, QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-    QMenu, QMessageBox, QPushButton, QTableView, QScrollBar, QTableWidget,
-    QFrame, QItemDelegate, QVBoxLayout, QLabel, QDialog)
+    QApplication, QDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
+    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollBar,
+    QStyle, QTableView, QTableWidget, QToolButton, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.widgets.toolbars import SpyderToolbar
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
+from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    MENU_SEPARATOR, keybinding,
-                                    qapplication)
-from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
-from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.qthelpers import keybinding, qapplication
+from spyder.utils.stylesheet import AppStyle, MAC
+
+
+# =============================================================================
+# ---- Constants
+# =============================================================================
+
+class DataframeEditorActions:
+    ConvertToBool = 'convert_to_bool_action'
+    ConvertToComplex = 'convert_to_complex_action'
+    ConvertToFloat = 'convert_to_float_action'
+    ConvertToInt = 'convert_to_int_action'
+    ConvertToStr = 'convert_to_str_action'
+    Copy = 'copy_action'
+    DuplicateColumn = 'duplicate_column_action'
+    DuplicateRow = 'duplicate_row_action'
+    Edit = 'edit_action'
+    EditHeader = 'edit_header_action'
+    EditIndex = 'edit_index_action'
+    Format = 'format_action'
+    InsertAbove = 'insert_above_action'
+    InsertAfter = 'insert_after_action'
+    InsertBefore = 'insert_before_action'
+    InsertBelow = 'insert_below_action'
+    Refresh = 'refresh_action'
+    RemoveColumn = 'remove_column_action'
+    RemoveRow = 'remove_row_action'
+    ResizeColumns = 'resize_columns_action'
+    ResizeRows = 'resize_rows_action'
+    ToggleBackgroundColor = 'toggle_background_color_action'
+    ToggleBackgroundColorGlobal = 'toggle_background_color_global_action'
+
+
+class DataframeEditorMenus:
+    Context = 'context_menu'
+    ConvertTo = 'convert_to_submenu'
+    Header = 'header_context_menu'
+    Index = 'index_context_menu'
+    Options = 'options_menu'
+
+
+class DataframeEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
+
+
+class DataframeEditorContextMenuSections:
+    Edit = 'edit_section'
+    Row = 'row_section'
+    Column = 'column_section'
+    Convert = 'convert_section'
+
+
+class DataframeEditorToolbarSections:
+    Row = 'row_section'
+    ColumnAndRest = 'column_section'
 
 
 # Supported real and complex number types
@@ -93,6 +147,9 @@ BACKGROUND_NONNUMBER_COLOR = QStylePalette.COLOR_BACKGROUND_2
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
 
+# =============================================================================
+# ---- Utility functions
+# =============================================================================
 
 def is_any_real_numeric_dtype(dtype) -> bool:
     """
@@ -123,6 +180,9 @@ def global_max(col_vals, index):
     max_col, min_col = zip(*col_vals_without_None)
     return max(max_col), min(min_col)
 
+# =============================================================================
+# ---- Main classes
+# =============================================================================
 
 class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
     """
@@ -462,8 +522,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
-                                Qt.ItemIsEditable))
+        return (
+            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
+        )
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -559,7 +620,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class DataFrameView(QTableView, SpyderConfigurationAccessor):
+class DataFrameView(QTableView, SpyderWidgetMixin):
     """
     Data Frame view class.
 
@@ -574,13 +635,13 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent, model, header, hscroll, vscroll):
+    def __init__(self, parent, model, header, hscroll, vscroll,
+                 data_function: Optional[Callable[[], Any]] = None):
         """Constructor."""
         QTableView.__init__(self, parent)
 
         self.menu = None
         self.menu_header_h = None
-        self.menu_actions = []
         self.empty_ws_menu = None
         self.copy_action = None
         self.edit_action = None
@@ -593,7 +654,9 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.remove_col_action = None
         self.duplicate_row_action = None
         self.duplicate_col_action = None
-        self.convert_to_action = None
+        self.convert_to_menu = None
+        self.resize_action = None
+        self.resize_columns_action = None
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -607,6 +670,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         self.header_class.customContextMenuRequested.connect(
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
+        self.data_function = data_function
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
         self.config_shortcut(self.copy, 'copy', self)
@@ -678,14 +742,15 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
     def setup_menu_header(self):
         """Setup context header menu."""
-        edit_header_action = create_action(
-            self, _("Edit"),
+        edit_header_action = self.create_action(
+            name=DataframeEditorActions.EditHeader,
+            text=_("Edit"),
             icon=ima.icon('edit'),
-            triggered=self.edit_header_item
+            triggered=self.edit_header_item,
+            register_action=False
         )
-        header_menu = [edit_header_action]
-        menu = QMenu(self)
-        add_actions(menu, header_menu)
+        menu = self.create_menu(DataframeEditorMenus.Header, register=False)
+        self.add_item_to_menu(edit_header_action, menu)
         return menu
 
     def refresh_menu(self):
@@ -701,7 +766,7 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
         for action in [self.edit_action, self.insert_action_above,
                        self.insert_action_below, self.insert_action_after,
                        self.insert_action_before, self.duplicate_row_action,
-                       self.duplicate_col_action, self.convert_to_action]:
+                       self.duplicate_col_action]:
             action.setEnabled(condition_edit)
 
         # Enable/disable actions for remove col/row and copy
@@ -716,116 +781,149 @@ class DataFrameView(QTableView, SpyderConfigurationAccessor):
 
     def setup_menu(self):
         """Setup context menu."""
-        resize_action = create_action(
-            self, _("Resize rows to contents"),
+        # ---- Create actions
+
+        self.resize_action = self.create_action(
+            name=DataframeEditorActions.ResizeRows,
+            text=_("Resize rows to contents"),
             icon=ima.icon('collapse_row'),
-            triggered=lambda: self.resize_to_contents(rows=True)
+            triggered=lambda: self.resize_to_contents(rows=True),
+            register_action=False
         )
-        resize_columns_action = create_action(
-            self,
-            _("Resize columns to contents"),
+        self.resize_columns_action = self.create_action(
+            name=DataframeEditorActions.ResizeColumns,
+            text=_("Resize columns to contents"),
             icon=ima.icon('collapse_column'),
-            triggered=self.resize_to_contents)
-        self.edit_action = create_action(
-            self, _("Edit"),
+            triggered=self.resize_to_contents,
+            register_action=False
+        )
+        self.edit_action = self.create_action(
+            name=DataframeEditorActions.Edit,
+            text=_("Edit"),
             icon=ima.icon('edit'),
-            triggered=self.edit_item
+            triggered=self.edit_item,
+            register_action=False
         )
-        self.insert_action_above = create_action(
-            self, _("Insert above"),
+        self.insert_action_above = self.create_action(
+            name=DataframeEditorActions.InsertAbove,
+            text=_("Insert above"),
             icon=ima.icon('insert_above'),
-            triggered=lambda: self.insert_item(axis=1, before_above=True)
+            triggered=lambda: self.insert_item(axis=1, before_above=True),
+            register_action=False
         )
-        self.insert_action_below = create_action(
-            self, _("Insert below"),
+        self.insert_action_below = self.create_action(
+            name=DataframeEditorActions.InsertBelow,
+            text=_("Insert below"),
             icon=ima.icon('insert_below'),
-            triggered=lambda: self.insert_item(axis=1, before_above=False)
+            triggered=lambda: self.insert_item(axis=1, before_above=False),
+            register_action=False
         )
-        self.insert_action_before = create_action(
-            self, _("Insert before"),
+        self.insert_action_before = self.create_action(
+            name=DataframeEditorActions.InsertBefore,
+            text=_("Insert before"),
             icon=ima.icon('insert_before'),
-            triggered=lambda: self.insert_item(axis=0, before_above=True)
+            triggered=lambda: self.insert_item(axis=0, before_above=True),
+            register_action=False
         )
-        self.insert_action_after = create_action(
-            self, _("Insert after"),
+        self.insert_action_after = self.create_action(
+            name=DataframeEditorActions.InsertAfter,
+            text=_("Insert after"),
             icon=ima.icon('insert_after'),
-            triggered=lambda: self.insert_item(axis=0, before_above=False)
+            triggered=lambda: self.insert_item(axis=0, before_above=False),
+            register_action=False
         )
-        self.remove_row_action = create_action(
-            self, _("Remove row"),
+        self.remove_row_action = self.create_action(
+            name=DataframeEditorActions.RemoveRow,
+            text=_("Remove row"),
             icon=ima.icon('delete_row'),
-            triggered=self.remove_item
+            triggered=self.remove_item,
+            register_action=False
         )
-        self.remove_col_action = create_action(
-            self, _("Remove column"),
+        self.remove_col_action = self.create_action(
+            name=DataframeEditorActions.RemoveColumn,
+            text=_("Remove column"),
             icon=ima.icon('delete_column'),
-            triggered=lambda:
-            self.remove_item(axis=1)
+            triggered=lambda: self.remove_item(axis=1),
+            register_action=False
         )
-        self.duplicate_row_action = create_action(
-            self, _("Duplicate row"),
+        self.duplicate_row_action = self.create_action(
+            name=DataframeEditorActions.DuplicateRow,
+            text=_("Duplicate row"),
             icon=ima.icon('duplicate_row'),
-            triggered=lambda: self.duplicate_row_col(dup_row=True)
+            triggered=lambda: self.duplicate_row_col(dup_row=True),
+            register_action=False
         )
-        self.duplicate_col_action = create_action(
-            self, _("Duplicate column"),
+        self.duplicate_col_action = self.create_action(
+            name=DataframeEditorActions.DuplicateColumn,
+            text=_("Duplicate column"),
             icon=ima.icon('duplicate_column'),
-            triggered=lambda: self.duplicate_row_col(dup_row=False)
+            triggered=lambda: self.duplicate_row_col(dup_row=False),
+            register_action=False
         )
-        self.copy_action = create_action(
-            self, _('Copy'),
-            shortcut=keybinding('Copy'),
+        self.copy_action = self.create_action(
+            name=DataframeEditorActions.Copy,
+            text=_('Copy'),
             icon=ima.icon('editcopy'),
             triggered=self.copy,
-            context=Qt.WidgetShortcut
+            register_action=False
         )
+        self.copy_action.setShortcut(keybinding('Copy'))
+        self.copy_action.setShortcutContext(Qt.WidgetShortcut)
 
-        self.convert_to_action = create_action(self, _('Convert to'))
-        menu_actions = [
-            self.edit_action,
-            self.copy_action,
-            self.remove_row_action,
-            self.remove_col_action,
-            MENU_SEPARATOR,
-            self.insert_action_above,
-            self.insert_action_below,
-            self.insert_action_after,
-            self.insert_action_before,
-            self.duplicate_row_action,
-            self.duplicate_col_action,
-            MENU_SEPARATOR,
-            self.convert_to_action,
-            MENU_SEPARATOR,
-            resize_action,
-            resize_columns_action
-        ]
-        self.menu_actions = menu_actions.copy()
+        # ---- Create "Convert to" submenu and actions
 
+        self.convert_to_menu = self.create_menu(
+            menu_id=DataframeEditorMenus.ConvertTo,
+            title=_('Convert to'),
+            register=False
+        )
         functions = (
-            (_("Bool"), bool),
-            (_("Complex"), complex),
-            (_("Int"), int),
-            (_("Float"), float),
-            (_("Str"), to_text_string)
+            (_("Bool"), bool, DataframeEditorActions.ConvertToBool),
+            (_("Complex"), complex, DataframeEditorActions.ConvertToComplex),
+            (_("Int"), int, DataframeEditorActions.ConvertToInt),
+            (_("Float"), float, DataframeEditorActions.ConvertToFloat),
+            (_("Str"), to_text_string, DataframeEditorActions.ConvertToStr)
         )
-        convert_to_menu = QMenu(self)
-        self.convert_to_action.setMenu(convert_to_menu)
-        self.convert_to_actions = []
-        for name, func in functions:
+        for text, func, name in functions:
             def slot():
                 self.change_type(func)
-            self.convert_to_actions += [
-                create_action(
-                    self,
-                    name,
-                    triggered=slot,
-                    context=Qt.WidgetShortcut
-                )
-            ]
+            action = self.create_action(
+                name=name,
+                text=text,
+                triggered=slot,
+                context=Qt.WidgetShortcut,
+                register_action=False
+            )
+            self.add_item_to_menu(action, self.convert_to_menu)
 
-        menu = QMenu(self)
-        add_actions(convert_to_menu, self.convert_to_actions)
-        add_actions(menu, menu_actions)
+        # ---- Create context menu and fill it
+
+        menu = self.create_menu(DataframeEditorMenus.Context, register=False)
+        for action in [self.copy_action, self.edit_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Edit
+            )
+        for action in [self.insert_action_above, self.insert_action_below,
+                       self.duplicate_row_action, self.remove_row_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Row
+            )
+        for action in [self.insert_action_before, self.insert_action_after,
+                       self.duplicate_col_action, self.remove_col_action]:
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=DataframeEditorContextMenuSections.Column
+            )
+        self.add_item_to_menu(
+            self.convert_to_menu,
+            menu,
+            section=DataframeEditorContextMenuSections.Convert
+        )
 
         return menu
 
@@ -1589,7 +1687,7 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
         return None
 
 
-class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
+class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
@@ -1599,8 +1697,40 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
     """
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent: QWidget = None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         super().__init__(parent)
+        self.data_function = data_function
+
+        self.refresh_action = self.create_action(
+            name=DataframeEditorActions.Refresh,
+            text=_('Refresh'),
+            icon=ima.icon('refresh'),
+            tip=_('Refresh editor with current value of variable in console'),
+            triggered=self.refresh_editor,
+            register_action=False
+        )
+        self.refresh_action.setEnabled(self.data_function is not None)
+        self.format_action = self.create_action(
+            name=DataframeEditorActions.Format,
+            text=_('Format'),
+            icon=self.create_icon('format_float'),
+            tip=_('Set format of floating-point numbers'),
+            triggered=self.change_format
+        )
+        self.bgcolor_action = self.create_action(
+            name=DataframeEditorActions.ToggleBackgroundColor,
+            text=_('Background color'),
+            toggled=self.change_bgcolor_enable
+        )
+        self.bgcolor_global_action = self.create_action(
+            name=DataframeEditorActions.ToggleBackgroundColorGlobal,
+            text=_('Column min/max'),
+            toggled=self.toggle_bgcolor_global
+        )
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1611,34 +1741,39 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.layout = None
         self.glayout = None
         self.menu_header_v = None
+        self.dataTable = None
 
-    def setup_and_check(self, data, title=''):
+    def setup_and_check(self, data, title='') -> bool:
         """
-        Setup DataFrameEditor:
-        return False if data is not supported, True otherwise.
-        Supported types for data are DataFrame, Series and Index.
-        """
-        self._selection_rec = False
-        self._model = None
-        self.layout = QVBoxLayout()
-        self.layout.setSpacing(0)
-        self.glayout = QGridLayout()
-        self.glayout.setSpacing(0)
-        self.glayout.setContentsMargins(0, 12, 0, 0)
-        self.setLayout(self.layout)
+        Setup editor.
 
+        It returns False if data is not supported, True otherwise. Supported
+        types for data are DataFrame, Series and Index.
+        """
         if title:
             title = to_text_string(title) + " - %s" % data.__class__.__name__
         else:
             title = _("%s editor") % data.__class__.__name__
 
-        if isinstance(data, pd.Series):
-            self.is_series = True
-            data = data.to_frame()
-        elif isinstance(data, pd.Index):
-            data = pd.DataFrame(data)
+        self.setup_ui(title)
+        return self.set_data_and_check(data)
 
-        self.setWindowTitle(title)
+    def setup_ui(self, title: str) -> None:
+        """
+        Create user interface.
+        """
+        # ---- Toolbar (to be filled later)
+
+        self.toolbar = self.create_toolbar(
+            DataframeEditorWidgets.Toolbar,
+            register=False
+        )
+
+        # ---- Grid layout with tables and scrollbars showing data frame
+
+        self.glayout = QGridLayout()
+        self.glayout.setSpacing(0)
+        self.glayout.setContentsMargins(0, 0, 0, 0)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -1655,57 +1790,19 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         # Create menu to allow edit index
         self.menu_header_v = self.setup_menu_header(self.table_index)
 
-        # Create the model and view of the data
-        self.dataModel = DataFrameModel(data, parent=self)
-        self.dataModel.dataChanged.connect(self.save_and_close_enable)
-        self.create_data_table()
-
         self.glayout.addWidget(self.hscroll, 2, 0, 1, 2)
         self.glayout.addWidget(self.vscroll, 0, 2, 2, 1)
-
-        # autosize columns on-demand
-        self._autosized_cols = set()
-
-        # Set limit time to calculate column sizeHint to 300ms,
-        # See spyder-ide/spyder#11060
-        self._max_autosize_ms = 300
-        self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
         self.min_trunc = avg_width * 12  # Minimum size for columns
         self.max_width = avg_width * 64  # Maximum size for columns
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        # ---- Buttons at bottom
+
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(5)
-
-        btn_format = QPushButton(_("Format"))
-        # disable format button for int type
-        btn_layout.addWidget(btn_format)
-        btn_format.clicked.connect(self.change_format)
-
-        btn_resize = QPushButton(_('Resize'))
-        btn_layout.addWidget(btn_resize)
-        btn_resize.clicked.connect(self.resize_to_contents)
-
-        bgcolor = QCheckBox(_('Background color'))
-        bgcolor.setChecked(self.dataModel.bgcolor_enabled)
-        bgcolor.setEnabled(self.dataModel.bgcolor_enabled)
-        bgcolor.stateChanged.connect(self.change_bgcolor_enable)
-        btn_layout.addWidget(bgcolor)
-
-        self.bgcolor_global = QCheckBox(_('Column min/max'))
-        self.bgcolor_global.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global.setEnabled(not self.is_series and
-                                       self.dataModel.bgcolor_enabled)
-        self.bgcolor_global.stateChanged.connect(self.dataModel.colum_avg)
-        btn_layout.addWidget(self.bgcolor_global)
-
         btn_layout.addStretch()
 
         self.btn_save_and_close = QPushButton(_('Save and Close'))
-        self.btn_save_and_close.setDisabled(True)
         self.btn_save_and_close.clicked.connect(self.accept)
         btn_layout.addWidget(self.btn_save_and_close)
 
@@ -1715,25 +1812,129 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        btn_layout.setContentsMargins(0, 16, 0, 16)
-        self.glayout.addLayout(btn_layout, 4, 0, 1, 2)
+        # ---- Final layout
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.toolbar)
+
+        # Remove vertical space between toolbar and data frame
+        style = self.style()
+        default_spacing = style.pixelMetric(QStyle.PM_LayoutVerticalSpacing)
+        self.layout.addSpacing(-default_spacing)
+
+        self.layout.addLayout(self.glayout)
+        self.layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
+        self.layout.addLayout(btn_layout)
+        self.setLayout(self.layout)
+
+        self.setWindowTitle(title)
+
+        # Make the dialog act as a window
+        self.setWindowFlags(Qt.Window)
+
+    def set_data_and_check(self, data) -> bool:
+        """
+        Checks whether data is suitable and display it in the editor.
+
+        This method returns False if data is not supported.
+        """
+        if not isinstance(data, (pd.DataFrame, pd.Series, pd.Index)):
+            return False
+
+        self._selection_rec = False
+        self._model = None
+
+        if isinstance(data, pd.Series):
+            self.is_series = True
+            data = data.to_frame()
+        elif isinstance(data, pd.Index):
+            data = pd.DataFrame(data)
+
+        # Create the model and view of the data
+        self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
+        self.create_data_table()
+
+        # autosize columns on-demand
+        self._autosized_cols = set()
+
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
+        self.dataTable.installEventFilter(self)
+
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
+        self.bgcolor_action.setChecked(self.dataModel.bgcolor_enabled)
+        self.bgcolor_action.setEnabled(self.dataModel.bgcolor_enabled)
+
+        self.bgcolor_global_action.setChecked(self.dataModel.colum_avg_enabled)
+        self.bgcolor_global_action.setEnabled(
+            not self.is_series and self.dataModel.bgcolor_enabled
+        )
+
+        self.btn_save_and_close.setDisabled(True)
         self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
         if self.table_header.rowHeight(0) == 0:
             self.table_header.setRowHeight(0, self.table_header.height())
 
-        toolbar = SpyderToolbar(parent=None, title='Editor toolbar')
-        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
-        for item in self.dataTable.menu_actions:
-            if item is not None:
-                if item.text() != 'Convert to':
-                    toolbar.addAction(item)
+        stretcher = self.create_stretcher(
+            DataframeEditorWidgets.ToolbarStretcher
+        )
 
-        self.layout.addWidget(toolbar)
-        self.layout.addLayout(self.glayout)
+        options_menu = self.create_menu(
+            DataframeEditorMenus.Options,
+            register=False
+        )
+        for action in [self.bgcolor_action, self.bgcolor_global_action,
+                       self.format_action]:
+            self.add_item_to_menu(action, options_menu)
+
+        options_button = self.create_toolbutton(
+            name=DataframeEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
+        self.toolbar.clear()
+        self.toolbar._section_items.clear()
+        self.toolbar._item_map.clear()
+
+        for item in [
+            self.dataTable.insert_action_above,
+            self.dataTable.insert_action_below,
+            self.dataTable.duplicate_row_action,
+            self.dataTable.remove_row_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                self.toolbar,
+                section=DataframeEditorToolbarSections.Row
+            )
+
+        for item in [
+            self.dataTable.insert_action_before,
+            self.dataTable.insert_action_after,
+            self.dataTable.duplicate_col_action,
+            self.dataTable.remove_col_action,
+            stretcher,
+            self.dataTable.resize_action,
+            self.dataTable.resize_columns_action,
+            self.refresh_action,
+            options_button
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                self.toolbar,
+                section=DataframeEditorToolbarSections.ColumnAndRest
+            )
+
+        self.toolbar._render()
 
         return True
 
@@ -1746,15 +1947,15 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def setup_menu_header(self, header):
         """Setup context header menu."""
-        edit_header_action = create_action(
-            self,
-            _("Edit"),
+        edit_header_action = self.create_action(
+            name=DataframeEditorActions.EditIndex,
+            text=_("Edit"),
             icon=ima.icon('edit'),
-            triggered=lambda: self.edit_header_item(header=header)
+            triggered=lambda: self.edit_header_item(header=header),
+            register_action=False
         )
-        header_menu = [edit_header_action]
-        menu = QMenu(self)
-        add_actions(menu, header_menu)
+        menu = self.create_menu(DataframeEditorMenus.Index, register=False)
+        self.add_item_to_menu(edit_header_action, menu)
         return menu
 
     @Slot()
@@ -1833,9 +2034,15 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
+        if self.dataTable:
+            self.layout.removeWidget(self.dataTable)
+            self.dataTable.deleteLater()
+            self.dataTable = None
+
         self.dataTable = DataFrameView(self, self.dataModel,
                                        self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll)
+                                       self.hscroll, self.vscroll,
+                                       self.data_function)
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -2047,7 +2254,58 @@ class DataFrameEditor(BaseDialog, SpyderConfigurationAccessor):
         This is implementet so column min/max is only active when bgcolor is
         """
         self.dataModel.bgcolor(state)
-        self.bgcolor_global.setEnabled(not self.is_series and state > 0)
+        self.bgcolor_global_action.setEnabled(not self.is_series and state > 0)
+
+    def toggle_bgcolor_global(self, state: bool) -> None:
+        """
+        Toggle "Column min/max" setting
+        """
+        if self.dataModel:
+            self.dataModel.colum_avg(state)
+
+    def refresh_editor(self) -> None:
+        """
+        Refresh data in editor.
+        """
+        assert self.data_function is not None
+
+        if self.btn_save_and_close.isEnabled():
+            if not self.ask_for_refresh_confirmation():
+                return
+
+        try:
+            data = self.data_function()
+        except (IndexError, KeyError):
+            self.error(_('The variable no longer exists.'))
+            return
+
+        if not self.set_data_and_check(data):
+            self.error(
+                _('The new value cannot be displayed in the dataframe '
+                  'editor.')
+            )
+
+    def ask_for_refresh_confirmation(self) -> bool:
+        """
+        Ask user to confirm refreshing the editor.
+
+        This function is to be called if refreshing the editor would overwrite
+        changes that the user made previously. The function returns True if
+        the user confirms that they want to refresh and False otherwise.
+        """
+        message = _('Refreshing the editor will overwrite the changes that '
+                    'you made. Do you want to proceed?')
+        result = QMessageBox.question(
+            self,
+            _('Refresh dataframe editor?'),
+            message
+        )
+        return result == QMessageBox.Yes
+
+    def error(self, message):
+        """An error occurred, closing the dialog box"""
+        QMessageBox.critical(self, _("Dataframe editor"), message)
+        self.reject()
 
     @Slot()
     def change_format(self):

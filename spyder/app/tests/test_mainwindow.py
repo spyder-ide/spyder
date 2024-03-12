@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import QPoint, Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -53,7 +53,8 @@ from spyder.app.tests.conftest import (
     open_file_in_editor, preferences_dialog_helper, read_asset_file,
     reset_run_code, SHELL_TIMEOUT, start_new_kernel)
 from spyder.config.base import (
-    get_home_dir, get_conf_path, get_module_path, running_in_ci)
+    get_home_dir, get_conf_path, get_module_path, running_in_ci,
+    running_in_ci_with_conda)
 from spyder.config.manager import CONF
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
@@ -61,7 +62,10 @@ from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
-from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
+from spyder.plugins.ipythonconsole.api import (
+    IPythonConsolePyConfiguration,
+    IPythonConsoleWidgetMenus
+)
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.profiler.widgets.main_widget import ProfilerWidgetActions
@@ -2438,7 +2442,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
-def test_switcher(main_window, qtbot, tmpdir):
+def test_switcher(main_window, capsys, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
     switcher_widget = switcher._switcher
@@ -2488,12 +2492,15 @@ def example_def_2():
     main_window.editor.set_current_filename(str(file_a))
 
     code_editor = main_window.editor.get_focus_widget()
-    qtbot.waitUntil(lambda: code_editor.completions_available,
-                    timeout=COMPLETION_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: code_editor.completions_available,
+        timeout=COMPLETION_TIMEOUT
+    )
 
     with qtbot.waitSignal(
-            code_editor.completions_response_signal,
-            timeout=COMPLETION_TIMEOUT):
+        code_editor.completions_response_signal,
+        timeout=COMPLETION_TIMEOUT
+    ):
         code_editor.request_symbols()
 
     qtbot.wait(9000)
@@ -2501,7 +2508,19 @@ def example_def_2():
     switcher.open_switcher()
     qtbot.keyClicks(switcher_widget.edit, '@')
     qtbot.wait(500)
+
+    # Capture stderr and assert there are no errors
+    sys_stream = capsys.readouterr()
+    assert sys_stream.err == ''
+
+    # Check number of items
     assert switcher_widget.count() == 2
+
+    # Check that selecting different items in the switcher jumps to the
+    # corresponding line in the editor
+    switcher.set_current_row(1)
+    code_editor.textCursor().blockNumber() == 5
+
     switcher.on_close()
 
 
@@ -4151,6 +4170,10 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_running_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging in a
@@ -4205,6 +4228,10 @@ def test_running_namespace(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_running_namespace_refresh(main_window, qtbot, tmpdir):
     """
     Test that the running namespace can be accessed recursively
@@ -4270,6 +4297,10 @@ def test_running_namespace_refresh(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and not running_in_ci_with_conda(),
+    reason="Sometimes hangs on Linux with pip packages"
+)
 def test_debug_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging
@@ -5658,10 +5689,11 @@ crash_func()
     # Click the run button
     qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
+    # Check segfault info is printed in the console
     qtbot.waitUntil(lambda: 'Segmentation fault' in control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert 'Segmentation fault' in control.toPlainText()
-    assert 'in crash_func' in control.toPlainText()
+    qtbot.waitUntil(lambda: 'in crash_func' in control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
 
 
 @flaky(max_runs=3)
@@ -6521,34 +6553,70 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Add a new directory to PYTHONPATH
-    new_dir = tmp_path / 'new_dir'
-    new_dir.mkdir()
-    set_user_env({"PYTHONPATH": str(new_dir)})
-
-    # Open Pythonpath dialog to detect new_dir
+    # Main variables
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
+
+    # Add a directory to PYTHONPATH
+    sys_dir = tmp_path / 'sys_dir'
+    sys_dir.mkdir()
+    set_user_env({"PYTHONPATH": str(sys_dir)})
+
+    # Add a directory to the current list of paths to simulate a path added by
+    # users
+    user_dir = tmp_path / 'user_dir'
+    user_dir.mkdir()
+    if os.name != "nt":
+        assert ppm.get_container().path == ()
+    ppm.get_container().path = (str(user_dir),) + ppm.get_container().path
+
+    # Open Pythonpath dialog to detect sys_dir
     ppm.show_path_manager()
     qtbot.wait(500)
 
-    # Check new_dir was added to sys.path after closing the dialog
-    ppm.path_manager_dialog.close()
+    # Check we're showing two headers
+    assert len(ppm.path_manager_dialog.headers) == 2
+
+    # Check the PPM emits the right signal after closing the dialog
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.close()
+
+    # Check directories were added to sys.path in the right order
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute("import sys; sys_path = sys.path")
 
-    assert str(new_dir) in shell.get_value("sys_path")
+    sys_path = shell.get_value("sys_path")
+    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
 
     # Create new console
     ipyconsole.create_new_client()
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+    shell1 = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell1._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Check new_dir is part of the new console's sys.path
-    with qtbot.waitSignal(shell.executed, timeout=2000):
-        shell.execute("import sys; sys_path = sys.path")
+    # Check directories are part of the new console's sys.path
+    with qtbot.waitSignal(shell1.executed, timeout=2000):
+        shell1.execute("import sys; sys_path = sys.path")
 
-    assert str(new_dir) in shell.get_value("sys_path")
+    sys_path = shell1.get_value("sys_path")
+    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+
+    # Check that disabling a path from the PPM removes it from sys.path in all
+    # consoles
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    item = ppm.path_manager_dialog.listwidget.item(1)
+    item.setCheckState(Qt.Unchecked)
+
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.accept()
+
+    for s in [shell, shell1]:
+        with qtbot.waitSignal(s.executed, timeout=2000):
+            s.execute("import sys; sys_path = sys.path")
+
+        sys_path = s.get_value("sys_path")
+        assert str(user_dir) not in sys_path
 
 
 @flaky(max_runs=10)
@@ -6800,6 +6868,75 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()
         main_window.editor.close_file()
+
+
+@flaky(max_runs=5)
+@pytest.mark.skipif(not sys.platform == 'darwin', reason="Only works for Mac")
+def test_icons_in_menus(main_window, qtbot):
+    """Test that we show/hide icons in menus correctly on Mac."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # -- Main variables
+    mainmenu = main_window.get_plugin(Plugins.MainMenu)
+    consoles_menu = mainmenu.get_application_menu(ApplicationMenus.Consoles)
+    ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
+    tabs_console_menu = ipyconsole.get_widget().get_menu(
+        IPythonConsoleWidgetMenus.TabsContextMenu
+    )
+    env_consoles_menu = ipyconsole.get_widget().get_menu(
+        IPythonConsoleWidgetMenus.EnvironmentConsoles
+    )
+
+    # -- Auxiliary functions
+    def show_env_consoles_menu(menu):
+        # Get geometry of action corresponding to env_consoles_menu
+        for action in menu.actions():
+            if action.menu() == env_consoles_menu:
+                rect = menu.actionGeometry(action)
+                break
+
+        # Simulate mouse movement to show the menu
+        for i in range(5):
+            qtbot.mouseMove(
+                menu,
+                QPoint(rect.x() + 2 * i, rect.y() + 2 * i),
+                delay=100
+            )
+
+        # Wait for a bit so the menu is populated
+        qtbot.wait(500)
+
+    # -- IMPORTANT NOTES --
+    # * Don't change this testing order!! First we need to test regular menus
+    #   and then app ones. That's because we remove all icons in menus by
+    #   default on Mac (see the definition of SpyderAction).
+    # * We use get_actions below because we introduce a dummy action on Mac
+    #   menus to dynamically populate them.
+
+    # -- Check that icons are shown in regular menus
+    tabs_console_menu.popup(QPoint(100, 100))
+    qtbot.waitUntil(tabs_console_menu.isVisible)
+    assert tabs_console_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are shown in submenus of regular menus
+    show_env_consoles_menu(tabs_console_menu)
+    assert env_consoles_menu.isVisible()
+    assert env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are not shown in actions of app menus
+    consoles_menu.popup(QPoint(200, 200))
+    qtbot.waitUntil(consoles_menu.isVisible)
+    assert not tabs_console_menu.isVisible()
+    assert not consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+    # -- Check that icons are not shown in submenus of app menus
+    show_env_consoles_menu(consoles_menu)
+    assert env_consoles_menu.isVisible()
+    assert not env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
 
 
 if __name__ == "__main__":

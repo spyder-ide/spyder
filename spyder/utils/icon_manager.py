@@ -17,8 +17,8 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.encoding import is_text_file
 from spyder.utils.palette import QStylePalette, SpyderPalette
 import qtawesome as qta
 
@@ -168,7 +168,10 @@ class IconManager():
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
-            'help_gray':               [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_OCCURRENCE_4}],            
+            'question_tip':            [('mdi.help-circle-outline',), {'color': QStylePalette.COLOR_BACKGROUND_6}],
+            'question_tip_hover':      [('mdi.help-circle-outline',), {'color': QStylePalette.COLOR_TEXT_4}],
+            'info_tip':                [('mdi.information-outline',), {'color': QStylePalette.COLOR_BACKGROUND_6}],
+            'info_tip_hover':          [('mdi.information-outline',), {'color': QStylePalette.COLOR_TEXT_4}],
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
             'online_help':             [('mdi.help-rhombus-outline',), {'color': self.MAIN_FG_COLOR}],
             'lock':                    [('mdi.lock',), {'color': self.MAIN_FG_COLOR}],
@@ -246,9 +249,10 @@ class IconManager():
             'DirClosedIcon':           [('mdi.folder',), {'color': self.MAIN_FG_COLOR}],
             'DialogHelpButton':        [('mdi.lifebuoy',), {'color': self.MAIN_FG_COLOR}],
             'VideoIcon':               [('mdi.video',), {'color': self.MAIN_FG_COLOR}],
-            'MessageBoxInformation':   [('mdi.information',), {'color': self.MAIN_FG_COLOR}],
+            'MessageBoxInformation':   [('mdi.information-outline',), {'color': self.MAIN_FG_COLOR}],
             'DirOpenIcon':             [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
             'FileIcon':                [('mdi.file',), {'color': self.MAIN_FG_COLOR}],
+            'GenericFileIcon':         [('mdi.file-outline',), {'color': self.MAIN_FG_COLOR}],
             'ExcelFileIcon':           [('mdi.file-excel',), {'color': self.MAIN_FG_COLOR}],
             'WordFileIcon':            [('mdi.file-word',), {'color': self.MAIN_FG_COLOR}],
             'PowerpointFileIcon':      [('mdi.file-powerpoint',), {'color': self.MAIN_FG_COLOR}],
@@ -272,8 +276,7 @@ class IconManager():
             'MarkdownFileIcon':        [('mdi.markdown',), {'color': self.MAIN_FG_COLOR}],
             'JsonFileIcon':            [('mdi.json',), {'color': self.MAIN_FG_COLOR}],
             'ExclamationFileIcon':     [('mdi.exclamation',), {'color': self.MAIN_FG_COLOR}],
-            'CodeFileIcon':             [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
-            'project':                 [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
+            'CodeFileIcon':            [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
             'arrow':                   [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'collapse':                [('mdi.collapse-all',), {'color': self.MAIN_FG_COLOR}],
             'expand':                  [('mdi.expand-all',), {'color': self.MAIN_FG_COLOR}],
@@ -349,13 +352,11 @@ class IconManager():
             'spyder.memory_profiler':  [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.line_profiler':    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'symbol_find':             [('mdi.at',), {'color': self.MAIN_FG_COLOR}],
-            'folding.arrow_right_off': [('mdi.menu-right',), {'color': SpyderPalette.GROUP_3}],
-            'folding.arrow_right_on':  [('mdi.menu-right',), {'color': self.MAIN_FG_COLOR}],
-            'folding.arrow_down_off':  [('mdi.menu-down',), {'color': SpyderPalette.GROUP_3}],
-            'folding.arrow_down_on':   [('mdi.menu-down',), {'color': self.MAIN_FG_COLOR}],
+            'folding.arrow_right':     [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
+            'folding.arrow_down':      [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR}],
             'lspserver.down':          [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'lspserver.ready':         [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
-            'dependency_ok':           [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
+            'dependency_ok':           [('mdi.check',), {'color': SpyderPalette.COLOR_SUCCESS_2}],
             'dependency_warning':      [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],
             'dependency_error':        [('mdi.alert',), {'color': SpyderPalette.COLOR_ERROR_1}],
             'broken_image':            [('mdi.image-broken-variant',), {'color': self.MAIN_FG_COLOR}],
@@ -417,24 +418,28 @@ class IconManager():
                 icon.addPixmap(wrapping_icon.pixmap(size, size))
             return icon
         else:
-            # Normal state
+            # These are the necessary adjustments for our SVG icons.
+
+            # -- Normal state
             # NOTE: We take pixmaps as large as the ones below to not have
             # pixelated icons on high dpi screens.
             # Fixes spyder-ide/spyder#19520
             normal_state = wrapping_icon.pixmap(512, 512)
             icon.addPixmap(normal_state, QIcon.Normal)
 
-            # Disabled color from qdarkstyle
-            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
-
-            # Paint icon with the previous color to get the disabled state.
+            # -- Disabled state
             # Taken from https://stackoverflow.com/a/65618075/438386
+            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
             disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
             qp.fillRect(disabled_state.rect(), disabled_color)
             qp.end()
             icon.addPixmap(disabled_state, QIcon.Disabled)
+
+            # -- Selected state
+            # We use the normal state pixmap for the selected state as well.
+            icon.addPixmap(normal_state, QIcon.Selected)
 
             return icon
 
@@ -481,9 +486,9 @@ class IconManager():
             return self.ICONS_BY_EXTENSION[(extension, scale_factor)]
 
         if osp.isdir(fname):
-            icon_by_extension = self.icon('DirOpenIcon', scale_factor)
+            icon_by_extension = self.icon('DirClosedIcon', scale_factor)
         else:
-            icon_by_extension = self.icon('binary')
+            icon_by_extension = self.icon('GenericFileIcon')
 
             if extension in self.OFFICE_FILES:
                 icon_by_extension = self.icon(
@@ -496,7 +501,7 @@ class IconManager():
                     icon_by_extension = self.icon('notebook')
                 elif extension == '.tex':
                     icon_by_extension = self.icon('file_type_tex')
-                elif is_text_file(fname):
+                elif extension in EDIT_EXTENSIONS:
                     icon_by_extension = self.icon('TextFileIcon', scale_factor)
                 elif mime_type is not None:
                     try:

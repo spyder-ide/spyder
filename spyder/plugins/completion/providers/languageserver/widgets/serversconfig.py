@@ -17,12 +17,13 @@ from qtpy.compat import to_qvariant
 from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex,
                          QSize)
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
+                            QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                             QSpinBox, QTableView, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
@@ -150,7 +151,7 @@ class LSPServerEditor(QDialog, SpyderFontsMixin):
 
         # Widgets
         self.server_settings_description = QLabel(description)
-        self.lang_cb = QComboBox(self)
+        self.lang_cb = SpyderComboBox(self)
         self.external_cb = QCheckBox(_('External server'), self)
         self.host_label = QLabel(_('Host:'))
         self.host_input = QLineEdit(self)

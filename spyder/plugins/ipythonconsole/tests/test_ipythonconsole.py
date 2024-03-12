@@ -17,6 +17,7 @@ import re
 import shutil
 import sys
 from textwrap import dedent
+from unittest.mock import patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
@@ -40,7 +41,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY)
+    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
 
@@ -77,12 +78,12 @@ def test_banners(ipyconsole, qtbot):
     [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval ..."]),
+       "open interval<br>..."]),
      ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
-      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+      ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
        "<br>",
-       "Define a vectorized function which takes a nested sequence ..."]),
+       "Define a vectorized function which takes a nested<br>..."]),
      ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
       ["Calculate the absolute value"]),
@@ -544,7 +545,9 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
+)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -621,8 +624,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(IPython.version_info < (7, 17),
-                    reason="insert is not the same in pre 7.17 ipython")
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -673,8 +675,10 @@ def test_unicode_vars(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
-                    reason="Times out on Windows")
+@pytest.mark.skipif(
+    (running_in_ci() and os.name == 'nt') or sys.platform == "darwin",
+    reason="Hangs on CIs for Windows and Mac"
+)
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -726,6 +730,7 @@ def test_values_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_execute_events_dbg(ipyconsole, qtbot):
     """Test execute events while debugging"""
 
@@ -849,7 +854,10 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    os.name == 'nt' or sys.platform == "darwin",
+    reason="Doesn't work on Windows and hangs on Mac"
+)
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
     Test that clear and reset magics are working while debugging
@@ -1066,11 +1074,11 @@ def test_kernel_crash(ipyconsole, qtbot):
         qtbot.waitUntil(lambda: bool(
             ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
         ))
+
         # Create a new client
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        # even if the error happened before the connection
         error_client = ipyconsole.get_clients()[-1]
         qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
     finally:
@@ -1869,8 +1877,9 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"%debugfile {repr(str(file))}")
 
-    # steps 4 times
-    for i in range(4):
+    # steps into the comprehension
+    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
     assert "Error" not in control.toPlainText()
@@ -1911,6 +1920,21 @@ def test_restart_intertactive_backend(ipyconsole, qtbot):
     qtbot.wait(1000)
     main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+
+def test_mpl_conf(ipyconsole, qtbot):
+    """
+    Test that after setting matplotlib-related config options, the member
+    function send_mpl_backend of the shellwidget is called with the new value.
+    """
+    main_widget = ipyconsole.get_widget()
+    client = main_widget.get_current_client()
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/fontsize', 20.5)
+    mock.assert_called_once_with({'pylab/inline/fontsize': 20.5})
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/bottom', 0.314)
+    mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
 @flaky(max_runs=3)
@@ -1991,6 +2015,7 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
     assert get_cwd_of_new_client() == fixed_dir
 
 
+@flaky(max_runs=10)
 def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     """
     Test 'startup/run_lines' config works with code from an active project.

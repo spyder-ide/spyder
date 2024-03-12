@@ -9,9 +9,13 @@ import sys
 from pathlib import PurePath
 from subprocess import PIPE, Popen
 
+from flake8.plugins.pyflakes import FLAKE8_PYFLAKES_CODES
+
 from pylsp import hookimpl, lsp
+from pylsp.plugins.pyflakes_lint import PYFLAKES_ERROR_MESSAGES
 
 log = logging.getLogger(__name__)
+
 FIX_IGNORES_RE = re.compile(r"([^a-zA-Z0-9_,]*;.*(\W+||$))")
 UNNECESSITY_CODES = {
     "F401",  # `module` imported but unused
@@ -20,6 +24,14 @@ UNNECESSITY_CODES = {
     "F523",  # .format(...) unused positional arguments
     "F841",  # local variable `name` is assigned to but never used
 }
+# NOTE: If the user sets the flake8 executable with workspace configuration, the
+# error codes in this set may be inaccurate.
+ERROR_CODES = (
+    # Errors from the pyflakes plugin of flake8
+    {FLAKE8_PYFLAKES_CODES.get(m.__name__, "E999") for m in PYFLAKES_ERROR_MESSAGES}
+    # Syntax error from flake8 itself
+    | {"E999"}
+)
 
 
 @hookimpl
@@ -129,9 +141,7 @@ def run_flake8(flake8_executable, args, document, source):
         )
         cmd = [sys.executable, "-m", "flake8"]
         cmd.extend(args)
-        p = Popen(  # pylint: disable=consider-using-with
-            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, **popen_kwargs
-        )
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, **popen_kwargs)
     (stdout, stderr) = p.communicate(source.encode())
     if stderr:
         log.error("Error while running flake8 '%s'", stderr.decode())
@@ -208,7 +218,7 @@ def parse_stdout(source, stdout):
         # show also the code in message
         msg = code + " " + msg
         severity = lsp.DiagnosticSeverity.Warning
-        if code == "E999" or code[0] == "F":
+        if code in ERROR_CODES:
             severity = lsp.DiagnosticSeverity.Error
         diagnostic = {
             "source": "flake8",

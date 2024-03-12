@@ -23,7 +23,7 @@ from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
 # Local imports
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 
 
 # DRAW_ORDERS are used for make some decorations appear in top of others,
@@ -37,9 +37,10 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 
 DRAW_ORDERS = {'on_bottom': 0,
                'current_cell': 1,
-               'codefolding': 2,
+               'folding_areas': 2,
                'current_line': 3,
-               'on_top': 4}
+               'folded_regions': 4,
+               'on_top': 5}
 
 
 class TextDecoration(QTextEdit.ExtraSelection):

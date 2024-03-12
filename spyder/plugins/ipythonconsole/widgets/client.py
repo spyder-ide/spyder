@@ -14,6 +14,7 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+import functools
 import logging
 import os
 import os.path as osp
@@ -23,7 +24,7 @@ import traceback
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtWidgets import QVBoxLayout, QWidget
+from qtpy.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.translations import _
@@ -36,7 +37,7 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import add_actions, DialogManager
+from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
@@ -92,7 +93,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                  config_options,
                  additional_options,
                  interpreter_versions,
-                 context_menu_actions=(),
                  menu_actions=None,
                  given_name=None,
                  give_focus=True,
@@ -117,12 +117,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.hostname = None
         self.show_elapsed_time = self.get_conf('show_elapsed_time')
         self.reset_warning = self.get_conf('show_reset_namespace_warning')
-        self.context_menu_actions = context_menu_actions
         self.options_button = options_button
         self.history = []
         self.allow_rename = True
         self.error_text = None
         self.give_focus = give_focus
+        self.__on_close = lambda: None
 
         css_path = self.get_conf('css_path', section='appearance')
         if css_path is None:
@@ -541,12 +541,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         else:
             return self.shellwidget._control
 
-    def add_actions_to_context_menu(self, menu):
-        """Add actions to IPython widget context menu"""
-        add_actions(menu, self.context_menu_actions)
-
-        return menu
-
     def set_font(self, font):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
@@ -561,19 +555,52 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def close_client(self, is_last_client):
+    def close_client(self, is_last_client, close_console=False):
         """Close the client."""
+        self.__on_close = lambda: None
+        debugging = False
+
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
-            self.stop_button_click_handler()
+            # This is required after spyder-ide/spyder#21788 to prevent freezes
+            # when closing Spyder. That happens not only when a console is in
+            # debugging mode before closing, but also when a kernel restart is
+            # requested while debugging.
+            if self.shellwidget.is_debugging():
+                debugging = True
+                self.__on_close = functools.partial(
+                    self.finish_close,
+                    is_last_client,
+                    close_console,
+                    debugging
+                )
+                self.shellwidget.sig_prompt_ready.connect(self.__on_close)
+                self.shellwidget.stop_debugging()
+            else:
+                self.interrupt_kernel()
         except RuntimeError:
             pass
 
-        # Disconnect timer needed to update elapsed time
+        if not debugging:
+            self.finish_close(is_last_client, close_console, debugging)
+
+    def finish_close(self, is_last_client, close_console, debugging):
+        """Actions to take to finish closing the client."""
+        # Disconnect timer needed to update elapsed time and this slot in case
+        # it was connected.
         try:
+            self.shellwidget.sig_prompt_ready.disconnect(self.__on_close)
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
+
+        # This is a hack to prevent segfaults when closing Spyder and the
+        # client was debugging before doing it.
+        # It's a side effect of spyder-ide/spyder#21788
+        if debugging and close_console:
+            for __ in range(3):
+                time.sleep(0.08)
+                QApplication.processEvents()
 
         self.shutdown(is_last_client)
 

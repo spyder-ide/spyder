@@ -20,8 +20,10 @@ import sys
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir
 import qstylizer.style
+from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QColor
+from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -31,9 +33,14 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.api.widgets.menus import MENU_SEPARATOR
-from spyder.config.base import (
-    get_home_dir, running_under_pytest)
+from spyder.config.base import get_home_dir, running_under_pytest
+from spyder.plugins.ipythonconsole.api import (
+    ClientContextMenuActions,
+    IPythonConsoleWidgetActions,
+    IPythonConsoleWidgetMenus,
+    IPythonConsoleWidgetOptionsMenuSections,
+    IPythonConsoleWidgetTabsContextMenuSections
+)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
@@ -50,6 +57,7 @@ from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
+from spyder.widgets.printer import SpyderPrinter
 
 
 # Logging
@@ -60,61 +68,6 @@ logger = logging.getLogger(__name__)
 # ---- Constants
 # =============================================================================
 MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-
-
-class IPythonConsoleWidgetActions:
-    # Clients creation
-    CreateNewClient = 'new tab'
-    CreateCythonClient = 'create cython client'
-    CreateSymPyClient = 'create cympy client'
-    CreatePyLabClient = 'create pylab client'
-    CreateNewClientEnvironment = 'create environment client'
-
-    # Current console actions
-    ClearConsole = 'Clear shell'
-    ClearLine = 'clear line'
-    ConnectToKernel = 'connect to kernel'
-    Interrupt = 'interrupt kernel'
-    InspectObject = 'Inspect current object'
-    Restart = 'Restart kernel'
-    ResetNamespace = 'reset namespace'
-    ShowEnvironmentVariables = 'Show environment variables'
-    ShowSystemPath = 'show system path'
-    ToggleElapsedTime = 'toggle elapsed time'
-    Quit = 'exit'
-
-    # Tabs
-    RenameTab = 'rename tab'
-
-    # Variables display
-    ArrayInline = 'enter array inline'
-    ArrayTable = 'enter array table'
-
-    # Documentation and help
-    IPythonDocumentation = 'ipython documentation'
-    ConsoleHelp = 'console help'
-    QuickReference = 'quick reference'
-
-
-class IPythonConsoleWidgetOptionsMenus:
-    SpecialConsoles = 'special_consoles_submenu'
-    Documentation = 'documentation_submenu'
-    EnvironmentConsoles = 'environment_consoles_submenu'
-
-
-class IPythonConsoleWidgetOptionsMenuSections:
-    Consoles = 'consoles_section'
-    Edit = 'edit_section'
-    View = 'view_section'
-
-
-class IPythonConsoleWidgetMenus:
-    TabsContextMenu = 'tabs_context_menu'
-
-
-class IPythonConsoleWidgetTabsContextMenuSections:
-    Consoles = 'tabs_consoles_section'
-    Edit = 'tabs_edit_section'
 
 
 # --- Widgets
@@ -397,10 +350,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Update the list of envs at startup
         self.get_envs()
 
-    def on_close(self):
-        self.mainwindow_close = True
-        self.close_all_clients()
-
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -412,6 +361,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
+        # --- Main menu
+        self.console_environment_menu = self.create_menu(
+            IPythonConsoleWidgetMenus.EnvironmentConsoles,
+            _('New console in environment')
+        )
+
+        css = self.console_environment_menu.css
+        css["QMenu"]["menu-scrollable"].setValue("1")
+        self.console_environment_menu.setStyleSheet(css.toString())
+
+        self.console_environment_menu.aboutToShow.connect(
+            self.update_environment_menu)
+
         # --- Options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
@@ -482,81 +444,127 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Context menu actions
         # TODO: Shortcut registration not working
-        self.inspect_action = self.create_action(
-            IPythonConsoleWidgetActions.InspectObject,
+        cut_action = self.create_action(
+            ClientContextMenuActions.Cut,
+            text=_("Cut"),
+            icon=self.create_icon("editcut"),
+            triggered=self._current_client_cut
+        )
+        cut_action.setShortcut(QKeySequence.Cut)
+
+        copy_action = self.create_action(
+            ClientContextMenuActions.Copy,
+            text=_("Copy"),
+            icon=self.create_icon("editcopy"),
+            triggered=self._current_client_copy
+        )
+        copy_action.setShortcut(QKeySequence.Copy)
+
+        self.create_action(
+            ClientContextMenuActions.CopyRaw,
+            text=_("Copy (raw text)"),
+            triggered=self._current_client_copy_raw
+        )
+
+        paste_action = self.create_action(
+            ClientContextMenuActions.Paste,
+            text=_("Paste"),
+            icon=self.create_icon("editpaste"),
+            triggered=self._current_client_paste
+        )
+        paste_action.setShortcut(QKeySequence.Paste)
+
+        self.create_action(
+            ClientContextMenuActions.SelectAll,
+            text=_("Select all"),
+            icon=self.create_icon("selectall"),
+            triggered=self._current_client_select_all
+        )
+
+        self.create_action(
+            ClientContextMenuActions.InspectObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
-            triggered=self.current_client_inspect_object,
-            register_shortcut=True)
-
-        self.clear_line_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearLine,
-            text=_("Clear line or block"),
-            triggered=self.current_client_clear_line,
-            register_shortcut=True)
-
-        self.clear_console_action = self.create_action(
-            IPythonConsoleWidgetActions.ClearConsole,
-            text=_("Clear console"),
-            triggered=self.current_client_clear_console,
-            register_shortcut=True)
-
-        self.quit_action = self.create_action(
-            IPythonConsoleWidgetActions.Quit,
-            _("&Quit"),
-            icon=self.create_icon('exit'),
-            triggered=self.current_client_quit)
-
-        # --- Other actions with shortcuts
-        self.array_table_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayTable,
-            text=_("Enter array table"),
-            triggered=self.current_client_enter_array_table,
-            register_shortcut=True)
-
-        self.array_inline_action = self.create_action(
-            IPythonConsoleWidgetActions.ArrayInline,
-            text=_("Enter array inline"),
-            triggered=self.current_client_enter_array_inline,
-            register_shortcut=True)
-
-        self.context_menu_actions = (
-            MENU_SEPARATOR,
-            self.inspect_action,
-            self.clear_line_action,
-            self.clear_console_action,
-            self.reset_action,
-            self.array_table_action,
-            self.array_inline_action,
-            MENU_SEPARATOR,
-            self.quit_action
+            triggered=self._current_client_inspect_object,
+            register_shortcut=True
         )
+
+        self.create_action(
+            ClientContextMenuActions.ArrayTable,
+            text=_("Enter array table"),
+            icon=self.create_icon("arredit"),
+            triggered=self._current_client_enter_array_table,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.ArrayInline,
+            text=_("Enter array inline"),
+            triggered=self._current_client_enter_array_inline,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.Export,
+            text=_("Save as html..."),
+            icon=self.create_icon("CodeFileIcon"),
+            triggered=self._current_client_export
+        )
+
+        self.create_action(
+            ClientContextMenuActions.Print,
+            text=_("Print..."),
+            icon=self.create_icon("print"),
+            triggered=self._current_client_print
+        )
+
+        self.create_action(
+            ClientContextMenuActions.ClearLine,
+            text=_("Clear line or block"),
+            triggered=self._current_client_clear_line,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.ClearConsole,
+            text=_("Clear console"),
+            triggered=self._current_client_clear_console,
+            register_shortcut=True
+        )
+
+        self.create_action(
+            ClientContextMenuActions.CopyImage,
+            text=_("Copy image"),
+            triggered=self._current_client_copy_image
+        )
+
+        self.create_action(
+            ClientContextMenuActions.SaveImage,
+            text=_("Save image as..."),
+            triggered=self._current_client_save_image
+        )
+
+        self.create_action(
+            ClientContextMenuActions.CopySvg,
+            text=_("Copy SVG"),
+            triggered=self._current_client_copy_svg
+        )
+
+        self.create_action(
+            ClientContextMenuActions.SaveSvg,
+            text=_("Save SVG as..."),
+            triggered=self._current_client_save_svg
+        )
+
+        # --- Context menu
+        self.create_menu(IPythonConsoleWidgetMenus.ClientContextMenu)
 
         # --- Setting options menu
         options_menu = self.get_options_menu()
 
-        self.console_environment_menu = self.create_menu(
-            IPythonConsoleWidgetOptionsMenus.EnvironmentConsoles,
-            _('New console in environment')
-        )
-        stylesheet = qstylizer.style.StyleSheet()
-        stylesheet["QMenu"]["menu-scrollable"].setValue("1")
-        self.console_environment_menu.setStyleSheet(stylesheet.toString())
-
         self.special_console_menu = self.create_menu(
-            IPythonConsoleWidgetOptionsMenus.SpecialConsoles,
+            IPythonConsoleWidgetMenus.SpecialConsoles,
             _('New special console'))
-
-        for item in [
-                self.create_client_action,
-                self.console_environment_menu,
-                self.special_console_menu,
-                self.connect_to_kernel_action]:
-            self.add_item_to_menu(
-                item,
-                menu=options_menu,
-                section=IPythonConsoleWidgetOptionsMenuSections.Consoles,
-            )
 
         for item in [
                 self.interrupt_action,
@@ -597,9 +605,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             icon=self.create_icon('ipython_console'),
             triggered=self.create_cython_client,
         )
-
-        self.console_environment_menu.aboutToShow.connect(
-            self.update_environment_menu)
 
         for item in [
                 create_pylab_action,
@@ -662,7 +667,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Create IPython documentation menu
         self.ipython_menu = self.create_menu(
-            menu_id=IPythonConsoleWidgetOptionsMenus.Documentation,
+            menu_id=IPythonConsoleWidgetMenus.Documentation,
             title=_("IPython documentation"))
         intro_action = self.create_action(
             IPythonConsoleWidgetActions.IPythonDocumentation,
@@ -730,6 +735,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """
         self.get_envs()
         self.console_environment_menu.clear_actions()
+
         for env_key, env_info in self.envs.items():
             env_name = env_key.split()[-1]
             path_to_interpreter, python_version = env_info
@@ -751,7 +757,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 action,
                 menu=self.console_environment_menu
             )
-        self.console_environment_menu._render()
+
+        self.console_environment_menu.render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -867,6 +874,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         'pylab', 'pylab/backend', 'pylab/autoload',
         'pylab/inline/figure_format', 'pylab/inline/resolution',
         'pylab/inline/width', 'pylab/inline/height',
+        'pylab/inline/fontsize', 'pylab/inline/bottom',
         'pylab/inline/bbox_inches'])
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
@@ -1154,7 +1162,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.infowidget.show()
             else:
                 if self.enable_infowidget:
-                    self.infowidget.hide()
+                    try:
+                        self.infowidget.hide()
+                    except RuntimeError:
+                        # Needed to handle the possible scenario where the
+                        # `infowidget` (`FrameWebView`) related C/C++ object
+                        # has been already deleted when trying to hide it.
+                        # See spyder-ider/spyder#21509
+                        self.enable_infowidget = False
+                        self.infowidget = None
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
@@ -1466,7 +1482,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(special),
             interpreter_versions=self.interpreter_versions(
                 path_to_custom_interpreter),
-            context_menu_actions=self.context_menu_actions,
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
@@ -1540,7 +1555,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             interpreter_versions=self.interpreter_versions(),
-            context_menu_actions=self.context_menu_actions,
             handlers=self.registered_spyder_kernel_handlers
         )
 
@@ -1756,8 +1770,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         open_clients = self.clients.copy()
         for client in self.clients:
             is_last_client = (
-                len(self.get_related_clients(client, open_clients)) == 0)
-            client.close_client(is_last_client)
+                len(self.get_related_clients(client, open_clients)) == 0
+            )
+            client.close_client(is_last_client, close_console=True)
             open_clients.remove(client)
 
         # Wait for all KernelHandler threads to shutdown.
@@ -1808,35 +1823,94 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
-    def current_client_inspect_object(self):
+    def _current_client_cut(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.cut()
+
+    def _current_client_copy(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.copy()
+
+    def _current_client_copy_raw(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.copy_raw()
+
+    def _current_client_paste(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.paste()
+
+    def _current_client_select_all(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.select_all_smart()
+
+    def _current_client_inspect_object(self):
         client = self.get_current_client()
         if client:
             client.inspect_object()
 
-    def current_client_clear_line(self):
-        client = self.get_current_client()
-        if client:
-            client.clear_line()
-
-    def current_client_clear_console(self):
-        client = self.get_current_client()
-        if client:
-            client.clear_console()
-
-    def current_client_quit(self):
-        client = self.get_current_client()
-        if client:
-            client.exit_callback()
-
-    def current_client_enter_array_inline(self):
+    def _current_client_enter_array_inline(self):
         client = self.get_current_client()
         if client:
             client.enter_array_inline()
 
-    def current_client_enter_array_table(self):
+    def _current_client_enter_array_table(self):
         client = self.get_current_client()
         if client:
             client.enter_array_table()
+
+    def _current_client_export(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.export_html()
+
+    def _current_client_print(self):
+        client = self.get_current_client()
+        if client:
+            # This makes the print dialog have the same style as the rest of
+            # the app.
+            printer = SpyderPrinter(mode=QPrinter.HighResolution)
+            if(QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
+                return
+            client.shellwidget._control.print_(printer)
+
+    def _current_client_clear_line(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_line()
+
+    def _current_client_clear_console(self):
+        client = self.get_current_client()
+        if client:
+            client.clear_console()
+
+    def _current_client_copy_image(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.CopyImage)
+            client.shellwidget._copy_image(action.data())
+
+    def _current_client_save_image(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.SaveImage)
+            client.shellwidget._save_image(action.data())
+
+    def _current_client_copy_svg(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.CopySvg)
+            svg_to_clipboard(action.data())
+
+    def _current_client_save_svg(self):
+        client = self.get_current_client()
+        if client:
+            action = self.get_action(ClientContextMenuActions.SaveSvg)
+            save_svg(action.data(), client.shellwidget._control)
 
     # ---- For kernels
     # -------------------------------------------------------------------------

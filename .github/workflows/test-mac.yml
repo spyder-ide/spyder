@@ -65,16 +65,16 @@ jobs:
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Fetch branches
         run: git fetch --prune --unshallow
       - name: Cache conda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
           CACHE_NUMBER: 0
@@ -82,7 +82,7 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
@@ -110,6 +110,8 @@ jobs:
         run: check-manifest
       - name: Run tests
         shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh || \
@@ -117,7 +119,7 @@ jobs:
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh
       - name: Coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
           verbose: true

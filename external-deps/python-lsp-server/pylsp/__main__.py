@@ -9,16 +9,16 @@ import time
 
 try:
     import ujson as json
-except Exception:  # pylint: disable=broad-except
+except Exception:
     import json
 
+from ._version import __version__
 from .python_lsp import (
     PythonLSPServer,
     start_io_lang_server,
     start_tcp_lang_server,
     start_ws_lang_server,
 )
-from ._version import __version__
 
 LOG_FORMAT = "%(asctime)s {0} - %(levelname)s - %(name)s - %(message)s".format(
     time.localtime().tm_zone

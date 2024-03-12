@@ -24,13 +24,14 @@ from qtpy.QtWidgets import (
     QComboBox, QCompleter, QLineEdit, QSizePolicy, QToolTip)
 
 # Local imports
+from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import ClearLineEdit, IconLineEdit
 
 
-class BaseComboBox(QComboBox):
+class BaseComboBox(SpyderComboBox):
     """Editable combo box base class"""
     valid = Signal(bool, bool)
     sig_tab_pressed = Signal(bool)
@@ -48,7 +49,7 @@ class BaseComboBox(QComboBox):
     """
 
     def __init__(self, parent):
-        QComboBox.__init__(self, parent)
+        super().__init__(parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
         self.selected_text = self.currentText()
@@ -68,7 +69,7 @@ class BaseComboBox(QComboBox):
         if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key_Tab):
             self.sig_tab_pressed.emit(True)
             return True
-        return QComboBox.event(self, event)
+        return super().event(event)
 
     def keyPressEvent(self, event):
         """Qt Override.
@@ -83,7 +84,7 @@ class BaseComboBox(QComboBox):
             self.set_current_text(self.selected_text)
             self.hide_completer()
         else:
-            QComboBox.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
     def resizeEvent(self, event):
         """
@@ -154,7 +155,9 @@ class PatternComboBox(BaseComboBox):
         BaseComboBox.__init__(self, parent)
 
         if adjust_to_minimum:
-            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+            self.setSizeAdjustPolicy(
+                QComboBox.AdjustToMinimumContentsLengthWithIcon
+            )
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
@@ -182,7 +185,9 @@ class EditableComboBox(BaseComboBox):
         self.selected_text = self.currentText()
 
         # Widget setup
-        self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.setSizeAdjustPolicy(
+            QComboBox.AdjustToMinimumContentsLengthWithIcon
+        )
 
         # Signals
         self.editTextChanged.connect(self.validate)
@@ -231,7 +236,9 @@ class PathComboBox(EditableComboBox):
         if adjust_to_contents:
             self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         else:
-            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+            self.setSizeAdjustPolicy(
+                QComboBox.AdjustToMinimumContentsLengthWithIcon
+            )
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: _("Press enter to validate this path"),
                      False: ''}
@@ -251,7 +258,7 @@ class PathComboBox(EditableComboBox):
         show_status = getattr(self.lineEdit(), 'show_status_icon', None)
         if show_status:
             show_status()
-        QComboBox.focusInEvent(self, event)
+        super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Handle focus out event restoring the last valid selected path."""
@@ -264,7 +271,7 @@ class PathComboBox(EditableComboBox):
         hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
         if hide_status:
             hide_status()
-        QComboBox.focusOutEvent(self, event)
+        super().focusOutEvent(event)
 
     # --- Own methods
     def _complete_options(self):

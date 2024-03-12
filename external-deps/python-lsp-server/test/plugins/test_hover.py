@@ -59,7 +59,6 @@ def test_numpy_hover(workspace):
     )
 
     # https://github.com/davidhalter/jedi/issues/1746
-    # pylint: disable=import-outside-toplevel
     import numpy as np
 
     if np.lib.NumpyVersion(np.__version__) < "1.20.0":

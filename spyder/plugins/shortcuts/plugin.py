@@ -12,7 +12,6 @@ Shortcuts Plugin.
 
 # Standard library imports
 import configparser
-import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -181,7 +180,7 @@ class Shortcuts(SpyderPluginV2):
                 if shortcut_sequence in self._shortcut_sequences:
                     continue
 
-                self._shortcut_sequences |= {shortcut_sequence}
+                self._shortcut_sequences |= {(context, shortcut_sequence)}
                 keyseq = QKeySequence(shortcut_sequence)
             else:
                 # Needed to remove old sequences that were cleared.
@@ -200,17 +199,8 @@ class Shortcuts(SpyderPluginV2):
             try:
                 if isinstance(qobject, QAction):
                     # Avoid adding more than one shortcut per action
-                    # TODO: we need to change how shortcuts are registered to
-                    # remove this patch
                     if qobject.shortcuts() == []:
-                        if (
-                            sys.platform == 'darwin'
-                            and qobject._shown_shortcut == 'missing'
-                        ):
-                            qobject._shown_shortcut = keyseq
-                        else:
-                            qobject.setShortcut(keyseq)
-
+                        qobject.setShortcut(keyseq)
                         if add_shortcut_to_tip:
                             add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):

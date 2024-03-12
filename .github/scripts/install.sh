@@ -42,14 +42,6 @@ else
     # To check our manifest
     pip install -q check-manifest
 
-    if [ "$OS" = "linux" ]; then
-        # This allows the test suite to run more reliably on Linux
-        pip uninstall pyqt5 pyqt5-qt5 pyqt5-sip pyqtwebengine pyqtwebengine-qt5 -q -y
-        pip install pyqt5==5.12.* pyqtwebengine==5.12.*
-
-        # QDarkstyle 3.2.1 doesn't work with PyQt 5.12
-        pip install qdarkstyle==3.2
-    fi
 
 fi
 

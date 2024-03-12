@@ -1,14 +1,14 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-import tempfile
 import os
+import tempfile
 from textwrap import dedent
 from unittest.mock import patch
+
 from pylsp import lsp, uris
 from pylsp.plugins import flake8_lint
 from pylsp.workspace import Document
-
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import pylsp
@@ -40,7 +40,7 @@ def test_flake8_unsaved(workspace):
     assert unused_var["code"] == "F841"
     assert unused_var["range"]["start"] == {"line": 5, "character": 1}
     assert unused_var["range"]["end"] == {"line": 5, "character": 11}
-    assert unused_var["severity"] == lsp.DiagnosticSeverity.Error
+    assert unused_var["severity"] == lsp.DiagnosticSeverity.Warning
     assert unused_var["tags"] == [lsp.DiagnosticTag.Unnecessary]
 
 
@@ -55,7 +55,7 @@ def test_flake8_lint(workspace):
         assert unused_var["code"] == "F841"
         assert unused_var["range"]["start"] == {"line": 5, "character": 1}
         assert unused_var["range"]["end"] == {"line": 5, "character": 11}
-        assert unused_var["severity"] == lsp.DiagnosticSeverity.Error
+        assert unused_var["severity"] == lsp.DiagnosticSeverity.Warning
     finally:
         os.remove(name)
 
@@ -101,7 +101,7 @@ def test_flake8_respecting_configuration(workspace):
                 "end": {"line": 5, "character": 11},
             },
             "message": "F841 local variable 'a' is assigned to but never used",
-            "severity": 1,
+            "severity": 2,
             "tags": [1],
         },
     ]
@@ -116,7 +116,7 @@ def test_flake8_respecting_configuration(workspace):
                 "end": {"line": 0, "character": 9},
             },
             "message": "F401 'os' imported but unused",
-            "severity": 1,
+            "severity": 2,
             "tags": [1],
         }
     ]

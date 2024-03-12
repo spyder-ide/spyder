@@ -18,6 +18,7 @@ from qtpy.QtCore import QMutex, QMutexLocker, QThread, Signal
 
 # Local imports
 from spyder.api.translations import _
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.encoding import is_text_file
 from spyder.utils.palette import SpyderPalette
 
@@ -174,9 +175,12 @@ class SearchThread(QThread):
 
                     # It's much faster to check for extension first before
                     # validating if the file is plain text.
-                    if (ext in self.PYTHON_EXTENSIONS or
-                            ext in self.USEFUL_EXTENSIONS or
-                            is_text_file(filename)):
+                    if (
+                        ext in self.PYTHON_EXTENSIONS
+                        or ext in self.USEFUL_EXTENSIONS
+                        or ext in EDIT_EXTENSIONS
+                        or is_text_file(filename)
+                    ):
                         self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")

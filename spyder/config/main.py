@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -78,11 +79,15 @@ DEFAULTS = [
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
-              'check_updates_on_startup': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
+              }),
+            ('update_manager',
+             {
+              'check_updates_on_startup': True,
+              'check_stable_only': True,
               }),
             ('toolbar',
              {
@@ -144,9 +149,11 @@ DEFAULTS = [
               'pylab/autoload': False,
               'pylab/backend': 'inline',
               'pylab/inline/figure_format': 'png',
-              'pylab/inline/resolution': 72,
+              'pylab/inline/resolution': 144,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/fontsize': 10.0,
+              'pylab/inline/bottom': 0.11,
               'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
@@ -659,7 +666,7 @@ NAME_MAP = {
 
 
 # =============================================================================
-# Config instance
+# Config version
 # =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
@@ -668,4 +675,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '81.0.0'
+CONF_VERSION = '82.2.0'

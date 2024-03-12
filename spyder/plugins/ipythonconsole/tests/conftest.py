@@ -37,6 +37,7 @@ from spyder.utils.conda import get_list_conda_envs
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NEW_DIR = 'new_workingdir'
+PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
 
 # =============================================================================

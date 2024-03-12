@@ -38,7 +38,6 @@ _ERRORS = ("error_node",)
 @hookimpl
 def pylsp_completions(config, document, position):
     """Get formatted completions for current code position"""
-    # pylint: disable=too-many-locals
     settings = config.plugin_settings("jedi_completion", document_path=document.path)
     resolve_eagerly = settings.get("eager", False)
     code_position = _utils.position_to_jedi_linecolumn(document, position)
@@ -88,6 +87,7 @@ def pylsp_completions(config, document, position):
             include_params=include_params if c.type in ["class", "function"] else False,
             resolve=resolve_eagerly,
             resolve_label_or_snippet=(i < max_to_resolve),
+            snippet_support=snippet_support,
         )
         for i, c in enumerate(completions)
     ]
@@ -102,6 +102,7 @@ def pylsp_completions(config, document, position):
                     include_params=False,
                     resolve=resolve_eagerly,
                     resolve_label_or_snippet=(i < max_to_resolve),
+                    snippet_support=snippet_support,
                 )
                 completion_dict["kind"] = lsp.CompletionItemKind.TypeParameter
                 completion_dict["label"] += " object"
@@ -116,6 +117,7 @@ def pylsp_completions(config, document, position):
                     include_params=False,
                     resolve=resolve_eagerly,
                     resolve_label_or_snippet=(i < max_to_resolve),
+                    snippet_support=snippet_support,
                 )
                 completion_dict["kind"] = lsp.CompletionItemKind.TypeParameter
                 completion_dict["label"] += " object"
@@ -206,7 +208,6 @@ def use_snippets(document, position):
 
 
 def _resolve_completion(completion, d, markup_kind: str):
-    # pylint: disable=broad-except
     completion["detail"] = _detail(d)
     try:
         docs = _utils.format_docstring(
@@ -226,6 +227,7 @@ def _format_completion(
     include_params=True,
     resolve=False,
     resolve_label_or_snippet=False,
+    snippet_support=False,
 ):
     completion = {
         "label": _label(d, resolve_label_or_snippet),
@@ -240,16 +242,20 @@ def _format_completion(
     # Adjustments for file completions
     if d.type == "path":
         path = os.path.normpath(d.name)
-        path = path.replace("\\", "\\\\")
-        path = path.replace("/", "\\/")
 
-        # If the completion ends with os.sep, it means it's a directory. So we add an escaped os.sep
-        # at the end to ease additional file completions.
+        # If the completion ends with os.sep, it means it's a directory. So we add os.sep at the end
+        # to ease additional file completions.
         if d.name.endswith(os.sep):
             if os.name == "nt":
-                path = path + "\\\\"
+                path = path + "\\"
             else:
-                path = path + "\\/"
+                path = path + "/"
+
+        # Escape to prevent conflicts with the code snippets grammer
+        # See also https://github.com/python-lsp/python-lsp-server/issues/373
+        if snippet_support:
+            path = path.replace("\\", "\\\\")
+            path = path.replace("/", "\\/")
 
         completion["insertText"] = path
 

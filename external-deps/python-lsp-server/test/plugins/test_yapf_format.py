@@ -5,8 +5,8 @@ import pytest
 
 from pylsp import uris
 from pylsp.plugins.yapf_format import pylsp_format_document, pylsp_format_range
-from pylsp.workspace import Document
 from pylsp.text_edit import apply_text_edits
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """A = [

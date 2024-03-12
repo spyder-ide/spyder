@@ -20,24 +20,30 @@ _d = '&#45;'
 
 # Required version of Spyder-kernels
 SPYDER_KERNELS_MIN_VERSION = (
-    '3.0.0b2' if not running_under_pytest() else '3.0.0.dev0')
+    '3.0.0b4' if not running_under_pytest() else '3.0.0.dev0'
+)
 SPYDER_KERNELS_MAX_VERSION = (
-    '3.0.0b3' if not running_under_pytest() else '4.0.0')
+    '3.0.0b5' if not running_under_pytest() else '4.0.0'
+)
 SPYDER_KERNELS_VERSION = (
-    f'>={SPYDER_KERNELS_MIN_VERSION},<{SPYDER_KERNELS_MAX_VERSION}')
+    f'>={SPYDER_KERNELS_MIN_VERSION},<{SPYDER_KERNELS_MAX_VERSION}'
+)
 
 if is_stable_version(SPYDER_KERNELS_MIN_VERSION):
     SPYDER_KERNELS_CONDA = (
-        f'conda install spyder{_d}kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}')
+        f'conda install spyder{_d}kernels={SPYDER_KERNELS_MIN_VERSION[:-2]}'
+    )
     SPYDER_KERNELS_PIP = (
-        f'pip install spyder{_d}kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*')
+        f'pip install spyder{_d}kernels=={SPYDER_KERNELS_MIN_VERSION[:-1]}*'
+    )
 else:
     SPYDER_KERNELS_CONDA = (
         f'conda install {_d}c conda{_d}forge/label/spyder_kernels_rc {_d}c '
         f'conda{_d}forge spyder{_d}kernels={SPYDER_KERNELS_MIN_VERSION}'
     )
     SPYDER_KERNELS_PIP = (
-        f'pip install spyder{_d}kernels=={SPYDER_KERNELS_MIN_VERSION}')
+        f'pip install spyder{_d}kernels=={SPYDER_KERNELS_MIN_VERSION}'
+    )
 
 
 class SpyderKernelError(RuntimeError):

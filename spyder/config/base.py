@@ -557,7 +557,7 @@ def is_conda_based_app(pyexec=sys.executable):
     else:
         env_path = osp.dirname(osp.dirname(real_pyexec))
 
-    menu_rel_path = '/Menu/spyder-menu.json'
+    menu_rel_path = '/Menu/conda-based-app'
     if (
         osp.exists(env_path + menu_rel_path)
         or glob(env_path + '/envs/*' + menu_rel_path)

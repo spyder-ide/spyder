@@ -95,7 +95,6 @@ def test_report_issue_url(monkeypatch):
     target_url_base = __project_url__ + '/issues/new'
 
     MockQDesktopServices = MagicMock()
-    mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.widgets.reporterror.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
@@ -103,14 +102,14 @@ def test_report_issue_url(monkeypatch):
     target_url = QUrl(target_url_base + '?body=' + body)
     SpyderErrorDialog.open_web_report(body=body, title=None)
     assert MockQDesktopServices.openUrl.call_count == 1
-    mockQDesktopServices_instance.openUrl.called_with(target_url)
+    MockQDesktopServices.openUrl.assert_called_with(target_url)
 
     # Test when body != None and title != None
     target_url = QUrl(target_url_base + '?body=' + body
                       + "&title=" + title)
-    SpyderErrorDialog.open_web_report(body=body, title=None)
+    SpyderErrorDialog.open_web_report(body=body, title=title)
     assert MockQDesktopServices.openUrl.call_count == 2
-    mockQDesktopServices_instance.openUrl.called_with(target_url)
+    MockQDesktopServices.openUrl.assert_called_with(target_url)
 
 
 def test_render_issue():

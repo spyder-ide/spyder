@@ -13,10 +13,15 @@ import sys
 from typing import Optional, Union, TypeVar
 
 # Third party imports
-from qtpy.QtWidgets import QAction, QMenu
+import qstylizer.style
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 
 # Local imports
-from spyder.utils.qthelpers import add_actions, SpyderAction
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
+from spyder.utils.palette import QStylePalette
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 
 
 # ---- Constants
@@ -38,25 +43,71 @@ class PluginMainWidgetMenus:
     Options = 'options_menu'
 
 
+# ---- Style
+# -----------------------------------------------------------------------------
+class SpyderMenuProxyStyle(QProxyStyle):
+    """Style adjustments that can only be done with a proxy style."""
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Change icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            delta = -1 if MAC else (0 if WIN else 1)
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
+
+
 # ---- Widgets
 # -----------------------------------------------------------------------------
-class SpyderMenu(QMenu):
+class SpyderMenu(QMenu, SpyderFontsMixin):
     """
     A QMenu subclass to implement additional functionality for Spyder.
     """
     MENUS = []
+    APP_MENU = False
 
-    def __init__(self, parent=None, title=None, dynamic=True,
-                 menu_id=None):
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        menu_id: Optional[str] = None,
+        title: Optional[str] = None,
+        min_width: Optional[int] = None,
+        reposition: Optional[bool] = True,
+    ):
+        """
+        Create a menu for Spyder.
+
+        Parameters
+        ----------
+        parent: QWidget or None
+            The menu's parent
+        menu_id: str
+            Unique str identifier for the menu.
+        title: str or None
+            Localized text string for the menu.
+        min_width: int or None
+            Minimum width for the menu.
+        reposition: bool, optional (default True)
+            Whether to vertically reposition the menu due to it's padding.
+        """
         self._parent = parent
+        self.menu_id = menu_id
         self._title = title
+        self._reposition = reposition
+
         self._sections = []
         self._actions = []
         self._actions_map = {}
-        self.unintroduced_actions = {}
+        self._unintroduced_actions = {}
         self._after_sections = {}
         self._dirty = False
-        self.menu_id = menu_id
+        self._is_shown = False
+        self._is_submenu = False
+        self._in_app_menu = False
 
         if title is None:
             super().__init__(parent)
@@ -64,13 +115,35 @@ class SpyderMenu(QMenu):
             super().__init__(title, parent)
 
         self.MENUS.append((parent, title, self))
-        if sys.platform == 'darwin' and dynamic:
-            # Needed to enable the dynamic population of actions in menus
-            # in the aboutToShow signal
-            # See spyder-ide/spyder#14612
-            self.addAction(QAction(self))
-        self.aboutToShow.connect(self._render)
 
+        # Set min width
+        if min_width is not None:
+            self.setMinimumWidth(min_width)
+
+        # Signals
+        self.aboutToShow.connect(self.render)
+
+        # Adjustmens for Mac
+        if sys.platform == 'darwin':
+            # Needed to enable the dynamic population of actions in app menus
+            # in the aboutToShow signal.
+            # See spyder-ide/spyder#14612
+            if self.APP_MENU:
+                self.addAction(QAction(self))
+
+            # Necessary to follow Mac's HIG for app menus.
+            self.aboutToShow.connect(self._set_icons)
+
+        # Style
+        self.css = self._generate_stylesheet()
+        self.setStyleSheet(self.css.toString())
+
+        style = SpyderMenuProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def clear_actions(self):
         """
         Remove actions from the menu (including custom references)
@@ -83,7 +156,7 @@ class SpyderMenu(QMenu):
         self._sections = []
         self._actions = []
         self._actions_map = {}
-        self.unintroduced_actions = {}
+        self._unintroduced_actions = {}
         self._after_sections = {}
 
     def add_action(self: T,
@@ -121,6 +194,7 @@ class SpyderMenu(QMenu):
             item_id = action.action_id
         elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
+            action._is_submenu = True
 
         if not omit_id and item_id is None and action is not None:
             raise AttributeError(f'Item {action} must declare an id.')
@@ -141,12 +215,12 @@ class SpyderMenu(QMenu):
 
             # Actions can't be added to the menu if the `before` action is
             # not part of it yet. That's why we need to save them in the
-            # `unintroduced_actions` dict, so we can add them again when
+            # `_unintroduced_actions` dict, so we can add them again when
             # the menu is rendered.
             if not added and check_before:
-                before_actions = self.unintroduced_actions.get(before, [])
+                before_actions = self._unintroduced_actions.get(before, [])
                 before_actions.append((section, action))
-                self.unintroduced_actions[before] = before_actions
+                self._unintroduced_actions[before] = before_actions
 
             self._actions = new_actions
 
@@ -198,23 +272,37 @@ class SpyderMenu(QMenu):
         """
         return tuple(self._sections)
 
-    def _render(self):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _add_missing_actions(self):
+        """
+        Add actions that were not introduced to the menu because a `before`
+        action they require is not part of it.
+        """
+        for before, actions in self._unintroduced_actions.items():
+            for section, action in actions:
+                self.add_action(
+                    action,
+                    section=section,
+                    before=before,
+                    check_before=False
+                )
+
+        self._unintroduced_actions = {}
+
+    def render(self):
         """
         Create the menu prior to showing it. This takes into account sections
         and location of menus.
         """
         if self._dirty:
             self.clear()
-
-            # Update actions with those that were not introduced because
-            # a `before` action they required was not part of the menu yet.
-            for before, actions in self.unintroduced_actions.items():
-                for section, action in actions:
-                    self.add_action(action, section=section,
-                                    before=before, check_before=False)
+            self._add_missing_actions()
 
             actions = self.get_actions()
             add_actions(self, actions)
+            self._set_icons()
+
             self._dirty = False
 
     def _add_section(self, section, before_section=None):
@@ -272,19 +360,132 @@ class SpyderMenu(QMenu):
                 idx = idx if (idx == 0) else (idx - 1)
                 self._sections.insert(idx, after_section)
 
-
-class MainWidgetMenu(SpyderMenu):
-    """
-    This menu fixes the bottom section of the options menu.
-    """
-
-    def _render(self):
+    def _set_icons(self):
         """
-        Create the menu prior to showing it. This takes into account sections
-        and location of menus. It also hides consecutive separators if found.
+        Unset menu icons for app menus and set them for regular menus.
+
+        This is necessary only for Mac to follow its Human Interface
+        Guidelines (HIG), which don't recommend icons in app menus.
         """
+        if sys.platform == "darwin":
+            if self.APP_MENU or self._in_app_menu:
+                set_menu_icons(self, False, in_app_menu=True)
+            else:
+                set_menu_icons(self, True)
+
+    @classmethod
+    def _generate_stylesheet(cls):
+        """Generate base stylesheet for menus."""
+        css = qstylizer.style.StyleSheet()
+        font = cls.get_font(SpyderFontType.Interface)
+
+        # Add padding and border to follow modern standards
+        css.QMenu.setValues(
+            # Only add top and bottom padding so that menu separators can go
+            # completely from the left to right border.
+            paddingTop=f'{2 * AppStyle.MarginSize}px',
+            paddingBottom=f'{2 * AppStyle.MarginSize}px',
+            # This uses the same color as the separator
+            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}"
+        )
+
+        # Set the right background color This is the only way to do it!
+        css['QWidget:disabled QMenu'].setValues(
+            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+        )
+
+        # Add padding around separators to prevent that hovering on items hides
+        # them.
+        css["QMenu::separator"].setValues(
+            # Only add top and bottom margins so that the separators can go
+            # completely from the left to right border.
+            margin=f'{2 * AppStyle.MarginSize}px 0px',
+        )
+
+        # Set menu item properties
+        delta_top = 0 if (MAC or WIN) else 1
+        delta_bottom = 0 if MAC else (2 if WIN else 1)
+        css["QMenu::item"].setValues(
+            height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
+            marginLeft=f'{2 * AppStyle.MarginSize}px',
+            marginRight=f'{2 * AppStyle.MarginSize}px',
+            paddingTop=f'{AppStyle.MarginSize + delta_top}px',
+            paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
+            paddingLeft=f'{3 * AppStyle.MarginSize}px',
+            paddingRight=f'{3 * AppStyle.MarginSize}px',
+            fontFamily=font.family(),
+            fontSize=f'{font.pointSize()}pt',
+            backgroundColor='transparent'
+        )
+
+        # Set hover and pressed state of items
+        for state in ['selected', 'pressed']:
+            if state == 'selected':
+                bg_color = QStylePalette.COLOR_BACKGROUND_4
+            else:
+                bg_color = QStylePalette.COLOR_BACKGROUND_5
+
+            css[f"QMenu::item:{state}"].setValues(
+                backgroundColor=bg_color,
+                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            )
+
+        # Set disabled state of items
+        for state in ['disabled', 'selected:disabled']:
+            css[f"QMenu::item:{state}"].setValues(
+                color=QStylePalette.COLOR_DISABLED,
+                backgroundColor="transparent"
+            )
+
+        return css
+
+    def __str__(self):
+        return f"SpyderMenu('{self.menu_id}')"
+
+    def __repr__(self):
+        return f"SpyderMenu('{self.menu_id}')"
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the menu is shown."""
+        if not self._is_shown:
+            # Reposition submenus vertically due to padding and border
+            if self._reposition and self._is_submenu:
+                self.move(
+                    self.pos().x(),
+                    # Current vertical pos - padding - border
+                    self.pos().y() - 2 * AppStyle.MarginSize - 1
+                )
+
+            self._is_shown = True
+
+        # Reposition menus horizontally due to border
+        if QCursor().pos().x() - self.pos().x() < 40:
+            # If the difference between the current cursor x position and the
+            # menu one is small, it means the menu will be shown to the right,
+            # so we need to move it in that direction.
+            delta_x = 1
+        else:
+            # This happens when the menu is shown to the left.
+            delta_x = -1
+
+        self.move(self.pos().x() + delta_x, self.pos().y())
+
+        super().showEvent(event)
+
+
+class PluginMainWidgetOptionsMenu(SpyderMenu):
+    """
+    Options menu for PluginMainWidget.
+    """
+
+    def render(self):
+        """Render the menu's bottom section as expected."""
         if self._dirty:
             self.clear()
+            self._add_missing_actions()
+
             bottom = OptionsMenuSections.Bottom
             actions = []
             for section in self._sections:
@@ -300,4 +501,6 @@ class MainWidgetMenu(SpyderMenu):
                     actions.append(action)
 
             add_actions(self, actions)
+            self._set_icons()
+
             self._dirty = False

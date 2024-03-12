@@ -70,12 +70,12 @@ jobs:
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Fetch branches
         run: git fetch --prune --unshallow
       - name: Install dependencies
@@ -84,7 +84,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache conda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
           CACHE_NUMBER: 0
@@ -92,7 +92,7 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
@@ -140,9 +140,13 @@ jobs:
       - name: Run tests with gdb
         if: env.USE_GDB == 'true'
         shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
       - name: Run tests
         shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh || \
@@ -150,7 +154,7 @@ jobs:
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh
       - name: Coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
           verbose: true

@@ -18,6 +18,7 @@ from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
 
+from spyder.api.widgets.comboboxes import SpyderComboBox
 
 class Namespace:
     """
@@ -247,7 +248,7 @@ class CookiecutterWidget(QtWidgets.QWidget):
         """
         Create a combobox field.
         """
-        box = QtWidgets.QComboBox(parent=self)
+        box = SpyderComboBox(parent=self)
         if isinstance(choices, dict):
             temp = OrderedDict()
             for choice, choice_value in choices.items():

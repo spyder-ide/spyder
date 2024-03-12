@@ -25,7 +25,7 @@ from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QMenu, QVBoxLayout, QWidget,
-                            QSizePolicy, QToolBar)
+                            QSizePolicy, QToolBar, QToolButton)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -56,7 +56,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_waitspinner)
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
-
 
 logger = logging.getLogger(__name__)
 
@@ -594,7 +593,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
-        menu_btn.setPopupMode(menu_btn.InstantPopup)
+        menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
@@ -1643,8 +1642,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         if not unsaved_nb:
             # No file to save
             return True
-        if unsaved_nb > 1:
-            buttons |= int(QMessageBox.YesToAll | QMessageBox.NoToAll)
         yes_all = no_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -1662,18 +1659,32 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                     return False
             elif no_all:
                 self.autosave.remove_autosave_file(finfo)
-            elif (finfo.editor.document().isModified() and
-                  self.save_dialog_on_tests):
+            elif (
+                finfo.editor.document().isModified()
+                and self.save_dialog_on_tests
+            ):
+                if unsaved_nb > 1:
+                    buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
 
                 self.msgbox = QMessageBox(
                     QMessageBox.Question,
                     self.title,
                     _("<b>%s</b> has been modified."
-                      "<br>Do you want to save changes?"
+                      "<br><br>Do you want to save changes?"
                       ) % osp.basename(finfo.filename),
                     buttons,
                     parent=self
                 )
+
+                self.msgbox.button(QMessageBox.Yes).setText(_("Save"))
+                self.msgbox.button(QMessageBox.No).setText(_("Discard"))
+                yta = self.msgbox.button(QMessageBox.YesToAll)
+                nta = self.msgbox.button(QMessageBox.NoToAll)
+
+                if yta:
+                    yta.setText(_("Save all"))
+                if nta:
+                    nta.setText(_("Discard all"))
 
                 answer = self.msgbox.exec_()
                 if answer == QMessageBox.Yes:

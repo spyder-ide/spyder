@@ -594,7 +594,7 @@ class TextHelper(object):
             pos = cursor_or_block.position() - b.position()
             layout = b.layout()
         if layout is not None:
-            additional_formats = layout.additionalFormats()
+            additional_formats = layout.formats()
             sh = self._editor.syntax_highlighter
             if sh:
                 ref_formats = sh.color_scheme.formats
