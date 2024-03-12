@@ -4539,7 +4539,8 @@ def hello():
     print('test ==', test)
 hello()
 #%%
-test = 3.14
+test = 9
+print([test for i in range(3)])
 """)
 
     # Wait until the window is fully up
@@ -4604,14 +4605,17 @@ test = 3.14
     # Run magic
     with qtbot.waitSignal(shell.executed):
         shell.execute("%runcell -i 1")
+    
+    qtbot.waitUntil(lambda: "[9, 9, 9]" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
 
     # check value of test
     with qtbot.waitSignal(shell.executed):
         shell.execute("print('test =', test)")
 
-    qtbot.waitUntil(lambda: "test = 3.14" in shell._control.toPlainText(),
+    qtbot.waitUntil(lambda: "test = 9" in shell._control.toPlainText(),
                     timeout=SHELL_TIMEOUT)
-    assert "test = 3.14" in shell._control.toPlainText()
+    assert "test = 9" in shell._control.toPlainText()
 
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
