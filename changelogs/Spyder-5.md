@@ -1,5 +1,39 @@
 # History of changes for Spyder 5
 
+## Version 5.5.2 (2024-03-13)
+
+### Important fixes
+
+* Activate environment for consoles that run in the same environment as Spyder.
+* Fix IPython kernel hangs when using a different graphic backend than `Inline`.
+* Fix check for updates mechanism when running Spyder from a conda installation.
+
+### Issues Closed
+
+* [Issue 21861](https://github.com/spyder-ide/spyder/issues/21861) - Missing `Checking for updates` message in the status for the Windows and MacOS installers ([PR 21868](https://github.com/spyder-ide/spyder/pull/21868) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21839](https://github.com/spyder-ide/spyder/issues/21839) - Release 5.5.2 ([PR 21842](https://github.com/spyder-ide/spyder/pull/21842) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21781](https://github.com/spyder-ide/spyder/issues/21781) - Error when trying to update from a conda installation ([PR 21784](https://github.com/spyder-ide/spyder/pull/21784) by [@mrclary](https://github.com/mrclary))
+* [Issue 21749](https://github.com/spyder-ide/spyder/issues/21749) - Crash in IPython console when running Numpy/Scipy code after Spyder is started from the Start menu ([PR 21783](https://github.com/spyder-ide/spyder/pull/21783) by [@mrclary](https://github.com/mrclary))
+* [Issue 21299](https://github.com/spyder-ide/spyder/issues/21299) - IPython kernel hangs when using other graphics backend than "inline" ([PR 21834](https://github.com/spyder-ide/spyder/pull/21834) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 5 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21868](https://github.com/spyder-ide/spyder/pull/21868) - PR: Fix showing update status bar widget in our apps at startup and other fixes to the update process (Application), by [@ccordoba12](https://github.com/ccordoba12) ([21861](https://github.com/spyder-ide/spyder/issues/21861))
+* [PR 21851](https://github.com/spyder-ide/spyder/pull/21851) - PR: Fix visibility of status bar widget that checks for Spyder updates (Application), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21843](https://github.com/spyder-ide/spyder/pull/21843) - PR: Add `condabin` directory, relative to `sys.executable` and provided `pyexec`, to paths searched for conda executable, by [@mrclary](https://github.com/mrclary)
+* [PR 21842](https://github.com/spyder-ide/spyder/pull/21842) - PR: Update core dependencies for 5.5.2 , by [@dalthviz](https://github.com/dalthviz) ([21839](https://github.com/spyder-ide/spyder/issues/21839))
+* [PR 21834](https://github.com/spyder-ide/spyder/pull/21834) - PR: Fix hangs when using Matplotlib interactive backends (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([21299](https://github.com/spyder-ide/spyder/issues/21299))
+* [PR 21784](https://github.com/spyder-ide/spyder/pull/21784) - PR: Do not use version in macOS artifact name and fix names for the future Spyder 6 installers (Installers), by [@mrclary](https://github.com/mrclary) ([21781](https://github.com/spyder-ide/spyder/issues/21781))
+* [PR 21783](https://github.com/spyder-ide/spyder/pull/21783) - PR: Always activate a conda environment for IPython consoles, by [@mrclary](https://github.com/mrclary) ([21749](https://github.com/spyder-ide/spyder/issues/21749))
+
+In this release 7 pull requests were closed.
+
+
+----
+
+
 ## Version 5.5.1 (2024-02-07)
 
 ### New features
