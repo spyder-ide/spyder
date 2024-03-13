@@ -34,7 +34,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_message_box
 from spyder.plugins.variableexplorer.widgets import dataframeeditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-    DataFrameEditor, DataFrameModel)
+    DataFrameEditor, DataFrameModel, COLS_TO_LOAD, LARGE_COLS)
 
 
 # =============================================================================
@@ -162,6 +162,63 @@ def test_dataframe_editor_shows_scrollbar(qtbot):
         editor.show()
 
     assert editor.dataTable.horizontalScrollBar().isVisible()
+
+
+def test_dataframe_editor_scroll(qtbot):
+    """
+    Test that when opening a "large" dataframe, only a part of it is initially
+    loaded in the editor window. When scrolling past that part, the rest is
+    loaded. When moving to the right-most column and sorting it, the view
+    stay scrolled to the right end.
+
+    Regression test for spyder-ide/spyder#21627 .
+    """
+
+    # Make DataFrame with LARGE_COLS + 5 columns
+    df = DataFrame(numpy.zeros((10, LARGE_COLS + 5)))
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    with qtbot.waitExposed(editor):
+        editor.show()
+
+    # Check that initially, COLS_TO_LOAD columns are loaded in the editor
+    assert model.rowCount() == 10
+    assert model.columnCount() == COLS_TO_LOAD
+
+    # Press the End key to move to the right and wait
+    view = editor.dataTable
+    view.setCurrentIndex(view.model().index(0, 0))
+    qtbot.keyPress(view, Qt.Key_End)
+
+    # Check that now all the columns are loaded in the editor
+    def check_column_count():
+        assert model.columnCount() == LARGE_COLS + 5
+
+    qtbot.waitUntil(check_column_count)
+
+    # Press the End key to move to the right and wait
+    qtbot.keyPress(view, Qt.Key_End)
+    scrollbar = editor.dataTable.horizontalScrollBar()
+
+    # Check that we are at the far right
+    def check_at_far_right():
+        assert scrollbar.value() == scrollbar.maximum()
+
+    qtbot.waitUntil(check_at_far_right)
+
+    # Sort the rightmost column
+    old_index_model = editor.table_index.model()
+    view.sortByColumn(model.columnCount() - 1)
+
+    # Wait until the model for the index is updated
+    def check_index_model_updated():
+        assert editor.table_index.model() != old_index_model
+
+    qtbot.waitUntil(check_index_model_updated)
+
+    # Check that we are at the far right
+    assert scrollbar.value() == scrollbar.maximum()
 
 
 def test_dataframe_datetimeindex(qtbot):
