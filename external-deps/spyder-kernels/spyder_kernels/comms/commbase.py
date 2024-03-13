@@ -317,6 +317,10 @@ class CommBase:
         """Handle a remote call."""
         msg_dict = msg['content']
         self.on_incoming_call(msg_dict)
+        if msg['content'].get('is_error', False):
+            # could not open the pickle
+            self._set_call_return_value(msg, buffer, is_error=True)
+            return
         try:
             return_value = self._remote_callback(
                     msg_dict['call_name'],
