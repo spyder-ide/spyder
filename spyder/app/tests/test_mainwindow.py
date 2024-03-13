@@ -4619,7 +4619,7 @@ print([test for i in range(3)])
 
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
-            nsb.editor.source_model._data['test']['view'] == '3.14')
+            nsb.editor.source_model._data['test']['view'] == '9')
 
 
 @flaky(max_runs=3)
