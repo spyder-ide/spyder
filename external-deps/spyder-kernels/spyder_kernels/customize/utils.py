@@ -135,14 +135,15 @@ def exec_encapsulate_locals(
     """
     Execute by encapsulating locals if needed.
 
-    Warning: 
-        In general, the dict returned by locals() might or might not be modified.
-        In this case, the encapsulated dict can not.
-    
+    Notes
+    ----- 
+    * In general, the dict returned by locals() might or might not be modified.
+      In this case, the encapsulated dict can not.
     """
     use_locals_hack = locals is not None and locals is not globals
     if use_locals_hack:
         globals["__spyder_builtins__"] = builtins
+
         # Mitigates a behaviour of CPython that makes it difficult
         # to work with exec and the local namespace
         # See:
