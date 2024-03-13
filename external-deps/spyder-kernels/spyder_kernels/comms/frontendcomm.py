@@ -130,11 +130,9 @@ class FrontendComm(CommBase):
         """
         Send comm message to frontend to check if the iopub channel is ready
         """
-        # Make sure the length doesn't change during iteration
-        pending_comms = list(self._pending_comms.values())
-        if len(pending_comms) == 0:
+        if len(self._pending_comms) == 0:
             return
-        for comm in pending_comms:
+        for comm in self._pending_comms.values():
             self._notify_comm_ready(comm)
         self.kernel.io_loop.call_later(1, self._check_comm_reply)
 

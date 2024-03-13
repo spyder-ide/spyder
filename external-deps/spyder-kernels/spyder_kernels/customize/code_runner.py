@@ -41,9 +41,7 @@ from spyder_kernels.comms.frontendcomm import frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.customize.utils import (
-    capture_last_Expr, canonic, exec_encapsulate_locals
-)
+from spyder_kernels.customize.utils import capture_last_Expr, canonic
 
 
 # For logging
@@ -268,7 +266,7 @@ class SpyderCodeRunner(Magics):
         """
         Execute a file.
         """
-        if self.umr.enabled and self.shell.special != "cython":
+        if self.umr.enabled:
             self.umr.run()
         if args is not None and not isinstance(args, str):
             raise TypeError("expected a character buffer object")
@@ -326,7 +324,7 @@ class SpyderCodeRunner(Magics):
                     print("Working directory {} doesn't exist.\n".format(wdir))
 
             try:
-                if self.shell.special == "cython":
+                if self.umr.has_cython:
                     # Cython files
                     with io.open(filename, encoding="utf-8") as f:
                         self.shell.run_cell_magic("cython", "", f.read())
@@ -498,12 +496,11 @@ class SpyderCodeRunner(Magics):
 
             if capture_last_expression:
                 ast_code, capture_last_expression = capture_last_Expr(
-                    ast_code, "_spyder_out", ns_globals
+                    ast_code, "_spyder_out"
                 )
+                ns_globals["__spyder_builtins__"] = builtins
 
-            exec_encapsulate_locals(
-                ast_code, ns_globals, ns_locals, exec_fun, filename
-            )
+            exec_fun(compile(ast_code, filename, "exec"), ns_globals, ns_locals)
 
             if capture_last_expression:
                 out = ns_globals.pop("_spyder_out", None)
