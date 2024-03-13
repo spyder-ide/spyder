@@ -10,9 +10,9 @@
 import logging
 import os
 import os.path as osp
-import sys
-import subprocess
 import platform
+import subprocess
+import sys
 
 # Third-party imports
 from packaging.version import parse
@@ -96,6 +96,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         Latest release version detected.
     """
 
+    sig_exception_occurred = Signal(dict)
+    """
+    Pass untracked exceptions from workers to error reporter.
+    """
+
     sig_install_on_close = Signal(bool)
     """
     Signal to request running the install process on close.
@@ -167,6 +172,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         self.update_thread = QThread(None)
         self.update_worker = WorkerUpdate(self.get_conf('check_stable_only'))
+        self.update_worker.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
         self.update_worker.sig_ready.connect(self._process_check_update)
         self.update_worker.sig_ready.connect(self.update_thread.quit)
         self.update_worker.sig_ready.connect(
@@ -319,6 +327,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.progress_dialog.cancel.clicked.connect(self._cancel_download)
 
         self.download_thread = QThread(None)
+        self.download_worker.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
         self.download_worker.sig_ready.connect(self._confirm_install)
         self.download_worker.sig_ready.connect(self.download_thread.quit)
         self.download_worker.sig_ready.connect(
