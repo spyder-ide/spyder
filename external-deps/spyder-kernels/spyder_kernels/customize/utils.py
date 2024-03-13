@@ -6,6 +6,7 @@
 """Utility functions."""
 
 import ast
+import builtins
 import os
 import re
 import sys
@@ -96,18 +97,15 @@ def path_is_library(path, initial_pathlist=None):
         return False
 
 
-def capture_last_Expr(code_ast, out_varname):
-    """
-    Parse line and modify code to capture in globals the last expression.
-
-    The namespace must contain __spyder_builtins__, which is the builtins module.
-    """
+def capture_last_Expr(code_ast, out_varname, global_ns):
+    """Parse line and modify code to capture in globals the last expression."""
     # Modify ast code to capture the last expression
     capture_last_expression = False
     if (
         len(code_ast.body)
         and isinstance(code_ast.body[-1], ast.Expr)
     ):
+        global_ns["__spyder_builtins__"] = builtins
         capture_last_expression = True
         expr_node = code_ast.body[-1]
         # Create new assign node
@@ -134,9 +132,17 @@ def capture_last_Expr(code_ast, out_varname):
 def exec_encapsulate_locals(
     code_ast, globals, locals, exec_fun=None, filename=None
 ):
-    """Execute by encapsulating locals if needed."""
+    """
+    Execute by encapsulating locals if needed.
+
+    Warning: 
+        In general, the dict returned by locals() might or might not be modified.
+        In this case, the encapsulated dict can not.
+    
+    """
     use_locals_hack = locals is not None and locals is not globals
     if use_locals_hack:
+        globals["__spyder_builtins__"] = builtins
         # Mitigates a behaviour of CPython that makes it difficult
         # to work with exec and the local namespace
         # See:

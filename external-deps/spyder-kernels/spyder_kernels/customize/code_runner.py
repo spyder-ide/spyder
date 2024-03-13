@@ -498,9 +498,8 @@ class SpyderCodeRunner(Magics):
 
             if capture_last_expression:
                 ast_code, capture_last_expression = capture_last_Expr(
-                    ast_code, "_spyder_out"
+                    ast_code, "_spyder_out", ns_globals
                 )
-                ns_globals["__spyder_builtins__"] = builtins
 
             exec_encapsulate_locals(
                 ast_code, ns_globals, ns_locals, exec_fun, filename

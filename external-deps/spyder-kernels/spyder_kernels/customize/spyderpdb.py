@@ -144,22 +144,22 @@ class SpyderPdb(ipyPdb):
             if cmd == "debug":
                 return self.do_debug(arg)
 
-        locals = self.curframe_locals
-        globals = self.curframe.f_globals
+        local_ns = self.curframe_locals
+        global_ns = self.curframe.f_globals
 
         if self.pdb_use_exclamation_mark:
             # Find pdb commands executed without !
             cmd, arg, line = self.parseline(line)
             if cmd:
                 cmd_in_namespace = (
-                    cmd in globals
-                    or cmd in locals
+                    cmd in global_ns
+                    or cmd in local_ns
                     or cmd in builtins.__dict__
                 )
                 # Special case for quit and exit
                 if cmd in ("quit", "exit"):
-                    if cmd in globals and isinstance(
-                            globals[cmd], ZMQExitAutocall):
+                    if cmd in global_ns and isinstance(
+                            global_ns[cmd], ZMQExitAutocall):
                         # Use the pdb call
                         cmd_in_namespace = False
                 cmd_func = getattr(self, 'do_' + cmd, None)
@@ -202,19 +202,19 @@ class SpyderPdb(ipyPdb):
                     capture_last_expression = False
                 else:
                     code_ast, capture_last_expression = capture_last_Expr(
-                        code_ast, "_spyderpdb_out")
-
-                globals["__spyder_builtins__"] = builtins
+                        code_ast, "_spyderpdb_out", global_ns)
 
                 if is_magic:
-                    # For runcell and all magics using locals. That's because
-                    # the locals() dict can not be modified.
-                    exec(compile(code_ast, "<stdin>", "exec"), globals, locals)
+                    # Magics like runcell use and modify local_ns.
+                    # But the locals() dict can not be directly modified when
+                    # encapsulated. Therefore they must encapsulate the locals
+                    # themselves (see code_runner.py).
+                    exec(compile(code_ast, "<stdin>", "exec"), global_ns, local_ns)
                 else:
-                    exec_encapsulate_locals(code_ast, globals, locals)
+                    exec_encapsulate_locals(code_ast, global_ns, local_ns)
 
                 if capture_last_expression:
-                    out = globals.pop("_spyderpdb_out", None)
+                    out = global_ns.pop("_spyderpdb_out", None)
                     if out is not None:
                         sys.stdout.flush()
                         sys.stderr.flush()
@@ -557,9 +557,9 @@ class SpyderPdb(ipyPdb):
         with self.recursive_debugger() as debugger:
             self.message("Entering recursive debugger")
             try:
-                globals = self.curframe.f_globals
-                locals = self.curframe_locals
-                return sys.call_tracing(debugger.run, (arg, globals, locals))
+                global_ns = self.curframe.f_globals
+                local_ns = self.curframe_locals
+                return sys.call_tracing(debugger.run, (arg, global_ns, local_ns))
             except Exception:
                 exc_info = sys.exc_info()[:2]
                 self.error(
