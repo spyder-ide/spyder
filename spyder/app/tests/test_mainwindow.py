@@ -4538,6 +4538,9 @@ def hello():
     test = 1
     print('test ==', test)
 hello()
+#%%
+test = 9
+print([test for i in range(3)])
 """)
 
     # Wait until the window is fully up
@@ -4598,6 +4601,25 @@ hello()
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
             nsb.editor.source_model._data['test']['view'] == '3')
+
+    # Run magic
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runcell -i 1")
+
+    qtbot.waitUntil(lambda: "[9, 9, 9]" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
+
+    # check value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('test =', test)")
+
+    qtbot.waitUntil(lambda: "test = 9" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
+    assert "test = 9" in shell._control.toPlainText()
+
+    # Check the namespace browser is updated
+    assert ('test' in nsb.editor.source_model._data and
+            nsb.editor.source_model._data['test']['view'] == '9')
 
 
 @flaky(max_runs=3)
@@ -6669,33 +6691,33 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "801" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
-    
+
     # Create an untitled file
     main_window.editor.new()
-    
+
     assert "untitled" in main_window.editor.get_current_filename()
-    
+
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text("print(20 + 780)")
-    
+
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
     assert "800" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "untitled" in control.toPlainText()
-    
+
     # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
-    
+
     with tempfile.TemporaryDirectory() as td:
-    
+
         editorstack = main_window.editor.get_current_editorstack()
         editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
         main_window.editor.save()
         with qtbot.waitSignal(shell.executed):
             qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
-    
+
         assert "799" in control.toPlainText()
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()
