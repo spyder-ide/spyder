@@ -134,9 +134,7 @@ def capture_last_Expr(code_ast, out_varname):
 def exec_encapsulate_locals(
     code_ast, globals, locals, exec_fun=None, filename=None
 ):
-    """
-    Execute by encapsulating locals if needed.
-    """
+    """Execute by encapsulating locals if needed."""
     use_locals_hack = locals is not None and locals is not globals
     if use_locals_hack:
         # Mitigates a behaviour of CPython that makes it difficult

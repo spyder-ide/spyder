@@ -207,8 +207,8 @@ class SpyderPdb(ipyPdb):
                 globals["__spyder_builtins__"] = builtins
 
                 if is_magic:
-                    # For runcell and all magic using locals
-                    # Because the locals() can not be modified
+                    # For runcell and all magics using locals. That's because
+                    # the locals() dict can not be modified.
                     exec(compile(code_ast, "<stdin>", "exec"), globals, locals)
                 else:
                     exec_encapsulate_locals(code_ast, globals, locals)
