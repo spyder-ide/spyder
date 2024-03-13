@@ -761,14 +761,6 @@ class Editor(SpyderDockablePlugin):
             completions.file_opened_closed_or_updated
         )
 
-        # TODO: Seems like `update_client_status` is only availabel from the
-        # LSP provider?
-        # widget.sig_update_active_languages_requested.connect(
-        #     completions.update_client_status
-        # )
-
-        # TODO: Should this be moved to the Completions plugin
-        # as done with the console/internal console plugin connections?
         completions.sig_language_completions_available.connect(
             widget.register_completion_capabilities)
         completions.sig_open_file.connect(widget.load)
@@ -784,16 +776,10 @@ class Editor(SpyderDockablePlugin):
             completions.file_opened_closed_or_updated
         )
 
-        # TODO: Seems like `update_client_status` is only availabel from the
-        # LSP provider?
-        # widget.sig_update_active_languages_requested.disconnect(
-        #     completions.update_client_status
-        # )
-        # TODO: Should this be moved to the Completions plugin
-        # as done with the console/internal console plugin connections?
         completions.sig_language_completions_available.disconnect(
             widget.register_completion_capabilities)
         completions.sig_open_file.disconnect(widget.load)
+        # TODO: Remove this signal (`sig_editor_rcp`)
         completions.sig_editor_rpc.disconnect(widget._rpc_call)
         completions.sig_stop_completions.disconnect(
             widget.stop_completion_services)
@@ -805,22 +791,6 @@ class Editor(SpyderDockablePlugin):
         outline_widget = outline.get_widget()
 
         widget.set_outlineexplorer(outline_widget)
-
-        # TODO: Should the above be done from the Outline Explorer plugin
-        # as done with the console/internal console plugin?
-        outline_widget.edit_goto.connect(
-            lambda filenames, goto, word:
-                widget.load(
-                    filenames=filenames,
-                    goto=goto,
-                    word=word,
-                    editorwindow=widget
-                )
-        )
-        outline_widget.edit.connect(
-            lambda filenames:
-                widget.load(filenames=filenames, editorwindow=self)
-        )
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
@@ -856,7 +826,6 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Switcher)
     def on_switcher_available(self):
         switcher = self.get_plugin(Plugins.Switcher)
-        # TODO: Seems like the switcher for symbols is failing? Missing a check
         self.get_widget().set_switcher(switcher)
 
     @on_plugin_teardown(plugin=Plugins.Switcher)
@@ -866,16 +835,12 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        # TODO: Should this work as is done in the IPython console?
+        # TODO: This should work as is done in the IPython console
+        # for the handling of the active project path
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
-        widget = self.get_widget()
-        projects = self.get_plugin(Plugins.Projects)
-        if projects.get_active_project_path():
-            projects.set_project_filenames(
-                [finfo.filename for finfo in widget.editorstacks[0].data]
-            )
+        pass
 
     def update_font(self):
         """Update font from Preferences"""
@@ -885,8 +850,6 @@ class Editor(SpyderDockablePlugin):
     def on_mainwindow_visible(self):
         widget = self.get_widget()
         widget.restore_scrollbar_position()
-        # TODO: Something else?. The `setup_other_windows` needed to be done as
-        # part of `setup_open_files` to prevent errors
 
     def can_close(self):
         editorstack = self.get_widget().editorstacks[0]
@@ -904,7 +867,7 @@ class Editor(SpyderDockablePlugin):
     # TODO: Add docstrings for all methods in this section because they are
     # public API.
     def get_codeeditor_for_filename(self, filename):
-        return self.get_widget()._get_editor(filename)
+        return self.get_widget().get_editor(filename)
 
     def refresh(self):
         """
@@ -914,6 +877,15 @@ class Editor(SpyderDockablePlugin):
 
     def load(self, *args, **kwargs):
         return self.get_widget().load(*args, **kwargs)
+
+    def load_edit_goto(self, filenames, goto, word):
+        widget = self.get_widget()
+        return widget.load(
+            filenames=filenames, goto=goto, word=word, editorwindow=widget
+        )
+
+    def load_edit(self, filenames):
+        return self.get_widget().load(filenames=filenames, editorwindow=self)
 
     def new(self, *args, **kwargs):
         return self.get_widget().new(*args, **kwargs)
@@ -950,9 +922,7 @@ class Editor(SpyderDockablePlugin):
     def get_focus_widget(self):
         return self.get_widget().get_focus_widget()
 
-    def setup_open_files(self, *args, **kwargs):  # on_mainwindow_visible?
-        # TODO: `setup_other_windows` called here to ensure is called after
-        # toolbar `on_mainwindow_visible`
+    def setup_open_files(self, *args, **kwargs):
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
         widget.setup_other_windows(self._main, outline)

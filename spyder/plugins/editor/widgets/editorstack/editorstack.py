@@ -109,7 +109,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     file_saved = Signal(str, str, str)
     file_renamed_in_data = Signal(str, str, str)
     opened_files_list_changed = Signal()
-    active_languages_stats = Signal(set)
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
@@ -1754,6 +1753,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
+            # TODO: Check move of this logic to be part of SpyderMenu itself/be
+            # able to call a method to do this unregistration
             editor.menu.MENUS.remove((editor, None, editor.menu))
             editor.menu.setParent(None)
             editor.readonly_menu.MENUS.remove(

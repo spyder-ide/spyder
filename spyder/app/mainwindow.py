@@ -1127,6 +1127,14 @@ class MainWindow(
             if reply == QMessageBox.No:
                 return False
 
+        if self.projects.get_active_project_path():
+            self.projects.set_project_filenames(
+                [
+                    finfo.filename
+                    for finfo in self.editor.get_widget().editorstacks[0].data
+                ]
+            )
+
         can_close = self.plugin_registry.delete_all_plugins(
             excluding={Plugins.Layout},
             close_immediately=close_immediately)

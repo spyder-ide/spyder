@@ -204,7 +204,6 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Completions related signals
     sig_after_configuration_update_requested = Signal(list)
-    sig_update_active_languages_requested = Signal(set)
 
     # ---- Other signals
     sig_help_requested = Signal(dict)
@@ -1632,8 +1631,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.file_renamed_in_data.connect(self.renamed)
         editorstack.opened_files_list_changed.connect(
             self.opened_files_list_changed)
-        editorstack.active_languages_stats.connect(
-            self.sig_update_active_languages_requested)
         editorstack.sig_go_to_definition.connect(
             lambda fname, line, col: self.load(
                 fname, line, start_column=col))
@@ -2752,7 +2749,7 @@ class EditorMainWidget(PluginMainWidget):
         if filename is None:
             filename = self.get_current_filename()
         if cursor is None:
-            editor = self._get_editor(filename)
+            editor = self.get_editor(filename)
             if editor is None:
                 return
             cursor = editor.textCursor()
@@ -2957,7 +2954,7 @@ class EditorMainWidget(PluginMainWidget):
 
         return editorstack
 
-    def _get_editor(self, filename):
+    def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self._get_editorstack()
         if editorstack is None:
@@ -2977,7 +2974,7 @@ class EditorMainWidget(PluginMainWidget):
         Get cell code from cell name and file name.
         """
         editorstack = self._get_editorstack()
-        editor = self._get_editor(filename)
+        editor = self.get_editor(filename)
 
         if editor is None:
             raise RuntimeError(
@@ -2990,7 +2987,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
-        editor = self._get_editor(filename)
+        editor = self.get_editor(filename)
 
         if editor is None:
             raise RuntimeError(
@@ -3012,7 +3009,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack = self._get_editorstack()
         if save_all and self.get_conf('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
-        editor = self._get_editor(filename)
+        editor = self.get_editor(filename)
 
         if editor is None:
             # Load it from file instead
@@ -3338,7 +3335,8 @@ class EditorMainWidget(PluginMainWidget):
         Also open any files that the user selected in the recovery dialog.
         """
         self.set_create_new_file_if_empty(False)
-        # TODO: main_widget calling projects plugin logic
+        # TODO: Change active project path to be used as is done on the
+        # IPython Console
         active_project_path = self._plugin._get_active_project_path()
 
         if active_project_path:
