@@ -56,12 +56,13 @@ class UpdateManagerContainer(PluginMainContainer):
         # Signals
         self.update_manager.sig_set_status.connect(self.set_status)
         self.update_manager.sig_disable_actions.connect(
-            self._set_actions_state
-        )
+            self._set_actions_state)
         self.update_manager.sig_block_status_signals.connect(
             self.update_manager_status.blockSignals)
         self.update_manager.sig_download_progress.connect(
             self.update_manager_status.set_download_progress)
+        self.update_manager.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         self.update_manager.sig_install_on_close.connect(
             self.set_install_on_close)
         self.update_manager.sig_quit_requested.connect(self.sig_quit_requested)

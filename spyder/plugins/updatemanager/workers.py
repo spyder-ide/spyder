@@ -56,14 +56,43 @@ class UpdateDownloadIncompleteError(Exception):
     pass
 
 
-class WorkerUpdate(QObject):
+class Worker(QObject):
+    """Base worker class for the updater"""
+
+    sig_ready = Signal()
+    """Signal to inform that the worker has finished."""
+
+    sig_exception_occurred = Signal(dict)
+    """
+    Send untracked exceptions to the error reporter
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The allowed keys are:
+        text: str
+            Error text to display. This may be a translated string or
+            formatted exception string.
+        is_traceback: bool
+            Whether `text` is plain text or an error traceback.
+        repo: str
+            Customized display of repo in GitHub error submission report.
+        title: str
+            Customized display of title in GitHub error submission report.
+        label: str
+            Customized content of the error dialog.
+        steps: str
+            Customized content of the error dialog.
+    """
+
+
+class WorkerUpdate(Worker):
     """
     Worker that checks for releases using either the Anaconda
     default channels or the Github Releases page without
     blocking the Spyder user interface, in case of connection
     issues.
     """
-    sig_ready = Signal()
 
     def __init__(self, stable_only):
         super().__init__()
@@ -151,11 +180,14 @@ class WorkerUpdate(QObject):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except Exception as err:
-            # Only log the error when it's a generic one because we can't give
-            # users proper feedback on how to address it. Otherwise we'd show
-            # a long traceback that most probably would be incomprehensible to
-            # them.
-            logger.warning(err, exc_info=err)
+            # Send untracked errors to our error reporter
+            error_data = dict(
+                text=traceback.format_exc(),
+                is_traceback=True,
+                title="Check for update error",
+            )
+            self.sig_exception_occurred.emit(error_data)
+            logger.error(err, exc_info=err)
         finally:
             self.error = error_msg
 
@@ -169,14 +201,11 @@ class WorkerUpdate(QObject):
                 pass
 
 
-class WorkerDownloadInstaller(QObject):
+class WorkerDownloadInstaller(Worker):
     """
     Worker that donwloads standalone installers for Windows, macOS,
     and Linux without blocking the Spyder user interface.
     """
-
-    sig_ready = Signal()
-    """Signal to inform that the worker has finished successfully."""
 
     sig_download_progress = Signal(int, int)
     """
