@@ -109,7 +109,7 @@ def start_ws_lang_server(port, check_parent_process, handler_class):
         import websockets
     except ImportError as e:
         raise ImportError(
-            "websocket modules missing. Please run pip install 'python-lsp-server[websockets]"
+            "websocket modules missing. Please run: pip install 'python-lsp-server[websockets]'"
         ) from e
 
     with ThreadPoolExecutor(max_workers=10) as tpool:

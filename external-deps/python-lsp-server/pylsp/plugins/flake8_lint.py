@@ -2,6 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 """Linter pluging for flake8"""
+
 import logging
 import os.path
 import re

@@ -507,6 +507,7 @@ class Document:
         extra_paths = []
         environment_path = None
         env_vars = None
+        prioritize = False
 
         if self._config:
             jedi_settings = self._config.plugin_settings(
@@ -523,19 +524,18 @@ class Document:
 
             extra_paths = jedi_settings.get("extra_paths") or []
             env_vars = jedi_settings.get("env_vars")
+            prioritize = jedi_settings.get("prioritize")
 
-        # Drop PYTHONPATH from env_vars before creating the environment because that makes
-        # Jedi throw an error.
+        # Drop PYTHONPATH from env_vars before creating the environment to
+        # ensure that Jedi can startup properly without module name collision.
         if env_vars is None:
             env_vars = os.environ.copy()
         env_vars.pop("PYTHONPATH", None)
 
-        environment = (
-            self.get_enviroment(environment_path, env_vars=env_vars)
-            if environment_path
-            else None
-        )
-        sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
+        environment = self.get_enviroment(environment_path, env_vars=env_vars)
+
+        sys_path = self.sys_path(environment_path, env_vars, prioritize, extra_paths)
+
         project_path = self._workspace.root_path
 
         # Extend sys_path with document's path if requested
@@ -545,7 +545,7 @@ class Document:
         kwargs = {
             "code": self.source,
             "path": self.path,
-            "environment": environment,
+            "environment": environment if environment_path else None,
             "project": jedi.Project(path=project_path, sys_path=sys_path),
         }
 
@@ -570,14 +570,20 @@ class Document:
 
         return environment
 
-    def sys_path(self, environment_path=None, env_vars=None):
+    def sys_path(
+        self, environment_path=None, env_vars=None, prioritize=False, extra_paths=[]
+    ):
         # Copy our extra sys path
-        # TODO: when safe to break API, use env_vars explicitly to pass to create_environment
         path = list(self._extra_sys_path)
         environment = self.get_enviroment(
             environment_path=environment_path, env_vars=env_vars
         )
         path.extend(environment.get_sys_path())
+        if prioritize:
+            path += extra_paths + path
+        else:
+            path += path + extra_paths
+
         return path
 
 

@@ -143,6 +143,11 @@
       },
       "description": "Define extra paths for jedi.Script."
     },
+    "pylsp.plugins.jedi.prioritize": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to place extra_paths at the beginning (true) or end (false) of `sys.path`"
+    },
     "pylsp.plugins.jedi.env_vars": {
       "type": [
         "object",

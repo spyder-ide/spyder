@@ -175,8 +175,8 @@ def escape_plain_text(contents: str) -> str:
     """
     Format plain text to display nicely in environments which do not respect whitespaces.
     """
-    contents = contents.replace("\t", "\u00A0" * 4)
-    contents = contents.replace("  ", "\u00A0" * 2)
+    contents = contents.replace("\t", "\u00a0" * 4)
+    contents = contents.replace("  ", "\u00a0" * 2)
     return contents
 
 
