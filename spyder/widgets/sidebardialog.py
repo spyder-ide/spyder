@@ -264,7 +264,11 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Save separators to perform certain operations only on them
         self._separators.append(hline)
 
-    def add_page(self, page: SidebarPage):
+    def add_page(self, page: SidebarPage, initialize: Optional[bool] = True):
+        """Add page instance to the dialog."""
+        if initialize:
+            page.initialize()
+
         page.show_this_page.connect(lambda row=self.contents_widget.count():
                                     self.contents_widget.setCurrentRow(row))
 
@@ -302,6 +306,10 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Set font for items
         item.setFont(self.items_font)
+
+    def number_of_pages(self):
+        """Get the number of pages in the dialog."""
+        return self.pages_widget.count()
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -509,5 +517,4 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Add pages to the dialog."""
         for PageClass in self.PAGE_CLASSES:
             page = PageClass(self)
-            page.initialize()
             self.add_page(page)
