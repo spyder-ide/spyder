@@ -18,8 +18,8 @@ import os
 import os.path as osp
 from pathlib import Path
 import re
+import string
 import sys
-import time
 from typing import Dict, Optional
 import uuid
 
@@ -205,8 +205,19 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 shebang = ['#!/usr/bin/env python3']
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
-                '"""', 'Created on %(date)s', '',
-                '@author: %(username)s', '"""', '', '']
+                '"""',
+                '$|$',
+                '',
+                'Created on ${date}',
+                '',
+                '@author: ${username}',
+                '@file: ${file}',
+                '@project: ${projectname}',
+                '',
+                'Copyright ${year}  ${fullname}',
+                '"""',
+                '',
+                '']
             try:
                 encoding.write(os.linesep.join(header), self.TEMPLATE_PATH,
                                'utf-8')
@@ -2202,45 +2213,23 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
-        # If no text is provided, create default content
-        try:
-            if text is None:
-                default_content = True
-                text, enc = encoding.read(self.TEMPLATE_PATH)
-                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
-                                      text)
-                if enc_match:
-                    enc = enc_match.group(1)
-                # Initialize template variables
-                # Windows
-                username = encoding.to_unicode_from_fs(
-                                os.environ.get('USERNAME', ''))
-                # Linux, Mac OS X
-                if not username:
-                    username = encoding.to_unicode_from_fs(
-                                   os.environ.get('USER', '-'))
-                VARS = {
-                    'date': time.ctime(),
-                    'username': username,
-                }
-                try:
-                    text = text % VARS
-                except Exception:
-                    pass
-            else:
-                default_content = False
-                enc = encoding.read(self.TEMPLATE_PATH)[1]
-        except (IOError, OSError):
-            text = ''
-            enc = 'utf-8'
-            default_content = True
-
+        CURSOR_INSERTION_POINT = '$|$'
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
+
         # Creating editor widget
         if editorstack is None:
             current_es = self.get_current_editorstack()
         else:
             current_es = editorstack
+
+        projects = self.main.get_plugin(Plugins.Projects, error=False)
+        if projects and projects.get_active_project() is not None:
+            project_name = projects.get_active_project().get_name()
+            project_path = projects.get_active_project_path()
+        else:
+            project_name = ''
+            project_path = ''
+
         created_from_here = fname is None
         if created_from_here:
             if self.untitled_num == 0:
@@ -2266,15 +2255,15 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd_or_home()
 
-            projects = self.main.get_plugin(Plugins.Projects, error=False)
-            if projects and projects.get_active_project() is not None:
-                basedir = projects.get_active_project_path()
+            if project_path:
+                basedir = project_path
             else:
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
+                else:
+                    basedir = getcwd_or_home()
             fname = osp.abspath(osp.join(basedir, fname))
         else:
             # QString when triggered by a Qt signal
@@ -2282,6 +2271,85 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             index = current_es.has_filename(fname)
             if index is not None and not current_es.close_file(index):
                 return
+
+        # If no text is provided, create default content
+        try:
+            if text is None:
+                default_content = True
+                text, enc = encoding.read(self.TEMPLATE_PATH)
+                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
+                                      text)
+                if enc_match:
+                    enc = enc_match.group(1)
+
+                # Initialize template variables
+                if os.name == 'nt':
+                    # Windows
+                    import ctypes
+
+                    username = encoding.to_unicode_from_fs(
+                                os.environ.get('USERNAME', '-'))
+                    GetUserNameEx = ctypes.windll.secur32.GetUserNameExW
+                    name_display = 3
+
+                    size = ctypes.pointer(ctypes.c_ulong(0))
+                    GetUserNameEx(name_display, None, size)
+
+                    name_buffer = ctypes.create_unicode_buffer(
+                                size.contents.value)
+                    GetUserNameEx(name_display, name_buffer, size)
+                    displayname = name_buffer.value.strip()
+                else:
+                    # Linux, Mac OS X
+                    import pwd
+
+                    username = encoding.to_unicode_from_fs(
+                                   os.environ.get('USER', '-'))
+                    try:
+                        pwd_struct = pwd.getpwnam(username)
+                    except KeyError:
+                        displayname = ''
+                    else:
+                        # Use first element in Gecos field as user's full name
+                        displayname = pwd_struct.pw_gecos.split(',')[0].strip()
+
+                now = datetime.now().astimezone()
+                now.replace(microsecond=0)
+                VARS = {
+                    'date': now.ctime(),
+                    'isodate': now.isoformat(),
+                    'year': now.strftime('%Y'),
+                    'month': now.strftime('%m'),
+                    'day': now.strftime('%d'),
+                    'hour': now.strftime('%H'),
+                    'minute': now.strftime('%M'),
+                    'second': now.strftime('%S'),
+                    'tzname': now.strftime('%Z'),
+                    'monthname': now.strftime('%b'),
+                    'weekday': now.strftime('%a'),
+                    'username': username,
+                    'fullname': displayname or 'n/a',
+                    'file': fname,
+                    'filename': os.path.basename(fname),
+                    'filepath': os.path.dirname(fname),
+                    'projectname': project_name or 'n/a',
+                    'projectpath': project_path or 'n/a'
+                }
+                try:
+                    text = string.Template(text).safe_substitute(VARS)
+                except Exception:
+                    pass
+            else:
+                default_content = False
+                enc = encoding.read(self.TEMPLATE_PATH)[1]
+        except (IOError, OSError):
+            text = ''
+            enc = 'utf-8'
+            default_content = True
+
+        # Store position of first cursor insertion marker and remove marker
+        cursor_pos = text.find(CURSOR_INSERTION_POINT)
+        text = text.replace(CURSOR_INSERTION_POINT, '')
 
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
@@ -2294,6 +2362,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts(current_editor)
+
+        # Move cursor to position of the insertion marker
+        cursor = current_editor.textCursor()
+        cursor.setPosition(cursor_pos)
+        current_editor.setTextCursor(cursor)
+
         if not created_from_here:
             self.save(force=True)
 
