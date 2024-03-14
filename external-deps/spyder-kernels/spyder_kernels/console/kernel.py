@@ -76,6 +76,11 @@ class SpyderKernel(IPythonKernel):
         # Socket to signal shell_stream locally
         self.loopback_socket = None
 
+        # Store original sys.path. Kernels are started with PYTHONPATH
+        # removed from environment variables, so this will never have
+        # user paths and should be clean.
+        self._sys_path = sys.path.copy()
+
     @property
     def kernel_info(self):
         # Used for checking correct version by spyder
@@ -595,7 +600,6 @@ class SpyderKernel(IPythonKernel):
         if bbox_inches_n in conf:
             self.set_mpl_inline_bbox_inches(conf[bbox_inches_n])
 
-
     def set_mpl_inline_bbox_inches(self, bbox_inches):
         """
         Set inline print figure bbox inches.
@@ -725,7 +729,7 @@ class SpyderKernel(IPythonKernel):
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
-           
+
         if special == "sympy":
             import sympy  # noqa
             sympy_init = "\n".join([
@@ -765,27 +769,35 @@ class SpyderKernel(IPythonKernel):
         raise NotImplementedError(f"{special}")
 
     @comm_handler
-    def update_syspath(self, path_dict, new_path_dict):
+    def update_syspath(self, new_path, prioritize):
         """
         Update the PYTHONPATH of the kernel.
 
-        `path_dict` and `new_path_dict` have the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
+        `new_path` corresponds to the new state of the PYTHONPATH.
+        `prioritize` determines whether to prioritize PYTHONPATH in sys.path.
 
-        `path_dict` corresponds to the previous state of the PYTHONPATH.
-        `new_path_dict` corresponds to the new state of the PYTHONPATH.
+        A copy of sys.path is made at instantiation, which should be clean,
+        so we can just prepend/append to the copy without having to explicitly
+        remove old user paths. PYTHONPATH can just be overwritten.
         """
-        # Remove old paths
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
+        if new_path is not None:
+            # Overwrite PYTHONPATH
+            os.environ.update({'PYTHONPATH': os.pathsep.join(new_path)})
 
-        # Add new paths
-        pypath = [path for path, active in new_path_dict.items() if active]
-        if pypath:
-            sys.path.extend(pypath)
-            os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
+            # Add new paths to original sys.path
+            if prioritize:
+                sys.path[:] = new_path + self._sys_path
+
+                # Ensure current directory is always first to imitate Python
+                # standard behavior
+                if '' in sys.path:
+                    sys.path.remove('')
+                    sys.path.insert(0, '')
+            else:
+                sys.path[:] = self._sys_path + new_path
         else:
+            # Restore original sys.path and remove PYTHONPATH
+            sys.path[:] = self._sys_path
             os.environ.pop('PYTHONPATH', None)
 
     # -- Private API ---------------------------------------------------
@@ -907,9 +919,9 @@ class SpyderKernel(IPythonKernel):
             return
 
         generic_error = (
-            "\n" + "="*73 + "\n"
+            "\n" + "=" * 73 + "\n"
             "NOTE: The following error appeared when setting "
-            "your Matplotlib backend!!\n" + "="*73 + "\n\n"
+            "your Matplotlib backend!!\n" + "=" * 73 + "\n\n"
             "{0}"
         )
 
@@ -931,7 +943,7 @@ class SpyderKernel(IPythonKernel):
             # trying to set a backend. See issue 5541
             if "GUI eventloops" in str(err):
                 previous_backend = matplotlib.get_backend()
-                if not backend in previous_backend.lower():
+                if backend not in previous_backend.lower():
                     # Only inform about an error if the user selected backend
                     # and the one set by Matplotlib are different. Else this
                     # message is very confusing.
