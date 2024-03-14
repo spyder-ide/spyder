@@ -160,12 +160,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
         env_vars.pop('PYTHONPATH', None)
 
-        # List of paths declared by the user, plus project's path, to
-        # add to PYTHONPATH
-        pathlist = self.get_conf(
-            'spyder_pythonpath', default=[], section='pythonpath_manager')
-        pypath = os.pathsep.join(pathlist)
-
         # List of modules to exclude from our UMR
         umr_namelist = self.get_conf(
             'umr/namelist', section='main_interpreter')
@@ -184,7 +178,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
-            'SPY_PYTHONPATH': pypath,
         })
 
         # App considerations

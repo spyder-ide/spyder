@@ -20,6 +20,7 @@ This server can be configured using the `workspace/didChangeConfiguration` metho
 | `pylsp.plugins.flake8.select` | `array` of unique `string` items | List of errors and warnings to enable. | `null` |
 | `pylsp.plugins.jedi.auto_import_modules` | `array` of `string` items | List of module names for jedi.settings.auto_import_modules. | `["numpy"]` |
 | `pylsp.plugins.jedi.extra_paths` | `array` of `string` items | Define extra paths for jedi.Script. | `[]` |
+| `pylsp.plugins.jedi.prioritize` | `boolean` | Whether to place extra_paths at the beginning (true) or end (false) of `sys.path` | `false` |
 | `pylsp.plugins.jedi.env_vars` | `object` | Define environment variables for jedi.Script and Jedi.names. | `null` |
 | `pylsp.plugins.jedi.environment` | `string` | Define environment for jedi.Script and Jedi.names. | `null` |
 | `pylsp.plugins.jedi_completion.enabled` | `boolean` | Enable or disable the plugin. | `true` |

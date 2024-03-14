@@ -1,5 +1,22 @@
 # History of changes
 
+## Version 1.10.1 (2024/03/12)
+
+### Issues Closed
+
+* [Issue 529](https://github.com/python-lsp/python-lsp-server/issues/529) - Autoimports: sqlite3.OperationalError: database is locked ([PR 530](https://github.com/python-lsp/python-lsp-server/pull/530) by [@last-partizan](https://github.com/last-partizan))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 530](https://github.com/python-lsp/python-lsp-server/pull/530) - Fix progress reporting with autoimport plugin, by [@last-partizan](https://github.com/last-partizan) ([529](https://github.com/python-lsp/python-lsp-server/issues/529))
+* [PR 528](https://github.com/python-lsp/python-lsp-server/pull/528) - Improve error message about missing `websockets` module, by [@tomplus](https://github.com/tomplus)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 1.10.0 (2024/01/21)
 
 ### New features
