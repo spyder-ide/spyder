@@ -47,7 +47,7 @@ from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
 from spyder_kernels.customize.utils import (
-    capture_last_Expr, canonic, exec_encapsulate_locals
+    capture_last_Expr, canonic, create_pathlist, exec_encapsulate_locals
 )
 
 
