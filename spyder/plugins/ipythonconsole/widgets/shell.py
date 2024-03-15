@@ -680,11 +680,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             "color scheme", "dark" if not dark_color else "light"
         )
 
-    def update_syspath(self, path_dict, new_path_dict):
+    def set_syspath(self, new_path_dict):
         """Update sys.path contents on kernel."""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False).update_syspath(path_dict, new_path_dict)
+        self.set_kernel_configuration(
+            "syspath", new_path_dict
+        )
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""

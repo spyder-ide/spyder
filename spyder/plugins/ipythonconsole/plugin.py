@@ -413,7 +413,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @on_plugin_available(plugin=Plugins.PythonpathManager)
     def on_pythonpath_manager_available(self):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
-        pythonpath_manager.sig_pythonpath_changed.connect(self.update_path)
+        pythonpath_manager.sig_pythonpath_changed.connect(self.set_path)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -464,7 +464,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @on_plugin_teardown(plugin=Plugins.PythonpathManager)
     def on_pythonpath_manager_teardown(self):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
-        pythonpath_manager.sig_pythonpath_changed.disconnect(self.update_path)
+        pythonpath_manager.sig_pythonpath_changed.disconnect(self.set_path)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -877,9 +877,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().save_working_directory(dirname)
 
-    def update_path(self, path_dict, new_path_dict):
+    def set_path(self, path_dict, new_path_dict):
         """
-        Update path on consoles.
+        Set path on consoles.
 
         Both parameters have as keys paths and as value if the path
         should be used/is active (True) or not (False)
@@ -895,7 +895,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
-        self.get_widget().update_path(path_dict, new_path_dict)
+        self.get_widget().set_path(new_path_dict)
 
     def restart(self):
         """
