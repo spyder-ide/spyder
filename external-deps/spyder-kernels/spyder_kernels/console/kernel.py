@@ -76,6 +76,9 @@ class SpyderKernel(IPythonKernel):
         # Socket to signal shell_stream locally
         self.loopback_socket = None
 
+        # Save set syspath
+        self._syspath = []
+
     @property
     def kernel_info(self):
         # Used for checking correct version by spyder
@@ -675,6 +678,8 @@ class SpyderKernel(IPythonKernel):
                     self._load_wurlitzer()
             elif key == "autoreload_magic":
                 self._autoreload_magic(value)
+            elif key == "syspath":
+                self.set_syspath(value)
         return ret
 
     def set_color_scheme(self, color_scheme):
@@ -764,8 +769,7 @@ class SpyderKernel(IPythonKernel):
 
         raise NotImplementedError(f"{special}")
 
-    @comm_handler
-    def update_syspath(self, path_dict, new_path_dict):
+    def set_syspath(self, new_path_dict):
         """
         Update the PYTHONPATH of the kernel.
 
@@ -776,9 +780,10 @@ class SpyderKernel(IPythonKernel):
         `new_path_dict` corresponds to the new state of the PYTHONPATH.
         """
         # Remove old paths
-        for path in path_dict:
+        for path in self._syspath:
             while path in sys.path:
                 sys.path.remove(path)
+        self._syspath = new_path_dict
 
         # Add new paths
         pypath = [path for path, active in new_path_dict.items() if active]
