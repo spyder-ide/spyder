@@ -2201,13 +2201,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
-    def set_path(self, new_path_dict):
+    def set_syspath(self, syspath):
         """Update path on consoles."""
         logger.debug("Update sys.path in all console clients")
         for client in self.clients:
             shell = client.shellwidget
             if shell is not None:
-                shell.set_syspath(new_path_dict)
+                shell.set_syspath(syspath)
 
     def get_active_project_path(self):
         """Get the active project path."""

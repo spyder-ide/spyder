@@ -895,7 +895,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         -------
         None.
         """
-        self.get_widget().set_path(new_path_dict)
+        syspath = [path for path, active in new_path_dict.items() if active]
+        self.get_widget().set_syspath(syspath)
 
     def restart(self):
         """
