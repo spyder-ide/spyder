@@ -773,7 +773,7 @@ class SpyderKernel(IPythonKernel):
 
         raise NotImplementedError(f"{special}")
 
-    def set_syspath(self, new_path_dict):
+    def set_syspath(self, pypath):
         """
         Update the PYTHONPATH of the kernel.
 
@@ -787,10 +787,9 @@ class SpyderKernel(IPythonKernel):
         for path in self._syspath:
             while path in sys.path:
                 sys.path.remove(path)
-        self._syspath = new_path_dict
+        self._syspath = pypath
 
         # Add new paths
-        pypath = [path for path, active in new_path_dict.items() if active]
         if pypath:
             sys.path.extend(pypath)
             os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
