@@ -78,10 +78,6 @@ class SpyderKernel(IPythonKernel):
 
         # Save set syspath
         self._syspath = []
-        # This is added to the path in spydercustomize.py
-        pypath = os.environ.get('SPY_PYTHONPATH')
-        if pypath:
-            self._syspath = pypath.split(os.pathsep)
 
     @property
     def kernel_info(self):
