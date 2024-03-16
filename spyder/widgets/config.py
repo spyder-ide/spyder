@@ -18,7 +18,7 @@ from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
 from qtpy.QtCore import Qt, QRegularExpression, QSize, Signal, Slot
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
+from qtpy.QtWidgets import (QAction, QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QFileDialog, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
@@ -538,7 +538,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
-                        content_type=None, section=None):
+                        content_type=None, section=None, status_icon=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
 
@@ -546,6 +546,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
+
+        if status_icon is not None:
+            status_action = QAction(self)
+            edit.addAction(status_action, QLineEdit.TrailingPosition)
+            status_action.setIcon(status_icon)
+            status_action.setVisible(False)
 
         if alignment == Qt.Vertical:
             layout = QVBoxLayout()
@@ -590,6 +596,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         widget.textbox = edit
         if tip is not None:
             widget.help_label = help_label
+        if status_icon is not None:
+            widget.status_action = status_action
 
         widget.setLayout(layout)
         edit.restart_required = restart
@@ -625,7 +633,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         return widget
 
     def create_browsedir(self, text, option, default=NoDefault, section=None,
-                         tip=None, alignment=Qt.Horizontal):
+                         tip=None, alignment=Qt.Horizontal, status_icon=None):
         widget = self.create_lineedit(
             text,
             option,
@@ -635,6 +643,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             # We need the tip to be added by the lineedit if the alignment is
             # vertical. If not, it'll be added below when setting the layout.
             tip=tip if (tip and alignment == Qt.Vertical) else None,
+            status_icon=status_icon,
         )
 
         for edit in self.lineedits:
@@ -673,6 +682,10 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 layout, help_label = self.add_help_info_label(layout, tip)
 
         browsedir = QWidget(self)
+        browsedir.textbox = widget.textbox
+        if status_icon:
+            browsedir.status_action = widget.status_action
+
         browsedir.setLayout(layout)
         return browsedir
 
@@ -687,7 +700,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             edit.setText(directory)
 
     def create_browsefile(self, text, option, default=NoDefault, section=None,
-                          tip=None, filters=None, alignment=Qt.Horizontal):
+                          tip=None, filters=None, alignment=Qt.Horizontal,
+                          status_icon=None):
         widget = self.create_lineedit(
             text,
             option,
@@ -697,6 +711,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             # We need the tip to be added by the lineedit if the alignment is
             # vertical. If not, it'll be added below when setting the layout.
             tip=tip if (tip and alignment == Qt.Vertical) else None,
+            status_icon=status_icon,
         )
 
         for edit in self.lineedits:
@@ -734,9 +749,13 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if tip is not None:
                 layout, help_label = self.add_help_info_label(layout, tip)
 
-        browsedir = QWidget(self)
-        browsedir.setLayout(layout)
-        return browsedir
+        browsefile = QWidget(self)
+        browsefile.textbox = widget.textbox
+        if status_icon:
+            browsefile.status_action = widget.status_action
+
+        browsefile.setLayout(layout)
+        return browsefile
 
     def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
