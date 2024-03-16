@@ -408,6 +408,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Set current cwd
         self.set_cwd()
 
+        # Set pythonpath
+        self.set_syspath(self.get_conf(
+            'spyder_pythonpath', default=[], section='pythonpath_manager')
+        )
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
