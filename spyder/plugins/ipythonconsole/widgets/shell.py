@@ -408,6 +408,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Set current cwd
         self.set_cwd()
 
+        # Set autocall
+        self.set_autocall(self.get_conf('autocall'))
+        
+        # Set greedy completer
+        self.greedy_completer(self.get_conf('greedy_completer'))
+        
+        # Set Jedi Completer
+        self.set_jedi_completer(self.get_conf('jedi_completer'))
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
