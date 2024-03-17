@@ -521,6 +521,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_action(
             ClientContextMenuActions.ClearLine,
             text=_("Clear line or block"),
+            icon=self.create_icon("clear_text"),
             triggered=self._current_client_clear_line,
             register_shortcut=True
         )
@@ -528,6 +529,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_action(
             ClientContextMenuActions.ClearConsole,
             text=_("Clear console"),
+            icon=self.create_icon("clear_console"),
             triggered=self._current_client_clear_console,
             register_shortcut=True
         )
