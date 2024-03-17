@@ -30,4 +30,4 @@ def kernel_config(key):
     def config_decorator(fun):
         fun._is_kernel_config = key
         return fun
-    return kernel_config
+    return config_decorator
