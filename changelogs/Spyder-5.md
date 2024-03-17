@@ -1,5 +1,22 @@
 # History of changes for Spyder 5
 
+## Version 5.5.3 (2024-03-17)
+
+### Important fixes
+
+* Fix critical error when starting IPython console kernels on macOS and Linux
+  in conda environments.
+
+### Issues Closed
+
+* [Issue 21892](https://github.com/spyder-ide/spyder/issues/21892) - `PermissionError` when starting IPython console kernels on macOS and Linux
+
+In this release 1 issue was closed.
+
+
+----
+
+
 ## Version 5.5.2 (2024-03-13)
 
 ### Important fixes
