@@ -410,10 +410,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Set autocall
         self.set_autocall(self.get_conf('autocall'))
-        
+
         # Set greedy completer
         self.greedy_completer(self.get_conf('greedy_completer'))
-        
+
         # Set Jedi Completer
         self.set_jedi_completer(self.get_conf('jedi_completer'))
 
@@ -463,7 +463,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for key, value in dic.items():
             if key == "faulthandler":
                 self.kernel_handler.faulthandler_setup(value)
-            elif key == "special_kernel_error":
+            elif key == "special_kernel":
                 self.ipyclient._show_special_console_error(value)
 
     def pop_execute_queue(self):
