@@ -1,23 +1,22 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.2 is released!
+**Subject**: [ANN] Spyder 5.5.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.2** has been released and is available for
+I'm pleased to announce that Spyder **5.5.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one month and six days after version 5.5.1 and it contains the
-following important fixes:
+This release comes four days after version 5.5.2 and it contains the
+following important fix:
 
-* Activate environment for consoles that run in the same environment as Spyder.
-* Fix IPython kernel hangs when using a different graphic backend than `Inline`.
-* Fix check for updates mechanism when running Spyder from a conda installation.
+* Fix critical error when starting IPython console kernels on macOS and Linux
+  in conda environments.
 
-In this release we fixed 5 issues and merged 7 pull requests that amount
-to more than 39 commits. For a full list of fixes, please see our
+In this release we fixed 1 issue and not merged any pull request. For a full
+list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -29,7 +28,7 @@ creating your favorite environment!
 
 Enjoy!
 
-Daniel
+Carlos
 
 
 ----
