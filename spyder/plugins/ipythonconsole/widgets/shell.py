@@ -412,7 +412,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_autocall(self.get_conf('autocall'))
 
         # Set greedy completer
-        self.greedy_completer(self.get_conf('greedy_completer'))
+        self.set_greedy_completer(self.get_conf('greedy_completer'))
 
         # Set Jedi Completer
         self.set_jedi_completer(self.get_conf('jedi_completer'))
