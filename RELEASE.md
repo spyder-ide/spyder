@@ -137,9 +137,9 @@ To release a new version of Spyder you need to follow these steps:
       git push upstream 5.x
 
 * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)):
-    - Create Windows Installer *
-    - Create macOS App Bundle and DMG *
-    - Create conda-based installers for Linux
+    - Create Windows Installer * (`installer-win.yml`)
+    - Create macOS App Bundle and DMG * (`installer-macos.yml`)
+    - Nightly conda-based installers (conda based Linux installer - `installer-conda.yml`)
 
       **Note:** For the Windows and macOS installers you need to trigger their workflows through the [GitHub REST API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event) or using the [GitHub CLI](https://cli.github.com/manual/gh_workflow_run) (the GitHub CLI is available at https://cli.github.com/). In case the GitHub CLI is used, you need to run:
 
@@ -177,13 +177,15 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Release X.X.X"`
 
-* python setup.py sdist
+* python setup.py sdist (needs to be done in a Linux machine to prevent getting permission errors over files. See https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)
 
 * Activate environment with pip packages only
 
 * pip install -U pip setuptools twine wheel
 
-* python setup.py bdist_wheel
+* python setup.py bdist_wheel (needs to be done in a Linux machine to prevent getting permission errors over files. See https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)
+
+* Install generated wheel locally and check for errors
 
 * twine check dist/*
 
