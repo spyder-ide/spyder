@@ -9,6 +9,7 @@ import logging
 import os
 import os.path as osp
 import platform
+import shutil
 import tempfile
 import traceback
 
@@ -236,7 +237,7 @@ class WorkerDownloadInstaller(QObject):
         # platforms will be x86_64.
         mach = "arm64" if "ARM64" in platform.version() else "x86_64"
 
-        if parse(self.latest_release_version) > parse("5"):
+        if parse(self.latest_release_version) >= parse("6"):
             # conda-based installer name
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
@@ -267,10 +268,13 @@ class WorkerDownloadInstaller(QObject):
         installer_dir_path = osp.join(
             dir_path, self.latest_release_version)
         os.makedirs(installer_dir_path, exist_ok=True)
-        for file in os.listdir(dir_path):
-            if file not in [__version__, self.latest_release_version]:
-                remove = osp.join(dir_path, file)
-                os.remove(remove)
+        for dir_version in os.listdir(dir_path):
+            if dir_version not in [__version__, self.latest_release_version]:
+                remove_dir = osp.join(dir_path, dir_version)
+                try:
+                    shutil.rmtree(remove_dir)
+                except OSError as err:
+                    logger.debug(err, stack_info=True)
 
         installer_path = osp.join(installer_dir_path, name)
         self.installer_path = installer_path
