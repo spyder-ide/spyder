@@ -237,7 +237,7 @@ class WorkerDownloadInstaller(QObject):
         # platforms will be x86_64.
         mach = "arm64" if "ARM64" in platform.version() else "x86_64"
 
-        if parse(self.latest_release_version) >= parse("6"):
+        if parse(self.latest_release_version) >= parse("6.0.0"):
             # conda-based installer name
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
@@ -266,8 +266,10 @@ class WorkerDownloadInstaller(QObject):
         dir_path = osp.join(tmpdir, 'spyder', 'updates')
         os.makedirs(dir_path, exist_ok=True)
         installer_dir_path = osp.join(
-            dir_path, self.latest_release_version)
+            dir_path, self.latest_release_version
+        )
         os.makedirs(installer_dir_path, exist_ok=True)
+
         for dir_version in os.listdir(dir_path):
             if dir_version not in [__version__, self.latest_release_version]:
                 remove_dir = osp.join(dir_path, dir_version)
