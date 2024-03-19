@@ -177,13 +177,17 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Release X.X.X"`
 
-* python setup.py sdist (needs to be done in a Linux machine to prevent getting permission errors over files. See https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)
+* python setup.py sdist
+
+    *Note*: This needs to be done on a Linux machine to prevent getting permission errors on executable files (see https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)).
 
 * Activate environment with pip packages only
 
 * pip install -U pip setuptools twine wheel
 
-* python setup.py bdist_wheel (needs to be done in a Linux machine to prevent getting permission errors over files. See https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)
+* python setup.py bdist_wheel
+
+    *Note*: This needs to be done on a Linux machine to prevent getting permission errors in executable files (see https://github.com/spyder-ide/spyder/issues/21892 and https://github.com/spyder-ide/spyder/issues/14494)).
 
 * Install generated wheel locally and check for errors
 
