@@ -447,6 +447,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cut_action = self.create_action(
             ClientContextMenuActions.Cut,
             text=_("Cut"),
+            icon=self.create_icon("editcut"),
             triggered=self._current_client_cut
         )
         cut_action.setShortcut(QKeySequence.Cut)
@@ -454,6 +455,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         copy_action = self.create_action(
             ClientContextMenuActions.Copy,
             text=_("Copy"),
+            icon=self.create_icon("editcopy"),
             triggered=self._current_client_copy
         )
         copy_action.setShortcut(QKeySequence.Copy)
@@ -467,6 +469,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         paste_action = self.create_action(
             ClientContextMenuActions.Paste,
             text=_("Paste"),
+            icon=self.create_icon("editpaste"),
             triggered=self._current_client_paste
         )
         paste_action.setShortcut(QKeySequence.Paste)
@@ -474,6 +477,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_action(
             ClientContextMenuActions.SelectAll,
             text=_("Select all"),
+            icon=self.create_icon("selectall"),
             triggered=self._current_client_select_all
         )
 
@@ -488,6 +492,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_action(
             ClientContextMenuActions.ArrayTable,
             text=_("Enter array table"),
+            icon=self.create_icon("arredit"),
             triggered=self._current_client_enter_array_table,
             register_shortcut=True
         )
@@ -501,19 +506,22 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         self.create_action(
             ClientContextMenuActions.Export,
-            text=_("Save as html"),
+            text=_("Save as html..."),
+            icon=self.create_icon("CodeFileIcon"),
             triggered=self._current_client_export
         )
 
         self.create_action(
             ClientContextMenuActions.Print,
-            text=_("Print"),
+            text=_("Print..."),
+            icon=self.create_icon("print"),
             triggered=self._current_client_print
         )
 
         self.create_action(
             ClientContextMenuActions.ClearLine,
             text=_("Clear line or block"),
+            icon=self.create_icon("clear_text"),
             triggered=self._current_client_clear_line,
             register_shortcut=True
         )
@@ -521,6 +529,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_action(
             ClientContextMenuActions.ClearConsole,
             text=_("Clear console"),
+            icon=self.create_icon("clear_console"),
             triggered=self._current_client_clear_console,
             register_shortcut=True
         )

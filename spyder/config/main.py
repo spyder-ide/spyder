@@ -149,7 +149,7 @@ DEFAULTS = [
               'pylab/autoload': False,
               'pylab/backend': 'inline',
               'pylab/inline/figure_format': 'png',
-              'pylab/inline/resolution': 72,
+              'pylab/inline/resolution': 144,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
               'pylab/inline/fontsize': 10.0,
@@ -670,4 +670,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '82.1.0'
+CONF_VERSION = '82.2.0'

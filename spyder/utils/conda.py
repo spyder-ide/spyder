@@ -101,8 +101,13 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
-def find_conda():
-    """Find conda executable."""
+def find_conda(pyexec=None):
+    """
+    Find conda executable.
+
+    `pyexec` is a python executable, the relative location from which to
+    attempt to locate a conda executable.
+    """
     conda = None
 
     # First try Spyder's conda executable
@@ -117,7 +122,11 @@ def find_conda():
     # Next try searching for the executable
     if conda is None:
         conda_exec = 'conda.bat' if WINDOWS else 'conda'
-        conda = find_program(conda_exec)
+        extra_paths = [
+            osp.join(get_conda_root_prefix(_pyexec), 'condabin')
+            for _pyexec in [sys.executable, pyexec]
+        ]
+        conda = find_program(conda_exec, extra_paths)
 
     return conda
 

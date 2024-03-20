@@ -8,6 +8,7 @@
 import logging
 import os
 import os.path as osp
+import shutil
 from time import sleep
 import traceback
 
@@ -26,6 +27,7 @@ from spyder.utils.programs import check_version
 
 # Logger setup
 logger = logging.getLogger(__name__)
+
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -105,6 +107,13 @@ class WorkerUpdate(QObject):
             self.channel, channel_url = get_spyder_conda_channel()
 
             if self.channel is None or channel_url is None:
+                # Emit signal before returning so the slots connected to it
+                # can do their job.
+                try:
+                    self.sig_ready.emit()
+                except RuntimeError:
+                    pass
+
                 return
             elif self.channel == "pypi":
                 url = pypi_url
@@ -143,21 +152,18 @@ class WorkerUpdate(QObject):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except Exception as err:
-            error = traceback.format_exc()
-            formatted_error = (
-                error.replace('\n', '<br>')
-                .replace(' ', '&nbsp;')
-            )
-
-            error_msg = _(
-                'It was not possible to check for Spyder updates due to the '
-                'following error:'
-                '<br><br>'
-                '<tt>{}</tt>'
-            ).format(formatted_error)
+            # Only log the error when it's a generic one because we can't give
+            # users proper feedback on how to address it. Otherwise we'd show
+            # a long traceback that most probably would be incomprehensible to
+            # them.
             logger.warning(err, exc_info=err)
         finally:
             self.error = error_msg
+
+            # At this point we **must** emit the signal below so that the
+            # "Check for updates" action in the Help menu is enabled again
+            # after the check has finished (it's disabled while the check is
+            # running).
             try:
                 self.sig_ready.emit()
             except RuntimeError:
@@ -244,9 +250,16 @@ class WorkerDownloadInstaller(QObject):
     def _clean_installer_path(self):
         """Remove downloaded file"""
         if osp.exists(self.installer_path):
-            os.remove(self.installer_path)
+            try:
+                shutil.rmtree(self.installer_path)
+            except OSError as err:
+                logger.debug(err, stack_info=True)
+
         if osp.exists(self.installer_size_path):
-            os.remove(self.installer_size_path)
+            try:
+                shutil.rmtree(self.installer_size_path)
+            except OSError as err:
+                logger.debug(err, stack_info=True)
 
     def start(self):
         """Main method of the worker."""
@@ -279,6 +292,7 @@ class WorkerDownloadInstaller(QObject):
             self._clean_installer_path()
         finally:
             self.error = error_msg
+
             try:
                 self.sig_ready.emit()
             except RuntimeError:

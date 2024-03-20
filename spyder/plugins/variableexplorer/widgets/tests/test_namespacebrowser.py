@@ -226,7 +226,7 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
 
     mock_axis.plot.assert_called_once_with(my_list)
     mock_print_figure.assert_called_once_with(
-        mock_figure, fmt='png', bbox_inches='tight', dpi=72)
+        mock_figure, fmt='png', bbox_inches='tight', dpi=144)
     expected_args = [mock_png, 'image/png', namespacebrowser.shellwidget]
     assert blocker.args == expected_args
 
