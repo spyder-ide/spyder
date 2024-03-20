@@ -72,10 +72,6 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
-    # Jedi completer.
-    jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
-    spy_cfg.IPCompleter.use_jedi = jedi_o
-
     # Clear terminal arguments input.
     # This needs to be done before adding the exec_lines that come from
     # Spyder, to avoid deleting the sys module if users want to import
@@ -118,17 +114,8 @@ def kernel_config():
     if is_module_installed('matplotlib'):
         spy_cfg.IPKernelApp.matplotlib = "inline"
 
-    # Autocall
-    autocall_o = os.environ.get('SPY_AUTOCALL_O')
-    if autocall_o is not None:
-        spy_cfg.ZMQInteractiveShell.autocall = int(autocall_o)
-
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
-
-    # Greedy completer
-    greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
-    spy_cfg.IPCompleter.greedy = greedy_o
 
     # Disable the new mechanism to capture and forward low-level output
     # in IPykernel 6. For that we have Wurlitzer.

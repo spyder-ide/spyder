@@ -179,9 +179,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_UMR_VERBOSE': self.get_conf(
                 'umr/verbose', section='main_interpreter'),
             'SPY_UMR_NAMELIST': ','.join(umr_namelist),
-            'SPY_AUTOCALL_O': self.get_conf('autocall'),
-            'SPY_GREEDY_O': self.get_conf('greedy_completer'),
-            'SPY_JEDI_O': self.get_conf('jedi_completer'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
             'SPY_PYTHONPATH': pypath,
