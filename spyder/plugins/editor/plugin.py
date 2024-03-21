@@ -879,12 +879,14 @@ class Editor(SpyderDockablePlugin):
         return self.get_widget().load(*args, **kwargs)
 
     def load_edit_goto(self, filenames, goto, word):
+        # TODO: Check if this can be integrated with the `load` method above
         widget = self.get_widget()
         return widget.load(
             filenames=filenames, goto=goto, word=word, editorwindow=widget
         )
 
     def load_edit(self, filenames):
+        # TODO: Check if this can be integrated with the `load` method above
         return self.get_widget().load(filenames=filenames, editorwindow=self)
 
     def new(self, *args, **kwargs):
