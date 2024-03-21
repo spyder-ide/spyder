@@ -8,7 +8,6 @@
 import logging
 import os
 import os.path as osp
-import shutil
 from time import sleep
 import traceback
 
@@ -278,16 +277,9 @@ class WorkerDownloadInstaller(Worker):
     def _clean_installer_path(self):
         """Remove downloaded file"""
         if osp.exists(self.installer_path):
-            try:
-                shutil.rmtree(self.installer_path)
-            except OSError as err:
-                logger.debug(err, stack_info=True)
-
+            os.remove(self.installer_path)
         if osp.exists(self.installer_size_path):
-            try:
-                shutil.rmtree(self.installer_size_path)
-            except OSError as err:
-                logger.debug(err, stack_info=True)
+            os.remove(self.installer_size_path)
 
     def start(self):
         """Main method of the worker."""
