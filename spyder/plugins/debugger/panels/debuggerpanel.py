@@ -89,7 +89,8 @@ class DebuggerPanel(Panel):
         """
         super(DebuggerPanel, self).paintEvent(event)
         painter = QPainter(self)
-        painter.fillRect(event.rect(), self.editor.sideareas_color)
+        if self.editor.sideareas_color:
+            painter.fillRect(event.rect(), self.editor.sideareas_color)
         self.paint_cell(painter)
 
         for top, line_number, block in self.editor.visible_blocks:
