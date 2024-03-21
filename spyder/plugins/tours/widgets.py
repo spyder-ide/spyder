@@ -981,7 +981,8 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
-        self.spy_window.layouts.quick_layout_switch('current_temp')
+        if self.spy_window.layouts:
+            self.spy_window.layouts.quick_layout_switch('current_temp')
         self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):

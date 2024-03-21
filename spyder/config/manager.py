@@ -600,6 +600,11 @@ class ConfigurationManager(object):
             else:
                 self.notify_all_observers()
 
+    def reset_manager(self):
+        for observer in self._observer_map_keys.copy():
+            self.unobserve_configuration(observer)
+        self._plugin_configs = {}
+
     # Shortcut configuration management
     # ------------------------------------------------------------------------
     def _get_shortcut_config(self, context, plugin_name=None):

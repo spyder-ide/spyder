@@ -35,7 +35,6 @@ from spyder.plugins.completion.providers.languageserver.conftabs import TABS
 from spyder.plugins.completion.providers.languageserver.widgets import (
     ClientStatus, LSPStatusWidget, ServerDisabledMessageBox)
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
-from spyder.utils.programs import is_module_installed
 
 
 # Modules to be preloaded for Rope and Jedi

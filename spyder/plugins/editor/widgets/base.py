@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
@@ -37,8 +37,10 @@ from spyder.widgets.mixins import BaseEditMixin
 
 
 class TextEditBaseWidget(
-    QPlainTextEdit, BaseEditMixin, SpyderConfigurationAccessor,
-    SpyderFontsMixin
+    QPlainTextEdit,
+    BaseEditMixin,
+    SpyderFontsMixin,
+    SpyderWidgetMixin
 ):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
@@ -52,9 +54,10 @@ class TextEditBaseWidget(
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, class_parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
+        SpyderWidgetMixin.__init__(self, class_parent=class_parent)
 
         self.has_cell_separators = False
         self.setAttribute(Qt.WA_DeleteOnClose)

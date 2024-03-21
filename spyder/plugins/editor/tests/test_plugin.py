@@ -18,6 +18,7 @@ from qtpy.QtCore import Qt
 import pytest
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -68,20 +69,20 @@ def test_restore_open_files(qtbot, editor_plugin_open_files):
         editor_factory(None, None))
 
     # Pre-condition: Projects plugin is disabled
-    assert editor.projects is None
+    assert editor.get_plugin(Plugins.Projects, error=False) is None
 
     # `expected_filenames` is modified. A copy is required because
-    # `expected_filenames` and `editor.get_option("filesnames")` are the same
+    # `expected_filenames` and `editor.get_conf("filesnames")` are the same
     # object.
     expected_filenames = expected_filenames.copy()
-    assert expected_filenames is not editor.get_option("filenames")
+    assert expected_filenames is not editor.get_conf("filenames")
     for i in range(2):
         filename = expected_filenames.pop()
         editor.close_file_from_name(filename)
 
     # Close editor and check that opened files are saved
-    editor.closing_plugin()
-    filenames = [osp.normcase(f) for f in editor.get_option("filenames")]
+    editor.on_close()
+    filenames = [osp.normcase(f) for f in editor.get_conf("filenames")]
     assert filenames == expected_filenames
 
     # “Re-open” editor and check the opened files are restored
@@ -125,7 +126,6 @@ def test_open_untitled_files(editor_plugin_open_files):
     assert 'untitled5.py' in new_filename
 
 
-
 def test_renamed_tree(editor_plugin, mocker):
     """Test editor.renamed_tree().
 
@@ -134,8 +134,9 @@ def test_renamed_tree(editor_plugin, mocker):
     Project Explorer, and Editor widget as those aren't part of the plugin.
     """
     editor = editor_plugin
-    mocker.patch.object(editor, 'get_filenames')
-    mocker.patch.object(editor, 'renamed')
+    editor_main_widget = editor.get_widget()
+    mocker.patch.object(editor_main_widget, 'get_filenames')
+    mocker.patch.object(editor_main_widget, 'renamed')
     if os.name == "nt":
         filenames = [r'C:\test\directory\file1.py',
                      r'C:\test\directory\file2.txt',
@@ -159,13 +160,15 @@ def test_renamed_tree(editor_plugin, mocker):
         sourcedir = '/test/directory'
         destdir = '/test/dir'
 
-    editor.get_filenames.return_value = filenames
+    editor_main_widget.get_filenames.return_value = filenames
 
-    editor.renamed_tree(sourcedir, destdir)
-    assert editor.renamed.call_count == 3
+    editor_main_widget.renamed_tree(sourcedir, destdir)
+    assert editor_main_widget.renamed.call_count == 3
     for file in [0, 1, 3]:
-        editor.renamed.assert_any_call(source=filenames[file],
-                                       dest=expected[file])
+        editor_main_widget.renamed.assert_any_call(
+            source=filenames[file],
+            dest=expected[file]
+        )
 
 
 def test_no_template(editor_plugin):
@@ -175,14 +178,14 @@ def test_no_template(editor_plugin):
     editor = editor_plugin
 
     # Move template to another file to simulate the lack of it
-    template = editor.TEMPLATE_PATH
+    template = editor.get_widget().TEMPLATE_PATH
     shutil.move(template, osp.join(osp.dirname(template), 'template.py.old'))
 
     # Open a new file
     editor.new()
 
     # Get contents
-    code_editor = editor.get_focus_widget()
+    code_editor = editor.get_widget().get_focus_widget()
     contents = code_editor.get_text('sof', 'eof')
 
     # Assert contents are empty
@@ -195,7 +198,7 @@ def test_no_template(editor_plugin):
 def test_editor_has_autosave_component(editor_plugin):
     """Test that Editor includes an AutosaveForPlugin."""
     editor = editor_plugin
-    assert isinstance(editor.autosave, AutosaveForPlugin)
+    assert isinstance(editor.get_widget().autosave, AutosaveForPlugin)
 
 
 def test_autosave_component_do_autosave(editor_plugin, mocker):
@@ -204,21 +207,13 @@ def test_autosave_component_do_autosave(editor_plugin, mocker):
     editor = editor_plugin
     editorStack = editor.get_current_editorstack()
     mocker.patch.object(editorStack.autosave, 'autosave_all')
-    editor.autosave.do_autosave()
+    editor.get_widget().autosave.do_autosave()
     assert editorStack.autosave.autosave_all.called
-
-
-def test_editor_transmits_sig_option_changed(editor_plugin, qtbot):
-    editor = editor_plugin
-    editorStack = editor.get_current_editorstack()
-    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
-        editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
-    assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
 def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
     """Check that two EditorStacks share the same autosave data."""
-    editor = editor_plugin
+    editor = editor_plugin.get_widget()
     editor.editorsplitter.split()
     assert len(editor.editorstacks) == 2
     autosave1 = editor.editorstacks[0].autosave
@@ -237,9 +232,9 @@ def test_editor_calls_recoverydialog_exec_if_nonempty(
 
 def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     editor = editor_plugin
-    assert editor.autosave.timer.isActive()
-    editor.closing_plugin()
-    assert not editor.autosave.timer.isActive()
+    assert editor.get_widget().autosave.timer.isActive()
+    editor.get_widget().close()
+    assert not editor.get_widget().autosave.timer.isActive()
 
 
 def test_renamed_propagates_to_autosave(editor_plugin_open_files, mocker):
@@ -272,10 +267,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     Regression test for spyder-ide/spyder#8000.
     """
     filenames, tmpdir = python_files
+    main_widget = editor_plugin.get_widget()
     editorstack = editor_plugin.get_current_editorstack()
 
     expected_cursor_undo_history = []
-    assert editor_plugin.cursor_undo_history == expected_cursor_undo_history
+    assert main_widget.cursor_undo_history == expected_cursor_undo_history
     # Load the Python test files (4).
     editor_plugin.load(filenames)
     # Open a new file.
@@ -294,7 +290,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
         (filenames[-1], len(editorstack.data[-1].get_source_code())),
         (filenames[2], 5)
         ]
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
@@ -310,19 +306,19 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_pos_indexes = [1, 2, 2, 1, 0, 0, 1, 0]
     for move, index in zip(cursor_index_moves, expected_cursor_pos_indexes):
         if move == -1:
-            editor_plugin.go_to_previous_cursor_position()
+            main_widget.go_to_previous_cursor_position()
         elif move == 1:
-            editor_plugin.go_to_next_cursor_position()
-        assert len(editor_plugin.cursor_undo_history) - 1 == index
+            main_widget.go_to_next_cursor_position()
+        assert len(main_widget.cursor_undo_history) - 1 == index
         assert (editor_plugin.get_current_filename(),
                 editor_plugin.get_current_editor().get_position('cursor')
                 ) == expected_cursor_undo_history[index]
 
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history[:1]):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
-    for history, expected_history in zip(editor_plugin.cursor_redo_history,
+    for history, expected_history in zip(main_widget.cursor_redo_history,
                                          expected_cursor_undo_history[:0:-1]):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
@@ -337,11 +333,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_undo_history = expected_cursor_undo_history[:1]
     expected_cursor_undo_history.append((filenames[3], 0))
 
-    for history, expected_history in zip(editor_plugin.cursor_undo_history,
+    for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
         assert history[1].position() == expected_history[1]
-    assert editor_plugin.cursor_redo_history == []
+    assert main_widget.cursor_redo_history == []
 
 
 def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
@@ -403,7 +399,7 @@ def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
     codeeditor = editor_plugin.get_current_editor()
 
     # Change to a different eol, save and check that file has the right eol.
-    editor_plugin.toggle_eol_chars(os_name, True)
+    editor_plugin.get_widget().toggle_eol_chars(os_name, True)
     assert codeeditor.document().isModified()
     editorstack.save()
     with open(fname, mode='r', newline='') as f:
@@ -420,11 +416,8 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     eol_lookup = {'posix': 'LF', 'nt': 'CRLF', 'mac': 'CR'}
 
     # Set options
-    editor_plugin.set_option('convert_eol_on_save', True)
-    editor_plugin.set_option('convert_eol_on_save_to', eol_lookup[os_name])
-    editor_plugin.apply_plugin_settings(
-        {'convert_eol_on_save', 'convert_eol_on_save_to'}
-    )
+    editor_plugin.set_conf('convert_eol_on_save', True)
+    editor_plugin.set_conf('convert_eol_on_save_to', eol_lookup[os_name])
 
     # Load a test file
     fname = filenames[0]
@@ -477,7 +470,7 @@ def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
     editor_plugin.new()
 
     # Create editor window
-    editor_window = editor_plugin.create_new_window()
+    editor_window = editor_plugin.get_widget().create_new_window()
     qtbot.wait(500)  # To check visually that the window was created
 
     # This is not done automatically by Qt when running our tests (don't know
@@ -489,18 +482,18 @@ def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
     qtbot.wait(500)  # Wait for bit so window objects are actually deleted
 
     # Check the window objects were removed
-    assert len(editor_plugin.editorstacks) == 1
-    assert len(editor_plugin.editorwindows) == 0
+    assert len(editor_plugin.get_widget().editorstacks) == 1
+    assert len(editor_plugin.get_widget().editorwindows) == 0
 
     # Split editor and check the focus is given to the cloned editorstack
-    editor_plugin.editorsplitter.split()
+    editor_plugin.get_widget().editorsplitter.split()
     qtbot.wait(500)  # To check visually that the split was done
     assert editor_plugin.get_current_editor().is_cloned
 
     # Close editorstack
     editor_plugin.get_current_editorstack().close()
     qtbot.wait(500)  # Wait for bit so the editorstack is actually deleted
-    assert len(editor_plugin.editorstacks) == 1
+    assert len(editor_plugin.get_widget().editorstacks) == 1
 
 
 if __name__ == "__main__":

@@ -234,10 +234,7 @@ class MainWindow(
         self.paste_action = None
         self.selectall_action = None
 
-        # TODO: Move to corresponding Plugins
-        self.file_toolbar = None
-        self.file_toolbar_actions = []
-
+        # TODO: Is this being used somewhere?
         self.menus = []
 
         if running_under_pytest():
@@ -801,14 +798,6 @@ class MainWindow(
 
         # Set window title
         self.set_window_title()
-        self.set_splash("")
-
-        # Toolbars
-        # TODO: Remove after finishing the migration
-        logger.info("Creating toolbars...")
-        toolbar = self.toolbar
-        self.file_toolbar = toolbar.get_application_toolbar("file_toolbar")
-
         self.set_splash(_("Setting up main window..."))
 
     def __getattr__(self, attr):
@@ -1048,7 +1037,7 @@ class MainWindow(
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""
-        if self.closing(True):
+        if self.closing(cancelable=True):
             event.accept()
         else:
             event.ignore()
@@ -1137,6 +1126,19 @@ class MainWindow(
                                          QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False
+
+        # Save current project files here to be sure we do it as expected in
+        # case the Editor is closed before Projects below.
+        projects = self.get_plugin(Plugins.Projects, error=False)
+        if projects and projects.get_active_project_path():
+            editor = self.get_plugin(Plugins.Editor, error=False)
+            if editor:
+                projects.set_project_filenames(
+                    [
+                        finfo.filename
+                        for finfo in editor.get_widget().editorstacks[0].data
+                    ]
+                )
 
         can_close = self.plugin_registry.delete_all_plugins(
             excluding={Plugins.Layout},

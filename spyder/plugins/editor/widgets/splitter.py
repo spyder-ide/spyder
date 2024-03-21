@@ -20,6 +20,7 @@ from qtpy.QtCore import QByteArray, Qt, Slot
 from qtpy.QtWidgets import QSplitter
 
 # Local imports
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.widgets.editorstack.editorstack import EditorStack
 from spyder.py3compat import qbytearray_to_str
@@ -29,51 +30,51 @@ from spyder.utils.palette import QStylePalette
 logger = logging.getLogger(__name__)
 
 
-class EditorSplitter(QSplitter):
+class EditorSplitter(QSplitter, SpyderWidgetMixin):
     """QSplitter for editor windows."""
 
-    def __init__(self, parent, plugin, menu_actions, first=False,
+    def __init__(self, parent, main_widget, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None,
                  use_switcher=True):
         """Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
-        the first splitter, clones the current EditorStack from the plugin.
+        the first splitter, clones the current EditorStack from the
+        EditorMainWidget.
 
         Args:
             parent: Parent widget.
-            plugin: Plugin this widget belongs to.
+            main_widget: PluginMainWidget this widget belongs to.
             menu_actions: QActions to include from the parent.
             first: Boolean if this is the first splitter in the editor.
             register_editorstack_cb: Callback to register the EditorStack.
-                        Defaults to plugin.register_editorstack() to
-                        register the EditorStack with the Editor plugin.
+                        Defaults to main_widget.register_editorstack() to
+                        register the EditorStack with the EditorMainWidget.
             unregister_editorstack_cb: Callback to unregister the EditorStack.
-                        Defaults to plugin.unregister_editorstack() to
-                        unregister the EditorStack with the Editor plugin.
+                        Defaults to main_widget.unregister_editorstack() to
+                        unregister the EditorStack with the EditorMainWidget.
         """
-
-        QSplitter.__init__(self, parent)
+        super().__init__(parent, class_parent=main_widget)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
 
         self.toolbar_list = None
         self.menu_list = None
 
-        self.plugin = plugin
+        self.main_widget = main_widget
 
         if register_editorstack_cb is None:
-            register_editorstack_cb = self.plugin.register_editorstack
+            register_editorstack_cb = self.main_widget.register_editorstack
         self.register_editorstack_cb = register_editorstack_cb
         if unregister_editorstack_cb is None:
-            unregister_editorstack_cb = self.plugin.unregister_editorstack
+            unregister_editorstack_cb = self.main_widget.unregister_editorstack
         self.unregister_editorstack_cb = unregister_editorstack_cb
 
         self.menu_actions = menu_actions
         self.editorstack = EditorStack(self, menu_actions, use_switcher)
         self.register_editorstack_cb(self.editorstack)
         if not first:
-            self.plugin.clone_editorstack(editorstack=self.editorstack)
+            self.main_widget.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(self.editorstack_closed)
         self.editorstack.sig_split_vertically.connect(
             lambda: self.split(orientation=Qt.Vertical))
@@ -82,7 +83,7 @@ class EditorSplitter(QSplitter):
         self.addWidget(self.editorstack)
 
         if not running_under_pytest():
-            self.editorstack.set_color_scheme(plugin.get_color_scheme())
+            self.editorstack.set_color_scheme(main_widget._get_color_scheme())
 
         self.setStyleSheet(self._stylesheet)
 
@@ -95,7 +96,7 @@ class EditorSplitter(QSplitter):
         QSplitter.closeEvent(self, event)
 
     def __give_focus_to_remaining_editor(self):
-        focus_widget = self.plugin.get_focus_widget()
+        focus_widget = self.main_widget.get_focus_widget()
         if focus_widget is not None:
             focus_widget.setFocus()
 
@@ -154,7 +155,7 @@ class EditorSplitter(QSplitter):
         self.editorstack.set_orientation(orientation)
         editorsplitter = EditorSplitter(
             self.parent(),
-            self.plugin,
+            self.main_widget,
             self.menu_actions,
             register_editorstack_cb=self.register_editorstack_cb,
             unregister_editorstack_cb=self.unregister_editorstack_cb
