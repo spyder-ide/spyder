@@ -114,6 +114,24 @@ class SpyderRemoteClient:
 
         return False
 
+    async def connect_and_ensure_server(self) -> bool:
+        """Connect to the remote server and ensure it is installed and running."""
+        if await self.create_new_connection():
+            return await self.ensure_server()
+
+        return False
+
+    async def ensure_server(self) -> bool:
+        """Ensure remote server is installed and running."""
+        if not self.ssh_is_connected:
+            self._logger.error("SSH connection is not open")
+            return False
+
+        if not await self.check_server_installed() and not await self.install_remote_server():
+            return False
+
+        return await self.start_remote_server()
+
     async def start_remote_server(self):
         """Start remote server."""
         if not self.ssh_is_connected:
@@ -292,7 +310,7 @@ class SpyderRemoteClient:
             self._logger.debug(f"SSH connection closed for {self.options['host']}")
 
     # --- Kernel Management
-    async def lauch_kernel_ensure_server(self, options: SSHClientOptions) -> KernelConnectionInfo:
+    async def start_new_kernel_ensure_server(self) -> KernelConnectionInfo:
         """Launch a new kernel ensuring the remote server is running.
 
         Parameters
@@ -306,8 +324,8 @@ class SpyderRemoteClient:
             The kernel connection information.
         """
         if self.ssh_is_connected and not self.server_is_running:
-            self.start_remote_server()
-        elif not self.ssh_is_connected and not self.connect_and_start_server(options):
+            self.ensure_server()
+        elif not self.ssh_is_connected and not self.connect_and_ensure_server():
             self._logger.error("Cannot launch kernel, remote server is not running")
             return
 
