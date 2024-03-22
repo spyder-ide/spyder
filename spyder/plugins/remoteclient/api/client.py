@@ -11,6 +11,15 @@ from spyder.plugins.remoteclient.api.ssh import SpyderSSHClient
 from spyder.plugins.remoteclient.utils.installation import get_installer_command
 
 
+class SpyderRemoteClientLoggerHandler(logging.Handler):
+    def __init__(self, client, *args, **kwargs):
+        self._client = client
+        super().__init__(*args, **kwargs)
+
+    def emit(self, record):
+        self._client._plugin.sig_server_log.emit({self._client.config_id: record.getMessage()})
+        super().emit(record)
+
 class SpyderRemoteClient:
     """Class to manage a remote server and its kernels."""
 
@@ -32,6 +41,8 @@ class SpyderRemoteClient:
         self.local_port: int = None
 
         self._logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}({self.config_id})")
+        if self._plugin is not None:
+            self._logger.addHandler(SpyderRemoteClientLoggerHandler(self))
 
     async def close(self):
         """Closes the remote server and the SSH connection."""

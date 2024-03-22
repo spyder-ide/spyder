@@ -38,6 +38,8 @@ class RemoteClient(SpyderPluginV2):
     CONF_SECTION_SERVERS = 'servers'
 
     # ---- Signals
+    sig_server_log = Signal(dict)
+
     sig_connection_established = Signal(str)
     sig_connection_lost = Signal(str)
 
