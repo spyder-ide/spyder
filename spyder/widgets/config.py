@@ -44,19 +44,32 @@ class BaseConfigTab(QWidget):
     pass
 
 
-class ConfigAccessMixin(object):
-    """Namespace for methods that access config storage"""
+class ConfigAccessMixin:
+    """Mixin to access config options in SpyderConfigPages."""
     CONF_SECTION = None
 
-    def set_option(self, option, value, section=None,
-                   recursive_notification=False):
+    def set_option(
+        self,
+        option,
+        value,
+        section=None,
+        recursive_notification=False,
+        secure=False,
+    ):
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, option, value,
-                 recursive_notification=recursive_notification)
+        CONF.set(
+            section,
+            option,
+            value,
+            recursive_notification=recursive_notification,
+            secure=secure,
+        )
 
-    def get_option(self, option, default=NoDefault, section=None):
+    def get_option(
+        self, option, default=NoDefault, section=None, secure=False
+    ):
         section = self.CONF_SECTION if section is None else section
-        return CONF.get(section, option, default)
+        return CONF.get(section, option, default=default, secure=secure)
 
     def remove_option(self, option, section=None):
         section = self.CONF_SECTION if section is None else section
@@ -230,7 +243,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                     self.restart_options[(sec, option)] = radiobutton.label_text
 
         for lineedit, (sec, option, default) in list(self.lineedits.items()):
-            data = self.get_option(option, default, section=sec)
+            data = self.get_option(
+                option,
+                default,
+                section=sec,
+                secure=True
+                if (hasattr(lineedit, "password") and lineedit.password)
+                else False,
+            )
+
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
             else:
@@ -375,8 +396,14 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec,
-                                recursive_notification=False)
+
+                self.set_option(
+                    option,
+                    data,
+                    section=sec,
+                    recursive_notification=False,
+                    secure=True if lineedit.password and data else False
+                )
 
         for textedit, (sec, option, _default) in list(self.textedits.items()):
             if (
@@ -538,7 +565,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
-                        content_type=None, section=None, status_icon=None):
+                        content_type=None, section=None, status_icon=None,
+                        password=False):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
 
@@ -546,6 +574,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
+        if password:
+            edit.setEchoMode(QLineEdit.Password)
 
         if status_icon is not None:
             status_action = QAction(self)
@@ -602,6 +632,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
+        edit.password = password
 
         return widget
 
