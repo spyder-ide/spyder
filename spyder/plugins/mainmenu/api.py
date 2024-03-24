@@ -64,6 +64,7 @@ class RunMenuSections:
     Run = 'run_section'
     RunExtras = 'run_extras_section'
     RunInExecutors = 'executors_section'
+    Profile = 'profile_section'
 
 class DebugMenuSections:
     StartDebug = 'start_debug_section'
