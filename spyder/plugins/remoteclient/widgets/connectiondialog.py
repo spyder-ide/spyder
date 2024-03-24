@@ -77,6 +77,7 @@ class MissingInfoLabel(QLabel):
 class BaseConnectionPage(SpyderConfigPage):
     """Base class to create connection pages."""
 
+    NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
     host_id = None
 
@@ -165,8 +166,8 @@ class BaseConnectionPage(SpyderConfigPage):
             subpages.setCurrentIndex
         )
 
-        # Show password subpage by default in New connectionn page
-        if not self.LOAD_FROM_CONFIG:
+        # Show password subpage by default for new connections
+        if self.NEW_CONNECTION:
             self._auth_methods.combobox.setCurrentIndex(0)
 
         # Final layout
@@ -255,8 +256,13 @@ class BaseConnectionPage(SpyderConfigPage):
         password = self.create_lineedit(
             text=_("Password *"),
             option=f"{self.host_id}/password",
-            tip=_("Your password will be saved securely by Spyder"),
+            tip=(
+                _("Your password will be saved securely by Spyder")
+                if self.NEW_CONNECTION
+                else _("Your password is saved securely by Spyder")
+            ),
             status_icon=ima.icon("error"),
+            password=True
         )
 
         missing_info_label = MissingInfoLabel(self)
@@ -306,7 +312,12 @@ class BaseConnectionPage(SpyderConfigPage):
         passpharse = self.create_lineedit(
             text=_("Passpharse"),
             option=f"{self.host_id}/passpharse",
-            tip=_("Your passphrase will be saved securely by Spyder"),
+            tip=(
+                _("Your passphrase will be saved securely by Spyder")
+                if self.NEW_CONNECTION
+                else _("Your passphrase is saved securely by Spyder")
+            ),
+            password=True
         )
 
         missing_info_label = MissingInfoLabel(self)
@@ -379,6 +390,8 @@ class NewConnectionPage(BaseConnectionPage):
 
     MIN_HEIGHT = 500
     LOAD_FROM_CONFIG = False
+
+    NEW_CONNECTION = True
     host_id = str(uuid.uuid4())
 
     # ---- SidebarPage API
