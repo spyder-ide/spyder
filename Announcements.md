@@ -1,24 +1,22 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.1 is released!
+**Subject**: [ANN] Spyder 5.5.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.1** has been released and is available for
+I'm pleased to announce that Spyder **5.5.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three months after version 5.5.0 and it contains the
-following new features and important fixes:
+This release comes four days after version 5.5.2 and it contains the
+following important fix:
 
-* Publish a new standalone installer for macOS computers with M1/M2 chips.
-* Add support to format selections with Black.
-* Fix several errors when trying to detect if a new Spyder version is available.
-* Fix using the Tkinter backend in our macOS application.
+* Fix critical error when starting IPython console kernels on macOS and Linux
+  in conda environments.
 
-In this release we fixed 10 issues and merged 20 pull requests that amount
-to more than 50 commits. For a full list of fixes, please see our
+In this release we fixed 1 issue and not merged any pull request. For a full
+list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

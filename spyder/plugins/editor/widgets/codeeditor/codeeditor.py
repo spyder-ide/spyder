@@ -33,12 +33,11 @@ from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
-                        QPainter, QMouseEvent, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
+from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
+                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
+                        QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
-                            QScrollBar)
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
@@ -69,8 +68,7 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    mimedata2url, start_file)
+from spyder.utils.qthelpers import file_uri, mimedata2url, start_file
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.mixins import HINT_MAX_WIDTH
@@ -83,6 +81,41 @@ except Exception:
     nbformat = None  # analysis:ignore
 
 logger = logging.getLogger(__name__)
+
+
+class CodeEditorActions:
+    Undo = 'undo'
+    Redo = 'redo'
+    Cut = 'cut'
+    Copy = 'copy'
+    Paste = 'paste'
+    SelectAll = 'select all'
+    ToggleComment = 'toggle comment'
+    ClearAllOutput = 'clear_all_output_action'
+    ConvertToPython = 'convert_to_python_action'
+    GoToDefinition = 'go to definition'
+    InspectCurrentObject = 'inspect current object'
+    ZoomIn = 'zoom in 1'
+    ZoomOut = 'zoom out'
+    ZoomReset = 'zoom reset'
+    Docstring = 'docstring'
+    Autoformat = 'autoformatting'
+
+
+class CodeEditorMenus:
+    ContextMenu = 'context_menu'
+    ReadOnlyMenu = 'read_only_menu'
+
+
+class CodeEditorContextMenuSections:
+    InspectSection = "inspect_section"
+    UndoRedoSection = "undo_redo_section"
+    EditSection = "edit_section"
+    NbformatSections = "nbformat_section"
+    ZoomSection = "zoom_section"
+    RefactorCodeSection = "refactor_code_section"
+    CopySection = "copy_section"
+    OthersSection = "others_section"
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget):
@@ -212,7 +245,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     sig_delete_requested = Signal()
 
     def __init__(self, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent, class_parent=parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -3311,68 +3344,127 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # -------------------------------------------------------------------------
     def setup_context_menu(self):
         """Setup context menu"""
-        self.undo_action = create_action(
-            self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=self.get_shortcut('undo'), triggered=self.undo)
-        self.redo_action = create_action(
-            self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=self.get_shortcut('redo'), triggered=self.redo)
-        self.cut_action = create_action(
-            self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=self.get_shortcut('cut'), triggered=self.cut)
-        self.copy_action = create_action(
-            self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=self.get_shortcut('copy'), triggered=self.copy)
-        self.paste_action = create_action(
-            self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=self.get_shortcut('paste'),
-            triggered=self.paste)
-        selectall_action = create_action(
-            self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=self.get_shortcut('select all'),
-            triggered=self.selectAll)
-        toggle_comment_action = create_action(
-            self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=self.get_shortcut('toggle comment'),
-            triggered=self.toggle_comment)
-        self.clear_all_output_action = create_action(
-            self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
-            triggered=self.clear_all_output)
-        self.ipynb_convert_action = create_action(
-            self, _("Convert to Python file"), icon=ima.icon('python'),
-            triggered=self.convert_notebook)
-        self.gotodef_action = create_action(
-            self, _("Go to definition"),
-            shortcut=self.get_shortcut('go to definition'),
-            triggered=self.go_to_definition_from_cursor)
-
-        self.inspect_current_object_action = create_action(
-            self, _("Inspect current object"),
-            icon=ima.icon('MessageBoxInformation'),
-            shortcut=self.get_shortcut('inspect current object'),
-            triggered=self.sig_show_object_info)
-
-        # Run actions
+        # -- Actions
+        self.undo_action = self.create_action(
+            CodeEditorActions.Undo,
+            text=_('Undo'),
+            icon=self.create_icon('undo'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.undo,
+        )
+        self.redo_action = self.create_action(
+            CodeEditorActions.Redo,
+            text=_("Redo"),
+            icon=self.create_icon('redo'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.redo
+        )
+        self.cut_action = self.create_action(
+            CodeEditorActions.Cut,
+            text=_("Cut"),
+            icon=self.create_icon('editcut'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.cut
+        )
+        self.copy_action = self.create_action(
+            CodeEditorActions.Copy,
+            text=_("Copy"),
+            icon=self.create_icon('editcopy'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.copy
+        )
+        self.paste_action = self.create_action(
+            CodeEditorActions.Paste,
+            text=_("Paste"),
+            icon=self.create_icon('editpaste'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.paste
+        )
+        selectall_action = self.create_action(
+            CodeEditorActions.SelectAll,
+            text=_("Select All"),
+            icon=self.create_icon('selectall'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.selectAll
+        )
+        toggle_comment_action = self.create_action(
+            CodeEditorActions.ToggleComment,
+            text=_('Comment')+'/'+_('Uncomment'),
+            icon=self.create_icon('comment'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.toggle_comment
+        )
+        self.clear_all_output_action = self.create_action(
+            CodeEditorActions.ClearAllOutput,
+            text=_('Clear all ouput'),
+            icon=self.create_icon('ipython_console'),
+            register_action=False,
+            triggered=self.clear_all_output
+        )
+        self.ipynb_convert_action = self.create_action(
+            CodeEditorActions.ConvertToPython,
+            text=_('Convert to Python file'),
+            icon=self.create_icon('python'),
+            register_action=False,
+            triggered=self.convert_notebook
+        )
+        self.gotodef_action = self.create_action(
+            CodeEditorActions.GoToDefinition,
+            text=_('Go to definition'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.go_to_definition_from_cursor
+        )
+        self.inspect_current_object_action = self.create_action(
+            CodeEditorActions.InspectCurrentObject,
+            text=_('Inspect current object'),
+            icon=self.create_icon('MessageBoxInformation'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.sig_show_object_info
+        )
 
         # Zoom actions
-        zoom_in_action = create_action(
-            self, _("Zoom in"), icon=ima.icon('zoom_in'),
-            shortcut=QKeySequence(QKeySequence.ZoomIn),
-            triggered=self.zoom_in)
-        zoom_out_action = create_action(
-            self, _("Zoom out"), icon=ima.icon('zoom_out'),
-            shortcut=QKeySequence(QKeySequence.ZoomOut),
-            triggered=self.zoom_out)
-        zoom_reset_action = create_action(
-            self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
-            triggered=self.zoom_reset)
+        zoom_in_action = self.create_action(
+            CodeEditorActions.ZoomIn,
+            text=_('Zoom in'),
+            icon=self.create_icon('zoom_in'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_in
+        )
+        zoom_out_action = self.create_action(
+            CodeEditorActions.ZoomOut,
+            text=_('Zoom out'),
+            icon=self.create_icon('zoom_out'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_out
+        )
+        zoom_reset_action = self.create_action(
+            CodeEditorActions.ZoomReset,
+            text=_('Zoom reset'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_reset
+        )
 
         # Docstring
         writer = self.writer_docstring
-        self.docstring_action = create_action(
-            self, _("Generate docstring"),
-            shortcut=self.get_shortcut('docstring'),
-            triggered=writer.write_docstring_at_first_line_of_function)
+        self.docstring_action = self.create_action(
+            CodeEditorActions.Docstring,
+            text=_('Generate docstring'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=writer.write_docstring_at_first_line_of_function
+        )
 
         # Document formatting
         formatter = self.get_conf(
@@ -3380,42 +3472,110 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             default='',
             section='completions',
         )
-        self.format_action = create_action(
-            self,
-            _('Format file or selection with {0}').format(
-                formatter.capitalize()),
-            shortcut=self.get_shortcut('autoformatting'),
-            triggered=self.format_document_or_range)
-
+        self.format_action = self.create_action(
+            CodeEditorActions.Autoformat,
+            text=_('Format file or selection with {0}').format(
+                    formatter.capitalize()),
+            icon=self.create_icon("transparent"),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.format_document_or_range
+        )
         self.format_action.setEnabled(False)
 
-        # Build menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.menu = QMenu(self)
-        actions_1 = [self.gotodef_action, self.inspect_current_object_action,
-                     None, self.undo_action, self.redo_action, None,
-                     self.cut_action, self.copy_action,
-                     self.paste_action, selectall_action]
-        actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action, self.docstring_action,
-                     self.format_action]
-        if nbformat is not None:
-            nb_actions = [self.clear_all_output_action,
-                          self.ipynb_convert_action, None]
-            actions = actions_1 + nb_actions + actions_2
-            add_actions(self.menu, actions)
-        else:
-            actions = actions_1 + actions_2
-            add_actions(self.menu, actions)
+        # -- Build menu
+        self.menu = self.create_menu(
+            CodeEditorMenus.ContextMenu, register=False
+        )
 
-        # Read-only context-menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu,
-                    (self.copy_action, None, selectall_action,
-                     self.gotodef_action))
+        # Inspect section
+        inspect_actions = [
+            self.gotodef_action, self.inspect_current_object_action
+        ]
+        for menu_action in inspect_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.InspectSection
+            )
+
+        # Undo/redo section
+        undo_redo_actions = [self.undo_action, self.redo_action]
+        for menu_action in undo_redo_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.UndoRedoSection
+            )
+
+        # Edit section
+        edit_actions = [
+            self.cut_action,
+            self.copy_action,
+            self.paste_action,
+            selectall_action
+        ]
+        for menu_action in edit_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.EditSection
+            )
+
+        # Nbformat section
+        if nbformat is not None:
+            nb_actions = [
+                self.clear_all_output_action, self.ipynb_convert_action
+            ]
+            for menu_action in nb_actions:
+                self.add_item_to_menu(
+                    menu_action,
+                    self.menu,
+                    section=CodeEditorContextMenuSections.NbformatSections
+                )
+
+        # Zoom section
+        zoom_actions = [
+            zoom_in_action, zoom_out_action, zoom_reset_action
+        ]
+        for menu_action in zoom_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.ZoomSection
+            )
+
+        # Refactor/code section
+        refactor_code_actions = [
+            toggle_comment_action, self.docstring_action, self.format_action
+        ]
+        for menu_action in refactor_code_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.RefactorCodeSection
+            )
+
+        # -- Read-only context-menu
+        self.readonly_menu = self.create_menu(
+            CodeEditorMenus.ReadOnlyMenu, register=False
+        )
+
+        # Copy section
+        self.add_item_to_menu(
+            self.copy_action,
+            self.readonly_menu,
+            section=CodeEditorContextMenuSections.CopySection
+        )
+
+        # Others section
+        other_actions = [selectall_action, self.gotodef_action]
+        for menu_action in other_actions:
+            self.add_item_to_menu(
+                self.copy_action,
+                self.readonly_menu,
+                section=CodeEditorContextMenuSections.OthersSection
+            )
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
@@ -4390,9 +4550,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             point = self.mapToGlobal(point)
 
             self.menu_docstring = QMenuOnlyForEnter(self)
-            self.docstring_action = create_action(
-                self, _("Generate docstring"), icon=ima.icon('TextFileIcon'),
-                triggered=writer.write_docstring)
+            self.docstring_action = self.create_action(
+                CodeEditorActions.Docstring,
+                text=_("Generate docstring"),
+                icon=self.create_icon('TextFileIcon'),
+                register_action=False,
+                triggered=writer.write_docstring
+            )
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
             self.menu_docstring.popup(point)

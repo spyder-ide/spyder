@@ -89,7 +89,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         # Run configuration
         self.executor_configuration = [
             {
-                'input_extension': ['py'],
+                'input_extension': 'py',
                 'context': {
                     'name': 'File'
                 },

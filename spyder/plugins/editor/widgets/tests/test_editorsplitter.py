@@ -23,11 +23,13 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 
 
 # ---- Qt Test Fixtures
 
 def editor_stack():
+    EditorStack.CONF_SECTION = "Editor"
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -37,7 +39,9 @@ def editor_stack():
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    es = EditorSplitter(None, Mock(), [], first=True)
+    EditorSplitter.CONF_SECTION = "Editor"
+    main_widget = Mock(wraps=EditorMainWidgetExample())
+    es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
     es.resize(640, 480)
     es.show()
@@ -69,21 +73,30 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         editorstack.sig_open_file.connect(report_file_open)
         editorstack.register_completion_capabilities(capabilities, 'python')
 
+    def unregister_editorstack(editorstack):
+        pass
+
     def clone(editorstack, template=None):
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         # Emulate "cloning"
         editorstack.new('test.py', 'utf-8', text)
 
-    mock_plugin = Mock()
+    mock_main_widget = Mock(wraps=EditorMainWidgetExample())
+    EditorSplitter.CONF_SECTION = "Editor"
     editorsplitter = EditorSplitter(
-        None, mock_plugin, [], register_editorstack_cb=register_editorstack)
+        None,
+        mock_main_widget,
+        [],
+        register_editorstack_cb=register_editorstack,
+        unregister_editorstack_cb=unregister_editorstack,
+    )
 
     editorsplitter.editorstack.set_find_widget(Mock())
     editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorsplitter.editorstack.new('test.py', 'utf-8', text)
 
-    mock_plugin.clone_editorstack.side_effect = partial(
+    mock_main_widget.clone_editorstack.side_effect = partial(
         clone, template=editorsplitter.editorstack)
     qtbot_module.addWidget(editorsplitter)
     editorsplitter.resize(640, 480)
@@ -105,7 +118,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 
     # Allow the split() to duplicate editor stacks.
     def clone(editorstack):
-        editorstack.close_action.setEnabled(False)
+        editorstack.close_split_action.setEnabled(False)
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
@@ -114,7 +127,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
             text = f.read()
         editorstack.new(__file__, 'utf-8', text)
 
-    es.plugin.clone_editorstack.side_effect = clone
+    es.main_widget.clone_editorstack.side_effect = clone
 
     # Setup editor info for this EditorStack.
     clone(es.editorstack)
@@ -130,18 +143,20 @@ def test_init(editor_splitter_bot):
     assert not es.childrenCollapsible()
     assert not es.toolbar_list
     assert not es.menu_list
-    assert es.register_editorstack_cb == es.plugin.register_editorstack
-    assert es.unregister_editorstack_cb == es.plugin.unregister_editorstack
+    assert es.register_editorstack_cb == es.main_widget.register_editorstack
+    assert (
+        es.unregister_editorstack_cb == es.main_widget.unregister_editorstack
+    )
 
     # No menu actions in parameter call.
     assert not es.menu_actions
     # EditorStack adds its own menu actions to the existing actions.
-    assert es.editorstack.menu_actions != []
+    assert es.editorstack.get_actions() != []
 
     assert isinstance(es.editorstack, EditorStack)
-    es.plugin.register_editorstack.assert_called_with(es.editorstack)
-    es.plugin.unregister_editorstack.assert_not_called()
-    es.plugin.clone_editorstack.assert_not_called()
+    es.main_widget.register_editorstack.assert_called_with(es.editorstack)
+    es.main_widget.unregister_editorstack.assert_not_called()
+    es.main_widget.clone_editorstack.assert_not_called()
 
     assert es.count() == 1
     assert es.widget(0) == es.editorstack
@@ -240,8 +255,9 @@ def test_split(editor_splitter_layout_bot):
     # Each splitter gets its own editor stack as the first widget.
     assert es.widget(1).count() == 1
     assert es.widget(1).editorstack == es.widget(1).widget(0)
-    es.widget(1).plugin.clone_editorstack.assert_called_with(
-                                    editorstack=es.widget(1).editorstack)
+    es.widget(1).main_widget.clone_editorstack.assert_called_with(
+        editorstack=es.widget(1).editorstack
+    )
 
     # Create a horizontal split on original widget.
     es.editorstack.sig_split_horizontally.emit()  # Call from signal.

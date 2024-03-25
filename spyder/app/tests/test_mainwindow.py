@@ -813,6 +813,7 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
+
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(
@@ -1704,7 +1705,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
     # Create a new editor window
     # Note: editor.load() uses the current editorstack by default
-    main_window.editor.create_new_window()
+    main_window.editor.get_widget().create_new_window()
     main_window.editor.load()
 
     # Perform the test
@@ -1787,22 +1788,22 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize editor
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
 
     # Don't call switch_to_plugin when the IPython console is undocked
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
     ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
     ipyconsole.create_window()
-    assert main_window.editor._ismaximized
+    assert main_window.editor.get_widget().get_maximized_state()
 
     # Unmaximize when docking back the IPython console
     ipyconsole.close_window()
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
 
     # Maximize a plugin and check that it's unmaximized after clicking the
     # debug button
@@ -1825,7 +1826,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         debug_next_action)
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_next_button, Qt.LeftButton)
-    assert not main_window.editor._ismaximized
+    assert not main_window.editor.get_widget().get_maximized_state()
     assert not max_action.isChecked()
 
     # Check that other debugging actions unmaximize the debugger plugin
@@ -2210,10 +2211,11 @@ def test_plots_scroll(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    # Generate a plot inline.
+    # Generate a plot inline and switch focus to Plots pane.
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+    main_window.plots.switch_to_plugin()
 
     # Make sure the plot is selected
     sb = figbrowser.thumbnails_sb
@@ -2430,6 +2432,7 @@ def test_plot_from_collectioneditor(main_window, qtbot):
         for grandchild in child.children():
             if isinstance(grandchild, CollectionsEditor):
                 collections_editor = grandchild
+                qtbot.addWidget(collections_editor)
 
     # Plot item 0 in collection editor
     collections_editor.widget.editor.plot(0, 'plot')
@@ -2544,10 +2547,10 @@ def test_editorstack_open_switcher_dlg(main_window, tmpdir, qtbot):
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    editorstack.switcher_plugin.open_switcher()
-    assert editorstack.switcher_plugin
-    assert editorstack.switcher_plugin.is_visible()
-    assert (editorstack.switcher_plugin.count() ==
+    assert editorstack.switcher_action
+    editorstack.switcher_action.trigger()
+    assert main_window.switcher.is_visible()
+    assert (main_window.switcher.count() ==
             len(main_window.editor.get_filenames()))
 
 
@@ -2593,11 +2596,11 @@ def example_def_2():
 
     # Test that the symbol finder opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
-    editorstack.switcher_plugin.open_symbolfinder()
+    assert editorstack.symbolfinder_action
+    editorstack.symbolfinder_action.trigger()
     qtbot.wait(500)
-    assert editorstack.switcher_plugin
-    assert editorstack.switcher_plugin.is_visible()
-    assert editorstack.switcher_plugin.count() == 2
+    assert main_window.switcher.is_visible()
+    assert main_window.switcher.count() == 2
 
 
 @flaky(max_runs=3)
@@ -2669,22 +2672,19 @@ def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
     # Assert searching text in the switcher works as expected
     switcher.open_switcher()
     switcher.set_search_text('0')
-    qtbot.wait(500)
-    assert switcher.count() == 1
+    qtbot.waitUntil(lambda: switcher.count() == 1)
     switcher.on_close()
 
     # Assert searching for a non-existent file leaves the switcher empty
     switcher.open_switcher()
     switcher.set_search_text('foo')
-    qtbot.wait(500)
-    assert switcher.count() == 0
+    qtbot.waitUntil(lambda: switcher.count() == 0)
     switcher.on_close()
 
     # Assert searching for a binary file leaves the switcher empty
     switcher.open_switcher()
     switcher.set_search_text('windows')
-    qtbot.wait(500)
-    assert switcher.count() == 0
+    qtbot.waitUntil(lambda: switcher.count() == 0)
     switcher.on_close()
 
     # Remove project file and check the switcher is updated
@@ -2715,8 +2715,7 @@ def test_switcher_projects_integration(main_window, pytestconfig, qtbot,
 
     switcher.open_switcher()
     switcher.set_search_text('0')
-    qtbot.wait(500)
-    assert switcher.count() == 1
+    qtbot.waitUntil(lambda: switcher.count() == 1)
     switcher.on_close()
 
     projects.get_widget()._fzf = fzf
@@ -3010,7 +3009,9 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
     # Create a editor split
-    main_window.editor.editorsplitter.split(orientation=Qt.Vertical)
+    main_window.editor.get_widget().editorsplitter.split(
+        orientation=Qt.Vertical
+    )
     qtbot.wait(500)
 
     # Open other files
@@ -3023,7 +3024,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         assert fname == pylint_plugin.get_filename()
 
     # Close split panel
-    for editorstack in reversed(main_window.editor.editorstacks):
+    for editorstack in reversed(main_window.editor.get_widget().editorstacks):
         editorstack.close_split()
         break
     qtbot.wait(1000)
@@ -3268,14 +3269,14 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     base_run_cell_advance = CONF.get_shortcut(
         'editor', 'run cell and advance')  # Should be Shift+Return
     base_run_selection = CONF.get_shortcut(
-        '_', 'run selection')  # Should be F9
+        'editor', 'run selection and advance')  # Should be F9
     assert base_run_cell_advance == 'Shift+Return'
     assert base_run_selection == 'F9'
 
     CONF.set_shortcut(
         'editor', 'run cell and advance', '')
     CONF.set_shortcut(
-        '_', 'run selection', base_run_cell_advance)
+        'editor', 'run selection and advance', base_run_cell_advance)
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):
         main_window.shortcuts.apply_shortcuts()
 
@@ -3295,7 +3296,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     assert u'ññ' not in shell._control.toPlainText()
 
     # Reset shortcuts
-    CONF.set_shortcut('_', 'run selection', 'F9')
+    CONF.set_shortcut('editor', 'run selection and advance', 'F9')
     CONF.set_shortcut('editor', 'run cell and advance', 'Shift+Return')
 
     # Wait for shortcut change to actually be applied
@@ -4538,6 +4539,9 @@ def hello():
     test = 1
     print('test ==', test)
 hello()
+#%%
+test = 9
+print([test for i in range(3)])
 """)
 
     # Wait until the window is fully up
@@ -4598,6 +4602,25 @@ hello()
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
             nsb.editor.source_model._data['test']['view'] == '3')
+
+    # Run magic
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runcell -i 1")
+
+    qtbot.waitUntil(lambda: "[9, 9, 9]" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
+
+    # check value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('test =', test)")
+
+    qtbot.waitUntil(lambda: "test = 9" in shell._control.toPlainText(),
+                    timeout=SHELL_TIMEOUT)
+    assert "test = 9" in shell._control.toPlainText()
+
+    # Check the namespace browser is updated
+    assert ('test' in nsb.editor.source_model._data and
+            nsb.editor.source_model._data['test']['view'] == '9')
 
 
 @flaky(max_runs=3)
@@ -4868,7 +4891,7 @@ def test_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: editors_filled(treewidget), timeout=25000)
 
     # Create editor window and check Outline editors there have symbols info
-    editorwindow = main_window.editor.create_new_window()
+    editorwindow = main_window.editor.get_widget().create_new_window()
     treewidget_on_window = editorwindow.editorwidget.outlineexplorer.treewidget
     qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
                     timeout=25000)
@@ -5015,7 +5038,7 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     assert not any(trees_update_state(treewidget))
 
     # Create editor window and wait until its trees are updated
-    editorwindow = main_window.editor.create_new_window()
+    editorwindow = main_window.editor.get_widget().create_new_window()
     editorwidget = editorwindow.editorwidget
     treewidget_on_window = editorwidget.outlineexplorer.treewidget
     qtbot.waitUntil(lambda: editors_with_info(treewidget_on_window),
@@ -5476,7 +5499,7 @@ if __name__ == "__main__":
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Click the run button
@@ -5515,7 +5538,7 @@ crash_func()
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Click the run button
@@ -5668,7 +5691,7 @@ def test_debug_unsaved_function(main_window, qtbot):
     run_parameters = generate_run_parameters(main_window, fname)
     CONF.set('run', 'last_used_parameters', run_parameters)
 
-    main_window.editor.update_run_focus_file()
+    main_window.editor.get_widget().update_run_focus_file()
     qtbot.wait(2000)
 
     # Set breakpoint
@@ -6497,17 +6520,21 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     find_widget.find_previous()
 
     # Position mouse on top of that line
+    # Position in two movements to decrease the chance of the cursor being
+    # shown as the text cursor (`I`)
+    cursor_point = control.cursorRect(control.textCursor()).topLeft()
+    qtbot.mouseMove(control, cursor_point)
     cursor_point = control.cursorRect(control.textCursor()).center()
     qtbot.mouseMove(control, cursor_point)
-    qtbot.wait(500)
 
     # Check cursor shape is the right one
+    qtbot.waitUntil(lambda: QApplication.overrideCursor() is not None)
     assert QApplication.overrideCursor().shape() == Qt.PointingHandCursor
 
     # Click on the line and check that that sends us to the editor
     qtbot.mouseClick(control.viewport(), Qt.LeftButton, pos=cursor_point,
                      delay=300)
-    assert QApplication.focusWidget() is code_editor
+    qtbot.waitUntil(lambda: QApplication.focusWidget() is code_editor)
 
     # Check we are in the right line
     cursor = code_editor.textCursor()
@@ -6669,33 +6696,33 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     assert "801" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "\\.ipy" in control.toPlainText()
-    
+
     # Create an untitled file
     main_window.editor.new()
-    
+
     assert "untitled" in main_window.editor.get_current_filename()
-    
+
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text("print(20 + 780)")
-    
+
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
     assert "800" in control.toPlainText()
     assert "error" not in control.toPlainText()
     assert "untitled" in control.toPlainText()
-    
+
     # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
-    
+
     with tempfile.TemporaryDirectory() as td:
-    
+
         editorstack = main_window.editor.get_current_editorstack()
         editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
         main_window.editor.save()
         with qtbot.waitSignal(shell.executed):
             qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
-    
+
         assert "799" in control.toPlainText()
         assert "error" not in control.toPlainText()
         assert "fn.ipy" in control.toPlainText()

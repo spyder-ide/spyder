@@ -258,6 +258,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.max_recent_action = self.create_action(
             ProjectsActions.MaxRecent,
             text=_("Maximum number of recent projects..."),
+            icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
         self.recent_project_menu = self.create_menu(

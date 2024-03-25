@@ -74,7 +74,7 @@ class SidebarPage(QWidget):
 
     def get_icon(self):
         """Return page icon."""
-        raise NotImplementedError
+        QIcon()
 
     def setup_page(self):
         """Setup widget to be shown in the page."""

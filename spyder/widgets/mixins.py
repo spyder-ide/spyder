@@ -30,12 +30,10 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.color_system import Green, Orange
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
@@ -64,8 +62,6 @@ EOL_SYMBOLS = [
 # Tips style
 TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
 TIP_PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_TEXT_1
-TIP_TITLE_COLOR = Green.B80 if is_dark_interface() else Green.B20
-TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90 if is_dark_interface() else Orange.B30
 
 # Tips content
 TIP_DEFAULT_LANGUAGE = 'python'
@@ -224,7 +220,7 @@ class BaseEditMixin(object):
             template += BASE_TEMPLATE.format(
                 font_family=font_family,
                 size=text_size,
-                color=TIP_TITLE_COLOR,
+                color=SpyderPalette.TIP_TITLE_COLOR,
                 main_text=title,
             )
 
@@ -334,7 +330,7 @@ class BaseEditMixin(object):
                 template += (
                     f'<hr>'
                     f'<div align="left">'
-                    f'<span style="color: {TIP_TITLE_COLOR};'
+                    f'<span style="color: {SpyderPalette.TIP_TITLE_COLOR};'
                     f'text-decoration:none;'
                     f'font-family:"{font_family}";font-size:{text_size}pt;>'
                 ) + help_text + '</span></div>'
@@ -367,7 +363,9 @@ class BaseEditMixin(object):
             '</span>'
         )
         chars_template = (
-            '<span style="color:{0};'.format(TIP_CHAR_HIGHLIGHT_COLOR) +
+            '<span style="color:{0};'.format(
+                SpyderPalette.TIP_CHAR_HIGHLIGHT_COLOR
+            ) +
             'font-weight:bold"><b>{char}</b>'
             '</span>'
         )

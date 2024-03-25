@@ -192,6 +192,11 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         item_id = None
         if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
             item_id = action.action_id
+
+            # This is necessary when we set a menu for `action`, e.g. for
+            # todo_list_action in EditorMainWidget.
+            if action.menu() and isinstance(action.menu(), SpyderMenu):
+                action.menu()._is_submenu = True
         elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
             action._is_submenu = True

@@ -790,7 +790,8 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
 
         app_font = self.font()
         app_font.setFamily(family)
-        app_font.setPointSize(size)
+        if size > 0:
+            app_font.setPointSize(size)
 
         self.set_monospace_interface_font(app_font)
         self.setFont(app_font)

@@ -78,6 +78,15 @@ class SpyderPaletteDark(DarkPalette):
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
 
+    # For special tabs
+    SPECIAL_TABS_SEPARATOR = Gray.B70
+    SPECIAL_TABS_SELECTED = DarkPalette.COLOR_ACCENT_2
+
+    # For editor tooltips
+    TIP_TITLE_COLOR = Green.B80
+    TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90
+
+
 class SpyderPaletteLight(LightPalette):
     """Light palette for Spyder."""
 
@@ -134,6 +143,15 @@ class SpyderPaletteLight(LightPalette):
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
+
+    # For special tabs
+    SPECIAL_TABS_SEPARATOR = Gray.B70
+    SPECIAL_TABS_SELECTED = LightPalette.COLOR_ACCENT_5
+
+    # For editor tooltips
+    TIP_TITLE_COLOR = Green.B20
+    TIP_CHAR_HIGHLIGHT_COLOR = Orange.B30
+
 
 # =============================================================================
 # ---- Exported classes

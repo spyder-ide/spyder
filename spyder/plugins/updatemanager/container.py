@@ -59,7 +59,8 @@ class UpdateManagerContainer(PluginMainContainer):
         # Signals
         self.update_manager.sig_set_status.connect(self.set_status)
         self.update_manager.sig_disable_actions.connect(
-            self.check_update_action.setDisabled)
+            self._set_actions_state
+        )
         self.update_manager.sig_block_status_signals.connect(
             self.update_manager_status.blockSignals)
         self.update_manager.sig_download_progress.connect(
@@ -89,7 +90,7 @@ class UpdateManagerContainer(PluginMainContainer):
 
         self.dialog_manager.close_all()
 
-    # --- Public API
+    # ---- Public API
     # -------------------------------------------------------------------------
     def set_status(self, status, latest_version=None):
         """Set Update Manager status"""
@@ -108,3 +109,16 @@ class UpdateManagerContainer(PluginMainContainer):
     def set_install_on_close(self, install_on_close):
         """Set whether start install on close."""
         self.install_on_close = install_on_close
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    @Slot(bool)
+    def _set_actions_state(self, is_disabled):
+        self.check_update_action.setDisabled(is_disabled)
+
+        # Change text to give better feedback to users about why the action is
+        # disabled.
+        if is_disabled:
+            self.check_update_action.setText(_("Checking for updates..."))
+        else:
+            self.check_update_action.setText(_("Check for updates..."))

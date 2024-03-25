@@ -16,7 +16,7 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression, QSize
+from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QFileDialog, QGridLayout, QGroupBox,
@@ -33,6 +33,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
+from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.widgets.sidebardialog import SidebarPage
 
@@ -71,6 +72,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     # Constants
     CONF_SECTION = None
+    LOAD_FROM_CONFIG = True
 
     def __init__(self, parent):
         SidebarPage.__init__(self, parent)
@@ -97,14 +99,19 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
-        self.main = parent.main
         self.tabs = None
         self.is_modified = False
+
+        if getattr(parent, "main", None):
+            self.main = parent.main
+        else:
+            self.main = None
 
     def initialize(self):
         """Initialize configuration page."""
         self.setup_page()
-        self.load_from_conf()
+        if self.LOAD_FROM_CONFIG:
+            self.load_from_conf()
 
     def _apply_settings_tabs(self, options):
         if self.tabs is not None:
@@ -408,12 +415,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             self.changed_options.add((section, option))
 
     def add_help_info_label(self, layout, tip_text):
-        help_label = QLabel()
-        image = ima.icon('help_gray').pixmap(QSize(20, 20))
-        help_label.setPixmap(image)
-        help_label.setFixedWidth(23)
-        help_label.setFixedHeight(23)
-        help_label.setToolTip(tip_text)
+        help_label = TipWidget(
+            tip_text=tip_text,
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover')
+        )
+
         layout.addWidget(help_label)
         layout.addStretch(100)
 
@@ -494,31 +501,60 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         content_type=None, section=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
         label = QLabel(text)
         label.setWordWrap(word_wrap)
         edit = QLineEdit()
         edit.content_type = content_type
-        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(edit)
+
+        if alignment == Qt.Vertical:
+            layout = QVBoxLayout()
+
+            # This is necessary to correctly align `label` and `edit` to the
+            # left when they are displayed vertically.
+            edit.setStyleSheet("margin-left: 5px")
+
+            if tip is not None:
+                label_layout = QHBoxLayout()
+                label_layout.setSpacing(0)
+                label_layout.addWidget(label)
+                label_layout, help_label = self.add_help_info_label(
+                    label_layout, tip
+                )
+                layout.addLayout(label_layout)
+            else:
+                layout.addWidget(label)
+
+            layout.addWidget(edit)
+        else:
+            layout = QHBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(edit)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
         layout.setContentsMargins(0, 0, 0, 0)
+
         if regex:
             edit.setValidator(
                 QRegularExpressionValidator(QRegularExpression(regex))
             )
+
         if placeholder:
             edit.setPlaceholderText(placeholder)
+
         self.lineedits[edit] = (section, option, default)
 
         widget = QWidget(self)
         widget.label = label
         widget.textbox = edit
         if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
             widget.help_label = help_label
+
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
+
         return widget
 
     def create_textedit(self, text, option, default=NoDefault,

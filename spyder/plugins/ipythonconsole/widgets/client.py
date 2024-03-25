@@ -508,7 +508,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "The following argument was not expected",
             # Avoid showing error for kernel restarts after kernel dies when
             # using an external interpreter
-            "conda.cli.main_run"
+            "conda.cli.main_run",
+            # Warning when debugpy is not available because it's an optional
+            # dependency of IPykernel.
+            # See spyder-ide/spyder#21900
+            "debugpy_stream undefined, debugging will not be enabled",
         ]
 
         return any([err in error for err in benign_errors])
