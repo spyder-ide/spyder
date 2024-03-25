@@ -487,8 +487,8 @@ class ConnectionDialog(SidebarDialog):
     def create_buttons(self):
         bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
 
-        button_save_connection = QPushButton(_("Save connection"))
-        button_save_connection.clicked.connect(self.save_connection_info)
+        self._button_save_connection = QPushButton(_("Save connection"))
+        self._button_save_connection.clicked.connect(self.save_connection_info)
 
         button_connect = QPushButton(_("Connect"))
         button_connect.clicked.connect(
@@ -496,12 +496,23 @@ class ConnectionDialog(SidebarDialog):
         )
 
         layout = QHBoxLayout()
-        layout.addWidget(button_save_connection)
+        layout.addWidget(self._button_save_connection)
         layout.addStretch(1)
         layout.addWidget(button_connect)
         layout.addWidget(bbox)
 
         return bbox, layout
+
+    def current_page_changed(self, index):
+        # Enable "Save connection" button when viewing the "New connection"
+        # page and change it according to the modified state for others.
+        if index == 0:
+            self._button_save_connection.setEnabled(True)
+        else:
+            if self.get_page(index).is_modified:
+                self._button_save_connection.setEnabled(True)
+            else:
+                self._button_save_connection.setEnabled(False)
 
     def save_connection_info(self):
         page = self.get_page()
@@ -537,6 +548,9 @@ class ConnectionDialog(SidebarDialog):
         PageClass.set_host_id(host_id)
 
         page = PageClass(self)
+        page.apply_button_enabled.connect(
+            self._change_button_save_connection_state
+        )
         if new:
             page.save_server_info()
 
@@ -551,6 +565,9 @@ class ConnectionDialog(SidebarDialog):
 
             for id_ in servers.keys():
                 self.add_connection_page(host_id=id_, new=False)
+
+    def _change_button_save_connection_state(self, state):
+        self._button_save_connection.setEnabled(state)
 
 
 def test():
