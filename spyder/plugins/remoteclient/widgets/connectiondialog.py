@@ -434,7 +434,6 @@ class NewConnectionPage(BaseConnectionPage):
 class ConnectionPage(BaseConnectionPage):
     """Page to display connection status and info for a remote machine."""
 
-    #MAX_WIDTH = 900
     MIN_HEIGHT = 620
 
     # ---- SidebarPage API
@@ -482,13 +481,17 @@ class ConnectionDialog(SidebarDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.add_saved_connection_pages()
+        self._add_saved_connection_pages()
 
+    # ---- SidebarDialog API
+    # -------------------------------------------------------------------------
     def create_buttons(self):
         bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
 
         self._button_save_connection = QPushButton(_("Save connection"))
-        self._button_save_connection.clicked.connect(self.save_connection_info)
+        self._button_save_connection.clicked.connect(
+            self._save_connection_info
+        )
 
         button_connect = QPushButton(_("Connect"))
         button_connect.clicked.connect(
@@ -514,7 +517,9 @@ class ConnectionDialog(SidebarDialog):
             else:
                 self._button_save_connection.setEnabled(False)
 
-    def save_connection_info(self):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _save_connection_info(self):
         page = self.get_page()
 
         # Validate info
@@ -532,7 +537,7 @@ class ConnectionDialog(SidebarDialog):
                 self.add_separator()
 
             # Add connection page to the dialog with the new info
-            self.add_connection_page(host_id=page.host_id, new=True)
+            self._add_connection_page(host_id=page.host_id, new=True)
 
             # Give focus to the new page
             self.set_current_index(self.number_of_pages() - 1)
@@ -543,7 +548,7 @@ class ConnectionDialog(SidebarDialog):
             # Update connection info for the other pages.
             page.save_to_conf()
 
-    def add_connection_page(self, host_id: str, new: bool):
+    def _add_connection_page(self, host_id: str, new: bool):
         PageClass = ConnectionPage
         PageClass.set_host_id(host_id)
 
@@ -556,7 +561,7 @@ class ConnectionDialog(SidebarDialog):
 
         self.add_page(page)
 
-    def add_saved_connection_pages(self):
+    def _add_saved_connection_pages(self):
         page = self.get_page(index=0)
         servers = page.get_option("servers", default={})
 
@@ -564,7 +569,7 @@ class ConnectionDialog(SidebarDialog):
             self.add_separator()
 
             for id_ in servers.keys():
-                self.add_connection_page(host_id=id_, new=False)
+                self._add_connection_page(host_id=id_, new=False)
 
     def _change_button_save_connection_state(self, state):
         self._button_save_connection.setEnabled(state)
