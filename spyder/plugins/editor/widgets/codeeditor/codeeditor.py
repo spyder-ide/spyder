@@ -3083,7 +3083,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.insertText(firstline)
         cursor.endEditBlock()
-        
+
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team

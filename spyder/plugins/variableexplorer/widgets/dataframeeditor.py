@@ -59,7 +59,7 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 
@@ -143,7 +143,7 @@ BACKGROUND_NUMBER_HUERANGE = 0.33  # (hue for smallest) minus (hue for largest)
 BACKGROUND_NUMBER_SATURATION = 0.7
 BACKGROUND_NUMBER_VALUE = 1.0
 BACKGROUND_NUMBER_ALPHA = 0.6
-BACKGROUND_NONNUMBER_COLOR = QStylePalette.COLOR_BACKGROUND_2
+BACKGROUND_NONNUMBER_COLOR = SpyderPalette.COLOR_BACKGROUND_2
 BACKGROUND_STRING_ALPHA = 0.05
 BACKGROUND_MISC_ALPHA = 0.3
 
@@ -1634,7 +1634,7 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
     def __init__(self, model):
         super().__init__()
         self.model = model
-        self._background = QColor(QStylePalette.COLOR_BACKGROUND_2)
+        self._background = QColor(SpyderPalette.COLOR_BACKGROUND_2)
 
     def rowCount(self, index=None):
         """Get number of rows (number of levels for the header)."""

@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_waitspinner
 
 
@@ -187,8 +187,8 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         stylesheet = ("QToolTip {{background-color: {background_color};"
                       "color: {color};"
                       "border: none}}").format(
-                      background_color=QStylePalette.COLOR_ACCENT_2,
-                      color=QStylePalette.COLOR_TEXT_1
+                      background_color=SpyderPalette.COLOR_ACCENT_2,
+                      color=SpyderPalette.COLOR_TEXT_1
                       )
         return stylesheet
 

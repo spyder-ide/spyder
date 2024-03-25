@@ -19,7 +19,7 @@ from spyder.config.gui import get_font, is_dark_font_color, set_font
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils import syntaxhighlighters
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -490,7 +490,7 @@ class AppearanceConfigPage(PluginConfigPage):
         We need to do this because when applying settings we can't
         detect correctly the current theme.
         """
-        return dark_color(QStylePalette.COLOR_BACKGROUND_1)
+        return dark_color(SpyderPalette.COLOR_BACKGROUND_1)
 
     def color_scheme_and_ui_theme_mismatch(self, color_scheme, ui_theme):
         """

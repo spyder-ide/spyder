@@ -27,7 +27,7 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -500,7 +500,7 @@ class LSPServersModel(QAbstractTableModel):
         self.widths = []
 
         # Needed to compensate for the HTMLDelegate color selection unawareness
-        self.text_color = QStylePalette.COLOR_TEXT_1
+        self.text_color = SpyderPalette.COLOR_TEXT_1
 
     def sortByName(self):
         """Qt Override."""

@@ -21,7 +21,7 @@ from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
 # =============================================================================
 # ---- Spyder palettes
 # =============================================================================
-class SpyderPaletteDark:
+class SpyderPaletteDark(DarkPalette):
     """Dark palette for Spyder."""
 
     # Colors for information and feedback in dialogs
@@ -87,7 +87,7 @@ class SpyderPaletteDark:
     TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90
 
 
-class SpyderPaletteLight:
+class SpyderPaletteLight(LightPalette):
     """Light palette for Spyder."""
 
     # Colors for information and feedback in dialogs
@@ -158,7 +158,5 @@ class SpyderPaletteLight:
 # =============================================================================
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
-    QStylePalette = DarkPalette
 else:
     SpyderPalette = SpyderPaletteLight
-    QStylePalette = LightPalette

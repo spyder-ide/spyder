@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -189,7 +189,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setFrameStyle(QScrollArea().frameStyle())
         splitter.setContentsMargins(0, 0, 0, 0)
         splitter.setStyleSheet(
-            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+            f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
 
         self.stack_layout = QStackedLayout()
@@ -246,7 +246,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         if state is True:
             self.figviewer.figcanvas.setStyleSheet(
                 "FigureCanvas{border: 2px solid %s;}" %
-                QStylePalette.COLOR_BACKGROUND_4
+                SpyderPalette.COLOR_BACKGROUND_4
             )
         else:
             self.figviewer.figcanvas.setStyleSheet(
@@ -1060,7 +1060,7 @@ class FigureThumbnail(QWidget):
             # See spyder-ide/spyder#21598 for choice of styling.
             self.canvas.setStyleSheet(
                 "FigureCanvas{border: 3px solid %s;}" %
-                QStylePalette.COLOR_ACCENT_3
+                SpyderPalette.COLOR_ACCENT_3
             )
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")

@@ -24,7 +24,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.widgets.editorstack.editorstack import EditorStack
 from spyder.py3compat import qbytearray_to_str
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 logger = logging.getLogger(__name__)
@@ -275,6 +275,6 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
     def _stylesheet(self):
         css = qstylizer.style.StyleSheet()
         css.QSplitter.setValues(
-            background=QStylePalette.COLOR_BACKGROUND_1
+            background=SpyderPalette.COLOR_BACKGROUND_1
         )
         return css.toString()

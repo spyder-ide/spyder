@@ -39,7 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -312,7 +312,7 @@ def create_waitspinner(size=32, n=11, parent=None):
     spinner.setLineLength(dot_size)
     spinner.setLineWidth(dot_size)
     spinner.setInnerRadius(inner_radius)
-    spinner.setColor(QStylePalette.COLOR_TEXT_1)
+    spinner.setColor(SpyderPalette.COLOR_TEXT_1)
 
     return spinner
 

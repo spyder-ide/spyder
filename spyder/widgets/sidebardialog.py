@@ -30,7 +30,7 @@ from superqt.utils import qdebounced, signals_blocked
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import (
     AppStyle,
     MAC,
@@ -439,18 +439,18 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # This also sets the background color of the vertical scrollbar
         # associated to this widget
         css.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_2
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2
         )
 
         # Main style
         css.QListView.setValues(
             padding=f'{self.ITEMS_MARGIN}px 0px',
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+            border=f'1px solid {SpyderPalette.COLOR_BACKGROUND_2}',
         )
 
         # Remove border color on focus
         css['QListView:focus'].setValues(
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+            border=f'1px solid {SpyderPalette.COLOR_BACKGROUND_2}',
         )
 
         # Add margin and padding for items
@@ -462,13 +462,13 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Set border radius and background color for hover, active and inactive
         # states of items
         css['QListView::item:hover'].setValues(
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
         for state in ['item:selected:active', 'item:selected:!active']:
             css[f'QListView::{state}'].setValues(
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
             )
 
         return css
@@ -479,7 +479,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Give border a darker color to stand out over the background
         css.setValues(
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_5}"
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_5}"
         )
 
         return css.toString()
@@ -490,7 +490,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # This makes separators stand out better over the background
         css.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
         )
 
         return css.toString()

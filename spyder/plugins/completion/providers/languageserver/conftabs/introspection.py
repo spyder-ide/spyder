@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 class IntrospectionConfigTab(SpyderPreferencesTab):
@@ -65,7 +65,7 @@ class IntrospectionConfigTab(SpyderPreferencesTab):
             'preload_modules'
         )
         modules_textedit.textbox.setStyleSheet(
-            f"border: 1px solid {QStylePalette.COLOR_BACKGROUND_2};"
+            f"border: 1px solid {SpyderPalette.COLOR_BACKGROUND_2};"
         )
 
         advanced_layout = QVBoxLayout()

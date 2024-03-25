@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
 from spyder.api.translations import _
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import (
     PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
     VERTICAL_DOCK_TABBAR_STYLESHEET)
@@ -136,7 +136,7 @@ class CloseButton(QToolButton):
         self.setAutoRaise(True)
         self.setIcon(ima.icon('lock_open'))
         self.setToolTip(_("Lock pane"))
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3, 0)
 
     def _apply_stylesheet(self, bgcolor, bradius):
         css = qstylizer.style.StyleSheet()
@@ -151,18 +151,18 @@ class CloseButton(QToolButton):
 
     def enterEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
-        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5, 3)
+        self.parent._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
         self.setIcon(ima.icon('lock'))
         super().enterEvent(event)
 
     def mousePressEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6, 3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_6, 3)
         super().mousePressEvent(event)
 
     def leaveEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
-        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3, 0)
+        self.parent._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         self.setIcon(ima.icon('lock_open'))
         super().leaveEvent(event)
 
@@ -201,28 +201,28 @@ class DockTitleBar(QWidget):
         hlayout.addWidget(right_spacer)
         hlayout.addWidget(close_button)
 
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_6)
         QWidget.mousePressEvent(self, event)
 
     def enterEvent(self, event):
         # To signal that dock widgets can be dragged from here
         self.setCursor(Qt.OpenHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         """Remove customizations when leaving widget."""
         self.unsetCursor()
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
         super().leaveEvent(event)
 
     def _apply_stylesheet(self, bgcolor):

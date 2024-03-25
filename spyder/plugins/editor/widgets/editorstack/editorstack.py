@@ -50,7 +50,7 @@ from spyder.plugins.switcher.api import SwitcherActions
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import mimedata2url, create_waitspinner
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
@@ -701,7 +701,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         css.QToolBar.setValues(
             margin='0px',
             padding='4px',
-            borderBottom=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}'
+            borderBottom=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}'
         )
         self.top_toolbar.setStyleSheet(css.toString())
 

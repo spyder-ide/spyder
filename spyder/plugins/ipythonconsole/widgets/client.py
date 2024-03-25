@@ -36,7 +36,7 @@ from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
@@ -713,9 +713,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         else:
             fmt = "%H:%M:%S"
         if end:
-            color = QStylePalette.COLOR_TEXT_3
+            color = SpyderPalette.COLOR_TEXT_3
         else:
-            color = QStylePalette.COLOR_ACCENT_4
+            color = SpyderPalette.COLOR_ACCENT_4
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))

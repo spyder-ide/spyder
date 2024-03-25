@@ -27,7 +27,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidgetMenus
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.sourcecode import disambiguate_fname
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 # --- Constants
@@ -205,8 +205,8 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         css.setValues(
             borderTopLeftRadius='0px',
             borderBottomLeftRadius='0px',
-            borderTopRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
-            borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
         self.setStyleSheet(css.toString())
 
