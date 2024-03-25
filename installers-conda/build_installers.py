@@ -33,7 +33,7 @@ import os
 from pathlib import Path
 import platform
 import re
-from subprocess import check_call
+from subprocess import run
 import sys
 from textwrap import dedent, indent
 from time import time
@@ -217,6 +217,14 @@ def _get_condarc():
     return str(file)
 
 
+def _get_conda_bld_path_url():
+    bld_path_url = "file://"
+    if WINDOWS:
+        bld_path_url += "/"
+    bld_path_url += Path(os.getenv('CONDA_BLD_PATH')).as_posix()
+    return bld_path_url
+
+
 def _definitions():
     condarc = _get_condarc()
     definitions = {
@@ -246,6 +254,12 @@ def _definitions():
                 "specs": [k + v for k, v in specs.items()],
             },
         },
+        "channels_remap": [
+            {
+                "src": _get_conda_bld_path_url(),
+                "dest": "https://conda.anaconda.org/conda-forge"
+            }
+        ]
     }
 
     if not args.no_local:
@@ -371,7 +385,7 @@ def _constructor():
 
     yaml.dump(definitions, BUILD / "construct.yaml")
 
-    check_call(cmd_args, env=env)
+    run(cmd_args, check=True, env=env)
 
 
 def licenses():
