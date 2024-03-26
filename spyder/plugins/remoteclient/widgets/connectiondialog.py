@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
     QStackedLayout,
@@ -411,22 +412,29 @@ class NewConnectionPage(BaseConnectionPage):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def reset_page(self):
-        """
-        Reset page by adding a new, clean set of widgets, which will allow
-        users to introduce a new connection.
-        """
-        # Reset tracked widgets
-        self.reset_widget_dicts()
-
+    def reset_page(self, clear=False):
+        """Reset page to allow users to introduce a new connection."""
         # Set a new host id
-        new_id = str(uuid.uuid4())
-        self.host_id = new_id
+        self.host_id = str(uuid.uuid4())
 
-        # Add a new set of widgets to the page
-        clean_info_widget = self.create_connection_info_widget()
-        self.layout.addWidget(clean_info_widget)
-        self.layout.setCurrentWidget(clean_info_widget)
+        if clear:
+            # Reset tracked widgets
+            self.reset_widget_dicts()
+
+            # Add a new, clean set of widgets to the page
+            clean_info_widget = self.create_connection_info_widget()
+            self.layout.addWidget(clean_info_widget)
+            self.layout.setCurrentWidget(clean_info_widget)
+        else:
+            # Change option names associated to all widgets present in the page
+            # to reference the new host_id
+            for widgets in [self.comboboxes, self.lineedits, self.spinboxes]:
+                for widget in widgets:
+                    section, option, default = widgets[widget]
+                    new_option = "/".join(
+                        [self.host_id] + option.split("/")[1:]
+                    )
+                    widgets[widget] = (section, new_option, default)
 
 
 class ConnectionPage(BaseConnectionPage):
@@ -466,6 +474,39 @@ class ConnectionPage(BaseConnectionPage):
         servers[self.host_id] = options
         self.set_option("servers", servers)
 
+    def remove_config_options(self):
+        """Remove config options associated to this connection."""
+        # Remove current server from the dict of them
+        servers = self.get_option("servers")
+        servers.pop(self.host_id)
+        self.set_option("servers", servers)
+
+        # Remove regular options
+        options = [
+            "auth_method",
+            "password_login/name",
+            "password_login/address",
+            "password_login/port",
+            "password_login/username",
+            "keyfile_login/name",
+            "keyfile_login/address",
+            "keyfile_login/port",
+            "keyfile_login/username",
+            "keyfile",
+            "configfile",
+        ]
+        for option in options:
+            self.remove_option(f"{self.host_id}/{option}")
+
+        # Remove secure options
+        for secure_option in ["password", "passpharse"]:
+            # One of these options was saved securely and other as empty in our
+            # config system, so we try to remove them both.
+            for secure in [True, False]:
+                self.remove_option(
+                    f"{self.host_id}/{secure_option}", secure=secure
+                )
+
 
 class ConnectionDialog(SidebarDialog):
     """
@@ -491,6 +532,14 @@ class ConnectionDialog(SidebarDialog):
             self._save_connection_info
         )
 
+        self._button_remove_connection = QPushButton(_("Remove connection"))
+        self._button_remove_connection.clicked.connect(
+            self._remove_connection_info
+        )
+
+        self._button_clear_settings = QPushButton(_("Clear settings"))
+        self._button_clear_settings.clicked.connect(self._clear_settings)
+
         button_connect = QPushButton(_("Connect"))
         button_connect.clicked.connect(
             lambda: None
@@ -498,7 +547,9 @@ class ConnectionDialog(SidebarDialog):
 
         layout = QHBoxLayout()
         layout.addWidget(self._button_save_connection)
+        layout.addWidget(self._button_remove_connection)
         layout.addStretch(1)
+        layout.addWidget(self._button_clear_settings)
         layout.addWidget(button_connect)
         layout.addWidget(bbox)
 
@@ -509,11 +560,16 @@ class ConnectionDialog(SidebarDialog):
         # page and change it according to the modified state for others.
         if index == 0:
             self._button_save_connection.setEnabled(True)
+            self._button_clear_settings.setHidden(False)
+            self._button_remove_connection.setHidden(True)
         else:
             if self.get_page(index).is_modified:
                 self._button_save_connection.setEnabled(True)
             else:
                 self._button_save_connection.setEnabled(False)
+
+            self._button_clear_settings.setHidden(True)
+            self._button_remove_connection.setHidden(False)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -524,13 +580,11 @@ class ConnectionDialog(SidebarDialog):
         if not page.validate_page():
             return
 
-        if self.get_current_index() == 0:
-            # Actions for the new connection page.
-
+        if page.NEW_CONNECTION:
             # Save info provided by users
             page.save_to_conf()
 
-            # Add separator
+            # Add separator if needed
             if self.number_of_pages() == 1:
                 self.add_separator()
 
@@ -541,10 +595,32 @@ class ConnectionDialog(SidebarDialog):
             self.set_current_index(self.number_of_pages() - 1)
 
             # Reset page in case users want to introduce another connection
-            # page.reset_page()
+            page.reset_page()
         else:
             # Update connection info for the other pages.
             page.save_to_conf()
+
+    def _remove_connection_info(self):
+        page = self.get_page()
+        if not page.NEW_CONNECTION:
+            reply = QMessageBox.question(
+                self,
+                _("Remove connection"),
+                _(
+                    "Do you want to remove the connection called <b>{}</b>?"
+                ).format(page.get_name()),
+                QMessageBox.Yes,
+                QMessageBox.No,
+            )
+
+            if reply == QMessageBox.Yes:
+                self.hide_page()
+                page.remove_config_options()
+
+    def _clear_settings(self):
+        page = self.get_page()
+        if page.NEW_CONNECTION:
+            page.reset_page(clear=True)
 
     def _add_connection_page(self, host_id: str, new: bool):
         page = ConnectionPage(self, host_id=host_id)

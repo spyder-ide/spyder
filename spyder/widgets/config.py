@@ -71,9 +71,9 @@ class ConfigAccessMixin:
         section = self.CONF_SECTION if section is None else section
         return CONF.get(section, option, default=default, secure=secure)
 
-    def remove_option(self, option, section=None):
+    def remove_option(self, option, section=None, secure=False):
         section = self.CONF_SECTION if section is None else section
-        CONF.remove_option(section, option)
+        CONF.remove_option(section, option, secure=secure)
 
 
 class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
