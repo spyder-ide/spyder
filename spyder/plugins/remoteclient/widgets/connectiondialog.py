@@ -79,20 +79,20 @@ class BaseConnectionPage(SpyderConfigPage):
 
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
-    host_id = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, host_id=None):
         super().__init__(parent)
+
+        if host_id is None:
+            self.host_id = str(uuid.uuid4())
+        else:
+            self.host_id = host_id
 
         self._widgets_for_validation = {}
         self._missing_info_labels = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    @classmethod
-    def set_host_id(cls, host_id):
-        cls.host_id = host_id
-
     def auth_method(self, from_gui=False):
         if from_gui:
             if self._auth_methods.combobox.currentIndex() == 0:
@@ -390,9 +390,7 @@ class NewConnectionPage(BaseConnectionPage):
 
     MIN_HEIGHT = 500
     LOAD_FROM_CONFIG = False
-
     NEW_CONNECTION = True
-    host_id = str(uuid.uuid4())
 
     # ---- SidebarPage API
     # -------------------------------------------------------------------------
@@ -423,7 +421,7 @@ class NewConnectionPage(BaseConnectionPage):
 
         # Set a new host id
         new_id = str(uuid.uuid4())
-        self.set_host_id(new_id)
+        self.host_id = new_id
 
         # Add a new set of widgets to the page
         clean_info_widget = self.create_connection_info_widget()
@@ -549,10 +547,7 @@ class ConnectionDialog(SidebarDialog):
             page.save_to_conf()
 
     def _add_connection_page(self, host_id: str, new: bool):
-        PageClass = ConnectionPage
-        PageClass.set_host_id(host_id)
-
-        page = PageClass(self)
+        page = ConnectionPage(self, host_id=host_id)
         page.apply_button_enabled.connect(
             self._change_button_save_connection_state
         )
