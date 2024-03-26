@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Union
 
 # Third party imports
 import qstylizer.style
@@ -119,6 +119,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         )
         self._is_shown = False
         self._separators = []
+        self._active_pages = {}
 
         # ---- Size
         self.setMinimumWidth(self.MIN_WIDTH)
@@ -228,8 +229,8 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
 
-    def get_page(self, index=None) -> Optional[SidebarPage]:
-        """Return page widget"""
+    def get_page(self, index=None) -> Optional[Union[QWidget, SidebarPage]]:
+        """Return page widget corresponding to `index`."""
         if index is None:
             page = self.pages_widget.currentWidget()
         else:
@@ -239,6 +240,29 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # as their config page). So, we need to check for this.
         if page and hasattr(page, 'widget'):
             return page.widget()
+
+    def hide_page(self, index=None):
+        """Hide page corresponding to `index`."""
+        if index is None:
+            index = self.get_current_index()
+        self._active_pages[index] = False
+
+        # Hide entry from contents_widget
+        self.contents_widget.item(index).setHidden(True)
+
+        # If the current page is not the first one (index=0), then we set as
+        # the new current one the first active page before it.
+        if index > 1:
+            # With this we move backwards from index-1 up to 0 until we find
+            # an active page.
+            for i in range(index - 1, -1, -1):
+                if self._active_pages.get(i):
+                    self.set_current_index(i)
+                    break
+        elif index == 1:
+            # If the current page is the second one, we set the first one as
+            # current.
+            self.set_current_index(0)
 
     def add_separator(self):
         """Add a horizontal line to separate different sections."""
@@ -298,7 +322,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         item.setText(page.get_name())
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
-        # In case a plugin doesn't have an icon
+        # In case the page doesn't have an icon
         try:
             item.setIcon(page.get_icon())
         except TypeError:
@@ -306,6 +330,9 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Set font for items
         item.setFont(self.items_font)
+
+        # Save which pages are active in case we need to hide some
+        self._active_pages[self.contents_widget.count() - 1] = True
 
     def number_of_pages(self):
         """Get the number of pages in the dialog."""
