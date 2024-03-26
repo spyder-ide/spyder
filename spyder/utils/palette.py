@@ -27,7 +27,7 @@ class SpyderPaletteDark(DarkPalette):
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
-    COLOR_SUCCESS_3 = Green.B110
+    COLOR_SUCCESS_3 = Green.B90
 
     COLOR_ERROR_1 = Red.B40
     COLOR_ERROR_2 = Red.B70
@@ -36,6 +36,7 @@ class SpyderPaletteDark(DarkPalette):
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B90
+    COLOR_WARN_4 = Orange.B100
 
     # Icon colors
     ICON_1 = Gray.B140
@@ -70,6 +71,7 @@ class SpyderPaletteDark(DarkPalette):
     COLOR_OCCURRENCE_2 = Gray.B20
     COLOR_OCCURRENCE_3 = Gray.B30
     COLOR_OCCURRENCE_4 = Gray.B50
+    COLOR_OCCURRENCE_5 = Gray.B80
 
     # Colors for Spyder and Python logos
     PYTHON_LOGO_UP = Logos.B10
@@ -93,7 +95,7 @@ class SpyderPaletteLight(LightPalette):
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
-    COLOR_SUCCESS_3 = Green.B110
+    COLOR_SUCCESS_3 = Green.B30
 
     COLOR_ERROR_1 = Red.B40
     COLOR_ERROR_2 = Red.B70
@@ -102,6 +104,7 @@ class SpyderPaletteLight(LightPalette):
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B50
+    COLOR_WARN_4 = Orange.B40
 
     # Icon colors
     ICON_1 = Gray.B30
@@ -136,6 +139,7 @@ class SpyderPaletteLight(LightPalette):
     COLOR_OCCURRENCE_2 = Gray.B110
     COLOR_OCCURRENCE_3 = Gray.B100
     COLOR_OCCURRENCE_4 = Gray.B90
+    COLOR_OCCURRENCE_5 = Gray.B60
 
     # Colors for Spyder and Python logos
     PYTHON_LOGO_UP = Logos.B10
