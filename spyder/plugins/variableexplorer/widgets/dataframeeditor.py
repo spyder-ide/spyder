@@ -658,6 +658,10 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.resize_action = None
         self.resize_columns_action = None
 
+        self.menu = self.setup_menu()
+        self.menu_header_h = self.setup_menu_header()
+        self.config_shortcut(self.copy, 'copy', self)
+
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
         self.setVerticalScrollBar(vscroll)
@@ -671,14 +675,9 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.data_function = data_function
-        self.menu = self.setup_menu()
-        self.menu_header_h = self.setup_menu_header()
-        self.config_shortcut(self.copy, 'copy', self)
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
-        self.selectionModel().selectionChanged.connect(self.refresh_menu)
-        self.refresh_menu()
 
     def _load_more_columns(self, value):
         """Load more columns to display."""
@@ -712,6 +711,17 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             # Needed to handle a NameError while fetching data when closing
             # See spyder-ide/spyder#7880.
             pass
+
+    def setModel(self, model: DataFrameModel) -> None:
+        """
+        Set the model for the view to present.
+
+        This overrides the function in QTableView so that we can enable or
+        disable actions when appropriate if the selection changes.
+        """
+        super().setModel(model)
+        self.selectionModel().selectionChanged.connect(self.refresh_menu)
+        self.refresh_menu()
 
     def sortByColumn(self, index):
         """Implement a column sort."""
@@ -1417,22 +1427,8 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
 
         self.total_rows = self.model.shape[0]
         self.total_cols = self.model.shape[1]
-        size = self.total_rows * self.total_cols
-
-        # Use paging when the total size, number of rows or number of
-        # columns is too large
-        if size > LARGE_SIZE:
-            self.rows_loaded = ROWS_TO_LOAD
-            self.cols_loaded = COLS_TO_LOAD
-        else:
-            if self.total_cols > LARGE_COLS:
-                self.cols_loaded = COLS_TO_LOAD
-            else:
-                self.cols_loaded = self.total_cols
-            if self.total_rows > LARGE_NROWS:
-                self.rows_loaded = ROWS_TO_LOAD
-            else:
-                self.rows_loaded = self.total_rows
+        self.cols_loaded = self.model.cols_loaded
+        self.rows_loaded = self.model.rows_loaded
 
         if self.axis == 0:
             self.total_cols = self.model.shape[1]
@@ -1687,6 +1683,10 @@ class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
         return None
 
 
+class EmptyDataFrame:
+    shape = (0, 0)
+
+
 class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     """
     Dialog for displaying and editing DataFrame and related objects.
@@ -1790,8 +1790,22 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         # Create menu to allow edit index
         self.menu_header_v = self.setup_menu_header(self.table_index)
 
+        # Create the model and view of the data
+        empty_data = EmptyDataFrame()
+        self.dataModel = DataFrameModel(empty_data, parent=self)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
+        self.create_data_table()
+
         self.glayout.addWidget(self.hscroll, 2, 0, 1, 2)
         self.glayout.addWidget(self.vscroll, 0, 2, 2, 1)
+
+        # autosize columns on-demand
+        self._autosized_cols = set()
+
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
+        self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
         self.min_trunc = avg_width * 12  # Minimum size for columns
@@ -1853,7 +1867,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         # Create the model and view of the data
         self.dataModel = DataFrameModel(data, parent=self)
         self.dataModel.dataChanged.connect(self.save_and_close_enable)
-        self.create_data_table()
+        self.dataTable.setModel(self.dataModel)
 
         # autosize columns on-demand
         self._autosized_cols = set()
@@ -2034,11 +2048,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
-        if self.dataTable:
-            self.layout.removeWidget(self.dataTable)
-            self.dataTable.deleteLater()
-            self.dataTable = None
-
         self.dataTable = DataFrameView(self, self.dataModel,
                                        self.table_header.horizontalHeader(),
                                        self.hscroll, self.vscroll,
