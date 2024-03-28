@@ -1,0 +1,6 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "packaging",
+]
+build-backend = "setuptools.build_meta"
