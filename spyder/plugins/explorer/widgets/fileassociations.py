@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QListWidget, QListWidgetItem, QPushButton,
                             QVBoxLayout, QWidget)
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.utils.encoding import is_text_file
 from spyder.utils.programs import (get_application_icon,
@@ -41,8 +42,9 @@ class InputTextDialog(QDialog):
         # Widgets
         self.label = QLabel()
         self.lineedit = QLineEdit()
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -109,8 +111,9 @@ class ApplicationsDialog(QDialog):
         self.edit_filter = QLineEdit()
         self.list = QListWidget()
         self.button_browse = QPushButton(_('Browse...'))
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
