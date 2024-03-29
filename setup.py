@@ -254,7 +254,7 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.10.0,<1.12.0')
+    install_requires.append('python-lsp-server[all]>=1.11.0,<1.13.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
     install_requires.append('spyder-kernels>=2.5.1,<2.7.0')
 
