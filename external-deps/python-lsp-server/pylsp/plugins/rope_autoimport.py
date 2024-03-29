@@ -37,7 +37,7 @@ class AutoimportCache:
         config: Config,
         workspace: Workspace,
         files: Optional[List[Document]] = None,
-        single_thread: Optional[bool] = False,
+        single_thread: Optional[bool] = True,
     ):
         if self.is_blocked():
             return
