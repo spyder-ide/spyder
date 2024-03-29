@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - boa
+  - boltons
   - conda-standalone
   - constructor
   - gitpython
