@@ -331,7 +331,7 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     spacing = scene.spacing()
     height = scene.itemAt(0).sizeHint().height()
 
-    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
+    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view + 6
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
 

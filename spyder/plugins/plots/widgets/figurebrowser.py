@@ -41,6 +41,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
@@ -670,18 +671,22 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QVBoxLayout(self.view)
         self.scene.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        self.scene.setContentsMargins(0, 0, 0, 0)
+        self.scene.setContentsMargins(
+            0, AppStyle.MarginSize, 0, AppStyle.MarginSize
+        )
 
         # The vertical spacing between the thumbnails.
         # Note that we need to set this value explicitly or else the tests
         # are failing on macOS. See spyder-ide/spyder#11576.
-        self.scene.setSpacing(5)
+        self.scene.setSpacing(2 * AppStyle.MarginSize)
 
         self.scrollarea = QScrollArea(self)
         self.scrollarea.setWidget(self.view)
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
-        self.scrollarea.setViewportMargins(2, 2, 2, 2)
+        self.scrollarea.setViewportMargins(
+            AppStyle.MarginSize, 0, AppStyle.MarginSize, 0
+        )
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
