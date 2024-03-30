@@ -3,6 +3,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 """Linter plugin for pylint."""
+
 import collections
 import logging
 import os

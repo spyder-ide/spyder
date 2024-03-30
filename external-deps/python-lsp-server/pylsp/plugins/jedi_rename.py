@@ -20,7 +20,7 @@ def pylsp_rename(config, workspace, document, position, new_name):
     except NotImplementedError as exc:
         raise Exception(
             "No support for renaming in Python 2/3.5 with Jedi. "
-            "Consider using the rope_rename plugin instead"
+            "Consider using the pylsp-rope plugin instead"
         ) from exc
     log.debug("Finished rename: %s", refactoring.get_diff())
     changes = []
