@@ -20,8 +20,18 @@ import sys
 from qtconsole.svg import svg_to_clipboard, svg_to_image
 from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import QEvent, QPoint, QRect, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QPainter, QPixmap
+from qtpy.QtCore import (
+    QEvent,
+    QMimeData,
+    QPoint,
+    QRect,
+    QSize,
+    Qt,
+    QTimer,
+    Signal,
+    Slot,
+)
+from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
                             QVBoxLayout, QWidget, QStackedLayout)
@@ -644,6 +654,9 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
             self._scroll_to_newest_item)
 
+        # To reorganize thumbnails with drag and drop
+        self.setAcceptDrops(True)
+
     def setup_gui(self):
         """Setup the main layout of the widget."""
         layout = QVBoxLayout(self)
@@ -706,6 +719,48 @@ class ThumbnailScrollBar(QFrame):
         if event.type() == QEvent.Resize:
             self._update_thumbnail_size()
         return super().eventFilter(widget, event)
+
+    def dragEnterEvent(self, event):
+        """Enable drag events on this widget."""
+        event.accept()
+
+    def dropEvent(self, event):
+        """
+        Handle drop events.
+
+        Solution adapted from
+        https://www.pythonguis.com/faq/pyqt-drag-drop-widgets
+        """
+        # Event variables
+        pos = event.pos()
+        dropped_thumbnail = event.source()
+
+        # Avoid accepting drops from other widgets
+        if not isinstance(dropped_thumbnail, FigureThumbnail):
+            return
+
+        # Main variables
+        scrollbar_pos = self.scrollarea.verticalScrollBar().value()
+        n_thumbnails = self.scene.count()
+        last_thumbnail = self.scene.itemAt(n_thumbnails - 1).widget()
+
+        # Move thumbnail
+        if (pos.y() + scrollbar_pos) > last_thumbnail.y():
+            # This allows to move a thumbnail to the last position
+            self.scene.insertWidget(n_thumbnails - 1, dropped_thumbnail)
+        else:
+            # This works for any other position, including the first one
+            for i in range(n_thumbnails):
+                w = self.scene.itemAt(i).widget()
+
+                if (
+                    (pos.y() + scrollbar_pos)
+                    < (w.y() + w.size().height() // 5)
+                ):
+                    self.scene.insertWidget(i - 1, dropped_thumbnail)
+                    break
+
+        event.accept()
 
     # ---- Save Figure
     def save_all_figures_as(self):
@@ -1108,6 +1163,27 @@ class FigureThumbnail(QWidget):
                 self.sig_canvas_clicked.emit(self)
 
         return super().eventFilter(widget, event)
+
+    def mouseMoveEvent(self, event):
+        """
+        Enable drags to reorganize thumbnails with the mouse in the scrollbar.
+
+        Solution taken from:
+        https://www.pythonguis.com/faq/pyqt-drag-drop-widgets/
+        """
+        if event.buttons() == Qt.LeftButton:
+            # Create drag
+            drag = QDrag(self)
+            mime = QMimeData()
+            drag.setMimeData(mime)
+
+            # Show pixmap of the thumbnail while it's being moved.
+            pixmap = QPixmap(self.size())
+            self.render(pixmap)
+            drag.setPixmap(pixmap)
+
+            # Execute drag's event loop
+            drag.exec_(Qt.MoveAction)
 
 
 class FigureCanvas(QFrame):
