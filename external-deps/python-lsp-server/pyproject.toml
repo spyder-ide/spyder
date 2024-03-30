@@ -33,7 +33,7 @@ all = [
     "pycodestyle>=2.11.0,<2.12.0",
     "pydocstyle>=6.3.0,<6.4.0",
     "pyflakes>=3.2.0,<3.3.0",
-    "pylint>=2.5.0,<3.1",
+    "pylint>=3.1,<4",
     "rope>=1.11.0",
     "yapf>=0.33.0",
     "whatthepatch>=1.0.2,<2.0.0"
@@ -44,12 +44,12 @@ mccabe = ["mccabe>=0.7.0,<0.8.0"]
 pycodestyle = ["pycodestyle>=2.11.0,<2.12.0"]
 pydocstyle = ["pydocstyle>=6.3.0,<6.4.0"]
 pyflakes = ["pyflakes>=3.2.0,<3.3.0"]
-pylint = ["pylint>=2.5.0,<3.1"]
+pylint = ["pylint>=3.1,<4"]
 rope = ["rope>=1.11.0"]
 yapf = ["yapf>=0.33.0", "whatthepatch>=1.0.2,<2.0.0"]
 websockets = ["websockets>=10.3"]
 test = [
-    "pylint>=2.5.0,<3.1",
+    "pylint>=3.1,<4",
     "pytest",
     "pytest-cov",
     "coverage",
@@ -79,7 +79,6 @@ pydocstyle = "pylsp.plugins.pydocstyle_lint"
 pyflakes = "pylsp.plugins.pyflakes_lint"
 pylint = "pylsp.plugins.pylint_lint"
 rope_completion = "pylsp.plugins.rope_completion"
-rope_rename = "pylsp.plugins.rope_rename"
 rope_autoimport = "pylsp.plugins.rope_autoimport"
 yapf = "pylsp.plugins.yapf_format"
 

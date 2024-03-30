@@ -9,7 +9,11 @@ import uuid
 from functools import partial
 from typing import Any, Dict, List
 
-import ujson as json
+try:
+    import ujson as json
+except Exception:
+    import json
+
 from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
 from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
@@ -109,7 +113,7 @@ def start_ws_lang_server(port, check_parent_process, handler_class):
         import websockets
     except ImportError as e:
         raise ImportError(
-            "websocket modules missing. Please run pip install 'python-lsp-server[websockets]"
+            "websocket modules missing. Please run: pip install 'python-lsp-server[websockets]'"
         ) from e
 
     with ThreadPoolExecutor(max_workers=10) as tpool:
