@@ -297,7 +297,7 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
 
     scene = figbrowser.thumbnails_sb.scene
 
-    spacing = scene.verticalSpacing()
+    spacing = scene.spacing()
     height = scene.itemAt(0).sizeHint().height()
     height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
 
@@ -328,7 +328,7 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     # value was set to its maximum.
     height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
     scene = figbrowser.thumbnails_sb.scene
-    spacing = scene.verticalSpacing()
+    spacing = scene.spacing()
     height = scene.itemAt(0).sizeHint().height()
 
     expected = (spacing * (nfig - 1)) + (height * nfig) - height_view

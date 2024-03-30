@@ -653,16 +653,18 @@ class ThumbnailScrollBar(QFrame):
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
-        self.view = QWidget()
+        self.view = QWidget(self)
 
-        self.scene = QGridLayout(self.view)
+        self.scene = QVBoxLayout(self.view)
+        self.scene.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.scene.setContentsMargins(0, 0, 0, 0)
+
         # The vertical spacing between the thumbnails.
         # Note that we need to set this value explicitly or else the tests
         # are failing on macOS. See spyder-ide/spyder#11576.
         self.scene.setSpacing(5)
 
-        self.scrollarea = QScrollArea()
+        self.scrollarea = QScrollArea(self)
         self.scrollarea.setWidget(self.view)
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
@@ -839,12 +841,10 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
         self._thumbnails.append(thumbnail)
+        self.scene.addWidget(thumbnail)
+
         self._scroll_to_last_thumbnail = True
         self._first_thumbnail_shown = True
-
-        self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
-        self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
-        self.scene.setRowStretch(self.scene.rowCount(), 100)
 
         # Only select a new thumbnail if the last one was selected
         select_last = (
@@ -963,7 +963,7 @@ class ThumbnailScrollBar(QFrame):
 
     def scroll_to_item(self, index):
         """Scroll to the selected item of ThumbnailScrollBar."""
-        spacing_between_items = self.scene.verticalSpacing()
+        spacing_between_items = self.scene.spacing()
         height_view = self.scrollarea.viewport().height()
         height_item = self.scene.itemAt(index).sizeHint().height()
         height_view_excluding_item = max(0, height_view - height_item)
