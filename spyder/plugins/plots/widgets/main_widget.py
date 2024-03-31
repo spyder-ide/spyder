@@ -48,12 +48,12 @@ class PlotsWidgetActions:
 
 class PlotsWidgetMainToolbarSections:
     Edit = 'edit_section'
-    Move = 'move_section'
-    Zoom = 'zoom_section'
+    ZoomAndMove = 'zoom_section'
 
 
 class PlotsWidgetToolbarItems:
     ZoomSpinBox = 'zoom_spin'
+    ToolbarStretcher = 'toolbar_stretcher'
 
 
 # --- Widgets
@@ -199,13 +199,34 @@ class PlotsWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [save_action, save_all_action, copy_action, remove_action,
-                     remove_all_action, previous_action, next_action,
-                     zoom_in_action, zoom_out_action, self.zoom_disp]:
+        for item in [
+            save_action,
+            save_all_action,
+            copy_action,
+            remove_action,
+            remove_all_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
                 section=PlotsWidgetMainToolbarSections.Edit,
+            )
+
+        stretcher = self.create_stretcher(
+            PlotsWidgetToolbarItems.ToolbarStretcher
+        )
+        for item in [
+            self.zoom_disp,
+            zoom_out_action,
+            zoom_in_action,
+            stretcher,
+            previous_action,
+            next_action,
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=main_toolbar,
+                section=PlotsWidgetMainToolbarSections.ZoomAndMove,
             )
 
         # Context menu

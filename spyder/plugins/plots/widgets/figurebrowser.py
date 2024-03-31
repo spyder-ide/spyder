@@ -597,7 +597,7 @@ class ThumbnailScrollBar(QFrame):
     created when a figure is sent to the IPython console by the kernel and
     that controls what is displayed in the FigureViewer.
     """
-    _min_scrollbar_width = 100
+    _min_scrollbar_width = 130
 
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
