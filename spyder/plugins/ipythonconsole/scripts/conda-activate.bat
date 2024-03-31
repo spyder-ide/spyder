@@ -14,13 +14,13 @@ chcp 65001>nul
 echo %CONDA_ACTIVATE_SCRIPT%| findstr /e micromamba.exe>Nul && goto micromamba || goto conda
 
 :micromamba Activate using micromamba
-for /f %%i in ('"%CONDA_ACTIVATE_SCRIPT%" shell activate %CONDA_ENV_PATH%') do set SCRIPT=%%i
+for /f %%i in ('"%CONDA_ACTIVATE_SCRIPT%" shell activate "%CONDA_ENV_PATH%"') do set SCRIPT=%%i
 call %SCRIPT%
 goto start
 
 :conda Activate using conda
-call %CONDA_ACTIVATE_SCRIPT% %CONDA_ENV_PATH%
+call "%CONDA_ACTIVATE_SCRIPT%" "%CONDA_ENV_PATH%"
 goto start
 
 :start Start kernel
-%CONDA_ENV_PYTHON% -m spyder_kernels.console -f %SPYDER_KERNEL_SPEC%
+"%CONDA_ENV_PYTHON%" -m spyder_kernels.console -f %SPYDER_KERNEL_SPEC%
