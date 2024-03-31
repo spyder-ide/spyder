@@ -49,6 +49,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.conda import is_conda_env, find_conda
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
@@ -1393,7 +1394,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             if path_to_custom_interpreter:
                 pyexec = path_to_custom_interpreter
 
-            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
+            # If this is a conda env, it needs to be activated to get the
+            # IPython version below.
+            if is_conda_env(pyexec=pyexec):
+                conda = find_conda()
+                if conda:
+                    # If we're unable to find conda, the command below will
+                    # fail in any case.
+                    pyexec = f'"{conda}" run "{pyexec}"'
+
             ipy_cmd = (
                 '%s -c "import IPython.core.release as r; print(r.version)"'
                 % pyexec
