@@ -1386,9 +1386,9 @@ class IPythonConsoleWidget(PluginMainWidget):
             import subprocess
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
-            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+            py_cmd = '"%s" -c "import sys; print(sys.version)"' % pyexec
             ipy_cmd = (
-                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                '%s -c "import IPython.core.release as r; print(r.version)"'
                 % pyexec
             )
             for cmd in [py_cmd, ipy_cmd]:
