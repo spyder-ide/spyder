@@ -465,14 +465,14 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # Set ClosedHandCursor:
         elif event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.LeftButton:
-                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+                self.setCursor(Qt.ClosedHandCursor)
                 self._ispanning = True
                 self.xclick = event.globalX()
                 self.yclick = event.globalY()
 
         # Reset Cursor:
         elif event.type() == QEvent.MouseButtonRelease:
-            QApplication.restoreOverrideCursor()
+            self.setCursor(Qt.ArrowCursor)
             self._ispanning = False
 
         # Move  ScrollBar:
@@ -489,6 +489,16 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
                 scrollBarV = self.verticalScrollBar()
                 scrollBarV.setValue(scrollBarV.value() + dy)
+
+        # Show in full size or restore the previous one
+        elif (
+            event.type() == QEvent.MouseButtonDblClick
+            and self._scalefactor != 0
+        ):
+            # This is necessary so that when calling zoom_in the scale
+            # factor becomes zero
+            self._scalefactor = -1
+            self.zoom_in()
 
         return QWidget.eventFilter(self, widget, event)
 
