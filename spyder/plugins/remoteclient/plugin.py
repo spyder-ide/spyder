@@ -164,7 +164,7 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             kernel_info = await client.get_kernel_info(kernel_key)
-            self.sig_kernel_info.emit(kernel_info)
+            self.sig_kernel_info.emit(kernel_info or {})
             return kernel_info
 
     @Slot(str)
@@ -174,7 +174,7 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             delete_kernel = await client.terminate_kernel(kernel_key)
-            self.sig_kernel_terminated.emit(delete_kernel)
+            self.sig_kernel_terminated.emit(delete_kernel or {})
             return delete_kernel
 
     @Slot(str)
@@ -183,6 +183,6 @@ class RemoteClient(SpyderPluginV2):
         """Start new kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernel_connection_info = await client.start_new_kernel()
+            kernel_connection_info = await client.start_new_kernel_ensure_server()
             self.sig_kernel_started.emit(kernel_connection_info)
             return kernel_connection_info
