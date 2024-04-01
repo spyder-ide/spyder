@@ -1389,6 +1389,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         else:
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
+            py_cmd = '"%s" -c "import sys; print(sys.version)"' % pyexec
             if path_to_custom_interpreter:
                 pyexec = path_to_custom_interpreter
 
