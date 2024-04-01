@@ -26,7 +26,7 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
-from spyder_kernels.comms.decorators import comm_handler
+from spyder_kernels.comms.decorators import comm_handler, kernel_config
 from spyder_kernels.utils.mpl import automatic_backend
 
 
@@ -98,6 +98,7 @@ class SpyderShell(ZMQInteractiveShell):
         return gui, backend
 
     # --- For Pdb namespace integration
+    @kernel_config("pdb")
     def set_pdb_configuration(self, pdb_conf):
         """
         Set Pdb configuration.
