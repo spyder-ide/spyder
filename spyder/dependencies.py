@@ -34,6 +34,7 @@ PLUGIN = 'spyder plugins'
 # Versions
 # =============================================================================
 # Hard dependencies
+AIOHTTP_REQVER = '>=3.9.3'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
@@ -76,6 +77,7 @@ SUPERQT_REQVER = '>=0.6.1,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = '>=0.10.3'
+YARL_REQVER = '>=1.9.4'
 
 # Optional dependencies
 CYTHON_REQVER = '>=0.21'
@@ -94,6 +96,10 @@ SYMPY_REQVER = '>=0.7.3'
 # =============================================================================
 # List of descriptions
 DESCRIPTIONS = [
+    {'modname': 'aiohttp',
+     'package_name': 'aiohttp',
+     'features': _('Async http client/server'),
+     'required_version': AIOHTTP_REQVER},
     {'modname': "applaunchservices",
      'package_name': "applaunchservices",
      'features': _("Notify macOS that Spyder can open Python files"),
@@ -269,6 +275,10 @@ DESCRIPTIONS = [
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
      'required_version': WATCHDOG_REQVER},
+     {'modname': "yarl",
+     'package_name': "yarl",
+     'features': _("URL parsing and changing"),
+     'required_version': YARL_REQVER},
 ]
 
 
