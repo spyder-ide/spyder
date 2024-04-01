@@ -18,7 +18,7 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
 
     def emit(self, record):
         self._client._plugin.sig_server_log.emit({self._client.config_id: record.getMessage()})
-        super().emit(record)
+
 
 class SpyderRemoteClient:
     """Class to manage a remote server and its kernels."""
