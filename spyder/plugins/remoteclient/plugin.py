@@ -107,6 +107,13 @@ class RemoteClient(SpyderPluginV2):
             client = self._remote_clients[config_id]
             await client.stop_remote_server()
 
+    @AsSync
+    async def ensure_remote_server(self, config_id):
+        """Ensure remote server is running and installed."""
+        if config_id in self._remote_clients:
+            client = self._remote_clients[config_id]
+            return await client.connect_and_ensure_server()
+
     def restart_remote_server(self, config_id):
         """Restart remote server."""
         self.stop_remote_server(config_id)
