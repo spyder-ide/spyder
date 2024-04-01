@@ -347,7 +347,7 @@ class SpyderRemoteClient:
         """
         if self.ssh_is_connected and not self.server_is_running:
             self.ensure_server()
-        elif not self.ssh_is_connected and not self.connect_and_ensure_server():
+        elif not self.ssh_is_connected and not await self.connect_and_ensure_server():
             self._logger.error("Cannot launch kernel, remote server is not running")
             return
 
