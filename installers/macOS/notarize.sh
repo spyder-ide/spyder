@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -e
 
 help(){ cat <<EOF
-$(basename $0) [-h] [-p] DMG
-Codesign an application bundle or dmg image.
+$(basename $0) [-h] [-t TIMEOUT] [-v] [-p PASSWORD] DMG
+Notarize and staple an installer package.
 
 Required:
   DMG         Path to the dmg image to be notarized
@@ -11,24 +10,16 @@ Required:
 Options:
   -h          Display this help
 
-  -i INTERVAL Interval in seconds at which notarization status is polled.
-              Default is 30s.
+  -t TIMEOUT  Timeout for notarization, e.g. 30m
 
-  -p PWD      Developer application-specific password
+  -p PASSWORD Developer application-specific password. If not provided, will
+              attempt using credentials saved under spyder-ide keychain
+              profile.
+
+  -v          Verbose
 
 EOF
 }
-
-INTERVAL=30
-
-while getopts "hi:p:" option; do
-    case $option in
-        (h) help; exit ;;
-        (i) INTERVAL=$OPTARG ;;
-        (p) PWD=$OPTARG ;;
-    esac
-done
-shift $(($OPTIND - 1))
 
 exec 3>&1  # Additional output descriptor for logging
 log(){
@@ -36,43 +27,47 @@ log(){
     date "+%Y-%m-%d %H:%M:%S [$level] [notarize] -> $1" 1>&3
 }
 
-[[ -z $PWD ]] && log "Application-specific password not provided" && exit 1
-[[ $# = 0 ]] && log "File not provided" && exit 1
+notarize_args=("--apple-id" "mrclary@me.com")
+pwd_args=("-p" "spyder-ide")
+while getopts "ht:p:v" option; do
+    case $option in
+        (h) help; exit ;;
+        (t) notarize_args+=("--timeout" "$OPTARG") ;;
+        (p) pwd_args=("--password" "$OPTARG") ;;
+        (v) notarize_args+=("--verbose") ;;
+    esac
+done
+shift $(($OPTIND - 1))
 
-APPLEID="mrclary@me.com"
-BUNDLEID="com.spyder-ide.Spyder"
+[[ $# = 0 ]] && log "File not provided" && exit 1
 
 DMG=$(cd $(dirname $1) && pwd -P)/$(basename $1)  # Resolve full path
 
 # --- Get certificate id
-CNAME=$(security find-identity -p codesigning -v | pcregrep -o1 "\(([0-9A-Z]+)\)")
+CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+[[ -z $CNAME ]] && log "Could not locate certificate ID" && exit 1
 log "Certificate ID: $CNAME"
+
+notarize_args+=("--team-id" "$CNAME" "${pwd_args[@]}")
 
 # --- Notarize
 log "Notarizing..."
-auth_args=("--username" "$APPLEID" "--password" "$PWD" "--asc-provider" "$CNAME")
+xcrun notarytool submit $DMG --wait ${notarize_args[@]} | tee temp.txt
 
-xcrun altool --notarize-app  --file $DMG --primary-bundle-id $BUNDLEID ${auth_args[@]} | tee result.txt
-requuid=$(pcregrep -o1 "^\s*RequestUUID = ([0-9a-z-]+)$" result.txt)
+submitid=$(pcre2grep -o1 "^\s*id: ([0-9a-z-]+)" temp.txt | head -1)
+status=$(pcre2grep -o1 "^\s*status: (\w+$)" temp.txt)
+rm temp.txt
 
-status="in progress"
-while [[ "$status" = "in progress" ]]; do
-    sleep $INTERVAL
-    xcrun altool --notarization-info $requuid ${auth_args[@]} > result.txt
-    status=$(pcregrep -o1 "^\s*Status: ([\w\s]+)$" result.txt)
-    log "Status: $status"
-done
+xcrun notarytool log $submitid ${notarize_args[@]}
 
-log "Notary log:"
-logurl=$(pcregrep -o1 "^\s*LogFileURL: (.*)$" result.txt)
-curl $logurl
+if [[ "$status" != "Accepted" ]]; then
+    log "Notarizing failed!"
+    exit 1
+fi
 
-rm result.txt
-
-if [[ $status = "success" ]]; then
-    log "Stapling notary ticket..."
-    xcrun stapler staple -v "$DMG"
-else
-    log "Notarization unsuccessful"
+log "Stapling notary ticket..."
+xcrun stapler staple -v "$DMG"
+if [[ $? != 0 ]]; then
+    log "Stapling failed!"
     exit 1
 fi
