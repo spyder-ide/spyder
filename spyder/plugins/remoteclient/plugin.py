@@ -57,11 +57,11 @@ class RemoteClient(SpyderPluginV2):
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("Remote Client")
+        return _("Remote client")
 
     @staticmethod
     def get_description():
-        return _("Connect to a remote machine.")
+        return _("Connect to remote machines to run code on them.")
 
     @classmethod
     def get_icon(cls):
