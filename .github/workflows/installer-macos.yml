@@ -137,7 +137,7 @@ jobs:
         run: ./codesign.sh "${DISTDIR}/${DMGNAME}"
       - name: Notarize Disk Image
         if: ${{env.IS_RELEASE == 'true' || env.IS_PRE == 'true'}}
-        run: ./notarize.sh -i 30 -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
+        run: ./notarize.sh -p "${APPLICATION_PWD}" "${DISTDIR}/${DMGNAME}"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
