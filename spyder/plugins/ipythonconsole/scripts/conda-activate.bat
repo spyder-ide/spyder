@@ -14,7 +14,8 @@ chcp 65001>nul
 echo %CONDA_ACTIVATE_SCRIPT%| findstr /e micromamba.exe>Nul && goto micromamba || goto conda
 
 :micromamba Activate using micromamba
-for /f %%i in ('"%CONDA_ACTIVATE_SCRIPT%" shell activate "%CONDA_ENV_PATH%"') do set SCRIPT=%%i
+set SHELL_ACTIVATE_COMMAND="%CONDA_ACTIVATE_SCRIPT%" shell activate "%CONDA_ENV_PATH%"
+for /f %%i in ('"%SHELL_ACTIVATE_COMMAND%"') do set SCRIPT=%%i
 call %SCRIPT%
 goto start
 
