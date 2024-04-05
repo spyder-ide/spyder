@@ -888,6 +888,10 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         """Return sequence length"""
         raise NotImplementedError
 
+    def is_data_frame(self, key):
+        """Return True if variable is a pandas dataframe"""
+        raise NotImplementedError
+
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         raise NotImplementedError
@@ -987,7 +991,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
-            condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
+            is_dataframe = self.is_data_frame(key) and self.get_len(key) != 0
+            condition_plot = (is_array and len(self.get_array_shape(key)) <= 2) or is_dataframe
             condition_hist = (is_array and self.get_array_ndim(key) == 1)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
@@ -1517,6 +1522,11 @@ class CollectionsEditorTableView(BaseTableView):
             return self.get_array_ndim(key)
         else:
             return len(data[key])
+
+    def is_data_frame(self, key):
+        """Return True if variable is a pandas dataframe"""
+        data = self.source_model.get_data()
+        return isinstance(data[key], (pd.DataFrame))
 
     def is_array(self, key):
         """Return True if variable is a numpy array"""
