@@ -5,6 +5,7 @@
 
 https://github.com/Microsoft/vscode-uri/blob/e59cab84f5df6265aed18ae5f43552d3eef13bb9/lib/index.ts
 """
+
 import re
 from urllib import parse
 

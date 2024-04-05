@@ -1,5 +1,49 @@
 # History of changes
 
+## Version 1.11.0 (2024/03/29)
+
+### New features
+
+* Remove the `rope_rename` plugin. People that were using it need to install
+  the `pylsp-rope` third-party plugin instead.
+* Add support for Pylint 3.1
+
+### Issues Closed
+
+* [Issue 255](https://github.com/python-lsp/python-lsp-server/issues/255) - Confusion about rename support ([PR 515](https://github.com/python-lsp/python-lsp-server/pull/515) by [@doolio](https://github.com/doolio))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 543](https://github.com/python-lsp/python-lsp-server/pull/543) - Bump pylint to `>=3.1,<4`, by [@bnavigator](https://github.com/bnavigator)
+* [PR 541](https://github.com/python-lsp/python-lsp-server/pull/541) - Add fallback for `ujson` import, by [@Savalek](https://github.com/Savalek)
+* [PR 538](https://github.com/python-lsp/python-lsp-server/pull/538) - Remove `.config/flake8` reference in Readme, by [@justin-f-perez](https://github.com/justin-f-perez)
+* [PR 536](https://github.com/python-lsp/python-lsp-server/pull/536) - Fix isort plugin name in Readme, by [@Piraty](https://github.com/Piraty)
+* [PR 515](https://github.com/python-lsp/python-lsp-server/pull/515) - Remove built-in `rope_rename` plugin, by [@doolio](https://github.com/doolio) ([255](https://github.com/python-lsp/python-lsp-server/issues/255))
+* [PR 470](https://github.com/python-lsp/python-lsp-server/pull/470) - Add contributing guide to setup dev environment, by [@staticf0x](https://github.com/staticf0x)
+
+In this release 6 pull requests were closed.
+
+----
+
+## Version 1.10.1 (2024/03/12)
+
+### Issues Closed
+
+* [Issue 529](https://github.com/python-lsp/python-lsp-server/issues/529) - Autoimports: sqlite3.OperationalError: database is locked ([PR 530](https://github.com/python-lsp/python-lsp-server/pull/530) by [@last-partizan](https://github.com/last-partizan))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 530](https://github.com/python-lsp/python-lsp-server/pull/530) - Fix progress reporting with autoimport plugin, by [@last-partizan](https://github.com/last-partizan) ([529](https://github.com/python-lsp/python-lsp-server/issues/529))
+* [PR 528](https://github.com/python-lsp/python-lsp-server/pull/528) - Improve error message about missing `websockets` module, by [@tomplus](https://github.com/tomplus)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 1.10.0 (2024/01/21)
 
 ### New features
