@@ -18,6 +18,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QDialog,
 
 # Local imports
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
@@ -146,9 +147,9 @@ class LayoutSaveDialog(QDialog):
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
         self.combo_box.clearEditText()
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
-                                           QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -196,9 +197,9 @@ class LayoutSettingsDialog(QDialog):
         self.button_move_up = QPushButton(_('Move Up'))
         self.button_move_down = QPushButton(_('Move Down'))
         self.button_delete = QPushButton(_('Delete Layout'))
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok |
-                                           QDialogButtonBox.Cancel,
-                                           Qt.Horizontal, self)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+        )
         self.group_box = QGroupBox(_("Layout Display and Order"))
         self.table = QTableView(self)
         self.ok_button = self.button_box.button(QDialogButtonBox.Ok)

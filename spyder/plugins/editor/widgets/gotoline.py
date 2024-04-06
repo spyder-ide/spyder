@@ -10,6 +10,7 @@ from qtpy.QtWidgets import (QDialog, QLabel, QLineEdit, QGridLayout,
                             QDialogButtonBox, QVBoxLayout, QHBoxLayout)
 
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 
 
 class GoToLineDialog(QDialog):
@@ -48,8 +49,9 @@ class GoToLineDialog(QDialog):
         glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter | Qt.AlignRight)
         glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
 
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-                                Qt.Vertical, self)
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Vertical, self
+        )
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btnlayout = QVBoxLayout()

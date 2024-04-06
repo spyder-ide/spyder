@@ -10,14 +10,12 @@ from qtpy.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QPushButton
 from superqt.utils import qdebounced
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import MAC, WIN
 from spyder.widgets.sidebardialog import SidebarDialog
-from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import (
-    AppStyle, MAC, PREFERENCES_TABBAR_STYLESHEET, WIN)
 
 
 class ConfigDialog(SidebarDialog):
@@ -94,8 +92,11 @@ class ConfigDialog(SidebarDialog):
         super().add_page(page)
 
     def create_buttons(self):
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
-                                QDialogButtonBox.Cancel)
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok
+            | QDialogButtonBox.Apply
+            | QDialogButtonBox.Cancel
+        )
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
 
         # This is needed for our tests

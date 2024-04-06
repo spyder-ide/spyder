@@ -29,6 +29,7 @@ from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import (
@@ -162,7 +163,9 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         layout = QVBoxLayout()
         layout.addLayout(contents_and_pages_layout)
-        layout.addSpacing(3)
+        layout.addSpacing(
+            - (2 * AppStyle.MarginSize) if MAC else AppStyle.MarginSize
+        )
         layout.addLayout(buttons_layout)
 
         self.setLayout(layout)
@@ -208,7 +211,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         Override this method if you want different buttons in it.
         """
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         layout = QHBoxLayout()
         layout.addWidget(bbox)
