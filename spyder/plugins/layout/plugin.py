@@ -214,6 +214,10 @@ class Layout(SpyderPluginV2):
         # interface.
         self.restore_visible_plugins()
 
+        # This is necessary to correctly display dock tabbars when the previous
+        # seesion was a Spyder 6 one.
+        self._reapply_docktabbar_style()
+
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 
@@ -246,6 +250,24 @@ class Layout(SpyderPluginV2):
             text = _('Lock panes and toolbars')
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
+
+    def _reapply_docktabbar_style(self):
+        """Reapply dock tabbar style if necessary."""
+        saved_state_version = self.get_conf(
+            "window_state_version", default=WINDOW_STATE_VERSION
+        )
+
+        # Reapplying style if the previous session was a Spyder 6 one, which
+        # has a higher window state version.
+        if saved_state_version > WINDOW_STATE_VERSION:
+            plugins = self.get_dockable_plugins()
+            for plugin in plugins:
+                if plugin.dockwidget.dock_tabbar is not None:
+                    plugin.dockwidget.dock_tabbar.setStyleSheet(
+                        plugin.dockwidget.dock_tabbar.filter._tabbar_stylesheet
+                    )
+
+            self.set_conf("window_state_version", WINDOW_STATE_VERSION)
 
     # ---- Helper methods
     # -------------------------------------------------------------------------
