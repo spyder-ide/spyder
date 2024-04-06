@@ -408,6 +408,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Set current cwd
         self.set_cwd()
 
+        # Set pythonpath
+        self.set_syspath(self.get_conf(
+            'spyder_pythonpath', default=[], section='pythonpath_manager')
+        )
+
         # To apply style
         self.set_color_scheme(self.syntax_style, reset=False)
 
@@ -680,11 +685,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             "color scheme", "dark" if not dark_color else "light"
         )
 
-    def update_syspath(self, path_dict, new_path_dict):
+    def set_syspath(self, syspath):
         """Update sys.path contents on kernel."""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False).update_syspath(path_dict, new_path_dict)
+        self.set_kernel_configuration(
+            "syspath", syspath
+        )
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
