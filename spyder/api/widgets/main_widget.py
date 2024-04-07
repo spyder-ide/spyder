@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets import PluginMainWidgetActions, PluginMainWidgetWidgets
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (
@@ -46,20 +47,6 @@ from spyder.widgets.tabs import Tabs
 
 # Logging
 logger = logging.getLogger(__name__)
-
-
-class PluginMainWidgetWidgets:
-    CornerWidget = 'corner_widget'
-    MainToolbar = 'main_toolbar_widget'
-    OptionsToolButton = 'options_button_widget'
-    Spinner = 'spinner_widget'
-
-
-class PluginMainWidgetActions:
-    ClosePane = 'close_pane'
-    DockPane = 'dock_pane'
-    UndockPane = 'undock_pane'
-    LockUnlockPosition = 'lock_unlock_position'
 
 
 class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
