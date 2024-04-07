@@ -14,6 +14,7 @@ from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.widgets import PluginMainWidgetWidgets
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.utils.stylesheet import APP_STYLESHEET
 
@@ -94,9 +95,26 @@ class MainCornerWidget(QToolBar):
                 ''.format(widget_id, list(self._widgets.keys()))
             )
 
+        if (
+            not self._widgets
+            and widget_id != PluginMainWidgetWidgets.OptionsToolButton
+        ):
+            raise SpyderAPIError(
+                "The options button must be the first one to be added to the "
+                "corner widget of dockable plugins."
+            )
+
+        if widget_id == PluginMainWidgetWidgets.OptionsToolButton:
+            # This is only necessary for the options button because it's the
+            # first one to be added
+            action = self.addWidget(widget)
+        else:
+            # All other buttons are added to the left of the last one
+            action = self.insertWidget(self._actions[-1], widget)
+
         widget.ID = widget_id
         self._widgets[widget_id] = widget
-        self._actions.append(self.addWidget(widget))
+        self._actions.append(action)
 
     def get_widget(self, widget_id):
         """Return a widget by unique id."""

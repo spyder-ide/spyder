@@ -636,9 +636,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.time_label = QLabel("")
 
         # --- Add tab corner widgets.
-        self.add_corner_widget('timer', self.time_label)
-        self.add_corner_widget('reset', self.reset_button)
         self.add_corner_widget('start_interrupt', self.stop_button)
+        self.add_corner_widget('reset', self.reset_button)
+        self.add_corner_widget('timer', self.time_label)
 
         # --- Tabs context menu
         tabs_context_menu = self.create_menu(
