@@ -244,7 +244,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._spinner = None
 
         if self.ENABLE_SPINNER:
-            self._spinner = create_waitspinner(size=16, parent=self)
+            self._spinner = create_waitspinner(
+                size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
+            )
 
         self._corner_widget = MainCornerWidget(
             parent=self,
@@ -335,16 +337,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('tooloptions'),
         )
 
-        self.add_corner_widget(
-            PluginMainWidgetWidgets.OptionsToolButton,
-            self._options_button,
-        )
+        self.add_corner_widget(self._options_button)
 
         if self.ENABLE_SPINNER:
-            self.add_corner_widget(
-                PluginMainWidgetWidgets.Spinner,
-                self._spinner,
-            )
+            self.add_corner_widget(self._spinner)
 
         # Widget setup
         # --------------------------------------------------------------------
@@ -505,14 +501,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def add_corner_widget(self, widget_id, widget, before=None):
+    def add_corner_widget(self, widget, before=None):
         """
         Add widget to corner, that is to the left of the last added widget.
 
         Parameters
         ----------
-        widget_id: str
-            Unique name of the widget.
         widget: QWidget
             Any QWidget to add in the corner widget.
         before: QWidget
@@ -526,7 +520,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         additional widgets will be placed to the left of the spinner,
         if visible.
         """
-        self._corner_widget.add_widget(widget_id, widget)
+        self._corner_widget.add_widget(widget)
 
     def get_corner_widget(self, name):
         """

@@ -85,26 +85,31 @@ class MainCornerWidget(QToolBar):
         self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.addWidget(self._strut)
 
-    def add_widget(self, widget_id, widget):
+    def add_widget(self, widget):
         """
         Add a widget to the left of the last widget added to the corner.
         """
-        if widget_id in self._widgets:
+        if not hasattr(widget, "name"):
+            raise SpyderAPIError(
+                "Widget doesn't have a name, provided by the attribute `name`"
+            )
+
+        if widget.name in self._widgets:
             raise SpyderAPIError(
                 'Wigdet with name "{}" already added. Current names are: {}'
-                ''.format(widget_id, list(self._widgets.keys()))
+                ''.format(widget.name, list(self._widgets.keys()))
             )
 
         if (
             not self._widgets
-            and widget_id != PluginMainWidgetWidgets.OptionsToolButton
+            and widget.name != PluginMainWidgetWidgets.OptionsToolButton
         ):
             raise SpyderAPIError(
                 "The options button must be the first one to be added to the "
                 "corner widget of dockable plugins."
             )
 
-        if widget_id == PluginMainWidgetWidgets.OptionsToolButton:
+        if widget.name == PluginMainWidgetWidgets.OptionsToolButton:
             # This is only necessary for the options button because it's the
             # first one to be added
             action = self.addWidget(widget)
@@ -112,8 +117,7 @@ class MainCornerWidget(QToolBar):
             # All other buttons are added to the left of the last one
             action = self.insertWidget(self._actions[-1], widget)
 
-        widget.ID = widget_id
-        self._widgets[widget_id] = widget
+        self._widgets[widget.name] = widget
         self._actions.append(action)
 
     def get_widget(self, widget_id):
