@@ -447,18 +447,16 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             toggled=self._enable_filter_actions,
             option='filter_on',
             tip=_("Filter variables")
-            )
+        )
         self.filter_button.setCheckable(True)
         self.filter_button.toggled.connect(self._set_filter_button_state)
 
-        corner_widget = self._corner_widget
-        for action in corner_widget.actions():
-            if action.defaultWidget() == self.get_options_menu_button():
-                options_menu_action = action
-
-        for action in [self.search_action, self.filter_button,
-                       self.refresh_action]:
-            corner_widget.insertAction(options_menu_action, action)
+        for action in [
+            self.search_action,
+            self.filter_button,
+            self.refresh_action,
+        ]:
+            self.add_corner_widget(action, before=self._options_button)
 
     def update_actions(self):
         """Update the actions."""

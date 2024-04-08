@@ -501,26 +501,26 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def add_corner_widget(self, widget, before=None):
+    def add_corner_widget(self, action_or_widget, before=None):
         """
         Add widget to corner, that is to the left of the last added widget.
 
         Parameters
         ----------
-        widget: QWidget
-            Any QWidget to add in the corner widget.
-        before: QWidget
-            Insert the widget before this widget.
+        action_or_widget: QAction or QWidget
+            Any action or widget to add to the corner widget.
+        before: QAction or QWidget
+            Insert action_or_widget before this one.
 
         Notes
         -----
         By default widgets are added to the left of the last corner widget.
 
         The central widget provides an options menu button and a spinner so any
-        additional widgets will be placed to the left of the spinner,
-        if visible.
+        additional widgets will be placed by default to the left of the
+        spinner, if visible.
         """
-        self._corner_widget.add_widget(widget)
+        self._corner_widget.add_widget(action_or_widget, before=before)
 
     def get_corner_widget(self, name):
         """

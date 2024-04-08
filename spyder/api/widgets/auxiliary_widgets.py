@@ -85,19 +85,27 @@ class MainCornerWidget(QToolBar):
         self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.addWidget(self._strut)
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, before=None):
         """
         Add a widget to the left of the last widget added to the corner.
         """
-        if not hasattr(widget, "name"):
+        if not hasattr(widget, "name") or (
+            before is not None and not hasattr(before, "name")
+        ):
             raise SpyderAPIError(
-                "Widget doesn't have a name, provided by the attribute `name`"
+                f"Widget {widget} or {before} doesn't have a name, which must "
+                f"be provided by the attribute `name`"
             )
 
         if widget.name in self._widgets:
             raise SpyderAPIError(
                 'Wigdet with name "{}" already added. Current names are: {}'
                 ''.format(widget.name, list(self._widgets.keys()))
+            )
+
+        if before is not None and before.name not in self._widgets:
+            raise SpyderAPIError(
+                f"Wigdet with name '{before.name}' not in this corner widget"
             )
 
         if (
@@ -114,13 +122,31 @@ class MainCornerWidget(QToolBar):
             # first one to be added
             action = self.addWidget(widget)
         else:
-            # All other buttons are added to the left of the last one
-            action = self.insertWidget(self._actions[-1], widget)
+            if before is not None:
+                before_action = self.get_action(before.name)
+            else:
+                # By default other buttons are added to the left of the last
+                # one
+                before_action = self._actions[-1]
 
-        self._widgets[widget.name] = widget
+            # Allow to add either widgets or actions
+            if isinstance(widget, QWidget):
+                action = self.insertWidget(before_action, widget)
+            else:
+                action = widget
+                self.insertAction(before_action, action)
+                widget = self.widgetForAction(action)
+                widget.name = action.name
+
+        self._widgets[widget.name] = (widget, action)
         self._actions.append(action)
 
     def get_widget(self, widget_id):
         """Return a widget by unique id."""
         if widget_id in self._widgets:
-            return self._widgets[widget_id]
+            return self._widgets[widget_id][0]
+
+    def get_action(self, widget_id):
+        """Return action corresponding to `widget_id`."""
+        if widget_id in self._widgets:
+            return self._widgets[widget_id][1]
