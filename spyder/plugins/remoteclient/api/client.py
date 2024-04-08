@@ -28,6 +28,8 @@ class SpyderRemoteClient:
     API_TOKEN = "GiJ96ujfLpPsq7oatW1IJuER01FbZsgyCM0xH6oMZXDAV6zUZsFy3xQBZakSBo6P"
     START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --juptyerhub"
     CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server -h"
+    GET_SERVER_PORT_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-port"
+    GET_SERVER_PID_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-pid"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -235,7 +237,7 @@ class SpyderRemoteClient:
 
         return True
 
-    async def __extract_server_port(self) -> int | None:
+    async def __extract_server_port(self, _retries=5) -> int | None:
         """Extract server port from server stdout.
 
         Returns
@@ -250,21 +252,27 @@ class SpyderRemoteClient:
         """
         self._logger.debug("Extracting server port from server stdout")
 
-        if not self.remote_server_process:
-            self._logger.error("Remote server process is not running")
-            return None
-
+        tries = 0
         port = None
-        while port is None:
-            line = await self.remote_server_process.stdout.readline()
-            if not line:
-                break
-            if 'JupyterHub is now running at' in line:
-                port = int(line.splitlines()[0].split(':')[-1].split('/')[0])
-                break
+        while port is None and tries < _retries:
+            await asyncio.sleep(0.5)
+            try:
+                output = await self.ssh_connection.run(self.GET_SERVER_PORT_COMMAND, check=True)
+            except asyncssh.ProcessError as err:
+                self._logger.error(f"Error getting server port: {err.stderr}")
+                return None
+            except asyncssh.TimeoutError:
+                self._logger.error("Getting server port timed out")
+                return None
 
-        if not port:
-            raise ValueError("Failed to extract port from server stdout")
+            try:
+                port = int(output.stdout.strip("Port: "))
+            except ValueError:
+                self._logger.debug(f"Server port not found in output: {output.stdout}, retrying ({tries + 1}/{_retries})")
+                port = None
+            tries += 1
+
+        self._logger.debug(f"Server port extracted: {port}")
 
         return port
 
