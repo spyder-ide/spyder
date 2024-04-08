@@ -33,7 +33,7 @@ from spyder.api.widgets.menus import (
     OptionsMenuSections,
     PluginMainWidgetMenus
 )
-from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner
@@ -49,7 +49,7 @@ from spyder.widgets.tabs import Tabs
 logger = logging.getLogger(__name__)
 
 
-class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
+class PluginMainWidget(QWidget, SpyderWidgetMixin):
     """
     Spyder plugin main widget class.
 
