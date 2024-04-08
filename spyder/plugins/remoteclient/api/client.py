@@ -60,10 +60,24 @@ class SpyderRemoteClient:
 
         return lambda: SpyderSSHClient(self)
 
-    @property
-    def server_is_running(self):
+    async def get_server_pid(self):
         """Check if the remote server is running."""
-        return self.remote_server_process is not None
+        try:
+            output = await self.ssh_connection.run(self.GET_SERVER_PID_COMMAND, check=True)
+        except asyncssh.ProcessError as err:
+            self._logger.debug(f"Error getting server pid: {err.stderr}")
+            return None
+        except asyncssh.TimeoutError:
+            self._logger.error("Getting server pid timed out")
+            return None
+
+        try:
+            pid = int(output.stdout.strip("PID: "))
+        except ValueError:
+            self._logger.debug(f"Server pid not found in output: {output.stdout}")
+            return None
+
+        return pid
 
     @property
     def ssh_is_connected(self):
@@ -140,9 +154,16 @@ class SpyderRemoteClient:
             self._logger.error("SSH connection is not open")
             return False
 
-        if self.server_is_running:
+        if await self.get_server_pid():
             self._logger.warning(f"Remote server is already running for {self.options['host']}")
-            await self.stop_remote_server()
+            self._logger.debug("Checking server port")
+            if self.server_port != (new_server_port := await self.__extract_server_port()):
+                self.server_port = new_server_port
+                self._logger.info(f"Remote server is running for {self.options['host']} at port {self.server_port}")
+                return await self.forward_local_port()
+
+            self._logger.info(f"Remote server is already running for {self.options['host']} at port {self.server_port}")
+            return True
 
         self._logger.debug(f"Starting remote server for {self.options['host']}")
         try:
@@ -318,17 +339,30 @@ class SpyderRemoteClient:
 
     async def stop_remote_server(self):
         """Close remote server."""
-        if self.server_is_running and not self.remote_server_process.is_closing():
-            # bug in jupyterhub, need to send SIGINT twice
-            self._logger.debug(f"Stopping remote server for {self.options['host']}")
-            self.remote_server_process.send_signal(signal.SIGINT)
-            await asyncio.sleep(3)
-            self.remote_server_process.send_signal(signal.SIGINT)
+        pid = await self.get_server_pid()
+        if not pid:
+            self._logger.warning(f"Remote server is not running for {self.options['host']}")
+            return False
+
+        # bug in jupyterhub, need to send SIGINT twice
+        self._logger.debug(f"Stopping remote server for {self.options['host']} with pid {pid}")
+        try:
+            await self.ssh_connection.run(f"kill -INT {pid}", check=True)
+        except asyncssh.ProcessError as err:
+            self._logger.error(f"Error stopping remote server: {err.stderr}")
+            return False
+
+        await asyncio.sleep(3)
+
+        await self.ssh_connection.run(f"kill -INT {pid}", check=False)
+
+        if self.remote_server_process and not self.remote_server_process.is_closing():
             self.remote_server_process.terminate()
-            self.remote_server_process.close()
             await self.remote_server_process.wait_closed()
-            self.remote_server_process = None
-            self._logger.info(f"Remote server process closed for {self.options['host']}")
+
+        self.remote_server_process = None
+        self._logger.info(f"Remote server process closed for {self.options['host']}")
+        return True
 
     async def close_ssh_connection(self):
         """Close SSH connection."""
