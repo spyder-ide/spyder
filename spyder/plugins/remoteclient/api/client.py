@@ -374,7 +374,7 @@ class SpyderRemoteClient:
             self._logger.info(f"SSH connection closed for {self.options['host']}")
 
     # --- Kernel Management
-    async def start_new_kernel_ensure_server(self) -> KernelConnectionInfo:
+    async def start_new_kernel_ensure_server(self, _retries=5) -> KernelConnectionInfo:
         """Launch a new kernel ensuring the remote server is running.
 
         Parameters
@@ -387,13 +387,22 @@ class SpyderRemoteClient:
         KernelConnectionInfo
             The kernel connection information.
         """
-        if self.ssh_is_connected and not self.server_is_running:
+        if self.ssh_is_connected and not await self.get_server_pid():
             await self.ensure_server()
         elif not self.ssh_is_connected and not await self.connect_and_ensure_server():
             self._logger.error("Cannot launch kernel, remote server is not running")
             return
 
-        return await self.start_new_kernel()
+        kernel_connection_info = await self.start_new_kernel()
+
+        retries = 0
+        while not kernel_connection_info and retries < _retries:
+            await asyncio.sleep(1)
+            kernel_connection_info = await self.start_new_kernel()
+            self._logger.debug(f"Server might not be ready yet, retrying kernel launch ({retries + 1}/{_retries})")
+            retries += 1
+
+        return kernel_connection_info
 
     async def start_new_kernel(self) -> KernelConnectionInfo:
         """Start new kernel."""
