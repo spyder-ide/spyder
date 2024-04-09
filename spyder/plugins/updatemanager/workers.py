@@ -8,6 +8,7 @@
 import logging
 import os
 import os.path as osp
+import shutil
 from time import sleep
 import traceback
 
@@ -55,7 +56,7 @@ class UpdateDownloadIncompleteError(Exception):
     pass
 
 
-class Worker(QObject):
+class BaseWorker(QObject):
     """Base worker class for the updater"""
 
     sig_ready = Signal()
@@ -85,7 +86,7 @@ class Worker(QObject):
     """
 
 
-class WorkerUpdate(Worker):
+class WorkerUpdate(BaseWorker):
     """
     Worker that checks for releases using either the Anaconda
     default channels or the Github Releases page without
@@ -139,6 +140,7 @@ class WorkerUpdate(Worker):
                 logger.debug(
                     f"channel = {self.channel}; channel_url = {channel_url}. "
                 )
+
                 # Spyder installed in development mode, use GitHub
                 url = github_url
             elif self.channel == "pypi":
@@ -183,7 +185,7 @@ class WorkerUpdate(Worker):
             error_data = dict(
                 text=traceback.format_exc(),
                 is_traceback=True,
-                title="Check for update error",
+                title="Error when checking for updates",
             )
             self.sig_exception_occurred.emit(error_data)
             logger.error(err, exc_info=err)
@@ -200,7 +202,7 @@ class WorkerUpdate(Worker):
                 pass
 
 
-class WorkerDownloadInstaller(Worker):
+class WorkerDownloadInstaller(BaseWorker):
     """
     Worker that donwloads standalone installers for Windows, macOS,
     and Linux without blocking the Spyder user interface.
@@ -276,10 +278,12 @@ class WorkerDownloadInstaller(Worker):
 
     def _clean_installer_path(self):
         """Remove downloaded file"""
-        if osp.exists(self.installer_path):
-            os.remove(self.installer_path)
-        if osp.exists(self.installer_size_path):
-            os.remove(self.installer_size_path)
+        installer_dir = osp.dirname(self.installer_path)
+        if osp.exists(installer_dir):
+            try:
+                shutil.rmtree(installer_dir)
+            except OSError as err:
+                logger.debug(err, stack_info=True)
 
     def start(self):
         """Main method of the worker."""

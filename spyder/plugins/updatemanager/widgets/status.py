@@ -58,7 +58,7 @@ class UpdateManagerStatus(StatusBarWidget):
 
     def __init__(self, parent):
 
-        self.tooltip = None
+        self.tooltip = ""
         super().__init__(parent)
 
         # Check for updates action menu
@@ -89,7 +89,7 @@ class UpdateManagerStatus(StatusBarWidget):
             self.custom_widget.hide()
             self.show()
         else:
-            self.tooltip = None
+            self.tooltip = ""
             if self.custom_widget:
                 self.custom_widget.hide()
             self.hide()
