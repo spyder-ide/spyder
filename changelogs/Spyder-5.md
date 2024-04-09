@@ -1,5 +1,45 @@
 # History of changes for Spyder 5
 
+## Version 5.5.4 (2024-04-09)
+
+### Important fixes
+
+* Update QtAwesome version constraint to `>=1.3.1,<1.4.0` (icon fonts access issues).
+* Fix kernel start in conda envs with spaces in their directory paths.
+* Fix installers update (installers download URL handling).
+* Handle no output when trying to process git data.
+* Update macOS installer notarization tooling (from `altool` to `notarytool`).
+
+### Issues Closed
+
+* [Issue 21960](https://github.com/spyder-ide/spyder/issues/21960) - Non-recognized command message when running code that gives a traceback with a custom interpreter set on Windows (IPython Console)  ([PR 21964](https://github.com/spyder-ide/spyder/pull/21964) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21951](https://github.com/spyder-ide/spyder/issues/21951) - macOS installer notarization error ([PR 21953](https://github.com/spyder-ide/spyder/pull/21953) by [@mrclary](https://github.com/mrclary))
+* [Issue 21936](https://github.com/spyder-ide/spyder/issues/21936) - Release 5.5.4 ([PR 21942](https://github.com/spyder-ide/spyder/pull/21942) by [@bnavigator](https://github.com/bnavigator))
+* [Issue 21905](https://github.com/spyder-ide/spyder/issues/21905) - 5.5.3 Updater doesn't work ([PR 21910](https://github.com/spyder-ide/spyder/pull/21910) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21865](https://github.com/spyder-ide/spyder/issues/21865) - TypeError while trying to process git data ([PR 21954](https://github.com/spyder-ide/spyder/pull/21954) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21662](https://github.com/spyder-ide/spyder/issues/21662) - Error reading kernel connection file from a directory with spaces in it ([PR 21947](https://github.com/spyder-ide/spyder/pull/21947) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 21975](https://github.com/spyder-ide/spyder/pull/21975) - PR: Reapply dock tabbar style if previous session was a Spyder 6 one (Layout), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21968](https://github.com/spyder-ide/spyder/pull/21968) - PR: Update `pytest` constraint to `<8.0`, by [@dalthviz](https://github.com/dalthviz)
+* [PR 21964](https://github.com/spyder-ide/spyder/pull/21964) - PR: Fix micromamba based kernel env activation (IPython console), by [@dalthviz](https://github.com/dalthviz) ([21960](https://github.com/spyder-ide/spyder/issues/21960))
+* [PR 21954](https://github.com/spyder-ide/spyder/pull/21954) - PR: Prevent error when we don't get git output to update the `VCSStatus` widget (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([21865](https://github.com/spyder-ide/spyder/issues/21865))
+* [PR 21953](https://github.com/spyder-ide/spyder/pull/21953) - PR: Use `notarytool` instead of `altool` (Installers), by [@mrclary](https://github.com/mrclary) ([21951](https://github.com/spyder-ide/spyder/issues/21951))
+* [PR 21947](https://github.com/spyder-ide/spyder/pull/21947) - PR: Fix starting kernels in conda envs placed in directories with spaces (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([21662](https://github.com/spyder-ide/spyder/issues/21662))
+* [PR 21942](https://github.com/spyder-ide/spyder/pull/21942) - PR: Bump pylint to `>=3.1,4` and python-lsp-server to `>=1.11.0,<1.12.0`, by [@bnavigator](https://github.com/bnavigator) ([21936](https://github.com/spyder-ide/spyder/issues/21936))
+* [PR 21939](https://github.com/spyder-ide/spyder/pull/21939) - PR: Update QtAwesome version constraint to `>=1.3.1,<1.4.0`, by [@dalthviz](https://github.com/dalthviz)
+* [PR 21911](https://github.com/spyder-ide/spyder/pull/21911) - PR: Update `RELEASE` notes regarding sdist/wheel building and update installers section, by [@dalthviz](https://github.com/dalthviz)
+* [PR 21910](https://github.com/spyder-ide/spyder/pull/21910) - PR: Fix validation to use Spyder 5 installer names when needed, by [@dalthviz](https://github.com/dalthviz) ([21905](https://github.com/spyder-ide/spyder/issues/21905))
+
+In this release 10 pull requests were closed.
+
+
+----
+
+
 ## Version 5.5.3 (2024-03-17)
 
 ### Important fixes
