@@ -55,6 +55,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.config.main import NAME_FILTERS
@@ -1076,9 +1077,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
             filters.setPlainText(", ".join(self.get_conf('name_filters')))
 
         # Dialog buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Reset |
-                                      QDialogButtonBox.Ok |
-                                      QDialogButtonBox.Cancel)
+        button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Reset
+            | QDialogButtonBox.Ok
+            | QDialogButtonBox.Cancel
+        )
         button_box.accepted.connect(handle_ok)
         button_box.rejected.connect(dialog.reject)
         button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)

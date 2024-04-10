@@ -466,14 +466,17 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             self._is_shown = True
 
         # Reposition menus horizontally due to border
-        if QCursor().pos().x() - self.pos().x() < 40:
-            # If the difference between the current cursor x position and the
-            # menu one is small, it means the menu will be shown to the right,
-            # so we need to move it in that direction.
-            delta_x = 1
+        if self.APP_MENU:
+            delta_x = 0 if MAC else 3
         else:
-            # This happens when the menu is shown to the left.
-            delta_x = -1
+            if QCursor().pos().x() - self.pos().x() < 40:
+                # If the difference between the current cursor x position and
+                # the menu one is small, it means the menu will be shown to the
+                # right, so we need to move it in that direction.
+                delta_x = 1
+            else:
+                # This happens when the menu is shown to the left.
+                delta_x = -1
 
         self.move(self.pos().x() + delta_x, self.pos().y())
 

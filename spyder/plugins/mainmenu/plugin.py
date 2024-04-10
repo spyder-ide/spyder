@@ -106,7 +106,7 @@ class MainMenu(SpyderPluginV2):
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 if plugin_instance.CONF_SECTION == 'editor':
-                    editorstack = self.editor.get_current_editorstack()
+                    editorstack = self._main.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
                     try:

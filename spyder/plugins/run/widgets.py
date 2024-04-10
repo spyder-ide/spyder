@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
@@ -103,7 +104,7 @@ class BaseRunConfigDialog(QDialog):
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
-        self.bbox = QDialogButtonBox(stdbtns)
+        self.bbox = SpyderDialogButtonBox(stdbtns)
 
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
