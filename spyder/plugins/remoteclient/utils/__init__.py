@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.plugins.remoteclient
-===========================
+spyder.plugins.remoteclient.utils
+=================================
 
-Remote Client Plugin.
+Remote Client Plugin utils.
 """
