@@ -17,10 +17,17 @@ from qtpy.QtCore import Signal, Slot
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.api.plugin_registration.decorators import (
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
+from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
+from spyder.plugins.remoteclient.api import RemoteClientActions
 from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
 from spyder.plugins.remoteclient.api.protocol import SSHClientOptions
+from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 _logger = logging.getLogger(__name__)
 
@@ -31,8 +38,9 @@ class RemoteClient(SpyderPluginV2):
     """
 
     NAME = "remoteclient"
-    OPTIONAL = []
+    OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
+    CONTAINER_CLASS = RemoteClientContainer
     CONF_FILE = False
 
     CONF_SECTION_SERVERS = "servers"
@@ -61,7 +69,7 @@ class RemoteClient(SpyderPluginV2):
 
     @classmethod
     def get_icon(cls):
-        return cls.create_icon("remoteclient")
+        return cls.create_icon("remote_server")
 
     def on_initialize(self):
         pass
@@ -73,6 +81,28 @@ class RemoteClient(SpyderPluginV2):
         """Stops remote server and close any opened connection."""
         for client in self._remote_clients.values():
             AsyncDispatcher(client.close, early_return=False)()
+
+    @on_plugin_available(plugin=Plugins.MainMenu)
+    def on_mainmenu_available(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        action = self.get_action(RemoteClientActions.ManageConnections)
+        mainmenu.add_item_to_application_menu(
+            action,
+            menu_id=ApplicationMenus.Tools,
+            section=ToolsMenuSections.External,
+            before_section=ToolsMenuSections.Extras
+        )
+
+    @on_plugin_teardown(plugin=Plugins.MainMenu)
+    def on_mainmenu_teardown(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        action = self.get_action(RemoteClientActions.ManageConnections)
+        mainmenu.remove_item_from_application_menu(
+            action,
+            menu_id=ApplicationMenus.Tools
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------
