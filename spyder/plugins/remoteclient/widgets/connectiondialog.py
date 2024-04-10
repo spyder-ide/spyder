@@ -460,6 +460,8 @@ class ConnectionPage(BaseConnectionPage):
     # ---- Public API
     # -------------------------------------------------------------------------
     def save_server_info(self):
+        # Mapping from options in our config system to those accepted by
+        # asyncssh
         options = SSHClientOptions(
             host=self.get_option(
                 f"{self.host_id}/{self.auth_method()}/address"
@@ -468,6 +470,8 @@ class ConnectionPage(BaseConnectionPage):
             username=self.get_option(
                 f"{self.host_id}/{self.auth_method()}/username"
             ),
+            client_keys=self.get_option(f"{self.host_id}/keyfile"),
+            config=self.get_option(f"{self.host_id}/configfile"),
         )
 
         servers = self.get_option("servers", default={})
