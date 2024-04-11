@@ -5,7 +5,8 @@ import socket
 
 import asyncssh
 
-from spyder.plugins.remoteclient.api.protocol import KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions
+from spyder.api.translations import _
+from spyder.plugins.remoteclient.api.protocol import ConnectionInfo, ConnectionStatus, KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions, RemoteClientLog
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterHubAPI
 from spyder.plugins.remoteclient.api.ssh import SpyderSSHClient
 from spyder.plugins.remoteclient.utils.installation import get_installer_command
@@ -17,7 +18,12 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         super().__init__(*args, **kwargs)
 
     def emit(self, record):
-        self._client._plugin.sig_server_log.emit({self._client.config_id: record.getMessage()})
+        self._client._plugin.sig_server_log.emit(RemoteClientLog(
+            id=self._client.config_id,
+            message=self.format(record),
+            level=record.levelno,
+            created=record.created
+        ))
 
 
 class SpyderRemoteClient:
@@ -245,6 +251,13 @@ class SpyderRemoteClient:
             self._logger.debug(f"Atempting to create a new connection with an existing for {self.options['host']}")
             await self.close_ssh_connection()
 
+        if self._plugin is not None:
+            self._plugin.sig_connection_status_changed.emit(ConnectionInfo(
+            id=self.config_id,
+            status=ConnectionStatus.Connecting,
+            message=_("We're establishing the connection. Please be patient")
+        ))
+
         conect_kwargs = {k: v for k, v in self.options.items() if k not in self._extra_options}
         self._logger.debug(f"Opening SSH connection to {self.options['host']}")
         try:
@@ -252,6 +265,14 @@ class SpyderRemoteClient:
                                                          client_factory=self.client_factory)
         except (OSError, asyncssh.Error) as e:
             self._logger.error(f"Failed to open ssh connection: {e}")
+
+            if self._plugin is not None:
+                self._plugin.sig_connection_status_changed.emit(ConnectionInfo(
+                id=self.config_id,
+                status=ConnectionStatus.Error,
+                message=_("It was not possible to open an SSH connection to this machine")
+            ))
+
             return False
 
         self._logger.info(f"SSH connection opened for {self.options['host']}")
@@ -372,6 +393,12 @@ class SpyderRemoteClient:
             await self.ssh_connection.wait_closed()
             self.ssh_connection = None
             self._logger.info(f"SSH connection closed for {self.options['host']}")
+            if self._plugin is not None:
+                self._plugin.sig_connection_status_changed.emit(ConnectionInfo(
+                    id=self.config_id,
+                    status=ConnectionStatus.Inactive,
+                    message=_('Connection closed')
+                ))
 
     # --- Kernel Management
     async def start_new_kernel_ensure_server(self, _retries=5) -> KernelConnectionInfo:

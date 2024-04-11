@@ -42,6 +42,7 @@ class RemoteClient(SpyderPluginV2):
 
     sig_connection_established = Signal(str)
     sig_connection_lost = Signal(str)
+    sig_connection_status_changed = Signal(dict)
 
     sig_kernel_list = Signal(dict)
     sig_kernel_started = Signal(dict)

@@ -7,20 +7,23 @@
 """
 Spyder Remote Client API.
 """
-from typing import Optional, TypedDict, Union, Sequence
+from __future__ import annotations
+from datetime import datetime
+import logging
+import typing
 
 
-class KernelsList(TypedDict):
+class KernelsList(typing.TypedDict):
     kernels: list[str]
 
-class KernelInfo(TypedDict):
+class KernelInfo(typing.TypedDict):
     alive: bool
     pid: int
 
-class DeleteKernel(TypedDict):
+class DeleteKernel(typing.TypedDict):
     success: bool
 
-class KernelConnectionInfo(TypedDict):
+class KernelConnectionInfo(typing.TypedDict):
     shell_port: int
     iopub_port: int
     stdin_port: int
@@ -32,18 +35,29 @@ class KernelConnectionInfo(TypedDict):
     signature_scheme: str
     kernel_name: str
 
-class SSHClientOptions(TypedDict):
+class SSHClientOptions(typing.TypedDict):
     host: str
-    port: Optional[int]
+    port: int | None
     username: str
-    password: Optional[str]
-    client_keys: Optional[Union[str, Sequence[str]]]
-    known_hosts: Optional[Union[str, Sequence[str]]]
-    config: Optional[Sequence[str]]
-    platform: Optional[str]
+    password: str | None
+    client_keys: str | typing.Sequence[str] | None
+    known_hosts: str | typing.Sequence[str] | None
+    config: typing.Sequence[str] | None
+    platform: str | None
 
 class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
     Active = "active"
     Error = "error"
+
+class ConnectionInfo(typing.TypedDict):
+    id: str
+    status: ConnectionStatus
+    message: str
+
+class RemoteClientLog(typing.TypedDict):
+    id: str
+    message: str
+    level: logging.DEBUG | logging.INFO | logging.WARNING | logging.ERROR | logging.CRITICAL
+    created: float

@@ -1,9 +1,12 @@
-from asyncssh import SSHClientConnection, SSHClient
-from asyncssh.auth import PasswordChangeResponse, KbdIntPrompts, KbdIntResponse
-from asyncssh.public_key import KeyPairListArg
 import logging
 from typing import Optional
 
+from asyncssh import SSHClientConnection, SSHClient
+from asyncssh.auth import PasswordChangeResponse, KbdIntPrompts, KbdIntResponse
+from asyncssh.public_key import KeyPairListArg
+
+from spyder.api.translations import _
+from spyder.plugins.remoteclient.api.protocol import ConnectionInfo, ConnectionStatus
 
 _logger = logging.getLogger(__name__)
 
@@ -23,6 +26,12 @@ class SpyderSSHClient(SSHClient):
 
         """
         self.client._plugin.sig_connection_established.emit(self.client.config_id)
+        self.client._plugin.sig_connection_status_changed.emit(ConnectionInfo(
+            id=self.client.config_id,
+            status=ConnectionStatus.Active,
+            message=_('Connection established succesfully')
+        ))
+
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed
@@ -39,6 +48,11 @@ class SpyderSSHClient(SSHClient):
 
         """
         self.client._plugin.sig_connection_lost.emit(self.client.config_id)
+        self.client._plugin.sig_connection_status_changed.emit(ConnectionInfo(
+            id=self.client.config_id,
+            status=ConnectionStatus.Error,
+            message=_('Connection lost')
+        ))
 
     def debug_msg_received(self, msg: str, lang: str,
                            always_display: bool) -> None:
