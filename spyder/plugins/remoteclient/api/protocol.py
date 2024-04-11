@@ -41,3 +41,9 @@ class SSHClientOptions(TypedDict):
     known_hosts: Optional[Union[str, Sequence[str]]]
     config: Optional[Sequence[str]]
     platform: Optional[str]
+
+class ConnectionStatus:
+    Inactive = "inactive"
+    Connecting = "connecting"
+    Active = "active"
+    Error = "error"
