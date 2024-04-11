@@ -68,6 +68,10 @@ class SpyderRemoteClient:
 
     async def get_server_pid(self):
         """Check if the remote server is running."""
+        if self.ssh_connection is None:
+            self._logger.debug("ssh connection was not established")
+            return None
+
         try:
             output = await self.ssh_connection.run(self.GET_SERVER_PID_COMMAND, check=True)
         except asyncssh.ProcessError as err:
