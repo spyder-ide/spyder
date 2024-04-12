@@ -575,8 +575,7 @@ class ConnectionDialog(SidebarDialog):
         return bbox, layout
 
     def current_page_changed(self, index):
-        # Enable "Save connection" button when viewing the "New connection"
-        # page and change it according to the modified state for others.
+        """Update the state of buttons when moving from page to page."""
         page = self.get_page(index)
         if page.NEW_CONNECTION:
             self._button_save_connection.setEnabled(True)
@@ -602,6 +601,7 @@ class ConnectionDialog(SidebarDialog):
     # ---- Private API
     # -------------------------------------------------------------------------
     def _save_connection_info(self):
+        """Save the connection info stored in a page."""
         page = self.get_page()
 
         # Validate info
@@ -629,6 +629,9 @@ class ConnectionDialog(SidebarDialog):
             page.save_to_conf()
 
     def _remove_connection_info(self):
+        """
+        Remove the connection info stored in a given page and hide it as well.
+        """
         page = self.get_page()
         if not page.NEW_CONNECTION:
             reply = QMessageBox.question(
@@ -646,11 +649,13 @@ class ConnectionDialog(SidebarDialog):
                 page.remove_config_options()
 
     def _clear_settings(self):
+        """Clear the setting introduced in the new connection page."""
         page = self.get_page()
         if page.NEW_CONNECTION:
             page.reset_page(clear=True)
 
     def _start_server(self):
+        """Start the server corresponding to a given page."""
         page = self.get_page()
 
         # Validate info
@@ -673,6 +678,7 @@ class ConnectionDialog(SidebarDialog):
         self.sig_start_server_requested.emit(host_id)
 
     def _add_connection_page(self, host_id: str, new: bool):
+        """Add a new connection page to the dialog."""
         page = ConnectionPage(self, host_id=host_id)
 
         # This is necessary to make button_save_connection enabled when there
@@ -690,6 +696,7 @@ class ConnectionDialog(SidebarDialog):
         self.add_page(page)
 
     def _add_saved_connection_pages(self):
+        """Add a connection page for each server saved in our config system."""
         page = self.get_page(index=0)
         servers = page.get_option("servers", default={})
 
@@ -700,9 +707,11 @@ class ConnectionDialog(SidebarDialog):
                 self._add_connection_page(host_id=id_, new=False)
 
     def _update_button_save_connection_state(self, state: bool):
+        """Update the state of the 'Save connection' button."""
         self._button_save_connection.setEnabled(state)
 
     def _update_button_connect_state(self, info: ConnectionInfo):
+        """Update the state of the 'Connect' button."""
         page = self.get_page()
         if page.host_id == info["id"]:
             if info["status"] in [
