@@ -23,6 +23,8 @@ echo IMPORTANT: Do not close this window until it has finished
 echo =========================================================
 echo.
 
+call :wait_for_spyder_quit
+
 IF not "%conda%"=="" IF not "%spy_ver%"=="" (
     call :update_subroutine
     call :launch_spyder
@@ -39,8 +41,6 @@ exit %ERRORLEVEL%
 
 :install_subroutine
     echo Installing Spyder from: %install_exe%
-
-    call :wait_for_spyder_quit
 
     :: Uninstall Spyder
     for %%I in ("%prefix%\..\..") do set "conda_root=%%~fI"
@@ -69,16 +69,14 @@ exit %ERRORLEVEL%
 :update_subroutine
     echo Updating Spyder
 
-    call :wait_for_spyder_quit
-
     %conda% install -p %prefix% -y spyder=%spy_ver%
-    set /P CONT=Press any key to exit...
+    set /P =Press any key to exit...
     goto :EOF
 
 :wait_for_spyder_quit
     echo Waiting for Spyder to quit...
     :loop
-    tasklist /fi "ImageName eq spyder.exe" /fo csv 2>NUL | find /i "spyder.exe">NUL
+    tasklist /v /fi "ImageName eq pythonw.exe" /fo csv 2>NUL | find "Spyder">NUL
     IF "%ERRORLEVEL%"=="0" (
         timeout /t 1 /nobreak > nul
         goto loop
