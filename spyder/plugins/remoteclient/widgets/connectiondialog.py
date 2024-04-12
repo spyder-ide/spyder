@@ -11,7 +11,7 @@ import uuid
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
     QDialogButtonBox,
     QGridLayout,
@@ -27,7 +27,11 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.translations import _
-from spyder.plugins.remoteclient.api.protocol import SSHClientOptions
+from spyder.plugins.remoteclient.api.protocol import (
+    ConnectionInfo,
+    ConnectionStatus,
+    SSHClientOptions,
+)
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectionstatus import (
     ConnectionStatusWidget,
@@ -88,6 +92,7 @@ class BaseConnectionPage(SpyderConfigPage):
             self.host_id = str(uuid.uuid4())
         else:
             self.host_id = host_id
+        self.status = ConnectionStatus.Inactive
 
         self._widgets_for_validation = {}
         self._missing_info_labels = {}
@@ -449,9 +454,9 @@ class ConnectionPage(BaseConnectionPage):
 
     def setup_page(self):
         info_widget = self.create_connection_info_widget()
-        status_widget = ConnectionStatusWidget(self, self.host_id)
+        self.status_widget = ConnectionStatusWidget(self, self.host_id)
 
-        self.create_tab(_("Connection status"), status_widget)
+        self.create_tab(_("Connection status"), self.status_widget)
         self.create_tab(_("Connection info"), info_widget)
 
     def get_icon(self):
@@ -511,6 +516,11 @@ class ConnectionPage(BaseConnectionPage):
                     f"{self.host_id}/{secure_option}", secure=secure
                 )
 
+    def update_status(self, info: ConnectionInfo):
+        if info["id"] == self.host_id:
+            self.status = info["status"]
+            self.status_widget.update_status(info)
+
 
 class ConnectionDialog(SidebarDialog):
     """
@@ -522,9 +532,16 @@ class ConnectionDialog(SidebarDialog):
     MIN_HEIGHT = 640
     PAGE_CLASSES = [NewConnectionPage]
 
+    sig_start_server_requested = Signal(str)
+    sig_connection_status_changed = Signal(dict)
+
     def __init__(self, parent=None):
         super().__init__(parent)
+
         self._add_saved_connection_pages()
+        self.sig_connection_status_changed.connect(
+            self._update_button_connect_state
+        )
 
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
@@ -544,17 +561,15 @@ class ConnectionDialog(SidebarDialog):
         self._button_clear_settings = QPushButton(_("Clear settings"))
         self._button_clear_settings.clicked.connect(self._clear_settings)
 
-        button_connect = QPushButton(_("Connect"))
-        button_connect.clicked.connect(
-            lambda: None
-        )
+        self._button_connect = QPushButton(_("Connect"))
+        self._button_connect.clicked.connect(self._start_server)
 
         layout = QHBoxLayout()
         layout.addWidget(self._button_save_connection)
         layout.addWidget(self._button_remove_connection)
         layout.addStretch(1)
         layout.addWidget(self._button_clear_settings)
-        layout.addWidget(button_connect)
+        layout.addWidget(self._button_connect)
         layout.addWidget(bbox)
 
         return bbox, layout
@@ -562,18 +577,27 @@ class ConnectionDialog(SidebarDialog):
     def current_page_changed(self, index):
         # Enable "Save connection" button when viewing the "New connection"
         # page and change it according to the modified state for others.
-        if index == 0:
+        page = self.get_page(index)
+        if page.NEW_CONNECTION:
             self._button_save_connection.setEnabled(True)
             self._button_clear_settings.setHidden(False)
             self._button_remove_connection.setHidden(True)
         else:
-            if self.get_page(index).is_modified:
+            if page.is_modified:
                 self._button_save_connection.setEnabled(True)
             else:
                 self._button_save_connection.setEnabled(False)
 
             self._button_clear_settings.setHidden(True)
             self._button_remove_connection.setHidden(False)
+
+        if page.status in [
+            ConnectionStatus.Inactive,
+            ConnectionStatus.Error,
+        ]:
+            self._button_connect.setEnabled(True)
+        else:
+            self._button_connect.setEnabled(False)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -626,11 +650,40 @@ class ConnectionDialog(SidebarDialog):
         if page.NEW_CONNECTION:
             page.reset_page(clear=True)
 
+    def _start_server(self):
+        page = self.get_page()
+
+        # Validate info
+        if not page.validate_page():
+            return
+
+        # This uses the current host_id in case users want to start a
+        # connection directly from the new connection page (
+        # _save_connection_info generates a new id fo that page at the end).
+        host_id = page.host_id
+
+        if page.NEW_CONNECTION or self._button_save_connection.isEnabled():
+            # Save connection info if necessary
+            self._save_connection_info()
+
+            # TODO: Handle the case when the connection info is active and
+            # users change its info.
+
+        self._button_connect.setEnabled(False)
+        self.sig_start_server_requested.emit(host_id)
+
     def _add_connection_page(self, host_id: str, new: bool):
         page = ConnectionPage(self, host_id=host_id)
+
+        # This is necessary to make button_save_connection enabled when there
+        # are config changes in the page
         page.apply_button_enabled.connect(
-            self._change_button_save_connection_state
+            self._update_button_save_connection_state
         )
+
+        # This updates the info shown in the "Connection info" tab of pages
+        self.sig_connection_status_changed.connect(page.update_status)
+
         if new:
             page.save_server_info()
 
@@ -646,8 +699,19 @@ class ConnectionDialog(SidebarDialog):
             for id_ in servers.keys():
                 self._add_connection_page(host_id=id_, new=False)
 
-    def _change_button_save_connection_state(self, state):
+    def _update_button_save_connection_state(self, state: bool):
         self._button_save_connection.setEnabled(state)
+
+    def _update_button_connect_state(self, info: ConnectionInfo):
+        page = self.get_page()
+        if page.host_id == info["id"]:
+            if info["status"] in [
+                ConnectionStatus.Inactive,
+                ConnectionStatus.Error,
+            ]:
+                self._button_connect.setEnabled(True)
+            else:
+                self._button_connect.setEnabled(False)
 
 
 def test():

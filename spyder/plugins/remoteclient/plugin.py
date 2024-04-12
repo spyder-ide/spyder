@@ -72,7 +72,11 @@ class RemoteClient(SpyderPluginV2):
         return cls.create_icon("remote_server")
 
     def on_initialize(self):
-        pass
+        container = self.get_container()
+        container.sig_start_server_requested.connect(self.start_remote_server)
+        self.sig_connection_status_changed.connect(
+            container.sig_connection_status_changed
+        )
 
     def on_first_registration(self):
         pass
@@ -122,9 +126,11 @@ class RemoteClient(SpyderPluginV2):
     @AsyncDispatcher.dispatch()
     async def start_remote_server(self, config_id):
         """Start remote server."""
-        if config_id in self._remote_clients:
-            server = self._remote_clients[config_id]
-            await server.connect_and_start_server()
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
+        await client.connect_and_ensure_server()
 
     @AsyncDispatcher.dispatch()
     async def stop_remote_server(self, config_id):
@@ -158,9 +164,32 @@ class RemoteClient(SpyderPluginV2):
 
     def load_conf(self, config_id):
         """Load remote server configuration."""
-        return SSHClientOptions(
+        options = SSHClientOptions(
             **self.get_conf(self.CONF_SECTION_SERVERS, {}).get(config_id, {})
         )
+
+        # We couldn't find saved options for config_id
+        if not options:
+            return {}
+
+        if options["client_keys"]:
+            passpharse = self.get_conf(f"{config_id}/passpharse", secure=True)
+
+            # Passphrase is optional
+            if passpharse:
+                options["passpharse"] = passpharse
+        elif options["config"]:
+            # TODO: Check how this needs to be handled
+            pass
+        else:
+            # Password is mandatory in this case
+            password = self.get_conf(f"{config_id}/password", secure=True)
+            options["password"] = password
+
+        # Default for now
+        options["platform"] = "linux"
+
+        return options
 
     def get_loaded_servers(self):
         """Get configured remote servers."""

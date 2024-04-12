@@ -13,7 +13,10 @@ from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SvgToScaledPixmap
-from spyder.plugins.remoteclient.api.protocol import ConnectionStatus
+from spyder.plugins.remoteclient.api.protocol import (
+    ConnectionInfo,
+    ConnectionStatus,
+)
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
@@ -32,7 +35,14 @@ STATUS_TO_COLOR = {
     ConnectionStatus.Inactive: SpyderPalette.COLOR_OCCURRENCE_5,
     ConnectionStatus.Connecting: SpyderPalette.COLOR_WARN_4,
     ConnectionStatus.Active: SpyderPalette.COLOR_SUCCESS_3,
-    ConnectionStatus.Error: SpyderPalette.COLOR_ERROR_2
+    ConnectionStatus.Error: SpyderPalette.COLOR_ERROR_2,
+}
+
+STATUS_TO_ICON = {
+    ConnectionStatus.Inactive: "connection_disconnected",
+    ConnectionStatus.Connecting: "connection_waiting",
+    ConnectionStatus.Active: "connection_connected",
+    ConnectionStatus.Error: "connection_error",
 }
 
 
@@ -68,9 +78,7 @@ class ConnectionStatusWidget(
 
         # Image
         self._image_label = QLabel(self)
-        self._image_label.setPixmap(
-            self.svg_to_scaled_pixmap("disconnected", rescale=1)
-        )
+        self._set_icon()
 
         # Initial text and style
         self._set_text_in_labels()
@@ -99,6 +107,15 @@ class ConnectionStatusWidget(
         layout.addStretch(1)
         self.setLayout(layout)
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def update_status(self, info: ConnectionInfo):
+        status = info["status"]
+        self._set_icon(status)
+        self._set_text_in_labels(status)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _set_stylesheet(self):
         """Set stylesheet for elements in this widget."""
         # Increase font size of connection label
@@ -131,6 +148,11 @@ class ConnectionStatusWidget(
             _('Status: <span style="color:{}">{}<span>').format(
                 color, localized_status
             )
+        )
+
+    def _set_icon(self, status=ConnectionStatus.Inactive):
+        self._image_label.setPixmap(
+            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
         )
 
     @property
