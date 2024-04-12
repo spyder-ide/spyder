@@ -85,10 +85,11 @@ exit %ERRORLEVEL%
     goto :EOF
 
 :launch_spyder
-    echo %prefix% | findstr /b "%USERPROFILE%" > nul && (
-        set shortcut_root=%APPDATA%
-    ) || (
-        set shortcut_root=%ALLUSERSPROFILE%
-    )
-    start "" /B "%shortcut_root%\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+    for %%C in ("%conda%") do set scripts=%%~dpC
+    set pythonexe=%scripts%..\python.exe
+    set menuinst=%scripts%menuinst_cli.py
+    if exist "%prefix%\.nonadmin" (set mode=user) else set mode=system
+    for /f "delims=" %%s in ('%pythonexe% %menuinst% shortcut --mode=%mode%') do set "shortcut_path=%%~s"
+
+    start "" /B "%shortcut_path%"
     goto :EOF

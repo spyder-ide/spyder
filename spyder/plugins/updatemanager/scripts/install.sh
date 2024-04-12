@@ -18,11 +18,16 @@ update_spyder(){
 }
 
 launch_spyder(){
+    root=$(dirname $conda)
+    pythonexe=$root/python
+    menuinst=$root/menuinst_cli.py
+    mode=$([[ -e "${prefix}/.nonadmin" ]] && echo "user" || echo "system")
+    shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
+
     if [[ "$OSTYPE" = "darwin"* ]]; then
-        shortcut=/Applications/Spyder.app
-        [[ "$prefix" = "$HOME"* ]] && open -a $HOME$shortcut || open -a $shortcut
+        open -a $shortcut
     elif [[ -n "$(which gtk-launch)" ]]; then
-        gtk-launch spyder_spyder
+        gtk-launch $(basename ${shortcut_path%.*})
     else
         nohup $prefix/bin/spyder &>/dev/null &
     fi
