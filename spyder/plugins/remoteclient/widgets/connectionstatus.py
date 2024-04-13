@@ -83,11 +83,9 @@ class ConnectionStatusWidget(
 
         # Image
         self._image_label = QLabel(self)
-        self._set_icon()
 
         # Initial text and style
-        self._set_text_in_labels()
-        self._message_label.setText(_("This connection hasn't been used"))
+        self._set_initial_text_in_labels()
         self._set_stylesheet()
 
         # Info layout
@@ -147,7 +145,21 @@ class ConnectionStatusWidget(
         for label in [self._status_label, self._user_label]:
             label.setStyleSheet(other_labels_css.toString())
 
-    def _set_text_in_labels(self, status=ConnectionStatus.Inactive):
+    def _set_initial_text_in_labels(self):
+        status = self.get_conf(
+            f"{self.host_id}/status", default=ConnectionStatus.Inactive
+        )
+        self._set_text_in_labels(status)
+        self._set_icon(status)
+
+        message = self.get_conf(f"{self.host_id}/status_message", default="")
+        if not message:
+            # This can only happen at startup or if the connection has never
+            # been used
+            message = _("The connection hasn't been used")
+        self._message_label.setText(message)
+
+    def _set_text_in_labels(self, status):
         color = STATUS_TO_COLOR[status]
         localized_status = STATUS_TO_TRANSLATION_STRINGS[status]
 
@@ -163,7 +175,7 @@ class ConnectionStatusWidget(
             )
         )
 
-    def _set_icon(self, status=ConnectionStatus.Inactive):
+    def _set_icon(self, status):
         self._image_label.setPixmap(
             self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
         )

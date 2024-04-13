@@ -26,7 +26,10 @@ from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
 from spyder.plugins.remoteclient.api import RemoteClientActions
 from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
-from spyder.plugins.remoteclient.api.protocol import SSHClientOptions
+from spyder.plugins.remoteclient.api.protocol import (
+    SSHClientOptions,
+    ConnectionStatus,
+)
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 _logger = logging.getLogger(__name__)
@@ -72,6 +75,7 @@ class RemoteClient(SpyderPluginV2):
         return cls.create_icon("remote_server")
 
     def on_initialize(self):
+        self._reset_status()
         container = self.get_container()
 
         container.sig_start_server_requested.connect(self.start_remote_server)
@@ -198,7 +202,7 @@ class RemoteClient(SpyderPluginV2):
         """Get configured remote servers."""
         return self._remote_clients.keys()
 
-    def get_conf_ids(self):
+    def get_config_ids(self):
         """Get configured remote servers ids."""
         return self.get_conf(self.CONF_SECTION_SERVERS, {}).keys()
 
@@ -258,3 +262,9 @@ class RemoteClient(SpyderPluginV2):
             client = self._remote_clients[config_id]
             status = await client.interrupt_kernel(kernel_id)
             return status
+
+    def _reset_status(self):
+        """Reset status of servers."""
+        for config_id in self.get_config_ids():
+            self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
+            self.set_conf(f"{config_id}/status_message", "")

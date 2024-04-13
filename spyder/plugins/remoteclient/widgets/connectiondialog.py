@@ -94,11 +94,15 @@ class BaseConnectionPage(SpyderConfigPage):
     def __init__(self, parent, host_id=None):
         super().__init__(parent)
 
+        # host_id is None only for the new connection page
         if host_id is None:
             self.host_id = str(uuid.uuid4())
+            self.status = ConnectionStatus.Inactive
         else:
             self.host_id = host_id
-        self.status = ConnectionStatus.Inactive
+            self.status = self.get_option(
+                f"{host_id}/status", default=ConnectionStatus.Inactive
+            )
 
         self._widgets_for_validation = {}
         self._missing_info_labels = {}

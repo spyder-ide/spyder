@@ -12,6 +12,7 @@ from qtpy.QtCore import Signal
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.remoteclient.api import RemoteClientActions
+from spyder.plugins.remoteclient.api.protocol import ConnectionInfo
 from spyder.plugins.remoteclient.widgets.connectiondialog import (
     ConnectionDialog,
 )
@@ -61,6 +62,10 @@ class RemoteClientContainer(PluginMainContainer):
             triggered=self._show_connection_dialog,
         )
 
+        self.sig_connection_status_changed.connect(
+            self._on_connection_status_changed
+        )
+
     def update_actions(self):
         pass
 
@@ -81,3 +86,14 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         connection_dialog.show()
+
+    def _on_connection_status_changed(self, info: ConnectionInfo):
+        """Handle changes in connection status."""
+        host_id = info["id"]
+        status = info["status"]
+        message = info["message"]
+
+        # We need to save this info so that we can show the current status in
+        # the connection dialog when it's closed and opened again.
+        self.set_conf(f"{host_id}/status", status)
+        self.set_conf(f"{host_id}/status_message", message)
