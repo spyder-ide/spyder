@@ -78,6 +78,8 @@ class ConnectionStatusWidget(
         self._connection_label = QLabel(self)
         self._status_label = QLabel(self)
         self._user_label = QLabel(_("Username: {}").format(username), self)
+        self._message_label = QLabel(self)
+        self._message_label.setWordWrap(True)
 
         # Image
         self._image_label = QLabel(self)
@@ -85,6 +87,7 @@ class ConnectionStatusWidget(
 
         # Initial text and style
         self._set_text_in_labels()
+        self._message_label.setText(_("This connection hasn't been used"))
         self._set_stylesheet()
 
         # Info layout
@@ -94,6 +97,8 @@ class ConnectionStatusWidget(
         info_layout.addWidget(self._connection_label)
         info_layout.addWidget(self._status_label)
         info_layout.addWidget(self._user_label)
+        info_layout.addSpacing(4 * AppStyle.MarginSize)
+        info_layout.addWidget(self._message_label)
         info_layout.addStretch()
 
         # This is necessary to align the image on the top side to the info
@@ -105,17 +110,21 @@ class ConnectionStatusWidget(
         # Final layout
         layout = QHBoxLayout()
         layout.addLayout(info_layout)
-        layout.addStretch(3)
+        layout.setStretchFactor(info_layout, 2)
+        layout.addSpacing(4 * AppStyle.MarginSize)
         layout.addLayout(image_layout)
-        layout.addStretch(1)
+        layout.setStretchFactor(image_layout, 1)
         self.setLayout(layout)
 
     # ---- Public API
     # -------------------------------------------------------------------------
     def update_status(self, info: ConnectionInfo):
         status = info["status"]
+        message = info["message"]
+
         self._set_icon(status)
         self._set_text_in_labels(status)
+        self._message_label.setText(message)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -123,11 +132,12 @@ class ConnectionStatusWidget(
         """Set stylesheet for elements in this widget."""
         # Increase font size of connection label
         font_size = self.get_font(SpyderFontType.Interface).pointSize()
-        connection_label_css = qstylizer.style.StyleSheet()
-        connection_label_css.QLabel.setValues(
+        important_labels_css = qstylizer.style.StyleSheet()
+        important_labels_css.QLabel.setValues(
             fontSize=f"{font_size + 1}pt",
         )
-        self._connection_label.setStyleSheet(connection_label_css.toString())
+        for label in [self._connection_label, self._message_label]:
+            label.setStyleSheet(important_labels_css.toString())
 
         # Indent status and user labels inside the connection one
         other_labels_css = qstylizer.style.StyleSheet()

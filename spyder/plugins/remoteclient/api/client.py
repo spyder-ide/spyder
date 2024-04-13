@@ -403,8 +403,8 @@ class SpyderRemoteClient:
                         id=self.config_id,
                         status=ConnectionStatus.Error,
                         message=_(
-                            "It was not possible to open an SSH connection to "
-                            "this machine"
+                            "It was not possible to open a connection to this "
+                            "machine"
                         ),
                     )
                 )

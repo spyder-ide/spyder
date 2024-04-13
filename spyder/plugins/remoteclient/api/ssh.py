@@ -42,7 +42,7 @@ class SpyderSSHClient(SSHClient):
             ConnectionInfo(
                 id=self.client.config_id,
                 status=ConnectionStatus.Active,
-                message=_("Connection established succesfully"),
+                message=_("The connection was established succesfully!")
             )
         )
 
