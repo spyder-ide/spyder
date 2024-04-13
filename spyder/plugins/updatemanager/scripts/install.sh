@@ -14,7 +14,7 @@ shift $(($OPTIND - 1))
 
 update_spyder(){
     $conda install -p $prefix -y spyder=$spy_ver
-    read -p "Press any key to exit..."
+    read -p "Press return to exit..."
 }
 
 launch_spyder(){

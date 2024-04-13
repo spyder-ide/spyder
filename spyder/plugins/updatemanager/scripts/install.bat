@@ -70,7 +70,7 @@ exit %ERRORLEVEL%
     echo Updating Spyder
 
     %conda% install -p %prefix% -y spyder=%spy_ver%
-    set /P =Press any key to exit...
+    set /P =Press return to exit...
     goto :EOF
 
 :wait_for_spyder_quit
