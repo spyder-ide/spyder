@@ -76,6 +76,17 @@ class SpyderRemoteClient:
 
     async def close(self):
         """Closes the remote server and the SSH connection."""
+        if self._plugin is not None:
+            self._plugin.sig_connection_status_changed.emit(
+                ConnectionInfo(
+                    id=self.config_id,
+                    status=ConnectionStatus.Stopping,
+                    message=_(
+                        "We're closing the connection. Please be patient"
+                    ),
+                )
+            )
+
         await self.close_port_forwarder()
         await self.stop_remote_server()
         await self.close_ssh_connection()
@@ -594,7 +605,7 @@ class SpyderRemoteClient:
                     ConnectionInfo(
                         id=self.config_id,
                         status=ConnectionStatus.Inactive,
-                        message=_("Connection closed"),
+                        message=_("The connection was closed successfully")
                     )
                 )
 

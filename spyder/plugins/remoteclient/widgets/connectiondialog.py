@@ -43,6 +43,9 @@ from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 
 
+# =============================================================================
+# ---- Auxiliary widgets
+# =============================================================================
 class MissingInfoLabel(QLabel):
     """Label to report to users that a field info is missing."""
 
@@ -79,6 +82,9 @@ class MissingInfoLabel(QLabel):
         self.setStyleSheet(css.toString())
 
 
+# =============================================================================
+# ---- Pages
+# =============================================================================
 class BaseConnectionPage(SpyderConfigPage):
     """Base class to create connection pages."""
 
@@ -522,6 +528,9 @@ class ConnectionPage(BaseConnectionPage):
             self.status_widget.update_status(info)
 
 
+# =============================================================================
+# ---- Dialog
+# =============================================================================
 class ConnectionDialog(SidebarDialog):
     """
     Dialog to handle and display remote connection information for different
@@ -533,6 +542,7 @@ class ConnectionDialog(SidebarDialog):
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
+    sig_stop_server_requested = Signal(str)
     sig_connection_status_changed = Signal(dict)
 
     def __init__(self, parent=None):
@@ -540,7 +550,7 @@ class ConnectionDialog(SidebarDialog):
 
         self._add_saved_connection_pages()
         self.sig_connection_status_changed.connect(
-            self._update_button_connect_state
+            self._update_connection_buttons_state
         )
 
     # ---- SidebarDialog API
@@ -552,24 +562,33 @@ class ConnectionDialog(SidebarDialog):
         self._button_save_connection.clicked.connect(
             self._save_connection_info
         )
+        bbox.addButton(
+            self._button_save_connection, QDialogButtonBox.ResetRole
+        )
 
         self._button_remove_connection = QPushButton(_("Remove connection"))
         self._button_remove_connection.clicked.connect(
             self._remove_connection_info
         )
+        bbox.addButton(
+            self._button_remove_connection, QDialogButtonBox.ResetRole
+        )
 
         self._button_clear_settings = QPushButton(_("Clear settings"))
         self._button_clear_settings.clicked.connect(self._clear_settings)
+        bbox.addButton(
+            self._button_clear_settings, QDialogButtonBox.ActionRole
+        )
 
         self._button_connect = QPushButton(_("Connect"))
         self._button_connect.clicked.connect(self._start_server)
+        bbox.addButton(self._button_connect, QDialogButtonBox.ActionRole)
+
+        self._button_stop = QPushButton(_("Stop"))
+        self._button_stop.clicked.connect(self._stop_server)
+        bbox.addButton(self._button_stop, QDialogButtonBox.ActionRole)
 
         layout = QHBoxLayout()
-        layout.addWidget(self._button_save_connection)
-        layout.addWidget(self._button_remove_connection)
-        layout.addStretch(1)
-        layout.addWidget(self._button_clear_settings)
-        layout.addWidget(self._button_connect)
         layout.addWidget(bbox)
 
         return bbox, layout
@@ -581,6 +600,7 @@ class ConnectionDialog(SidebarDialog):
             self._button_save_connection.setEnabled(True)
             self._button_clear_settings.setHidden(False)
             self._button_remove_connection.setHidden(True)
+            self._button_stop.setHidden(True)
         else:
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
@@ -589,6 +609,7 @@ class ConnectionDialog(SidebarDialog):
 
             self._button_clear_settings.setHidden(True)
             self._button_remove_connection.setHidden(False)
+            self._button_stop.setHidden(False)
 
         if page.status in [
             ConnectionStatus.Inactive,
@@ -597,6 +618,14 @@ class ConnectionDialog(SidebarDialog):
             self._button_connect.setEnabled(True)
         else:
             self._button_connect.setEnabled(False)
+
+        # TODO: Check if it's possible to stop a connection while it's
+        # connecting
+        if page.status == ConnectionStatus.Active:
+            self._button_stop.setEnabled(True)
+        else:
+            self._button_stop.setEnabled(False)
+
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -674,8 +703,16 @@ class ConnectionDialog(SidebarDialog):
             # TODO: Handle the case when the connection info is active and
             # users change its info.
 
-        self._button_connect.setEnabled(False)
         self.sig_start_server_requested.emit(host_id)
+
+    def _stop_server(self):
+        """Stop the server corresponding to a given page."""
+        page = self.get_page()
+
+        # The stop button is not visible in the new connection page
+        if not page.NEW_CONNECTION:
+            self._button_stop.setEnabled(False)
+            self.sig_stop_server_requested.emit(page.host_id)
 
     def _add_connection_page(self, host_id: str, new: bool):
         """Add a new connection page to the dialog."""
@@ -710,7 +747,7 @@ class ConnectionDialog(SidebarDialog):
         """Update the state of the 'Save connection' button."""
         self._button_save_connection.setEnabled(state)
 
-    def _update_button_connect_state(self, info: ConnectionInfo):
+    def _update_connection_buttons_state(self, info: ConnectionInfo):
         """Update the state of the 'Connect' button."""
         page = self.get_page()
         if page.host_id == info["id"]:
@@ -721,6 +758,13 @@ class ConnectionDialog(SidebarDialog):
                 self._button_connect.setEnabled(True)
             else:
                 self._button_connect.setEnabled(False)
+
+            # TODO: Check if it's possible to stop a connection while it's
+            # connecting
+            if info["status"] == ConnectionStatus.Active:
+                self._button_stop.setEnabled(True)
+            else:
+                self._button_stop.setEnabled(False)
 
 
 def test():

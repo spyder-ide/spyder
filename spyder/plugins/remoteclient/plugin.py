@@ -73,7 +73,10 @@ class RemoteClient(SpyderPluginV2):
 
     def on_initialize(self):
         container = self.get_container()
+
         container.sig_start_server_requested.connect(self.start_remote_server)
+        container.sig_stop_server_requested.connect(self.stop_remote_server)
+
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
         )
@@ -137,7 +140,7 @@ class RemoteClient(SpyderPluginV2):
         """Stop remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            await client.stop_remote_server()
+            await client.close()
 
     @AsyncDispatcher.dispatch()
     async def ensure_remote_server(self, config_id):

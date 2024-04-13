@@ -50,6 +50,7 @@ class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
     Active = "active"
+    Stopping = "stopping"
     Error = "error"
 
 

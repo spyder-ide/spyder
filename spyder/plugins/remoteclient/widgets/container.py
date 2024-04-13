@@ -29,6 +29,16 @@ class RemoteClientContainer(PluginMainContainer):
         Id of the server that will be started.
     """
 
+    sig_stop_server_requested = Signal(str)
+    """
+    This signal is used to request stopping a remote server.
+
+    Parameters
+    ----------
+    id: str
+        Id of the server that will be stopped.
+    """
+
     sig_connection_status_changed = Signal(dict)
     """
     This signal is used to update the status of a given connection.
@@ -58,10 +68,16 @@ class RemoteClientContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def _show_connection_dialog(self):
         connection_dialog = ConnectionDialog(self)
+
         connection_dialog.sig_start_server_requested.connect(
             self.sig_start_server_requested
         )
+        connection_dialog.sig_stop_server_requested.connect(
+            self.sig_stop_server_requested
+        )
+
         self.sig_connection_status_changed.connect(
             connection_dialog.sig_connection_status_changed
         )
+
         connection_dialog.show()
