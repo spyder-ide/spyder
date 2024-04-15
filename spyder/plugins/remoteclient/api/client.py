@@ -291,6 +291,14 @@ class SpyderRemoteClient:
             f"{self.server_port}"
         )
 
+        self._plugin.sig_connection_status_changed.emit(
+            ConnectionInfo(
+                id=self.config_id,
+                status=ConnectionStatus.Active,
+                message=_("The connection was established successfully"),
+            )
+        )
+
         return await self.forward_local_port()
 
     async def check_server_installed(self) -> bool:

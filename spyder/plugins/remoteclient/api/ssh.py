@@ -38,13 +38,6 @@ class SpyderSSHClient(SSHClient):
         self.client._plugin.sig_connection_established.emit(
             self.client.config_id
         )
-        self.client._plugin.sig_connection_status_changed.emit(
-            ConnectionInfo(
-                id=self.client.config_id,
-                status=ConnectionStatus.Active,
-                message=_("The connection was established succesfully!")
-            )
-        )
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed
@@ -65,7 +58,7 @@ class SpyderSSHClient(SSHClient):
             ConnectionInfo(
                 id=self.client.config_id,
                 status=ConnectionStatus.Error,
-                message=_("Connection lost"),
+                message=_("The connection was lost")
             )
         )
 
