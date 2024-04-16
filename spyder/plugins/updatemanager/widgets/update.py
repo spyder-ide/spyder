@@ -11,6 +11,7 @@ import logging
 import os
 import os.path as osp
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -414,11 +415,14 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """Install from downloaded installer or update through conda."""
 
         # Install script
-        script = osp.abspath(__file__ + '/../../scripts/install.' +
-                             ('bat' if os.name == 'nt' else 'sh'))
+        # Copy to temp location to be safe
+        script_name = 'install.' + ('bat' if os.name == 'nt' else 'sh')
+        script_path = osp.abspath(__file__ + '/../../scripts/' + script_name)
+        tmpscript_path = osp.join(get_temp_dir(), script_name)
+        shutil.copy2(script_path, tmpscript_path)
 
         # Sub command
-        sub_cmd = [script, '-p', sys.prefix]
+        sub_cmd = [tmpscript_path, '-p', sys.prefix]
         if osp.exists(self.installer_path):
             # Run downloaded installer
             sub_cmd.extend(['-i', self.installer_path])
