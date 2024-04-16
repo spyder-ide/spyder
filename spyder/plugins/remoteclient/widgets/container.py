@@ -11,7 +11,11 @@ from qtpy.QtCore import Signal
 
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.plugins.remoteclient.api import RemoteClientActions
+from spyder.plugins.remoteclient.api import (
+    RemoteClientActions,
+    RemoteClientMenus,
+    RemoteConsolesMenuSections,
+)
 from spyder.plugins.remoteclient.api.protocol import ConnectionInfo
 from spyder.plugins.remoteclient.widgets.connectiondialog import (
     ConnectionDialog,
@@ -68,6 +72,21 @@ class RemoteClientContainer(PluginMainContainer):
 
     def update_actions(self):
         pass
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def create_remote_consoles_submenu(self):
+        """Create the remote consoles submenu in the Consoles app one."""
+        remote_consoles_menu = self.create_menu(
+            RemoteClientMenus.RemoteConsoles,
+            _("New console in remote server")
+        )
+
+        self.add_item_to_menu(
+            self.get_action(RemoteClientActions.ManageConnections),
+            menu=remote_consoles_menu,
+            section=RemoteConsolesMenuSections.ManagerSection
+        )
 
     # ---- Private API
     # -------------------------------------------------------------------------

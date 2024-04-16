@@ -23,8 +23,16 @@ from spyder.api.plugin_registration.decorators import (
 )
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
-from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
-from spyder.plugins.remoteclient.api import RemoteClientActions
+from spyder.plugins.ipythonconsole.api import IPythonConsoleWidgetActions
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenus,
+    ConsolesMenuSections,
+    ToolsMenuSections,
+)
+from spyder.plugins.remoteclient.api import (
+    RemoteClientActions,
+    RemoteClientMenus,
+)
 from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
 from spyder.plugins.remoteclient.api.protocol import (
     SSHClientOptions,
@@ -41,7 +49,7 @@ class RemoteClient(SpyderPluginV2):
     """
 
     NAME = "remoteclient"
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.MainMenu]
     CONF_SECTION = NAME
     CONTAINER_CLASS = RemoteClientContainer
     CONF_FILE = False
@@ -76,6 +84,8 @@ class RemoteClient(SpyderPluginV2):
 
     def on_initialize(self):
         self._reset_status()
+        self._is_consoles_menu_added = False
+
         container = self.get_container()
 
         container.sig_start_server_requested.connect(self.start_remote_server)
@@ -105,15 +115,34 @@ class RemoteClient(SpyderPluginV2):
             before_section=ToolsMenuSections.Extras
         )
 
+        if (
+            self.is_plugin_available(Plugins.IPythonConsole)
+            and not self._is_consoles_menu_added
+        ):
+            self._add_remote_consoles_menu()
+
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        action = self.get_action(RemoteClientActions.ManageConnections)
         mainmenu.remove_item_from_application_menu(
-            action,
+            RemoteClientActions.ManageConnections,
             menu_id=ApplicationMenus.Tools
         )
+
+        if self._is_consoles_menu_added:
+            mainmenu.remove_item_from_application_menu(
+                RemoteClientMenus.RemoteConsoles,
+                menu_id=ApplicationMenus.Consoles
+            )
+
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        if (
+            self.is_plugin_available(Plugins.MainMenu)
+            and not self._is_consoles_menu_added
+        ):
+            self._add_remote_consoles_menu()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -268,3 +297,19 @@ class RemoteClient(SpyderPluginV2):
         for config_id in self.get_config_ids():
             self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
             self.set_conf(f"{config_id}/status_message", "")
+
+    def _add_remote_consoles_menu(self):
+        """Add remote consoles submenu to the Consoles menu."""
+        container = self.get_container()
+        container.create_remote_consoles_submenu()
+
+        menu = container.get_menu(RemoteClientMenus.RemoteConsoles)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            menu,
+            menu_id=ApplicationMenus.Consoles,
+            section=ConsolesMenuSections.New,
+            before=IPythonConsoleWidgetActions.ConnectToKernel
+        )
+
+        self._is_consoles_menu_added = True

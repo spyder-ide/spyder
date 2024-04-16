@@ -15,3 +15,12 @@ Remote Client Plugin API.
 # -----------------------------------------------------------------------------
 class RemoteClientActions:
     ManageConnections = "manage connections"
+
+
+class RemoteClientMenus:
+    RemoteConsoles = "remote_consoles_menu"
+
+
+class RemoteConsolesMenuSections:
+    ManagerSection = "manager_section"
+    ConsolesSection = "consoles_section"
