@@ -241,7 +241,7 @@ class WorkerDownloadInstaller(QObject):
             # conda-based installer name
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
-            elif platform.system == 'Darwin':
+            elif platform.system() == 'Darwin':
                 plat, ext = 'macOS', 'pkg'
             else:
                 plat, ext = 'Linux', 'sh'
