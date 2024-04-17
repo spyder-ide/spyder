@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, get_home_dir
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_toolbutton
@@ -103,7 +104,7 @@ class ProjectDialog(QDialog):
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_create = QPushButton(_('Create'))
 
-        self.bbox = QDialogButtonBox(Qt.Horizontal)
+        self.bbox = SpyderDialogButtonBox(orientation=Qt.Horizontal)
         self.bbox.addButton(self.button_cancel, QDialogButtonBox.ActionRole)
         self.bbox.addButton(self.button_create, QDialogButtonBox.ActionRole)
 

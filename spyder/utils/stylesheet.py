@@ -233,11 +233,18 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Adjust padding of QPushButton's in QDialog's
         for widget in ["QPushButton", "QPushButton:disabled"]:
             css[f"QDialog {widget}"].setValues(
-                padding='3px 15px 3px 15px',
+                padding=(
+                    f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+                ),
             )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding='3px 0px 3px 0px',
+            padding=f"{AppStyle.MarginSize + 1}px 0px",
+        )
+
+        # Remove icons in QMessageBoxes
+        css["QDialogButtonBox"]["dialogbuttonbox-buttons-have-icons"].setValue(
+            "0"
         )
 
         # Set font for widgets that don't inherit it from the application
