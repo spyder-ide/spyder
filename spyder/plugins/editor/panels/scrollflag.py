@@ -132,7 +132,8 @@ class ScrollFlagArea(Panel):
 
         # Run this computation in a different thread to prevent freezing 
         # the interface
-        self._update_flags_thread.start()
+        if not self._update_flags_thread.isRunning():
+            self._update_flags_thread.start()
 
     def _update_flags(self):
         """Update flags list."""

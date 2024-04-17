@@ -482,7 +482,7 @@ class Projects(SpyderDockablePlugin):
     def _get_open_filenames(self):
         editor = self.get_plugin(Plugins.Editor)
         if editor is not None:
-            return editor.get_open_filenames()
+            return editor.get_filenames()
         return []
 
     def _is_invalid_active_project(self):

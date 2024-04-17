@@ -3321,13 +3321,6 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Open files
     # -------------------------------------------------------------------------
-    def get_open_filenames(self):
-        """Get the list of open files in the current stack"""
-        editorstack = self.editorstacks[0]
-        filenames = []
-        filenames += [finfo.filename for finfo in editorstack.data]
-        return filenames
-
     def setup_open_files(self, close_previous_files=True):
         """
         Open the list of saved files per project.
@@ -3423,7 +3416,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def save_open_files(self):
         """Save the list of open files"""
-        self.set_conf('filenames', self.get_open_filenames())
+        self.set_conf('filenames', self.get_filenames())
 
     def set_create_new_file_if_empty(self, value):
         """Change the value of create_new_file_if_empty"""

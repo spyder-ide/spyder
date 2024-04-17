@@ -859,14 +859,26 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
 
         if not self._get_active_project_path():
-            filenames = widget.get_open_filenames()
+            filenames = widget.get_filenames()
             self.set_conf('filenames', filenames)
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    # TODO: Add docstrings for all methods in this section because they are
-    # public API.
     def get_codeeditor_for_filename(self, filename):
+        """
+        Get `CodeEditor` instance associated with the given filename.
+
+        Parameters
+        ----------
+        filename : str
+            File path associated with a CodeEditor instance.
+
+        Returns
+        -------
+        spyder.plugins.editor.codeeditor.CodeEditor
+            `CodeEditor` associated with the given filename.
+
+        """
         return self.get_widget().get_editor(filename)
 
     def refresh(self):
@@ -876,6 +888,38 @@ class Editor(SpyderDockablePlugin):
         self.get_widget().refresh()
 
     def load(self, *args, **kwargs):
+        """
+        Load a file or a group of files.
+
+        Parameters
+        ----------
+        filenames: Optional[list]
+            Filenames to load.
+        editorwindow: Optional[spyder.plugins.editor.widgets.window.EditorMainWindow]
+            Load in the given editorwindow (useful when clicking on outline
+            explorer with multiple editor windows).
+        processevents: Optional[bool]
+            Determines if `processEvents()` should be called at the end of this
+            method (set to `False` to prevent keyboard events from creeping
+            through to the editor during debugging).
+        goto: Optional[int]
+            If goto is not none it represent a line to go to. Used along side
+            `start_column` and `end_column`. Alternatively, the first match of
+            word is used as a position.
+        start_column: Optional[int]
+            The start position in the line (goto)
+        end_column: Optional[int]
+            The length (so that the end position is `start_column` +
+            `end_column`), when providing a `goto` line.
+        word: Optional[str]
+            The word to use to set the cursor position when using `goto`.
+        set_focus: Optional[bool]
+            If the opened file should gain focus. `True` by default.
+        add_where: Optional[str]
+            Position where to add the new file finfo (affects the files tab
+            order). Possible values: `start` to make the file the first. `end`
+            (or any other value) to append.
+        """
         return self.get_widget().load(*args, **kwargs)
 
     def load_edit_goto(self, filenames, goto, word):
@@ -890,87 +934,290 @@ class Editor(SpyderDockablePlugin):
         return self.get_widget().load(filenames=filenames, editorwindow=self)
 
     def new(self, *args, **kwargs):
+        """
+        Create a new file.
+
+        Parameters
+        ----------
+        fname: Optional[str]
+            Name of the file to be created. Default `None`.
+            If `None`, `fname` will be `untitledXX.py`. No actual file will
+            be create until it is saved manually by the user.
+        editorstack: Optional[spyder.plugins.editor.widgets.editorstack.EditorStack]
+            Reference to the `EditorStack` instance that will be used to:
+                * Get `UntitleXX` numbering for the file name.
+                * Check if already a file with the same name exists and it is
+                closeable.
+                * Set file as current focused file.
+            Default `None`. If `None`, the current `EditorStack` is used. See
+            `get_current_editorstack`
+        text: Optional[str]
+            Base text content that will be added to the file. Default `None`.
+            If `None`, default content created via a template is used. See
+            `Preferences > Editor > Advanced settings > Edit template for new files`
+        """
         return self.get_widget().new(*args, **kwargs)
 
-    def removed(self, *args, **kwargs):  # explorer plugin
-        return self.get_widget().removed(*args, **kwargs)
+    def removed(self, filename):
+        """
+        Close file given his filename since it was removed.
 
-    def removed_tree(self, *args, **kwargs):  # explorer plugin
-        return self.get_widget().removed_tree(*args, **kwargs)
+        Used for example when a file was removed in file explorer widget or in
+        project explorer.
 
-    def renamed(self, *args, **kwargs):  # explorer plugin
+        Parameters
+        ----------
+        filename: str
+            File path to be closed/removed.
+        """
+        return self.get_widget().removed(filename)
+
+    def removed_tree(self, dirname):
+        """
+        Close files given a directory since it was removed.
+
+        Used for example when a directory was removed in file/project explorer
+        widget.
+
+        Parameters
+        ----------
+        dirname: str
+            Base directory path of the files to be closed/removed.
+        """
+        return self.get_widget().removed_tree(dirname)
+
+    def renamed(self, *args, **kwargs):
+        """
+        Propagate file rename to editor stacks and autosave component.
+
+        This method is called when a file is renamed in the file explorer
+        widget or the project explorer. The file may not be opened in the
+        editor.
+
+        Parameters
+        ----------
+        source: str
+            Initial filename path.
+        dest: str
+            New filename path.
+        editorstack_id_str: Optional[str]
+            Default `None`. If given, the `EditorStack` instance which identity
+            corresponds **doesn't** do the file rename operation.
+        """
         return self.get_widget().renamed(*args, **kwargs)
 
-    def renamed_tree(self, *args, **kwargs):  # explorer plugin
+    def renamed_tree(self, *args, **kwargs):
+        """
+        Propagate directory rename to editor stacks and autosave component.
+
+        Directory was renamed in file explorer or in project explorer.
+
+        Parameters
+        ----------
+        source: str
+            Initial directory path.
+        dest: str
+            New directory path.
+        """
         return self.get_widget().renamed_tree(*args, **kwargs)
 
     def add_supported_run_configuration(self, *args, **kwargs):
-        # external console plugin
+        """
+        Add a run configuration schema supported by the Editor
+
+        Parameters
+        ----------
+        config : spyder.plugins.editor.api.run.EditorRunConfiguration
+            New Editor supported run configuration schema to be added.
+        """
         return self.get_widget().add_supported_run_configuration(
             *args, **kwargs
         )
 
     def remove_supported_run_configuration(self, *args, **kwargs):
+        """
+        Remove a run configuration schema supported by the Editor
+
+        Parameters
+        ----------
+        config : spyder.plugins.editor.api.run.EditorRunConfiguration
+            Editor supported run configuration schema to be removed.
+        """
         return self.get_widget().remove_supported_run_configuration(
             *args, **kwargs
         )
 
-    def get_current_editor(self, *args, **kwargs):  # debugger plugin
-        return self.get_widget().get_current_editor(*args, **kwargs)
+    def get_current_editor(self):
+        """
+        Get current `CodeEditor` instance if available.
 
-    def get_current_editorstack(self, *args, **kwargs):
+        Returns
+        -------
+        spyder.plugins.editor.codeeditor.CodeEditor
+            `CodeEditor` instance focused or available.
+        """
+        return self.get_widget().get_current_editor()
+
+    def get_current_editorstack(self):
+        """
+        Get current `EditorStack` instance if available.
+
+        Returns
+        -------
+        spyder.plugins.editor.editorstack.EditorStack
+            `EditorStack` instance focused or available.
+        """
         return self.get_widget().get_current_editorstack()
 
     def get_focus_widget(self):
+        """
+        Return the widget to give focus to.
+
+        This happens when plugin's dockwidget is raised on top-level.
+
+        Returns
+        -------
+        spyder.plugins.editor.codeeditor.CodeEditor
+            `CodeEditor` instance focused or available.
+        """
         return self.get_widget().get_focus_widget()
 
-    def setup_open_files(self, *args, **kwargs):
+    def setup_open_files(self,  close_previous_files=True):
+        """
+        Open the list of saved files per project.
+
+        Also, open any files that the user selected in the recovery dialog and
+        setups toolbars and menus for 'New window' instances (calls
+        `setup_other_windows` method).
+
+        Parameters
+        ----------
+        close_previous_files : Optional[bool]
+            If any previously open file should be closed. Default `True`.
+        """
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
-        widget.setup_other_windows(self._main, outline)
-        return self.get_widget().setup_open_files(*args, **kwargs)
+        if outline:
+            widget.setup_other_windows(self._main, outline)
+        return self.get_widget().setup_open_files(
+            close_previous_files=close_previous_files
+        )
 
-    def save_open_files(self, *args, **kwargs):  # projects plugin
-        return self.get_widget().save_open_files(*args, **kwargs)
+    def save_open_files(self,):
+        """Save the list of open files."""
+        return self.get_widget().save_open_files()
 
-    def save(self, *args, **kwargs):
-        return self.get_widget().save(*args, **kwargs)
+    def save(self, index=None, force=False):
+        """
+        Save file.
 
-    def save_bookmark(self, *args, **kwargs):
-        return self.get_widget().save_bookmark(*args, **kwargs)
+        Parameters
+        ----------
+        index : Optional[int]
+            Index related to the file position over the current editorstack.
+            Default `None` (use current file index).
+        force : Optional[bool]
+            Force save regardless of file state. Default `False`
 
-    def load_bookmark(self, *args, **kwargs):
-        return self.get_widget().load_bookmark(*args, **kwargs)
+        Returns
+        -------
+        bool
+            `True` if the save operation was sucessfull. `False` otherwise.
+        """
+        return self.get_widget().save(index=None, force=False)
+
+    def save_bookmark(self, slot_num):
+        """
+        Save current line and position as bookmark.
+
+        Parameters
+        ----------
+        slot_num : int
+        """
+        return self.get_widget().save_bookmark(slot_num)
+
+    def load_bookmark(self, slot_num):
+        """
+        Set cursor to bookmarked file and position.
+
+        Parameters
+        ----------
+        slot_num : int
+        """
+        return self.get_widget().load_bookmark(slot_num)
 
     def edit_template(self):
+        """Edit `New file` template."""
         return self.get_widget().edit_template()
 
     def get_current_filename(self):
+        """Get current editor 'filename'."""
         return self.get_widget().get_current_filename()
 
     def get_filenames(self):
+        """
+        Get list with all the files open.
+
+        Returns
+        -------
+        list
+            A list with the names of all the files currently opened in
+            the editorstack.
+        """
         return self.get_widget().get_filenames()
 
-    def get_open_filenames(self):
-        return self.get_widget().get_open_filenames()
-
     def close_file(self):
+        """Close current file."""
         return self.get_widget().close_file()
 
-    def close_file_from_name(self, *args, **kwargs):
-        return self.get_widget().close_file_from_name(*args, **kwargs)
+    def close_file_from_name(self, filename):
+        """
+        Close file from its name.
+
+        Parameters
+        ----------
+        filename : str
+            Filename to be closed.
+        """
+        return self.get_widget().close_file_from_name(filename)
 
     def close_all_files(self):
+        """Close all opened files."""
         return self.get_widget().close_all_files()
 
-    def go_to_line(self, *args, **kwargs):
-        return self.get_widget().go_to_line(*args, **kwargs)
+    def go_to_line(self, line=None):
+        """
+        Open 'go to line' dialog.
+
+        Parameters
+        ----------
+        line : Optional[int]
+            Line to use for programatic calls without showing a dialog.
+            Default `None`
+        """
+        return self.get_widget().go_to_line(line=line)
 
     def set_current_filename(self, *args, **kwargs):
+        """
+        Set current filename.
+
+        Returns
+        -------
+        spyder.plugins.editor.codeeditor.CodeEditor
+            The associated `CodeEditor` instance.
+        """
         return self.get_widget().set_current_filename(*args, **kwargs)
 
-    def set_current_project_path(self, *args, **kwargs):
-        return self.get_widget().set_current_project_path(*args, **kwargs)
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: Optional[str]
+            Path to current project root path. Default is `None`.
+        """
+        return self.get_widget().set_current_project_path(root_path=root_path)
 
     # ---- Private API
     # ------------------------------------------------------------------------
