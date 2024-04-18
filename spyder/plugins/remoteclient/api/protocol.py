@@ -8,7 +8,6 @@
 Spyder Remote Client API.
 """
 from __future__ import annotations
-from datetime import datetime
 import logging
 import typing
 
@@ -16,12 +15,15 @@ import typing
 class KernelsList(typing.TypedDict):
     kernels: list[str]
 
+
 class KernelInfo(typing.TypedDict):
     alive: bool
     pid: int
 
+
 class DeleteKernel(typing.TypedDict):
     success: bool
+
 
 class KernelConnectionInfo(typing.TypedDict):
     shell_port: int
@@ -35,6 +37,7 @@ class KernelConnectionInfo(typing.TypedDict):
     signature_scheme: str
     kernel_name: str
 
+
 class SSHClientOptions(typing.TypedDict):
     host: str
     port: int | None
@@ -45,19 +48,28 @@ class SSHClientOptions(typing.TypedDict):
     config: typing.Sequence[str] | None
     platform: str | None
 
+
 class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
     Active = "active"
     Error = "error"
 
+
 class ConnectionInfo(typing.TypedDict):
     id: str
     status: ConnectionStatus
     message: str
 
+
 class RemoteClientLog(typing.TypedDict):
     id: str
     message: str
-    level: logging.DEBUG | logging.INFO | logging.WARNING | logging.ERROR | logging.CRITICAL
+    level: (
+        logging.DEBUG
+        | logging.INFO
+        | logging.WARNING
+        | logging.ERROR
+        | logging.CRITICAL
+    )
     created: float

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 import re
 
 import aiohttp
@@ -28,7 +34,9 @@ async def basic_authentication(hub_url, username, password, verify_ssl=True):
     return session
 
 
-async def keycloak_authentication(hub_url, username, password, verify_ssl=True):
+async def keycloak_authentication(
+    hub_url, username, password, verify_ssl=True
+):
     session = aiohttp.ClientSession(
         headers={"Referer": str(yarl.URL(hub_url) / "hub" / "api")},
         connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),

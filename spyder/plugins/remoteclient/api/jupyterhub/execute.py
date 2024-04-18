@@ -1,10 +1,18 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 import uuid
 import difflib
 import logging
 import textwrap
 
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterHubAPI
-from spyder.plugins.remoteclient.api.jupyterhub.utils import parse_notebook_cells
+from spyder.plugins.remoteclient.api.jupyterhub.utils import (
+    parse_notebook_cells,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +43,19 @@ async def determine_username(
     if username is None and not temporary_user:
         if token["kind"] == "service":
             logger.error(
-                "cannot execute without specified username or temporary_user=True for service api token"
+                "cannot execute without specified username or "
+                "temporary_user=True for service api token"
             )
             raise ValueError(
-                "Service api token cannot execute without specified username or temporary_user=True for"
+                "Service api token cannot execute without specified username "
+                "or temporary_user=True for"
             )
         return token["name"]
     elif username is None and temporary_user:
         if token["kind"] == "service":
-            return service_format.format(id=str(uuid.uuid4()), name=token["name"])
+            return service_format.format(
+                id=str(uuid.uuid4()), name=token["name"]
+            )
         else:
             return user_format.format(id=str(uuid.uuid4()), name=token["name"])
     else:
@@ -84,7 +96,9 @@ async def execute_code(
             )
 
             async with jupyter:
-                kernel_id, kernel = await jupyter.ensure_kernel(kernel_spec=kernel_spec)
+                kernel_id, kernel = await jupyter.ensure_kernel(
+                    kernel_spec=kernel_spec
+                )
                 async with kernel:
                     if daemonized and stop_server:
                         await kernel.send_code(
@@ -109,26 +123,34 @@ async def execute_code(
                         result_cells.append((code, kernel_result))
                         if daemonized:
                             logger.debug(
-                                f'kernel submitted cell={i} code=\n{textwrap.indent(code, "   >>> ")}'
+                                f"kernel submitted cell={i} "
+                                f'code=\n{textwrap.indent(code, "   >>> ")}'
                             )
                         else:
                             logger.debug(
-                                f'kernel executing cell={i} code=\n{textwrap.indent(code, "   >>> ")}'
+                                f"kernel executing cell={i} "
+                                f'code=\n{textwrap.indent(code, "   >>> ")}'
                             )
                             logger.debug(
-                                f'kernel result cell={i} result=\n{textwrap.indent(kernel_result, "   | ")}'
+                                f"kernel result cell={i} result=\n"
+                                f'{textwrap.indent(kernel_result, "   | ")}'
                             )
                             if validate and (
-                                kernel_result.strip() != expected_result.strip()
+                                kernel_result.strip()
+                                != expected_result.strip()
                             ):
                                 diff = "".join(
-                                    difflib.unified_diff(kernel_result, expected_result)
+                                    difflib.unified_diff(
+                                        kernel_result, expected_result
+                                    )
                                 )
                                 logger.error(
-                                    f"kernel result did not match expected result diff={diff}"
+                                    f"kernel result did not match expected "
+                                    f"result diff={diff}"
                                 )
                                 raise ValueError(
-                                    f"execution of cell={i} did not match expected result diff={diff}"
+                                    f"execution of cell={i} did not match "
+                                    f"expected result diff={diff}"
                                 )
 
                     if daemonized and stop_server:

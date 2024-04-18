@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 import base64
 
 
@@ -101,13 +107,16 @@ def get_installer_command(platform: str) -> str:
     if platform == "win":
         script = MICROMAMBA_INSTALLER_PS
         encoding = "utf-16le"
-        command = 'powershell.exe -EncodedCommand {}'
+        command = "powershell.exe -EncodedCommand {}"
     else:
         script = MICROMAMBA_INSTALLER_SH
         encoding = "utf-8"
-        command =  'echo {} | base64 --decode | /bin/bash'
+        command = "echo {} | base64 --decode | /bin/bash"
 
-    return command.format(base64.b64encode(script.encode(encoding)).decode(encoding))
+    return command.format(
+        base64.b64encode(script.encode(encoding)).decode(encoding)
+    )
+
 
 def get_enviroment_command(platform: str) -> str:
     if platform == "win":

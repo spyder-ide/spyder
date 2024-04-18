@@ -16,11 +16,11 @@ import logging
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
-from spyder.api.translations import _
-from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.plugins.remoteclient.api.protocol import KernelConnectionInfo, DeleteKernel, KernelInfo, KernelsList, SSHClientOptions
-from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
 from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.translations import _
+from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
+from spyder.plugins.remoteclient.api.protocol import SSHClientOptions
 
 _logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class RemoteClient(SpyderPluginV2):
     CONF_SECTION = NAME
     CONF_FILE = False
 
-    CONF_SECTION_SERVERS = 'servers'
+    CONF_SECTION_SERVERS = "servers"
 
     # ---- Signals
     sig_server_log = Signal(dict)
@@ -45,7 +45,7 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_status_changed = Signal(dict)
 
     sig_kernel_list = Signal(dict)
-    sig_kernel_started = Signal(dict)
+    sig_kernel_started = Signal(str, dict)
     sig_kernel_info = Signal(dict)
     sig_kernel_terminated = Signal(dict)
 
@@ -66,7 +66,7 @@ class RemoteClient(SpyderPluginV2):
 
     @classmethod
     def get_icon(cls):
-        return cls.create_icon('remoteclient')
+        return cls.create_icon("remoteclient")
 
     def on_initialize(self):
         pass
@@ -133,9 +133,9 @@ class RemoteClient(SpyderPluginV2):
 
     def load_conf(self, config_id):
         """Load remote server configuration."""
-        return SSHClientOptions(**self.get_conf(
-            self.CONF_SECTION_SERVERS, {}
-        ).get(config_id, {}))
+        return SSHClientOptions(
+            **self.get_conf(self.CONF_SECTION_SERVERS, {}).get(config_id, {})
+        )
 
     def get_loaded_servers(self):
         """Get configured remote servers."""
