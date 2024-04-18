@@ -54,6 +54,7 @@ name: Nightly conda-based installers
 
 env:
   IS_RELEASE: ${{ github.event_name == 'release' }}
+  IS_PRE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.pre }}
   ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
   BUILD_MAC: ${{ github.event_name != 'workflow_dispatch' || inputs.macos-x86_64 }}
   BUILD_ARM: ${{ github.event_name != 'workflow_dispatch' || inputs.macos-arm64 }}
@@ -125,7 +126,6 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
-      NSIS_USING_LOG_BUILD: 1
 
     steps:
       - name: Checkout Code
@@ -193,11 +193,17 @@ jobs:
           cache-environment: true
 
       - name: Env Variables
-        run: env | sort
+        run: |
+          NSIS_USING_LOG_BUILD=1
+          [[ "$IS_RELEASE" == "true" || "$IS_PRE_RELEASE" == "true" ]] && NSIS_USING_LOG_BUILD=0
+          CONDA_BLD_PATH=${RUNNER_TEMP}/conda-bld
+
+          echo "NSIS_USING_LOG_BUILD=$NSIS_USING_LOG_BUILD" >> $GITHUB_ENV
+          echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
+
+          env | sort
 
       - name: Build ${{ matrix.target-platform }} spyder Conda Package
-        env:
-          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
           # Copy built packages to new build location because spyder cannot be
           # built in workspace
@@ -206,8 +212,6 @@ jobs:
           python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
-        env:
-          CONDA_BLD_PATH: ${{ runner.temp }}/conda-bld
         run: |
           conda config --set bld_path $CONDA_BLD_PATH
           conda index $CONDA_BLD_PATH

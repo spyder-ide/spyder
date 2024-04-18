@@ -10,9 +10,10 @@
 import logging
 import os
 import os.path as osp
-import sys
-import subprocess
 import platform
+import shutil
+import subprocess
+import sys
 
 # Third-party imports
 from packaging.version import parse
@@ -36,15 +37,12 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 # Logger setup
 logger = logging.getLogger(__name__)
 
-# Update installation process statuses
+# Update manager process statuses
 NO_STATUS = __version__
 DOWNLOADING_INSTALLER = _("Downloading update")
 DOWNLOAD_FINISHED = _("Download finished")
-INSTALLING = _("Installing update")
-FINISHED = _("Installation finished")
 PENDING = _("Update available")
 CHECKING = _("Checking for updates")
-CANCELLED = _("Cancelled update")
 INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
@@ -97,6 +95,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         Status string.
     latest_release: str
         Latest release version detected.
+    """
+
+    sig_exception_occurred = Signal(dict)
+    """
+    Pass untracked exceptions from workers to error reporter.
     """
 
     sig_install_on_close = Signal(bool)
@@ -170,6 +173,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         self.update_thread = QThread(None)
         self.update_worker = WorkerUpdate(self.get_conf('check_stable_only'))
+        self.update_worker.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
         self.update_worker.sig_ready.connect(self._process_check_update)
         self.update_worker.sig_ready.connect(self.update_thread.quit)
         self.update_worker.sig_ready.connect(
@@ -322,6 +328,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.progress_dialog.cancel.clicked.connect(self._cancel_download)
 
         self.download_thread = QThread(None)
+        self.download_worker.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
         self.download_worker.sig_ready.connect(self._confirm_install)
         self.download_worker.sig_ready.connect(self.download_thread.quit)
         self.download_worker.sig_ready.connect(
@@ -406,11 +415,14 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """Install from downloaded installer or update through conda."""
 
         # Install script
-        script = osp.abspath(__file__ + '/../../scripts/install.' +
-                             ('bat' if os.name == 'nt' else 'sh'))
+        # Copy to temp location to be safe
+        script_name = 'install.' + ('bat' if os.name == 'nt' else 'sh')
+        script_path = osp.abspath(__file__ + '/../../scripts/' + script_name)
+        tmpscript_path = osp.join(get_temp_dir(), script_name)
+        shutil.copy2(script_path, tmpscript_path)
 
         # Sub command
-        sub_cmd = [script, '-p', sys.prefix]
+        sub_cmd = [tmpscript_path, '-p', sys.prefix]
         if osp.exists(self.installer_path):
             # Run downloaded installer
             sub_cmd.extend(['-i', self.installer_path])
