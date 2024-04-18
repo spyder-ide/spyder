@@ -23,6 +23,8 @@ echo IMPORTANT: Do not close this window until it has finished
 echo =========================================================
 echo.
 
+call :wait_for_spyder_quit
+
 IF not "%conda%"=="" IF not "%spy_ver%"=="" (
     call :update_subroutine
     call :launch_spyder
@@ -39,8 +41,6 @@ exit %ERRORLEVEL%
 
 :install_subroutine
     echo Installing Spyder from: %install_exe%
-
-    call :wait_for_spyder_quit
 
     :: Uninstall Spyder
     for %%I in ("%prefix%\..\..") do set "conda_root=%%~fI"
@@ -69,16 +69,14 @@ exit %ERRORLEVEL%
 :update_subroutine
     echo Updating Spyder
 
-    call :wait_for_spyder_quit
-
     %conda% install -p %prefix% -y spyder=%spy_ver%
-    set /P CONT=Press any key to exit...
+    set /P =Press return to exit...
     goto :EOF
 
 :wait_for_spyder_quit
     echo Waiting for Spyder to quit...
     :loop
-    tasklist /fi "ImageName eq spyder.exe" /fo csv 2>NUL | find /i "spyder.exe">NUL
+    tasklist /v /fi "ImageName eq pythonw.exe" /fo csv 2>NUL | find "Spyder">NUL
     IF "%ERRORLEVEL%"=="0" (
         timeout /t 1 /nobreak > nul
         goto loop
@@ -87,10 +85,11 @@ exit %ERRORLEVEL%
     goto :EOF
 
 :launch_spyder
-    echo %prefix% | findstr /b "%USERPROFILE%" > nul && (
-        set shortcut_root=%APPDATA%
-    ) || (
-        set shortcut_root=%ALLUSERSPROFILE%
-    )
-    start "" /B "%shortcut_root%\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+    for %%C in ("%conda%") do set scripts=%%~dpC
+    set pythonexe=%scripts%..\python.exe
+    set menuinst=%scripts%menuinst_cli.py
+    if exist "%prefix%\.nonadmin" (set mode=user) else set mode=system
+    for /f "delims=" %%s in ('%pythonexe% %menuinst% shortcut --mode=%mode%') do set "shortcut_path=%%~s"
+
+    start "" /B "%shortcut_path%"
     goto :EOF
