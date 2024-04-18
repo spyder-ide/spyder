@@ -109,8 +109,8 @@ class AsyncDispatcher:
         cls.__running_loops[loop_id] = loop
         return loop
 
-    @atexit.register
     @staticmethod
+    @atexit.register
     def close():
         """Close the thread pool."""
         if AsyncDispatcher.__closed:

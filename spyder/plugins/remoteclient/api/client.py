@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import logging
 import signal
@@ -79,6 +80,12 @@ class SpyderRemoteClient:
             return None
         except asyncssh.TimeoutError:
             self._logger.error("Getting server pid timed out")
+            return None
+        except asyncssh.misc.ChannelOpenError:
+            self._logger.error(
+                "The connection is closed, so it's not possible to get the "
+                "server pid"
+            )
             return None
 
         try:
@@ -424,6 +431,8 @@ class SpyderRemoteClient:
             self._logger.error("Cannot launch kernel, remote server is not running")
             return
 
+        # This is necessary to avoid an error when the server has not started before
+        await asyncio.sleep(1)
         kernel_connection_info = await self.start_new_kernel()
 
         retries = 0
