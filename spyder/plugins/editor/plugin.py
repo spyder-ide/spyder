@@ -178,12 +178,6 @@ class Editor(SpyderDockablePlugin):
     def on_initialize(self):
         widget = self.get_widget()
 
-        # TODO: Move these connections to the `on_<>_available` of each plugin?
-        # ---- Completions related signals
-        widget.sig_after_configuration_update_requested.connect(
-            self._after_configuration_update
-        )
-
         # ---- Help related signals
         widget.sig_help_requested.connect(self.sig_help_requested)
 
@@ -757,6 +751,9 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         completions = self.get_plugin(Plugins.Completions)
 
+        widget.sig_after_configuration_update_requested.connect(
+            self._after_configuration_update
+        )
         self.sig_file_opened_closed_or_updated.connect(
             completions.file_opened_closed_or_updated
         )
@@ -772,6 +769,10 @@ class Editor(SpyderDockablePlugin):
     def on_completions_teardown(self):
         widget = self.get_widget()
         completions = self.get_plugin(Plugins.Completions)
+
+        widget.sig_after_configuration_update_requested.disconnect(
+            self._after_configuration_update
+        )
         self.sig_file_opened_closed_or_updated.disconnect(
             completions.file_opened_closed_or_updated
         )
