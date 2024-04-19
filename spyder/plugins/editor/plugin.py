@@ -761,7 +761,6 @@ class Editor(SpyderDockablePlugin):
         completions.sig_language_completions_available.connect(
             widget.register_completion_capabilities)
         completions.sig_open_file.connect(widget.load)
-        completions.sig_editor_rpc.connect(widget._rpc_call)
         completions.sig_stop_completions.connect(
             widget.stop_completion_services)
 
@@ -780,8 +779,6 @@ class Editor(SpyderDockablePlugin):
         completions.sig_language_completions_available.disconnect(
             widget.register_completion_capabilities)
         completions.sig_open_file.disconnect(widget.load)
-        # TODO: Remove this signal (`sig_editor_rcp`)
-        completions.sig_editor_rpc.disconnect(widget._rpc_call)
         completions.sig_stop_completions.disconnect(
             widget.stop_completion_services)
 

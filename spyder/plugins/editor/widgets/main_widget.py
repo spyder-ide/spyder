@@ -1215,11 +1215,6 @@ class EditorMainWidget(PluginMainWidget):
             language, request, params
         )
 
-    @Slot(str, tuple, dict)
-    def _rpc_call(self, method, args, kwargs):
-        meth = getattr(self, method)
-        meth(*args, **kwargs)
-
     def refresh(self):
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
