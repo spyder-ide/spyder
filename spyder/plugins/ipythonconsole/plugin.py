@@ -669,7 +669,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
 
     def create_client_for_kernel(self, connection_file, hostname=None,
-                                 sshkey=None, password=None):
+                                 sshkey=None, password=None, server_id=None):
         """
         Create a client connected to an existing kernel.
 
@@ -687,13 +687,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         password: str, optional
             Password to authenticate to the remote machine where the kernel is
             running.
+        server_id: str, optional
+            The remote server id to which this client is connected to.
 
         Returns
         -------
-        None.
+        client: ClientWidget
+            The created client.
         """
-        self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password)
+        return self.get_widget().create_client_for_kernel(
+            connection_file, hostname, sshkey, password, server_id)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""

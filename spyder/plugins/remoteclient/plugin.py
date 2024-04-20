@@ -63,6 +63,8 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_lost = Signal(str)
     sig_connection_status_changed = Signal(dict)
 
+    _sig_kernel_started = Signal(object, dict)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -90,10 +92,14 @@ class RemoteClient(SpyderPluginV2):
 
         container.sig_start_server_requested.connect(self.start_remote_server)
         container.sig_stop_server_requested.connect(self.stop_remote_server)
+        container.sig_create_ipyclient_requested.connect(
+            self.create_ipyclient_for_server
+        )
 
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
         )
+        self._sig_kernel_started.connect(container.connect_kernel_to_ipyclient)
 
     def on_first_registration(self):
         pass
@@ -235,6 +241,38 @@ class RemoteClient(SpyderPluginV2):
         """Get configured remote servers ids."""
         return self.get_conf(self.CONF_SECTION_SERVERS, {}).keys()
 
+    @Slot(str)
+    def create_ipyclient_for_server(self, config_id):
+        """Create a new IPython console client for a server."""
+        auth_method = self.get_conf(f"{config_id}/auth_method")
+        hostname = self.get_conf(f"{config_id}/{auth_method}/name")
+
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyclient = ipyconsole.create_client_for_kernel(
+            # The connection file will be supplied when connecting a remote
+            # kernel to this client
+            connection_file="",
+            # We use the server name as hostname because for clients it's the
+            # attribute used by the IPython console to set their tab name.
+            hostname=hostname,
+            # These values are not necessary at this point.
+            sshkey=None,
+            password=None,
+            # We save the server id in the client to perform on it operations
+            # related to this plugin.
+            server_id=config_id,
+        )
+
+        # IMPORTANT NOTE: We use a signal here instead of calling directly
+        # container.connect_kernel_to_ipyclient because doing that generates
+        # segfaults and odd issues (e.g. the Variable Explorer not working).
+        future = self._start_new_kernel(config_id)
+        future.add_done_callback(
+            lambda future: self._sig_kernel_started.emit(
+                ipyclient, future.result()
+            )
+        )
+
     # ---- Private API
     # -------------------------------------------------------------------------
     # --- Remote Server Kernel Methods
@@ -265,14 +303,14 @@ class RemoteClient(SpyderPluginV2):
             delete_kernel = await client.terminate_kernel(kernel_id)
             return delete_kernel
 
-    @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def start_new_kernel(self, config_id):
+    async def _start_new_kernel(self, config_id):
         """Start new kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            kernel_info = await client.start_new_kernel_ensure_server()
-            return kernel_info
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
+        return await client.start_new_kernel_ensure_server()
 
     @Slot(str)
     @AsyncDispatcher.dispatch()

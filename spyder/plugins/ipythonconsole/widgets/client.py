@@ -89,18 +89,23 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***', ]
 
-    def __init__(self, parent, id_,
-                 config_options,
-                 additional_options,
-                 interpreter_versions,
-                 menu_actions=None,
-                 given_name=None,
-                 give_focus=True,
-                 options_button=None,
-                 handlers=None,
-                 initial_cwd=None,
-                 forcing_custom_interpreter=False,
-                 special_kernel=None):
+    def __init__(
+        self,
+        parent,
+        id_,
+        config_options,
+        additional_options,
+        interpreter_versions,
+        menu_actions=None,
+        given_name=None,
+        give_focus=True,
+        options_button=None,
+        handlers=None,
+        initial_cwd=None,
+        forcing_custom_interpreter=False,
+        special_kernel=None,
+        server_id=None,
+    ):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
@@ -111,6 +116,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.given_name = given_name
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
+        self.server_id = server_id
 
         # --- Other attrs
         self.kernel_handler = None
@@ -333,7 +339,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_fault.connect(self.print_fault)
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
-        self._show_loading_page()
+
+        if self.server_id:
+            self._hide_loading_page()
+        else:
+            self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler, first_connect)

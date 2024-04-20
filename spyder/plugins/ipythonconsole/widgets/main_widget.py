@@ -1580,7 +1580,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password):
+                                 password, server_id=None):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1625,7 +1625,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             interpreter_versions=self.interpreter_versions(),
-            handlers=self.registered_spyder_kernel_handlers
+            handlers=self.registered_spyder_kernel_handlers,
+            server_id=server_id,
         )
 
         # add hostname for get_name
@@ -1640,19 +1641,27 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
 
-        try:
-            # Get new client for kernel
-            if master_client is not None:
-                kernel_handler = master_client.kernel_handler.copy()
-            else:
-                kernel_handler = KernelHandler.from_connection_file(
-                    connection_file, hostname, sshkey, password)
-        except Exception as e:
-            client.show_kernel_error(e)
-            return
+        if server_id:
+            # This is a client created by the RemoteClient plugin. So, we only
+            # create the client and show it as loading because the kernel
+            # connection part will be done by that plugin.
+            client._show_loading_page()
+        else:
+            try:
+                # Get new client for kernel
+                if master_client is not None:
+                    kernel_handler = master_client.kernel_handler.copy()
+                else:
+                    kernel_handler = KernelHandler.from_connection_file(
+                        connection_file, hostname, sshkey, password)
+            except Exception as e:
+                client.show_kernel_error(e)
+                return
 
-        # Connect kernel
-        client.connect_kernel(kernel_handler)
+            # Connect kernel
+            client.connect_kernel(kernel_handler)
+
+        return client
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
