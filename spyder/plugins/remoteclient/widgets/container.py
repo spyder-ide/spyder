@@ -24,6 +24,7 @@ from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectiondialog import (
     ConnectionDialog,
 )
+from spyder.utils.workers import WorkerManager
 
 
 class RemoteClientContainer(PluginMainContainer):
@@ -85,8 +86,14 @@ class RemoteClientContainer(PluginMainContainer):
             self._on_connection_status_changed
         )
 
+        # Worker manager to open ssh tunnels in threads
+        self._worker_manager = WorkerManager(max_threads=5)
+
     def update_actions(self):
         pass
+
+    def on_close(self):
+        self._worker_manager.terminate_all()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -124,8 +131,11 @@ class RemoteClientContainer(PluginMainContainer):
                 section=RemoteConsolesMenuSections.ConsolesSection
             )
 
-    def connect_kernel_to_ipyclient(self, ipyclient, kernel_info):
-        """Connect an IPython console client to a remote kernel."""
+    def on_kernel_started(self, ipyclient, kernel_info):
+        """
+        Actions to take when a remote kernel was started for an IPython console
+        client.
+        """
         config_id = ipyclient.server_id
 
         # Get authentication method
@@ -157,17 +167,25 @@ class RemoteClientContainer(PluginMainContainer):
         with open(connection_file, "w") as f:
             json.dump(kernel_info["connection_info"], f)
 
-        # Create KernelHandler
-        try:
-            kernel_handler = KernelHandler.from_connection_file(
-                connection_file, hostname, sshkey, password
-            )
-        except Exception as e:
-            ipyclient.show_kernel_error(e)
-            return
+        # Open the tunnel in a worker to avoid blocking the UI
+        worker = self._worker_manager.create_python_worker(
+            KernelHandler.tunnel_to_kernel,
+            kernel_info["connection_info"],
+            hostname,
+            sshkey,
+            password,
+        )
 
-        # Connect to the kernel
-        ipyclient.connect_kernel(kernel_handler)
+        # Save variables necessary to make the connection in the worker
+        worker.ipyclient = ipyclient
+        worker.connection_file = connection_file
+        worker.hostname = hostname
+        worker.sshkey = sshkey
+        worker.password = password
+
+        # Start worker
+        worker.sig_finished.connect(self._finish_kernel_connection)
+        worker.start()
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -197,3 +215,22 @@ class RemoteClientContainer(PluginMainContainer):
         # the connection dialog when it's closed and opened again.
         self.set_conf(f"{host_id}/status", status)
         self.set_conf(f"{host_id}/status_message", message)
+
+    def _finish_kernel_connection(self, worker, output, error):
+        """Finish connecting a remote kernel to an IPython console client."""
+        # Handle errors
+        if error:
+            worker.ipyclient.show_kernel_error(error)
+            return
+
+        # Create KernelHandler
+        kernel_handler = KernelHandler.from_connection_file(
+            worker.connection_file,
+            worker.hostname,
+            worker.sshkey,
+            worker.password,
+            kernel_ports=output,
+        )
+
+        # Connect client to the kernel
+        worker.ipyclient.connect_kernel(kernel_handler)

@@ -418,7 +418,12 @@ class KernelHandler(QObject):
 
     @classmethod
     def from_connection_file(
-        cls, connection_file, hostname=None, sshkey=None, password=None
+        cls,
+        connection_file,
+        hostname=None,
+        sshkey=None,
+        password=None,
+        kernel_ports=None,
     ):
         """Create kernel for given connection file."""
         return cls(
@@ -430,12 +435,15 @@ class KernelHandler(QObject):
                 connection_file,
                 hostname,
                 sshkey,
-                password
+                password,
+                kernel_ports=kernel_ports
             )
         )
 
     @classmethod
-    def init_kernel_client(cls, connection_file, hostname, sshkey, password):
+    def init_kernel_client(
+        cls, connection_file, hostname, sshkey, password, kernel_ports=None
+    ):
         """Create kernel client."""
         kernel_client = SpyderKernelClient(
             connection_file=connection_file
@@ -471,8 +479,12 @@ class KernelHandler(QObject):
                     kernel_client.stdin_port,
                     kernel_client.hb_port,
                     kernel_client.control_port,
-                ) = cls.tunnel_to_kernel(
-                    connection_info, hostname, sshkey, password
+                ) = (
+                    kernel_ports
+                    if kernel_ports is not None
+                    else cls.tunnel_to_kernel(
+                        connection_info, hostname, sshkey, password
+                    )
                 )
             except Exception as e:
                 raise RuntimeError(

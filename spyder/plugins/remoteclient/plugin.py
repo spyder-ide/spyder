@@ -99,7 +99,7 @@ class RemoteClient(SpyderPluginV2):
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
         )
-        self._sig_kernel_started.connect(container.connect_kernel_to_ipyclient)
+        self._sig_kernel_started.connect(container.on_kernel_started)
 
     def on_first_registration(self):
         pass
@@ -264,8 +264,8 @@ class RemoteClient(SpyderPluginV2):
         )
 
         # IMPORTANT NOTE: We use a signal here instead of calling directly
-        # container.connect_kernel_to_ipyclient because doing that generates
-        # segfaults and odd issues (e.g. the Variable Explorer not working).
+        # container.on_kernel_started because doing that generates segfaults
+        # and odd issues (e.g. the Variable Explorer not working).
         future = self._start_new_kernel(config_id)
         future.add_done_callback(
             lambda future: self._sig_kernel_started.emit(
