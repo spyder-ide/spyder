@@ -1296,28 +1296,6 @@ class EditorMainWidget(PluginMainWidget):
                     action_enabled = editor_focus and not editor.isReadOnly()
                 search_menu_action.setEnabled(action_enabled)
 
-    def update_source_menu(self, options, **kwargs):
-        option_names = [opt[-1] if isinstance(opt, tuple) else opt
-                        for opt in options]
-        named_options = dict(zip(option_names, options))
-        for name, action in self.checkable_actions.items():
-            if name in named_options:
-                opt = named_options[name]
-                section = 'editor'
-                completions_options = ['pycodestyle', 'pydocstyle']
-                if name in completions_options:
-                    section = 'completions'
-                if name == 'underline_errors':
-                    opt = name
-
-                state = self.get_conf(opt, section=section)
-
-                # Avoid triggering the action when this action changes state
-                # See: spyder-ide/spyder#9915
-                action.blockSignals(True)
-                action.setChecked(state)
-                action.blockSignals(False)
-
     def update_font(self, font):
         """Update font from Preferences"""
         self._font = font
@@ -3265,22 +3243,37 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Options
     # -------------------------------------------------------------------------
-    @on_conf_change(
-        option=[
-            'blank_spaces',
-            'scroll_past_end',
-            'indent_guides',
-            'code_folding',
-            'show_class_func_dropdown'
-        ]
-    )
-    def on_checkable_action_change(self, option, value):
+    def _on_checkable_action_change(self, option, value):
         action = self.checkable_actions[option]
         # Avoid triggering the action when it changes state
         action.blockSignals(True)
         action.setChecked(value)
         action.blockSignals(False)
         # See: spyder-ide/spyder#9915
+
+    @on_conf_change(
+        option=[
+            ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+            ('provider_configuration', 'lsp', 'values', 'pydocstyle')
+        ],
+        section='completions'
+    )
+    def on_completions_checkable_action_change(self, option, value):
+        option = option[-1]  # Get 'pycodestyle' or 'pydocstyle'
+        self._on_checkable_action_change(option, value)
+
+    @on_conf_change(
+        option=[
+            'blank_spaces',
+            'scroll_past_end',
+            'indent_guides',
+            'code_folding',
+            'show_class_func_dropdown',
+            'underline_errors'
+        ]
+    )
+    def on_editor_checkable_action_change(self, option, value):
+        self._on_checkable_action_change(option, value)
 
     @on_conf_change(
         option=[
