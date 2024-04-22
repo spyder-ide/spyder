@@ -46,8 +46,8 @@ from spyder.widgets.sidebardialog import SidebarDialog
 # =============================================================================
 # ---- Auxiliary widgets
 # =============================================================================
-class MissingInfoLabel(QLabel):
-    """Label to report to users that a field info is missing."""
+class ValidationLabel(QLabel):
+    """Label to report to users that info failed to be validated."""
 
     def __init__(self, parent):
         text = _(
@@ -64,7 +64,7 @@ class MissingInfoLabel(QLabel):
         # Set style
         css = qstylizer.style.StyleSheet()
         css.QLabel.setValues(
-            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
             # Top margin is set by the layout
             marginTop="0px",
             marginRight=f"{9 * AppStyle.MarginSize}px",
@@ -105,7 +105,7 @@ class BaseConnectionPage(SpyderConfigPage):
             )
 
         self._widgets_for_validation = {}
-        self._missing_info_labels = {}
+        self._validation_labels = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -129,10 +129,10 @@ class BaseConnectionPage(SpyderConfigPage):
         # Get widgets we're going to interact with
         auth_method = self.auth_method(from_gui=True)
         widgets = self._widgets_for_validation[auth_method]
-        missing_info_label = self._missing_info_labels[auth_method]
+        validate_label = self._validation_labels[auth_method]
 
         # Hide label in case the validation pass
-        missing_info_label.setVisible(False)
+        validate_label.setVisible(False)
 
         # Validate that the required fields are not empty
         validation = True
@@ -145,7 +145,7 @@ class BaseConnectionPage(SpyderConfigPage):
                 widget.status_action.setVisible(False)
 
         if not validation:
-            missing_info_label.setVisible(True)
+            validate_label.setVisible(True)
 
         return validation
 
@@ -281,16 +281,16 @@ class BaseConnectionPage(SpyderConfigPage):
             password=True
         )
 
-        missing_info_label = MissingInfoLabel(self)
+        validation_label = ValidationLabel(self)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.Password].append(
             password
         )
 
-        self._missing_info_labels[
+        self._validation_labels[
             AuthenticationMethod.Password
-        ] = missing_info_label
+        ] = validation_label
 
         # Layout
         password_layout = QVBoxLayout()
@@ -304,7 +304,7 @@ class BaseConnectionPage(SpyderConfigPage):
         password_layout.addSpacing(5 * AppStyle.MarginSize)
         password_layout.addWidget(password)
         password_layout.addSpacing(7 * AppStyle.MarginSize)
-        password_layout.addWidget(missing_info_label)
+        password_layout.addWidget(validation_label)
         password_layout.addStretch()
 
         password_subpage = QWidget(self)
@@ -336,16 +336,16 @@ class BaseConnectionPage(SpyderConfigPage):
             password=True
         )
 
-        missing_info_label = MissingInfoLabel(self)
+        validation_label = ValidationLabel(self)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.KeyFile].append(
             keyfile
         )
 
-        self._missing_info_labels[
+        self._validation_labels[
             AuthenticationMethod.KeyFile
-        ] = missing_info_label
+        ] = validation_label
 
         keyfile_layout = QVBoxLayout()
         keyfile_layout.setContentsMargins(0, 0, 0, 0)
@@ -360,7 +360,7 @@ class BaseConnectionPage(SpyderConfigPage):
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
         keyfile_layout.addWidget(passpharse)
         keyfile_layout.addSpacing(7 * AppStyle.MarginSize)
-        keyfile_layout.addWidget(missing_info_label)
+        keyfile_layout.addWidget(validation_label)
         keyfile_layout.addStretch()
 
         keyfile_subpage = QWidget(self)
@@ -377,22 +377,22 @@ class BaseConnectionPage(SpyderConfigPage):
             status_icon=ima.icon("error"),
         )
 
-        missing_info_label = MissingInfoLabel(self)
+        validation_label = ValidationLabel(self)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.ConfigFile] = [
             configfile
         ]
 
-        self._missing_info_labels[
+        self._validation_labels[
             AuthenticationMethod.ConfigFile
-        ] = missing_info_label
+        ] = validation_label
 
         configfile_layout = QVBoxLayout()
         configfile_layout.setContentsMargins(0, 0, 0, 0)
         configfile_layout.addWidget(configfile)
         configfile_layout.addSpacing(7 * AppStyle.MarginSize)
-        configfile_layout.addWidget(missing_info_label)
+        configfile_layout.addWidget(validation_label)
         configfile_layout.addStretch()
 
         configfile_widget = QWidget(self)
