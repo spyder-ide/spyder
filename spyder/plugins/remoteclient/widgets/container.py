@@ -220,7 +220,7 @@ class RemoteClientContainer(PluginMainContainer):
         """Finish connecting a remote kernel to an IPython console client."""
         # Handle errors
         if error:
-            worker.ipyclient.show_kernel_error(error)
+            worker.ipyclient.show_kernel_error(str(error))
             return
 
         # Create KernelHandler

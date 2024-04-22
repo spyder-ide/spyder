@@ -370,8 +370,21 @@ class KernelHandler(QObject):
             connection_info["control_port"],
         )
         remote_ip = connection_info["ip"]
+
         for lp, rp in zip(lports, rports):
-            ssh_tunnel(lp, rp, hostname, remote_ip, sshkey, password, timeout)
+            try:
+                ssh_tunnel(
+                    lp, rp, hostname, remote_ip, sshkey, password, timeout
+                )
+            except Exception:
+                raise RuntimeError(
+                    _(
+                        "It was not possible to open an SSH tunnel for the "
+                        "remote kernel. Please check your credentials and the "
+                        "server connection status."
+                    )
+                )
+
         return tuple(lports)
 
     @classmethod
@@ -463,34 +476,29 @@ class KernelHandler(QObject):
             )
 
         if hostname is not None:
-            try:
-                connection_info = dict(
-                    ip=kernel_client.ip,
-                    shell_port=kernel_client.shell_port,
-                    iopub_port=kernel_client.iopub_port,
-                    stdin_port=kernel_client.stdin_port,
-                    hb_port=kernel_client.hb_port,
-                    control_port=kernel_client.control_port,
-                )
+            connection_info = dict(
+                ip=kernel_client.ip,
+                shell_port=kernel_client.shell_port,
+                iopub_port=kernel_client.iopub_port,
+                stdin_port=kernel_client.stdin_port,
+                hb_port=kernel_client.hb_port,
+                control_port=kernel_client.control_port,
+            )
 
-                (
-                    kernel_client.shell_port,
-                    kernel_client.iopub_port,
-                    kernel_client.stdin_port,
-                    kernel_client.hb_port,
-                    kernel_client.control_port,
-                ) = (
-                    kernel_ports
-                    if kernel_ports is not None
-                    else cls.tunnel_to_kernel(
-                        connection_info, hostname, sshkey, password
-                    )
+            (
+                kernel_client.shell_port,
+                kernel_client.iopub_port,
+                kernel_client.stdin_port,
+                kernel_client.hb_port,
+                kernel_client.control_port,
+            ) = (
+                kernel_ports
+                if kernel_ports is not None
+                else cls.tunnel_to_kernel(
+                    connection_info, hostname, sshkey, password
                 )
-            except Exception as e:
-                raise RuntimeError(
-                    _("Could not open ssh tunnel. The error was:\n\n")
-                    + str(e)
-                )
+            )
+
         return kernel_client
 
     def close(self, shutdown_kernel=True, now=False):
