@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import annotations
+import re
 from typing import TypedDict
 import uuid
 
@@ -49,6 +50,7 @@ from spyder.widgets.sidebardialog import SidebarDialog
 class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
+    invalid_address: bool | None
 
 
 # =============================================================================
@@ -100,13 +102,20 @@ class ValidationLabel(QLabel):
                 + suffix
             )
 
-        if reasons.get("missing_info"):
+        if reasons.get("invalid_address"):
             text += (
                 prefix
                 + _(
-                    "You need to fill the required fields on this page in "
-                    "order to save your connection."
+                    "The address you provided is not a valid IP or domain "
+                    "name."
                 )
+                + suffix
+            )
+
+        if reasons.get("missing_info"):
+            text += (
+                prefix
+                + _("There are missing fields on this page.")
             )
 
         self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
@@ -138,6 +147,7 @@ class BaseConnectionPage(SpyderConfigPage):
         self._widgets_for_validation = {}
         self._validation_labels = {}
         self._name_widgets = {}
+        self._address_widgets = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -187,6 +197,14 @@ class BaseConnectionPage(SpyderConfigPage):
                     if current_name in names:
                         reasons["repeated_name"] = True
                         widget.status_action.setVisible(True)
+            elif widget == self._address_widgets.get(auth_method):
+                # Validate address
+                widget.status_action.setVisible(False)
+                address = widget.textbox.text()
+
+                if not self._validate_address(address):
+                    reasons["invalid_address"] = True
+                    widget.status_action.setVisible(True)
             else:
                 widget.status_action.setVisible(False)
 
@@ -259,7 +277,9 @@ class BaseConnectionPage(SpyderConfigPage):
         address = self.create_lineedit(
             text=_("Remote address *"),
             option=f"{self.host_id}/{auth_method}/address",
-            tip=_("This is the IP address or URL of your remote machine"),
+            tip=_(
+                "This is the IP address or domain name of your remote machine"
+            ),
             status_icon=ima.icon("error"),
         )
 
@@ -284,6 +304,7 @@ class BaseConnectionPage(SpyderConfigPage):
             username,
         ]
         self._name_widgets[f"{auth_method}"] = name
+        self._address_widgets[f"{auth_method}"] = address
 
         # Set 22 as the default port for new conenctions
         if not self.LOAD_FROM_CONFIG:
@@ -459,6 +480,27 @@ class BaseConnectionPage(SpyderConfigPage):
         configfile_widget.setLayout(configfile_layout)
 
         return configfile_widget
+
+    def _validate_address(self, address):
+        """Validate if address introduced by users is correct."""
+        # Regex pattern for a valid domain name (simplified version)
+        domain_pattern = (
+            r'^([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.){1,}[a-zA-Z]{2,}$'
+        )
+
+        # Regex pattern for a valid IPv4 address
+        ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+
+        # Regex pattern for a valid IPv6 address (simplified version)
+        ipv6_pattern = r'^([\da-fA-F]{1,4}:){7}[\da-fA-F]{1,4}$'
+
+        # Combined pattern to check all three formats
+        combined_pattern = (
+            f'({domain_pattern})|({ipv4_pattern})|({ipv6_pattern})'
+        )
+
+        address_re = re.compile(combined_pattern)
+        return True if address_re.match(address) else False
 
 
 class NewConnectionPage(BaseConnectionPage):
