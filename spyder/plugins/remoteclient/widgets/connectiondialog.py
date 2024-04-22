@@ -559,6 +559,10 @@ class ConnectionPage(BaseConnectionPage):
 
     MIN_HEIGHT = 620
 
+    def __init__(self, parent, host_id):
+        super().__init__(parent, host_id)
+        self.new_name = None
+
     # ---- SidebarPage API
     # -------------------------------------------------------------------------
     def get_name(self):
@@ -632,6 +636,18 @@ class ConnectionPage(BaseConnectionPage):
         if info["id"] == self.host_id:
             self.status = info["status"]
             self.status_widget.update_status(info)
+
+    def has_new_name(self):
+        """Check if users changed the connection name."""
+        current_auth_method = self.auth_method(from_gui=True)
+        current_name = self._name_widgets[current_auth_method].textbox.text()
+
+        if self.get_name() != current_name:
+            self.new_name = current_name
+            return True
+        else:
+            self.new_name = None
+            return False
 
 
 # =============================================================================
@@ -760,8 +776,18 @@ class ConnectionDialog(SidebarDialog):
             # Reset page in case users want to introduce another connection
             page.reset_page()
         else:
-            # Update connection info for the other pages.
+            # Update name in the dialog if it was changed by users. This needs
+            # to be done before calling save_to_conf so that we can compare the
+            # saved name with the current one.
+            if page.has_new_name():
+                self.get_item().setText(page.new_name)
+
+            # Update connection info
             page.save_to_conf()
+
+            # Mark page as not modified and disable save button
+            page.set_modified(False)
+            self._button_save_connection.setEnabled(False)
 
     def _remove_connection_info(self):
         """

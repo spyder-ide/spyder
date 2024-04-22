@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-from typing import List, Optional, Type, Union
+from __future__ import annotations
+from typing import List, Type, Union
 
 # Third party imports
 import qstylizer.style
@@ -229,8 +230,16 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
 
-    def get_page(self, index=None) -> Optional[Union[QWidget, SidebarPage]]:
-        """Return page widget corresponding to `index`."""
+    def get_item(self, index: int | None = None) -> QListWidgetItem:
+        """Get item on the left panel corresponding to `index`."""
+        if index is None:
+            index = self.get_current_index()
+        return self.contents_widget.item(index)
+
+    def get_page(
+        self, index: int | None = None
+    ) -> Union[QWidget, SidebarPage] | None:
+        """Return page widget on the right panel corresponding to `index`."""
         if index is None:
             page = self.pages_widget.currentWidget()
         else:
@@ -288,7 +297,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Save separators to perform certain operations only on them
         self._separators.append(hline)
 
-    def add_page(self, page: SidebarPage, initialize: Optional[bool] = True):
+    def add_page(self, page: SidebarPage, initialize: bool = True):
         """Add page instance to the dialog."""
         if initialize:
             page.initialize()
