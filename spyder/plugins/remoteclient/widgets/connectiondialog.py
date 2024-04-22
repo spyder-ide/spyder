@@ -7,6 +7,8 @@
 """Dialog to handle remote connections."""
 
 # Standard library imports
+from __future__ import annotations
+from typing import TypedDict
 import uuid
 
 # Third party imports
@@ -27,6 +29,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.utils import get_class_values
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
@@ -43,6 +46,11 @@ from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 
 
+class ValidationReasons(TypedDict):
+    repeated_name: bool | None
+    missing_info: bool | None
+
+
 # =============================================================================
 # ---- Auxiliary widgets
 # =============================================================================
@@ -50,15 +58,10 @@ class ValidationLabel(QLabel):
     """Label to report to users that info failed to be validated."""
 
     def __init__(self, parent):
-        text = _(
-            "You need to fill the required fields on this page in order to "
-            "save your connection"
-        )
-        super().__init__(text, parent)
+        super().__init__("", parent)
 
         # Set main attributes
         self.setWordWrap(True)
-        self.setAlignment(Qt.AlignCenter)
         self.setVisible(False)
 
         # Set style
@@ -80,6 +83,34 @@ class ValidationLabel(QLabel):
         )
 
         self.setStyleSheet(css.toString())
+
+    def set_text(self, reasons: ValidationReasons):
+        n_reasons = list(reasons.values()).count(True)
+        prefix = "- " if n_reasons > 1 else ""
+        suffix = "<br>" if n_reasons > 1 else ""
+
+        text = ""
+        if reasons.get("repeated_name"):
+            text += (
+                prefix
+                + _(
+                    "The name you selected is already used by another "
+                    "connection."
+                )
+                + suffix
+            )
+
+        if reasons.get("missing_info"):
+            text += (
+                prefix
+                + _(
+                    "You need to fill the required fields on this page in "
+                    "order to save your connection."
+                )
+            )
+
+        self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
+        self.setText(text)
 
 
 # =============================================================================
@@ -106,6 +137,7 @@ class BaseConnectionPage(SpyderConfigPage):
 
         self._widgets_for_validation = {}
         self._validation_labels = {}
+        self._name_widgets = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -134,20 +166,35 @@ class BaseConnectionPage(SpyderConfigPage):
         # Hide label in case the validation pass
         validate_label.setVisible(False)
 
-        # Validate that the required fields are not empty
-        validation = True
+        reasons: ValidationReasons = {}
         for widget in widgets:
             if not widget.textbox.text():
+                # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
-                if validation:
-                    validation = False
+                reasons["missing_info"] = True
+            elif widget == self._name_widgets[auth_method]:
+                # Validate the server name is different from the ones already
+                # introduced
+                widget.status_action.setVisible(False)
+                current_name = widget.textbox.text()
+
+                servers = self.get_option("servers", default={})
+                for server in servers:
+                    names = [
+                        self.get_option(f"{server}/{method}/name")
+                        for method in get_class_values(AuthenticationMethod)
+                    ]
+                    if current_name in names:
+                        reasons["repeated_name"] = True
+                        widget.status_action.setVisible(True)
             else:
                 widget.status_action.setVisible(False)
 
-        if not validation:
+        if reasons:
+            validate_label.set_text(reasons)
             validate_label.setVisible(True)
 
-        return validation
+        return False if reasons else True
 
     def create_connection_info_widget(self):
         """
@@ -236,6 +283,7 @@ class BaseConnectionPage(SpyderConfigPage):
             address,
             username,
         ]
+        self._name_widgets[f"{auth_method}"] = name
 
         # Set 22 as the default port for new conenctions
         if not self.LOAD_FROM_CONFIG:
@@ -347,6 +395,7 @@ class BaseConnectionPage(SpyderConfigPage):
             AuthenticationMethod.KeyFile
         ] = validation_label
 
+        # Layout
         keyfile_layout = QVBoxLayout()
         keyfile_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -370,6 +419,13 @@ class BaseConnectionPage(SpyderConfigPage):
 
     def _create_configfile_subpage(self):
         # Widgets
+        name = self.create_lineedit(
+            text=_("Name *"),
+            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/name",
+            tip=_("Introduce a name to identify your connection"),
+            status_icon=ima.icon("error"),
+        )
+
         configfile = self.create_browsefile(
             text=_("Configuration file *"),
             option=f"{self.host_id}/configfile",
@@ -380,16 +436,20 @@ class BaseConnectionPage(SpyderConfigPage):
         validation_label = ValidationLabel(self)
 
         # Add widgets to their required dicts
+        self._name_widgets[AuthenticationMethod.ConfigFile] = name
         self._widgets_for_validation[AuthenticationMethod.ConfigFile] = [
-            configfile
+            name,
+            configfile,
         ]
-
         self._validation_labels[
             AuthenticationMethod.ConfigFile
         ] = validation_label
 
+        # Layout
         configfile_layout = QVBoxLayout()
         configfile_layout.setContentsMargins(0, 0, 0, 0)
+        configfile_layout.addWidget(name)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
         configfile_layout.addWidget(configfile)
         configfile_layout.addSpacing(7 * AppStyle.MarginSize)
         configfile_layout.addWidget(validation_label)
