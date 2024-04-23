@@ -205,6 +205,10 @@ def get_spyder_conda_channel():
     except Exception:
         return None, None
 
+    # Avoids iterating over non-dict objects
+    if 'error' in out:
+        return None, None
+
     for package_info in out:
         if package_info["name"] == 'spyder':
             channel = package_info["channel"]

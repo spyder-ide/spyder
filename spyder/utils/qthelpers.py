@@ -293,7 +293,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     return button
 
 
-def create_waitspinner(size=32, n=11, parent=None):
+def create_waitspinner(size=32, n=11, parent=None, name=None):
     """
     Create a wait spinner with the specified size built with n circling dots.
     """
@@ -313,6 +313,8 @@ def create_waitspinner(size=32, n=11, parent=None):
     spinner.setLineWidth(dot_size)
     spinner.setInnerRadius(inner_radius)
     spinner.setColor(SpyderPalette.COLOR_TEXT_1)
+
+    spinner.name = name
 
     return spinner
 
