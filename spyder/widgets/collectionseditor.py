@@ -1528,7 +1528,7 @@ class CollectionsEditorTableView(BaseTableView):
     def is_data_frame(self, key):
         """Return True if variable is a pandas dataframe"""
         data = self.source_model.get_data()
-        return isinstance(data[key], (pd.DataFrame))
+        return isinstance(data[key], pd.DataFrame)
 
     def is_array(self, key):
         """Return True if variable is a numpy array"""
