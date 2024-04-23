@@ -74,7 +74,7 @@ class RemoteClientContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-
+        # Widgets
         self.create_action(
             RemoteClientActions.ManageConnections,
             _('Manage remote connections...'),
@@ -82,6 +82,12 @@ class RemoteClientContainer(PluginMainContainer):
             triggered=self._show_connection_dialog,
         )
 
+        self._remote_consoles_menu = self.create_menu(
+            RemoteClientMenus.RemoteConsoles,
+            _("New console in remote server")
+        )
+
+        # Signals
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
@@ -97,20 +103,17 @@ class RemoteClientContainer(PluginMainContainer):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def create_remote_consoles_submenu(self):
+    def setup_remote_consoles_submenu(self, render=True):
         """Create the remote consoles submenu in the Consoles app one."""
-        remote_consoles_menu = self.create_menu(
-            RemoteClientMenus.RemoteConsoles,
-            _("New console in remote server")
-        )
+        self._remote_consoles_menu.clear_actions()
 
         self.add_item_to_menu(
             self.get_action(RemoteClientActions.ManageConnections),
-            menu=remote_consoles_menu,
+            menu=self._remote_consoles_menu,
             section=RemoteConsolesMenuSections.ManagerSection
         )
 
-        servers = self.get_conf("servers", {})
+        servers = self.get_conf("servers", default={})
         for config_id in servers:
             auth_method = self.get_conf(f"{config_id}/auth_method")
             name = self.get_conf(f"{config_id}/{auth_method}/name")
@@ -127,9 +130,13 @@ class RemoteClientContainer(PluginMainContainer):
             )
             self.add_item_to_menu(
                 action,
-                menu=remote_consoles_menu,
+                menu=self._remote_consoles_menu,
                 section=RemoteConsolesMenuSections.ConsolesSection
             )
+
+        # This is necessary to reposition the menu correctly when rebuilt
+        if render:
+            self._remote_consoles_menu.render()
 
     def on_kernel_started(self, ipyclient, kernel_info):
         """
@@ -197,6 +204,9 @@ class RemoteClientContainer(PluginMainContainer):
         )
         connection_dialog.sig_stop_server_requested.connect(
             self.sig_stop_server_requested
+        )
+        connection_dialog.sig_connections_changed.connect(
+            self.setup_remote_consoles_submenu
         )
 
         self.sig_connection_status_changed.connect(

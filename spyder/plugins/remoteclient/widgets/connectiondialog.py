@@ -666,6 +666,7 @@ class ConnectionDialog(SidebarDialog):
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
     sig_connection_status_changed = Signal(dict)
+    sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -775,6 +776,9 @@ class ConnectionDialog(SidebarDialog):
 
             # Reset page in case users want to introduce another connection
             page.reset_page()
+
+            # Inform container that a change in connections took place
+            self.sig_connections_changed.emit()
         else:
             # Update name in the dialog if it was changed by users. This needs
             # to be done before calling save_to_conf so that we can compare the
@@ -784,6 +788,12 @@ class ConnectionDialog(SidebarDialog):
 
             # Update connection info
             page.save_to_conf()
+
+            # After saving to our config system, we can inform the container
+            # that a change in connections took place.
+            if page.new_name is not None:
+                self.sig_connections_changed.emit()
+                page.new_name = None
 
             # Mark page as not modified and disable save button
             page.set_modified(False)
@@ -808,6 +818,9 @@ class ConnectionDialog(SidebarDialog):
             if reply == QMessageBox.Yes:
                 self.hide_page()
                 page.remove_config_options()
+
+                # Inform container that a change in connections took place
+                self.sig_connections_changed.emit()
 
     def _clear_settings(self):
         """Clear the setting introduced in the new connection page."""

@@ -339,7 +339,7 @@ class RemoteClient(SpyderPluginV2):
     def _add_remote_consoles_menu(self):
         """Add remote consoles submenu to the Consoles menu."""
         container = self.get_container()
-        container.create_remote_consoles_submenu()
+        container.setup_remote_consoles_submenu(render=False)
 
         menu = container.get_menu(RemoteClientMenus.RemoteConsoles)
         mainmenu = self.get_plugin(Plugins.MainMenu)
