@@ -993,8 +993,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             is_array = self.is_array(key) and self.get_len(key) != 0
             is_dataframe = self.is_data_frame(key) and self.get_len(key) != 0
             condition_plot = (
-                is_array and len(self.get_array_shape(key)) <= 2)
-            ) or is_dataframe
+                is_array and len(self.get_array_shape(key)) <= 2
+                ) or is_dataframe
             condition_hist = (is_array and self.get_array_ndim(key) == 1)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
