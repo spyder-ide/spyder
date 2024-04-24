@@ -30,6 +30,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import get_class_values
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
@@ -44,6 +45,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.config import SpyderConfigPage
+from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
 
 
@@ -125,7 +127,7 @@ class ValidationLabel(QLabel):
 # =============================================================================
 # ---- Pages
 # =============================================================================
-class BaseConnectionPage(SpyderConfigPage):
+class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
     NEW_CONNECTION = False
@@ -219,6 +221,39 @@ class BaseConnectionPage(SpyderConfigPage):
         Create widget that contains all other widgets to receive or display
         connection info.
         """
+        # Show intro text and tip for new connections
+        if self.NEW_CONNECTION:
+            # Widgets
+            intro_label = QLabel(
+                _("Configure SSH settings for connecting to remote hosts")
+            )
+            intro_tip_text = _(
+                "Spyder will use this connection to start remote kernels in "
+                "the IPython Console. This allows you to use Spyder locally "
+                "while running code remotely, such as on a cloud instance, "
+                "office workstation or high-performance cluster."
+            )
+            intro_tip = TipWidget(
+                tip_text=intro_tip_text,
+                icon=ima.icon('info_tip'),
+                hover_icon=ima.icon('info_tip_hover'),
+                size=AppStyle.ConfigPageIconSize + 2,
+                wrap_text=True,
+            )
+
+            # Increase font size to make it more relevant
+            font = self.get_font(SpyderFontType.Interface)
+            font.setPointSize(font.pointSize() + 1)
+            intro_label.setFont(font)
+
+            # Layout
+            intro_layout = QHBoxLayout()
+            intro_layout.setContentsMargins(0, 0, 0, 0)
+            intro_layout.setSpacing(0)
+            intro_layout.setAlignment(Qt.AlignCenter)
+            intro_layout.addWidget(intro_label)
+            intro_layout.addWidget(intro_tip)
+
         # Authentication methods
         methods = (
             (_('Password'), AuthenticationMethod.Password),
@@ -227,7 +262,7 @@ class BaseConnectionPage(SpyderConfigPage):
         )
 
         self._auth_methods = self.create_combobox(
-            _("Select your SSH authentication method:"),
+            _("Authentication method:"),
             methods,
             f"{self.host_id}/auth_method"
         )
@@ -253,8 +288,14 @@ class BaseConnectionPage(SpyderConfigPage):
 
         # Final layout
         layout = QVBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize, 0, 3 * AppStyle.MarginSize, 0
+        )
+        if self.NEW_CONNECTION:
+            layout.addLayout(intro_layout)
+            layout.addSpacing(8 * AppStyle.MarginSize)
         layout.addWidget(self._auth_methods)
-        layout.addSpacing(7 * AppStyle.MarginSize)
+        layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(subpages)
 
         connection_info_widget = QWidget(self)
