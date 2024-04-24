@@ -347,10 +347,11 @@ def test_get_environment(mocker):
                      return_value='')
 
     etalon = {
-        "nt": ["APPDATA", "PYTHONIOENCODING", "USERPROFILE"],
-        "posix": ["PYTHONIOENCODING"]}
+        "nt": ["APPDATA", "PYTHONIOENCODING", "PYTHONPATH", "USERPROFILE"],
+        "posix": ["PYTHONIOENCODING", "PYTHONPATH"]}
 
-    process_environment = Pylint.WIDGET_CLASS.get_environment()
+    process_environment = Pylint.WIDGET_CLASS.get_environment(
+        pythonpath_manager_values=["project_dir"])
 
     assert process_environment.keys() == etalon[os.name]
 
