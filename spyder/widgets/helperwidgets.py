@@ -12,6 +12,7 @@ Helper widgets.
 from __future__ import annotations
 import re
 import textwrap
+from typing import Callable
 
 # Third party imports
 import qtawesome as qta
@@ -846,6 +847,56 @@ class TipWidget(QLabel):
     def mouseReleaseEvent(self, event):
         """Show tooltip when the widget is clicked."""
         self.show_tip()
+
+
+class ValidationLineEdit(QLineEdit):
+    """Lineedit that validates its contents in focus out."""
+
+    sig_focus_out = Signal(str)
+
+    def __init__(
+        self,
+        validate_callback: Callable,
+        validate_reason: str,
+        text: str = "",
+        parent: QWidget | None = None,
+    ):
+        super().__init__(text, parent)
+
+        # Attributes
+        self._validate_callback = validate_callback
+        self._validate_reason = validate_reason
+        self._is_show = False
+
+        # Action to signal that text is not valid
+        self.error_action = QAction(self)
+        self.error_action.setIcon(ima.icon("error"))
+        self.addAction(self.error_action, QLineEdit.TrailingPosition)
+
+        # Signals
+        self.sig_focus_out.connect(self._validate)
+
+    def focusOutEvent(self, event):
+        if self.text():
+            self.sig_focus_out.emit(self.text())
+        else:
+            self.error_action.setVisible(False)
+        super().focusOutEvent(event)
+
+    def focusInEvent(self, event):
+        self.error_action.setVisible(False)
+        super().focusInEvent(event)
+
+    def showEvent(self, event):
+        if not self._is_show:
+            self.error_action.setVisible(False)
+            self._is_show = True
+        super().showEvent(event)
+
+    def _validate(self, text):
+        if not self._validate_callback(text):
+            self.error_action.setVisible(True)
+            self.error_action.setToolTip(self._validate_reason)
 
 
 def test_msgcheckbox():

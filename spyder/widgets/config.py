@@ -34,7 +34,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.colors import ColorLayout
-from spyder.widgets.helperwidgets import TipWidget
+from spyder.widgets.helperwidgets import TipWidget, ValidationLineEdit
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.widgets.sidebardialog import SidebarPage
 
@@ -566,13 +566,28 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
                         content_type=None, section=None, status_icon=None,
-                        password=False):
+                        password=False, validate_callback=None,
+                        validate_reason=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
 
         label = QLabel(text)
         label.setWordWrap(word_wrap)
-        edit = QLineEdit()
+
+        if validate_callback:
+            if not validate_reason:
+                raise RuntimeError(
+                    "You need to provide a validate_reason if you want to use "
+                    "a validate_callback"
+                )
+
+            edit = ValidationLineEdit(
+                validate_callback=validate_callback,
+                validate_reason=validate_reason,
+            )
+            status_action = edit.error_action
+        else:
+            edit = QLineEdit()
         edit.content_type = content_type
         if password:
             edit.setEchoMode(QLineEdit.Password)
@@ -626,7 +641,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         widget.textbox = edit
         if tip is not None:
             widget.help_label = help_label
-        if status_icon is not None:
+        if status_icon is not None or validate_callback is not None:
             widget.status_action = status_action
 
         widget.setLayout(layout)
