@@ -49,6 +49,9 @@ from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
 
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
@@ -183,27 +186,20 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             if not widget.textbox.text():
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
+                widget.status_action.setToolTip("")
                 reasons["missing_info"] = True
             elif widget == self._name_widgets[auth_method]:
                 # Validate the server name is different from the ones already
                 # introduced
                 widget.status_action.setVisible(False)
                 current_name = widget.textbox.text()
-
-                servers = self.get_option("servers", default={})
-                for server in servers:
-                    names = [
-                        self.get_option(f"{server}/{method}/name")
-                        for method in get_class_values(AuthenticationMethod)
-                    ]
-                    if current_name in names:
-                        reasons["repeated_name"] = True
-                        widget.status_action.setVisible(True)
+                if not self._validate_name(current_name):
+                    reasons["repeated_name"] = True
+                    widget.status_action.setVisible(True)
             elif widget == self._address_widgets.get(auth_method):
                 # Validate address
                 widget.status_action.setVisible(False)
                 address = widget.textbox.text()
-
                 if not self._validate_address(address):
                     reasons["invalid_address"] = True
                     widget.status_action.setVisible(True)
@@ -312,7 +308,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             text=_("Name *"),
             option=f"{self.host_id}/{auth_method}/name",
             tip=_("Introduce a name to identify your connection"),
-            status_icon=ima.icon("error"),
+            validate_callback=self._validate_name,
+            validate_reason=_("This connection name is already taken"),
         )
 
         address = self.create_lineedit(
@@ -321,7 +318,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             tip=_(
                 "This is the IP address or domain name of your remote machine"
             ),
-            status_icon=ima.icon("error"),
+            validate_callback=self._validate_address,
+            validate_reason=_("The address is not a valid IP or domain name"),
         )
 
         port = self.create_spinbox(
@@ -521,6 +519,24 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         configfile_widget.setLayout(configfile_layout)
 
         return configfile_widget
+
+    def _validate_name(self, name):
+        """Check connection name is not taken by a previous connection."""
+        servers = self.get_option("servers", default={})
+        for server in servers:
+            # Don't check repeated name with the same server
+            if server == self.host_id:
+                continue
+
+            names = [
+                self.get_option(f"{server}/{method}/name")
+                for method in get_class_values(AuthenticationMethod)
+            ]
+
+            if name in names:
+                return False
+
+        return True
 
     def _validate_address(self, address):
         """Validate if address introduced by users is correct."""
@@ -882,7 +898,7 @@ class ConnectionDialog(SidebarDialog):
         # _save_connection_info generates a new id fo that page at the end).
         host_id = page.host_id
 
-        if page.NEW_CONNECTION or self._button_save_connection.isEnabled():
+        if page.NEW_CONNECTION or page.is_modified:
             # Save connection info if necessary
             self._save_connection_info()
 
