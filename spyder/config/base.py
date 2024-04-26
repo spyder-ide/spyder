@@ -169,17 +169,44 @@ def get_home_dir():
     except Exception:
         path = ''
 
+    # Check for windows short form paths (e.g., 'C:\Users\BOB~1')
+    short_form_pattern = re.compile(r'[a-zA-Z]:\\[^\\]+~\d+')
+
     if osp.isdir(path):
         return path
     else:
-        # Get home from alternative locations
+        # Get home from USERPROFILE or HOME, and check TMP if necessary
         for env_var in ('HOME', 'USERPROFILE', 'TMP'):
             # os.environ.get() returns a raw byte string which needs to be
             # decoded with the codec that the OS is using to represent
             # environment variables.
             path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+
             if osp.isdir(path):
-                return path
+                # Should evaluate properly with os but warning user in case string path used elsewhere
+                if short_form_pattern.match(path):
+                    warnings.warn("User environment variable detected as short form string. This may result in unintended behavior")
+
+                # Check if the path needs to be quoted
+                if ' ' in path and not (path.startswith('"') and path.endswith('"')):
+                    path = f'"{path}"'
+
+                # Special handling for TMP to extract user root if applicable
+                if env_var == 'TMP':
+                    # Make drive letter agnostic and split after the username
+                    path_parts = path.split(os.sep)
+                    if 'Users' in path_parts:
+                        user_index = path_parts.index('Users') + 2  # Get index after the username
+                        user_root = os.sep.join(path_parts[:user_index])
+                        if osp.isdir(user_root):
+                            return user_root
+                        else:
+                            return path
+                    else:
+                        warnings.warn("User Profile not found. Defaulting to TMP directory. Please set your environement HOME variable")
+                        return path
+                else:
+                    return path
             else:
                 path = ''
 
