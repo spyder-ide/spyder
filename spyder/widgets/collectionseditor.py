@@ -1081,6 +1081,8 @@ class BaseTableView(QTableView, SpyderConfigurationAccessor):
     @Slot()
     def rename_item(self, new_name=None):
         """Rename item"""
+        if isinstance(new_name, bool):
+            new_name = None
         self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
