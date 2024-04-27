@@ -63,7 +63,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         elif gui == 'failed':
             text = _('No backend')
         else:
-            text = _("Interactive")
+            text = gui.capitalize()
+
         self.set_value(text)
 
     def add_shellwidget(self, shellwidget):

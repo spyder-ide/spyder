@@ -127,8 +127,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backends = [
             (inline, 'inline'),
             (automatic, 'auto'),
-            ("Qt5", 'qt'),
-            ("Tkinter", 'tk')
+            ("Qt", 'qt'),
+            ("Tk", 'tk')
         ]
 
         if sys.platform == 'darwin':
