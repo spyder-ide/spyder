@@ -159,20 +159,20 @@ class RemoteClient(SpyderPluginV2):
 
     @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def get_kernel_info(self, config_id, kernel_key):
+    async def get_kernel_info(self, config_id, kernel_id):
         """Get kernel info."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernel_info = await client.get_kernel_info(kernel_key)
+            kernel_info = await client.get_kernel_info(kernel_id)
             self.sig_kernel_info.emit(kernel_info or {})
 
     @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def terminate_kernel(self, config_id, kernel_key):
+    async def terminate_kernel(self, config_id, kernel_id):
         """Terminate opened kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            delete_kernel = await client.terminate_kernel(kernel_key)
+            delete_kernel = await client.terminate_kernel(kernel_id)
             self.sig_kernel_terminated.emit(delete_kernel or {})
 
     @Slot(str)
@@ -185,3 +185,22 @@ class RemoteClient(SpyderPluginV2):
             kernel_info = await client.get_kernel_info(kernel_id)
             self.sig_kernel_started.emit(kernel_id or {})
             return kernel_info
+
+    @Slot(str)
+    @AsyncDispatcher.dispatch()
+    async def restart_kernel(self, config_id, kernel_id):
+        """Restart kernel."""
+        if config_id in self._remote_clients:
+            client = self._remote_clients[config_id]
+            status = await client.restart_kernel(kernel_id)
+            self.sig_kernel_started.emit(kernel_id or {})
+            return status
+    
+    @Slot(str)
+    @AsyncDispatcher.dispatch()
+    async def interrupt_kernel(self, config_id, kernel_id):
+        """Interrupt kernel."""
+        if config_id in self._remote_clients:
+            client = self._remote_clients[config_id]
+            status = await client.interrupt_kernel(kernel_id)
+            return status
