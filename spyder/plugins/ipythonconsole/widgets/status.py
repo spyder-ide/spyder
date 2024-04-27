@@ -53,9 +53,9 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         if shellwidget_id in self._shellwidget_dict:
             self._shellwidget_dict[shellwidget_id]["gui"] = gui
             if shellwidget_id == self._current_id:
-                self.update(gui)
+                self.update_status(gui)
 
-    def update(self, gui):
+    def update_status(self, gui):
         """Update interactive state."""
         self._gui = gui
         if gui == "inline":
@@ -93,7 +93,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         self._current_id = None
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
-            self.update(self._shellwidget_dict[shellwidget_id]["gui"])
+            self.update_status(self._shellwidget_dict[shellwidget_id]["gui"])
             self._current_id = shellwidget_id
 
     def remove_shellwidget(self, shellwidget):
