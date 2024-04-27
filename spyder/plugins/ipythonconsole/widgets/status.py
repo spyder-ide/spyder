@@ -21,6 +21,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def __init__(self, parent):
         super().__init__(parent)
         self._gui = None
+        self._interactive_gui = None
         self._shellwidget_dict = {}
         self._current_id = None
 
@@ -35,11 +36,25 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         """Toggle matplotlib interactive backend."""
         if self._current_id is None or self._gui == 'failed':
             return
-        backend = "inline" if self._gui != "inline" else "auto"
+
+        if self._gui != "inline":
+            # Switch to inline for any backend that is not inline
+            backend = "inline"
+            self._interactive_gui = self._gui
+        else:
+            if self._interactive_gui is None:
+                # Use the auto backend in case the interactive backend hasn't
+                # been set yet
+                backend = "auto"
+            else:
+                # Always use the interactive backend otherwise
+                backend = self._interactive_gui
+
         sw = self._shellwidget_dict[self._current_id]["widget"]
         sw.execute("%matplotlib " + backend)
         is_spyder_kernel = self._shellwidget_dict[self._current_id][
             "widget"].is_spyder_kernel
+
         if not is_spyder_kernel:
             self.update_matplotlib_gui(backend)
 
@@ -57,7 +72,10 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def update_status(self, gui):
         """Update interactive state."""
+        if self._interactive_gui is None and gui != "inline":
+            self._interactive_gui = gui
         self._gui = gui
+
         if gui == "inline":
             text = _("Inline")
         elif gui == 'failed':
