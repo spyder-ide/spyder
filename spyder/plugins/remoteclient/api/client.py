@@ -48,15 +48,17 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
 class SpyderRemoteClient:
     """Class to manage a remote server and its kernels."""
 
+    JUPYTER_SERVER_TIMEOUT = 5  # seconds
+
     _extra_options = ["platform", "id"]
 
-    API_TOKEN = (
-        "GiJ96ujfLpPsq7oatW1IJuER01FbZsgyCM0xH6oMZXDAV6zUZsFy3xQBZakSBo6P"
+    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --jupyterhub"
+    CHECK_SERVER_COMMAND = (
+        "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server -h"
     )
-    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --juptyerhub"
-    CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server -h"
     GET_SERVER_PORT_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-port"
     GET_SERVER_PID_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-pid"
+    GET_SERVER_TOKEN_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-token"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -157,6 +159,33 @@ class SpyderRemoteClient:
         if not self.local_port:
             raise ValueError("Local port is not set")
         return f"http://127.0.0.1:{self.local_port}"
+    
+    @property
+    def api_token(self):
+        if not self._api_token:
+            raise ValueError("API token is not set")
+        return self._api_token
+
+    @property
+    def peer_host(self):
+        if not self.ssh_is_connected:
+            return
+        
+        return self.ssh_connection.get_extra_info("peername")[0]
+    
+    @property
+    def peer_port(self):
+        if not self.ssh_is_connected:
+            return
+        
+        return self.ssh_connection.get_extra_info("peername")[1]
+
+    @property
+    def peer_username(self):
+        if not self.ssh_is_connected:
+            return
+        
+        return self.ssh_connection.get_extra_info("username")
 
     # -- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:
@@ -204,27 +233,36 @@ class SpyderRemoteClient:
 
         if await self.get_server_pid():
             self._logger.warning(
-                f"Remote server is already running for {self.options['host']}"
+                f"Remote server is already running for {self.peer_host}"
             )
+            self._logger.debug("Checking API token")
+            if self._api_token != (
+                new_api_token := await self.__extract_api_token()
+            ):
+                self._api_token = new_api_token
+                self._logger.info(
+                    f"Remote server is running for {self.peer_host} with new API token"
+                )
+
             self._logger.debug("Checking server port")
             if self.server_port != (
                 new_server_port := await self.__extract_server_port()
             ):
                 self.server_port = new_server_port
                 self._logger.info(
-                    f"Remote server is running for {self.options['host']} at "
+                    f"Remote server is running for {self.peer_host} at "
                     f"port {self.server_port}"
                 )
                 return await self.forward_local_port()
 
             self._logger.info(
-                f"Remote server is already running for {self.options['host']} "
+                f"Remote server is already running for {self.peer_host} "
                 f"at port {self.server_port}"
             )
             return True
 
         self._logger.debug(
-            f"Starting remote server for {self.options['host']}"
+            f"Starting remote server for {self.peer_host}"
         )
         try:
             self.remote_server_process = (
@@ -239,9 +277,10 @@ class SpyderRemoteClient:
             return False
 
         self.server_port = await self.__extract_server_port()
+        self._api_token = await self.__extract_api_token()
 
         self._logger.info(
-            f"Remote server started for {self.options['host']} at port "
+            f"Remote server started for {self.peer_host} at port "
             f"{self.server_port}"
         )
 
@@ -269,7 +308,7 @@ class SpyderRemoteClient:
             return False
 
         self._logger.debug(
-            f"spyder-remote-server is installed on {self.options['host']}"
+            f"spyder-remote-server is installed on {self.peer_host}"
         )
 
         return True
@@ -281,7 +320,7 @@ class SpyderRemoteClient:
             return False
 
         self._logger.debug(
-            f"Installing spyder-remote-server on {self.options['host']}"
+            f"Installing spyder-remote-server on {self.peer_host}"
         )
         command = get_installer_command(self.options["platform"])
         if not command:
@@ -303,7 +342,7 @@ class SpyderRemoteClient:
 
         self._logger.info(
             f"Successfully installed spyder-remote-server on "
-            f"{self.options['host']}"
+            f"{self.peer_host}"
         )
 
         return True
@@ -324,7 +363,7 @@ class SpyderRemoteClient:
         if self.ssh_is_connected:
             self._logger.debug(
                 f"Atempting to create a new connection with an existing for "
-                f"{self.options['host']}"
+                f"{self.peer_host}"
             )
             await self.close_ssh_connection()
 
@@ -344,7 +383,7 @@ class SpyderRemoteClient:
             for k, v in self.options.items()
             if k not in self._extra_options
         }
-        self._logger.debug(f"Opening SSH connection to {self.options['host']}")
+        self._logger.debug(f"Opening SSH connection")
         try:
             self.ssh_connection = await asyncssh.connect(
                 **conect_kwargs, client_factory=self.client_factory
@@ -366,7 +405,7 @@ class SpyderRemoteClient:
 
             return False
 
-        self._logger.info(f"SSH connection opened for {self.options['host']}")
+        self._logger.info(f"SSH connection opened for {self.peer_host}")
 
         return True
 
@@ -413,6 +452,93 @@ class SpyderRemoteClient:
         self._logger.debug(f"Server port extracted: {port}")
 
         return port
+    
+    async def __extract_api_token(self, _retries=5) -> str:
+        """Extract server port from server stdout.
+
+        Returns
+        -------
+        int | None
+            The server port if found, None otherwise.
+
+        Raises
+        ------
+        ValueError
+            If the server port is not found in the server stdout.
+        """
+        self._logger.debug("Extracting server port from server stdout")
+
+        tries = 0
+        port = None
+        while port is None and tries < _retries:
+            await asyncio.sleep(0.5)
+            try:
+                output = await self.ssh_connection.run(
+                    self.GET_SERVER_TOKEN_COMMAND, check=True
+                )
+            except asyncssh.ProcessError as err:
+                self._logger.error(f"Error getting server port: {err.stderr}")
+                return None
+            except asyncssh.TimeoutError:
+                self._logger.error("Getting server port timed out")
+                return None
+
+            try:
+                port = int(output.stdout.strip("Port: "))
+            except ValueError:
+                self._logger.debug(
+                    f"Server port not found in output: {output.stdout}, "
+                    f"retrying ({tries + 1}/{_retries})"
+                )
+                port = None
+            tries += 1
+
+        self._logger.debug(f"Server port extracted: {port}")
+
+        return port
+    
+    async def __extract_api_token(self, _retries=5) -> str:
+        """Extract server port from server stdout.
+
+        Returns
+        -------
+        int | None
+            The server port if found, None otherwise.
+
+        Raises
+        ------
+        ValueError
+            If the server port is not found in the server stdout.
+        """
+        self._logger.debug("Extracting server port from server stdout")
+
+        tries = 0
+        port = None
+        while port is None and tries < _retries:
+            await asyncio.sleep(0.5)
+            try:
+                output = await self.ssh_connection.run(
+                    self.GET_SERVER_TOKEN_COMMAND, check=True
+                )
+            except asyncssh.ProcessError as err:
+                self._logger.error(f"Error getting server port: {err.stderr}")
+                return None
+            except asyncssh.TimeoutError:
+                self._logger.error("Getting server port timed out")
+                return None
+
+            try:
+                port = int(output.stdout.strip("Port: "))
+            except ValueError:
+                self._logger.debug(
+                    f"Server port not found in output: {output.stdout}, retrying ({tries + 1}/{_retries})"
+                )
+                port = None
+            tries += 1
+
+        self._logger.debug(f"Server port extracted: {port}")
+
+        return port
 
     async def forward_local_port(self):
         """Forward local port."""
@@ -431,7 +557,7 @@ class SpyderRemoteClient:
         if self.port_forwarder:
             self._logger.warning(
                 f"Port forwarder is already open for host "
-                f"{self.options['host']} with local port {self.local_port} "
+                f"{self.peer_host} with local port {self.local_port} "
                 f"and remote port {self.server_port}"
             )
             await self.close_port_forwarder()
@@ -458,14 +584,14 @@ class SpyderRemoteClient:
         """Close port forwarder."""
         if self.port_is_forwarded:
             self._logger.debug(
-                f"Closing port forwarder for host {self.options['host']} with "
+                f"Closing port forwarder for host {self.peer_host} with "
                 f"local port {self.local_port}"
             )
             self.port_forwarder.close()
             await self.port_forwarder.wait_closed()
             self.port_forwarder = None
             self._logger.debug(
-                f"Port forwarder closed for host {self.options['host']} with "
+                f"Port forwarder closed for host {self.peer_host} with "
                 f"local port {self.local_port}"
             )
 
@@ -474,13 +600,13 @@ class SpyderRemoteClient:
         pid = await self.get_server_pid()
         if not pid:
             self._logger.warning(
-                f"Remote server is not running for {self.options['host']}"
+                f"Remote server is not running for {self.peer_host}"
             )
             return False
 
         # bug in jupyterhub, need to send SIGINT twice
         self._logger.debug(
-            f"Stopping remote server for {self.options['host']} with pid {pid}"
+            f"Stopping remote server for {self.peer_host} with pid {pid}"
         )
         try:
             await self.ssh_connection.run(f"kill -INT {pid}", check=True)
@@ -501,7 +627,7 @@ class SpyderRemoteClient:
 
         self.remote_server_process = None
         self._logger.info(
-            f"Remote server process closed for {self.options['host']}"
+            f"Remote server process closed for {self.peer_host}"
         )
         return True
 
@@ -509,13 +635,13 @@ class SpyderRemoteClient:
         """Close SSH connection."""
         if self.ssh_is_connected:
             self._logger.debug(
-                f"Closing SSH connection for {self.options['host']}"
+                f"Closing SSH connection for {self.peer_host}"
             )
             self.ssh_connection.close()
             await self.ssh_connection.wait_closed()
             self.ssh_connection = None
             self._logger.info(
-                f"SSH connection closed for {self.options['host']}"
+                f"SSH connection closed"
             )
             if self._plugin is not None:
                 self._plugin.sig_connection_status_changed.emit(
