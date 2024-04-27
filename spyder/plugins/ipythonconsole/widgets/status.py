@@ -6,6 +6,9 @@
 
 """Status bar widgets."""
 
+# Standard library imports
+import textwrap
+
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.widgets.status import StatusBarWidget
@@ -30,7 +33,12 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     def get_tooltip(self):
         """Return localized tool tip for widget."""
-        return _("Click to toggle between inline and interactive plotting")
+        msg = _(
+            "Click to toggle between inline and interactive Matplotlib "
+            "plotting"
+        )
+        msg = '\n'.join(textwrap.wrap(msg, width=40))
+        return msg
 
     def toggle_matplotlib(self):
         """Toggle matplotlib interactive backend."""
@@ -90,6 +98,9 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         shellwidget.sig_config_spyder_kernel.connect(
             lambda sw=shellwidget: self.config_spyder_kernel(sw)
         )
+        shellwidget.kernel_handler.sig_kernel_is_ready.connect(
+            lambda sw=shellwidget: self.on_kernel_restart(sw)
+        )
 
         backend = self.get_conf('pylab/backend')
         swid = id(shellwidget)
@@ -105,6 +116,14 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             lambda gui, sid=id(shellwidget):
                 self.update_matplotlib_gui(gui, sid)
         )
+        shellwidget.set_kernel_configuration("update_gui", True)
+
+    def on_kernel_restart(self, shellwidget):
+        """Actions to take when the kernel is restarted."""
+        # Reset value of interactive backend
+        self._interactive_gui = None
+
+        # Ask the kernel to update the current backend, in case it has changed
         shellwidget.set_kernel_configuration("update_gui", True)
 
     def set_shellwidget(self, shellwidget):
