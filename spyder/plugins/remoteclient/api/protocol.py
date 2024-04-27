@@ -12,30 +12,25 @@ import logging
 import typing
 
 
-class KernelsList(typing.TypedDict):
-    kernels: list[str]
-
-
 class KernelInfo(typing.TypedDict):
-    alive: bool
-    pid: int
-
-
-class DeleteKernel(typing.TypedDict):
-    success: bool
+    id: str
+    name: str
+    last_activity: str
+    execution_state: str
+    connections: int
+    connection_info: KernelConnectionInfo
 
 
 class KernelConnectionInfo(typing.TypedDict):
+    transport: str
+    ip: str
     shell_port: int
     iopub_port: int
     stdin_port: int
-    control_port: int
     hb_port: int
-    ip: str
-    key: str
-    transport: str
+    control_port: int
     signature_scheme: str
-    kernel_name: str
+    key: str
 
 
 class SSHClientOptions(typing.TypedDict):
