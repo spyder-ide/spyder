@@ -351,10 +351,34 @@ class JupyterAPI:
                 logger.info(f"deleted kernel={kernel_id} for jupyter")
                 return True
 
+    async def interrupt_kernel(self, kernel_id):
+        async with self.session.post(
+            self.api_url / "kernels" / kernel_id / "interrupt"
+        ) as response:
+            if response.status == 404:
+                raise ValueError(
+                    f"failed to interrupt kernel_id={kernel_id} does not exist"
+                )
+            elif response.status == 204:
+                logger.info(f"interrupted kernel={kernel_id} for jupyter")
+                return True
+    
+    async def restart_kernel(self, kernel_id):
+        async with self.session.post(
+            self.api_url / "kernels" / kernel_id / "restart"
+        ) as response:
+            if response.status == 404:
+                raise ValueError(
+                    f"failed to restart kernel_id={kernel_id} does not exist"
+                )
+            elif response.status == 204:
+                logger.info(f"restarted kernel={kernel_id} for jupyter")
+                return True
+
 
 class JupyterKernelAPI:
     def __init__(self, kernel_url, api_token, verify_ssl=True):
-        self.api_url = kernel_url
+        self.kernel_url = kernel_url
         self.api_token = api_token
         self.verify_ssl = verify_ssl
 
@@ -366,7 +390,7 @@ class JupyterKernelAPI:
             ),
         )
         self.websocket = await self.session.ws_connect(
-            self.api_url / "channels"
+            self.kernel_url / "channels"
         )
         return self
 
