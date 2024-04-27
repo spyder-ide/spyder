@@ -604,7 +604,7 @@ class SpyderRemoteClient:
 
         return kernel_id
 
-    async def start_new_kernel(self, kernel_spec) -> str:
+    async def start_new_kernel(self, kernel_spec=None) -> str:
         """Start new kernel."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
             async with hub.ensure_server(
