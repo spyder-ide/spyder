@@ -590,19 +590,19 @@ class SpyderRemoteClient:
         # This is necessary to avoid an error when the server has not started
         # before
         await asyncio.sleep(1)
-        kernel_connection_info = await self.start_new_kernel()
+        kernel_id = await self.start_new_kernel()
 
         retries = 0
-        while not kernel_connection_info and retries < _retries:
+        while not kernel_id and retries < _retries:
             await asyncio.sleep(1)
-            kernel_connection_info = await self.start_new_kernel()
+            kernel_id = await self.start_new_kernel()
             self._logger.debug(
                 f"Server might not be ready yet, retrying kernel launch "
                 f"({retries + 1}/{_retries})"
             )
             retries += 1
 
-        return kernel_connection_info
+        return kernel_id
 
     async def start_new_kernel(self, kernel_spec) -> str:
         """Start new kernel."""
