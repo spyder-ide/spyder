@@ -16,9 +16,7 @@ from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
     KernelConnectionInfo,
-    DeleteKernel,
     KernelInfo,
-    KernelsList,
     SSHClientOptions,
     RemoteClientLog,
 )
