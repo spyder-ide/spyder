@@ -181,9 +181,8 @@ class RemoteClient(SpyderPluginV2):
         """Start new kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernel_id = await client.start_new_kernel_ensure_server()
-            kernel_info = await client.get_kernel_info(kernel_id)
-            self.sig_kernel_started.emit(kernel_id or {})
+            kernel_info = await client.start_new_kernel_ensure_server()
+            self.sig_kernel_started.emit(kernel_info['id'] or {})
             return kernel_info
 
     @Slot(str)
