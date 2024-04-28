@@ -68,6 +68,7 @@ class SpyderRemoteClient:
         self.port_forwarder: asyncssh.SSHListener = None
         self.server_port: int = None
         self.local_port: int = None
+        self._api_token: str = None
 
         self._logger = logging.getLogger(
             f"{__name__}.{self.__class__.__name__}({self.config_id})"
@@ -427,47 +428,47 @@ class SpyderRemoteClient:
         return port
 
     async def __extract_api_token(self, _retries=5) -> str:
-        """Extract server port from server stdout.
+        """Extract server token from server stdout.
 
         Returns
         -------
         int | None
-            The server port if found, None otherwise.
+            The server token if found, None otherwise.
 
         Raises
         ------
         ValueError
-            If the server port is not found in the server stdout.
+            If the server token is not found in the server stdout.
         """
-        self._logger.debug("Extracting server port from server stdout")
+        self._logger.debug("Extracting server token from server stdout")
 
         tries = 0
-        port = None
-        while port is None and tries < _retries:
+        token = None
+        while token is None and tries < _retries:
             await asyncio.sleep(0.5)
             try:
                 output = await self.ssh_connection.run(
                     self.GET_SERVER_TOKEN_COMMAND, check=True
                 )
             except asyncssh.ProcessError as err:
-                self._logger.error(f"Error getting server port: {err.stderr}")
+                self._logger.error(f"Error getting server token: {err.stderr}")
                 return None
             except asyncssh.TimeoutError:
-                self._logger.error("Getting server port timed out")
+                self._logger.error("Getting server token timed out")
                 return None
 
             try:
-                port = int(output.stdout.strip("Port: "))
+                token = output.stdout.strip("Token: ").splitlines()[0]
             except ValueError:
                 self._logger.debug(
-                    f"Server port not found in output: {output.stdout}, retrying ({tries + 1}/{_retries})"
+                    f"Server token not found in output: {output.stdout}, retrying ({tries + 1}/{_retries})"
                 )
-                port = None
+                token = None
             tries += 1
 
-        self._logger.debug(f"Server port extracted: {port}")
+        self._logger.debug(f"Server port extracted: {token}")
 
-        return port
+        return token
 
     async def forward_local_port(self):
         """Forward local port."""
