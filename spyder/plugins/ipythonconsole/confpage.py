@@ -116,13 +116,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline = _("Inline")
         automatic = _("Automatic")
         backend_group = QGroupBox(_("Graphics backend"))
-        bend_label = QLabel(_("Decide how graphics are going to be displayed "
-                              "in the console. If unsure, please select "
-                              "<b>%s</b> to put graphics inside the "
-                              "console or <b>%s</b> to interact with "
-                              "them (through zooming and panning) in a "
-                              "separate window.") % (inline, automatic))
-        bend_label.setWordWrap(True)
+        bend_label = QLabel(_("Decide how Matplotlib graphics are displayed"))
 
         backends = [
             (inline, 'inline'),
@@ -139,8 +133,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Backend:") + "   ",
             backends,
             'pylab/backend', default='inline',
-            tip=_("This option will be applied the next time a console is "
-                  "opened."))
+            tip=_(
+                "If unsure, select <b>%s</b> to put graphics in the Plots "
+                "pane or <b>%s</b> to interact with them (through zooming and "
+                "panning) in a separate window."
+            ) % (inline, automatic)
+        )
 
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
