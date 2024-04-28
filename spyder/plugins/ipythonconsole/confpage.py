@@ -98,12 +98,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
         autoload_pylab_box = newcb(
-            _("Automatically load Pylab and NumPy modules"),
+            _("Automatically load Matplotlib and NumPy modules"),
             'pylab/autoload',
-            tip=_("This lets you load graphics support without importing\n"
-                  "the commands to do plots. Useful to work with other\n"
-                  "plotting libraries different to Matplotlib or to develop\n"
-                  "GUIs with Spyder."))
+            tip=_(
+                "This lets you generate graphics and work with arrays "
+                "<b>without</b> importing the commands to do it. It's also "
+                "useful to develop GUIs with Spyder."
+            )
+        )
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 

@@ -875,14 +875,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.shellwidget.set_autocall,
                 value)
 
-    @on_conf_change(option=[
-        'symbolic_math', 'hide_cmd_windows',
-        'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend', 'pylab/autoload',
-        'pylab/inline/figure_format', 'pylab/inline/resolution',
-        'pylab/inline/width', 'pylab/inline/height',
-        'pylab/inline/fontsize', 'pylab/inline/bottom',
-        'pylab/inline/bbox_inches'])
+    @on_conf_change(
+        option=[
+            "symbolic_math",
+            "hide_cmd_windows",
+            "startup/run_lines",
+            "startup/use_run_file",
+            "startup/run_file",
+            "pylab",
+            "pylab/backend",
+            "pylab/autoload",
+            "pylab/inline/figure_format",
+            "pylab/inline/resolution",
+            "pylab/inline/width",
+            "pylab/inline/height",
+            "pylab/inline/fontsize",
+            "pylab/inline/bottom",
+            "pylab/inline/bbox_inches",
+        ]
+    )
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
         Apply options that possibly require a kernel restart or related to
@@ -898,7 +909,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         restart_needed = False
         restart_options = []
+
         # Startup options (needs a restart)
+        autoload_n = "pylab/autoload"
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
         run_file_n = 'startup/run_file'
@@ -912,8 +925,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         symbolic_math_n = 'symbolic_math'
         hide_cmd_windows_n = 'hide_cmd_windows'
 
-        restart_options += [run_lines_n, use_run_file_n, run_file_n,
-                            symbolic_math_n, hide_cmd_windows_n]
+        restart_options += [
+            autoload_n,
+            run_lines_n,
+            use_run_file_n,
+            run_file_n,
+            symbolic_math_n,
+            hide_cmd_windows_n,
+        ]
         restart_needed = option in restart_options
 
         inline_backend = 'inline'
@@ -993,6 +1012,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             )
 
             if not (restart and restart_all) or no_restart:
+                # Autoload can't be applied without a restart. This avoids an
+                # incorrect message in the console too.
+                if autoload_n in options:
+                    options.pop(autoload_n)
+
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
                     # Apply conf when the next Pdb prompt is available
