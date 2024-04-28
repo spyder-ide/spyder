@@ -605,7 +605,7 @@ class SpyderRemoteClient:
     async def start_new_kernel(self, kernel_spec=None) -> str:
         """Start new kernel."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT, create_user=True
             ) as jupyter:
                 response = await jupyter.create_kernel(kernel_spec=kernel_spec)
@@ -615,7 +615,7 @@ class SpyderRemoteClient:
     async def list_kernels(self) -> list[KernelInfo]:
         """List kernels."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT
             ) as jupyter:
                 response = await jupyter.list_kernels()
@@ -626,7 +626,7 @@ class SpyderRemoteClient:
     async def get_kernel_info(self, kernel_id) -> KernelInfo:
         """Get kernel info."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT
             ) as jupyter:
                 response = await jupyter.get_kernel(kernel_id=kernel_id)
@@ -637,7 +637,7 @@ class SpyderRemoteClient:
     async def terminate_kernel(self, kernel_id) -> bool:
         """Terminate kernel."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT
             ) as jupyter:
                 response = await jupyter.delete_kernel(kernel_id=kernel_id)
@@ -648,7 +648,7 @@ class SpyderRemoteClient:
     async def interrupt_kernel(self, kernel_id) -> bool:
         """Interrupt kernel."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT
             ) as jupyter:
                 response = await jupyter.interrupt_kernel(kernel_id=kernel_id)
@@ -659,7 +659,7 @@ class SpyderRemoteClient:
     async def restart_kernel(self, kernel_id) -> bool:
         """Restart kernel."""
         async with JupyterHubAPI(self.server_url, api_token=self.api_token) as hub:
-            async with hub.ensure_server(
+            async with await hub.ensure_server(
                 self.peer_username, self.JUPYTER_SERVER_TIMEOUT
             ) as jupyter:
                 response = await jupyter.restart_kernel(kernel_id=kernel_id)
