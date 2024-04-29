@@ -46,7 +46,13 @@ class ConsoleRestartDialog(QDialog):
             self.NO_RESTART: _("Keep existing kernels"),
             self.RESTART_CURRENT: _("Restart current kernel"),
             self.RESTART_ALL: _("Restart all kernels")
-            }
+        }
+
+        # Initial option values
+        self.restart_all = False
+        self.restart_current = False
+        self.no_restart = True
+
         # Dialog widgets
         # Text
         self._text_label = QLabel(
@@ -60,26 +66,26 @@ class ConsoleRestartDialog(QDialog):
         self._text_label.setFixedWidth(450)
 
         # Radio buttons
-        self._no_restart = QRadioButton(
+        self._no_restart_btn = QRadioButton(
             _("Don't apply changes to existing consoles"), self
         )
-        self._restart_current = QRadioButton(
+        self._restart_current_btn = QRadioButton(
             _("Apply to current console and restart kernel"), self
         )
-        self._restart_all = QRadioButton(
+        self._restart_all_btn = QRadioButton(
             _("Apply to all existing consoles and restart all kernels"), self
         )
 
         self._radio_group = QButtonGroup(self)
         self._radio_group.setExclusive(True)
         self._radio_group.addButton(
-            self._no_restart, id=self.NO_RESTART
+            self._no_restart_btn, id=self.NO_RESTART
         )
         self._radio_group.addButton(
-            self._restart_current, id=self.RESTART_CURRENT
+            self._restart_current_btn, id=self.RESTART_CURRENT
         )
         self._radio_group.addButton(
-            self._restart_all, id=self.RESTART_ALL
+            self._restart_all_btn, id=self.RESTART_ALL
         )
 
         self._action_button = QPushButton(
@@ -90,16 +96,16 @@ class ConsoleRestartDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(self._text_label)
         layout.addSpacing(2 * AppStyle.MarginSize)
-        layout.addWidget(self._no_restart)
-        layout.addWidget(self._restart_current)
-        layout.addWidget(self._restart_all)
+        layout.addWidget(self._no_restart_btn)
+        layout.addWidget(self._restart_current_btn)
+        layout.addWidget(self._restart_all_btn)
         layout.addSpacing(3 * AppStyle.MarginSize)
         layout.addWidget(self._action_button, 0, Qt.AlignRight)
         layout.setContentsMargins(*((7 * AppStyle.MarginSize,) * 4))
         self.setLayout(layout)
 
         # Signals
-        self._no_restart.setChecked(True)
+        self._no_restart_btn.setChecked(True)
         self._radio_group.buttonToggled.connect(
             self.update_action_button_text)
         self._action_button.clicked.connect(self.accept)
@@ -118,10 +124,12 @@ class ConsoleRestartDialog(QDialog):
             text = self._action_string[radiobutton_id]
             self._radio_group.buttonToggled.disconnect(
                 self.update_action_button_text)
-            self._no_restart.setChecked(False)
-            self._restart_current.setChecked(False)
-            self._restart_all.setChecked(False)
+
+            self._no_restart_btn.setChecked(False)
+            self._restart_current_btn.setChecked(False)
+            self._restart_all_btn.setChecked(False)
             radiobutton.setChecked(True)
+
             self._radio_group.buttonToggled.connect(
                 self.update_action_button_text)
         else:
@@ -132,10 +140,10 @@ class ConsoleRestartDialog(QDialog):
         """
         Return tuple indicating True or False for the available actions.
         """
-        restart_current = self._restart_current.isChecked()
-        restart_all = self._restart_all.isChecked()
-        no_restart = not any([restart_all, restart_current])
-        return restart_all, restart_current, no_restart
+        self.restart_current = self._restart_current_btn.isChecked()
+        self.restart_all = self._restart_all_btn.isChecked()
+        self.no_restart = not any([self.restart_all, self.restart_current])
+        return self.restart_all, self.restart_current, self.no_restart
 
     def _set_stylesheet(self):
         radiobuttons_css = qstylizer.style.StyleSheet()
@@ -143,8 +151,19 @@ class ConsoleRestartDialog(QDialog):
             marginLeft=f"{5 * AppStyle.MarginSize}px"
         )
         for label in [
-            self._no_restart,
-            self._restart_current,
-            self._restart_all,
+            self._no_restart_btn,
+            self._restart_current_btn,
+            self._restart_all_btn,
         ]:
             label.setStyleSheet(radiobuttons_css.toString())
+
+    def exec_(self):
+        # Give focus to the last selected button
+        if self.restart_all:
+            self._restart_all_btn.setFocus()
+        elif self.restart_current:
+            self._restart_current_btn.setFocus()
+        else:
+            self._no_restart_btn.setFocus()
+
+        super().exec_()

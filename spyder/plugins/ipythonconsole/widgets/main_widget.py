@@ -15,6 +15,7 @@ import os.path as osp
 import shlex
 import subprocess
 import sys
+import time
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -28,6 +29,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -237,10 +239,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_new_client_if_empty = True
         self.run_cell_filename = None
         self.interrupt_action = None
-        self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
         self.default_interpreter = sys.executable
+
+        # Attributes needed for the restart dialog
+        self._restart_dialog = ConsoleRestartDialog(self)
+        self._initial_conf_options = self.get_conf_options()
+        self._last_time_for_restart_dialog = None
 
         # Disable infowidget if requested by the user
         self.enable_infowidget = True
@@ -900,11 +906,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         Matplotlib inline backend options.
         """
         # Check that we are not triggering validations in the initial
-        # notification sent when Spyder is starting or when another option
-        # already required a restart and the restart dialog was shown
+        # notification sent when Spyder is starting.
         if not self._testing:
-            if option in self.initial_conf_options:
-                self.initial_conf_options.remove(option)
+            if option in self._initial_conf_options:
+                self._initial_conf_options.remove(option)
                 return
 
         restart_needed = False
@@ -992,12 +997,37 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             pylab_restart = any(clients_backend_require_restart)
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
-            self.initial_conf_options = self.get_conf_options()
-            self.initial_conf_options.remove(option)
-            restart_dialog = ConsoleRestartDialog(self)
-            restart_dialog.exec_()
-            (restart_all, restart_current,
-             no_restart) = restart_dialog.get_action_value()
+            # This allows us to decide if we need to show the restart dialog.
+            # For that we compare the last time it was shown with the current
+            # one. If difference is less than 300 ms, it means this method was
+            # called after users changed several options at the same time in
+            # Preferences. And if that's case, we don't need to show the
+            # dialog each time.
+            show_restart_dialog = True
+            if self._last_time_for_restart_dialog is not None:
+                current_time = time.time()
+                if current_time - self._last_time_for_restart_dialog < 0.3:
+                    show_restart_dialog = False
+                    self._last_time_for_restart_dialog = current_time
+                else:
+                    self._last_time_for_restart_dialog = None
+
+            if show_restart_dialog:
+                self._restart_dialog.exec_()
+                (
+                    restart_all,
+                    restart_current,
+                    no_restart,
+                ) = self._restart_dialog.get_action_value()
+
+                if self._last_time_for_restart_dialog is None:
+                    self._last_time_for_restart_dialog = time.time()
+            else:
+                # If there's no need to show the dialog, we reuse the values
+                # saved on it the last time it was used.
+                restart_all = self._restart_dialog.restart_all
+                restart_current = self._restart_dialog.restart_current
+                no_restart = self._restart_dialog.no_restart
         else:
             restart_all = False
             restart_current = False
@@ -1991,7 +2021,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """
         self.registered_spyder_kernel_handlers.pop(handler_id, None)
 
-    @Slot()
+    @qdebounced(timeout=200)
     def restart_kernel(self, client=None, ask_before_restart=True):
         """Restart kernel of current client."""
         if client is None:
