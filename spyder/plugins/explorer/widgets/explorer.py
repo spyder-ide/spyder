@@ -865,7 +865,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
         data = QMimeData()
-        data.setUrls([QUrl.fromLocalFile(fname) for fname in self.get_selected_filenames()])
+        data.setUrls(
+            [
+                QUrl.fromLocalFile(fname)
+                for fname in self.get_selected_filenames()
+            ]
+        )
         drag = QDrag(self)
         drag.setMimeData(data)
         drag.exec_()
