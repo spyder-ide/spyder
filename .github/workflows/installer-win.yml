@@ -75,7 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
-      - name: Upload Release Asset
+      - name: Upload Release Asset - ${{ env.EXE_NAME }}
         if: ${{github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
         env:
@@ -84,4 +84,14 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: dist/${{ env.EXE_NAME }}
           asset_name: ${{ env.EXE_NAME }}
+          asset_content_type: application/vnd.microsoft.portable-executable
+      - name: Upload Release Asset - Spyder-Windows-x86_64.exe
+        if: ${{github.event_name == 'release' && env.EXE_NAME == 'Spyder_64bit_full.exe'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: dist/${{ env.EXE_NAME }}
+          asset_name: Spyder-Windows-x86_64.exe
           asset_content_type: application/vnd.microsoft.portable-executable
