@@ -71,6 +71,18 @@ class RemoteClientContainer(PluginMainContainer):
         Id of the server for which a client will be created.
     """
 
+    sig_shutdown_kernel_requested = Signal(str, str)
+    """
+    This signal is used to request shutting down a kernel.
+
+    Parameters
+    ----------
+    id: str
+        Id of the server for which a kernel shutdown will be requested.
+    kernel_id: str
+        Id of the kernel which will be shutdown in the server.
+    """
+
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
@@ -144,6 +156,10 @@ class RemoteClientContainer(PluginMainContainer):
         client.
         """
         config_id = ipyclient.server_id
+
+        # Connect client's signals
+        ipyclient.kernel_id = kernel_info["id"]
+        self._connect_ipyclient_signals(ipyclient)
 
         # Get authentication method
         auth_method = self.get_conf(f"{config_id}/auth_method")
@@ -225,6 +241,15 @@ class RemoteClientContainer(PluginMainContainer):
         # the connection dialog when it's closed and opened again.
         self.set_conf(f"{host_id}/status", status)
         self.set_conf(f"{host_id}/status_message", message)
+
+    def _connect_ipyclient_signals(self, ipyclient):
+        """
+        Connect an IPython console client signals to the corresponding ones
+        here, which are necessary for kernel management on the server.
+        """
+        ipyclient.sig_shutdown_kernel_requested.connect(
+            self.sig_shutdown_kernel_requested
+        )
 
     def _finish_kernel_connection(self, worker, output, error):
         """Finish connecting a remote kernel to an IPython console client."""

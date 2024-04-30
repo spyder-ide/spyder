@@ -83,6 +83,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
+    sig_shutdown_kernel_requested = Signal(str, str)
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -128,6 +129,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.allow_rename = True
         self.error_text = None
         self.give_focus = give_focus
+        self.kernel_id = None
         self.__on_close = lambda: None
 
         css_path = self.get_conf('css_path', section='appearance')
@@ -616,7 +618,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 time.sleep(0.08)
                 QApplication.processEvents()
 
-        self.shutdown(is_last_client)
+        self.shutdown(is_last_client, close_console=close_console)
 
         # Prevent errors in our tests
         try:
@@ -625,13 +627,23 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def shutdown(self, is_last_client):
+    def shutdown(self, is_last_client, close_console=False):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
         shutdown_kernel = (
-            is_last_client and not self.shellwidget.is_external_kernel
+            is_last_client
+            and (not self.shellwidget.is_external_kernel or self.server_id)
             and not self.error_text
         )
+
+        if self.server_id and shutdown_kernel and not close_console:
+            # This signal allows to shutdown a remote kernel when a client is
+            # closed. And we don't emit it when the console is being closed
+            # because it's not necessary in that case.
+            self.sig_shutdown_kernel_requested.emit(
+                self.server_id, self.kernel_id
+            )
+
         self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):

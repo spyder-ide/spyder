@@ -87,15 +87,17 @@ class RemoteClient(SpyderPluginV2):
     def on_initialize(self):
         self._reset_status()
         self._is_consoles_menu_added = False
-
         container = self.get_container()
 
+        # Container signals
         container.sig_start_server_requested.connect(self.start_remote_server)
         container.sig_stop_server_requested.connect(self.stop_remote_server)
         container.sig_create_ipyclient_requested.connect(
             self.create_ipyclient_for_server
         )
+        container.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
 
+        # Plugin signals
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
         )
@@ -294,14 +296,12 @@ class RemoteClient(SpyderPluginV2):
             kernel_info = await client.get_kernel_info(kernel_id)
             return kernel_info
 
-    @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def terminate_kernel(self, config_id, kernel_id):
-        """Terminate opened kernel."""
+    async def _shutdown_kernel(self, config_id, kernel_id):
+        """Shutdown a running kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            delete_kernel = await client.terminate_kernel(kernel_id)
-            return delete_kernel
+            await client.terminate_kernel(kernel_id)
 
     @AsyncDispatcher.dispatch()
     async def _start_new_kernel(self, config_id):
