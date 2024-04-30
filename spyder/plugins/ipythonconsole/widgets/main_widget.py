@@ -1862,6 +1862,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.filenames = []
         return True
 
+    def close_remote_clients(self, server_id):
+        """Close all clients connected to a remote server."""
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            if client.server_id == server_id:
+                is_last_client = (
+                    len(self.get_related_clients(client, open_clients)) == 0
+                )
+                client.close_client(is_last_client)
+                open_clients.remove(client)
+
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
         for index, client in enumerate(self.clients):

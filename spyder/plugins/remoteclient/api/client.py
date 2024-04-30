@@ -9,6 +9,7 @@ import asyncio
 import logging
 import socket
 
+import aiohttp
 import asyncssh
 
 from spyder.api.translations import _
@@ -706,10 +707,13 @@ class SpyderRemoteClient:
         async with JupyterHubAPI(
             self.server_url, api_token=self.api_token
         ) as hub:
-            async with await hub.ensure_server(
-                self.peer_username, self.JUPYTER_SERVER_TIMEOUT
-            ) as jupyter:
-                response = await jupyter.delete_kernel(kernel_id=kernel_id)
+            try:
+                async with await hub.ensure_server(
+                    self.peer_username, self.JUPYTER_SERVER_TIMEOUT
+                ) as jupyter:
+                    response = await jupyter.delete_kernel(kernel_id=kernel_id)
+            except aiohttp.client_exceptions.ClientConnectionError:
+                return True
 
         self._logger.info(f"Kernel terminated for ID {kernel_id}")
         return response

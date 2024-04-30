@@ -48,9 +48,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
-                Plugins.Projects, Plugins.PythonpathManager,
-                Plugins.WorkingDirectory, Plugins.StatusBar]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.History,
+        Plugins.MainMenu,
+        Plugins.Run,
+        Plugins.Projects,
+        Plugins.PythonpathManager,
+        Plugins.RemoteClient,
+        Plugins.WorkingDirectory,
+        Plugins.StatusBar,
+    ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -463,6 +471,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.connect(self.update_path)
 
+    @on_plugin_available(plugin=Plugins.RemoteClient)
+    def on_remote_client_available(self):
+        remote_client = self.get_plugin(Plugins.RemoteClient)
+        remote_client.sig_server_stopped.connect(self._close_remote_clients)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -516,6 +529,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.disconnect(self.update_path)
 
+    @on_plugin_teardown(plugin=Plugins.RemoteClient)
+    def on_remote_client_teardown(self):
+        remote_client = self.get_plugin(Plugins.RemoteClient)
+        remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font(SpyderFontType.Monospace)
@@ -537,6 +555,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
+
+    def _close_remote_clients(self, server_id):
+        self.get_widget().close_remote_clients(server_id)
 
     # ---- Public API
     # -------------------------------------------------------------------------
