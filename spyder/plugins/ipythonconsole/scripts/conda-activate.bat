@@ -24,4 +24,4 @@ call "%CONDA_ACTIVATE_SCRIPT%" "%CONDA_ENV_PATH%"
 goto start
 
 :start Start kernel
-"%CONDA_ENV_PYTHON%" -m spyder_kernels.console -f %SPYDER_KERNEL_SPEC%
+"%CONDA_ENV_PYTHON%" -m spyder_kernels.console -f "%SPYDER_KERNEL_SPEC%"
