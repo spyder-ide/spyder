@@ -83,6 +83,18 @@ class RemoteClientContainer(PluginMainContainer):
         Id of the kernel which will be shutdown in the server.
     """
 
+    sig_interrupt_kernel_requested = Signal(str, str)
+    """
+    This signal is used to request interrupting a kernel.
+
+    Parameters
+    ----------
+    id: str
+        Id of the server for which a kernel shutdown will be requested.
+    kernel_id: str
+        Id of the kernel which will be shutdown in the server.
+    """
+
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
@@ -249,6 +261,9 @@ class RemoteClientContainer(PluginMainContainer):
         """
         ipyclient.sig_shutdown_kernel_requested.connect(
             self.sig_shutdown_kernel_requested
+        )
+        ipyclient.sig_interrupt_kernel_requested.connect(
+            self.sig_interrupt_kernel_requested
         )
 
     def _finish_kernel_connection(self, worker, output, error):

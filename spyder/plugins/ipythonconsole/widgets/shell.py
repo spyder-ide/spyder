@@ -480,6 +480,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Fixes spyder-ide/spyder#20212
             if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
+            elif self.ipyclient.server_id:
+                # Request an interrupt to the server for remote kernels
+                self.ipyclient.sig_interrupt_kernel_requested.emit(
+                    self.ipyclient.server_id, self.ipyclient.kernel_id
+                )
             else:
                 self._append_html(
                     _("<br><br>The kernel appears to be dead, so it can't be "

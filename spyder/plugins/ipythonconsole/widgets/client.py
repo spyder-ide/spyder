@@ -83,7 +83,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
+
+    # Signals for remote kernels
     sig_shutdown_kernel_requested = Signal(str, str)
+    sig_interrupt_kernel_requested = Signal(str, str)
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())

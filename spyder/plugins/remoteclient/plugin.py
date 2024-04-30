@@ -98,6 +98,9 @@ class RemoteClient(SpyderPluginV2):
             self.create_ipyclient_for_server
         )
         container.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
+        container.sig_interrupt_kernel_requested.connect(
+            self._interrupt_kernel
+        )
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
@@ -323,14 +326,12 @@ class RemoteClient(SpyderPluginV2):
             status = await client.restart_kernel(kernel_id)
             return status
 
-    @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def interrupt_kernel(self, config_id, kernel_id):
+    async def _interrupt_kernel(self, config_id, kernel_id):
         """Interrupt kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            status = await client.interrupt_kernel(kernel_id)
-            return status
+            await client.interrupt_kernel(kernel_id)
 
     def _reset_status(self):
         """Reset status of servers."""
