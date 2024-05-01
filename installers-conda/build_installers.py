@@ -203,8 +203,8 @@ def _get_condarc():
     contents = dedent(
         """
         channels:  #!final
-          - conda-forge/label/spyder_kernels_rc
           - conda-forge/label/spyder_dev
+          - conda-forge/label/spyder_kernels_rc
           - conda-forge
         repodata_fns:  #!final
           - repodata.json
@@ -212,6 +212,7 @@ def _get_condarc():
         notify_outdated_conda: false  #!final
         channel_priority: flexible  #!final
         env_prompt: '[spyder]({default_env}) '  #! final
+        register_envs: false  #! final
         """
     )
     # the undocumented #!final comment is explained here
