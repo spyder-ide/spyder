@@ -41,9 +41,10 @@ import zipfile
 
 # Third-party imports
 from ruamel.yaml import YAML
+from setuptools_scm import get_version
 
 # Local imports
-from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h, get_version
+from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h
 
 DIST = HERE / "dist"
 
@@ -56,24 +57,26 @@ SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
-TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
 PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
 
-if TARGET_PLATFORM == "osx-arm64":
-    ARCH = "arm64"
-else:
-    ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 if WINDOWS:
     OS = "Windows"
+    TARGET_PLATFORM = "win-"
     INSTALL_CHOICES = ["exe"]
 elif LINUX:
     OS = "Linux"
+    TARGET_PLATFORM = "linux-"
     INSTALL_CHOICES = ["sh"]
 elif MACOS:
     OS = "macOS"
+    TARGET_PLATFORM = "osx-"
     INSTALL_CHOICES = ["pkg", "sh"]
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
+
+ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
+TARGET_PLATFORM = (TARGET_PLATFORM + ARCH).replace("x86_64", "64")
+TARGET_PLATFORM = os.getenv("CONSTRUCTOR_TARGET_PLATFORM", TARGET_PLATFORM)
 
 scientific_packages = {
     "cython": "",
@@ -109,7 +112,7 @@ p.add_argument(
 )
 p.add_argument(
     "--extra-specs", nargs="+", default=[],
-    help="One or more extra conda specs to add to the installer",
+    help="One or more extra conda specs to add to the installer.",
 )
 p.add_argument(
     "--licenses", action="store_true",
@@ -368,13 +371,16 @@ def _constructor():
 
     definitions = _definitions()
 
-    cmd_args = [constructor, "-v", "--output-dir", str(DIST)]
+    cmd_args = [
+        constructor, "-v",
+        "--output-dir", str(DIST),
+        "--platform", TARGET_PLATFORM,
+    ]
     if args.debug:
         cmd_args.append("--debug")
-    conda_exe = os.environ.get("CONSTRUCTOR_CONDA_EXE")
-    if TARGET_PLATFORM and conda_exe:
-        cmd_args += ["--platform", TARGET_PLATFORM, "--conda-exe", conda_exe]
-    cmd_args.append(str(BUILD))
+    conda_exe = os.getenv("CONSTRUCTOR_CONDA_EXE")
+    if conda_exe:
+        cmd_args.extend(["--conda-exe", conda_exe])
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
