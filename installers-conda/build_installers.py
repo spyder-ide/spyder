@@ -164,6 +164,7 @@ INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
 HEADER_IMG_WIN = BUILD / "header_img_win.png"
 WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
+CONSTRUCTOR_FILE = BUILD / "construct.yaml"
 
 
 def _generate_background_images(installer_type):
@@ -236,6 +237,7 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
+            "conda-forge/label/spyder_dev",
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
@@ -357,7 +359,11 @@ def _definitions():
     if definitions.get("welcome_image") or definitions.get("header_image"):
         _generate_background_images(definitions.get("installer_type", "all"))
 
-    return definitions
+    logger.info(f"Contents of {CONSTRUCTOR_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    yaml.dump(definitions, CONSTRUCTOR_FILE)
 
 
 def _constructor():
@@ -369,12 +375,13 @@ def _constructor():
     if not constructor:
         raise RuntimeError("Constructor must be installed and in PATH.")
 
-    definitions = _definitions()
+    _definitions()
 
     cmd_args = [
         constructor, "-v",
         "--output-dir", str(DIST),
         "--platform", TARGET_PLATFORM,
+        str(CONSTRUCTOR_FILE.parent)
     ]
     if args.debug:
         cmd_args.append("--debug")
@@ -386,10 +393,6 @@ def _constructor():
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
-    logger.info("Configuration:")
-    yaml.dump(definitions, sys.stdout)
-
-    yaml.dump(definitions, BUILD / "construct.yaml")
 
     run(cmd_args, check=True, env=env)
 
