@@ -16,7 +16,7 @@ if [[ $(sed --version 2>/dev/null) ]]; then
     sed_opts=("-i" "-e")
 else
     # BSD sed does not have --version
-    sed_opts=("-i" "''" "-e")
+    sed_opts=("-i" "" "-e")
 fi
 
 # ---- Shortcut
