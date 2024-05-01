@@ -10,10 +10,9 @@ Status widget for Spyder updates.
 
 # Standard library imports
 import logging
-import os
 
 # Third party imports
-from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QLabel
 
 # Local imports
@@ -29,7 +28,6 @@ from spyder.plugins.updatemanager.widgets.update import (
     PENDING
 )
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, create_action
 
 
 # Setup logger
@@ -38,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 class UpdateManagerStatus(StatusBarWidget):
     """Status bar widget for update manager."""
-    BASE_TOOLTIP = _("Application update status")
     ID = 'update_manager_status'
 
     sig_check_update = Signal()
@@ -61,8 +58,8 @@ class UpdateManagerStatus(StatusBarWidget):
 
     def __init__(self, parent):
 
-        self.tooltip = self.BASE_TOOLTIP
-        super().__init__(parent, show_spinner=True)
+        self.tooltip = ""
+        super().__init__(parent)
 
         # Check for updates action menu
         self.menu = SpyderMenu(self)
@@ -81,30 +78,23 @@ class UpdateManagerStatus(StatusBarWidget):
                 "Downloading the update will continue in the background.\n"
                 "Click here to show the download dialog again."
             )
-            self.spinner.hide()
-            self.spinner.stop()
             self.custom_widget.show()
+            self.show()
         elif value == CHECKING:
-            self.tooltip = self.BASE_TOOLTIP
+            self.tooltip = value
             self.custom_widget.hide()
-            self.spinner.show()
-            self.spinner.start()
+            self.hide()
         elif value == PENDING:
             self.tooltip = value
             self.custom_widget.hide()
-            self.spinner.hide()
-            self.spinner.stop()
+            self.show()
         else:
-            self.tooltip = self.BASE_TOOLTIP
+            self.tooltip = ""
             if self.custom_widget:
                 self.custom_widget.hide()
-            if self.spinner:
-                self.spinner.hide()
-                self.spinner.stop()
+            self.hide()
 
-        self.setVisible(True)
         self.update_tooltip()
-        value = f"Spyder: {value}"
         logger.debug(f"Update manager status: {value}")
         super().set_value(value)
 
@@ -126,23 +116,7 @@ class UpdateManagerStatus(StatusBarWidget):
     @Slot()
     def show_dialog_or_menu(self):
         """Show download dialog or status bar menu."""
-        value = self.value.split(":")[-1].strip()
-        if value == DOWNLOADING_INSTALLER:
+        if self.value == DOWNLOADING_INSTALLER:
             self.sig_show_progress_dialog.emit(True)
-        elif value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
+        elif self.value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
             self.sig_start_update.emit()
-        elif value == NO_STATUS:
-            self.menu.clear()
-            check_for_updates_action = create_action(
-                self,
-                text=_("Check for updates..."),
-                triggered=self.sig_check_update.emit
-            )
-
-            add_actions(self.menu, [check_for_updates_action])
-            rect = self.contentsRect()
-            os_height = 7 if os.name == 'nt' else 12
-            pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-10, -rect.height() - os_height)
-            )
-            self.menu.popup(pos)

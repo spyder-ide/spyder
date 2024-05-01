@@ -24,6 +24,7 @@ from spyder import (
     __website_url__ as website_url,
     get_versions, get_versions_text
 )
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
@@ -230,7 +231,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         # -- Buttons
         info_btn = QPushButton(_("Copy version info"))
-        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
+        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         # Apply style to buttons
         for button in [info_btn, ok_btn]:

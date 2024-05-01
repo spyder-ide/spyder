@@ -13,6 +13,7 @@ import logging
 import os
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QApplication
@@ -214,6 +215,11 @@ class Layout(SpyderPluginV2):
         # interface.
         self.restore_visible_plugins()
 
+        # This is necessary to correctly display dock tabbars when there's a
+        # change in WINDOW_STATE_VERSION or the previous session was a Spyder 5
+        # one.
+        self._reapply_docktabbar_style()
+
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
 
@@ -246,6 +252,27 @@ class Layout(SpyderPluginV2):
             text = _('Lock panes and toolbars')
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
+
+    def _reapply_docktabbar_style(self):
+        """Reapply dock tabbar style if necessary."""
+        saved_state_version = self.get_conf(
+            "window_state_version", default=WINDOW_STATE_VERSION
+        )
+
+        # Reapplying style by installing the tab event filter if the window
+        # state version changed or the previous session ran a Spyder version
+        # older than 6.0.0a5, which is when this change became necessary.
+        if (
+            saved_state_version < WINDOW_STATE_VERSION
+            # 82.2.0 is the conf version for 6.0 alpha5
+            or parse(self.old_conf_version) < parse("82.2.0")
+        ):
+            plugins = self.get_dockable_plugins()
+            for plugin in plugins:
+                if plugin.dockwidget.dock_tabbar is not None:
+                    plugin.dockwidget.install_tab_event_filter()
+
+            self.set_conf("window_state_version", WINDOW_STATE_VERSION)
 
     # ---- Helper methods
     # -------------------------------------------------------------------------

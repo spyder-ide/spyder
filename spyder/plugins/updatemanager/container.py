@@ -20,10 +20,7 @@ from qtpy.QtCore import Slot
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
-from spyder.plugins.updatemanager.widgets.update import (
-    UpdateManagerWidget,
-    NO_STATUS
-)
+from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 from spyder.utils.qthelpers import DialogManager
 
 # Logger setup
@@ -65,6 +62,9 @@ class UpdateManagerContainer(PluginMainContainer):
             self.update_manager_status.blockSignals)
         self.update_manager.sig_download_progress.connect(
             self.update_manager_status.set_download_progress)
+        self.update_manager.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
         self.update_manager.sig_install_on_close.connect(
             self.set_install_on_close)
         self.update_manager.sig_quit_requested.connect(self.sig_quit_requested)
@@ -74,8 +74,6 @@ class UpdateManagerContainer(PluginMainContainer):
         self.update_manager_status.sig_start_update.connect(self.start_update)
         self.update_manager_status.sig_show_progress_dialog.connect(
             self.update_manager.show_progress_dialog)
-
-        self.set_status(NO_STATUS)
 
     def update_actions(self):
         pass

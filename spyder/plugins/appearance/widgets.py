@@ -11,6 +11,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QVBoxLayout, QWidget)
 
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils import syntaxhighlighters
 
 
@@ -30,7 +31,9 @@ class SchemeEditor(QDialog):
         self.last_used_scheme = None
 
         # Widgets
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
 
         # Layout
         layout = QVBoxLayout()
