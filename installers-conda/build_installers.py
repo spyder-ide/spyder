@@ -149,6 +149,7 @@ if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
     _specs = yaml.load(SPECS.read_text())
     specs.update(_specs)
+    SPYVER = re.split('([<>= ]+)', specs['spyder'])[-1]
 else:
     logger.info(f"Did not read specs from {SPECS}")
 
