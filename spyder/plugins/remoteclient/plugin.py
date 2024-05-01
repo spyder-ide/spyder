@@ -317,14 +317,12 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
         return await client.start_new_kernel_ensure_server()
 
-    @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def restart_kernel(self, config_id, kernel_id):
+    async def _restart_kernel(self, config_id, kernel_id):
         """Restart kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            status = await client.restart_kernel(kernel_id)
-            return status
+            return await client.restart_kernel(kernel_id)
 
     @AsyncDispatcher.dispatch()
     async def _interrupt_kernel(self, config_id, kernel_id):

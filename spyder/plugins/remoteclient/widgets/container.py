@@ -29,6 +29,19 @@ from spyder.utils.workers import WorkerManager
 
 class RemoteClientContainer(PluginMainContainer):
 
+    _sig_kernel_restarted = Signal(object, bool)
+    """
+    This private signal is used to inform that a kernel restart took place in
+    the server.
+
+    Parameters
+    ----------
+    ipyclient: ClientWidget
+        An IPython console client widget.
+    status: bool
+        Status returned by the server about the kernel restart request.
+    """
+
     sig_start_server_requested = Signal(str)
     """
     This signal is used to request starting a remote server.
@@ -115,6 +128,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
+        self._sig_kernel_restarted.connect(self._on_kernel_restarted)
 
         # Worker manager to open ssh tunnels in threads
         self._worker_manager = WorkerManager(max_threads=5)
@@ -202,25 +216,11 @@ class RemoteClientContainer(PluginMainContainer):
         with open(connection_file, "w") as f:
             json.dump(kernel_info["connection_info"], f)
 
-        # Open the tunnel in a worker to avoid blocking the UI
-        worker = self._worker_manager.create_python_worker(
-            KernelHandler.tunnel_to_kernel,
-            kernel_info["connection_info"],
-            hostname,
-            sshkey,
-            password,
+        # Open tunnel to the kernel. Connecting the ipyclient to the kernel
+        # will be finished after that takes place.
+        self._open_tunnel_to_kernel(
+            ipyclient, connection_file, hostname, sshkey, password
         )
-
-        # Save variables necessary to make the connection in the worker
-        worker.ipyclient = ipyclient
-        worker.connection_file = connection_file
-        worker.hostname = hostname
-        worker.sshkey = sshkey
-        worker.password = password
-
-        # Start worker
-        worker.sig_finished.connect(self._finish_kernel_connection)
-        worker.start()
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -256,8 +256,9 @@ class RemoteClientContainer(PluginMainContainer):
 
     def _connect_ipyclient_signals(self, ipyclient):
         """
-        Connect an IPython console client signals to the corresponding ones
-        here, which are necessary for kernel management on the server.
+        Connect the signals to shutdown, interrupt and restart the kernel of an
+        IPython console client to the signals and methods declared here for
+        remote kernel management.
         """
         ipyclient.sig_shutdown_kernel_requested.connect(
             self.sig_shutdown_kernel_requested
@@ -265,9 +266,51 @@ class RemoteClientContainer(PluginMainContainer):
         ipyclient.sig_interrupt_kernel_requested.connect(
             self.sig_interrupt_kernel_requested
         )
+        ipyclient.sig_restart_kernel_requested.connect(
+            lambda: self._request_kernel_restart(ipyclient)
+        )
+
+    def _open_tunnel_to_kernel(
+        self,
+        ipyclient,
+        connection_file,
+        hostname,
+        sshkey,
+        password,
+        restart=False
+    ):
+        """
+        Open an SSH tunnel to a remote kernel.
+
+        Notes
+        -----
+        * We do this in a worker to avoid blocking the UI.
+        """
+        with open(connection_file, "r") as f:
+            connection_info = json.load(f)
+
+        worker = self._worker_manager.create_python_worker(
+            KernelHandler.tunnel_to_kernel,
+            connection_info,
+            hostname,
+            sshkey,
+            password,
+        )
+
+        # Save variables necessary to make the connection in the worker
+        worker.ipyclient = ipyclient
+        worker.connection_file = connection_file
+        worker.hostname = hostname
+        worker.sshkey = sshkey
+        worker.password = password
+        worker.restart = restart
+
+        # Start worker
+        worker.sig_finished.connect(self._finish_kernel_connection)
+        worker.start()
 
     def _finish_kernel_connection(self, worker, output, error):
-        """Finish connecting a remote kernel to an IPython console client."""
+        """Finish connecting an IPython console client to a remote kernel."""
         # Handle errors
         if error:
             worker.ipyclient.show_kernel_error(str(error))
@@ -283,4 +326,39 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         # Connect client to the kernel
-        worker.ipyclient.connect_kernel(kernel_handler)
+        if not worker.restart:
+            worker.ipyclient.connect_kernel(kernel_handler)
+        else:
+            worker.ipyclient.replace_kernel(
+                kernel_handler, shutdown_kernel=False
+            )
+
+    def _request_kernel_restart(self, ipyclient):
+        """
+        Request a kernel restart to the server for an IPython console client
+        and handle its response.
+        """
+        future = self._plugin._restart_kernel(
+            ipyclient.server_id, ipyclient.kernel_id
+        )
+
+        future.add_done_callback(
+            lambda future: self._sig_kernel_restarted.emit(
+                ipyclient, future.result()
+            )
+        )
+
+    def _on_kernel_restarted(self, ipyclient, status):
+        """Actions to take when the kernel was restarted by the server."""
+        if status:
+            kernel_handler = ipyclient.kernel_handler
+            self._open_tunnel_to_kernel(
+                ipyclient,
+                kernel_handler.connection_file,
+                kernel_handler.hostname,
+                kernel_handler.sshkey,
+                kernel_handler.password,
+                restart=True
+            )
+        else:
+            ipyclient.kernel_restarted_failure_message()

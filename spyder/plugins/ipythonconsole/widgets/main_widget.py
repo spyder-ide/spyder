@@ -2050,7 +2050,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         km = client.kernel_handler.kernel_manager
-        if km is None:
+        if km is None and client.server_id is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -2071,6 +2071,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             do_restart = result == QMessageBox.Yes
 
         if not do_restart:
+            return
+
+        # For remote kernels we need to request the server for a restart
+        if client.server_id:
+            client.sig_restart_kernel_requested.emit()
             return
 
         # Get new kernel

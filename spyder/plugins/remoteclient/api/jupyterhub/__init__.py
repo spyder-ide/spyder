@@ -371,9 +371,11 @@ class JupyterAPI:
                 raise ValueError(
                     f"failed to restart kernel_id={kernel_id} does not exist"
                 )
-            elif response.status == 204:
+            elif response.status == 200:
                 logger.info(f"restarted kernel={kernel_id} for jupyter")
                 return True
+            else:
+                return False
 
 
 class JupyterKernelAPI:

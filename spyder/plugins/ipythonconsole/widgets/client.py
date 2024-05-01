@@ -87,6 +87,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     # Signals for remote kernels
     sig_shutdown_kernel_requested = Signal(str, str)
     sig_interrupt_kernel_requested = Signal(str, str)
+    sig_restart_kernel_requested = Signal()
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -670,6 +671,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=True)
         self.shellwidget._kernel_restarted_message(died=False)
+
+    def kernel_restarted_failure_message(self):
+        """Show message when the kernel failed to be restarted."""
+        msg = _("It was not possible to restart the kernel")
+        self.shellwidget._append_html(f"<br>{msg}<br>", before_prompt=False)
+        self.shellwidget.insert_horizontal_ruler()
 
     def print_fault(self, fault):
         """Print fault text."""
