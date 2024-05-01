@@ -183,12 +183,22 @@ class RemoteClientContainer(PluginMainContainer):
         """
         config_id = ipyclient.server_id
 
+        # Get authentication method
+        auth_method = self.get_conf(f"{config_id}/auth_method")
+
+        # Handle failures to launch a kernel
+        if not kernel_info:
+            name = self.get_conf(f"{config_id}/{auth_method}/name")
+            ipyclient.show_kernel_error(
+                _(
+                    "There was an error connecting to the server <b>{}</b>"
+                ).format(name)
+            )
+            return
+
         # Connect client's signals
         ipyclient.kernel_id = kernel_info["id"]
         self._connect_ipyclient_signals(ipyclient)
-
-        # Get authentication method
-        auth_method = self.get_conf(f"{config_id}/auth_method")
 
         # Set hostname in the format expected by KernelHandler
         address = self.get_conf(f"{config_id}/{auth_method}/address")

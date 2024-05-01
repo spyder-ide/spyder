@@ -643,7 +643,7 @@ class SpyderRemoteClient:
             self._logger.error(
                 "Cannot launch kernel, remote server is not running"
             )
-            return
+            return {}
 
         # This is necessary to avoid an error when the server has not started
         # before
