@@ -1,8 +1,0 @@
-channels:
-  - local
-  - conda-forge/label/spyder_dev
-  - conda-forge/label/spyder_kernels_rc
-  - conda-forge
-dependencies:
-  - python=3.10
-  - spyder=6.0.0a6.dev13

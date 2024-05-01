@@ -57,6 +57,7 @@ SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
+CONDA_BLD_PATH = os.getenv("CONDA_BLD_PATH", "local")
 PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
 
 if WINDOWS:
@@ -131,6 +132,10 @@ p.add_argument(
     "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
     help="Installer type."
 )
+p.add_argument(
+    "--conda-lock", action="store_true",
+    help="Create conda-lock file and exit."
+)
 args = p.parse_args()
 
 yaml = YAML()
@@ -166,6 +171,44 @@ WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
 HEADER_IMG_WIN = BUILD / "header_img_win.png"
 WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
 CONSTRUCTOR_FILE = BUILD / "construct.yaml"
+
+
+def _create_conda_lock():
+    definitions = {
+        "channels": [
+            CONDA_BLD_PATH,
+            "conda-forge/label/spyder_dev",
+            "conda-forge/label/spyder_kernels_rc",
+            "conda-forge"
+        ],
+        "dependencies": [f"python={PY_VER}", f"spyder={SPYVER}"],
+        "platforms": [TARGET_PLATFORM]
+    }
+
+    logger.info("Conda lock configuration:")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    env_file = BUILD / "runtime_env.yml"
+    lock_file = DIST / f"conda-{TARGET_PLATFORM}.lock"
+    yaml.dump(definitions, env_file)
+
+    env = os.environ.copy()
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
+
+    cmd_args = [
+        "conda-lock", "lock",
+        "--kind", "explicit",
+        "--file", str(env_file),
+        "--filename-template", str(DIST / "conda-{platform}.lock")
+    ]
+
+    run(cmd_args, check=True, env=env)
+
+    if lock_file.exists():
+        logger.info(f"Contents of {lock_file}:")
+        if logger.getEffectiveLevel() <= 20:
+            print(lock_file.read_text())
 
 
 def _generate_background_images(installer_type):
@@ -452,6 +495,9 @@ if __name__ == "__main__":
         sys.exit()
     if args.images:
         _generate_background_images()
+        sys.exit()
+    if args.conda_lock:
+        _create_conda_lock()
         sys.exit()
 
     main()
