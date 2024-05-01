@@ -359,10 +359,7 @@ class EditorMainWidget(PluginMainWidget):
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
-        title = _('Editor')
-        if self.get_current_filename():
-            title = self.get_current_filename()
-        return title
+        return _('Editor')
 
     def get_focus_widget(self):
         """
