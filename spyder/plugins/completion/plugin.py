@@ -270,16 +270,6 @@ class CompletionPlugin(SpyderPluginV2):
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
-
-        # Do not start providers on tests unless necessary
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                # Prevent providers from receiving configuration updates
-                for provider_name in self.providers:
-                    provider_info = self.providers[provider_name]
-                    CONF.unobserve_configuration(provider_info['instance'])
-                return
-
         self.start_all_providers()
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -393,6 +383,8 @@ class CompletionPlugin(SpyderPluginV2):
                 provider = provider_info['instance']
                 provider_can_close = provider.can_close()
                 can_close |= provider_can_close
+            else:
+                can_close |= True
         return can_close
 
     def on_close(self, cancelable=False) -> bool:
@@ -406,6 +398,8 @@ class CompletionPlugin(SpyderPluginV2):
                 can_close |= provider_can_close
                 if provider_can_close:
                     provider.shutdown()
+            else:
+                can_close |= True
         return can_close
 
     def after_configuration_update(self, options: List[Union[tuple, str]]):

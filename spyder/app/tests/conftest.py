@@ -325,12 +325,13 @@ def main_window(request, tmpdir, qtbot):
     use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+        CONF.set('completions', ('enabled_providers', 'lsp'), True)
+        CONF.set('completions', ('enabled_providers', 'fallback'), True)
+        CONF.set('completions', ('enabled_providers', 'snippets'), True)
     else:
-        try:
-            os.environ.pop('SPY_TEST_USE_INTROSPECTION')
-        except KeyError:
-            pass
+        CONF.set('completions', ('enabled_providers', 'lsp'), False)
+        CONF.set('completions', ('enabled_providers', 'fallback'), False)
+        CONF.set('completions', ('enabled_providers', 'snippets'), False)
 
     # Only use single_instance mode for tests that require it
     single_instance = request.node.get_closest_marker('single_instance')
