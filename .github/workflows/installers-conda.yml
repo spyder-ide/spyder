@@ -250,6 +250,7 @@ jobs:
           LCK_NAME=$(ls $DISTDIR | grep conda-)
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
           echo "LCK_NAME=$LCK_NAME" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
           echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
 
       - name: Test macOS or Linux Installer
@@ -285,7 +286,7 @@ jobs:
               ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
           else
               cd $DISTDIR
-              echo $(sha256sum $PKG_NAME) > "${PKG_NAME%.*}-sha256sum.txt"
+              echo $(sha256sum $PKG_NAME) > "${ARTIFACT_NAME}-sha256sum.txt"
           fi
 
       - name: Upload Artifact
@@ -293,7 +294,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ${{ env.DISTDIR }}
-          name: ${{ env.PKG_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'
