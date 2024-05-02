@@ -966,21 +966,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
-                    interactive_backend = (
-                        client.shellwidget.get_mpl_interactive_backend()
-                    )
+                    interactive_backend = sw.get_mpl_interactive_backend()
 
                 if (
                     # There was an error getting the interactive backend in
                     # the kernel, so we can't proceed.
-                    interactive_backend is not None and
+                    interactive_backend is not None
                     # There has to be an interactive backend (i.e. different
                     # from inline) set in the kernel before. Else, a restart
                     # is not necessary.
-                    interactive_backend != inline_backend and
+                    and interactive_backend != inline_backend
                     # The interactive backend to switch to has to be different
                     # from the current one
-                    interactive_backend != pylab_backend_o
+                    and interactive_backend != pylab_backend_o
+                    # There's no need to request a restart for the auto backend
+                    and pylab_backend_o != "auto"
                 ):
                     clients_backend_require_restart.append(True)
 
