@@ -164,6 +164,7 @@ for spec in args.extra_specs:
     if k == "spyder":
         SPYVER = v[-1]
 
+LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
@@ -201,6 +202,7 @@ def _create_conda_lock():
         "--kind", "explicit",
         "--file", str(env_file),
         "--filename-template", str(DIST / "conda-{platform}.lock")
+        # Note conda-lock doesn't provide output file option, only template
     ]
 
     run(cmd_args, check=True, env=env)
@@ -472,8 +474,17 @@ def main():
     t0 = time()
     try:
         DIST.mkdir(exist_ok=True)
+        _create_conda_lock()
+        assert LOCK_FILE.exists()
+        logger.info(f"Created {LOCK_FILE}")
+    finally:
+        elapse = timedelta(seconds=int(time() - t0))
+        logger.info(f"Build time: {elapse}")
+
+    t0 = time()
+    try:
         _constructor()
-        assert Path(OUTPUT_FILE).exists()
+        assert OUTPUT_FILE.exists()
         logger.info(f"Created {OUTPUT_FILE}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
