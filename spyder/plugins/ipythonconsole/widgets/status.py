@@ -86,8 +86,10 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
         if gui == "inline":
             text = _("Inline")
-        elif gui == 'failed':
-            text = _('No backend')
+        elif gui == "auto":
+            text = _("Automatic")
+        elif gui == "macosx":
+            text = "macOS"
         else:
             text = gui.capitalize()
 
@@ -99,7 +101,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             lambda sw=shellwidget: self.config_spyder_kernel(sw)
         )
         shellwidget.kernel_handler.sig_kernel_is_ready.connect(
-            lambda sw=shellwidget: self.on_kernel_restart(sw)
+            lambda sw=shellwidget: self.on_kernel_start(sw)
         )
 
         backend = self.get_conf('pylab/backend')
@@ -118,10 +120,18 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         )
         shellwidget.set_kernel_configuration("update_gui", True)
 
-    def on_kernel_restart(self, shellwidget):
-        """Actions to take when the kernel is restarted."""
+    def on_kernel_start(self, shellwidget):
+        """Actions to take when the kernel starts."""
         # Reset value of interactive backend
         self._interactive_gui = None
+
+        # Hide widget if Matplotlib is not available
+        if shellwidget.get_matplotlib_backend() is None:
+            gui = "failed"
+            self._shellwidget_dict[id(shellwidget)]['gui'] = gui
+            self.hide()
+        else:
+            self.show()
 
         # Ask the kernel to update the current backend, in case it has changed
         shellwidget.set_kernel_configuration("update_gui", True)
@@ -131,8 +141,16 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         self._current_id = None
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidget_dict:
-            self.update_status(self._shellwidget_dict[shellwidget_id]["gui"])
-            self._current_id = shellwidget_id
+            gui = self._shellwidget_dict[shellwidget_id]["gui"]
+            if gui == "failed":
+                # This means the console failed to start or Matplotlib is not
+                # installed in the kernel. So, we don't need to show this
+                # widget in those cases.
+                self.hide()
+            else:
+                self.show()
+                self.update_status(gui)
+                self._current_id = shellwidget_id
 
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
