@@ -28,7 +28,7 @@ check_prefix() {
         echo "\nContents of ${base_prefix}:"
         ls -al $base_prefix
     else
-        echo "$base_prefix does not exist!"
+        echo "Base prefix does not exist!"
         exit 1
     fi
 }
@@ -66,7 +66,7 @@ check_shortcut() {
     fi
 }
 
-install
+install || exit 1
 echo "Install info:"
 check_prefix
 check_uninstall

@@ -250,6 +250,7 @@ jobs:
           LCK_NAME=$(ls $DISTDIR | grep conda-)
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
           echo "LCK_NAME=$LCK_NAME" >> $GITHUB_ENV
+          echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
 
       - name: Test macOS or Linux Installer
         if: runner.os != 'Windows'
