@@ -59,6 +59,7 @@ MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
 CONDA_BLD_PATH = os.getenv("CONDA_BLD_PATH", "local")
 PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
+SPYVER = get_version(SPYREPO).split("+")[0]
 
 if WINDOWS:
     OS = "Windows"
@@ -78,16 +79,6 @@ else:
 ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 TARGET_PLATFORM = (TARGET_PLATFORM + ARCH).replace("x86_64", "64")
 TARGET_PLATFORM = os.getenv("CONSTRUCTOR_TARGET_PLATFORM", TARGET_PLATFORM)
-
-scientific_packages = {
-    "cython": "",
-    "matplotlib": "",
-    "numpy": "",
-    "openpyxl": "",
-    "pandas": "",
-    "scipy": "",
-    "sympy": "",
-}
 
 # ---- Parse arguments
 p = ArgumentParser()
@@ -142,27 +133,31 @@ yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
-
 specs = {
     "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
+    "cython": "",
+    "matplotlib": "",
+    "numpy": "",
+    "openpyxl": "",
+    "pandas": "",
+    "scipy": "",
+    "sympy": "",
 }
-specs.update(scientific_packages)
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
     _specs = yaml.load(SPECS.read_text())
     specs.update(_specs)
-    SPYVER = re.split('([<>= ]+)', specs['spyder'])[-1]
 else:
     logger.info(f"Did not read specs from {SPECS}")
 
 for spec in args.extra_specs:
-    k, *v = re.split('([<>= ]+)', spec)
+    k, *v = re.split('([<>=]+)[ ]*', spec)
     specs[k] = "".join(v).strip()
-    if k == "spyder":
-        SPYVER = v[-1]
+
+PY_VER = re.split('([<>=]+)[ ]*', specs['python'])[-1]
+SPYVER = re.split('([<>=]+)[ ]*', specs['spyder'])[-1]
 
 LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
@@ -182,7 +177,7 @@ def _create_conda_lock():
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge"
         ],
-        "dependencies": [f"python={PY_VER}", f"spyder={SPYVER}"],
+        "dependencies": [k + v for k, v in specs.items()],
         "platforms": [TARGET_PLATFORM]
     }
 
@@ -303,8 +298,8 @@ def _definitions():
         "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
-                "specs": [k + v for k, v in specs.items()],
-            },
+                "environment_file": str(LOCK_FILE),
+            }
         },
         "channels_remap": [
             {
