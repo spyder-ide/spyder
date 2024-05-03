@@ -8,6 +8,8 @@ dependencies:
 # to this file.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/main.yml, and copy it here.
+- aiohttp >=3.9.3
+- asyncssh >=2.0.0
 - atomicwrites >=1.2.0
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
@@ -51,6 +53,7 @@ dependencies:
 - textdistance >=4.2.0
 - three-merge >=0.1.1
 - watchdog >=0.10.3
+- yarl >=1.9.4
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
