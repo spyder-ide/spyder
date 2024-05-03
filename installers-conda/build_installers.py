@@ -160,6 +160,7 @@ PY_VER = re.split('([<>=]+)[ ]*', specs['python'])[-1]
 SPYVER = re.split('([<>=]+)[ ]*', specs['spyder'])[-1]
 
 LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
+TMP_LOCK_FILE = BUILD / f"conda-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
@@ -186,7 +187,6 @@ def _create_conda_lock():
         yaml.dump(definitions, sys.stdout)
 
     env_file = BUILD / "runtime_env.yml"
-    lock_file = DIST / f"conda-{TARGET_PLATFORM}.lock"
     yaml.dump(definitions, env_file)
 
     env = os.environ.copy()
@@ -196,16 +196,28 @@ def _create_conda_lock():
         "conda-lock", "lock",
         "--kind", "explicit",
         "--file", str(env_file),
-        "--filename-template", str(DIST / "conda-{platform}.lock")
+        "--filename-template", str(BUILD / "conda-{platform}.lock")
         # Note conda-lock doesn't provide output file option, only template
     ]
 
     run(cmd_args, check=True, env=env)
 
-    if lock_file.exists():
-        logger.info(f"Contents of {lock_file}:")
-        if logger.getEffectiveLevel() <= 20:
-            print(lock_file.read_text())
+    logger.info(f"Contents of {TMP_LOCK_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        print(TMP_LOCK_FILE.read_text(), flush=True)
+
+
+def _patch_conda_lock():
+    # Replace local channel url with conda-forge
+    tmp_text = TMP_LOCK_FILE.read_text()
+    text = tmp_text.replace(
+        _get_conda_bld_path_url(), "https://conda.anaconda.org/conda-forge"
+    )
+    LOCK_FILE.write_text(text)
+
+    logger.info(f"Contents of {LOCK_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        print(LOCK_FILE.read_text(), flush=True)
 
 
 def _generate_background_images(installer_type):
@@ -298,7 +310,7 @@ def _definitions():
         "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
-                "environment_file": str(LOCK_FILE),
+                "environment_file": str(TMP_LOCK_FILE),
             }
         },
         "channels_remap": [
@@ -470,8 +482,7 @@ def main():
     try:
         DIST.mkdir(exist_ok=True)
         _create_conda_lock()
-        assert LOCK_FILE.exists()
-        logger.info(f"Created {LOCK_FILE}")
+        assert TMP_LOCK_FILE.exists()
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
@@ -484,6 +495,8 @@ def main():
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
+
+    _patch_conda_lock()
 
 
 if __name__ == "__main__":
