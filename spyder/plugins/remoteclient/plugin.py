@@ -44,11 +44,6 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_lost = Signal(str)
     sig_connection_status_changed = Signal(dict)
 
-    sig_kernel_list = Signal(dict)
-    sig_kernel_started = Signal(str, dict)
-    sig_kernel_info = Signal(dict)
-    sig_kernel_terminated = Signal(dict)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -155,7 +150,7 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             kernels_list = await client.list_kernels()
-            self.sig_kernel_list.emit(kernels_list)
+            return kernels_list
 
     @Slot(str)
     @AsyncDispatcher.dispatch()
@@ -164,7 +159,7 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             kernel_info = await client.get_kernel_info(kernel_id)
-            self.sig_kernel_info.emit(kernel_info or {})
+            return kernel_info
 
     @Slot(str)
     @AsyncDispatcher.dispatch()
@@ -173,7 +168,7 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             delete_kernel = await client.terminate_kernel(kernel_id)
-            self.sig_kernel_terminated.emit(delete_kernel or {})
+            return delete_kernel
 
     @Slot(str)
     @AsyncDispatcher.dispatch()
@@ -182,7 +177,6 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             kernel_info = await client.start_new_kernel_ensure_server()
-            self.sig_kernel_started.emit(kernel_info['id'] or {})
             return kernel_info
 
     @Slot(str)
@@ -192,7 +186,6 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             status = await client.restart_kernel(kernel_id)
-            self.sig_kernel_started.emit(kernel_id or {})
             return status
     
     @Slot(str)
