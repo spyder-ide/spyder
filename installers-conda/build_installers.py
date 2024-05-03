@@ -208,10 +208,12 @@ def _create_conda_lock():
 
 
 def _patch_conda_lock():
-    # Replace local channel url with conda-forge
+    # Replace local channel url with conda-forge and remove checksum
     tmp_text = TMP_LOCK_FILE.read_text()
-    text = tmp_text.replace(
-        _get_conda_bld_path_url(), "https://conda.anaconda.org/conda-forge"
+    text = re.sub(
+        f"^{_get_conda_bld_path_url()}(.*)#.*$",
+        r"https://conda.anaconda.org/conda-forge\1",
+        tmp_text, flags=re.MULTILINE
     )
     LOCK_FILE.write_text(text)
 
@@ -517,6 +519,7 @@ if __name__ == "__main__":
         sys.exit()
     if args.conda_lock:
         _create_conda_lock()
+        _patch_conda_lock()
         sys.exit()
 
     main()
