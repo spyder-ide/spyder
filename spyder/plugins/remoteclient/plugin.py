@@ -154,7 +154,7 @@ class RemoteClient(SpyderPluginV2):
         """Get opened kernels."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernels_list = await client.get_kernels()
+            kernels_list = await client.list_kernels()
             self.sig_kernel_list.emit(kernels_list)
 
     @Slot(str)
