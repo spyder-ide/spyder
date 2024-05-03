@@ -230,15 +230,28 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        if os.name == 'nt':
-            plat, ext = 'Windows', 'exe'
-        if sys.platform == 'darwin':
-            plat, ext = 'macOS', 'pkg'
-        if sys.platform.startswith('linux'):
-            plat, ext = 'Linux', 'sh'
-
+        major_update = (
+            parse(__version__).major < parse(self.latest_release).major
+        )
         mach = platform.machine().lower().replace("amd64", "x86_64")
-        fname = f'Spyder-{plat}-{mach}.{ext}'
+
+        if major_update or not is_conda_based_app():
+            if os.name == 'nt':
+                plat, ext = 'Windows', 'exe'
+            if sys.platform == 'darwin':
+                plat, ext = 'macOS', 'pkg'
+            if sys.platform.startswith('linux'):
+                plat, ext = 'Linux', 'sh'
+            fname = f'Spyder-{plat}-{mach}.{ext}'
+        else:
+            if os.name == 'nt':
+                plat = 'win'
+            if sys.platform == 'darwin':
+                plat = 'osx'
+            if sys.platform.startswith('linux'):
+                plat = 'linux'
+            mach = mach.replace('x86_64', '64')
+            fname = f'conda-{plat}-{mach}.lock'
 
         dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
         self.installer_path = osp.join(dirname, fname)
@@ -268,9 +281,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         self.latest_release = self.update_worker.latest_release
         self._set_installer_path()
-        major_update = (
-            parse(__version__).major < parse(self.latest_release).major
-        )
 
         if self._verify_installer_path():
             self.set_status(DOWNLOAD_FINISHED)
@@ -296,7 +306,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 manual_update_messagebox(
                     self, self.latest_release, self.update_worker.channel
                 )
-        elif major_update:
+        else:
             msg = _("Would you like to automatically download "
                     "and install it?")
             box = confirm_messagebox(
@@ -305,9 +315,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             )
             if box.result() == QMessageBox.Yes:
                 self._start_download()
-        else:
-            # Minor release for conda-based application will update with conda
-            self._confirm_install()
 
     def _start_download(self):
         """
@@ -323,7 +330,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.set_status(DOWNLOADING_INSTALLER)
 
         self.progress_dialog = ProgressDialog(
-            self, _("Downloading Spyder {} ...").format(self.latest_release)
+            self,
+            _("Downloading update for Spyder {} ...").format(
+                self.latest_release)
         )
         self.progress_dialog.cancel.clicked.connect(self._cancel_download)
 
@@ -422,13 +431,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         shutil.copy2(script_path, tmpscript_path)
 
         # Sub command
-        sub_cmd = [tmpscript_path, '-p', sys.prefix]
-        if osp.exists(self.installer_path):
-            # Run downloaded installer
-            sub_cmd.extend(['-i', self.installer_path])
-        elif self.latest_release is not None:
+        sub_cmd = [tmpscript_path, '-i', self.installer_path]
+        if self.installer_path.endswith('.lock'):
             # Update with conda
-            sub_cmd.extend(['-c', find_conda(), '-v', self.latest_release])
+            sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
 
         # Final command assembly
         if os.name == 'nt':

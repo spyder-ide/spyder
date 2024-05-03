@@ -2,18 +2,17 @@
 
 unset HISTFILE  # Do not write to history with interactive shell
 
-while getopts "i:c:p:v:" option; do
+while getopts "i:c:p:" option; do
     case "$option" in
-        (i) install_exe=$OPTARG ;;
+        (i) install_file=$OPTARG ;;
         (c) conda=$OPTARG ;;
         (p) prefix=$OPTARG ;;
-        (v) spy_ver=$OPTARG ;;
     esac
 done
 shift $(($OPTIND - 1))
 
 update_spyder(){
-    $conda install -p $prefix -y spyder=$spy_ver
+    $conda update -p $prefix -y --file $install_file
     read -p "Press return to exit..."
 }
 
@@ -44,7 +43,7 @@ install_spyder(){
     fi
 
     # Run installer
-    [[ "$OSTYPE" = "darwin"* ]] && open $install_exe || sh $install_exe
+    [[ "$OSTYPE" = "darwin"* ]] && open $install_file || sh $install_file
 }
 
 cat <<EOF
@@ -64,10 +63,10 @@ done
 
 echo "Spyder quit."
 
-if [[ -e "$conda" && -d "$prefix" && -n "$spy_ver" ]]; then
+if [[ -e "$conda" && -d "$prefix" ]]; then
     update_spyder
     launch_spyder
-elif [[ -e "$install_exe" ]]; then
+else
     install_spyder
 fi
 
