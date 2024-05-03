@@ -99,8 +99,12 @@ class AsyncDispatcher:
     @classmethod
     def _ensure_running_loop(cls, loop=None):
         if loop is None:
-            loop = asyncio.get_event_loop()
-            loop_id = hash(loop)
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+            finally:
+                loop_id = hash(loop)
         elif not isinstance(loop, asyncio.AbstractEventLoop):
             loop_id = loop
             loop = cls.__running_loops.get(loop_id, asyncio.new_event_loop())
