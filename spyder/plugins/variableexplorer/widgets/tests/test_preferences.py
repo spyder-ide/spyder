@@ -18,7 +18,7 @@ def test_preferences_float_format(qtbot):
     """
     Test that reading and setting float_format works.
     """
-    dialog = PreferencesDialog()
+    dialog = PreferencesDialog('dataframe')
     dialog.float_format = 'old'
     assert dialog.format_input.text() == 'old'
 
@@ -30,7 +30,7 @@ def test_preferences_background(qtbot):
     """
     Test default and varying background buttons.
     """
-    dialog = PreferencesDialog()
+    dialog = PreferencesDialog('dataframe')
     dialog.varying_background = True
 
     assert dialog.varying_background
@@ -60,7 +60,7 @@ def test_preferences_coloring_algo(qtbot):
     """
     Test coloring algo buttons (global and by column)
     """
-    dialog = PreferencesDialog()
+    dialog = PreferencesDialog('dataframe')
     dialog.varying_background = True
     dialog.global_algo = True
 
@@ -79,3 +79,12 @@ def test_preferences_coloring_algo(qtbot):
     assert dialog.global_algo
     assert dialog.global_button.isChecked()
     assert not dialog.by_column_button.isChecked()
+
+
+def test_preferences_for_arrays(qtbot):
+    """
+    Check that dialog for arrays does not have coloring algo buttons.
+    """
+    dialog = PreferencesDialog('array')
+    assert 'global_button' not in dir(dialog)
+    assert 'by_column_button' not in dir(dialog)

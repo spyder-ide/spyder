@@ -39,11 +39,14 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.preferences import (
+    PreferencesDialog)
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import keybinding, safe_disconnect
 from spyder.utils.stylesheet import AppStyle, MAC
+
 
 # =============================================================================
 # ---- Constants
@@ -52,10 +55,9 @@ from spyder.utils.stylesheet import AppStyle, MAC
 class ArrayEditorActions:
     Copy = 'copy_action'
     Edit = 'edit_action'
-    Format = 'format_action'
+    Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     Resize = 'resize_action'
-    ToggleBackgroundColor = 'toggle_background_color_action'
 
 
 class ArrayEditorMenus:
@@ -143,8 +145,16 @@ def get_idx_rect(index_list):
 #==============================================================================
 
 class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
-    """Array Editor Table Model"""
+    """
+    Array Editor Table Model
 
+    Attributes
+    ----------
+    bgcolor_enabled : bool
+        If True, vary backgrond color depending on cell value
+    _format_spec : str
+        Format specification for floats
+    """
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
@@ -217,19 +227,23 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             else:
                 self.cols_loaded = self.total_cols
 
-    def get_format_spec(self):
-        """Return current format"""
+    def get_format_spec(self) -> str:
+        """
+        Return current format specification for floats.
+        """
         # Avoid accessing the private attribute _format_spec from outside
         return self._format_spec
+
+    def set_format_spec(self, format_spec: str) -> None:
+        """
+        Set format specification for floats.
+        """
+        self._format_spec = format_spec
+        self.reset()
 
     def get_data(self):
         """Return data"""
         return self._data
-
-    def set_format_spec(self, format_spec):
-        """Change display format"""
-        self._format_spec = format_spec
-        self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
@@ -273,9 +287,11 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             self.cols_loaded += items_to_fetch
             self.endInsertColumns()
 
-    def bgcolor(self, state):
-        """Toggle backgroundcolor"""
-        self.bgcolor_enabled = state > 0
+    def bgcolor(self, value: bool):
+        """
+        Set whether background color varies depending on cell value.
+        """
+        self.bgcolor_enabled = value
         self.reset()
 
     def get_value(self, index):
@@ -745,12 +761,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             # function as a placeholder here.
             pass
 
-        self.format_action = self.create_action(
-            ArrayEditorActions.Format,
-            text=_('Format'),
-            icon=self.create_icon('format_float'),
-            tip=_('Set format of floating-point numbers'),
-            triggered=do_nothing,
+        self.preferences_action = self.create_action(
+            name=ArrayEditorActions.Preferences,
+            icon=self.create_icon('configure'),
+            text=_('Display options ...'),
+            triggered=self.show_preferences_dialog,
             register_action=False
         )
         self.refresh_action = self.create_action(
@@ -770,12 +785,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
-        self.toggle_bgcolor_action = self.create_action(
-            ArrayEditorActions.ToggleBackgroundColor,
-            text=_('Background color'),
-            toggled=do_nothing,
-            register_action=False
-        )
 
         # ---- Toolbar and options menu
 
@@ -783,8 +792,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             ArrayEditorMenus.Options,
             register=False
         )
-        options_menu.add_action(self.toggle_bgcolor_action)
-        options_menu.add_action(self.format_action)
+        options_menu.add_action(self.preferences_action)
 
         options_button = self.create_toolbutton(
             name=ArrayEditorWidgets.OptionsToolButton,
@@ -974,21 +982,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Actions
 
-        safe_disconnect(self.format_action.triggered)
-        self.format_action.triggered.connect(self.arraywidget.change_format)
-        self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
-
         safe_disconnect(self.resize_action.triggered)
         self.resize_action.triggered.connect(
             self.arraywidget.view.resize_to_contents)
-
-        safe_disconnect(self.toggle_bgcolor_action.toggled)
-        self.toggle_bgcolor_action.toggled.connect(
-            lambda state: self.arraywidget.model.bgcolor(state))
-        self.toggle_bgcolor_action.setEnabled(
-            self.arraywidget.model.bgcolor_enabled)
-        self.toggle_bgcolor_action.setChecked(
-            self.arraywidget.model.bgcolor_enabled)
 
         # ---- Widgets in bottom left
 
@@ -1068,9 +1064,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             self.arraywidget.model.dataChanged.connect(
                 self.save_and_close_enable
             )
-            self.toggle_bgcolor_action.setChecked(
-                self.arraywidget.model.bgcolor_enabled
-            )
 
     def change_active_widget(self, index):
         """
@@ -1125,6 +1118,32 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             self.change_active_widget(0)
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
+
+    def show_preferences_dialog(self) -> None:
+        """
+        Show dialog for setting view options and process user choices.
+        """
+        # Create dialog using current options
+        dialog = PreferencesDialog('array', parent=self)
+        dialog.float_format = self.arraywidget.model.get_format_spec()
+        dialog.varying_background = self.arraywidget.model.bgcolor_enabled
+
+        # Show dialog and allow user to interact
+        result = dialog.exec_()
+
+        # If user clicked 'OK' then set new options accordingly
+        if result == QDialog.Accepted:
+            float_format = dialog.float_format
+            try:
+                format(1.1, float_format)
+            except:
+                msg = _("Format ({}) is incorrect").format(float_format)
+                QMessageBox.critical(self, _("Error"), msg)
+            else:
+                self.arraywidget.model.set_format_spec(float_format)
+                self.set_conf('dataframe_format', float_format)
+
+            self.arraywidget.model.bgcolor(dialog.varying_background)
 
     def refresh(self) -> None:
         """
