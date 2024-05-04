@@ -2266,7 +2266,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         Show dialog for setting view options and process user choices.
         """
         # Create dialog using current options
-        dialog = PreferencesDialog(self)
+        dialog = PreferencesDialog('dataframe', parent=self)
         dialog.float_format = self.dataModel.get_format_spec()
         dialog.varying_background = self.dataModel.bgcolor_enabled
         dialog.global_algo = not self.dataModel.colum_avg_enabled

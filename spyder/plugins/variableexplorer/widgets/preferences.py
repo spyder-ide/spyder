@@ -29,17 +29,30 @@ FORMAT_SPEC_URL = (
 
 class PreferencesDialog(QDialog):
     """
-    Dialog window for setting the viewing preferences of the data frame editor.
+    Dialog window for setting viewing preferences of dataframe or array editor.
 
     Set the attributes `float_format`, `varying_background` and `global_algo`
     to set the options, if necessary. Call `exec_()` to show the dialog to the
     user and allow them to interact. Finally, read the attributes to retrieve
     the options selected by the user.
+
+    Parameters
+    ----------
+    type_string: str
+        Type of variable being edited; should be 'dataframe' or 'array'.
+        The main difference is that arrays do not support the "by column"
+        coloring algorithm. Some text also uses the type.
+    parent: QWidget, optional
+        Parent widget.
     """
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, type_string: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.setWindowTitle(_('Dataframe editor preferences'))
+        self.type_string = type_string
+
+        self.setWindowTitle(
+            _('{} editor preferences').format(type_string.capitalize())
+        )
 
         main_layout = QVBoxLayout(self)
 
@@ -79,24 +92,25 @@ class PreferencesDialog(QDialog):
         background_layout.addWidget(self.varying_background_button)
         main_layout.addWidget(background_group)
 
-        comparator_group = QGroupBox(_('Coloring algorithm'))
-        comparator_layout = QVBoxLayout(comparator_group)
-        self.global_button = QRadioButton(_('Global'), comparator_group)
-        self.global_button.setToolTip(_(
-            'Compare each cell against the largest and smallest numbers '
-            'in the entire dataframe'
-        ))
-        self.by_column_button = QRadioButton(
-            _('Column by column'),
-            comparator_group
-        )
-        self.by_column_button.setToolTip(_(
-            'Compare each cell against the largest and smallest numbers '
-            'in the same column'
-        ))
-        comparator_layout.addWidget(self.global_button)
-        comparator_layout.addWidget(self.by_column_button)
-        main_layout.addWidget(comparator_group)
+        if type_string == 'dataframe':
+            comparator_group = QGroupBox(_('Coloring algorithm'))
+            comparator_layout = QVBoxLayout(comparator_group)
+            self.global_button = QRadioButton(_('Global'), comparator_group)
+            self.global_button.setToolTip(_(
+                'Compare each cell against the largest and smallest numbers '
+                'in the entire dataframe'
+            ))
+            self.by_column_button = QRadioButton(
+                _('Column by column'),
+                comparator_group
+            )
+            self.by_column_button.setToolTip(_(
+                'Compare each cell against the largest and smallest numbers '
+                'in the same column'
+            ))
+            comparator_layout.addWidget(self.global_button)
+            comparator_layout.addWidget(self.by_column_button)
+            main_layout.addWidget(comparator_group)
 
         self.buttons = QDialogButtonBox(QDialogButtonBox.Ok |
                                         QDialogButtonBox.Cancel)
@@ -105,11 +119,13 @@ class PreferencesDialog(QDialog):
         self.buttons.rejected.connect(self.reject)
 
         self.default_background_button.setChecked(True)
-        self.global_button.setChecked(True)
-        comparator_group.setEnabled(False)
-        self.varying_background_button.toggled.connect(
-            lambda value: comparator_group.setEnabled(value)
-        )
+
+        if type_string == 'dataframe':
+            self.global_button.setChecked(True)
+            comparator_group.setEnabled(False)
+            self.varying_background_button.toggled.connect(
+                lambda value: comparator_group.setEnabled(value)
+            )
 
     @property
     def float_format(self) -> str:
@@ -150,11 +166,15 @@ class PreferencesDialog(QDialog):
 
         This attribute has no effect if `varying_background` is False.
         """
-        return self.global_button.isChecked()
+        if self.type_string == 'dataframe':
+            return self.global_button.isChecked()
+        else:
+            return True
 
     @global_algo.setter
     def global_algo(self, value: bool):
-        if value:
-            self.global_button.setChecked(True)
-        else:
-            self.by_column_button.setChecked(True)
+        if self.type_string == 'dataframe':
+            if value:
+                self.global_button.setChecked(True)
+            else:
+                self.by_column_button.setChecked(True)
