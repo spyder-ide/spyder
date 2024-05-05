@@ -187,7 +187,7 @@ class RemoteClient(SpyderPluginV2):
             client = self._remote_clients[config_id]
             status = await client.restart_kernel(kernel_id)
             return status
-    
+
     @Slot(str)
     @AsyncDispatcher.dispatch()
     async def interrupt_kernel(self, config_id, kernel_id):

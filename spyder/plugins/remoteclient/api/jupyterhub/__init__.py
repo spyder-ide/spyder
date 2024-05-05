@@ -362,7 +362,7 @@ class JupyterAPI:
             elif response.status == 204:
                 logger.info(f"interrupted kernel={kernel_id} for jupyter")
                 return True
-    
+
     async def restart_kernel(self, kernel_id):
         async with self.session.post(
             self.api_url / "kernels" / kernel_id / "restart"
