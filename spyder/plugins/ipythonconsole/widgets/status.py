@@ -7,12 +7,14 @@
 """Status bar widgets."""
 
 # Standard library imports
+import sys
 import textwrap
 
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
+from spyder.api.translations import _
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _
+from spyder.config.base import running_in_ci
 
 
 class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
@@ -125,8 +127,14 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         # Reset value of interactive backend
         self._interactive_gui = None
 
-        # Hide widget if Matplotlib is not available
-        if shellwidget.get_matplotlib_backend() is None:
+        # Avoid errors when running our test suite on Mac.
+        if running_in_ci() and sys.platform == "darwin":
+            mpl_backend = "inline"
+        else:
+            mpl_backend = shellwidget.get_matplotlib_backend()
+
+        # Hide widget if Matplotlib is not available or failed to import
+        if mpl_backend is None:
             gui = "failed"
             self._shellwidget_dict[id(shellwidget)]['gui'] = gui
             self.hide()

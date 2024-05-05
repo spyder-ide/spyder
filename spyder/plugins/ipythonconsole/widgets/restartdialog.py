@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC
 
 
 class ConsoleRestartDialog(QDialog):
@@ -99,7 +99,9 @@ class ConsoleRestartDialog(QDialog):
         layout.addWidget(self._no_restart_btn)
         layout.addWidget(self._restart_current_btn)
         layout.addWidget(self._restart_all_btn)
-        layout.addSpacing(3 * AppStyle.MarginSize)
+        layout.addSpacing(
+            2 * AppStyle.MarginSize if MAC else 3 * AppStyle.MarginSize
+        )
         layout.addWidget(self._action_button, 0, Qt.AlignRight)
         layout.setContentsMargins(*((7 * AppStyle.MarginSize,) * 4))
         self.setLayout(layout)
