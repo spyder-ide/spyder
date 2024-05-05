@@ -2094,6 +2094,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
     assert shell.get_value('pi')
 
     # Reset config for the 'spyder_pythonpath' and 'startup/run_lines'
