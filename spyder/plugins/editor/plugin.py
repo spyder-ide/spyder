@@ -893,6 +893,12 @@ class Editor(SpyderDockablePlugin):
         ----------
         filenames: Optional[list]
             Filenames to load.
+        goto: Optional[int]
+            If goto is not none it represent a line to go to. Used along side
+            `start_column` and `end_column`. Alternatively, the first match of
+            `word` is used as a position.
+        word: Optional[str]
+            The `word` to use to set the cursor position when using `goto`.
         editorwindow: Optional[spyder.plugins.editor.widgets.window.EditorMainWindow]
             Load in the given editorwindow (useful when clicking on outline
             explorer with multiple editor windows).
@@ -900,17 +906,11 @@ class Editor(SpyderDockablePlugin):
             Determines if `processEvents()` should be called at the end of this
             method (set to `False` to prevent keyboard events from creeping
             through to the editor during debugging).
-        goto: Optional[int]
-            If goto is not none it represent a line to go to. Used along side
-            `start_column` and `end_column`. Alternatively, the first match of
-            word is used as a position.
         start_column: Optional[int]
             The start position in the line (goto)
         end_column: Optional[int]
             The length (so that the end position is `start_column` +
             `end_column`), when providing a `goto` line.
-        word: Optional[str]
-            The word to use to set the cursor position when using `goto`.
         set_focus: Optional[bool]
             If the opened file should gain focus. `True` by default.
         add_where: Optional[str]
@@ -920,16 +920,42 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().load(*args, **kwargs)
 
-    def load_edit_goto(self, filenames, goto, word):
-        # TODO: Check if this can be integrated with the `load` method above
+    def load_edit(self, filename):
+        """
+        Load a `filename` passing to the base `load` method the `main_widget`
+        as the `editorwindow` to force focus.
+
+        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`
+
+        Parameters
+        ----------
+        filename: str
+            Filename to load.
+        """
+        widget = self.get_widget()
+        return self.get_widget().load(filenames=filename, editorwindow=widget)
+
+    def load_edit_goto(self, filename, goto, word):
+        """
+        Load a `filename` and put cursor in the given line to `goto` and `word`
+        passing to the `load` call the `main_widget` as the `editorwindow` to
+        force focus.
+
+        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`
+
+        Parameters
+        ----------
+        filename: str
+            Filename to load.
+        goto: int
+            Represents a line to go to.
+        word: str
+            The `word` to use to set the cursor position when using `goto`.
+        """
         widget = self.get_widget()
         return widget.load(
-            filenames=filenames, goto=goto, word=word, editorwindow=widget
+            filenames=filename, goto=goto, word=word, editorwindow=widget
         )
-
-    def load_edit(self, filenames):
-        # TODO: Check if this can be integrated with the `load` method above
-        return self.get_widget().load(filenames=filenames, editorwindow=self)
 
     def new(self, *args, **kwargs):
         """
