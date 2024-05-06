@@ -573,7 +573,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
     def on_pythonpath_option_update(self, value):
-        self.update_lsp_configuration(python_only=True)
+        # This is only useful to run some self-contained tests
+        if running_under_pytest():
+            self.update_lsp_configuration(python_only=True)
 
     @on_conf_change(section='main_interpreter',
                     option=['default', 'custom_interpreter'])
