@@ -98,12 +98,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
         autoload_pylab_box = newcb(
-            _("Automatically load Pylab and NumPy modules"),
+            _("Automatically load Matplotlib and NumPy modules"),
             'pylab/autoload',
-            tip=_("This lets you load graphics support without importing\n"
-                  "the commands to do plots. Useful to work with other\n"
-                  "plotting libraries different to Matplotlib or to develop\n"
-                  "GUIs with Spyder."))
+            tip=_(
+                "This lets you generate graphics and work with arrays "
+                "<b>without</b> importing the commands to do it. It's also "
+                "useful to develop GUIs with Spyder."
+            )
+        )
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 
@@ -116,19 +118,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline = _("Inline")
         automatic = _("Automatic")
         backend_group = QGroupBox(_("Graphics backend"))
-        bend_label = QLabel(_("Decide how graphics are going to be displayed "
-                              "in the console. If unsure, please select "
-                              "<b>%s</b> to put graphics inside the "
-                              "console or <b>%s</b> to interact with "
-                              "them (through zooming and panning) in a "
-                              "separate window.") % (inline, automatic))
-        bend_label.setWordWrap(True)
+        bend_label = QLabel(_("Decide how Matplotlib graphics are displayed"))
 
         backends = [
             (inline, 'inline'),
             (automatic, 'auto'),
-            ("Qt5", 'qt'),
-            ("Tkinter", 'tk')
+            ("Qt", 'qt'),
+            ("Tk", 'tk')
         ]
 
         if sys.platform == 'darwin':
@@ -139,8 +135,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Backend:") + "   ",
             backends,
             'pylab/backend', default='inline',
-            tip=_("This option will be applied the next time a console is "
-                  "opened."))
+            tip=_(
+                "If unsure, select <b>%s</b> to put graphics in the Plots "
+                "pane or <b>%s</b> to interact with them (through zooming and "
+                "panning) in a separate window."
+            ) % (inline, automatic)
+        )
 
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
