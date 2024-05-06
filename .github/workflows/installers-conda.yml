@@ -171,6 +171,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
+          condarc: |
+            conda_build:
+              pkg_format: '2'
+              zstd_compression_level: '19'
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
@@ -184,6 +188,10 @@ jobs:
         if: runner.os != 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
+          condarc: |
+            conda_build:
+              pkg_format: '2'
+              zstd_compression_level: '19'
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
