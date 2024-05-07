@@ -38,7 +38,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import SpyderPalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
@@ -231,6 +231,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
 
+        # Register handlers declared here before emitting sig_kernel_is_ready
+        # so that handlers declared elsewhere can't be called first, which can
+        # generate errors.
+        for request_id, handler in self.kernel_comm_handlers.items():
+            self.kernel_handler.kernel_comm.register_call_handler(
+                request_id, handler
+            )
+
         if first_connect:
             # Let plugins know that a new kernel is connected
             self.sig_shellwidget_created.emit(self)
@@ -375,10 +383,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
             # Redefine the complete method to work while debugging.
             self._redefine_complete_for_dbg(self.kernel_client)
-
-            for request_id, handler in self.kernel_comm_handlers.items():
-                self.kernel_handler.kernel_comm.register_call_handler(
-                    request_id, handler)
 
         # Setup to do after restart
         # Check for fault and send config

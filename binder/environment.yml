@@ -46,7 +46,7 @@ dependencies:
 - rtree >=0.9.7
 - setuptools >=49.6.0
 - sphinx >=0.6.6
-- spyder-kernels >=3.0.0b4,<3.0.0b5
+- spyder-kernels >=3.0.0b5,<3.0.0b6
 - superqt >=0.6.1,<1.0.0
 - textdistance >=4.2.0
 - three-merge >=0.1.1

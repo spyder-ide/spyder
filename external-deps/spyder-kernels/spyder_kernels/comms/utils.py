@@ -53,7 +53,13 @@ class WriteWrapper(object):
             # Fixes spyder-ide/spyder-kernels#343
             'DeprecationWarning',
             # Fixes spyder-ide/spyder-kernels#365
-            'IOStream.flush timed out'
+            'IOStream.flush timed out',
+            # Avoid unnecessary messages from set_configuration when changing
+            # Matplotlib options.
+            "Warning: Cannot change to a different GUI toolkit",
+            "%pylab is deprecated",
+            "Populating the interactive namespace",
+            "\n"
         ]
 
         return any([msg in message for msg in benign_messages])
