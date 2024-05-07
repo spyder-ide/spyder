@@ -322,6 +322,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         and set downloading status.
         """
         self.cancelled = False
+        self.progress_dialog = None
+
         self.download_worker = WorkerDownloadInstaller(
             self.latest_release, self.installer_path, self.installer_size_path
         )
@@ -329,12 +331,12 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.sig_disable_actions.emit(True)
         self.set_status(DOWNLOADING_INSTALLER)
 
-        self.progress_dialog = ProgressDialog(
-            self,
-            _("Downloading update for Spyder {} ...").format(
-                self.latest_release)
-        )
-        self.progress_dialog.cancel.clicked.connect(self._cancel_download)
+        # Only show progress bar for installers
+        if not self.installer_path.endswith('lock'):
+            self.progress_dialog = ProgressDialog(
+                self, _("Downloading Spyder {} ...").format(self.latest_release)
+            )
+            self.progress_dialog.cancel.clicked.connect(self._cancel_download)
 
         self.download_thread = QThread(None)
         self.download_worker.sig_exception_occurred.connect(
