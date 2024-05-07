@@ -306,6 +306,7 @@ class EditorMainWidget(PluginMainWidget):
         self.outline_plugin = None
         self.outlineexplorer = None
         self.switcher_manager = None
+        self.active_project_path = None
 
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -2108,8 +2109,7 @@ class EditorMainWidget(PluginMainWidget):
                     break
 
             basedir = getcwd_or_home()
-            # TODO: main_widget call logic from the projects plugin
-            active_project_path = self._plugin._get_active_project_path()
+            active_project_path = self.get_active_project_path()
             if active_project_path is not None:
                 basedir = active_project_path
             else:
@@ -2554,6 +2554,26 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Related to the Files/Projects plugins
     # -------------------------------------------------------------------------
+    def get_active_project_path(self):
+        """Get the active project path."""
+        return self.active_project_path
+
+    def update_active_project_path(self, active_project_path):
+        """
+        Update the active project path attribute used to set the current
+        opened files or when creating new files in case a project is active.
+
+        Parameters
+        ----------
+        active_project_path : str
+            Root path of the active project if any.
+
+        Returns
+        -------
+        None.
+        """
+        self.active_project_path = active_project_path
+
     def close_file_from_name(self, filename):
         """Close file from its name"""
         filename = osp.abspath(to_text_string(filename))
@@ -3316,9 +3336,7 @@ class EditorMainWidget(PluginMainWidget):
         Also open any files that the user selected in the recovery dialog.
         """
         self.set_create_new_file_if_empty(False)
-        # TODO: Change active project path to be used as is done on the
-        # IPython Console
-        active_project_path = self._plugin._get_active_project_path()
+        active_project_path = self.get_active_project_path()
 
         if active_project_path:
             filenames = self._plugin._get_project_filenames()

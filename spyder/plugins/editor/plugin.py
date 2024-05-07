@@ -833,12 +833,14 @@ class Editor(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
         projects = self.get_plugin(Plugins.Projects)
-        # TODO: This should work as is done in the IPython console
-        # for the handling of the active project path
+        projects.sig_project_loaded.connect(self._on_project_loaded)
+        projects.sig_project_closed.connect(self._on_project_closed)
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
-        pass
+        projects = self.get_plugin(Plugins.Projects)
+        projects.sig_project_loaded.disconnect(self._on_project_loaded)
+        projects.sig_project_closed.disconnect(self._on_project_closed)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1306,10 +1308,11 @@ class Editor(SpyderDockablePlugin):
             projects = self.get_plugin(Plugins.Projects, error=False)
             return projects.get_project_filenames()
 
-    def _get_active_project_path(self):
-        projects = self.get_plugin(Plugins.Projects, error=False)
-        if projects is not None:
-            return projects.get_active_project_path()
+    def _on_project_loaded(self, path):
+        self.get_widget().update_active_project_path(path)
+
+    def _on_project_closed(self):
+        self.get_widget().update_active_project_path(None)
 
     # ---- Debugger related methods
     def _debugger_close_file(self, filename):
