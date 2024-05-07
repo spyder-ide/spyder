@@ -88,6 +88,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     sig_shutdown_kernel_requested = Signal(str, str)
     sig_interrupt_kernel_requested = Signal(str, str)
     sig_restart_kernel_requested = Signal()
+    sig_kernel_died = Signal()
 
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
@@ -659,7 +660,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel_handler, shutdown_kernel):
+    def replace_kernel(self, kernel_handler, shutdown_kernel, clear=True):
         """
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
@@ -669,7 +670,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.connect_kernel(kernel_handler, first_connect=False)
 
         # Reset shellwidget and print restart message
-        self.shellwidget.reset(clear=True)
+        self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
 
     def kernel_restarted_failure_message(self):

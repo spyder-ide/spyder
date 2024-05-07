@@ -26,6 +26,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
     ClientContextMenuActions,
     ClientContextMenuSections
@@ -1341,13 +1342,33 @@ the sympy module (e.g. plot)
         else:
             return self.short_banner()
 
+    def _handle_kernel_died(self, since_last_heartbeat):
+        """Handle the kernel's death (if we do not own the kernel)."""
+        # Disable stop button
+        stop_button = self.get_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.InterruptButton
+        )
+        stop_button.setEnabled(False)
+
+        if self.ipyclient.server_id:
+            # Inform that the kernel died to the Remote client plugin so that
+            # it can try to reconnect to it.
+            self._kernel_restarted_message(died=True)
+            self.ipyclient.sig_kernel_died.emit()
+        else:
+            super()._handle_kernel_died(since_last_heartbeat)
+
     def _kernel_restarted_message(self, died=True):
         msg = (
             _("The kernel died, restarting...") if died
             else _("Restarting kernel...")
         )
 
-        if died and self.kernel_manager is None:
+        if (
+            died
+            and self.kernel_manager is None
+            and self.ipyclient.server_id is None
+        ):
             # The kernel might never restart, show position of fault file
             msg += (
                 "\n" + _("Its crash file is located at:") + " "

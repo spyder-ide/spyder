@@ -29,7 +29,7 @@ from spyder.utils.workers import WorkerManager
 
 class RemoteClientContainer(PluginMainContainer):
 
-    _sig_kernel_restarted = Signal(object, bool)
+    _sig_kernel_restarted = Signal((object, bool), (object, dict))
     """
     This private signal is used to inform that a kernel restart took place in
     the server.
@@ -37,9 +37,13 @@ class RemoteClientContainer(PluginMainContainer):
     Parameters
     ----------
     ipyclient: ClientWidget
-        An IPython console client widget.
-    status: bool
-        Status returned by the server about the kernel restart request.
+        An IPython console client widget (the first parameter in both
+        signatures).
+    response: bool or dict
+        Response returned by the server. It can a bool when the kernel is
+        restarted by the user (signature 1) or a dict when it's restarted
+        automatically after it dies while running some code or it's killed (
+        signature 2).
     """
 
     sig_start_server_requested = Signal(str)
@@ -103,7 +107,7 @@ class RemoteClientContainer(PluginMainContainer):
     Parameters
     ----------
     id: str
-        Id of the server for which a kernel shutdown will be requested.
+        Id of the server for which a kernel interrupt will be requested.
     kernel_id: str
         Id of the kernel which will be shutdown in the server.
     """
@@ -128,7 +132,12 @@ class RemoteClientContainer(PluginMainContainer):
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
-        self._sig_kernel_restarted.connect(self._on_kernel_restarted)
+        self._sig_kernel_restarted[object, bool].connect(
+            self._on_kernel_restarted
+        )
+        self._sig_kernel_restarted[object, dict].connect(
+            self._on_kernel_restarted_after_died
+        )
 
         # Worker manager to open ssh tunnels in threads
         self._worker_manager = WorkerManager(max_threads=5)
@@ -279,6 +288,9 @@ class RemoteClientContainer(PluginMainContainer):
         ipyclient.sig_restart_kernel_requested.connect(
             lambda: self._request_kernel_restart(ipyclient)
         )
+        ipyclient.sig_kernel_died.connect(
+            lambda: self._get_kernel_info(ipyclient)
+        )
 
     def _open_tunnel_to_kernel(
         self,
@@ -287,7 +299,8 @@ class RemoteClientContainer(PluginMainContainer):
         hostname,
         sshkey,
         password,
-        restart=False
+        restart=False,
+        clear=True,
     ):
         """
         Open an SSH tunnel to a remote kernel.
@@ -314,6 +327,7 @@ class RemoteClientContainer(PluginMainContainer):
         worker.sshkey = sshkey
         worker.password = password
         worker.restart = restart
+        worker.clear = clear
 
         # Start worker
         worker.sig_finished.connect(self._finish_kernel_connection)
@@ -340,7 +354,7 @@ class RemoteClientContainer(PluginMainContainer):
             worker.ipyclient.connect_kernel(kernel_handler)
         else:
             worker.ipyclient.replace_kernel(
-                kernel_handler, shutdown_kernel=False
+                kernel_handler, shutdown_kernel=False, clear=worker.clear
             )
 
     def _request_kernel_restart(self, ipyclient):
@@ -353,14 +367,14 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         future.add_done_callback(
-            lambda future: self._sig_kernel_restarted.emit(
+            lambda future: self._sig_kernel_restarted[object, bool].emit(
                 ipyclient, future.result()
             )
         )
 
-    def _on_kernel_restarted(self, ipyclient, status):
+    def _on_kernel_restarted(self, ipyclient, response, clear=True):
         """Actions to take when the kernel was restarted by the server."""
-        if status:
+        if response:
             kernel_handler = ipyclient.kernel_handler
             self._open_tunnel_to_kernel(
                 ipyclient,
@@ -368,7 +382,34 @@ class RemoteClientContainer(PluginMainContainer):
                 kernel_handler.hostname,
                 kernel_handler.sshkey,
                 kernel_handler.password,
-                restart=True
+                restart=True,
+                clear=clear,
             )
         else:
             ipyclient.kernel_restarted_failure_message()
+
+    def _get_kernel_info(self, ipyclient):
+        """
+        Get kernel info corresponding to an IPython console client from the
+        server.
+
+        If we get a response, it means the kernel is alive.
+        """
+        future = self._plugin._get_kernel_info(
+            ipyclient.server_id, ipyclient.kernel_id
+        )
+
+        future.add_done_callback(
+            lambda future: self._sig_kernel_restarted[object, dict].emit(
+                ipyclient, future.result()
+            )
+        )
+
+    def _on_kernel_restarted_after_died(self, ipyclient, response):
+        """
+        Actions to take when the kernel was automatically restarted after it
+        died.
+        """
+        # We don't clear the console in this case because it can contain
+        # important results that users would like to check
+        self._on_kernel_restarted(ipyclient, response, clear=False)

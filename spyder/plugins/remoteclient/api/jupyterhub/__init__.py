@@ -335,7 +335,7 @@ class JupyterAPI:
             self.api_url / "kernels" / kernel_id
         ) as response:
             if response.status == 404:
-                return None
+                return {}
             elif response.status == 200:
                 return await response.json()
 

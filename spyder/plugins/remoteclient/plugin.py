@@ -292,9 +292,8 @@ class RemoteClient(SpyderPluginV2):
             kernels_list = await client.list_kernels()
             return kernels_list
 
-    @Slot(str)
     @AsyncDispatcher.dispatch()
-    async def get_kernel_info(self, config_id, kernel_id):
+    async def _get_kernel_info(self, config_id, kernel_id):
         """Get kernel info."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
