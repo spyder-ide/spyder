@@ -858,7 +858,7 @@ class Editor(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         widget = self.get_widget()
 
-        if not self._get_active_project_path():
+        if not self.get_widget().get_active_project_path():
             filenames = widget.get_filenames()
             self.set_conf('filenames', filenames)
 
@@ -1304,7 +1304,7 @@ class Editor(SpyderDockablePlugin):
             projects.start_workspace_services()
 
     def _get_project_filenames(self):
-        if self._get_active_project_path():
+        if self.get_widget().get_active_project_path():
             projects = self.get_plugin(Plugins.Projects, error=False)
             return projects.get_project_filenames()
 
