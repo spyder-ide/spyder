@@ -1504,10 +1504,12 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
-        # TODO: Review if this is necessary now that the editor is using the
-        # new API.
-        # It shouldn't be because the methods listed here are observing their
-        # corresponding options in EditorStack.
+        # Although the `EditorStack` observes all of the options bellow,
+        # applying them when registring a new `EditorStack` instance is needed.
+        # The options are notified only for the first `EditorStack` instance
+        # created on startup. New instances, created for example when
+        # using `Split vertically/horizontally`, require the logic
+        # below to follow the current values in the configuration.
         settings = (
             ('set_todolist_enabled',                'todo_list'),
             ('set_blanks_enabled',                  'blank_spaces'),
