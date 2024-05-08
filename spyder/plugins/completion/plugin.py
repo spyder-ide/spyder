@@ -394,11 +394,7 @@ class CompletionPlugin(SpyderPluginV2):
                 provider_can_close = provider.can_close()
                 can_close = can_close and provider_can_close
                 logger.debug(
-                    "Provider {provider_name} can close: {provider_can_close}"
-                    .format(
-                        provider_name=provider_name,
-                        provider_can_close=provider_can_close
-                    )
+                    f"Provider {provider_name} can close: {provider_can_close}"
                 )
                 if provider_can_close:
                     provider.shutdown()
