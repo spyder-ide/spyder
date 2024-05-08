@@ -309,8 +309,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """An error occurred when connecting to the kernel."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
-            self.append_html_message(
-                self.kernel_handler.kernel_error_message, before_prompt=True)
+            self.ipyclient.show_kernel_error(
+                self.kernel_handler.kernel_error_message,
+            )
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
