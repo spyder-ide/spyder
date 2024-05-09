@@ -463,13 +463,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
             language_client = self.clients[language]
 
             queue = self.register_queue[language]
-
-            # Don't start LSP services when testing unless we demand
-            # them.
-            if running_under_pytest():
-                if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                    return started
-
             started = language_client['status'] == self.RUNNING
 
             if language not in self.clients_hearbeat:
@@ -567,41 +560,26 @@ class LanguageServerProvider(SpyderCompletionProvider):
     @on_conf_change
     def update_configuration(self, config):
         self.config = config
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
         self.update_lsp_configuration()
 
     @on_conf_change(section='outline_explorer',
                     option=['group_cells', 'show_comments'])
     def on_pyls_spyder_configuration_change(self, option, value):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
         self.update_lsp_configuration()
 
     @on_conf_change(section='completions', option='enable_code_snippets')
     def on_code_snippets_enabled_disabled(self, value):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
         self.update_lsp_configuration()
 
     @on_conf_change(section='pythonpath_manager', option='spyder_pythonpath')
     def on_pythonpath_option_update(self, value):
         # This is only useful to run some self-contained tests
-        if (
-            running_under_pytest()
-            and os.environ.get('SPY_TEST_USE_INTROSPECTION')
-        ):
+        if running_under_pytest():
             self.update_lsp_configuration(python_only=True)
 
     @on_conf_change(section='main_interpreter',
                     option=['default', 'custom_interpreter'])
     def on_main_interpreter_change(self, option, value):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
         self.update_lsp_configuration()
 
     def update_lsp_configuration(self, python_only=False):
