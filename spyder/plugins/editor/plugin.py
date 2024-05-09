@@ -901,7 +901,7 @@ class Editor(SpyderDockablePlugin):
             `word` is used as a position.
         word: Optional[str]
             The `word` to use to set the cursor position when using `goto`.
-        editorwindow: Optional[spyder.plugins.editor.widgets.window.EditorMainWindow]
+        editorwindow: Optional[spyder.plugins.editor.widgets.window.EditorMainWindow]  # noqa
             Load in the given editorwindow (useful when clicking on outline
             explorer with multiple editor windows).
         processevents: Optional[bool]
@@ -927,7 +927,7 @@ class Editor(SpyderDockablePlugin):
         Load a `filename` passing to the base `load` method the `main_widget`
         as the `editorwindow` to force focus.
 
-        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`
+        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
 
         Parameters
         ----------
@@ -943,7 +943,7 @@ class Editor(SpyderDockablePlugin):
         passing to the `load` call the `main_widget` as the `editorwindow` to
         force focus.
 
-        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`
+        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
 
         Parameters
         ----------
@@ -969,7 +969,7 @@ class Editor(SpyderDockablePlugin):
             Name of the file to be created. Default `None`.
             If `None`, `fname` will be `untitledXX.py`. No actual file will
             be create until it is saved manually by the user.
-        editorstack: Optional[spyder.plugins.editor.widgets.editorstack.EditorStack]
+        editorstack: Optional[spyder.plugins.editor.widgets.editorstack.EditorStack]  # noqa
             Reference to the `EditorStack` instance that will be used to:
                 * Get `UntitleXX` numbering for the file name.
                 * Check if already a file with the same name exists and it is
@@ -980,7 +980,7 @@ class Editor(SpyderDockablePlugin):
         text: Optional[str]
             Base text content that will be added to the file. Default `None`.
             If `None`, default content created via a template is used. See
-            `Preferences > Editor > Advanced settings > Edit template for new files`
+            `Preferences > Editor > Advanced settings > Edit template for new files`  # noqa
         """
         return self.get_widget().new(*args, **kwargs)
 
