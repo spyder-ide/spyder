@@ -41,9 +41,10 @@ import zipfile
 
 # Third-party imports
 from ruamel.yaml import YAML
+from setuptools_scm import get_version
 
 # Local imports
-from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h, get_version
+from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h
 
 DIST = HERE / "dist"
 
@@ -56,34 +57,28 @@ SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
-TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
+CONDA_BLD_PATH = os.getenv("CONDA_BLD_PATH", "local")
 PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
+SPYVER = get_version(SPYREPO).split("+")[0]
 
-if TARGET_PLATFORM == "osx-arm64":
-    ARCH = "arm64"
-else:
-    ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 if WINDOWS:
     OS = "Windows"
+    TARGET_PLATFORM = "win-"
     INSTALL_CHOICES = ["exe"]
 elif LINUX:
     OS = "Linux"
+    TARGET_PLATFORM = "linux-"
     INSTALL_CHOICES = ["sh"]
 elif MACOS:
     OS = "macOS"
+    TARGET_PLATFORM = "osx-"
     INSTALL_CHOICES = ["pkg", "sh"]
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
-scientific_packages = {
-    "cython": "",
-    "matplotlib": "",
-    "numpy": "",
-    "openpyxl": "",
-    "pandas": "",
-    "scipy": "",
-    "sympy": "",
-}
+ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
+TARGET_PLATFORM = (TARGET_PLATFORM + ARCH).replace("x86_64", "64")
+TARGET_PLATFORM = os.getenv("CONSTRUCTOR_TARGET_PLATFORM", TARGET_PLATFORM)
 
 # ---- Parse arguments
 p = ArgumentParser()
@@ -109,7 +104,7 @@ p.add_argument(
 )
 p.add_argument(
     "--extra-specs", nargs="+", default=[],
-    help="One or more extra conda specs to add to the installer",
+    help="One or more extra conda specs to add to the installer.",
 )
 p.add_argument(
     "--licenses", action="store_true",
@@ -128,19 +123,27 @@ p.add_argument(
     "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
     help="Installer type."
 )
+p.add_argument(
+    "--conda-lock", action="store_true",
+    help="Create conda-lock file and exit."
+)
 args = p.parse_args()
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
-
 specs = {
     "python": "=" + PY_VER,
     "spyder": "=" + SPYVER,
+    "cython": "",
+    "matplotlib": "",
+    "numpy": "",
+    "openpyxl": "",
+    "pandas": "",
+    "scipy": "",
+    "sympy": "",
 }
-specs.update(scientific_packages)
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
@@ -150,17 +153,73 @@ else:
     logger.info(f"Did not read specs from {SPECS}")
 
 for spec in args.extra_specs:
-    k, *v = re.split('([<>= ]+)', spec)
+    k, *v = re.split('([<>=]+)[ ]*', spec)
     specs[k] = "".join(v).strip()
-    if k == "spyder":
-        SPYVER = v[-1]
 
+PY_VER = re.split('([<>=]+)[ ]*', specs['python'])[-1]
+SPYVER = re.split('([<>=]+)[ ]*', specs['spyder'])[-1]
+
+LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
+TMP_LOCK_FILE = BUILD / f"conda-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
 HEADER_IMG_WIN = BUILD / "header_img_win.png"
 WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
+CONSTRUCTOR_FILE = BUILD / "construct.yaml"
+
+
+def _create_conda_lock():
+    definitions = {
+        "channels": [
+            CONDA_BLD_PATH,
+            "conda-forge/label/spyder_dev",
+            "conda-forge/label/spyder_kernels_rc",
+            "conda-forge"
+        ],
+        "dependencies": [k + v for k, v in specs.items()],
+        "platforms": [TARGET_PLATFORM]
+    }
+
+    logger.info("Conda lock configuration:")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    env_file = BUILD / "runtime_env.yml"
+    yaml.dump(definitions, env_file)
+
+    env = os.environ.copy()
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
+
+    cmd_args = [
+        "conda-lock", "lock",
+        "--kind", "explicit",
+        "--file", str(env_file),
+        "--filename-template", str(BUILD / "conda-{platform}.lock")
+        # Note conda-lock doesn't provide output file option, only template
+    ]
+
+    run(cmd_args, check=True, env=env)
+
+    logger.info(f"Contents of {TMP_LOCK_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        print(TMP_LOCK_FILE.read_text(), flush=True)
+
+
+def _patch_conda_lock():
+    # Replace local channel url with conda-forge and remove checksum
+    tmp_text = TMP_LOCK_FILE.read_text()
+    text = re.sub(
+        f"^{_get_conda_bld_path_url()}(.*)#.*$",
+        r"https://conda.anaconda.org/conda-forge\1",
+        tmp_text, flags=re.MULTILINE
+    )
+    LOCK_FILE.write_text(text)
+
+    logger.info(f"Contents of {LOCK_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        print(LOCK_FILE.read_text(), flush=True)
 
 
 def _generate_background_images(installer_type):
@@ -198,8 +257,8 @@ def _get_condarc():
     contents = dedent(
         """
         channels:  #!final
-          - conda-forge/label/spyder_kernels_rc
           - conda-forge/label/spyder_dev
+          - conda-forge/label/spyder_kernels_rc
           - conda-forge
         repodata_fns:  #!final
           - repodata.json
@@ -207,6 +266,7 @@ def _get_condarc():
         notify_outdated_conda: false  #!final
         channel_priority: flexible  #!final
         env_prompt: '[spyder]({default_env}) '  #! final
+        register_envs: false  #! final
         """
     )
     # the undocumented #!final comment is explained here
@@ -233,6 +293,7 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": SPYVER,
         "channels": [
+            "conda-forge/label/spyder_dev",
             "conda-forge/label/spyder_kernels_rc",
             "conda-forge",
         ],
@@ -251,8 +312,8 @@ def _definitions():
         "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
-                "specs": [k + v for k, v in specs.items()],
-            },
+                "environment_file": str(TMP_LOCK_FILE),
+            }
         },
         "channels_remap": [
             {
@@ -354,7 +415,11 @@ def _definitions():
     if definitions.get("welcome_image") or definitions.get("header_image"):
         _generate_background_images(definitions.get("installer_type", "all"))
 
-    return definitions
+    logger.info(f"Contents of {CONSTRUCTOR_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    yaml.dump(definitions, CONSTRUCTOR_FILE)
 
 
 def _constructor():
@@ -366,24 +431,24 @@ def _constructor():
     if not constructor:
         raise RuntimeError("Constructor must be installed and in PATH.")
 
-    definitions = _definitions()
+    _definitions()
 
-    cmd_args = [constructor, "-v", "--output-dir", str(DIST)]
+    cmd_args = [
+        constructor, "-v",
+        "--output-dir", str(DIST),
+        "--platform", TARGET_PLATFORM,
+        str(CONSTRUCTOR_FILE.parent)
+    ]
     if args.debug:
         cmd_args.append("--debug")
-    conda_exe = os.environ.get("CONSTRUCTOR_CONDA_EXE")
-    if TARGET_PLATFORM and conda_exe:
-        cmd_args += ["--platform", TARGET_PLATFORM, "--conda-exe", conda_exe]
-    cmd_args.append(str(BUILD))
+    conda_exe = os.getenv("CONSTRUCTOR_CONDA_EXE")
+    if conda_exe:
+        cmd_args.extend(["--conda-exe", conda_exe])
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
-    logger.info("Configuration:")
-    yaml.dump(definitions, sys.stdout)
-
-    yaml.dump(definitions, BUILD / "construct.yaml")
 
     run(cmd_args, check=True, env=env)
 
@@ -418,12 +483,22 @@ def main():
     t0 = time()
     try:
         DIST.mkdir(exist_ok=True)
+        _create_conda_lock()
+        assert TMP_LOCK_FILE.exists()
+    finally:
+        elapse = timedelta(seconds=int(time() - t0))
+        logger.info(f"Build time: {elapse}")
+
+    t0 = time()
+    try:
         _constructor()
-        assert Path(OUTPUT_FILE).exists()
+        assert OUTPUT_FILE.exists()
         logger.info(f"Created {OUTPUT_FILE}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
+
+    _patch_conda_lock()
 
 
 if __name__ == "__main__":
@@ -441,6 +516,10 @@ if __name__ == "__main__":
         sys.exit()
     if args.images:
         _generate_background_images()
+        sys.exit()
+    if args.conda_lock:
+        _create_conda_lock()
+        _patch_conda_lock()
         sys.exit()
 
     main()

@@ -9,16 +9,6 @@ echo "Environment variables:"
 env | sort
 echo ""
 
-# ---- Sed options
-# BSD sed requires extra "" after -i flag
-if [[ $(sed --version 2>/dev/null) ]]; then
-    # GNU sed has --version
-    sed_opts=("-i" "-e")
-else
-    # BSD sed does not have --version
-    sed_opts=("-i" "''" "-e")
-fi
-
 # ---- Shortcut
 pythonexe=${PREFIX}/bin/python
 menuinst=${PREFIX}/bin/menuinst_cli.py
@@ -42,7 +32,7 @@ add_alias() {
     fi
 
     # BSD sed does not like semicolons; newlines work for both BSD and GNU.
-    sed ${sed_opts[@]} "
+    sed -i.bak -e "
     /$m1/,/$m2/{
         h
         /$m2/ s|.*|$m1\n$alias_text\n$m2|
@@ -57,6 +47,7 @@ add_alias() {
         }
         x
     }" $shell_init
+    rm $shell_init.bak
 }
 
 if [[ "$mode" == "system" && "$OSTYPE" == "darwin"* ]]; then
@@ -131,7 +122,8 @@ done
 for x in ${shell_init_list[@]}; do
     [[ ! -f "\$x" ]] && continue
     echo "Removing Spyder shell commands from \$x..."
-    sed ${sed_opts[@]} "/$m1/,/$m2/d" \$x
+    sed -i.bak -e "/$m1/,/$m2/d" \$x
+    rm \$x.bak
 done
 
 # Remove shortcut and environment

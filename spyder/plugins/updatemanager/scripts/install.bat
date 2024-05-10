@@ -4,10 +4,9 @@
 :: Create variables from arguments
 :parse
 IF "%~1"=="" GOTO endparse
-IF "%~1"=="-p" set prefix=%~2& SHIFT
-IF "%~1"=="-i" set install_exe=%~2& SHIFT
+IF "%~1"=="-i" set install_file=%~2& SHIFT
 IF "%~1"=="-c" set conda=%~2& SHIFT
-IF "%~1"=="-v" set spy_ver=%~2& SHIFT
+IF "%~1"=="-p" set prefix=%~2& SHIFT
 SHIFT
 GOTO parse
 :endparse
@@ -25,13 +24,13 @@ echo.
 
 call :wait_for_spyder_quit
 
-IF not "%conda%"=="" IF not "%spy_ver%"=="" (
+IF not "%conda%"=="" IF not "%prefix%"=="" (
     call :update_subroutine
     call :launch_spyder
     goto exit
 )
 
-IF not "%install_exe%"=="" (
+IF not "%install_file%"=="" (
     call :install_subroutine
     goto exit
 )
@@ -40,7 +39,7 @@ IF not "%install_exe%"=="" (
 exit %ERRORLEVEL%
 
 :install_subroutine
-    echo Installing Spyder from: %install_exe%
+    echo Installing Spyder from: %install_file%
 
     :: Uninstall Spyder
     for %%I in ("%prefix%\..\..") do set "conda_root=%%~fI"
@@ -63,13 +62,13 @@ exit %ERRORLEVEL%
     IF "%ERRORLEVEL%"=="0" goto wait_for_uninstall
     echo Uninstall complete.
 
-    start %install_exe%
+    start %install_file%
     goto :EOF
 
 :update_subroutine
     echo Updating Spyder
 
-    %conda% install -p %prefix% -y spyder=%spy_ver%
+    %conda% update -p %prefix% -y --file %install_file%
     set /P =Press return to exit...
     goto :EOF
 

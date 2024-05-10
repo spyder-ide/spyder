@@ -177,7 +177,8 @@ class BuildCondaPkg:
                              f"{self.name}={self.version}...")
             check_call([
                 "conda", "mambabuild",
-                "--no-test", "--skip-existing", "--build-id-pat={n}",
+                "--skip-existing", "--build-id-pat={n}",
+                "--no-test", "--no-anaconda-upload",
                 str(self._fdstk_path / "recipe")
             ])
         finally:
