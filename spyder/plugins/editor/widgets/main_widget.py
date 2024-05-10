@@ -1504,10 +1504,10 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
-        # Although the `EditorStack` observes all of the options bellow,
+        # Although the `EditorStack` observes all of the options below,
         # applying them when registring a new `EditorStack` instance is needed.
         # The options are notified only for the first `EditorStack` instance
-        # created on startup. New instances, created for example when
+        # created at startup. New instances, created for example when
         # using `Split vertically/horizontally`, require the logic
         # below to follow the current values in the configuration.
         settings = (

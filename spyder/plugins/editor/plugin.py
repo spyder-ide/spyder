@@ -752,7 +752,7 @@ class Editor(SpyderDockablePlugin):
         completions = self.get_plugin(Plugins.Completions)
 
         widget.sig_after_configuration_update_requested.connect(
-            self._after_configuration_update
+            completions.after_configuration_update
         )
         self.sig_file_opened_closed_or_updated.connect(
             completions.file_opened_closed_or_updated
@@ -770,7 +770,7 @@ class Editor(SpyderDockablePlugin):
         completions = self.get_plugin(Plugins.Completions)
 
         widget.sig_after_configuration_update_requested.disconnect(
-            self._after_configuration_update
+            completions.after_configuration_update
         )
         self.sig_file_opened_closed_or_updated.disconnect(
             completions.file_opened_closed_or_updated
@@ -877,7 +877,6 @@ class Editor(SpyderDockablePlugin):
         -------
         spyder.plugins.editor.codeeditor.CodeEditor
             `CodeEditor` associated with the given filename.
-
         """
         return self.get_widget().get_editor(filename)
 
@@ -896,18 +895,18 @@ class Editor(SpyderDockablePlugin):
         filenames: Optional[list]
             Filenames to load.
         goto: Optional[int]
-            If goto is not none it represent a line to go to. Used along side
+            If goto is not None, it represents a line to go to. Used alongside
             `start_column` and `end_column`. Alternatively, the first match of
             `word` is used as a position.
         word: Optional[str]
             The `word` to use to set the cursor position when using `goto`.
         editorwindow: Optional[spyder.plugins.editor.widgets.window.EditorMainWindow]  # noqa
-            Load in the given editorwindow (useful when clicking on outline
+            Load in the given editorwindow (useful when clicking in the Outline
             explorer with multiple editor windows).
         processevents: Optional[bool]
             Determines if `processEvents()` should be called at the end of this
             method (set to `False` to prevent keyboard events from creeping
-            through to the editor during debugging).
+            through to the editor while debugging).
         start_column: Optional[int]
             The start position in the line (goto)
         end_column: Optional[int]
@@ -917,8 +916,8 @@ class Editor(SpyderDockablePlugin):
             If the opened file should gain focus. `True` by default.
         add_where: Optional[str]
             Position where to add the new file finfo (affects the files tab
-            order). Possible values: `start` to make the file the first. `end`
-            (or any other value) to append.
+            order). Possible values are: `start` to make the file the first and
+             `end` (or any other value) to append.
         """
         return self.get_widget().load(*args, **kwargs)
 
@@ -927,7 +926,7 @@ class Editor(SpyderDockablePlugin):
         Load a `filename` passing to the base `load` method the `main_widget`
         as the `editorwindow` to force focus.
 
-        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
+        Used by `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
 
         Parameters
         ----------
@@ -939,11 +938,11 @@ class Editor(SpyderDockablePlugin):
 
     def load_edit_goto(self, filename, goto, word):
         """
-        Load a `filename` and put cursor in the given line to `goto` and `word`
-        passing to the `load` call the `main_widget` as the `editorwindow` to
-        force focus.
+        Load a `filename` and put the cursor in the line given by `goto` and
+        `word`, passing to the `load` call the `main_widget` as the
+        `editorwindow` to force focus.
 
-        Used over `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
+        Used by `spyder.plugins.outlineexplorer.plugin.[on_editor_available|on_editor_teardown]`  # noqa
 
         Parameters
         ----------
@@ -966,20 +965,22 @@ class Editor(SpyderDockablePlugin):
         Parameters
         ----------
         fname: Optional[str]
-            Name of the file to be created. Default `None`.
-            If `None`, `fname` will be `untitledXX.py`. No actual file will
-            be create until it is saved manually by the user.
+            Name of the file to be created. The default is `None`.
+            If `None`, `fname` will be named `untitledXX.py`. No actual file
+            will be created until it is saved manually by the user.
         editorstack: Optional[spyder.plugins.editor.widgets.editorstack.EditorStack]  # noqa
             Reference to the `EditorStack` instance that will be used to:
-                * Get `UntitleXX` numbering for the file name.
-                * Check if already a file with the same name exists and it is
-                closeable.
-                * Set file as current focused file.
-            Default `None`. If `None`, the current `EditorStack` is used. See
-            `get_current_editorstack`
+                * Get `untitledXX.py` numbering for the file name.
+                * Check if a file with the same name already exists and it is
+                  closeable.
+                * Set file as the current focused file.
+            The default is `None`. If that's the case, the current
+            `EditorStack` is used. See the `get_current_editorstack` method for
+            more details.
         text: Optional[str]
-            Base text content that will be added to the file. Default `None`.
-            If `None`, default content created via a template is used. See
+            Base text content that will be added to the file. The default is
+            `None`. If that's the case, the default content created will be 
+            created via a template file. See
             `Preferences > Editor > Advanced settings > Edit template for new files`  # noqa
         """
         return self.get_widget().new(*args, **kwargs)
@@ -988,8 +989,8 @@ class Editor(SpyderDockablePlugin):
         """
         Close file given his filename since it was removed.
 
-        Used for example when a file was removed in file explorer widget or in
-        project explorer.
+        It's used, for instance, when a file was removed in the File or Project
+        explorer plugins.
 
         Parameters
         ----------
@@ -1002,8 +1003,8 @@ class Editor(SpyderDockablePlugin):
         """
         Close files given a directory since it was removed.
 
-        Used for example when a directory was removed in file/project explorer
-        widget.
+        It's used, for instance, when a directory was removed in the File or
+        Project explorer plugins.
 
         Parameters
         ----------
@@ -1016,9 +1017,8 @@ class Editor(SpyderDockablePlugin):
         """
         Propagate file rename to editor stacks and autosave component.
 
-        This method is called when a file is renamed in the file explorer
-        widget or the project explorer. The file may not be opened in the
-        editor.
+        This method is called when a file is renamed in the File or Project
+        explorer plugins. The file may not be opened in the editor.
 
         Parameters
         ----------
@@ -1027,8 +1027,9 @@ class Editor(SpyderDockablePlugin):
         dest: str
             New filename path.
         editorstack_id_str: Optional[str]
-            Default `None`. If given, the `EditorStack` instance which identity
-            corresponds **doesn't** do the file rename operation.
+            The default is `None`. If not, the `EditorStack` instance whose
+            identity corresponds to `editorstack_id_str` **doesn't** perform
+            the file rename operation.
         """
         return self.get_widget().renamed(*args, **kwargs)
 
@@ -1036,7 +1037,8 @@ class Editor(SpyderDockablePlugin):
         """
         Propagate directory rename to editor stacks and autosave component.
 
-        Directory was renamed in file explorer or in project explorer.
+        This is used when the directory was renamed in File or Project explorer
+        plugins.
 
         Parameters
         ----------
@@ -1049,12 +1051,12 @@ class Editor(SpyderDockablePlugin):
 
     def add_supported_run_configuration(self, *args, **kwargs):
         """
-        Add a run configuration schema supported by the Editor
+        Add a run configuration schema supported by the Editor.
 
         Parameters
         ----------
         config : spyder.plugins.editor.api.run.EditorRunConfiguration
-            New Editor supported run configuration schema to be added.
+            New run configuration schema to be added.
         """
         return self.get_widget().add_supported_run_configuration(
             *args, **kwargs
@@ -1062,12 +1064,12 @@ class Editor(SpyderDockablePlugin):
 
     def remove_supported_run_configuration(self, *args, **kwargs):
         """
-        Remove a run configuration schema supported by the Editor
+        Remove a run configuration schema supported by the Editor.
 
         Parameters
         ----------
         config : spyder.plugins.editor.api.run.EditorRunConfiguration
-            Editor supported run configuration schema to be removed.
+            Run configuration schema to be removed.
         """
         return self.get_widget().remove_supported_run_configuration(
             *args, **kwargs
@@ -1099,7 +1101,7 @@ class Editor(SpyderDockablePlugin):
         """
         Return the widget to give focus to.
 
-        This happens when plugin's dockwidget is raised on top-level.
+        This happens when plugin's main widget is raised to the top-level.
 
         Returns
         -------
@@ -1113,7 +1115,7 @@ class Editor(SpyderDockablePlugin):
         Open the list of saved files per project.
 
         Also, open any files that the user selected in the recovery dialog and
-        setups toolbars and menus for 'New window' instances (calls
+        setup toolbars and menus for 'New window' instances (i.e. it calls the
         `setup_other_windows` method).
 
         Parameters
@@ -1140,10 +1142,10 @@ class Editor(SpyderDockablePlugin):
         Parameters
         ----------
         index : Optional[int]
-            Index related to the file position over the current editorstack.
-            Default `None` (use current file index).
+            Index related to the file position in the current editorstack.
+            The default is `None`, which uses the current file index.
         force : Optional[bool]
-            Force save regardless of file state. Default `False`
+            Force save regardless of file state. The default is `False`.
 
         Returns
         -------
@@ -1182,12 +1184,12 @@ class Editor(SpyderDockablePlugin):
 
     def get_filenames(self):
         """
-        Get list with all the files open.
+        Get list with all open files.
 
         Returns
         -------
         list
-            A list with the names of all the files currently opened in
+            A list with the names of all files currently opened in
             the editorstack.
         """
         return self.get_widget().get_filenames()
@@ -1218,8 +1220,8 @@ class Editor(SpyderDockablePlugin):
         Parameters
         ----------
         line : Optional[int]
-            Line to use for programatic calls without showing a dialog.
-            Default `None`
+            Line to use for programatic calls without showing the dialog. The
+            default is `None`.
         """
         return self.get_widget().go_to_line(line=line)
 
