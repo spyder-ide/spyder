@@ -203,7 +203,9 @@ setup_args = dict(
 
 
 install_requires = [
+    'aiohttp>=3.9.3',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
+    'asyncssh>=2.0.0',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
@@ -247,7 +249,8 @@ install_requires = [
     'superqt>=0.6.1,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3'
+    'watchdog>=0.10.3',
+    'yarl>=1.9.4',
 ]
 
 # Loosen constraints to ensure dev versions still work
@@ -306,6 +309,7 @@ spyder_plugins_entry_points = [
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
     'pythonpath_manager = spyder.plugins.pythonpath.plugin:PythonpathManager',
+    'remoteclient = spyder.plugins.remoteclient.plugin:RemoteClient',
     'run = spyder.plugins.run.plugin:Run',
     'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
