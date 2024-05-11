@@ -306,6 +306,7 @@ class EditorMainWidget(PluginMainWidget):
         self.outline_plugin = None
         self.outlineexplorer = None
         self.switcher_manager = None
+        self.active_project_path = None
 
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -1212,11 +1213,6 @@ class EditorMainWidget(PluginMainWidget):
             language, request, params
         )
 
-    @Slot(str, tuple, dict)
-    def _rpc_call(self, method, args, kwargs):
-        meth = getattr(self, method)
-        meth(*args, **kwargs)
-
     def refresh(self):
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
@@ -1297,28 +1293,6 @@ class EditorMainWidget(PluginMainWidget):
                 if search_menu_action == self.replace_action:
                     action_enabled = editor_focus and not editor.isReadOnly()
                 search_menu_action.setEnabled(action_enabled)
-
-    def update_source_menu(self, options, **kwargs):
-        option_names = [opt[-1] if isinstance(opt, tuple) else opt
-                        for opt in options]
-        named_options = dict(zip(option_names, options))
-        for name, action in self.checkable_actions.items():
-            if name in named_options:
-                opt = named_options[name]
-                section = 'editor'
-                completions_options = ['pycodestyle', 'pydocstyle']
-                if name in completions_options:
-                    section = 'completions'
-                if name == 'underline_errors':
-                    opt = name
-
-                state = self.get_conf(opt, section=section)
-
-                # Avoid triggering the action when this action changes state
-                # See: spyder-ide/spyder#9915
-                action.blockSignals(True)
-                action.setChecked(state)
-                action.blockSignals(False)
 
     def update_font(self, font):
         """Update font from Preferences"""
@@ -1530,10 +1504,12 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
-        # TODO: Review if this is necessary now that the editor is using the
-        # new API.
-        # It shouldn't be because the methods listed here are observing their
-        # corresponding options in EditorStack.
+        # Although the `EditorStack` observes all of the options below,
+        # applying them when registring a new `EditorStack` instance is needed.
+        # The options are notified only for the first `EditorStack` instance
+        # created at startup. New instances, created for example when
+        # using `Split vertically/horizontally`, require the logic
+        # below to follow the current values in the configuration.
         settings = (
             ('set_todolist_enabled',                'todo_list'),
             ('set_blanks_enabled',                  'blank_spaces'),
@@ -2132,8 +2108,7 @@ class EditorMainWidget(PluginMainWidget):
                     break
 
             basedir = getcwd_or_home()
-            # TODO: main_widget call logic from the projects plugin
-            active_project_path = self._plugin._get_active_project_path()
+            active_project_path = self.get_active_project_path()
             if active_project_path is not None:
                 basedir = active_project_path
             else:
@@ -2578,6 +2553,26 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Related to the Files/Projects plugins
     # -------------------------------------------------------------------------
+    def get_active_project_path(self):
+        """Get the active project path."""
+        return self.active_project_path
+
+    def update_active_project_path(self, active_project_path):
+        """
+        Update the active project path attribute used to set the current
+        opened files or when creating new files in case a project is active.
+
+        Parameters
+        ----------
+        active_project_path : str
+            Root path of the active project if any.
+
+        Returns
+        -------
+        None.
+        """
+        self.active_project_path = active_project_path
+
     def close_file_from_name(self, filename):
         """Close file from its name"""
         filename = osp.abspath(to_text_string(filename))
@@ -3267,22 +3262,37 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Options
     # -------------------------------------------------------------------------
-    @on_conf_change(
-        option=[
-            'blank_spaces',
-            'scroll_past_end',
-            'indent_guides',
-            'code_folding',
-            'show_class_func_dropdown'
-        ]
-    )
-    def on_checkable_action_change(self, option, value):
+    def _on_checkable_action_change(self, option, value):
         action = self.checkable_actions[option]
         # Avoid triggering the action when it changes state
         action.blockSignals(True)
         action.setChecked(value)
         action.blockSignals(False)
         # See: spyder-ide/spyder#9915
+
+    @on_conf_change(
+        option=[
+            ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+            ('provider_configuration', 'lsp', 'values', 'pydocstyle')
+        ],
+        section='completions'
+    )
+    def on_completions_checkable_action_change(self, option, value):
+        option = option[-1]  # Get 'pycodestyle' or 'pydocstyle'
+        self._on_checkable_action_change(option, value)
+
+    @on_conf_change(
+        option=[
+            'blank_spaces',
+            'scroll_past_end',
+            'indent_guides',
+            'code_folding',
+            'show_class_func_dropdown',
+            'underline_errors'
+        ]
+    )
+    def on_editor_checkable_action_change(self, option, value):
+        self._on_checkable_action_change(option, value)
 
     @on_conf_change(
         option=[
@@ -3318,13 +3328,6 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Open files
     # -------------------------------------------------------------------------
-    def get_open_filenames(self):
-        """Get the list of open files in the current stack"""
-        editorstack = self.editorstacks[0]
-        filenames = []
-        filenames += [finfo.filename for finfo in editorstack.data]
-        return filenames
-
     def setup_open_files(self, close_previous_files=True):
         """
         Open the list of saved files per project.
@@ -3332,9 +3335,7 @@ class EditorMainWidget(PluginMainWidget):
         Also open any files that the user selected in the recovery dialog.
         """
         self.set_create_new_file_if_empty(False)
-        # TODO: Change active project path to be used as is done on the
-        # IPython Console
-        active_project_path = self._plugin._get_active_project_path()
+        active_project_path = self.get_active_project_path()
 
         if active_project_path:
             filenames = self._plugin._get_project_filenames()
@@ -3420,7 +3421,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def save_open_files(self):
         """Save the list of open files"""
-        self.set_conf('filenames', self.get_open_filenames())
+        self.set_conf('filenames', self.get_filenames())
 
     def set_create_new_file_if_empty(self, value):
         """Change the value of create_new_file_if_empty"""

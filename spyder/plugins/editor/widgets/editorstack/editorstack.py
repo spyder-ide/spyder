@@ -782,7 +782,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def go_to_line(self, line=None):
         """Go to line dialog"""
         if line is not None:
-            # When this method is called from the flileswitcher, a line
+            # When this method is called from the fileswitcher, a line
             # number is specified, so there is no need for the dialog.
             self.get_current_editor().go_to_line(line)
         else:

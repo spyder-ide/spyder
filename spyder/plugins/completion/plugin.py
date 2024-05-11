@@ -155,20 +155,6 @@ class CompletionPlugin(SpyderPluginV2):
         Path to a file to open with the editor.
     """
 
-    sig_editor_rpc = Signal(str, tuple, dict)
-    """
-    This signal is used to perform remote calls in the editor.
-
-    Parameters
-    ----------
-    method: str
-        Name of the method to call in the editor.
-    args: tuple
-        Tuple containing the positional arguments to perform the call.
-    kwargs: dict
-        Dictionary containing the optional arguments to perform the call.
-    """
-
     sig_stop_completions = Signal(str)
     """
     This signal is used to stop completion services on other Spyder plugins
@@ -426,11 +412,6 @@ class CompletionPlugin(SpyderPluginV2):
                         self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
-
-        # Update entries in the source menu
-        # FIXME: Delete this after CONF is moved to an observer pattern.
-        # and the editor migration starts
-        self.sig_editor_rpc.emit('update_source_menu', (options,), {})
 
     def on_mainwindow_visible(self):
         for provider_name in self.providers:
