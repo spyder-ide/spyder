@@ -222,13 +222,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         """Setup the figure browser with provided options."""
         self.splitter.setContentsMargins(0, 0, 0, 0)
         for option, value in options.items():
-            if option == 'auto_fit_plotting':
-                self.change_auto_fit_plotting(value)
-            elif option == 'mute_inline_plotting':
+            if option == 'mute_inline_plotting':
                 self.mute_inline_plotting = value
                 if self.shellwidget:
                     self.shellwidget.set_mute_inline_plotting(value)
-
             elif option == 'show_plot_outline':
                 self.show_fig_outline_in_viewer(value)
             elif option == 'save_dir':
@@ -263,10 +260,6 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         else:
             self.figviewer.figcanvas.setStyleSheet(
                 "FigureCanvas{border: 0px;}")
-
-    def change_auto_fit_plotting(self, state):
-        """Change the auto_fit_plotting option and scale images."""
-        self.figviewer.auto_fit_plotting = state
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
@@ -387,6 +380,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         self.setFrameStyle(0)
 
         self.background_color = background_color
+        self.current_thumbnail = None
         self._scalefactor = 0
         self._scalestep = 1.2
         self._sfmax = 10
@@ -411,13 +405,17 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         Set whether to automatically fit the plot to the scroll area size.
         """
         self._auto_fit_plotting = value
+
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.auto_fit = value
+
         if value:
+            self.scale_image()
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         else:
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.scale_image()
 
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
@@ -435,11 +433,16 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             point = self.figcanvas.mapToGlobal(qpoint)
             self.sig_context_menu_requested.emit(point)
 
+    def set_current_thumbnail(self, thumbnail):
+        """Set the current thumbnail displayed in the viewer."""
+        self.current_thumbnail = thumbnail
+
     def load_figure(self, fig, fmt):
         """Set a new figure in the figure canvas."""
+        self.auto_fit_plotting = self.current_thumbnail.auto_fit
         self.figcanvas.load_figure(fig, fmt)
         self.sig_figure_loaded.emit()
-        self.scale_image(auto_fit_when_loading=not self.auto_fit_plotting)
+        self.scale_image()
         self.figcanvas.repaint()
 
     def eventFilter(self, widget, event):
@@ -495,16 +498,21 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             event.type() == QEvent.MouseButtonDblClick
             and self._scalefactor != 0
         ):
-            # This is necessary so that when calling zoom_in the scale
-            # factor becomes zero
-            self._scalefactor = -1
-            self.zoom_in()
+            self.auto_fit_plotting = False
+            self.zoom_in(to_full_size=True)
+
+            # Necessary to correctly set the state of the fit_action button
+            self.sig_figure_loaded.emit()
 
         return QWidget.eventFilter(self, widget, event)
 
     # ---- Figure Scaling Handlers
-    def zoom_in(self):
+    def zoom_in(self, to_full_size=False):
         """Scale the image up by one scale step."""
+        # This is necessary so that the scale factor becomes zero below
+        if to_full_size:
+            self._scalefactor = -1
+
         if self._scalefactor <= self._sfmax:
             self._scalefactor += 1
             self.scale_image()
@@ -517,13 +525,13 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             self.scale_image()
             self._adjust_scrollbar(1 / self._scalestep)
 
-    def scale_image(self, auto_fit_when_loading=False):
+    def scale_image(self):
         """Scale the image size."""
         fwidth = self.figcanvas.fwidth
         fheight = self.figcanvas.fheight
 
         # Don't auto fit plotting
-        if not self.auto_fit_plotting and not auto_fit_when_loading:
+        if not self.auto_fit_plotting:
             new_width = int(fwidth * self._scalestep ** self._scalefactor)
             new_height = int(fheight * self._scalestep ** self._scalefactor)
 
@@ -556,7 +564,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
                 )
                 new_width = fwidth
                 new_height = fheight
-                auto_fit_when_loading = False
+                self.auto_fit_plotting = False
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
@@ -564,7 +572,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             # Adjust the scale factor according to the scaling of the fitted
             # image. This is necessary so that zoom in/out increases/decreases
             # the image size in factors of of +1/-1 of the one computed below.
-            if auto_fit_when_loading:
+            if self.auto_fit_plotting:
                 self._scalefactor = self.get_scale_factor()
 
             self.sig_zoom_changed.emit(self.get_scaling())
@@ -903,7 +911,8 @@ class ThumbnailScrollBar(QFrame):
             stick_at_end = True
 
         thumbnail = FigureThumbnail(
-            parent=self, background_color=self.background_color)
+            parent=self, background_color=self.background_color
+        )
         thumbnail.canvas.load_figure(fig, fmt)
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure_requested.connect(self.remove_thumbnail)
@@ -949,6 +958,7 @@ class ThumbnailScrollBar(QFrame):
 
         self._thumbnails = []
         self.current_thumbnail = None
+        self.figure_viewer.auto_fit_plotting = False
         self.figure_viewer.figcanvas.clear_canvas()
 
     def remove_thumbnail(self, thumbnail):
@@ -1011,8 +1021,10 @@ class ThumbnailScrollBar(QFrame):
         if self.current_thumbnail is not None:
             self.current_thumbnail.highlight_canvas(False)
         self.current_thumbnail = thumbnail
+        self.figure_viewer.set_current_thumbnail(thumbnail)
         self.figure_viewer.load_figure(
-            thumbnail.canvas.fig, thumbnail.canvas.fmt)
+            thumbnail.canvas.fig, thumbnail.canvas.fmt
+        )
         self.current_thumbnail.highlight_canvas(True)
 
     def go_previous_thumbnail(self):
@@ -1122,10 +1134,14 @@ class FigureThumbnail(QWidget):
         The QPoint in global coordinates where the menu was requested.
     """
 
-    def __init__(self, parent=None, background_color=None):
+    def __init__(self, parent=None, background_color=None, auto_fit=True):
         super().__init__(parent)
-        self.canvas = FigureCanvas(parent=self,
-                                   background_color=background_color)
+
+        self.auto_fit = auto_fit
+        self.canvas = FigureCanvas(
+            parent=self,
+            background_color=background_color
+        )
         self.canvas.sig_context_menu_requested.connect(
             self.sig_context_menu_requested)
         self.canvas.installEventFilter(self)

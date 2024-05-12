@@ -38,9 +38,8 @@ def figbrowser(qtbot):
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
     options = {
-        'mute_inline_plotting': True,
-        'show_plot_outline': False,
-        'auto_fit_plotting': False,
+        "mute_inline_plotting": True,
+        "show_plot_outline": False,
     }
     figbrowser.setup(options)
     qtbot.addWidget(figbrowser)
@@ -434,7 +433,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     figcanvas = figbrowser.figviewer.figcanvas
 
     # Set `Fit plots to windows` to False before the test.
-    figbrowser.change_auto_fit_plotting(False)
+    figbrowser.figviewer.auto_fit_plotting = False
 
     # Calculate original figure size in pixels.
     qpix = QPixmap()
@@ -479,7 +478,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     # Test when `Fit plots to window` is set to True.
     # Otherwise, test should fall into `test_zoom_figure_viewer`
-    figbrowser.change_auto_fit_plotting(True)
+    figbrowser.figviewer.auto_fit_plotting = True
 
     size = figviewer.size()
     style = figviewer.style()
