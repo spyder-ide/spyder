@@ -393,6 +393,14 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # An internal flag that tracks when the figure is being panned.
         self._ispanning = False
 
+        # To save scrollbar values in the current thumbnail
+        self.verticalScrollBar().valueChanged.connect(
+            self._set_vscrollbar_value
+        )
+        self.horizontalScrollBar().valueChanged.connect(
+            self._set_hscrollbar_value
+        )
+
     @property
     def auto_fit_plotting(self):
         """
@@ -467,6 +475,20 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # Save the computed scale factor by scale_image in the thumbnail
         if self.current_thumbnail.scalefactor is None:
             self.current_thumbnail.scalefactor = self.scalefactor
+
+        # Restore scrollbar values
+        QTimer.singleShot(
+            20,
+            lambda: self.verticalScrollBar().setValue(
+                self.current_thumbnail.vscrollbar_value
+            ),
+        )
+        QTimer.singleShot(
+            20,
+            lambda: self.horizontalScrollBar().setValue(
+                self.current_thumbnail.hscrollbar_value
+            ),
+        )
 
     def eventFilter(self, widget, event):
         """A filter to control the zooming and panning of the figure canvas."""
@@ -637,6 +659,16 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # Adjust the vertical scrollbar :
         vb = self.verticalScrollBar()
         vb.setValue(int(f * vb.value() + ((f - 1) * vb.pageStep()/2)))
+
+    def _set_vscrollbar_value(self, value):
+        """Save vertical scrollbar value in current thumbnail."""
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.vscrollbar_value = value
+
+    def _set_hscrollbar_value(self, value):
+        """Save horizontal scrollbar value in current thumbnail."""
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.hscrollbar_value = value
 
 
 class ThumbnailScrollBar(QFrame):
@@ -1169,6 +1201,8 @@ class FigureThumbnail(QWidget):
 
         self.auto_fit = auto_fit
         self.scalefactor = None
+        self.vscrollbar_value = 0
+        self.hscrollbar_value = 0
 
         self.canvas = FigureCanvas(
             parent=self,
