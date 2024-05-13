@@ -1590,6 +1590,7 @@ class CollectionsEditorTableView(BaseTableView):
 
 class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
+    CONF_SECTION = 'main'
 
     sig_refresh_requested = Signal()
 
