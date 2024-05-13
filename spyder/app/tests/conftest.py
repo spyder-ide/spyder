@@ -464,9 +464,13 @@ def main_window(request, tmpdir, qtbot):
             # Currently 'test_out_runfile_runcell' is the last tests so
             # in order to prevent errors finalizing the test suit such test has
             # this marker
+            # Also, try to decrease chances of freezes/timeouts from tests that
+            # are known to have leaks by also closing the mainwindow for them
+            known_leak = request.node.get_closest_marker(
+                'known_leak')
             close_main_window = request.node.get_closest_marker(
                 'close_main_window')
-            if close_main_window:
+            if close_main_window or known_leak:
                 main_window.window = None
                 window.closing(close_immediately=True)
                 window.close()
@@ -524,12 +528,6 @@ def main_window(request, tmpdir, qtbot):
 
                 if os.name == 'nt':
                     # Do not test leaks on windows
-                    return
-
-                known_leak = request.node.get_closest_marker(
-                    'known_leak')
-                if known_leak:
-                    # This test has a known leak
                     return
 
                 def show_diff(init_list, now_list, name):
