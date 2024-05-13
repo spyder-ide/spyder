@@ -381,7 +381,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
         self.background_color = background_color
         self.current_thumbnail = None
-        self._scalefactor = 0
+        self.scalefactor = 0
+
         self._scalestep = 1.2
         self._sfmax = 10
         self._sfmin = -10
@@ -417,6 +418,18 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
+    @property
+    def scalefactor(self):
+        """Return the current scale factor."""
+        return self._scalefactor
+
+    @scalefactor.setter
+    def scalefactor(self, value):
+        """Set the scale factor value."""
+        self._scalefactor = value
+        if self.current_thumbnail is not None:
+            self.current_thumbnail.scalefactor = value
+
     def setup_figcanvas(self):
         """Setup the FigureCanvas."""
         self.figcanvas = FigureCanvas(parent=self,
@@ -440,10 +453,20 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     def load_figure(self, fig, fmt):
         """Set a new figure in the figure canvas."""
         self.auto_fit_plotting = self.current_thumbnail.auto_fit
+
+        # Let scale_image compute the scale factor for the thumbnail if it
+        # hasn't one yet.
+        if self.current_thumbnail.scalefactor is not None:
+            self.scalefactor = self.current_thumbnail.scalefactor
+
         self.figcanvas.load_figure(fig, fmt)
         self.sig_figure_loaded.emit()
         self.scale_image()
         self.figcanvas.repaint()
+
+        # Save the computed scale factor by scale_image in the thumbnail
+        if self.current_thumbnail.scalefactor is None:
+            self.current_thumbnail.scalefactor = self.scalefactor
 
     def eventFilter(self, widget, event):
         """A filter to control the zooming and panning of the figure canvas."""
@@ -496,7 +519,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # Show in full size or restore the previous one
         elif (
             event.type() == QEvent.MouseButtonDblClick
-            and self._scalefactor != 0
+            and self.scalefactor != 0
         ):
             self.auto_fit_plotting = False
             self.zoom_in(to_full_size=True)
@@ -511,17 +534,17 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         """Scale the image up by one scale step."""
         # This is necessary so that the scale factor becomes zero below
         if to_full_size:
-            self._scalefactor = -1
+            self.scalefactor = -1
 
-        if self._scalefactor <= self._sfmax:
-            self._scalefactor += 1
+        if self.scalefactor <= self._sfmax:
+            self.scalefactor += 1
             self.scale_image()
             self._adjust_scrollbar(self._scalestep)
 
     def zoom_out(self):
         """Scale the image down by one scale step."""
-        if self._scalefactor >= self._sfmin:
-            self._scalefactor -= 1
+        if self.scalefactor >= self._sfmin:
+            self.scalefactor -= 1
             self.scale_image()
             self._adjust_scrollbar(1 / self._scalestep)
 
@@ -532,8 +555,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
         # Don't auto fit plotting
         if not self.auto_fit_plotting:
-            new_width = int(fwidth * self._scalestep ** self._scalefactor)
-            new_height = int(fheight * self._scalestep ** self._scalefactor)
+            new_width = int(fwidth * self._scalestep ** self.scalefactor)
+            new_height = int(fheight * self._scalestep ** self.scalefactor)
 
         # Auto fit plotting
         # Scale the image to fit the figviewer size while respecting the ratio.
@@ -573,7 +596,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             # image. This is necessary so that zoom in/out increases/decreases
             # the image size in factors of of +1/-1 of the one computed below.
             if self.auto_fit_plotting:
-                self._scalefactor = self.get_scale_factor()
+                self.scalefactor = self.get_scale_factor()
 
             self.sig_zoom_changed.emit(self.get_scaling())
 
@@ -592,7 +615,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
 
     def reset_original_image(self):
         """Reset the image to its original size."""
-        self._scalefactor = 0
+        self.scalefactor = 0
         self.scale_image()
 
     def _adjust_scrollbar(self, f):
@@ -1138,6 +1161,8 @@ class FigureThumbnail(QWidget):
         super().__init__(parent)
 
         self.auto_fit = auto_fit
+        self.scalefactor = None
+
         self.canvas = FigureCanvas(
             parent=self,
             background_color=background_color
