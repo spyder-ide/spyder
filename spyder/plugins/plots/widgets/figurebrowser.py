@@ -490,7 +490,14 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # ---- Panning
         # Set ClosedHandCursor:
         elif event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            if (
+                event.button() == Qt.LeftButton
+                and not self.auto_fit_plotting
+                and (
+                    self.verticalScrollBar().isVisible()
+                    or self.horizontalScrollBar().isVisible()
+                )
+            ):
                 self.setCursor(Qt.ClosedHandCursor)
                 self._ispanning = True
                 self.xclick = event.globalX()
