@@ -1580,7 +1580,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, server_id=None):
+                                 password, server_id=None, can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1627,6 +1627,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             interpreter_versions=self.interpreter_versions(),
             handlers=self.registered_spyder_kernel_handlers,
             server_id=server_id,
+            can_close=can_close,
         )
 
         # add hostname for get_name
@@ -1777,19 +1778,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
+
         if client is not None:
+            # Client already closed
             if client not in self.clients:
-                # Client already closed
                 return
-            index = self.tabwidget.indexOf(client)
+
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
+            index = self.tabwidget.indexOf(client)
             if index == -1:
                 return
         if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
+
+        if not client.can_close:
+            return
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them

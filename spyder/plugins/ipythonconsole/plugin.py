@@ -689,8 +689,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
 
-    def create_client_for_kernel(self, connection_file, hostname=None,
-                                 sshkey=None, password=None, server_id=None):
+    def create_client_for_kernel(
+        self,
+        connection_file,
+        hostname=None,
+        sshkey=None,
+        password=None,
+        server_id=None,
+        can_close=True,
+    ):
         """
         Create a client connected to an existing kernel.
 
@@ -710,6 +717,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             running.
         server_id: str, optional
             The remote server id to which this client is connected to.
+        can_close: bool, optional
+            Whether the client can be closed. This is useful to prevent closing
+            the client that will be connected to a remote kernel before the
+            connection is established.
 
         Returns
         -------
@@ -717,7 +728,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             The created client.
         """
         return self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password, server_id)
+            connection_file, hostname, sshkey, password, server_id, can_close
+        )
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""

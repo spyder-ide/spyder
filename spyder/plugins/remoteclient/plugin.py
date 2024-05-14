@@ -268,6 +268,12 @@ class RemoteClient(SpyderPluginV2):
             # We save the server id in the client to perform on it operations
             # related to this plugin.
             server_id=config_id,
+            # This is necessary because it takes a while before getting a
+            # response from the server with the kernel id that will be
+            # associated to this client. So, if users could close it before
+            # that then it'll not be possible to shutdown that kernel unless
+            # the server is stopped as well.
+            can_close=False,
         )
 
         # IMPORTANT NOTE: We use a signal here instead of calling directly

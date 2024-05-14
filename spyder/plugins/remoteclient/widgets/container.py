@@ -192,6 +192,9 @@ class RemoteClientContainer(PluginMainContainer):
         """
         config_id = ipyclient.server_id
 
+        # It's only at this point that we can allow users to close the client.
+        ipyclient.can_close = True
+
         # Get authentication method
         auth_method = self.get_conf(f"{config_id}/auth_method")
 

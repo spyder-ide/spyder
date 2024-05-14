@@ -111,6 +111,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         forcing_custom_interpreter=False,
         special_kernel=None,
         server_id=None,
+        can_close=True,
     ):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
@@ -123,6 +124,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
         self.server_id = server_id
+        self.can_close = can_close
 
         # --- Other attrs
         self.kernel_handler = None
