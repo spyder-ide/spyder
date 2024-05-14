@@ -4692,6 +4692,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.close_main_window
 @pytest.mark.parametrize(
     'main_window',
     [{'spy_config': ('tours', 'show_tour_message', True)}],
