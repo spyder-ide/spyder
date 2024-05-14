@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (
 from spyder.api.translations import _
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import get_class_values
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
@@ -737,7 +738,7 @@ class ConnectionDialog(SidebarDialog):
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
     def create_buttons(self):
-        bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
+        bbox = SpyderDialogButtonBox(QDialogButtonBox.Cancel)
 
         self._button_save_connection = QPushButton(_("Save connection"))
         self._button_save_connection.clicked.connect(

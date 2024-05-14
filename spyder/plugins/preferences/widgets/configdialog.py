@@ -104,10 +104,9 @@ class ConfigDialog(SidebarDialog):
 
         button_reset = QPushButton(_('Reset to defaults'))
         button_reset.clicked.connect(self.sig_reset_preferences_requested)
+        bbox.addButton(button_reset, QDialogButtonBox.ResetRole)
 
         layout = QHBoxLayout()
-        layout.addWidget(button_reset)
-        layout.addStretch(1)
         layout.addWidget(bbox)
 
         return bbox, layout

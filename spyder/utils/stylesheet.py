@@ -237,12 +237,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         for widget in ["QPushButton", "QPushButton:disabled"]:
             css[f"QDialog {widget}"].setValues(
                 padding=(
-                    f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+                    f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
                 ),
             )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding=f"{AppStyle.MarginSize + 1}px 0px",
+            padding=f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px",
         )
 
         # Remove icons in QMessageBoxes
@@ -844,7 +844,7 @@ class DialogStyle(SpyderFontsMixin):
     """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    ButtonsPadding = '6px' if MAC else '4px 10px'
+    ButtonsPadding = '6px' if MAC else '4px 6px'
     BackgroundColor = SpyderPalette.COLOR_BACKGROUND_2
     BorderColor = SpyderPalette.COLOR_BACKGROUND_5
 
