@@ -11,6 +11,7 @@ spyder.plugins.remoteclient.api
 Remote Client Plugin API.
 """
 
+
 # ---- Constants
 # -----------------------------------------------------------------------------
 class RemoteClientActions:

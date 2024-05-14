@@ -11,6 +11,7 @@ spyder.plugins.remoteclient.widgets
 Widgets for the Remote Client plugin.
 """
 
+
 class AuthenticationMethod:
     """Enum for the different authentication methods we support."""
 

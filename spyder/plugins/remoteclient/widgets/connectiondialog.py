@@ -808,7 +808,6 @@ class ConnectionDialog(SidebarDialog):
         else:
             self._button_stop.setEnabled(False)
 
-
     # ---- Private API
     # -------------------------------------------------------------------------
     def _save_connection_info(self):
