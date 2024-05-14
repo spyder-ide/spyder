@@ -66,6 +66,16 @@ class RemoteClientContainer(PluginMainContainer):
         Id of the server that will be stopped.
     """
 
+    sig_server_renamed = Signal(str)
+    """
+    This signal is used to inform that a remote server was renamed.
+
+    Parameters
+    ----------
+    id: str
+        Id of the server that was renamed.
+    """
+
     sig_connection_status_changed = Signal(dict)
     """
     This signal is used to update the status of a given connection.
@@ -257,6 +267,9 @@ class RemoteClientContainer(PluginMainContainer):
         )
         connection_dialog.sig_connections_changed.connect(
             self.setup_remote_consoles_submenu
+        )
+        connection_dialog.sig_server_renamed.connect(
+            self.sig_server_renamed
         )
 
         self.sig_connection_status_changed.connect(

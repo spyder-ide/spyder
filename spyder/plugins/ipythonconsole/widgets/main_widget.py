@@ -1340,8 +1340,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Rename tabs after a change in name."""
         client = self.get_current_client()
 
-        # Prevent renames that want to assign the same name of
-        # a previous tab
+        # Prevent renames that want to assign the same name of a previous tab
         repeated = False
         for cl in self.clients:
             if id(client) != id(cl) and given_name == cl.given_name:
@@ -1358,6 +1357,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client.allow_rename and u'/' not in given_name and not repeated:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
+
+    def rename_remote_clients(self, server_id):
+        """Rename all clients connected to a remote server."""
+        auth_method = self.get_conf(
+            f"{server_id}/auth_method", section="remoteclient"
+        )
+        hostname = self.get_conf(
+            f"{server_id}/{auth_method}/name", section="remoteclient"
+        )
+
+        for client in self.clients:
+            if client.server_id == server_id:
+                client.hostname = hostname
+                index = self.get_client_index_from_id(id(client))
+                self.tabwidget.setTabText(index, client.get_name())
 
     def tab_name_editor(self):
         """Trigger the tab name editor."""

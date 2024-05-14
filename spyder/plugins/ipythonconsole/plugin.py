@@ -475,6 +475,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_remote_client_available(self):
         remote_client = self.get_plugin(Plugins.RemoteClient)
         remote_client.sig_server_stopped.connect(self._close_remote_clients)
+        remote_client.sig_server_renamed.connect(self._rename_remote_clients)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -533,6 +534,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_remote_client_teardown(self):
         remote_client = self.get_plugin(Plugins.RemoteClient)
         remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
+        remote_client.sig_server_renamed.disconnect(
+            self._rename_remote_clients
+        )
 
     def update_font(self):
         """Update font from Preferences"""
@@ -558,6 +562,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _close_remote_clients(self, server_id):
         self.get_widget().close_remote_clients(server_id)
+
+    def _rename_remote_clients(self, server_id):
+        self.get_widget().rename_remote_clients(server_id)
 
     # ---- Public API
     # -------------------------------------------------------------------------

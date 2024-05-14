@@ -59,6 +59,7 @@ class RemoteClient(SpyderPluginV2):
     # ---- Signals
     sig_server_log = Signal(dict)
     sig_server_stopped = Signal(str)
+    sig_server_renamed = Signal(str)
 
     sig_connection_established = Signal(str)
     sig_connection_lost = Signal(str)
@@ -94,6 +95,7 @@ class RemoteClient(SpyderPluginV2):
         container.sig_start_server_requested.connect(self.start_remote_server)
         container.sig_stop_server_requested.connect(self.stop_remote_server)
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
+        container.sig_server_renamed.connect(self.sig_server_renamed)
         container.sig_create_ipyclient_requested.connect(
             self.create_ipyclient_for_server
         )

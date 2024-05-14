@@ -722,6 +722,7 @@ class ConnectionDialog(SidebarDialog):
 
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
+    sig_server_renamed = Signal(str)
     sig_connection_status_changed = Signal(dict)
     sig_connections_changed = Signal()
 
@@ -850,6 +851,7 @@ class ConnectionDialog(SidebarDialog):
             # that a change in connections took place.
             if page.new_name is not None:
                 self.sig_connections_changed.emit()
+                self.sig_server_renamed.emit(page.host_id)
                 page.new_name = None
 
             # Mark page as not modified and disable save button
