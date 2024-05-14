@@ -11,7 +11,7 @@ import pytest
 
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
-from spyder.plugins.updatemanager.workers import WorkerUpdate
+from spyder.plugins.updatemanager.workers import WorkerUpdate, HTTPError
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 
@@ -54,6 +54,15 @@ def test_updates_appenv(qtbot, mocker, version):
     um = UpdateManagerWidget(None)
     um.start_check_update()
     qtbot.waitUntil(um.update_thread.isFinished)
+
+    if um.update_worker.error and "403" in um.update_worker.error:
+        # A 403 error - rate limit error, was encountered while doing the tests
+        # Check error message corresponds to the status code and exit early to
+        # prevent failing the test
+        assert um.update_worker.error == HTTPError.format("403")
+        return
+
+    assert not um.update_worker.error
 
     update_available = um.update_worker.update_available
     if version.split('.')[0] == '1':
