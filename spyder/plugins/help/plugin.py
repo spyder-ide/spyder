@@ -194,13 +194,6 @@ class Help(SpyderDockablePlugin):
     def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
 
-        # To make auto-connection changes take place instantly
-        try:
-            editor = self.get_plugin(Plugins.Editor)
-            editor.apply_plugin_settings({'connect_to_oi'})
-        except SpyderAPIError:
-            pass
-
     # --- Private API
     # ------------------------------------------------------------------------
     def _setup_menus(self):

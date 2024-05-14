@@ -832,10 +832,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
-    @on_conf_change(option='connect_to_oi')
+    @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
-        help_option_value = self.get_conf('connect/editor', section='help')
-        self.set_help_enabled(help_option_value)
+        self.set_help_enabled(value)
 
     @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
     def on_color_scheme_change(self, option, value):
