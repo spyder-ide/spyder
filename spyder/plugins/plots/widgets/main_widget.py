@@ -44,7 +44,7 @@ class PlotsWidgetActions:
     # Toggles
     ToggleMuteInlinePlotting = 'toggle_mute_inline_plotting_action'
     ToggleShowPlotOutline = 'toggle_show_plot_outline_action'
-    ToggleAutoFitPlotting = 'toggle_auto_fit_plotting_action'
+    ToggleAutoFitPlotting = 'auto fit'
 
 
 class PlotsWidgetMainToolbarSections:
@@ -117,6 +117,7 @@ class PlotsWidget(ShellConnectMainWidget):
             icon=self.create_icon("plot.fit_to_pane"),
             toggled=self.fit_to_pane,
             initial=False,
+            register_shortcut=True,
         )
 
         # Toolbar actions

@@ -476,7 +476,9 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         if self.current_thumbnail.scalefactor is None:
             self.current_thumbnail.scalefactor = self.scalefactor
 
-        # Restore scrollbar values
+        # Restore scrollbar values.
+        # We need to use timers for this because trying to set those values
+        # immediately after the figure is loaded doesn't work.
         QTimer.singleShot(
             20,
             lambda: self.verticalScrollBar().setValue(
@@ -545,7 +547,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
                 scrollBarV = self.verticalScrollBar()
                 scrollBarV.setValue(scrollBarV.value() + dy)
 
-        # Show in full size or restore the previous one
+        # Show in full size
         elif (
             event.type() == QEvent.MouseButtonDblClick
             and self.scalefactor != 0
