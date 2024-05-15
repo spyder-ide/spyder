@@ -1,5 +1,22 @@
 # History of changes
 
+## Version 3.0.0b6 (2024-05-15)
+
+### Issues Closed
+
+* [Issue 457](https://github.com/spyder-ide/spyder-kernels/issues/457) - Detecting the interactive backend started to fail on Mac in master ([PR 486](https://github.com/spyder-ide/spyder-kernels/pull/486) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 486](https://github.com/spyder-ide/spyder-kernels/pull/486) - PR: Run `test_get_interactive_backend` again on Mac, by [@ccordoba12](https://github.com/ccordoba12) ([457](https://github.com/spyder-ide/spyder-kernels/issues/457))
+* [PR 485](https://github.com/spyder-ide/spyder-kernels/pull/485) - PR: Fix Matplotlib interactive backend detection, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.0.0b5 (2024-04-23)
 
 ### Pull Requests Merged
