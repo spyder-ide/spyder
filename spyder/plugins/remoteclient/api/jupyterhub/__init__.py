@@ -335,7 +335,7 @@ class JupyterAPI:
             self.api_url / "kernels" / kernel_id
         ) as response:
             if response.status == 404:
-                return None
+                return {}
             elif response.status == 200:
                 return await response.json()
 
@@ -371,9 +371,11 @@ class JupyterAPI:
                 raise ValueError(
                     f"failed to restart kernel_id={kernel_id} does not exist"
                 )
-            elif response.status == 204:
+            elif response.status == 200:
                 logger.info(f"restarted kernel={kernel_id} for jupyter")
                 return True
+            else:
+                return False
 
 
 class JupyterKernelAPI:

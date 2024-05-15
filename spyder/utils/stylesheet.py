@@ -44,6 +44,9 @@ class AppStyle(SpyderFontsMixin):
     # To have it for quick access because it's needed a lot in Mac
     MacScrollBarWidth = 16  # px
 
+    # Icon size in config pages
+    ConfigPageIconSize = 20
+
     @classproperty
     def _fs(cls):
         """Interface font size in points."""
@@ -234,12 +237,12 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         for widget in ["QPushButton", "QPushButton:disabled"]:
             css[f"QDialog {widget}"].setValues(
                 padding=(
-                    f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+                    f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
                 ),
             )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding=f"{AppStyle.MarginSize + 1}px 0px",
+            padding=f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px",
         )
 
         # Remove icons in QMessageBoxes
@@ -260,7 +263,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # is not perfect because (oddly enough) Qt doesn't set the same height
         # for both when using the same value, but it's close enough.
         css.QLineEdit.setValues(
-            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
         # We need to substract here a tiny bit bigger value to match the size
@@ -285,6 +288,11 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Add padding to tooltips
         css.QToolTip.setValues(
             padding="1px 2px",
+        )
+
+        # Substract extra padding that comes from QLineEdit
+        css["QLineEdit QToolTip"].setValues(
+            padding="-2px -3px",
         )
 
         # Add padding to tree widget items to make them look better
@@ -836,7 +844,7 @@ class DialogStyle(SpyderFontsMixin):
     """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    ButtonsPadding = '6px' if MAC else '4px 10px'
+    ButtonsPadding = '6px' if MAC else '4px 6px'
     BackgroundColor = SpyderPalette.COLOR_BACKGROUND_2
     BorderColor = SpyderPalette.COLOR_BACKGROUND_5
 

@@ -8,8 +8,6 @@
 """
 API utilities.
 """
-import functools
-import asyncio
 
 
 def get_class_values(cls):

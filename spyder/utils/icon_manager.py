@@ -374,6 +374,9 @@ class IconManager():
             'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
+            # --- Remote connections ----------------------------------------------
+            'add_server':              [('mdi.server-plus',), {'color': self.MAIN_FG_COLOR}],
+            'remote_server':           [('mdi.server-network',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):

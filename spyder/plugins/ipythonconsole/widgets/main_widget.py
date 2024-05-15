@@ -1340,8 +1340,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Rename tabs after a change in name."""
         client = self.get_current_client()
 
-        # Prevent renames that want to assign the same name of
-        # a previous tab
+        # Prevent renames that want to assign the same name of a previous tab
         repeated = False
         for cl in self.clients:
             if id(client) != id(cl) and given_name == cl.given_name:
@@ -1358,6 +1357,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client.allow_rename and u'/' not in given_name and not repeated:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
+
+    def rename_remote_clients(self, server_id):
+        """Rename all clients connected to a remote server."""
+        auth_method = self.get_conf(
+            f"{server_id}/auth_method", section="remoteclient"
+        )
+        hostname = self.get_conf(
+            f"{server_id}/{auth_method}/name", section="remoteclient"
+        )
+
+        for client in self.clients:
+            if client.server_id == server_id:
+                client.hostname = hostname
+                index = self.get_client_index_from_id(id(client))
+                self.tabwidget.setTabText(index, client.get_name())
 
     def tab_name_editor(self):
         """Trigger the tab name editor."""
@@ -1580,7 +1594,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password):
+                                 password, server_id=None, can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1625,7 +1639,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             interpreter_versions=self.interpreter_versions(),
-            handlers=self.registered_spyder_kernel_handlers
+            handlers=self.registered_spyder_kernel_handlers,
+            server_id=server_id,
+            can_close=can_close,
         )
 
         # add hostname for get_name
@@ -1640,19 +1656,27 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
 
-        try:
-            # Get new client for kernel
-            if master_client is not None:
-                kernel_handler = master_client.kernel_handler.copy()
-            else:
-                kernel_handler = KernelHandler.from_connection_file(
-                    connection_file, hostname, sshkey, password)
-        except Exception as e:
-            client.show_kernel_error(e)
-            return
+        if server_id:
+            # This is a client created by the RemoteClient plugin. So, we only
+            # create the client and show it as loading because the kernel
+            # connection part will be done by that plugin.
+            client._show_loading_page()
+        else:
+            try:
+                # Get new client for kernel
+                if master_client is not None:
+                    kernel_handler = master_client.kernel_handler.copy()
+                else:
+                    kernel_handler = KernelHandler.from_connection_file(
+                        connection_file, hostname, sshkey, password)
+            except Exception as e:
+                client.show_kernel_error(e)
+                return
 
-        # Connect kernel
-        client.connect_kernel(kernel_handler)
+            # Connect kernel
+            client.connect_kernel(kernel_handler)
+
+        return client
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1768,19 +1792,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
+
         if client is not None:
+            # Client already closed
             if client not in self.clients:
-                # Client already closed
                 return
-            index = self.tabwidget.indexOf(client)
+
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
+            index = self.tabwidget.indexOf(client)
             if index == -1:
                 return
         if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
+
+        if not client.can_close:
+            return
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
@@ -1852,6 +1881,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.close_cached_kernel()
         self.filenames = []
         return True
+
+    def close_remote_clients(self, server_id):
+        """Close all clients connected to a remote server."""
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            if client.server_id == server_id:
+                is_last_client = (
+                    len(self.get_related_clients(client, open_clients)) == 0
+                )
+                client.close_client(is_last_client)
+                open_clients.remove(client)
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -2030,7 +2070,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         km = client.kernel_handler.kernel_manager
-        if km is None:
+        if km is None and client.server_id is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -2051,6 +2091,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             do_restart = result == QMessageBox.Yes
 
         if not do_restart:
+            return
+
+        # For remote kernels we need to request the server for a restart
+        if client.server_id:
+            client.sig_restart_kernel_requested.emit()
             return
 
         # Get new kernel

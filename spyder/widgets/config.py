@@ -16,9 +16,9 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
+from qtpy.QtCore import Qt, QRegularExpression, QSize, Signal, Slot
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QDoubleSpinBox,
+from qtpy.QtWidgets import (QAction, QButtonGroup, QCheckBox, QDoubleSpinBox,
                             QFileDialog, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QRadioButton,
@@ -32,8 +32,9 @@ from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.colors import ColorLayout
-from spyder.widgets.helperwidgets import TipWidget
+from spyder.widgets.helperwidgets import TipWidget, ValidationLineEdit
 from spyder.widgets.comboboxes import FileComboBox
 from spyder.widgets.sidebardialog import SidebarPage
 
@@ -43,23 +44,36 @@ class BaseConfigTab(QWidget):
     pass
 
 
-class ConfigAccessMixin(object):
-    """Namespace for methods that access config storage"""
+class ConfigAccessMixin:
+    """Mixin to access config options in SpyderConfigPages."""
     CONF_SECTION = None
 
-    def set_option(self, option, value, section=None,
-                   recursive_notification=False):
+    def set_option(
+        self,
+        option,
+        value,
+        section=None,
+        recursive_notification=False,
+        secure=False,
+    ):
         section = self.CONF_SECTION if section is None else section
-        CONF.set(section, option, value,
-                 recursive_notification=recursive_notification)
+        CONF.set(
+            section,
+            option,
+            value,
+            recursive_notification=recursive_notification,
+            secure=secure,
+        )
 
-    def get_option(self, option, default=NoDefault, section=None):
+    def get_option(
+        self, option, default=NoDefault, section=None, secure=False
+    ):
         section = self.CONF_SECTION if section is None else section
-        return CONF.get(section, option, default)
+        return CONF.get(section, option, default=default, secure=secure)
 
-    def remove_option(self, option, section=None):
+    def remove_option(self, option, section=None, secure=False):
         section = self.CONF_SECTION if section is None else section
-        CONF.remove_option(section, option)
+        CONF.remove_option(section, option, secure=secure)
 
 
 class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
@@ -96,6 +110,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.coloredits = {}
         self.scedits = {}
         self.cross_section_options = {}
+
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
@@ -189,6 +204,20 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                             return status
         return status
 
+    def reset_widget_dicts(self):
+        """Reset the dicts of widgets tracked in the page."""
+        self.checkboxes = {}
+        self.radiobuttons = {}
+        self.lineedits = {}
+        self.textedits = {}
+        self.validate_data = {}
+        self.spinboxes = {}
+        self.comboboxes = {}
+        self.fontboxes = {}
+        self.coloredits = {}
+        self.scedits = {}
+        self.cross_section_options = {}
+
     def load_from_conf(self):
         """Load settings from configuration file."""
         for checkbox, (sec, option, default) in list(self.checkboxes.items()):
@@ -214,7 +243,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                     self.restart_options[(sec, option)] = radiobutton.label_text
 
         for lineedit, (sec, option, default) in list(self.lineedits.items()):
-            data = self.get_option(option, default, section=sec)
+            data = self.get_option(
+                option,
+                default,
+                section=sec,
+                secure=True
+                if (hasattr(lineedit, "password") and lineedit.password)
+                else False,
+            )
+
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
             else:
@@ -328,34 +365,54 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         """Save settings to configuration file"""
         for checkbox, (sec, option, _default) in list(
                 self.checkboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 value = checkbox.isChecked()
                 self.set_option(option, value, section=sec,
                                 recursive_notification=False)
 
         for radiobutton, (sec, option, _default) in list(
                 self.radiobuttons.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
 
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = lineedit.text()
                 content_type = getattr(lineedit, 'content_type', None)
                 if content_type == list:
                     data = [item.strip() for item in data.split(',')]
                 else:
                     data = to_text_string(data)
-                self.set_option(option, data, section=sec,
-                                recursive_notification=False)
+
+                self.set_option(
+                    option,
+                    data,
+                    section=sec,
+                    recursive_notification=False,
+                    secure=True
+                    if (hasattr(lineedit, "password") and lineedit.password)
+                    else False,
+                )
 
         for textedit, (sec, option, _default) in list(self.textedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = textedit.toPlainText()
                 content_type = getattr(textedit, 'content_type', None)
                 if content_type == dict:
@@ -371,35 +428,47 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                                 recursive_notification=False)
 
         for spinbox, (sec, option, _default) in list(self.spinboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option, spinbox.value(), section=sec,
                                 recursive_notification=False)
 
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 data = combobox.itemData(combobox.currentIndex())
                 self.set_option(option, from_qvariant(data, to_text_string),
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            if option in self.changed_options:
+            if option in self.changed_options or not self.LOAD_FROM_CONFIG:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
                 self.set_font(font, option)
 
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 self.set_option(option,
                                 to_text_string(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
 
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
                 self.scedits.items()):
-            if (option in self.changed_options or
-                    (sec, option) in self.changed_options):
+            if (
+                option in self.changed_options
+                or (sec, option) in self.changed_options
+                or not self.LOAD_FROM_CONFIG
+            ):
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
@@ -498,14 +567,38 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical, regex=None,
                         restart=False, word_wrap=True, placeholder=None,
-                        content_type=None, section=None):
+                        content_type=None, section=None, status_icon=None,
+                        password=False, validate_callback=None,
+                        validate_reason=None):
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
 
         label = QLabel(text)
         label.setWordWrap(word_wrap)
-        edit = QLineEdit()
+
+        if validate_callback:
+            if not validate_reason:
+                raise RuntimeError(
+                    "You need to provide a validate_reason if you want to use "
+                    "a validate_callback"
+                )
+
+            edit = ValidationLineEdit(
+                validate_callback=validate_callback,
+                validate_reason=validate_reason,
+            )
+            status_action = edit.error_action
+        else:
+            edit = QLineEdit()
         edit.content_type = content_type
+        if password:
+            edit.setEchoMode(QLineEdit.Password)
+
+        if status_icon is not None:
+            status_action = QAction(self)
+            edit.addAction(status_action, QLineEdit.TrailingPosition)
+            status_action.setIcon(status_icon)
+            status_action.setVisible(False)
 
         if alignment == Qt.Vertical:
             layout = QVBoxLayout()
@@ -550,10 +643,13 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         widget.textbox = edit
         if tip is not None:
             widget.help_label = help_label
+        if status_icon is not None or validate_callback is not None:
+            widget.status_action = status_action
 
         widget.setLayout(layout)
         edit.restart_required = restart
         edit.label_text = text
+        edit.password = password
 
         return widget
 
@@ -584,25 +680,60 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         edit.label_text = text
         return widget
 
-    def create_browsedir(self, text, option, default=NoDefault, tip=None,
-                         section=None):
-        widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+    def create_browsedir(self, text, option, default=NoDefault, section=None,
+                         tip=None, alignment=Qt.Horizontal, status_icon=None):
+        widget = self.create_lineedit(
+            text,
+            option,
+            default,
+            section=section,
+            alignment=alignment,
+            # We need the tip to be added by the lineedit if the alignment is
+            # vertical. If not, it'll be added below when setting the layout.
+            tip=tip if (tip and alignment == Qt.Vertical) else None,
+            status_icon=status_icon,
+        )
+
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
+
         msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
+
         browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(lambda: self.select_directory(edit))
-        layout = QHBoxLayout()
-        layout.addWidget(widget)
-        layout.addWidget(browse_btn)
-        layout.setContentsMargins(0, 0, 0, 0)
-        if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
+
+        if alignment == Qt.Vertical:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 28px")
+
+            layout = QGridLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget, 0, 0)
+            layout.addWidget(browse_btn, 0, 1)
+        else:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 2px")
+
+            layout = QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget)
+            layout.addWidget(browse_btn)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
         browsedir = QWidget(self)
+        browsedir.textbox = widget.textbox
+        if status_icon:
+            browsedir.status_action = widget.status_action
+
         browsedir.setLayout(layout)
         return browsedir
 
@@ -616,27 +747,63 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         if directory:
             edit.setText(directory)
 
-    def create_browsefile(self, text, option, default=NoDefault, tip=None,
-                          filters=None, section=None):
-        widget = self.create_lineedit(text, option, default, section=section,
-                                      alignment=Qt.Horizontal)
+    def create_browsefile(self, text, option, default=NoDefault, section=None,
+                          tip=None, filters=None, alignment=Qt.Horizontal,
+                          status_icon=None):
+        widget = self.create_lineedit(
+            text,
+            option,
+            default,
+            section=section,
+            alignment=alignment,
+            # We need the tip to be added by the lineedit if the alignment is
+            # vertical. If not, it'll be added below when setting the layout.
+            tip=tip if (tip and alignment == Qt.Vertical) else None,
+            status_icon=status_icon,
+        )
+
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
+
         msg = _('Invalid file path')
         self.validate_data[edit] = (osp.isfile, msg)
-        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
-        layout = QHBoxLayout()
-        layout.addWidget(widget)
-        layout.addWidget(browse_btn)
-        layout.setContentsMargins(0, 0, 0, 0)
-        if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
-        browsedir = QWidget(self)
-        browsedir.setLayout(layout)
-        return browsedir
+        browse_btn.setIconSize(
+           QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
+
+        if alignment == Qt.Vertical:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 28px")
+
+            layout = QGridLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget, 0, 0)
+            layout.addWidget(browse_btn, 0, 1)
+        else:
+            # This is necessary to position browse_btn vertically centered with
+            # respect to the lineedit.
+            browse_btn.setStyleSheet("margin-top: 2px")
+
+            layout = QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(widget)
+            layout.addWidget(browse_btn)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+
+        browsefile = QWidget(self)
+        browsefile.textbox = widget.textbox
+        if status_icon:
+            browsefile.status_action = widget.status_action
+
+        browsefile.setLayout(layout)
+        return browsefile
 
     def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
