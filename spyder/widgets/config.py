@@ -402,7 +402,9 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                     data,
                     section=sec,
                     recursive_notification=False,
-                    secure=True if lineedit.password and data else False
+                    secure=True
+                    if (hasattr(lineedit, "password") and lineedit.password)
+                    else False,
                 )
 
         for textedit, (sec, option, _default) in list(self.textedits.items()):
