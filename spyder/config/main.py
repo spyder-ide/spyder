@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -148,9 +149,11 @@ DEFAULTS = [
               'pylab/autoload': False,
               'pylab/backend': 'inline',
               'pylab/inline/figure_format': 'png',
-              'pylab/inline/resolution': 72,
+              'pylab/inline/resolution': 144,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/fontsize': 10.0,
+              'pylab/inline/bottom': 0.11,
               'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
@@ -206,7 +209,6 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
-              'auto_fit_plotting': True
              }),
             ('editor',
              {
@@ -544,11 +546,12 @@ DEFAULTS = [
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
               'plots/save': 'Ctrl+S',
-              'plots/save all': 'Ctrl+Alt+S',
+              'plots/save all': 'Alt+Shift+S',
               'plots/close': 'Ctrl+W',
-              'plots/close all': 'Ctrl+Shift+W',
+              'plots/close all': 'Alt+Shift+W',
               'plots/zoom in': "Ctrl++",
               'plots/zoom out': "Ctrl+-",
+              'plots/auto fit': "Ctrl+0",
               # -- Files --
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -660,7 +663,7 @@ NAME_MAP = {
 
 
 # =============================================================================
-# Config instance
+# Config version
 # =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
@@ -669,4 +672,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '82.0.0'
+CONF_VERSION = '83.0.0'

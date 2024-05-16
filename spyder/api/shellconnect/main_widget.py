@@ -107,8 +107,15 @@ class ShellConnectMainWidget(PluginMainWidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             widget = self._shellwidgets.pop(shellwidget_id)
-            self._stack.removeWidget(widget)
-            self.close_widget(widget)
+
+            # If `widget` is an empty pane, we don't need to remove it from the
+            # stack (because it's the one we need to show since the console is
+            # showing an error) nor try to close it (because it makes no
+            # sense).
+            if not isinstance(widget, PaneEmptyWidget):
+                self._stack.removeWidget(widget)
+                self.close_widget(widget)
+
             self.update_actions()
 
     def set_shellwidget(self, shellwidget):
@@ -131,18 +138,25 @@ class ShellConnectMainWidget(PluginMainWidget):
         consoles with dead kernels.
         """
         shellwidget_id = id(shellwidget)
-        if shellwidget_id not in self._shellwidgets:
-            widget = PaneEmptyWidget(
-                self,
-                "console-off",
-                _("No connected console"),
-                _("The current console failed to start, so there is no "
-                  "content to show here.")
-            )
 
-            self._stack.addWidget(widget)
-            self._shellwidgets[shellwidget_id] = widget
-            self.set_shellwidget(shellwidget)
+        # This can happen if the kernel started without issues but something is
+        # printed to its stderr stream, which we display as an error in the
+        # console. In that case, we need to remove the current widget
+        # associated to shellwidget and replace it by an empty one.
+        if shellwidget_id in self._shellwidgets:
+            self._shellwidgets.pop(shellwidget_id)
+
+        remote = shellwidget.ipyclient.server_id
+        widget = PaneEmptyWidget(
+            self,
+            "console-remote-off" if remote else "console-off",
+            _("No connected console"),
+            _("The current console failed to start, so there is no "
+              "content to show here.")
+        )
+        self._stack.addWidget(widget)
+        self._shellwidgets[shellwidget_id] = widget
+        self.set_shellwidget(shellwidget)
 
     def create_new_widget(self, shellwidget):
         """Create a widget to communicate with shellwidget."""

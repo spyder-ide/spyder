@@ -15,6 +15,7 @@ import sys
 
 # Third-party imports
 import qstylizer.style
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (
@@ -22,12 +23,27 @@ from qtpy.QtWidgets import (
     QFontComboBox,
     QFrame,
     QLineEdit,
+    QProxyStyle,
+    QStyle,
     QStyledItemDelegate
 )
 
 # Local imports
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, WIN
+
+
+class _SpyderComboBoxProxyStyle(QProxyStyle):
+    """Style proxy to adjust qdarkstyle issues."""
+
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        if hint == QStyle.SH_ComboBox_Popup:
+            # Disable combobox popup top & bottom areas.
+            # See spyder-ide/spyder#9682.
+            # Taken from https://stackoverflow.com/a/21019371
+            return 0
+
+        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 class _SpyderComboBoxDelegate(QStyledItemDelegate):
@@ -40,7 +56,7 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
         if data and data == "separator":
-            painter.setPen(QColor(QStylePalette.COLOR_BACKGROUND_6))
+            painter.setPen(QColor(SpyderPalette.COLOR_BACKGROUND_6))
             painter.drawLine(
                 option.rect.left() + AppStyle.MarginSize,
                 option.rect.center().y(),
@@ -98,10 +114,14 @@ class _SpyderComboBoxMixin:
         self._css = self._generate_stylesheet()
         self.setStyleSheet(self._css.toString())
 
+        style = _SpyderComboBoxProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
+
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
-        # added automatically by Qt. That means that the menu is not built
-        # using our API and it's not localized.
+        # added automatically by Qt. That means the menu is not built using our
+        # API and it's not localized.
         pass
 
     def _generate_stylesheet(self):
@@ -129,7 +149,7 @@ class _SpyderComboBoxMixin:
         # Make color of hovered combobox items match the one used in other
         # Spyder widgets
         css["QComboBox QAbstractItemView::item:selected:active"].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
         return css
@@ -139,7 +159,11 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
     """Combobox widget for Spyder when its items don't have icons."""
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        if PYQT5 or PYQT6:
+            super().__init__(parent)
+        else:
+            QComboBox.__init__(self, parent)
+            _SpyderComboBoxMixin.__init__(self)
 
         self.is_editable = None
         self._is_shown = False
@@ -207,8 +231,8 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
             # Make borders rounded when popup is not visible. This doesn't work
             # reliably on Mac.
             self._css.QComboBox.setValues(
-                borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+                borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+                borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             )
 
             self.setStyleSheet(self._css.toString())

@@ -26,14 +26,14 @@ jobs:
         os: [ubuntu-latest]
         pkg: [python-lsp-server, qtconsole, spyder-kernels]
         include:
-          - python-version: '3.10'
+          - python-version: '3.11'
           - cache-arch: noarch
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
           - os: windows-latest
             pkg: spyder-kernels
-            python-version: '3.10'
+            python-version: '3.11'
             cache-arch: win-64
     defaults:
       run:
@@ -44,13 +44,13 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: installers-conda/build/conda-bld/**/*.tar.bz2
           key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
@@ -64,7 +64,7 @@ jobs:
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
-            --channel-priority=strict
+            --channel-priority=flexible
             python=${{ matrix.python-version }}
           cache-downloads: true
           cache-environment: true

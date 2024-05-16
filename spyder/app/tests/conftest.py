@@ -24,6 +24,7 @@ import psutil
 import pytest
 
 # Spyder imports
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import Plugins
 from spyder.app import start
 from spyder.config.base import get_home_dir, running_in_ci
@@ -35,7 +36,6 @@ from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 from spyder.utils.environ import (get_user_env, set_user_env,
                                   amend_user_shell_init)
-
 
 # =============================================================================
 # ---- Constants
@@ -243,7 +243,7 @@ def preferences_dialog_helper(qtbot, main_window, section):
 def generate_run_parameters(mainwindow, filename, selected=None,
                             executor=None):
     """Generate run configuration parameters for a given filename."""
-    file_uuid = mainwindow.editor.id_per_file[filename]
+    file_uuid = mainwindow.editor.get_widget().id_per_file[filename]
     if executor is None:
         executor = mainwindow.ipyconsole.NAME
 
@@ -300,10 +300,19 @@ def cleanup(request, qapp):
         if hasattr(main_window, 'window') and main_window.window is not None:
             window = main_window.window
             main_window.window = None
+            window.closing(close_immediately=True)
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
+            CONF.reset_manager()
+            PLUGIN_REGISTRY.reset()
+
         if qapp.instance():
+            for widget in qapp.allWidgets():
+                try:
+                    widget.close()
+                except RuntimeError:
+                    pass
             qapp.quit()
 
     request.addfinalizer(close_window)
@@ -335,12 +344,13 @@ def main_window(request, tmpdir, qtbot):
     use_introspection = request.node.get_closest_marker('use_introspection')
 
     if use_introspection:
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+        CONF.set('completions', ('enabled_providers', 'lsp'), True)
+        CONF.set('completions', ('enabled_providers', 'fallback'), True)
+        CONF.set('completions', ('enabled_providers', 'snippets'), True)
     else:
-        try:
-            os.environ.pop('SPY_TEST_USE_INTROSPECTION')
-        except KeyError:
-            pass
+        CONF.set('completions', ('enabled_providers', 'lsp'), False)
+        CONF.set('completions', ('enabled_providers', 'fallback'), False)
+        CONF.set('completions', ('enabled_providers', 'snippets'), False)
 
     # Only use single_instance mode for tests that require it
     single_instance = request.node.get_closest_marker('single_instance')
@@ -389,9 +399,6 @@ def main_window(request, tmpdir, qtbot):
     QApplication.processEvents()
 
     if not hasattr(main_window, 'window') or main_window.window is None:
-        from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-        PLUGIN_REGISTRY.reset()
-
         # Start the window
         window = start.main()
         main_window.window = window
@@ -463,9 +470,13 @@ def main_window(request, tmpdir, qtbot):
                 print('info_page')
                 print(client.info_page)
             main_window.window = None
+            window.closing(close_immediately=True)
             window.close()
             window = None
             CONF.reset_to_defaults(notification=False)
+            CONF.reset_manager()
+            PLUGIN_REGISTRY.reset()
+
         else:
             # Try to close used mainwindow directly on fixture
             # after running test that uses the fixture
@@ -476,25 +487,27 @@ def main_window(request, tmpdir, qtbot):
                 'close_main_window')
             if close_main_window:
                 main_window.window = None
+                window.closing(close_immediately=True)
                 window.close()
                 window = None
                 CONF.reset_to_defaults(notification=False)
+                CONF.reset_manager()
+                PLUGIN_REGISTRY.reset()
             else:
                 try:
                     # Close or hide everything we can think of
                     window.switcher.hide()
+                    window.switcher.on_close()
 
                     # Close editor related elements
                     window.editor.close_all_files()
 
                     # Force close all files
-                    while window.editor.editorstacks[0].close_file(force=True):
+                    editor_widget = window.editor.get_widget()
+                    while editor_widget.editorstacks[0].close_file(force=True):
                         pass
-                    for editorwindow in window.editor.editorwindows:
+                    for editorwindow in editor_widget.editorwindows:
                         editorwindow.close()
-                    editorstack = window.editor.get_current_editorstack()
-                    if editorstack.switcher_plugin:
-                        editorstack.switcher_plugin.on_close()
 
                     window.projects.close_project()
 
@@ -520,9 +533,12 @@ def main_window(request, tmpdir, qtbot):
                     window.ipyconsole.restart()
                 except Exception:
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     return
 
                 if os.name == 'nt':
@@ -569,9 +585,12 @@ def main_window(request, tmpdir, qtbot):
                                 "\nThread " + str(threads) + ":\n")
                             traceback.print_stack(frame)
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
                 try:
@@ -582,9 +601,12 @@ def main_window(request, tmpdir, qtbot):
                     subprocesses = [repr(f) for f in proc.children()]
                     show_diff(init_subprocesses, subprocesses, "processes")
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
                 try:
@@ -598,9 +620,12 @@ def main_window(request, tmpdir, qtbot):
                 except Exception:
                     show_diff(init_files, files, "files")
                     main_window.window = None
+                    window.closing(close_immediately=True)
                     window.close()
                     window = None
                     CONF.reset_to_defaults(notification=False)
+                    CONF.reset_manager()
+                    PLUGIN_REGISTRY.reset()
                     raise
 
 

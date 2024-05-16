@@ -203,7 +203,9 @@ setup_args = dict(
 
 
 install_requires = [
+    'aiohttp>=3.9.3',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
+    'asyncssh>=2.0.0,<3.0.0',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
@@ -225,29 +227,30 @@ install_requires = [
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
-    'pylint>=2.5.0,<3.1',
+    'pylint>=3.1,<4',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
     'pyqt5>=5.15,<5.16',
     'pyqtwebengine>=5.15,<5.16',
     'python-lsp-black>=2.0.0,<3.0.0',
-    'python-lsp-server[all]>=1.9.0,<1.10.0',
+    'python-lsp-server[all]>=1.11.0,<1.12.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq>=22.1.0',
+    'pyzmq>=24.0.0',
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
-    'qtawesome>=1.3.0',
-    'qtconsole>=5.5.0,<5.6.0',
+    'qtawesome>=1.3.1,<1.4.0',
+    'qtconsole>=5.5.1,<5.6.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0b3,<3.0.0b4',
+    'spyder-kernels>=3.0.0b6,<3.0.0b7',
     'superqt>=0.6.1,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3'
+    'watchdog>=0.10.3',
+    'yarl>=1.9.4',
 ]
 
 # Loosen constraints to ensure dev versions still work
@@ -255,9 +258,9 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.9.0,<1.11.0')
-    install_requires.append('qtconsole>=5.5.0,<5.7.0')
-    install_requires.append('spyder-kernels>=3.0.0b3,<3.1.0')
+    install_requires.append('python-lsp-server[all]>=1.11.0,<1.13.0')
+    install_requires.append('qtconsole>=5.5.1,<5.7.0')
+    install_requires.append('spyder-kernels>=3.0.0b6,<3.1.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],
@@ -268,7 +271,7 @@ extras_require = {
         'matplotlib',
         'pandas',
         'pillow',
-        'pytest<7.0',
+        'pytest<8.0',
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',
@@ -306,6 +309,7 @@ spyder_plugins_entry_points = [
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
     'pythonpath_manager = spyder.plugins.pythonpath.plugin:PythonpathManager',
+    'remoteclient = spyder.plugins.remoteclient.plugin:RemoteClient',
     'run = spyder.plugins.run.plugin:Run',
     'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',

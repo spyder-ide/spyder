@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu, SpyderMenuProxyStyle
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
@@ -116,11 +117,20 @@ class SpyderToolbar(QToolBar):
 
         self.setWindowTitle(title)
 
-        # Set icon for extension button.
+        # Set attributes for extension button.
         # From https://stackoverflow.com/a/55412455/438386
         ext_button = self.findChild(QToolButton, "qt_toolbar_ext_button")
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
         ext_button.setToolTip(_("More"))
+
+        # Set style for extension button menu.
+        ext_button.menu().setStyleSheet(
+            SpyderMenu._generate_stylesheet().toString()
+        )
+
+        ext_button_menu_style = SpyderMenuProxyStyle(None)
+        ext_button_menu_style.setParent(self)
+        ext_button.menu().setStyle(ext_button_menu_style)
 
     def add_item(
         self,
@@ -159,7 +169,6 @@ class SpyderToolbar(QToolBar):
             item_id = action_or_widget.action_id
         elif hasattr(action_or_widget, 'ID'):
             item_id = action_or_widget.ID
-
         if not omit_id and item_id is None and action_or_widget is not None:
             raise SpyderAPIError(
                 f'Item {action_or_widget} must declare an ID attribute.'
@@ -220,15 +229,18 @@ class SpyderToolbar(QToolBar):
 
     def remove_item(self, item_id: str):
         """Remove action or widget from toolbar by id."""
-        item = self._item_map.pop(item_id)
-        for section in list(self._section_items.keys()):
-            section_items = self._section_items[section]
-            if item in section_items:
-                section_items.remove(item)
-            if len(section_items) == 0:
-                self._section_items.pop(section)
-        self.clear()
-        self.render()
+        try:
+            item = self._item_map.pop(item_id)
+            for section in list(self._section_items.keys()):
+                section_items = self._section_items[section]
+                if item in section_items:
+                    section_items.remove(item)
+                if len(section_items) == 0:
+                    self._section_items.pop(section)
+            self.clear()
+            self.render()
+        except KeyError:
+            pass
 
     def render(self):
         """Create the toolbar taking into account sections and locations."""

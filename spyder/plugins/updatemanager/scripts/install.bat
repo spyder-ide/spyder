@@ -4,10 +4,9 @@
 :: Create variables from arguments
 :parse
 IF "%~1"=="" GOTO endparse
-IF "%~1"=="-p" set prefix=%2 & SHIFT
-IF "%~1"=="-i" set install_exe=%2 & SHIFT
-IF "%~1"=="-c" set conda=%2 & SHIFT
-IF "%~1"=="-v" set spy_ver=%2 & SHIFT
+IF "%~1"=="-i" set install_file=%~2& SHIFT
+IF "%~1"=="-c" set conda=%~2& SHIFT
+IF "%~1"=="-p" set prefix=%~2& SHIFT
 SHIFT
 GOTO parse
 :endparse
@@ -23,13 +22,15 @@ echo IMPORTANT: Do not close this window until it has finished
 echo =========================================================
 echo.
 
-IF not "%conda%"=="" IF not "%spy_ver%"=="" (
+call :wait_for_spyder_quit
+
+IF not "%conda%"=="" IF not "%prefix%"=="" (
     call :update_subroutine
     call :launch_spyder
     goto exit
 )
 
-IF not "%install_exe%"=="" (
+IF not "%install_file%"=="" (
     call :install_subroutine
     goto exit
 )
@@ -38,9 +39,7 @@ IF not "%install_exe%"=="" (
 exit %ERRORLEVEL%
 
 :install_subroutine
-    echo Installing Spyder from: %install_exe%
-
-    call :wait_for_spyder_quit
+    echo Installing Spyder from: %install_file%
 
     :: Uninstall Spyder
     for %%I in ("%prefix%\..\..") do set "conda_root=%%~fI"
@@ -63,22 +62,20 @@ exit %ERRORLEVEL%
     IF "%ERRORLEVEL%"=="0" goto wait_for_uninstall
     echo Uninstall complete.
 
-    start %install_exe%
+    start %install_file%
     goto :EOF
 
 :update_subroutine
     echo Updating Spyder
 
-    call :wait_for_spyder_quit
-
-    %conda% install -p %prefix% -c conda-forge --override-channels -y spyder=%spy_ver%
-    set /P CONT=Press any key to exit...
+    %conda% update -p %prefix% -y --file %install_file%
+    set /P =Press return to exit...
     goto :EOF
 
 :wait_for_spyder_quit
     echo Waiting for Spyder to quit...
     :loop
-    tasklist /fi "ImageName eq spyder.exe" /fo csv 2>NUL | find /i "spyder.exe">NUL
+    tasklist /v /fi "ImageName eq pythonw.exe" /fo csv 2>NUL | find "Spyder">NUL
     IF "%ERRORLEVEL%"=="0" (
         timeout /t 1 /nobreak > nul
         goto loop
@@ -87,10 +84,11 @@ exit %ERRORLEVEL%
     goto :EOF
 
 :launch_spyder
-    echo %prefix% | findstr /b "%USERPROFILE%" > nul && (
-        set shortcut_root=%APPDATA%
-    ) || (
-        set shortcut_root=%ALLUSERSPROFILE%
-    )
-    start "" /B "%shortcut_root%\Microsoft\Windows\Start Menu\Programs\spyder\Spyder.lnk"
+    for %%C in ("%conda%") do set scripts=%%~dpC
+    set pythonexe=%scripts%..\python.exe
+    set menuinst=%scripts%menuinst_cli.py
+    if exist "%prefix%\.nonadmin" (set mode=user) else set mode=system
+    for /f "delims=" %%s in ('%pythonexe% %menuinst% shortcut --mode=%mode%') do set "shortcut_path=%%~s"
+
+    start "" /B "%shortcut_path%"
     goto :EOF

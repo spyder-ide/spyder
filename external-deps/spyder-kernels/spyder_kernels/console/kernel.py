@@ -23,7 +23,7 @@ import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
-from ipykernel import eventloops, get_connection_info
+from ipykernel import get_connection_info
 from traitlets.config.loader import LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -75,6 +75,9 @@ class SpyderKernel(IPythonKernel):
 
         # Socket to signal shell_stream locally
         self.loopback_socket = None
+
+        # To track the interactive backend
+        self.interactive_backend = None
 
     @property
     def kernel_info(self):
@@ -135,13 +138,15 @@ class SpyderKernel(IPythonKernel):
             # Do not use /tmp for temporary files
             try:
                 from xdg.BaseDirectory import xdg_data_home
-                fault_dir = xdg_data_home
+                fault_dir = os.path.join(xdg_data_home, "spyder")
                 os.makedirs(fault_dir, exist_ok=True)
             except Exception:
                 fault_dir = None
 
         self.faulthandler_handle = tempfile.NamedTemporaryFile(
-            'wt', suffix='.fault', dir=fault_dir)
+            'wt', suffix='.fault', dir=fault_dir
+        )
+
         main_id = threading.main_thread().ident
         system_ids = [
             thread.ident for thread in threading.enumerate()
@@ -172,9 +177,7 @@ class SpyderKernel(IPythonKernel):
         # Remove file
         try:
             os.remove(fault_filename)
-        except FileNotFoundError:
-            pass
-        except PermissionError:
+        except Exception:
             pass
 
         # Process file
@@ -505,43 +508,20 @@ class SpyderKernel(IPythonKernel):
         Get current Matplotlib interactive backend.
 
         This is different from the current backend because, for instance, the
-        user can set first the Qt5 backend, then the Inline one. In that case,
-        the current backend is Inline, but the current interactive one is Qt5,
+        user can set first the Qt backend, then the Inline one. In that case,
+        the current backend is Inline, but the current interactive one is Qt,
         and this backend can't be changed without a kernel restart.
         """
-        # Mapping from frameworks to backend names.
-        mapping = {
-            'qt': 'QtAgg',
-            'tk': 'TkAgg',
-            'macosx': 'MacOSX'
-        }
-
-        # --- Get interactive framework
-        framework = None
-
-        # Detect if there is a graphical framework running by checking the
-        # eventloop function attached to the kernel.eventloop attribute (see
-        # `ipykernel.eventloops.enable_gui` for context).
-        loop_func = self.eventloop
-
-        if loop_func is not None:
-            if loop_func == eventloops.loop_tk:
-                framework = 'tk'
-            elif loop_func == eventloops.loop_qt5:
-                framework = 'qt'
-            elif loop_func == eventloops.loop_cocoa:
-                framework = 'macosx'
-            else:
-                # Spyder doesn't handle other backends
-                framework = 'other'
+        # Backends that Spyder can handle
+        recognized_backends = {'qt', 'tk', 'macosx'}
 
         # --- Return backend according to framework
-        if framework is None:
-            # Since no interactive backend has been set yet, this is
-            # equivalent to having the inline one.
+        if self.interactive_backend is None:
+            # Since no interactive backend has been set yet, this is equivalent
+            # to having the inline one.
             return 'inline'
-        elif framework in mapping:
-            return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        elif self.interactive_backend in recognized_backends:
+            return self.interactive_backend
         else:
             # This covers the case of other backends (e.g. Wx or Gtk)
             # which users can set interactively with the %matplotlib
@@ -557,6 +537,8 @@ class SpyderKernel(IPythonKernel):
         resolution_n = 'pylab/inline/resolution'
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
         inline_backend = 'inline'
 
@@ -579,6 +561,15 @@ class SpyderKernel(IPythonKernel):
             self._set_mpl_inline_rc_config(
                 'figure.figsize',
                 (conf[width_n], conf[height_n])
+            )
+
+        if fontsize_n in conf:
+            self._set_mpl_inline_rc_config('font.size', conf[fontsize_n])
+
+        if bottom_n in conf:
+            self._set_mpl_inline_rc_config(
+                'figure.subplot.bottom',
+                conf[bottom_n]
             )
 
         if bbox_inches_n in conf:
@@ -710,13 +701,13 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "pylab":
-            import matplotlib
+            import matplotlib  # noqa
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
            
         if special == "sympy":
-            import sympy
+            import sympy  # noqa
             sympy_init = "\n".join([
                 "from sympy import *",
                 "x, y, z, t = symbols('x y z t')",
@@ -729,7 +720,7 @@ class SpyderKernel(IPythonKernel):
             return
 
         if special == "cython":
-            import cython
+            import cython  # noqa
 
             # Import pyximport to enable Cython files support for
             # import statement

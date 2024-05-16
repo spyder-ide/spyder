@@ -1,8 +1,8 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-from pylsp.text_edit import OverLappingTextEditException, apply_text_edits
 from pylsp import uris
+from pylsp.text_edit import OverLappingTextEditException, apply_text_edits
 
 DOC_URI = uris.from_fs_path(__file__)
 

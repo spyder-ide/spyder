@@ -2,8 +2,8 @@
 # Copyright 2021- Python Language Server Contributors.
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins import mccabe_lint
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """def hello():

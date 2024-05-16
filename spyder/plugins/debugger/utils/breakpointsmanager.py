@@ -81,7 +81,7 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
         # Debugger panel (Breakpoints)
         self.debugger_panel = DebuggerPanel(self)
         editor.panels.register(self.debugger_panel)
-        self.debugger_panel.order_in_zone = -1
+        self.debugger_panel.order_in_zone = 1
         self.update_panel_visibility()
 
         # Load breakpoints

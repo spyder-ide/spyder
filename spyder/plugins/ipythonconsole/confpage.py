@@ -98,12 +98,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
         autoload_pylab_box = newcb(
-            _("Automatically load Pylab and NumPy modules"),
+            _("Automatically load Matplotlib and NumPy modules"),
             'pylab/autoload',
-            tip=_("This lets you load graphics support without importing\n"
-                  "the commands to do plots. Useful to work with other\n"
-                  "plotting libraries different to Matplotlib or to develop\n"
-                  "GUIs with Spyder."))
+            tip=_(
+                "This lets you generate graphics and work with arrays "
+                "<b>without</b> importing the commands to do it. It's also "
+                "useful to develop GUIs with Spyder."
+            )
+        )
         autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
 
@@ -116,19 +118,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline = _("Inline")
         automatic = _("Automatic")
         backend_group = QGroupBox(_("Graphics backend"))
-        bend_label = QLabel(_("Decide how graphics are going to be displayed "
-                              "in the console. If unsure, please select "
-                              "<b>%s</b> to put graphics inside the "
-                              "console or <b>%s</b> to interact with "
-                              "them (through zooming and panning) in a "
-                              "separate window.") % (inline, automatic))
-        bend_label.setWordWrap(True)
+        bend_label = QLabel(_("Decide how Matplotlib graphics are displayed"))
 
         backends = [
             (inline, 'inline'),
             (automatic, 'auto'),
-            ("Qt5", 'qt'),
-            ("Tkinter", 'tk')
+            ("Qt", 'qt'),
+            ("Tk", 'tk')
         ]
 
         if sys.platform == 'darwin':
@@ -139,8 +135,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Backend:") + "   ",
             backends,
             'pylab/backend', default='inline',
-            tip=_("This option will be applied the next time a console is "
-                  "opened."))
+            tip=_(
+                "If unsure, select <b>%s</b> to put graphics in the Plots "
+                "pane or <b>%s</b> to interact with them (through zooming and "
+                "panning) in a separate window."
+            ) % (inline, automatic)
+        )
 
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
@@ -171,6 +171,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
+        fontsize_spin = self.create_spinbox(
+            _("Font size:") + "  ",
+            " " + _("points"),
+            'pylab/inline/fontsize',
+            min_=5,
+            max_=48,
+            step=1.0,
+            tip=_("Default is 10")
+        )
+        bottom_spin = self.create_spinbox(
+            _("Bottom edge:") + "  ",
+            " " + _("of figure height"),
+            'pylab/inline/bottom',
+            min_=0,
+            max_=0.3,
+            step=0.01,
+            tip=_("The position of the bottom edge of the subplots,\nas a "
+                  "fraction of the figure height.\nThe default is 0.11.")
+        )
+        bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),
             'pylab/inline/bbox_inches',
@@ -185,16 +205,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout = QGridLayout()
         inline_layout.addWidget(format_box.label, 1, 0)
         inline_layout.addWidget(format_box.combobox, 1, 1)
-        inline_layout.addWidget(resolution_spin.plabel, 2, 0)
-        inline_layout.addWidget(resolution_spin.spinbox, 2, 1)
-        inline_layout.addWidget(resolution_spin.slabel, 2, 2)
-        inline_layout.addWidget(width_spin.plabel, 3, 0)
-        inline_layout.addWidget(width_spin.spinbox, 3, 1)
-        inline_layout.addWidget(width_spin.slabel, 3, 2)
-        inline_layout.addWidget(height_spin.plabel, 4, 0)
-        inline_layout.addWidget(height_spin.spinbox, 4, 1)
-        inline_layout.addWidget(height_spin.slabel, 4, 2)
-        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
+        spinboxes = [resolution_spin, width_spin, height_spin,
+                     fontsize_spin, bottom_spin]
+        for counter, spinbox in enumerate(spinboxes):
+            inline_layout.addWidget(spinbox.plabel, counter + 2, 0)
+            inline_layout.addWidget(spinbox.spinbox, counter + 2, 1)
+            inline_layout.addWidget(spinbox.slabel, counter + 2, 2)
+            inline_layout.addWidget(spinbox.help_label, counter + 2, 3)
+
+        inline_layout.addWidget(bbox_inches_box, len(spinboxes) + 2, 0, 1, 4)
 
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)

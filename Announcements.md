@@ -1,36 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.0 is released!
+**Subject**: [ANN] Spyder 5.5.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.0** has been released and is available for
+I'm pleased to announce that Spyder **5.5.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes ten weeks after version 5.4.5 and it contains the
-following new features and important fixes:
+This release comes three weeks after version 5.5.3 and it contains the
+following important fixes:
 
-* Drop support for Python 3.7
-* Drop support for PyQt < 5.10
-* Improvements to the logic that checks available updates and the update messages
-* Improvements to the syntax highlighting for `match`/`case` keywords
-* Improved compatibility for the standalone installer with Windows Server 2016
-* Additional information about Spyder available through `spyder.appdata.xml`
-* Fix Outline Explorer `Display variables and attributes` option
-* Fix disabling completion and linting providers
-* Fix errors when removing language servers configurations
-* Fix Editor replace all occurences when using backslashes
-* Fix errors when restarting external kernels
-* Fix error when using the Online help with Python 3.11
-* Fix debugging after errors via the `%debug` magic
-* Fix compatibility with Python 2 environments/custom interpreters
-* Fix application window disappearing when changing monitors
-* Fix PYTHONPATH manager logic to get user environment variables and detect possible `site-packages` directories
+* Update QtAwesome version constraint to `>=1.3.1,<1.4.0` (icon fonts access issues).
+* Fix kernel start in conda envs with spaces in their directory paths.
+* Fix installers update (installers download URL handling).
+* Handle no output when trying to process git data.
+* Update macOS installer notarization tooling (from `altool` to `notarytool`).
 
-In this release we fixed 26 issues and merged 42 pull requests that amount
-to more than 151 commits. For a full list of fixes, please see our
+In this release we fixed 6 issues and merged 10 pull requests. For a full
+list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
@@ -126,18 +115,18 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.0 alpha3 is released!
+**Subject**: [ANN] Spyder 6.0 alpha5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second alpha of our next major version: Spyder **6.0**.
+I'm pleased to announce the fifth alpha of our next major version: Spyder **6.0**.
 
 We've been working on this version for more than one year now and it's working
 relatively well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This alpha version includes
-more than 532 commits over our latest alpha release (6.0.0a2).
+more than 270 commits over our latest alpha release (6.0.0a4).
 
 Spyder 6.0 comes with the following interesting new features and fixes:
 
@@ -149,27 +138,38 @@ Spyder 6.0 comes with the following interesting new features and fixes:
       enter the debugger afterwards.
     * Add submenu to the `Consoles` menu to start a new console for a specific
       Conda or Pyenv environment.
+    * Add ability to refresh the open Variable Explorer viewers to reflect the current
+      variable state.
+    * Show plots generated in the Variable Explorer or its viewers in the Plots pane.
     * Show Matplotlib backend state in status bar.
     * Make kernel restarts be much faster for the current interpreter.
-    * Turn `runfile`, `debugfile`, `runcell` and related commands to IPython magics.
+    * Turn `runfile`, `debugfile`, `runcell` and related commands into IPython magics.
 
 - Important fixes
+    * Environment variables declared in `~/.bashrc` or `~/.zhrc` are detected and
+      passed to the IPython console.
+    * Support all real number dtypes in the dataframe viewer.
     * Restore ability to load Hdf5 and Dicom files through the Variable Explorer
       (this was working in Spyder 4 and before).
 
 - New API features
-    * Generalize Run plugin to support generic inputs and executors. This allows
+    * `SpyderPluginV2.get_description` must be a static method now and
+      `SpyderPluginV2.get_icon` a class or static method. This is necessary to
+      display the list of available plugins in Preferences in a more user-friendly
+      way (see PR spyder-ide/spyder#21101).
+    * Generalize the Run plugin to support generic inputs and executors. This allows
       plugins to declare what kind of inputs (i.e. file, cell or selection) they
       can execute and how they will display the result.
-    * Add a new plugin for the files and symbols switcher.
+    * Add a new plugin called Switcher for the files and symbols switcher.
     * Declare a proper API for the Projects plugin.
+    * Remove the Breakpoints plugin and add its functionality to the Debugger one.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
 You can easily install this alpha if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a3
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a5
 
 Or you can use pip with this command:
 

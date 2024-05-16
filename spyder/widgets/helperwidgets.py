@@ -9,22 +9,54 @@ Helper widgets.
 """
 
 # Standard imports
+from __future__ import annotations
 import re
+import textwrap
+from typing import Callable
 
 # Third party imports
 import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
-    QEvent, QPoint, QRegularExpression, QSize, QSortFilterProxyModel, Qt,
-    Signal)
-from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegularExpressionValidator, QTextDocument)
+    QEvent,
+    QPoint,
+    QRegularExpression,
+    QSize,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    Signal,
+)
+from qtpy.QtGui import (
+    QAbstractTextDocumentLayout,
+    QColor,
+    QFontMetrics,
+    QIcon,
+    QPainter,
+    QRegularExpressionValidator,
+    QTextDocument,
+)
 from qtpy.QtWidgets import (
-    QAction, QApplication, QCheckBox, QLineEdit, QMessageBox, QSpacerItem,
-    QStyle, QStyledItemDelegate, QStyleOptionFrame, QStyleOptionViewItem,
-    QTableView, QToolButton, QToolTip, QVBoxLayout, QWidget, QHBoxLayout,
-    QLabel, QFrame)
+    QAction,
+    QApplication,
+    QCheckBox,
+    QLineEdit,
+    QMessageBox,
+    QSpacerItem,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionFrame,
+    QStyleOptionViewItem,
+    QTableView,
+    QToolButton,
+    QToolTip,
+    QVBoxLayout,
+    QWidget,
+    QHBoxLayout,
+    QLabel,
+    QFrame,
+)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
@@ -33,41 +65,13 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
-
-
-class HelperToolButton(QToolButton):
-    """Subclasses QToolButton, to provide a simple tooltip on mousedown.
-    """
-    def __init__(self):
-        QToolButton.__init__(self)
-        self.setIcon(ima.get_std_icon('MessageBoxInformation'))
-        style = """
-            QToolButton {
-              padding:0px;
-              border-radius: 2px;
-            }
-            """
-        self.setStyleSheet(style)
-
-    def setToolTip(self, text):
-        self._tip_text = text
-
-    def toolTip(self):
-        return self._tip_text
-
-    def mousePressEvent(self, event):
-        QToolTip.hideText()
-
-    def mouseReleaseEvent(self, event):
-        QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())),
-                          self._tip_text)
 
 
 class MessageCheckBox(QMessageBox):
@@ -166,7 +170,7 @@ class HTMLDelegate(QStyledItemDelegate):
         # row (see HoverRowsTableView for an example).
         if index.row() == self._hovered_row:
             painter.fillRect(
-                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+                options.rect, QColor(SpyderPalette.COLOR_BACKGROUND_3)
             )
 
         # Note: We need to pass the options widget as an argument of
@@ -339,7 +343,7 @@ class IconLineEdit(QLineEdit):
             fm = QFontMetrics(self.font())
             text = fm.elidedText(self.text(), self.ellipsis_place,
                                  text_rect.width())
-            painter.setPen(QColor(QStylePalette.COLOR_TEXT_1))
+            painter.setPen(QColor(SpyderPalette.COLOR_TEXT_1))
             painter.drawText(text_rect, int(Qt.AlignLeft | Qt.AlignVCenter),
                              text)
             return
@@ -698,16 +702,16 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def _apply_stylesheet(self, focus):
         if focus:
-            border_color = QStylePalette.COLOR_ACCENT_3
+            border_color = SpyderPalette.COLOR_ACCENT_3
         else:
-            border_color = QStylePalette.COLOR_BACKGROUND_4
+            border_color = SpyderPalette.COLOR_BACKGROUND_4
 
         qss = qstylizer.style.StyleSheet()
         qss.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
         self.setStyleSheet(qss.toString())
@@ -756,7 +760,7 @@ class HoverRowsTableView(QTableView):
         # over the widget.
         css = qstylizer.style.StyleSheet()
         css["QTableView::item"].setValues(
-            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+            backgroundColor=f"{SpyderPalette.COLOR_BACKGROUND_1}"
         )
         self._stylesheet = css.toString()
 
@@ -782,6 +786,117 @@ class HoverRowsTableView(QTableView):
         if index.isValid():
             self.sig_hover_index_changed.emit(index)
             self.viewport().update()
+
+
+class TipWidget(QLabel):
+    """Icon widget to show information as a tooltip when clicked."""
+
+    def __init__(
+        self,
+        tip_text: str,
+        icon: QIcon,
+        hover_icon: QIcon,
+        size: int | None = None,
+        wrap_text: bool = False
+    ):
+        super().__init__()
+
+        if wrap_text:
+            tip_text = '\n'.join(textwrap.wrap(tip_text, 50))
+        self.tip_text = tip_text
+
+        size = size if size is not None else AppStyle.ConfigPageIconSize
+        self.icon = icon.pixmap(QSize(size, size))
+        self.hover_icon = hover_icon.pixmap(QSize(size, size))
+
+        # Timer to show the tip if users don't click on the widget
+        self.tip_timer = QTimer(self)
+        self.tip_timer.setInterval(300)
+        self.tip_timer.setSingleShot(True)
+        self.tip_timer.timeout.connect(self.show_tip)
+
+        self.setPixmap(self.icon)
+        self.setFixedWidth(size + 3)
+        self.setFixedHeight(size + 3)
+
+    def show_tip(self):
+        """Show tooltip"""
+        if not QToolTip.isVisible():
+            QToolTip.showText(
+                self.mapToGlobal(QPoint(self.width(), 15)),
+                self.tip_text,
+                self
+            )
+
+    def enterEvent(self, event):
+        """
+        Change cursor shape and set hover icon when the mouse is on the widget.
+        """
+        self.setCursor(Qt.PointingHandCursor)
+        self.setPixmap(self.hover_icon)
+        self.tip_timer.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Hide tooltip and restore icon when the mouse leaves the widget."""
+        QToolTip.hideText()
+        self.setPixmap(self.icon)
+        self.tip_timer.stop()
+        super().leaveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Show tooltip when the widget is clicked."""
+        self.show_tip()
+
+
+class ValidationLineEdit(QLineEdit):
+    """Lineedit that validates its contents in focus out."""
+
+    sig_focus_out = Signal(str)
+
+    def __init__(
+        self,
+        validate_callback: Callable,
+        validate_reason: str,
+        text: str = "",
+        parent: QWidget | None = None,
+    ):
+        super().__init__(text, parent)
+
+        # Attributes
+        self._validate_callback = validate_callback
+        self._validate_reason = validate_reason
+        self._is_show = False
+
+        # Action to signal that text is not valid
+        self.error_action = QAction(self)
+        self.error_action.setIcon(ima.icon("error"))
+        self.addAction(self.error_action, QLineEdit.TrailingPosition)
+
+        # Signals
+        self.sig_focus_out.connect(self._validate)
+
+    def focusOutEvent(self, event):
+        if self.text():
+            self.sig_focus_out.emit(self.text())
+        else:
+            self.error_action.setVisible(False)
+        super().focusOutEvent(event)
+
+    def focusInEvent(self, event):
+        self.error_action.setVisible(False)
+        super().focusInEvent(event)
+
+    def showEvent(self, event):
+        if not self._is_show:
+            self.error_action.setVisible(False)
+            self._is_show = True
+        super().showEvent(event)
+
+    def _validate(self, text):
+        if not self._validate_callback(text):
+            self.error_action.setVisible(True)
+            self.error_action.setToolTip(self._validate_reason)
 
 
 def test_msgcheckbox():

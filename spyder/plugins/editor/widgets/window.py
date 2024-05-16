@@ -28,7 +28,7 @@ from spyder.api.plugins import Plugins
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.widgets.toolbars import ApplicationToolbar
-from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
@@ -42,7 +42,7 @@ from spyder.plugins.mainmenu.api import (
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import qbytearray_to_str
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.findreplace import FindReplace
@@ -87,13 +87,13 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
     CONF_SECTION = 'editor'
     SPLITTER_WIDTH = "7px"
 
-    def __init__(self, parent, plugin, menu_actions, outline_plugin):
+    def __init__(self, parent, main_widget, menu_actions, outline_plugin):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
         self.editorstacks = []
-        self.plugin = plugin
+        self.main_widget = main_widget
         self._sizes = None
 
         # This needs to be done at this point to avoid an error at startup
@@ -101,7 +101,6 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
 
         # ---- Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
 
         # ---- Status bar
@@ -143,8 +142,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             # Signals
             self.outlineexplorer.edit_goto.connect(
                 lambda filenames, goto, word:
-                plugin.load(filenames=filenames, goto=goto, word=word,
-                            editorwindow=self.parent())
+                main_widget.load(filenames=filenames, goto=goto, word=word,
+                                 editorwindow=self.parent())
             )
 
             self.outlineexplorer.sig_collapse_requested.connect(
@@ -166,7 +165,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editor_widgets.setLayout(editor_layout)
         self.editorsplitter = EditorSplitter(
             self,
-            plugin,
+            main_widget,
             menu_actions,
             register_editorstack_cb=self.register_editorstack,
             unregister_editorstack_cb=self.unregister_editorstack
@@ -204,7 +203,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         self.__print_editorstacks()
 
         self.editorstacks.append(editorstack)
-        self.plugin.last_focused_editorstack[self.parent()] = editorstack
+        self.main_widget.last_focused_editorstack[self.parent()] = editorstack
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
@@ -218,7 +217,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.sig_editor_cursor_position_changed.connect(
             self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
-        self.plugin.register_editorstack(editorstack)
+        self.main_widget.register_editorstack(editorstack)
 
     def __print_editorstacks(self):
         logger.debug(
@@ -233,7 +232,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # places.
         css = qstylizer.style.StyleSheet()
         css.QSplitter.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_1
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_1
         )
 
         # Make splitter handle to have the same size as the QMainWindow
@@ -248,7 +247,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
 
     def unregister_editorstack(self, editorstack):
         logger.debug("Unregistering editorstack")
-        self.plugin.unregister_editorstack(editorstack)
+        self.main_widget.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         self.__print_editorstacks()
 
@@ -316,26 +315,26 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             self.splitter.setChildrenCollapsible(False)
 
 
-class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
+class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
     CONF_SECTION = "editor"
 
     sig_window_state_changed = Signal(object)
 
-    def __init__(self, plugin, menu_actions, outline_plugin, parent=None):
+    def __init__(self, main_widget, menu_actions, outline_plugin, parent=None):
         # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        super().__init__(parent)
+        super().__init__(parent, class_parent=main_widget)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
-        self.plugin = plugin
+        self.main_widget = main_widget
         self.window_size = None
         self.toolbars = []
 
         # ---- Main widget
         self.editorwidget = EditorWidget(
             self,
-            plugin,
+            main_widget,
             menu_actions,
             outline_plugin
         )
@@ -355,8 +354,8 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
         if editor is not None:
             editor.setFocus()
 
-        self.setWindowTitle("Spyder - %s" % plugin.windowTitle())
-        self.setWindowIcon(plugin.windowIcon())
+        self.setWindowTitle("Spyder - %s" % main_widget.windowTitle())
+        self.setWindowIcon(main_widget.windowIcon())
 
         # ---- Add toolbars
         toolbar_list = [
@@ -425,13 +424,13 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
     def closeEvent(self, event):
         """Reimplement Qt method"""
         self.editorwidget.unregister_all_editorstacks()
-        if self.plugin._undocked_window is not None:
-            self.plugin.dockwidget.setWidget(self.plugin)
-            self.plugin.dockwidget.setVisible(True)
-        self.plugin.switch_to_plugin()
+        if self.main_widget.windowwidget is not None:
+            self.main_widget.dockwidget.setWidget(self.main_widget)
+            self.main_widget.dockwidget.setVisible(True)
+        self.main_widget.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        if self.plugin._undocked_window is not None:
-            self.plugin._undocked_window = None
+        if self.main_widget.windowwidget is not None:
+            self.main_widget.windowwidget = None
 
     def changeEvent(self, event):
         """
@@ -525,15 +524,17 @@ class EditorMainWindow(QMainWindow, SpyderToolbarMixin, SpyderWidgetMixin):
         return view_menu
 
 
-class EditorPluginExample(QSplitter):
+class EditorMainWidgetExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
 
-        self._dock_action = None
-        self._undock_action = None
-        self._close_plugin_action = None
-        self._undocked_window = None
-        self._lock_unlock_action = None
+        self._plugin = None
+
+        self.dock_action = None
+        self.undock_action = None
+        self.close_action = None
+        self.windowwidget = None
+        self.lock_unlock_action = None
         menu_actions = []
 
         self.editorstacks = []
@@ -588,10 +589,12 @@ class EditorPluginExample(QSplitter):
         editorstack.analyze_script()
 
     def register_editorstack(self, editorstack):
-        logger.debug("FakePlugin.register_editorstack: %r" % editorstack)
+        logger.debug(
+            "FakeEditorMainWidget.register_editorstack: %r" % editorstack
+        )
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
-            # editorstack is a child of the Editor plugin
+            # editorstack is a child of the EditorMainWidget
             editorstack.set_closable(len(self.editorstacks) > 1)
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
@@ -611,7 +614,9 @@ class EditorPluginExample(QSplitter):
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
-        logger.debug("FakePlugin.unregister_editorstack: %r" % editorstack)
+        logger.debug(
+            "EditorMainWidget.unregister_editorstack: %r" % editorstack
+        )
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):
@@ -674,11 +679,7 @@ class EditorPluginExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
 
-    def register_widget_shortcuts(self, widget):
-        """Fake!"""
-        pass
-
-    def get_color_scheme(self):
+    def _get_color_scheme(self):
         pass
 
 
@@ -689,7 +690,7 @@ def test():
     spyder_dir = get_module_path('spyder')
     app = qapplication(test_time=8)
 
-    test = EditorPluginExample()
+    test = EditorMainWidgetExample()
     test.resize(900, 700)
     test.show()
 

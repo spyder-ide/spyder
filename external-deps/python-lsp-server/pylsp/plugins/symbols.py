@@ -12,12 +12,6 @@ log = logging.getLogger(__name__)
 
 @hookimpl
 def pylsp_document_symbols(config, document):
-    # pylint: disable=broad-except
-    # pylint: disable=too-many-nested-blocks
-    # pylint: disable=too-many-locals
-    # pylint: disable=too-many-branches
-    # pylint: disable=too-many-statements
-
     symbols_settings = config.plugin_settings("jedi_symbols")
     all_scopes = symbols_settings.get("all_scopes", True)
     add_import_symbols = symbols_settings.get("include_import_symbols", True)
@@ -150,7 +144,7 @@ def _container(definition):
         # as children of the module.
         if parent.parent():
             return parent.name
-    except:  # pylint: disable=bare-except
+    except:
         return None
 
     return None

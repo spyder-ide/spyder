@@ -33,14 +33,12 @@ from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QKeySequence, QPaintEvent,
-                        QPainter, QMouseEvent, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
+from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
+                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
+                        QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import (QApplication, QMenu, QMessageBox, QSplitter,
-                            QScrollBar)
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
-
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
@@ -52,7 +50,6 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
-from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.panels import (
     ClassFunctionDropdown, EdgeLine, FoldingPanel, IndentationGuide,
     LineNumberArea, PanelsManager, ScrollFlagArea)
@@ -70,11 +67,11 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import SpyderPalette, QStylePalette
-from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    mimedata2url, start_file)
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.qthelpers import file_uri, mimedata2url, start_file
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
+from spyder.widgets.mixins import HINT_MAX_WIDTH
 
 
 try:
@@ -84,6 +81,41 @@ except Exception:
     nbformat = None  # analysis:ignore
 
 logger = logging.getLogger(__name__)
+
+
+class CodeEditorActions:
+    Undo = 'undo'
+    Redo = 'redo'
+    Cut = 'cut'
+    Copy = 'copy'
+    Paste = 'paste'
+    SelectAll = 'select all'
+    ToggleComment = 'toggle comment'
+    ClearAllOutput = 'clear_all_output_action'
+    ConvertToPython = 'convert_to_python_action'
+    GoToDefinition = 'go to definition'
+    InspectCurrentObject = 'inspect current object'
+    ZoomIn = 'zoom in 1'
+    ZoomOut = 'zoom out'
+    ZoomReset = 'zoom reset'
+    Docstring = 'docstring'
+    Autoformat = 'autoformatting'
+
+
+class CodeEditorMenus:
+    ContextMenu = 'context_menu'
+    ReadOnlyMenu = 'read_only_menu'
+
+
+class CodeEditorContextMenuSections:
+    InspectSection = "inspect_section"
+    UndoRedoSection = "undo_redo_section"
+    EditSection = "edit_section"
+    NbformatSections = "nbformat_section"
+    ZoomSection = "zoom_section"
+    RefactorCodeSection = "refactor_code_section"
+    CopySection = "copy_section"
+    OthersSection = "others_section"
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget):
@@ -209,8 +241,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # Used to request saving a file
     sig_save_requested = Signal()
 
+    # Used to signal that a text deletion was triggered
+    sig_delete_requested = Signal()
+
     def __init__(self, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent, class_parent=parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -256,12 +291,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._last_hover_pattern_text = None
 
         # 79-col edge line
-        self.edge_line = self.panels.register(EdgeLine(),
-                                              Panel.Position.FLOATING)
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            Panel.Position.FLOATING
+        )
 
         # indent guides
-        self.indent_guides = self.panels.register(IndentationGuide(),
-                                                  Panel.Position.FLOATING)
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            Panel.Position.FLOATING
+        )
+
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -274,10 +314,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.background = QColor('white')
 
         # Folding
-        self.panels.register(FoldingPanel())
+        self.folding_panel = self.panels.register(FoldingPanel())
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea())
+
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
@@ -331,8 +375,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
         # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(),
-                                                   Panel.Position.RIGHT)
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            Panel.Position.RIGHT
+        )
+
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -376,7 +423,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.update_decorations_timer.start())
+            lambda value: self.update_decorations_timer.start()
+        )
+
+        # Hide calltip when scrolling
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.hide_calltip()
+        )
 
         # QTextEdit + LSPMixin
         self.textChanged.connect(self._schedule_document_did_change)
@@ -472,8 +525,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         ignore_chars = ['(', ')', '.']
 
         if self._should_display_hover(pos):
-            key, pattern_text, cursor = self.get_pattern_at(pos)
-            text = self.get_word_at(pos)
+            # --- Show Ctrl/Cmd click tooltips
+            key, pattern_text, __ = self.get_pattern_at(pos)
             if pattern_text:
                 ctrl_text = 'Cmd' if sys.platform == "darwin" else 'Ctrl'
                 if key in ['file']:
@@ -490,10 +543,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.show_tooltip(text=hint_text, at_point=pos)
                 return
 
+            # --- Show LSP hovers
+            # This prevents requesting a new hover while trying to reach the
+            # current one to click on it.
+            if (
+                self.tooltip_widget.is_hover()
+                and self.tooltip_widget.is_hovered()
+            ):
+                return
+
+            text = self.get_word_at(pos)
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
             self._last_point = pos
+
             if text and self._last_hover_word != text:
                 if all(char not in text for char in ignore_chars):
                     self._last_hover_word = text
@@ -880,14 +944,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         self.set_strip_mode(strip_mode)
 
-    # ---- Debug panel
-    # -------------------------------------------------------------------------
     # ---- Set different attributes
     # -------------------------------------------------------------------------
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.setVisible(folding)
+        self.folding_panel.setVisible(folding)
 
     def set_tab_mode(self, enable):
         """
@@ -1264,13 +1325,40 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
+        self.sig_delete_requested.emit()
+
         if not self.has_selected_text():
             cursor = self.textCursor()
             if not cursor.atEnd():
                 cursor.setPosition(
-                    self.next_cursor_position(), QTextCursor.KeepAnchor)
+                    self.next_cursor_position(), QTextCursor.KeepAnchor
+                )
             self.setTextCursor(cursor)
+
         self.remove_selected_text()
+
+    def delete_line(self):
+        """Delete current line."""
+        cursor = self.textCursor()
+
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start_pos)
+        else:
+            start_pos = end_pos = cursor.position()
+
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            if cursor.atEnd():
+                break
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
+        self.delete()
+        self.ensureCursorVisible()
 
     # ---- Scrolling
     # -------------------------------------------------------------------------
@@ -1446,6 +1534,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             regobj = re.compile(pattern, flags=re_flags)
         except sre_constants.error:
             return
+
         extra_selections = []
         self.found_results = []
         has_unicode = len(text) != qstring_length(text)
@@ -1795,10 +1884,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Align multiline text based on first line
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        cursor.removeSelectedText()
+
+        # We use delete here instead of cursor.removeSelectedText so that
+        # removing folded regions works as expected.
+        if cursor.hasSelection():
+            self.delete()
+
         cursor.setPosition(cursor.selectionStart())
         cursor.setPosition(cursor.block().position(),
                            QTextCursor.KeepAnchor)
+
         preceding_text = cursor.selectedText()
         first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
         first_line = preceding_text + first_line_selected
@@ -1877,6 +1972,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
+        self.sig_delete_requested.emit()
         TextEditBaseWidget.cut(self)
         self._save_clipboard_indentation()
         self.sig_text_was_inserted.emit()
@@ -1927,6 +2023,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                    end_column=end_column, move=True,
                                    word=word)
 
+        # This is necessary to update decoratios after moving to `line` (some
+        # tests fail without it).
+        self.update_decorations_timer.start()
+
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
         dlg = GoToLineDialog(self)
@@ -1945,12 +2045,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._timer_mouse_moving.stop()
         self._last_hover_word = None
         self.clear_extra_selections('code_analysis_highlight')
-        if self.tooltip_widget.isVisible():
+        if (
+            self.tooltip_widget.isVisible()
+            and not self.tooltip_widget.is_hint()
+        ):
             self.tooltip_widget.hide()
 
     def _set_completions_hint_idle(self):
         self._completions_hint_idle = True
-        self.completion_widget.trigger_completion_hint()
+        self.completion_widget.request_completion_hint()
 
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
@@ -1960,21 +2063,34 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                               'signature': documentation}
 
             if documentation and len(documentation) > 0:
+                # This means that only the object's signature could be resolved
+                # by the server, which won't update the hint contents.
+                if (
+                    len(documentation.split('\n\n')) == 2
+                    and documentation.startswith(word)
+                ):
+                    self.hide_tooltip()
+                    return
+
                 self.show_hint(
                     documentation,
                     inspect_word=word,
                     at_point=at_point,
                     completion_doc=completion_doc,
-                    max_lines=self._DEFAULT_MAX_LINES,
-                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
+                )
                 self.tooltip_widget.move(at_point)
-                return
-        self.hide_tooltip()
+            else:
+                self.hide_tooltip()
+        else:
+            self.hide_tooltip()
 
     def update_decorations(self):
         """Update decorations on the visible portion of the screen."""
         if self.underline_errors_enabled:
             self.underline_errors()
+
+        if self.folding_supported and self.code_folding:
+            self.highlight_folded_regions()
 
         # This is required to update decorations whether there are or not
         # underline errors in the visible portion of the screen.
@@ -1983,28 +2099,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
-        # Diagnostic severity
-        icons = {
-            DiagnosticSeverity.ERROR: 'error',
-            DiagnosticSeverity.WARNING: 'warning',
-            DiagnosticSeverity.INFORMATION: 'information',
-            DiagnosticSeverity.HINT: 'hint',
-        }
-
         code_analysis = block_data.code_analysis
-
-        # Size must be adapted from font
-        fm = self.fontMetrics()
-        size = fm.height()
-        template = (
-            '<img src="data:image/png;base64, {}"'
-            ' height="{size}" width="{size}" />&nbsp;'
-            '{} <i>({} {})</i>'
-        )
-
         msglist = []
         max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
+
         for src, code, sev, msg in sorted_code_analysis:
             if src == 'pylint' and '[' in msg and ']' in msg:
                 # Remove extra redundant info from pylint messages
@@ -2026,7 +2125,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             for paragraph in paragraphs:
                 new_paragraph = textwrap.wrap(
                     paragraph,
-                    width=self._DEFAULT_MAX_HINT_WIDTH)
+                    width=HINT_MAX_WIDTH
+                )
+
                 if lines_per_message > 2:
                     if len(new_paragraph) > 1:
                         new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
@@ -2051,16 +2152,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             else:
                 msg = '<br>'.join(new_paragraphs)
 
-            base_64 = ima.base64_from_icon(icons[sev], size, size)
             if max_lines_msglist >= 0:
-                msglist.append(template.format(base_64, msg, src,
-                                               code, size=size))
+                msglist.append(f'{msg} <i>({src} {code})</i>')
 
         if msglist:
             self.show_tooltip(
                 title=_("Code analysis"),
                 text='\n'.join(msglist),
-                title_color=QStylePalette.COLOR_ACCENT_4,
                 at_line=line_number,
                 with_html_format=True
             )
@@ -2199,28 +2297,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     # ---- Tasks management
     # -------------------------------------------------------------------------
-    def go_to_next_todo(self):
-        """Go to next todo and return new cursor position"""
-        block = self.textCursor().block()
-        line_count = self.document().blockCount()
-        while True:
-            if block.blockNumber()+1 < line_count:
-                block = block.next()
-            else:
-                block = self.document().firstBlock()
-            data = block.userData()
-            if data and data.todo:
-                break
-        line_number = block.blockNumber()+1
-        self.go_to_line(line_number)
+    def show_todo(self, line_number, data):
+        """
+        Show TODO tooltip when hovering their markers in the line number area.
+        """
         self.show_tooltip(
             title=_("To do"),
             text=data.todo,
-            title_color=QStylePalette.COLOR_ACCENT_4,
             at_line=line_number,
         )
-
-        return self.get_position('cursor')
 
     def process_todo(self, todo_results):
         """Process todo finder results"""
@@ -2998,7 +3083,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.insertText(firstline)
         cursor.endEditBlock()
-        
+
     # ---- Kill ring handlers
     # Taken from Jupyter's QtConsole
     # Copyright (c) 2001-2015, IPython Development Team
@@ -3259,68 +3344,127 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # -------------------------------------------------------------------------
     def setup_context_menu(self):
         """Setup context menu"""
-        self.undo_action = create_action(
-            self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=self.get_shortcut('undo'), triggered=self.undo)
-        self.redo_action = create_action(
-            self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=self.get_shortcut('redo'), triggered=self.redo)
-        self.cut_action = create_action(
-            self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=self.get_shortcut('cut'), triggered=self.cut)
-        self.copy_action = create_action(
-            self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=self.get_shortcut('copy'), triggered=self.copy)
-        self.paste_action = create_action(
-            self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=self.get_shortcut('paste'),
-            triggered=self.paste)
-        selectall_action = create_action(
-            self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=self.get_shortcut('select all'),
-            triggered=self.selectAll)
-        toggle_comment_action = create_action(
-            self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=self.get_shortcut('toggle comment'),
-            triggered=self.toggle_comment)
-        self.clear_all_output_action = create_action(
-            self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
-            triggered=self.clear_all_output)
-        self.ipynb_convert_action = create_action(
-            self, _("Convert to Python file"), icon=ima.icon('python'),
-            triggered=self.convert_notebook)
-        self.gotodef_action = create_action(
-            self, _("Go to definition"),
-            shortcut=self.get_shortcut('go to definition'),
-            triggered=self.go_to_definition_from_cursor)
-
-        self.inspect_current_object_action = create_action(
-            self, _("Inspect current object"),
-            icon=ima.icon('MessageBoxInformation'),
-            shortcut=self.get_shortcut('inspect current object'),
-            triggered=self.sig_show_object_info)
-
-        # Run actions
+        # -- Actions
+        self.undo_action = self.create_action(
+            CodeEditorActions.Undo,
+            text=_('Undo'),
+            icon=self.create_icon('undo'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.undo,
+        )
+        self.redo_action = self.create_action(
+            CodeEditorActions.Redo,
+            text=_("Redo"),
+            icon=self.create_icon('redo'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.redo
+        )
+        self.cut_action = self.create_action(
+            CodeEditorActions.Cut,
+            text=_("Cut"),
+            icon=self.create_icon('editcut'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.cut
+        )
+        self.copy_action = self.create_action(
+            CodeEditorActions.Copy,
+            text=_("Copy"),
+            icon=self.create_icon('editcopy'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.copy
+        )
+        self.paste_action = self.create_action(
+            CodeEditorActions.Paste,
+            text=_("Paste"),
+            icon=self.create_icon('editpaste'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.paste
+        )
+        selectall_action = self.create_action(
+            CodeEditorActions.SelectAll,
+            text=_("Select All"),
+            icon=self.create_icon('selectall'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.selectAll
+        )
+        toggle_comment_action = self.create_action(
+            CodeEditorActions.ToggleComment,
+            text=_('Comment')+'/'+_('Uncomment'),
+            icon=self.create_icon('comment'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.toggle_comment
+        )
+        self.clear_all_output_action = self.create_action(
+            CodeEditorActions.ClearAllOutput,
+            text=_('Clear all ouput'),
+            icon=self.create_icon('ipython_console'),
+            register_action=False,
+            triggered=self.clear_all_output
+        )
+        self.ipynb_convert_action = self.create_action(
+            CodeEditorActions.ConvertToPython,
+            text=_('Convert to Python file'),
+            icon=self.create_icon('python'),
+            register_action=False,
+            triggered=self.convert_notebook
+        )
+        self.gotodef_action = self.create_action(
+            CodeEditorActions.GoToDefinition,
+            text=_('Go to definition'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.go_to_definition_from_cursor
+        )
+        self.inspect_current_object_action = self.create_action(
+            CodeEditorActions.InspectCurrentObject,
+            text=_('Inspect current object'),
+            icon=self.create_icon('MessageBoxInformation'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.sig_show_object_info
+        )
 
         # Zoom actions
-        zoom_in_action = create_action(
-            self, _("Zoom in"), icon=ima.icon('zoom_in'),
-            shortcut=QKeySequence(QKeySequence.ZoomIn),
-            triggered=self.zoom_in)
-        zoom_out_action = create_action(
-            self, _("Zoom out"), icon=ima.icon('zoom_out'),
-            shortcut=QKeySequence(QKeySequence.ZoomOut),
-            triggered=self.zoom_out)
-        zoom_reset_action = create_action(
-            self, _("Zoom reset"), shortcut=QKeySequence("Ctrl+0"),
-            triggered=self.zoom_reset)
+        zoom_in_action = self.create_action(
+            CodeEditorActions.ZoomIn,
+            text=_('Zoom in'),
+            icon=self.create_icon('zoom_in'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_in
+        )
+        zoom_out_action = self.create_action(
+            CodeEditorActions.ZoomOut,
+            text=_('Zoom out'),
+            icon=self.create_icon('zoom_out'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_out
+        )
+        zoom_reset_action = self.create_action(
+            CodeEditorActions.ZoomReset,
+            text=_('Zoom reset'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.zoom_reset
+        )
 
         # Docstring
         writer = self.writer_docstring
-        self.docstring_action = create_action(
-            self, _("Generate docstring"),
-            shortcut=self.get_shortcut('docstring'),
-            triggered=writer.write_docstring_at_first_line_of_function)
+        self.docstring_action = self.create_action(
+            CodeEditorActions.Docstring,
+            text=_('Generate docstring'),
+            register_shortcut=True,
+            register_action=False,
+            triggered=writer.write_docstring_at_first_line_of_function
+        )
 
         # Document formatting
         formatter = self.get_conf(
@@ -3328,42 +3472,110 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             default='',
             section='completions',
         )
-        self.format_action = create_action(
-            self,
-            _('Format file or selection with {0}').format(
-                formatter.capitalize()),
-            shortcut=self.get_shortcut('autoformatting'),
-            triggered=self.format_document_or_range)
-
+        self.format_action = self.create_action(
+            CodeEditorActions.Autoformat,
+            text=_('Format file or selection with {0}').format(
+                    formatter.capitalize()),
+            icon=self.create_icon("transparent"),
+            register_shortcut=True,
+            register_action=False,
+            triggered=self.format_document_or_range
+        )
         self.format_action.setEnabled(False)
 
-        # Build menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.menu = QMenu(self)
-        actions_1 = [self.gotodef_action, self.inspect_current_object_action,
-                     None, self.undo_action, self.redo_action, None,
-                     self.cut_action, self.copy_action,
-                     self.paste_action, selectall_action]
-        actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action, self.docstring_action,
-                     self.format_action]
-        if nbformat is not None:
-            nb_actions = [self.clear_all_output_action,
-                          self.ipynb_convert_action, None]
-            actions = actions_1 + nb_actions + actions_2
-            add_actions(self.menu, actions)
-        else:
-            actions = actions_1 + actions_2
-            add_actions(self.menu, actions)
+        # -- Build menu
+        self.menu = self.create_menu(
+            CodeEditorMenus.ContextMenu, register=False
+        )
 
-        # Read-only context-menu
-        # TODO: Change to SpyderMenu when the editor is migrated to the new
-        # API
-        self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu,
-                    (self.copy_action, None, selectall_action,
-                     self.gotodef_action))
+        # Inspect section
+        inspect_actions = [
+            self.gotodef_action, self.inspect_current_object_action
+        ]
+        for menu_action in inspect_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.InspectSection
+            )
+
+        # Undo/redo section
+        undo_redo_actions = [self.undo_action, self.redo_action]
+        for menu_action in undo_redo_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.UndoRedoSection
+            )
+
+        # Edit section
+        edit_actions = [
+            self.cut_action,
+            self.copy_action,
+            self.paste_action,
+            selectall_action
+        ]
+        for menu_action in edit_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.EditSection
+            )
+
+        # Nbformat section
+        if nbformat is not None:
+            nb_actions = [
+                self.clear_all_output_action, self.ipynb_convert_action
+            ]
+            for menu_action in nb_actions:
+                self.add_item_to_menu(
+                    menu_action,
+                    self.menu,
+                    section=CodeEditorContextMenuSections.NbformatSections
+                )
+
+        # Zoom section
+        zoom_actions = [
+            zoom_in_action, zoom_out_action, zoom_reset_action
+        ]
+        for menu_action in zoom_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.ZoomSection
+            )
+
+        # Refactor/code section
+        refactor_code_actions = [
+            toggle_comment_action, self.docstring_action, self.format_action
+        ]
+        for menu_action in refactor_code_actions:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.RefactorCodeSection
+            )
+
+        # -- Read-only context-menu
+        self.readonly_menu = self.create_menu(
+            CodeEditorMenus.ReadOnlyMenu, register=False
+        )
+
+        # Copy section
+        self.add_item_to_menu(
+            self.copy_action,
+            self.readonly_menu,
+            section=CodeEditorContextMenuSections.CopySection
+        )
+
+        # Others section
+        other_actions = [selectall_action, self.gotodef_action]
+        for menu_action in other_actions:
+            self.add_item_to_menu(
+                self.copy_action,
+                self.readonly_menu,
+                section=CodeEditorContextMenuSections.OthersSection
+            )
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
@@ -3376,8 +3588,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Update decorations after releasing these keys because they don't
         # trigger the emission of the valueChanged signal in
         # verticalScrollBar.
-        # See https://bugreports.qt.io/browse/QTBUG-25365
-        if key in {Qt.Key_Up,  Qt.Key_Down}:
+        # See https://bugreports.qt.io/browse/QTBUG-25365, which should be
+        # fixed in Qt 6.
+        if key in {Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown}:
             self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
@@ -3453,9 +3666,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if text:
             self.clear_occurrences()
 
-
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
+
+        if key in {Qt.Key_PageUp, Qt.Key_PageDown}:
+            self.hide_tooltip()
+            self.hide_calltip()
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
@@ -4027,25 +4243,27 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def __move_line_or_selection(self, after_current_line=True):
         cursor = self.textCursor()
+
         # Unfold any folded code block before moving lines up/down
-        folding_panel = self.panels.get('FoldingPanel')
         fold_start_line = cursor.blockNumber() + 1
         block = cursor.block().next()
 
-        if fold_start_line in folding_panel.folding_status:
-            fold_status = folding_panel.folding_status[fold_start_line]
+        if fold_start_line in self.folding_panel.folding_status:
+            fold_status = self.folding_panel.folding_status[fold_start_line]
             if fold_status:
-                folding_panel.toggle_fold_trigger(block)
+                self.folding_panel.toggle_fold_trigger(block)
 
         if after_current_line:
             # Unfold any folded region when moving lines down
             fold_start_line = cursor.blockNumber() + 2
             block = cursor.block().next().next()
 
-            if fold_start_line in folding_panel.folding_status:
-                fold_status = folding_panel.folding_status[fold_start_line]
+            if fold_start_line in self.folding_panel.folding_status:
+                fold_status = self.folding_panel.folding_status[
+                    fold_start_line
+                ]
                 if fold_status:
-                    folding_panel.toggle_fold_trigger(block)
+                    self.folding_panel.toggle_fold_trigger(block)
         else:
             # Unfold any folded region when moving lines up
             block = cursor.block()
@@ -4059,9 +4277,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             # Find the innermost code folding region for the current position
             enclosing_regions = sorted(list(
-                folding_panel.current_tree[fold_start_line]))
+                self.folding_panel.current_tree[fold_start_line]))
 
-            folding_status = folding_panel.folding_status
+            folding_status = self.folding_panel.folding_status
             if len(enclosing_regions) > 0:
                 for region in enclosing_regions:
                     fold_start_line = region.begin
@@ -4069,10 +4287,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     if fold_start_line in folding_status:
                         fold_status = folding_status[fold_start_line]
                         if fold_status:
-                            folding_panel.toggle_fold_trigger(block)
+                            self.folding_panel.toggle_fold_trigger(block)
 
         self._TextEditBaseWidget__move_line_or_selection(
-            after_current_line=after_current_line)
+            after_current_line=after_current_line
+        )
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -4095,10 +4314,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 event.accept()
                 return
 
-        if self.has_selected_text():
-            TextEditBaseWidget.mouseMoveEvent(self, event)
-            return
-
         if self.go_to_definition_enabled and ctrl:
             if self._handle_goto_definition_event(pos):
                 event.accept()
@@ -4107,8 +4322,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if (not self._should_display_hover(pos)
-                    and not self.is_completion_widget_visible()):
+            if (
+                not self._should_display_hover(pos)
+                and not self.is_completion_widget_visible()
+            ):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)
@@ -4333,9 +4550,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             point = self.mapToGlobal(point)
 
             self.menu_docstring = QMenuOnlyForEnter(self)
-            self.docstring_action = create_action(
-                self, _("Generate docstring"), icon=ima.icon('TextFileIcon'),
-                triggered=writer.write_docstring)
+            self.docstring_action = self.create_action(
+                CodeEditorActions.Docstring,
+                text=_("Generate docstring"),
+                icon=self.create_icon('TextFileIcon'),
+                register_action=False,
+                triggered=writer.write_docstring
+            )
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
             self.menu_docstring.popup(point)

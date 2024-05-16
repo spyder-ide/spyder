@@ -23,7 +23,7 @@ import time
 from itertools import islice
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
@@ -39,7 +39,7 @@ from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.py3compat import to_text_string
 from spyder.utils.misc import get_python_executable, getcwd_or_home
-from spyder.utils.palette import SpyderPalette, QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 # --- Constants
 # ----------------------------------------------------------------------------
-MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = SpyderPalette.COLOR_TEXT_1
 
 
 class ProfilerWidgetActions:
@@ -671,7 +671,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
 
     def __init__(self, parent=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QTreeWidget.__init__(self, parent)

@@ -14,7 +14,6 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.config.base import running_in_ci
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 

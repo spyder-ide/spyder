@@ -63,10 +63,13 @@ class OutlineExplorer(SpyderDockablePlugin):
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
+        widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_open_files_finished.connect(
             self.update_all_editors)
+        widget.edit_goto.connect(editor.load_edit_goto)
+        widget.edit.connect(editor.load_edit)
 
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
@@ -79,10 +82,13 @@ class OutlineExplorer(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
+        widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_open_files_finished.disconnect(
             self.update_all_editors)
+        widget.edit_goto.disconnect(editor.load_edit_goto)
+        widget.edit.disconnect(editor.load_edit)
 
     # ----- Private API
     # -------------------------------------------------------------------------

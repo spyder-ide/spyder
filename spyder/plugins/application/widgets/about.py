@@ -13,8 +13,8 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                            QScrollArea, QTabWidget)
+                            QHBoxLayout, QVBoxLayout, QLabel, QLayout,
+                            QPushButton, QScrollArea, QTabWidget)
 
 # Local imports
 from spyder import (
@@ -24,6 +24,7 @@ from spyder import (
     __website_url__ as website_url,
     get_versions, get_versions_text
 )
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
@@ -229,12 +230,12 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         self.tabs.setStyleSheet(self._tabs_stylesheet)
 
         # -- Buttons
+        bbox = SpyderDialogButtonBox(QDialogButtonBox.Ok)
         info_btn = QPushButton(_("Copy version info"))
-        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox.addButton(info_btn, QDialogButtonBox.ActionRole)
 
         # Apply style to buttons
-        for button in [info_btn, ok_btn]:
-            button.setStyleSheet(self._button_stylesheet)
+        bbox.setStyleSheet(self._button_stylesheet)
 
         # -- Widget setup
         self.setWindowIcon(ima.icon('MessageBoxInformation'))
@@ -258,20 +259,19 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         tabslayout = QHBoxLayout()
         tabslayout.addWidget(self.tabs)
-        tabslayout.setSizeConstraint(tabslayout.SetFixedSize)
+        tabslayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         tabslayout.setContentsMargins(0, self.PADDING, 0, 0)
 
         btmhlayout = QHBoxLayout()
         btmhlayout.addStretch(1)
-        btmhlayout.addWidget(info_btn)
-        btmhlayout.addWidget(ok_btn)
+        btmhlayout.addWidget(bbox)
         btmhlayout.setContentsMargins(0, 0, self.PADDING, self.PADDING)
         btmhlayout.addStretch()
 
         vlayout = QVBoxLayout()
         vlayout.addLayout(tabslayout)
         vlayout.addLayout(btmhlayout)
-        vlayout.setSizeConstraint(vlayout.SetFixedSize)
+        vlayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         mainlayout = QHBoxLayout(self)
         mainlayout.addLayout(piclayout)
@@ -282,7 +282,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
 
         # -- Signals
         info_btn.clicked.connect(self.copy_to_clipboard)
-        ok_btn.accepted.connect(self.accept)
+        bbox.accepted.connect(self.accept)
 
         # -- Style
         size = (600, 460) if MAC else ((580, 450) if WIN else (610, 455))

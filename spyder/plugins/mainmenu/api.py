@@ -10,7 +10,7 @@ Spyder application menu constants.
 
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, SpyderStyleSheet
 
 
@@ -24,7 +24,7 @@ class _MenuBarStylesheet(SpyderStyleSheet):
 
         # Set the same color as the one used for the app toolbar
         css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
         )
 
         # Give more padding and margin to items
@@ -42,11 +42,11 @@ class _MenuBarStylesheet(SpyderStyleSheet):
         for state in ['selected', 'pressed']:
             # Don't use a different color for the QMenuBar pressed state
             # because a lighter color has too little contrast with the text.
-            bg_color = QStylePalette.COLOR_BACKGROUND_5
+            bg_color = SpyderPalette.COLOR_BACKGROUND_5
 
             css[f"QMenuBar::item:{state}"].setValues(
                 backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
             )
 
 

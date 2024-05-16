@@ -6,8 +6,8 @@ import os
 import pytest
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins import pycodestyle_lint
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys

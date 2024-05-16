@@ -8,6 +8,7 @@ import os
 import pathlib
 import re
 import threading
+import time
 from typing import List, Optional
 
 import docstring_to_markdown
@@ -53,6 +54,23 @@ def debounce(interval_s, keyed_by=None):
         return debounced
 
     return wrapper
+
+
+def throttle(seconds=1):
+    """Throttles calls to a function evey `seconds` seconds."""
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if not hasattr(wrapper, "last_call"):
+                wrapper.last_call = 0
+            if time.time() - wrapper.last_call >= seconds:
+                wrapper.last_call = time.time()
+                return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def find_parents(root, path, names):
@@ -157,8 +175,8 @@ def escape_plain_text(contents: str) -> str:
     """
     Format plain text to display nicely in environments which do not respect whitespaces.
     """
-    contents = contents.replace("\t", "\u00A0" * 4)
-    contents = contents.replace("  ", "\u00A0" * 2)
+    contents = contents.replace("\t", "\u00a0" * 4)
+    contents = contents.replace("  ", "\u00a0" * 2)
     return contents
 
 

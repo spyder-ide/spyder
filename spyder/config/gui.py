@@ -78,7 +78,8 @@ def get_font(section='appearance', option='font', font_size_delta=0):
         FONT_CACHE[(section, option, font_size_delta)] = font
 
     size = CONF.get(section, option+'/size', 9) + font_size_delta
-    font.setPointSize(size)
+    if size > 0:
+        font.setPointSize(size)
     return font
 
 

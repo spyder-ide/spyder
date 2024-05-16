@@ -1,6 +1,5 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
-# pylint: disable=import-outside-toplevel
 
 import logging
 import sys
@@ -10,7 +9,7 @@ from typing import List, Mapping, Sequence, Union
 import pluggy
 from pluggy._hooks import HookImpl
 
-from pylsp import _utils, hookspecs, uris, PYLSP
+from pylsp import PYLSP, _utils, hookspecs, uris
 
 # See compatibility note on `group` keyword:
 #   https://docs.python.org/3/library/importlib.metadata.html#entry-points
@@ -38,7 +37,7 @@ class PluginManager(pluggy.PluginManager):
         # enable_tracing will set its own wrapping function at self._inner_hookexec
         try:
             return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             log.warning(f"Failed to load hook {hook_name}: {e}", exc_info=True)
             return []
 
@@ -79,7 +78,7 @@ class Config:
         for entry_point in entry_points(group=PYLSP):
             try:
                 entry_point.load()
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception as e:
                 log.info(
                     "Failed to load %s entry point '%s': %s", PYLSP, entry_point.name, e
                 )

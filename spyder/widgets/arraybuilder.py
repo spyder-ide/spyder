@@ -17,15 +17,29 @@
 import re
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import QEvent, QPoint, Qt
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                            QTableWidgetItem, QToolButton, QToolTip)
+from qtpy.QtGui import QKeyEvent
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QLineEdit,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolButton,
+    QToolTip,
+    QVBoxLayout,
+)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
-from spyder.widgets.helperwidgets import HelperToolButton
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import AppStyle
+from spyder.widgets.helperwidgets import TipWidget
 
 # Constants
 SHORTCUT_TABLE = "Ctrl+M"
@@ -39,7 +53,6 @@ class ArrayBuilderType:
     BRACES = None
     EXTRA_VALUES = None
     ARRAY_PREFIX = None
-    MATRIX_PREFIX = None
 
     def check_values(self):
         pass
@@ -54,7 +67,6 @@ class ArrayBuilderPython(ArrayBuilderType):
         'np.inf': ['inf', 'INF'],
     }
     ARRAY_PREFIX = 'np.array([['
-    MATRIX_PREFIX = 'np.matrix([['
 
 
 _REGISTERED_ARRAY_BUILDERS = {
@@ -63,8 +75,9 @@ _REGISTERED_ARRAY_BUILDERS = {
 
 
 class ArrayInline(QLineEdit):
+
     def __init__(self, parent, options=None):
-        super(ArrayInline, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self._options = options
 
@@ -75,7 +88,7 @@ class ArrayInline(QLineEdit):
             if self._parent.is_valid():
                 self._parent.keyPressEvent(event)
         else:
-            super(ArrayInline, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     # To catch the Tab key event
     def event(self, event):
@@ -101,29 +114,44 @@ class ArrayInline(QLineEdit):
 
                 return False
 
-        return super(ArrayInline, self).event(event)
+        return super().event(event)
 
 
 class ArrayTable(QTableWidget):
+
     def __init__(self, parent, options=None):
-        super(ArrayTable, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self._options = options
+
+        # Default number of rows and columns
         self.setRowCount(2)
         self.setColumnCount(2)
+
+        # Select the first cell and send an Enter to it so users can start
+        # editing the array after it's displayed.
+        # Idea taken from https://stackoverflow.com/a/32205884/438386
+        if not running_under_pytest():
+            self.setCurrentCell(0, 0)
+            event = QKeyEvent(QEvent.KeyPress, Qt.Key_Enter, Qt.NoModifier)
+            QApplication.postEvent(self, event)
+
+        # Set headers
         self.reset_headers()
 
-        # signals
+        # Signals
         self.cellChanged.connect(self.cell_changed)
 
     def keyPressEvent(self, event):
-        """Override Qt method."""
-        super(ArrayTable, self).keyPressEvent(event)
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            # To avoid having to enter one final tab
-            self.setDisabled(True)
-            self.setDisabled(False)
-            self._parent.keyPressEvent(event)
+        shift = event.modifiers() & Qt.ShiftModifier
+
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return] and not shift:
+            # To edit a cell when pressing Enter.
+            # From https://stackoverflow.com/a/70166617/438386
+            if self.state() != QAbstractItemView.EditingState:
+                self.edit(self.currentIndex())
+
+        super().keyPressEvent(event)
 
     def cell_changed(self, row, col):
         item = self.item(row, col)
@@ -183,9 +211,10 @@ class ArrayTable(QTableWidget):
 
 
 class ArrayBuilderDialog(QDialog):
+
     def __init__(self, parent=None, inline=True, offset=0, force_float=False,
                  language='python'):
-        super(ArrayBuilderDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._language = language
         self._options = _REGISTERED_ARRAY_BUILDERS.get('python', None)
         self._parent = parent
@@ -196,101 +225,107 @@ class ArrayBuilderDialog(QDialog):
         # TODO: add this as an option in the General Preferences?
         self._force_float = force_float
 
-        self._help_inline = _("""
-           <b>Numpy Array/Matrix Helper</b><br>
-           Type an array in Matlab    : <code>[1 2;3 4]</code><br>
-           or Spyder simplified syntax : <code>1 2;3 4</code>
-           <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
-           <br><br>
-           <b>Hint:</b><br>
-           Use two spaces or two tabs to generate a ';'.
-           """)
+        help_inline = _("""
+           <b>Numpy array helper</b><br><br>
+           * Type an array using the syntax: <tt>1 2;3 4</tt><br>
+           * Use two spaces or tabs to generate a <b>;</b>.<br>
+           * You can press <b>Shift+Enter</b> when you are done.
+           """
+        )
 
-        self._help_table = _("""
-           <b>Numpy Array/Matrix Helper</b><br>
-           Enter an array in the table. <br>
-           Use Tab to move between cells.
-           <br><br>
-           Hit 'Enter' for array or 'Ctrl+Enter' for matrix.
-           <br><br>
-           <b>Hint:</b><br>
-           Use two tabs at the end of a row to move to the next row.
-           """)
+        help_table = _("""
+           <b>Numpy array helper</b><br><br>
+           * Introduce an array in the table.<br>
+           * Use <b>Tab</b> to move between cells or introduce additional
+             rows and columns.<br>
+           * Use two tabs at the end of a row to move to the next one.<br>
+           * You can press <b>Shift+Enter</b> when you are done.
+           """
+        )
 
         # Widgets
-        self._button_warning = QToolButton()
-        self._button_help = HelperToolButton()
-        self._button_help.setIcon(ima.icon('MessageBoxInformation'))
+        button_ok = QToolButton()
+        button_ok.setIcon(ima.icon("DialogApplyButton"))
+        button_ok.setToolTip(_("Introduce contents"))
+        button_ok.clicked.connect(self.accept)
 
-        style = (("""
-            QToolButton {{
-              border: 1px solid grey;
-              padding:0px;
-              border-radius: 2px;
-              background-color: qlineargradient(x1: 1, y1: 1, x2: 1, y2: 1,
-                  stop: 0 {stop_0}, stop: 1 {stop_1});
-            }}
-            """).format(stop_0=QStylePalette.COLOR_BACKGROUND_4,
-                        stop_1=QStylePalette.COLOR_BACKGROUND_2))
+        button_close = QToolButton()
+        button_close.setIcon(ima.icon("DialogCloseButton"))
+        button_close.setToolTip(_("Cancel"))
+        button_close.clicked.connect(self.reject)
 
-        self._button_help.setStyleSheet(style)
+        buttons_css = qstylizer.style.StyleSheet()
+        buttons_css.QToolButton.setValues(
+            height="16px",
+            width="16px",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
+        )
+        for button in [button_ok, button_close]:
+            button.setStyleSheet(buttons_css.toString())
+
+        button_help = TipWidget(
+            tip_text=help_inline if inline else help_table,
+            icon=ima.icon('info_tip'),
+            hover_icon=ima.icon('info_tip_hover')
+        )
 
         if inline:
-            self._button_help.setToolTip(self._help_inline)
             self._text = ArrayInline(self, options=self._options)
             self._widget = self._text
         else:
-            self._button_help.setToolTip(self._help_table)
             self._table = ArrayTable(self, options=self._options)
             self._widget = self._table
 
-        style = """
-            QDialog {
-              margin:0px;
-              border: 1px solid grey;
-              padding:0px;
-              border-radius: 2px;
-            }"""
-        self.setStyleSheet(style)
-
-        style = """
-            QToolButton {
-              margin:1px;
-              border: 0px solid grey;
-              padding:0px;
-              border-radius: 0px;
-            }"""
-        self._button_warning.setStyleSheet(style)
+        # Style
+        css = qstylizer.style.StyleSheet()
+        css.QDialog.setValues(
+            margin="0px",
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+        self.setStyleSheet(css.toString())
 
         # widget setup
         self.setWindowFlags(Qt.Window | Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
-        self.setWindowOpacity(0.90)
         self._widget.setMinimumWidth(200)
 
         # layout
-        self._layout = QHBoxLayout()
-        self._layout.addWidget(self._widget)
-        self._layout.addWidget(self._button_warning, 1, Qt.AlignTop)
-        self._layout.addWidget(self._button_help, 1, Qt.AlignTop)
-        self.setLayout(self._layout)
+        if inline:
+            buttons_layout = QHBoxLayout()
+            buttons_layout.addWidget(button_help, alignment=Qt.AlignVCenter)
+            buttons_layout.addWidget(button_ok, alignment=Qt.AlignVCenter)
+            buttons_layout.addWidget(button_close, alignment=Qt.AlignVCenter)
+        else:
+            buttons_layout = QVBoxLayout()
+            buttons_layout.addWidget(button_ok)
+            buttons_layout.addSpacing(3)
+            buttons_layout.addWidget(button_close)
+            buttons_layout.addStretch()
+            buttons_layout.addWidget(button_help)
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            2 * AppStyle.MarginSize + 1,
+            3 * AppStyle.MarginSize
+        )
+        layout.addWidget(self._widget)
+        layout.addLayout(buttons_layout)
+        self.setLayout(layout)
 
         self._widget.setFocus()
 
     def keyPressEvent(self, event):
         """Override Qt method."""
         QToolTip.hideText()
-        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
 
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            if ctrl:
-                self.process_text(array=False)
-            else:
-                self.process_text(array=True)
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return] and shift:
             self.accept()
         else:
-            super(ArrayBuilderDialog, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     def event(self, event):
         """
@@ -301,16 +336,17 @@ class ArrayBuilderDialog(QDialog):
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
             return False
 
-        return super(ArrayBuilderDialog, self).event(event)
+        return super().event(event)
 
-    def process_text(self, array=True):
+    def accept(self):
+        self.process_text()
+        super().accept()
+
+    def process_text(self):
         """
         Construct the text based on the entered content in the widget.
         """
-        if array:
-            prefix = self._options.ARRAY_PREFIX
-        else:
-            prefix = self._options.MATRIX_PREFIX
+        prefix = self._options.ARRAY_PREFIX
 
         suffix = ']])'
         values = self._widget.text().strip()
@@ -385,14 +421,11 @@ class ArrayBuilderDialog(QDialog):
         """
         Updates the icon and tip based on the validity of the array content.
         """
-        widget = self._button_warning
         if not self.is_valid():
-            tip = _('Array dimensions not valid')
-            widget.setIcon(ima.icon('MessageBoxWarning'))
-            widget.setToolTip(tip)
-            QToolTip.showText(self._widget.mapToGlobal(QPoint(0, 5)), tip)
-        else:
-            self._button_warning.setToolTip('')
+            tip = _('Array dimensions are not valid')
+            QToolTip.showText(
+                self._widget.mapToGlobal(QPoint(3, 18)), tip, self
+            )
 
     def is_valid(self):
         """Return if the current array state is valid."""
@@ -410,7 +443,11 @@ class ArrayBuilderDialog(QDialog):
 
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
+    from spyder.utils.stylesheet import APP_STYLESHEET
+
     app = qapplication()
+    app.setStyleSheet(str(APP_STYLESHEET))
+
     dlg_table = ArrayBuilderDialog(None, inline=False)
     dlg_inline = ArrayBuilderDialog(None, inline=True)
     dlg_table.show()

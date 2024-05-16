@@ -1,10 +1,9 @@
 # Copyright 2022- Python Language Server Contributors.
 
-from typing import Any, Dict, List
-from unittest.mock import Mock, patch
-
 from test.test_notebook_document import wait_for_condition
 from test.test_utils import send_initialize_request, send_notebook_did_open
+from typing import Any, Dict, List
+from unittest.mock import Mock, patch
 
 import jedi
 import parso
@@ -15,15 +14,14 @@ from pylsp.config.config import Config
 from pylsp.plugins.rope_autoimport import (
     _get_score,
     _should_insert,
+    cache,
     get_name_or_module,
     get_names,
 )
 from pylsp.plugins.rope_autoimport import (
     pylsp_completions as pylsp_autoimport_completions,
 )
-from pylsp.plugins.rope_autoimport import pylsp_initialize
 from pylsp.workspace import Workspace
-
 
 DOC_URI = uris.from_fs_path(__file__)
 
@@ -57,12 +55,11 @@ def autoimport_workspace(tmp_path_factory) -> Workspace:
             }
         }
     )
-    pylsp_initialize(workspace._config, workspace)
+    cache.reload_cache(workspace._config, workspace, single_thread=True)
     yield workspace
     workspace.close()
 
 
-# pylint: disable=redefined-outer-name
 @pytest.fixture
 def completions(config: Config, autoimport_workspace: Workspace, request):
     document, position = request.param
@@ -232,7 +229,7 @@ def test_get_names():
         sfiosifo
     """
     results = get_names(jedi.Script(code=source))
-    assert results == set(["blah", "bleh", "e", "hello", "someone", "sfa", "a", "b"])
+    assert results == {"blah", "bleh", "e", "hello", "someone", "sfa", "a", "b"}
 
 
 # Tests ruff, flake8 and pyflakes messages
@@ -293,7 +290,6 @@ def test_autoimport_code_actions_and_completions_for_notebook_document(
             }
         },
     )
-
     with patch.object(server._endpoint, "notify") as mock_notify:
         # Expectations:
         # 1. We receive an autoimport suggestion for "os" in the first cell because
@@ -305,13 +301,19 @@ def test_autoimport_code_actions_and_completions_for_notebook_document(
         # 4. We receive an autoimport suggestion for "sys" because it's not already imported.
         # 5. If diagnostics doesn't contain "undefined name ...", we send empty quick fix suggestions.
         send_notebook_did_open(client, ["os", "import os\nos", "os", "sys"])
-        wait_for_condition(lambda: mock_notify.call_count >= 3)
+        wait_for_condition(lambda: mock_notify.call_count >= 4)
+        # We received diagnostics messages for every cell
+        assert all(
+            "textDocument/publishDiagnostics" in c.args
+            for c in mock_notify.call_args_list
+        )
 
     rope_autoimport_settings = server.workspace._config.plugin_settings(
         "rope_autoimport"
     )
     assert rope_autoimport_settings.get("completions", {}).get("enabled", False) is True
     assert rope_autoimport_settings.get("memory", False) is True
+    wait_for_condition(lambda: not cache.is_blocked())
 
     # 1.
     quick_fixes = server.code_actions("cell_1_uri", {}, make_context("os", 0, 0, 2))

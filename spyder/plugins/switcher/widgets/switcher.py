@@ -8,11 +8,12 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QTimer
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
                             QVBoxLayout)
+from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
@@ -63,7 +64,7 @@ class KeyPressFilter(QObject):
             elif (e.key() == Qt.Key_Return):
                 self.sig_enter_key_pressed.emit()
                 return True
-        return super(KeyPressFilter, self).eventFilter(src, e)
+        return super().eventFilter(src, e)
 
 
 class SwitcherDelegate(HTMLDelegate):
@@ -77,7 +78,7 @@ class SwitcherDelegate(HTMLDelegate):
         Override Qt method to force this delegate to look active at all times.
         """
         option.state |= QStyle.State_Active
-        super(SwitcherDelegate, self).paint(painter, option, index)
+        super().paint(painter, option, index)
 
 
 class Switcher(QDialog):
@@ -97,16 +98,6 @@ class Switcher(QDialog):
     sig_rejected = Signal()
     """
     This signal is emitted when the plugin is dismissed.
-    """
-
-    sig_text_changed = Signal(str)
-    """
-    This signal is emitted when the plugin search/filter text changes.
-
-    Parameters
-    ----------
-    search_text: str
-        The current search/filter text.
     """
 
     sig_item_changed = Signal(object)
@@ -173,12 +164,6 @@ class Switcher(QDialog):
         self.proxy = SwitcherProxyModel(self.list)
         self.filter = KeyPressFilter()
 
-        # Search timer
-        self._search_timer = QTimer(self)
-        self._search_timer.setInterval(300)
-        self._search_timer.setSingleShot(True)
-        self._search_timer.timeout.connect(self._on_search_text_changed)
-
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
@@ -191,8 +176,12 @@ class Switcher(QDialog):
         self.list.setMinimumWidth(self._MIN_WIDTH)
         self.list.setItemDelegate(SwitcherDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
-        self.list.setSelectionBehavior(self.list.SelectItems)
-        self.list.setSelectionMode(self.list.SingleSelection)
+        self.list.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectItems
+        )
+        self.list.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         self.proxy.setSourceModel(self.model)
         self.list.setModel(self.proxy)
@@ -208,8 +197,7 @@ class Switcher(QDialog):
         self.filter.sig_down_key_pressed.connect(self.next_row)
         self.filter.sig_enter_key_pressed.connect(self.enter)
 
-        self.edit.textChanged.connect(self.sig_text_changed)
-        self.edit.textChanged.connect(lambda: self._search_timer.start())
+        self.edit.textChanged.connect(self._on_search_text_changed)
         self.edit.returnPressed.connect(self.enter)
 
         self.list.clicked.connect(self.enter)
@@ -221,6 +209,7 @@ class Switcher(QDialog):
         self.edit.setFocus()
 
     # ---- Helper methods
+    # -------------------------------------------------------------------------
     def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
@@ -234,6 +223,7 @@ class Switcher(QDialog):
             self.set_height()
 
     # ---- API
+    # -------------------------------------------------------------------------
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
@@ -441,7 +431,7 @@ class Switcher(QDialog):
         self.sig_item_changed.emit(self.current_item())
 
     # ---- Qt overrides
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @Slot()
     @Slot(QListWidgetItem)
     def enter(self, itemClicked=None):
@@ -455,22 +445,21 @@ class Switcher(QDialog):
                 item, mode, self.search_text_without_mode()
             )
 
-    def accept(self):
-        """Override Qt method."""
-        super(Switcher, self).accept()
-
     def reject(self):
         """Override Qt method."""
         # This prevents calling _on_search_text_changed, which unnecessarily
         # tries to populate the switcher when we're closing it.
-        self.edit.blockSignals(True)
-        self.set_search_text('')
-        self.edit.blockSignals(False)
+        with signals_blocked(self.edit):
+            self.set_search_text('')
+
+        # Reset mode
+        self._mode_on = ""
 
         self.sig_rejected.emit()
-        super(Switcher, self).reject()
+        super().reject()
 
     # ---- Helper methods: Lineedit widget
+    # -------------------------------------------------------------------------
     def search_text(self):
         """Get the normalized (lowecase) content of the search text."""
         return to_text_string(self.edit.text()).lower()
@@ -489,6 +478,7 @@ class Switcher(QDialog):
         """Set the content of the search text."""
         self.edit.setText(string)
 
+    @qdebounced(timeout=250)
     def _on_search_text_changed(self):
         """Actions to take when the search text has changed."""
         if self.search_text() != "":
@@ -511,6 +501,7 @@ class Switcher(QDialog):
             self.setup()
 
     # ---- Helper methods: List widget
+    # -------------------------------------------------------------------------
     def _is_separator(self, item):
         """Check if item is an separator item (SwitcherSeparatorItem)."""
         return isinstance(item, SwitcherSeparatorItem)
@@ -546,7 +537,8 @@ class Switcher(QDialog):
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(
-            proxy_index, selection_model.ClearAndSelect)
+            proxy_index, selection_model.ClearAndSelect
+        )
 
         # Ensure that the selected item is visible
         self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)

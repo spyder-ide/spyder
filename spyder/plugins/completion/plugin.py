@@ -155,20 +155,6 @@ class CompletionPlugin(SpyderPluginV2):
         Path to a file to open with the editor.
     """
 
-    sig_editor_rpc = Signal(str, tuple, dict)
-    """
-    This signal is used to perform remote calls in the editor.
-
-    Parameters
-    ----------
-    method: str
-        Name of the method to call in the editor.
-    args: tuple
-        Tuple containing the positional arguments to perform the call.
-    kwargs: dict
-        Dictionary containing the optional arguments to perform the call.
-    """
-
     sig_stop_completions = Signal(str)
     """
     This signal is used to stop completion services on other Spyder plugins
@@ -270,16 +256,6 @@ class CompletionPlugin(SpyderPluginV2):
 
     def on_initialize(self):
         self.sig_interpreter_changed.connect(self.update_completion_status)
-
-        # Do not start providers on tests unless necessary
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                # Prevent providers from receiving configuration updates
-                for provider_name in self.providers:
-                    provider_info = self.providers[provider_name]
-                    CONF.unobserve_configuration(provider_info['instance'])
-                return
-
         self.start_all_providers()
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -386,26 +362,29 @@ class CompletionPlugin(SpyderPluginV2):
 
     def can_close(self) -> bool:
         """Check if any provider has any pending task."""
-        can_close = False
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider = provider_info['instance']
-                provider_can_close = provider.can_close()
-                can_close |= provider_can_close
-        return can_close
+                if not provider.can_close():
+                    return False
+        return True
 
     def on_close(self, cancelable=False) -> bool:
         """Check if any provider has any pending task before closing."""
-        can_close = False
+        can_close = True
         for provider_name in self.providers:
             provider_info = self.providers[provider_name]
             if provider_info['status'] == self.RUNNING:
                 provider = provider_info['instance']
                 provider_can_close = provider.can_close()
-                can_close |= provider_can_close
+                can_close = can_close and provider_can_close
+                logger.debug(
+                    f"Provider {provider_name} can close: {provider_can_close}"
+                )
                 if provider_can_close:
                     provider.shutdown()
+
         return can_close
 
     def after_configuration_update(self, options: List[Union[tuple, str]]):
@@ -433,11 +412,6 @@ class CompletionPlugin(SpyderPluginV2):
                         self.unregister_statusbar(provider_name)
                 elif option_name == 'provider_configuration':
                     providers_to_update |= {provider_name}
-
-        # Update entries in the source menu
-        # FIXME: Delete this after CONF is moved to an observer pattern.
-        # and the editor migration starts
-        self.sig_editor_rpc.emit('update_source_menu', (options,), {})
 
     def on_mainwindow_visible(self):
         for provider_name in self.providers:

@@ -17,11 +17,12 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder import __version__
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
@@ -68,7 +69,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 # Fix foreground color in the light theme
                 if not is_dark_interface():
                     item.setForeground(
-                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                        2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )
             else:
                 item.setIcon(0, ima.icon('dependency_error'))
@@ -77,7 +78,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 # Fix foreground color in the light theme
                 if not is_dark_interface():
                     item.setForeground(
-                        2, QColor(QStylePalette.COLOR_BACKGROUND_1)
+                        2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )
 
             # Add to tree
@@ -127,7 +128,7 @@ class DependenciesDialog(QDialog):
 
         self.treewidget = DependenciesTreeWidget(self)
         self.copy_btn = QPushButton(_("Copy to clipboard"))
-        ok_btn = QDialogButtonBox(QDialogButtonBox.Ok)
+        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
         self.setWindowTitle(

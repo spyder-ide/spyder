@@ -15,13 +15,13 @@ from qtpy.QtWidgets import QApplication
 
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.console.utils.ansihandler import ANSIEscapeCodeHandler
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 
 
-MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
-MAIN_DEFAULT_FG_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
+MAIN_DEFAULT_FG_COLOR = SpyderPalette.COLOR_TEXT_1
 MAIN_ERROR_FG_COLOR = SpyderPalette.COLOR_ERROR_1
-MAIN_TB_FG_COLOR = QStylePalette.COLOR_ACCENT_3
+MAIN_TB_FG_COLOR = SpyderPalette.COLOR_ACCENT_3
 MAIN_PROMPT_FG_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 def insert_text_to(cursor, text, fmt):
@@ -146,6 +146,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     sig_exception_occurred = Signal(dict)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
+
+    CONF_SECTION = 'internal_console'
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)

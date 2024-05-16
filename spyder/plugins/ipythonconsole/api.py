@@ -127,3 +127,9 @@ class ClientContextMenuActions:
     # Svg section
     CopySvg = 'copy_svg'
     SaveSvg = 'save_svg'
+
+
+class IPythonConsoleWidgetCornerWidgets:
+    ResetButton = "reset_button"
+    InterruptButton = "interrupt_button"
+    TimeElapsedLabel = "time_elapsed_label"

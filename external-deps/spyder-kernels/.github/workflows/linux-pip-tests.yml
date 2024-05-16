@@ -46,8 +46,6 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install -e .[test]
-          # Zict 2.1.0 is not compatible with Python 3
-          pip install zict==2.0.0
       - name: Show environment information
         shell: bash -l {0}
         run: |

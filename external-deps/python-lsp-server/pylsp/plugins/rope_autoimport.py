@@ -1,6 +1,7 @@
 # Copyright 2022- Python Language Server Contributors.
 
 import logging
+import threading
 from typing import Any, Dict, Generator, List, Optional, Set, Union
 
 import parso
@@ -25,6 +26,55 @@ MAX_RESULTS_COMPLETIONS = 1000
 MAX_RESULTS_CODE_ACTIONS = 5
 
 
+class AutoimportCache:
+    """Handles the cache creation."""
+
+    def __init__(self):
+        self.thread = None
+
+    def reload_cache(
+        self,
+        config: Config,
+        workspace: Workspace,
+        files: Optional[List[Document]] = None,
+        single_thread: Optional[bool] = True,
+    ):
+        if self.is_blocked():
+            return
+
+        memory: bool = config.plugin_settings("rope_autoimport").get("memory", False)
+        rope_config = config.settings().get("rope", {})
+        autoimport = workspace._rope_autoimport(rope_config, memory)
+        resources: Optional[List[Resource]] = (
+            None
+            if files is None
+            else [document._rope_resource(rope_config) for document in files]
+        )
+
+        if single_thread:
+            self._reload_cache(workspace, autoimport, resources)
+        else:
+            # Creating the cache may take 10-20s for a environment with 5k python modules. That's
+            # why we decided to move cache creation into its own thread.
+            self.thread = threading.Thread(
+                target=self._reload_cache, args=(workspace, autoimport, resources)
+            )
+            self.thread.start()
+
+    def _reload_cache(
+        self,
+        workspace: Workspace,
+        autoimport: AutoImport,
+        resources: Optional[List[Resource]] = None,
+    ):
+        task_handle = PylspTaskHandle(workspace)
+        autoimport.generate_cache(task_handle=task_handle, resources=resources)
+        autoimport.generate_modules_cache(task_handle=task_handle)
+
+    def is_blocked(self):
+        return self.thread and self.thread.is_alive()
+
+
 @hookimpl
 def pylsp_settings() -> Dict[str, Dict[str, Dict[str, Any]]]:
     # Default rope_completion to disabled
@@ -44,7 +94,6 @@ def pylsp_settings() -> Dict[str, Dict[str, Dict[str, Any]]]:
     }
 
 
-# pylint: disable=too-many-return-statements
 def _should_insert(expr: tree.BaseNode, word_node: tree.Leaf) -> bool:
     """
     Check if we should insert the word_node on the given expr.
@@ -164,7 +213,7 @@ def _process_statements(
                 "kind": "quickfix",
                 "edit": {"changes": {doc_uri: [edit]}},
                 # data is a supported field for codeAction responses
-                # See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeAction  # pylint: disable=line-too-long
+                # See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeAction
                 "data": {"sortText": _sort_import(score)},
             }
         else:
@@ -175,7 +224,7 @@ def get_names(script: Script) -> Set[str]:
     """Get all names to ignore from the current file."""
     raw_names = script.get_names(definitions=True)
     log.debug(raw_names)
-    return set(name.name for name in raw_names)
+    return {name.name for name in raw_names}
 
 
 @hookimpl
@@ -191,7 +240,7 @@ def pylsp_completions(
         not config.plugin_settings("rope_autoimport")
         .get("completions", {})
         .get("enabled", True)
-    ):
+    ) or cache.is_blocked():
         return []
 
     line = document.lines[position["line"]]
@@ -207,13 +256,11 @@ def pylsp_completions(
     )
     autoimport = workspace._rope_autoimport(rope_config)
     suggestions = list(autoimport.search_full(word, ignored_names=ignored_names))
-    results = list(
-        sorted(
-            _process_statements(
-                suggestions, document.uri, word, autoimport, document, "completions"
-            ),
-            key=lambda statement: statement["sortText"],
-        )
+    results = sorted(
+        _process_statements(
+            suggestions, document.uri, word, autoimport, document, "completions"
+        ),
+        key=lambda statement: statement["sortText"],
     )
     if len(results) > MAX_RESULTS_COMPLETIONS:
         results = results[:MAX_RESULTS_COMPLETIONS]
@@ -229,7 +276,7 @@ def _get_score(
 ) -> int:
     import_length = len("import")
     full_statement_score = len(full_statement) - import_length
-    suggested_name_score = ((len(suggested_name) - len(desired_name))) ** 2
+    suggested_name_score = (len(suggested_name) - len(desired_name)) ** 2
     source_score = 20 * source
     return suggested_name_score + full_statement_score + source_score
 
@@ -256,7 +303,7 @@ def pylsp_code_actions(
     config: Config,
     workspace: Workspace,
     document: Document,
-    range: Dict,  # pylint: disable=redefined-builtin
+    range: Dict,
     context: Dict,
 ) -> List[Dict]:
     """
@@ -283,7 +330,7 @@ def pylsp_code_actions(
         not config.plugin_settings("rope_autoimport")
         .get("code_actions", {})
         .get("enabled", True)
-    ):
+    ) or cache.is_blocked():
         return []
 
     log.debug(f"textDocument/codeAction: {document} {range} {context}")
@@ -298,18 +345,16 @@ def pylsp_code_actions(
         autoimport = workspace._rope_autoimport(rope_config)
         suggestions = list(autoimport.search_full(word))
         log.debug("autoimport: suggestions: %s", suggestions)
-        results = list(
-            sorted(
-                _process_statements(
-                    suggestions,
-                    document.uri,
-                    word,
-                    autoimport,
-                    document,
-                    "code_actions",
-                ),
-                key=lambda statement: statement["data"]["sortText"],
-            )
+        results = sorted(
+            _process_statements(
+                suggestions,
+                document.uri,
+                word,
+                autoimport,
+                document,
+                "code_actions",
+            ),
+            key=lambda statement: statement["data"]["sortText"],
         )
 
         if len(results) > MAX_RESULTS_CODE_ACTIONS:
@@ -319,29 +364,13 @@ def pylsp_code_actions(
     return code_actions
 
 
-def _reload_cache(
-    config: Config, workspace: Workspace, files: Optional[List[Document]] = None
-):
-    memory: bool = config.plugin_settings("rope_autoimport").get("memory", False)
-    rope_config = config.settings().get("rope", {})
-    autoimport = workspace._rope_autoimport(rope_config, memory)
-    task_handle = PylspTaskHandle(workspace)
-    resources: Optional[List[Resource]] = (
-        None
-        if files is None
-        else [document._rope_resource(rope_config) for document in files]
-    )
-    autoimport.generate_cache(task_handle=task_handle, resources=resources)
-    autoimport.generate_modules_cache(task_handle=task_handle)
-
-
 @hookimpl
 def pylsp_initialize(config: Config, workspace: Workspace):
     """Initialize AutoImport.
 
     Generates the cache for local and global items.
     """
-    _reload_cache(config, workspace)
+    cache.reload_cache(config, workspace)
 
 
 @hookimpl
@@ -350,13 +379,13 @@ def pylsp_document_did_open(config: Config, workspace: Workspace):
 
     Generates the cache for local and global items.
     """
-    _reload_cache(config, workspace)
+    cache.reload_cache(config, workspace)
 
 
 @hookimpl
 def pylsp_document_did_save(config: Config, workspace: Workspace, document: Document):
     """Update the names associated with this document."""
-    _reload_cache(config, workspace, [document])
+    cache.reload_cache(config, workspace, [document])
 
 
 @hookimpl
@@ -368,6 +397,9 @@ def pylsp_workspace_configuration_changed(config: Config, workspace: Workspace):
     Generates the cache for local and global items.
     """
     if config.plugin_settings("rope_autoimport").get("enabled", False):
-        _reload_cache(config, workspace)
+        cache.reload_cache(config, workspace)
     else:
         log.debug("autoimport: Skipping cache reload.")
+
+
+cache: AutoimportCache = AutoimportCache()

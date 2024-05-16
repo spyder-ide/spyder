@@ -82,7 +82,7 @@ apk add py3-lsp-server
 Installing these plugins will add extra functionality to the language server:
 
 - [pylsp-mypy](https://github.com/Richardk2n/pylsp-mypy): [MyPy](http://mypy-lang.org/) type checking for Python >=3.8.
-- [pyls-isort](https://github.com/chantera/python-lsp-isort): code formatting using [isort](https://github.com/PyCQA/isort) (automatic import sorting).
+- [python-lsp-isort](https://github.com/chantera/python-lsp-isort): code formatting using [isort](https://github.com/PyCQA/isort) (automatic import sorting).
 - [python-lsp-black](https://github.com/python-lsp/python-lsp-black): code formatting using [Black](https://github.com/psf/black).
 - [pyls-memestra](https://github.com/QuantStack/pyls-memestra): detecting the use of deprecated APIs.
 - [pylsp-rope](https://github.com/python-rope/pylsp-rope): Extended refactoring capabilities using [Rope](https://github.com/python-rope/rope).
@@ -101,7 +101,7 @@ Like all language servers, configuration can be passed from the client that talk
 `python-lsp-server` depends on other tools, like flake8 and pycodestyle. These tools can be configured via settings passed from the client (as above), or alternatively from other configuration sources. The following sources are available:
 
 - `pycodestyle`: discovered in `~/.config/pycodestyle`, `setup.cfg`, `tox.ini` and `pycodestyle.cfg`.
-- `flake8`: discovered in `~/.config/flake8`, `.flake8`, `setup.cfg` and `tox.ini`
+- `flake8`: discovered in `.flake8`, `setup.cfg` and `tox.ini`
 
 The default configuration sources are `pycodestyle` and `pyflakes`. If you would like to use `flake8`, you will need to:
 
@@ -183,6 +183,13 @@ To run the test suite:
 ```sh
 # requires: pip install ".[test]" (see above)
 pytest
+```
+
+Running ruff as a linter and code formatter on the repo:
+```sh
+ruff check .  # linter
+ruff check --fix .  # fix all auto-fixable lint issues
+ruff format .  # format the document
 ```
 
 After adding configuration options to `schema.json`, refresh the `CONFIGURATION.md` file with

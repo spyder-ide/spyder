@@ -17,7 +17,7 @@ import logging
 from typing import Optional
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.widgets import PluginMainWidgetActions, PluginMainWidgetWidgets
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (
@@ -32,7 +33,7 @@ from spyder.api.widgets.menus import (
     OptionsMenuSections,
     PluginMainWidgetMenus
 )
-from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner
@@ -48,21 +49,7 @@ from spyder.widgets.tabs import Tabs
 logger = logging.getLogger(__name__)
 
 
-class PluginMainWidgetWidgets:
-    CornerWidget = 'corner_widget'
-    MainToolbar = 'main_toolbar_widget'
-    OptionsToolButton = 'options_button_widget'
-    Spinner = 'spinner_widget'
-
-
-class PluginMainWidgetActions:
-    ClosePane = 'close_pane'
-    DockPane = 'dock_pane'
-    UndockPane = 'undock_pane'
-    LockUnlockPosition = 'lock_unlock_position'
-
-
-class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
+class PluginMainWidget(QWidget, SpyderWidgetMixin):
     """
     Spyder plugin main widget class.
 
@@ -219,7 +206,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)
@@ -257,7 +244,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
         self._spinner = None
 
         if self.ENABLE_SPINNER:
-            self._spinner = create_waitspinner(size=16, parent=self)
+            self._spinner = create_waitspinner(
+                size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
+            )
 
         self._corner_widget = MainCornerWidget(
             parent=self,
@@ -279,7 +268,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             parent=self,
             title=_("Main widget corner toolbar"),
         )
-        self._corner_toolbar.ID = 'corner_toolbar',
+        self._corner_toolbar.ID = 'corner_toolbar'
 
         TOOLBAR_REGISTRY.register_reference(
             self._corner_toolbar, self._corner_toolbar.ID,
@@ -348,16 +337,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
             icon=self.create_icon('tooloptions'),
         )
 
-        if self.ENABLE_SPINNER:
-            self.add_corner_widget(
-                PluginMainWidgetWidgets.Spinner,
-                self._spinner,
-            )
+        self.add_corner_widget(self._options_button)
 
-        self.add_corner_widget(
-            PluginMainWidgetWidgets.OptionsToolButton,
-            self._options_button,
-        )
+        if self.ENABLE_SPINNER:
+            self.add_corner_widget(self._spinner)
 
         # Widget setup
         # --------------------------------------------------------------------
@@ -517,28 +500,26 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def add_corner_widget(self, widget_id, widget, before=None):
+    def add_corner_widget(self, action_or_widget, before=None):
         """
         Add widget to corner, that is to the left of the last added widget.
 
         Parameters
         ----------
-        widget_id: str
-            Unique name of the widget.
-        widget: QWidget
-            Any QWidget to add in the corner widget.
-        before: QWidget
-            Insert the widget before this widget.
+        action_or_widget: QAction or QWidget
+            Any action or widget to add to the corner widget.
+        before: QAction or QWidget
+            Insert action_or_widget before this one.
 
         Notes
         -----
         By default widgets are added to the left of the last corner widget.
 
         The central widget provides an options menu button and a spinner so any
-        additional widgets will be placed to the left of the spinner,
-        if visible.
+        additional widgets will be placed by default to the left of the
+        spinner, if visible.
         """
-        self._corner_widget.add_widget(widget_id, widget)
+        self._corner_widget.add_widget(action_or_widget, before=before)
 
     def get_corner_widget(self, name):
         """
