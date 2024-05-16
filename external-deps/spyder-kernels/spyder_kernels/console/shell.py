@@ -87,7 +87,19 @@ class SpyderShell(ZMQInteractiveShell):
         """Enable matplotlib."""
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
-        gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
+
+        enabled_gui, backend = super().enable_matplotlib(gui)
+
+        # This is necessary for IPython 8.24+, which returns None after
+        # enabling the Inline backend.
+        if enabled_gui is None and gui == "inline":
+            enabled_gui = "inline"
+        gui = enabled_gui
+
+        # To easily track the current interactive backend
+        if self.kernel.interactive_backend is None:
+            self.kernel.interactive_backend = gui if gui != "inline" else None
+
         if self.update_gui_frontend:
             try:
                 self.kernel.frontend_call(
@@ -95,6 +107,7 @@ class SpyderShell(ZMQInteractiveShell):
                 ).update_matplotlib_gui(gui)
             except Exception:
                 pass
+
         return gui, backend
 
     # --- For Pdb namespace integration

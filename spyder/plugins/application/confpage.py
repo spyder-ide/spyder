@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
 
 from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
+from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string
 
@@ -30,7 +31,10 @@ HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
 class ApplicationConfigPage(PluginConfigPage):
-    APPLY_CONF_PAGE_SETTINGS = True
+
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+        self.pre_apply_callback = self.perform_checks
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -65,8 +69,16 @@ class ApplicationConfigPage(PluginConfigPage):
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
         popup_console_box = newcb(_("Show internal Spyder errors to report "
                                     "them to Github"), 'show_internal_errors')
-        check_updates = newcb(_("Check for updates on startup"),
-                              'check_updates_on_startup')
+        check_update_cb = newcb(
+            _("Check for updates on startup"),
+            'check_updates_on_startup',
+            section='update_manager'
+        )
+        stable_only_cb = newcb(
+            _("Check for stable releases only"),
+            'check_stable_only',
+            section='update_manager'
+        )
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -88,7 +100,8 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(single_instance_box)
         advanced_layout.addWidget(prompt_box)
         advanced_layout.addWidget(popup_console_box)
-        advanced_layout.addWidget(check_updates)
+        advanced_layout.addWidget(check_update_cb)
+        advanced_layout.addWidget(stable_only_cb)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
@@ -178,40 +191,43 @@ class ApplicationConfigPage(PluginConfigPage):
         screen_resolution_label.setWordWrap(True)
         screen_resolution_label.setOpenExternalLinks(True)
 
-        normal_radio = self.create_radiobutton(
-                                _("Normal"),
-                                'normal_screen_resolution',
-                                button_group=screen_resolution_bg)
+        self.normal_radio = self.create_radiobutton(
+            _("Normal"),
+            'normal_screen_resolution',
+            button_group=screen_resolution_bg
+        )
         auto_scale_radio = self.create_radiobutton(
-                                _("Enable auto high DPI scaling"),
-                                'high_dpi_scaling',
-                                button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays"),
-                                restart=True)
+            _("Enable auto high DPI scaling"),
+            'high_dpi_scaling',
+            button_group=screen_resolution_bg,
+            tip=_("Set this for high DPI displays"),
+            restart=True
+        )
 
-        custom_scaling_radio = self.create_radiobutton(
-                                _("Set a custom high DPI scaling"),
-                                'high_dpi_custom_scale_factor',
-                                button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays when "
-                                      "auto scaling does not work"),
-                                restart=True)
+        self.custom_scaling_radio = self.create_radiobutton(
+            _("Set a custom high DPI scaling"),
+            'high_dpi_custom_scale_factor',
+            button_group=screen_resolution_bg,
+            tip=_("Set this for high DPI displays when auto scaling does not "
+                  "work"),
+            restart=True
+        )
 
         self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
-            tip=_("Enter values for different screens "
-                  "separated by semicolons ';'.\n"
-                  "Float values are supported"),
+            tip=_("Enter values for different screens separated by semicolons "
+                  "';'.\n Float values are supported"),
             alignment=Qt.Horizontal,
-            regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
-            restart=True)
+            regex=r"[1-9]+(?:\.[0-9]*)(;[1-9]+(?:\.[0-9]*))*",
+            restart=True
+        )
 
-        normal_radio.radiobutton.toggled.connect(
+        self.normal_radio.radiobutton.toggled.connect(
             self.custom_scaling_edit.textbox.setDisabled)
         auto_scale_radio.radiobutton.toggled.connect(
             self.custom_scaling_edit.textbox.setDisabled)
-        custom_scaling_radio.radiobutton.toggled.connect(
+        self.custom_scaling_radio.radiobutton.toggled.connect(
             self.custom_scaling_edit.textbox.setEnabled)
 
         # Layout Screen resolution
@@ -219,15 +235,15 @@ class ApplicationConfigPage(PluginConfigPage):
         screen_resolution_layout.addWidget(screen_resolution_label)
 
         screen_resolution_inner_layout = QGridLayout()
-        screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
+        screen_resolution_inner_layout.addWidget(self.normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(
             auto_scale_radio.radiobutton, 1, 0)
         screen_resolution_inner_layout.addWidget(
             auto_scale_radio.radiobutton.help_label, 1, 1)
         screen_resolution_inner_layout.addWidget(
-            custom_scaling_radio.radiobutton, 2, 0)
+            self.custom_scaling_radio.radiobutton, 2, 0)
         screen_resolution_inner_layout.addWidget(
-            custom_scaling_radio.radiobutton.help_label, 2, 1)
+            self.custom_scaling_radio.radiobutton.help_label, 2, 1)
         screen_resolution_inner_layout.addWidget(
             self.custom_scaling_edit.textbox, 2, 2)
         screen_resolution_inner_layout.addWidget(
@@ -250,29 +266,22 @@ class ApplicationConfigPage(PluginConfigPage):
 
         self.create_tab(_("Advanced settings"), advanced_widget)
 
-    def apply_settings(self, options):
-        if 'high_dpi_custom_scale_factors' in options:
-            scale_factors = self.get_option(
-                'high_dpi_custom_scale_factors').split(';')
-            change_min_scale_factor = False
-            for idx, scale_factor in enumerate(scale_factors[:]):
-                scale_factor = float(scale_factor)
-                if scale_factor < 1.0:
-                    change_min_scale_factor = True
-                    scale_factors[idx] = "1.0"
-            if change_min_scale_factor:
-                scale_factors_text = ";".join(scale_factors)
-                QMessageBox.critical(
-                    self, _("Error"),
-                    _("We're sorry but setting a scale factor bellow 1.0 "
-                      "isn't possible. Any scale factor bellow 1.0 will "
-                      "be set to 1.0"),
-                    QMessageBox.Ok)
-                self.custom_scaling_edit.textbox.setText(scale_factors_text)
-                self.set_option(
-                    'high_dpi_custom_scale_factors', scale_factors_text)
+    def perform_checks(self):
+        # Prevent setting an empty scale factor in case users try to do it.
+        # See spyder-ide/spyder#21733 for the details.
+        if self.custom_scaling_radio.radiobutton.isChecked():
+            scale_factor = self.custom_scaling_edit.textbox.text()
+            if scale_factor == "":
+                self.normal_radio.radiobutton.setChecked(True)
                 self.changed_options.add('high_dpi_custom_scale_factors')
-        self.plugin.apply_settings()
+
+        um = self.plugin.get_plugin(Plugins.UpdateManager, error=False)
+        if (
+            um
+            and ('update_manager', 'check_stable_only') in self.changed_options
+        ):
+            um.update_manager_status.set_no_status()
+
 
     def _save_lang(self):
         """
@@ -288,9 +297,11 @@ class ApplicationConfigPage(PluginConfigPage):
             self.set_option('interface_language', value)
         except Exception:
             QMessageBox.critical(
-                self, _("Error"),
+                self,
+                _("Error"),
                 _("We're sorry but the following error occurred while trying "
                   "to set your selected language:<br><br>"
                   "<tt>{}</tt>").format(traceback.format_exc()),
-                QMessageBox.Ok)
+                QMessageBox.Ok
+            )
             return

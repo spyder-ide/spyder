@@ -17,7 +17,6 @@ import os.path as osp
 # Third party imports
 from qdarkstyle.colorsystem import Gray
 import qstylizer.style
-from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
@@ -31,7 +30,7 @@ from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
@@ -68,17 +67,11 @@ class EditTabNamePopup(QLineEdit):
         self.installEventFilter(self)
 
         # Clean borders and no shadow to blend with tab
-        if PYQT5:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint |
-                Qt.NoDropShadowWindowHint
-            )
-        else:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint
-            )
+        self.setWindowFlags(
+            Qt.Popup |
+            Qt.FramelessWindowHint |
+            Qt.NoDropShadowWindowHint
+        )
         self.setFrame(False)
 
     def eventFilter(self, widget, event):
@@ -176,16 +169,16 @@ class CloseTabButton(QToolButton):
         self.setIconSize(QSize(size, size))
 
         # Colors for different states
-        self._selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
-        self._not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_4
+        self._selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
+        self._not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_4
 
-        self._hover_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
-        self._hover_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+        self._hover_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
+        self._hover_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
 
         self._clicked_selected_tab_color = (
             Gray.B70 if is_dark_interface() else Gray.B80
         )
-        self._clicked_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+        self._clicked_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
 
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color
@@ -454,7 +447,7 @@ class BaseTabs(QTabWidget):
 
         self.browse_tabs_menu = SpyderMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
-        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
+        self.browse_button.setPopupMode(QToolButton.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 

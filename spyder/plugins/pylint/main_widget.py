@@ -24,8 +24,8 @@ import pylint
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
-from qtpy.QtWidgets import (QInputDialog, QLabel, QMessageBox, QTreeWidgetItem,
-                            QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
+                            QTreeWidgetItem, QStackedWidget, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -38,7 +38,7 @@ from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home, get_home_dir
 from spyder.utils.misc import get_python_executable
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
@@ -57,8 +57,8 @@ SUCCESS_COLOR = SpyderPalette.COLOR_SUCCESS_1
 
 # TODO: There should be some palette from the appearance plugin so this
 # is easier to use
-MAIN_TEXT_COLOR = QStylePalette.COLOR_TEXT_1
-MAIN_PREVRATE_COLOR = QStylePalette.COLOR_TEXT_1
+MAIN_TEXT_COLOR = SpyderPalette.COLOR_TEXT_1
+MAIN_PREVRATE_COLOR = SpyderPalette.COLOR_TEXT_1
 
 
 class PylintWidgetActions:
@@ -336,7 +336,7 @@ class PylintWidget(PluginMainWidget):
                 pass
 
         # Widget setup
-        self.filecombo.setInsertPolicy(self.filecombo.InsertAtTop)
+        self.filecombo.setInsertPolicy(QComboBox.InsertPolicy.InsertAtTop)
         for fname in self.curr_filenames[::-1]:
             self.set_filename(fname)
 

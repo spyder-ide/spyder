@@ -18,18 +18,21 @@ import sys
 import psutil
 from qtpy.QtCore import QCoreApplication, Qt
 from qtpy.QtGui import QColor, QIcon, QPalette, QPixmap, QPainter, QImage
-from qtpy.QtWidgets import QApplication, QSplashScreen
+from qtpy.QtWidgets import QSplashScreen
 from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_conda_based_app,
-    running_under_pytest)
+    get_conf_path,
+    get_debug_level,
+    is_conda_based_app,
+    running_under_pytest,
+)
 from spyder.config.manager import CONF
 from spyder.utils.external.dafsa.dafsa import DAFSA
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import running_installer_test
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, qapplication
 
 # For spyder-ide/spyder#7447.
@@ -174,15 +177,18 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 
     On some operating systems, warning messages might be displayed
     even if the actual message does not apply. This filter adds a
-    blacklist for messages that are being printed for no apparent
-    reason. Anything else will get printed in the internal console.
-
-    In DEV mode, all messages are printed.
+    blacklist for messages that are unnecessary. Anything else will
+    get printed in the internal console.
     """
     BLACKLIST = [
         'QMainWidget::resizeDocks: all sizes need to be larger than 0',
+        # This is shown at startup due to our splash screen but it's harmless
+        "fromIccProfile: failed minimal tag size sanity",
+        # This is shown when expanding/collpasing folders in the Files plugin
+        # after spyder-ide/spyder#
+        "QFont::setPixelSize: Pixel size <= 0 (0)",
     ]
-    if DEV or msg_string not in BLACKLIST:
+    if msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
 
 
@@ -215,9 +221,8 @@ def create_splash_screen(use_previous_factor=False):
         # qt-snippet-render-svg-to-qpixmap-for.html for details.
         if CONF.get('main', 'high_dpi_custom_scale_factor'):
             if not use_previous_factor:
-                factor = float(
-                    CONF.get('main', 'high_dpi_custom_scale_factors')
-                )
+                factors = CONF.get('main', 'high_dpi_custom_scale_factors')
+                factor = float(factors.split(":")[0])
             else:
                 factor = previous_factor
         else:
@@ -259,7 +264,7 @@ def set_links_color(app):
 
     This was taken from QDarkstyle, which is MIT licensed.
     """
-    color = QStylePalette.COLOR_ACCENT_4
+    color = SpyderPalette.COLOR_ACCENT_4
     qcolor = QColor(color)
 
     app_palette = app.palette()
@@ -298,20 +303,6 @@ def create_application():
     # Required for correct icon on GNOME/Wayland:
     if hasattr(app, 'setDesktopFileName'):
         app.setDesktopFileName('spyder')
-
-    # ---- Monkey patching QApplication
-    class FakeQApplication(QApplication):
-        """Spyder's fake QApplication"""
-        def __init__(self, args):
-            self = app  # analysis:ignore
-
-        @staticmethod
-        def exec_():
-            """Do nothing because the Qt mainloop is already running"""
-            pass
-
-    from qtpy import QtWidgets
-    QtWidgets.QApplication = FakeQApplication
 
     # ---- Monkey patching sys.exit
     def fake_sys_exit(arg=[]):

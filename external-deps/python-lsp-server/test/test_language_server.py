@@ -2,15 +2,13 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import os
-import time
 import sys
-
+import time
 from test.test_utils import ClientServerPair, send_initialize_request
 
+import pytest
 from flaky import flaky
 from pylsp_jsonrpc.exceptions import JsonRpcMethodNotFound
-import pytest
-
 
 RUNNING_IN_CI = bool(os.environ.get("CI"))
 
@@ -46,7 +44,7 @@ def test_initialize(client_server_pair):
 )
 def test_exit_with_parent_process_died(
     client_exited_server,
-):  # pylint: disable=redefined-outer-name
+):
     # language server should have already exited before responding
     lsp_server, mock_process = (
         client_exited_server.client,

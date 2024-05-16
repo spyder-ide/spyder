@@ -2,6 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import pytest
+
 from pylsp import uris
 from pylsp.plugins import signature
 from pylsp.workspace import Document

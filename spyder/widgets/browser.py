@@ -13,7 +13,7 @@ import sys
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
@@ -26,7 +26,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (action2button, create_plugin_layout,
                                     create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
@@ -99,7 +99,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
     def __init__(self, parent, handle_links=True, class_parent=None):
         class_parent = parent if class_parent is None else class_parent
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=class_parent)
         else:
             QWebEngineView.__init__(self, parent)
@@ -598,16 +598,16 @@ class FrameWebView(QFrame):
     def _apply_stylesheet(self, focus=False):
         """Apply stylesheet according to the current focus."""
         if focus:
-            border_color = QStylePalette.COLOR_ACCENT_3
+            border_color = SpyderPalette.COLOR_ACCENT_3
         else:
-            border_color = QStylePalette.COLOR_BACKGROUND_4
+            border_color = SpyderPalette.COLOR_BACKGROUND_4
 
         css = qstylizer.style.StyleSheet()
         css.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
         self.setStyleSheet(css.toString())

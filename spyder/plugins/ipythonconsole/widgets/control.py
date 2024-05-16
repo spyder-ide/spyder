@@ -12,7 +12,7 @@ from qtpy.QtGui import QColor, QTextFrameFormat
 from qtpy.QtWidgets import QTextEdit
 
 # Local imports
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
@@ -64,7 +64,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         ruler = QTextFrameFormat()
         ruler.setHeight(1)
         ruler.setWidth(10000)
-        ruler.setBackground(QColor(QStylePalette.COLOR_TEXT_1))
+        ruler.setBackground(QColor(SpyderPalette.COLOR_TEXT_1))
         cursor = self.textCursor()
         cursor.movePosition(cursor.End)
         cursor.insertFrame(ruler)

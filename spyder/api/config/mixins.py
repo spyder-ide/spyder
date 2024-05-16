@@ -38,10 +38,13 @@ class SpyderConfigurationAccessor:
     # config system.
     CONF_SECTION = None
 
-    def get_conf(self,
-                 option: ConfigurationKey,
-                 default: Union[NoDefault, BasicTypes] = NoDefault,
-                 section: Optional[str] = None):
+    def get_conf(
+        self,
+        option: ConfigurationKey,
+        default: Union[NoDefault, BasicTypes] = NoDefault,
+        section: Optional[str] = None,
+        secure: Optional[bool] = False,
+    ):
         """
         Get an option from the Spyder configuration system.
 
@@ -55,6 +58,9 @@ class SpyderConfigurationAccessor:
         section: str
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
+        secure: bool
+            If True, the option will be retrieved securely using the `keyring`
+            Python package.
 
         Returns
         -------
@@ -73,7 +79,7 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
 
-        return CONF.get(section, option, default)
+        return CONF.get(section, option, default, secure)
 
     def get_conf_options(self, section: Optional[str] = None):
         """
@@ -103,11 +109,14 @@ class SpyderConfigurationAccessor:
             )
         return CONF.options(section)
 
-    def set_conf(self,
-                 option: ConfigurationKey,
-                 value: BasicTypes,
-                 section: Optional[str] = None,
-                 recursive_notification: bool = True):
+    def set_conf(
+        self,
+        option: ConfigurationKey,
+        value: BasicTypes,
+        section: Optional[str] = None,
+        recursive_notification: bool = True,
+        secure: Optional[bool] = False,
+    ):
         """
         Set an option in the Spyder configuration system.
 
@@ -127,6 +136,9 @@ class SpyderConfigurationAccessor:
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            If True, the option will be saved securely using the `keyring`
+            Python package.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -138,12 +150,16 @@ class SpyderConfigurationAccessor:
             section,
             option,
             value,
-            recursive_notification=recursive_notification
+            recursive_notification=recursive_notification,
+            secure=secure,
         )
 
-    def remove_conf(self,
-                    option: ConfigurationKey,
-                    section: Optional[str] = None):
+    def remove_conf(
+        self,
+        option: ConfigurationKey,
+        section: Optional[str] = None,
+        secure: Optional[str] = False,
+    ):
         """
         Remove an option in the Spyder configuration system.
 
@@ -154,6 +170,9 @@ class SpyderConfigurationAccessor:
         section: Optional[str]
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
+        secure: bool
+            If True, the option will be removed securely using the `keyring`
+            Python package.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -161,7 +180,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        CONF.remove_option(section, option)
+        CONF.remove_option(section, option, secure)
 
     def get_conf_default(self,
                          option: ConfigurationKey,

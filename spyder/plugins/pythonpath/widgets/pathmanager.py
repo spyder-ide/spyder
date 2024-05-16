@@ -13,7 +13,7 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QVBoxLayout, QLabel)
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
@@ -57,7 +58,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
     def __init__(self, parent, path=None, project_path=None,
                  not_active_path=None, sync=True):
         """Path manager dialog."""
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QDialog.__init__(self, parent)
@@ -97,7 +98,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.selection_widgets = []
         self.right_buttons = self._setup_right_toolbar()
         self.listwidget = QListWidget(self)
-        self.bbox = QDialogButtonBox(
+        self.bbox = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)

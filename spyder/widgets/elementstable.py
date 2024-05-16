@@ -23,7 +23,7 @@ from superqt.utils import qdebounced
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
 
@@ -87,12 +87,12 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
                 self.columns['widgets'] = 1
 
         # Text styles
-        text_color = QStylePalette.COLOR_TEXT_1
+        text_color = SpyderPalette.COLOR_TEXT_1
         title_font_size = self.get_font(
             SpyderFontType.Interface, font_size_delta=1).pointSize()
 
         self.title_style = f'color:{text_color}; font-size:{title_font_size}pt'
-        self.additional_info_style = f'color:{QStylePalette.COLOR_TEXT_4}'
+        self.additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_4}'
         self.description_style = f'color:{text_color}'
 
     # ---- Qt overrides
@@ -280,7 +280,7 @@ class ElementsTable(HoverRowsTableView):
                 # Set background for the new row widget
                 new_row_widget = self.elements[row]["row_widget"]
                 new_row_widget.setStyleSheet(
-                    f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+                    f"background-color: {SpyderPalette.COLOR_BACKGROUND_3}"
                 )
 
                 # Set new current row widget
@@ -289,10 +289,10 @@ class ElementsTable(HoverRowsTableView):
     def _set_stylesheet(self, leave=False):
         """Set stylesheet when entering or leaving the widget."""
         css = qstylizer.style.StyleSheet()
-        bgcolor = QStylePalette.COLOR_BACKGROUND_1 if leave else "transparent"
+        bgcolor = SpyderPalette.COLOR_BACKGROUND_1 if leave else "transparent"
 
         css["QTableView::item"].setValues(
-            borderBottom=f"1px solid {QStylePalette.COLOR_BACKGROUND_4}",
+            borderBottom=f"1px solid {SpyderPalette.COLOR_BACKGROUND_4}",
             paddingLeft="5px",
             backgroundColor=bgcolor
         )
@@ -375,7 +375,7 @@ class ElementsTable(HoverRowsTableView):
         # Restore background color that's going to be painted on hovered row
         if self._current_row_widget is not None:
             self._current_row_widget.setStyleSheet(
-                f"background-color: {QStylePalette.COLOR_BACKGROUND_3}"
+                f"background-color: {SpyderPalette.COLOR_BACKGROUND_3}"
             )
         self._set_stylesheet()
 

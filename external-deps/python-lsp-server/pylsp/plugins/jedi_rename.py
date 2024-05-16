@@ -3,15 +3,13 @@
 
 import logging
 
-from pylsp import hookimpl, uris, _utils
+from pylsp import _utils, hookimpl, uris
 
 log = logging.getLogger(__name__)
 
 
 @hookimpl
-def pylsp_rename(
-    config, workspace, document, position, new_name
-):  # pylint: disable=unused-argument
+def pylsp_rename(config, workspace, document, position, new_name):
     log.debug(
         "Executing rename of %s to %s", document.word_at_position(position), new_name
     )
@@ -20,10 +18,9 @@ def pylsp_rename(
     try:
         refactoring = document.jedi_script().rename(**kwargs)
     except NotImplementedError as exc:
-        # pylint: disable=broad-exception-raised
         raise Exception(
             "No support for renaming in Python 2/3.5 with Jedi. "
-            "Consider using the rope_rename plugin instead"
+            "Consider using the pylsp-rope plugin instead"
         ) from exc
     log.debug("Finished rename: %s", refactoring.get_diff())
     changes = []

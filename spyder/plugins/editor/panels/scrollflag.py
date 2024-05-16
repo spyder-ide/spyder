@@ -3,18 +3,21 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """
-This module contains the Scroll Flag panel
+Scroll flag panel for the editor.
 """
 
 # Standard library imports
-import sys
+import logging
 from math import ceil
+import sys
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, QTimer
-from qtpy.QtGui import QPainter, QColor, QCursor
-from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
+from qtpy.QtCore import QSize, Qt, QThread
+from qtpy.QtGui import QColor, QCursor, QPainter
+from qtpy.QtWidgets import QApplication, QStyle, QStyleOptionSlider
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.plugins.completion.api import DiagnosticSeverity
@@ -22,9 +25,13 @@ from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
 
+# For logging
+logger = logging.getLogger(__name__)
+
+# Time to wait before refreshing flags
 REFRESH_RATE = 1000
 
-# Maximum number of flags to print in a file
+# Maximum number of flags to paint in a file
 MAX_FLAGS = 1000
 
 
@@ -50,12 +57,13 @@ class ScrollFlagArea(Panel):
         self._slider_range_brush = QColor(Qt.gray)
         self._slider_range_brush.setAlphaF(.5)
 
-        self._update_list_timer = QTimer(self)
-        self._update_list_timer.setSingleShot(True)
-        self._update_list_timer.timeout.connect(self.update_flags)
-
         # Dictionary with flag lists
         self._dict_flag_list = {}
+
+        # Thread to update flags on it.
+        self._update_flags_thread = QThread(None)
+        self._update_flags_thread.run = self._update_flags
+        self._update_flags_thread.finished.connect(self.update)
 
     def on_install(self, editor):
         """Manages install setup of the pane."""
@@ -80,8 +88,12 @@ class ScrollFlagArea(Panel):
         editor.sig_alt_left_mouse_pressed.connect(self.mousePressEvent)
         editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
-        editor.sig_flags_changed.connect(self.delayed_update_flags)
+        editor.sig_flags_changed.connect(self.update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
+
+        # This prevents that flags are updated while the user is moving the
+        # cursor, e.g. when typing.
+        editor.sig_cursor_position_changed.connect(self.update_flags)
 
     @property
     def slider(self):
@@ -89,7 +101,8 @@ class ScrollFlagArea(Panel):
         return self.editor.verticalScrollBar().isVisible()
 
     def closeEvent(self, event):
-        self._update_list_timer.stop()
+        self._update_flags_thread.quit()
+        self._update_flags_thread.wait()
         super().closeEvent(event)
 
     def sizeHint(self):
@@ -105,25 +118,11 @@ class ScrollFlagArea(Panel):
             self._facecolors[name] = QColor(color)
             self._edgecolors[name] = self._facecolors[name].darker(120)
 
-    def delayed_update_flags(self):
-        """
-        This function is called every time a flag is changed.
-        There is no need of updating the flags thousands of time by second,
-        as it is quite resources-heavy. This limits the calls to REFRESH_RATE.
-        """
-        if self._update_list_timer.isActive():
-            return
-
-        self._update_list_timer.start(REFRESH_RATE)
-
+    @qdebounced(timeout=REFRESH_RATE)
     def update_flags(self):
-        """
-        Update flags list.
+        """Update flags list in a thread."""
+        logger.debug("Updating current flags")
 
-        This parses the entire file, which can take a lot of time for
-        large files. Save all the flags in lists for painting during
-        paint events.
-        """
         self._dict_flag_list = {
             'error': [],
             'warning': [],
@@ -131,6 +130,13 @@ class ScrollFlagArea(Panel):
             'breakpoint': [],
         }
 
+        # Run this computation in a different thread to prevent freezing 
+        # the interface
+        if not self._update_flags_thread.isRunning():
+            self._update_flags_thread.start()
+
+    def _update_flags(self):
+        """Update flags list."""
         editor = self.editor
         block = editor.document().firstBlock()
         while block.isValid():
@@ -138,7 +144,6 @@ class ScrollFlagArea(Panel):
             data = block.userData()
             if data:
                 if data.code_analysis:
-                    # Paint the errors and warnings
                     for _, _, severity, _ in data.code_analysis:
                         if severity == DiagnosticSeverity.ERROR:
                             flag_type = 'error'
@@ -157,8 +162,6 @@ class ScrollFlagArea(Panel):
 
             block = block.next()
 
-        self.update()
-
     def paintEvent(self, event):
         """
         Override Qt method.
@@ -171,9 +174,19 @@ class ScrollFlagArea(Panel):
         """
         # The area in which the slider handle of the scrollbar may move.
         groove_rect = self.get_scrollbar_groove_rect()
-        # The scrollbar's scale factor ratio between pixel span height and
-        # value span height
-        scale_factor = groove_rect.height() / self.get_scrollbar_value_height()
+
+        # This is necessary to catch a possible error when the scrollbar
+        # has zero height.
+        # Fixes spyder-ide/spyder#21600
+        try:
+            # The scrollbar's scale factor ratio between pixel span height and
+            # value span height
+            scale_factor = (
+                groove_rect.height() / self.get_scrollbar_value_height()
+            )
+        except ZeroDivisionError:
+            scale_factor = 1
+
         # The vertical offset of the scroll flag area relative to the
         # top of the text editor.
         offset = groove_rect.y()

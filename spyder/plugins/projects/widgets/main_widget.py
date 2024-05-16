@@ -9,6 +9,7 @@
 # Standard library imports
 from collections import OrderedDict
 import configparser
+from contextlib import contextmanager
 import logging
 import os
 import os.path as osp
@@ -27,7 +28,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
-from spyder.config.utils import get_edit_extensions
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
@@ -195,9 +196,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         # -- Worker manager for calls to fzf
         self._worker_manager = WorkerManager(self)
 
-        # -- List of possible file extensions that can be opened in the Editor
-        self._edit_extensions = get_edit_extensions()
-
         # -- Signals
         self.sig_project_loaded.connect(self._setup_project)
 
@@ -231,22 +229,26 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.create_action(
             ProjectsActions.NewProject,
             text=_("New Project..."),
-            triggered=self.create_new_project)
+            triggered=self.create_new_project,
+            icon=self.create_icon("project_new"))
 
         self.create_action(
             ProjectsActions.OpenProject,
             text=_("Open Project..."),
-            triggered=lambda v: self.open_project())
+            triggered=lambda v: self.open_project(),
+            icon=self.create_icon("project_open"))
 
         self.close_project_action = self.create_action(
             ProjectsActions.CloseProject,
             text=_("Close Project"),
-            triggered=self.close_project)
+            triggered=self.close_project,
+            icon=self.create_icon("project_close"))
 
         self.delete_project_action = self.create_action(
             ProjectsActions.DeleteProject,
             text=_("Delete Project"),
-            triggered=self.delete_project)
+            triggered=self.delete_project,
+            icon=self.create_icon("project_delete"))
 
         self.clear_recent_projects_action = self.create_action(
             ProjectsActions.ClearRecentProjects,
@@ -256,6 +258,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.max_recent_action = self.create_action(
             ProjectsActions.MaxRecent,
             text=_("Maximum number of recent projects..."),
+            icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
         self.recent_project_menu = self.create_menu(
@@ -276,7 +279,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                 action,
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main)
-            
+
     def set_pane_empty(self):
         self.treewidget.hide()
         self.pane_empty.show()
@@ -396,13 +399,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         self._add_to_recent(path)
 
         self.set_conf('current_project_path', self.get_active_project_path())
-
         self._setup_menu_actions()
 
-        if workdir and osp.isdir(workdir):
-            self.sig_project_loaded.emit(workdir)
-        else:
-            self.sig_project_loaded.emit(path)
+        with self._disable_pdb_prevent_closing():
+            if workdir and osp.isdir(workdir):
+                self.sig_project_loaded.emit(workdir)
+            else:
+                self.sig_project_loaded.emit(path)
 
         self.watcher.start(path)
 
@@ -436,8 +439,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.set_conf('current_project_path', None)
             self._setup_menu_actions()
 
-            self.sig_project_closed.emit(path)
-            self.sig_project_closed[bool].emit(True)
+            with self._disable_pdb_prevent_closing():
+                self.sig_project_closed.emit(path)
+                self.sig_project_closed[bool].emit(True)
 
             # Hide pane.
             self.set_conf('visible_if_project_open', self.isVisible())
@@ -932,7 +936,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                         action = self.create_action(
                             name,
                             text=name,
-                            icon=self.create_icon('project'),
+                            icon=self.create_icon('project_spyder'),
                             triggered=self._build_opener(project),
                         )
 
@@ -996,6 +1000,28 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         return valid_projects
 
+    @contextmanager
+    def _disable_pdb_prevent_closing(self):
+        """
+        Context manager to disable the pdb_prevent_closing option before
+        opening/closing the previous/current open project files.
+
+        Notes
+        -----
+        * This is necessary to correctly do that when a console was left in
+          debugging mode.
+        """
+        try:
+            pdb_prevent_closing = self.get_conf(
+                "pdb_prevent_closing", section="debugger"
+            )
+            self.set_conf("pdb_prevent_closing", False, section="debugger")
+            yield
+        finally:
+            self.set_conf(
+                "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
+            )
+
     # ---- Private API for the Switcher
     # -------------------------------------------------------------------------
     def _call_fzf(self, search_text=""):
@@ -1044,7 +1070,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Filter files that can be opened in the editor
         result_list = [
             path for path in result_list
-            if osp.splitext(path)[1] in self._edit_extensions
+            if osp.splitext(path)[1] in EDIT_EXTENSIONS
         ]
 
         # Limit the number of results to not introduce lags when displaying

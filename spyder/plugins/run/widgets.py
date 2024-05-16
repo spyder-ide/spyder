@@ -25,13 +25,14 @@ import qstylizer.style
 from spyder.api.translations import _
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.run.api import (
     RunParameterFlags, WorkingDirSource, WorkingDirOpts,
     RunExecutionParameters, ExtendedRunExecutionParameters,
     RunExecutorConfigurationGroup, SupportedExecutionRunConfiguration)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.collapsible import CollapsibleWidget
@@ -82,7 +83,7 @@ class BaseRunConfigDialog(QDialog):
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
-        self.bbox = QDialogButtonBox(stdbtns)
+        self.bbox = SpyderDialogButtonBox(stdbtns)
 
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
@@ -831,11 +832,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         css["QLabel#run-header-label"].setValues(
             # Give it a background color to make it highlight over the other
             # widgets.
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
             # The left and right margins are a bit bigger to prevent the file
             # name from being too close to the borders in case it's too long.
             padding=f"{2 * AppStyle.MarginSize} {4 * AppStyle.MarginSize}",
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             # Add good enough margin with the widgets below it.
             marginBottom=f"{AppStyle.InnerContentPadding}px"
         )

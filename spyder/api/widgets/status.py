@@ -8,7 +8,7 @@
 """Status bar widgets."""
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_waitspinner
 
 
@@ -74,7 +74,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -187,8 +187,8 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         stylesheet = ("QToolTip {{background-color: {background_color};"
                       "color: {color};"
                       "border: none}}").format(
-                      background_color=QStylePalette.COLOR_ACCENT_2,
-                      color=QStylePalette.COLOR_TEXT_1
+                      background_color=SpyderPalette.COLOR_ACCENT_2,
+                      color=SpyderPalette.COLOR_TEXT_1
                       )
         return stylesheet
 

@@ -13,9 +13,9 @@ import uuid
 # Third-party imports
 from intervaltree import IntervalTree
 
-# --------------------- Code Folding Panel ------------------------------------
 
-
+# ---- For the code folding panel
+# -----------------------------------------------------------------------------
 class FoldingRegion:
     """Internal representation of a code folding region."""
 
@@ -98,6 +98,12 @@ class FoldingStatus(dict):
         values = dict.values(self)
         return [x.status for x in values]
 
+    def get(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return False
+
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
         return value.status
@@ -129,20 +135,32 @@ def merge_interval(parent, node):
     return node
 
 
-def merge_folding(ranges, current_tree, root):
+def merge_folding(ranges, file_lines, eol, current_tree, root):
     """Compare previous and current code folding tree information."""
     # Leave this import here to avoid importing Numpy (which is used by
     # textdistance) too early at startup.
     import textdistance
 
     folding_ranges = []
-    for starting_line, ending_line, text in ranges:
-        if ending_line > starting_line:
-            starting_line += 1
-            ending_line += 1
-            folding_repr = FoldingRegion(text, (starting_line, ending_line))
-            folding_ranges.append((starting_line, ending_line, folding_repr))
+    for folding_range in ranges:
+        start_line = folding_range['startLine']
+        end_line = folding_range['endLine']
 
+        if end_line > start_line:
+            # Get text region that corresponds to the folding range between
+            # start_line and end_line
+            lines_in_region = file_lines[start_line:end_line + 1]
+            text_region = eol.join(lines_in_region)
+
+            # Create data structure to represent the region
+            start_line += 1
+            end_line += 1
+            folding_region = FoldingRegion(text_region, (start_line, end_line))
+
+            # Add the region to the list of ranges
+            folding_ranges.append((start_line, end_line, folding_region))
+
+    # Compare new and current folding trees
     tree = IntervalTree.from_tuples(folding_ranges)
     changes = tree - current_tree
     deleted = current_tree - tree
@@ -154,6 +172,7 @@ def merge_folding(ranges, current_tree, root):
     changed_entry = next(changes_iter, None)
     non_merged = 0
 
+    # Update tree
     while deleted_entry is not None and changed_entry is not None:
         deleted_entry_i = deleted_entry.data
         changed_entry_i = changed_entry.data

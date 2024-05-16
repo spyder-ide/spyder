@@ -19,18 +19,43 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import QDir, QMimeData, Qt, QTimer, QUrl, Signal, Slot
+from qtpy.QtCore import (
+    QDir,
+    QMimeData,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    QUrl,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QFileSystemModel, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QProxyStyle, QStyle, QTextEdit,
-                            QToolTip, QTreeView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFileSystemModel,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProxyStyle,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTextEdit,
+    QToolTip,
+    QTreeView,
+    QVBoxLayout,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.config.main import NAME_FILTERS
@@ -147,6 +172,48 @@ class DirViewStyle(QProxyStyle):
             return 0
 
         return super().styleHint(hint, option, widget, return_data)
+
+
+class DirViewItemDelegate(QStyledItemDelegate):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._project_dir = ""
+
+    def set_project_dir(self, project_dir):
+        self._project_dir = project_dir
+
+    def initStyleOption(self, option, index):
+        """
+        To change the item icon when expanding a folder.
+
+        From https://stackoverflow.com/a/48531349/438386
+        """
+        super().initStyleOption(option, index)
+
+        if isinstance(option, QStyleOptionViewItem):
+            model = index.model()
+
+            if isinstance(model, QSortFilterProxyModel):
+                # This is necessary for Projects because it has a proxy model
+                is_dir = model.sourceModel().isDir(model.mapToSource(index))
+            else:
+                is_dir = model.isDir(index)
+
+            if is_dir:
+                # This is necessary because Projects has a root directory and
+                # we want to set a different icon for it.
+                if isinstance(model, QSortFilterProxyModel):
+                    dir_path = model.sourceModel().filePath(
+                        model.mapToSource(index)
+                    )
+                else:
+                    dir_path = None
+
+                if dir_path == self._project_dir:
+                    option.icon = ima.icon("project_spyder")
+                elif (option.state & QStyle.State_Open):
+                    option.icon = ima.icon("DirOpenIcon")
 
 
 # ---- Widgets
@@ -267,7 +334,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        if PYQT5:
+        if PYQT5 or PYQT6:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QTreeView.__init__(self, parent)
@@ -297,10 +364,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
         self._style = DirViewStyle(None)
         self._style.setParent(self)
         self.setStyle(self._style)
+        self.setItemDelegate(DirViewItemDelegate(self))
 
         # Setup
         self.setup_fs_model()
-        self.setSelectionMode(self.ExtendedSelection)
+        self.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection
+        )
         header.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Track mouse movements. This activates the mouseMoveEvent declared
@@ -865,7 +935,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
         data = QMimeData()
-        data.setUrls([QUrl(fname) for fname in self.get_selected_filenames()])
+        data.setUrls(
+            [
+                QUrl.fromLocalFile(fname)
+                for fname in self.get_selected_filenames()
+            ]
+        )
         drag = QDrag(self)
         drag.setMimeData(data)
         drag.exec_()
@@ -1007,9 +1082,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
             filters.setPlainText(", ".join(self.get_conf('name_filters')))
 
         # Dialog buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Reset |
-                                      QDialogButtonBox.Ok |
-                                      QDialogButtonBox.Cancel)
+        button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Reset
+            | QDialogButtonBox.Ok
+            | QDialogButtonBox.Cancel
+        )
         button_box.accepted.connect(handle_ok)
         button_box.rejected.connect(dialog.reject)
         button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)
@@ -1020,7 +1097,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def open(self, fnames=None):
         """Open files with the appropriate application"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         for fname in fnames:
             if osp.isfile(fname) and encoding.is_text_file(fname):
@@ -1046,7 +1123,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def open_external(self, fnames=None):
         """Open files with default application"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         for fname in fnames:
             self.open_outside_spyder([fname])
@@ -1116,7 +1193,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         multiple = len(fnames) > 1
         yes_to_all = None
@@ -1170,14 +1247,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         show_in_external_file_explorer(fnames)
 
     @Slot()
     def rename(self, fnames=None):
         """Rename files"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
@@ -1261,7 +1338,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_folder(self, basedir=None):
         """New folder."""
 
-        if basedir is None:
+        if basedir is None or isinstance(basedir, bool):
             basedir = self.get_selected_dir()
 
         title = _('New folder')
@@ -1293,7 +1370,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_file(self, basedir=None):
         """New file"""
 
-        if basedir is None:
+        if basedir is None or isinstance(basedir, bool):
             basedir = self.get_selected_dir()
 
         title = _("New file")
@@ -1313,7 +1390,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def run(self, fnames=None):
         """Run Python scripts"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         for fname in fnames:
             self.sig_run_requested.emit(fname)
@@ -1367,7 +1444,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def copy_file_clipboard(self, fnames=None):
         """Copy file(s)/folders(s) to clipboard."""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
@@ -1385,7 +1462,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def save_file_clipboard(self, fnames=None):
         """Paste file from clipboard into file/project explorer directory."""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
@@ -1472,7 +1549,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def open_interpreter(self, fnames=None):
         """Open interpreter"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         for path in sorted(fnames):
             self.sig_open_interpreter_requested.emit(path)
@@ -1682,7 +1759,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
-        self.fsmodel.setIconProvider(IconProvider(self))
+        self.fsmodel.setIconProvider(IconProvider())
 
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
@@ -1709,7 +1786,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_package(self, basedir=None):
         """New package"""
 
-        if basedir is None:
+        if basedir is None or isinstance(basedir, None):
             basedir = self.get_selected_dir()
 
         title = _('New package')
@@ -1720,7 +1797,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_module(self, basedir=None):
         """New module"""
 
-        if basedir is None:
+        if basedir is None or isinstance(basedir, bool):
             basedir = self.get_selected_dir()
 
         title = _("New module")

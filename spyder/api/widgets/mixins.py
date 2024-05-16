@@ -17,20 +17,27 @@ from typing import Any, Optional, Dict
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QImage, QPainter, QPixmap
+from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QSizePolicy, QToolBar, QWidget, QToolButton
 )
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.config.mixins import (
+    SpyderConfigurationAccessor,
+    SpyderConfigurationObserver
+)
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
+from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 
 
 class SpyderToolButtonMixin:
@@ -41,7 +48,7 @@ class SpyderToolButtonMixin:
     def create_toolbutton(self, name, text=None, icon=None,
                           tip=None, toggled=None, triggered=None,
                           autoraise=True, text_beside_icon=False,
-                          section=None, option=None):
+                          section=None, option=None, register=True):
         """
         Create a Spyder toolbutton.
         """
@@ -67,7 +74,7 @@ class SpyderToolButtonMixin:
             id_=name,
             plugin=self.PLUGIN_NAME,
             context_name=self.CONTEXT_NAME,
-            register_toolbutton=True
+            register_toolbutton=register
         )
         toolbutton.name = name
 
@@ -161,13 +168,27 @@ class SpyderToolbarMixin:
             stretcher.ID = id_
         return stretcher
 
-    def create_toolbar(self, name: str) -> QToolBar:
+    def create_toolbar(
+        self,
+        name: str,
+        register: bool = True
+    ) -> SpyderToolbar:
         """
         Create a Spyder toolbar.
+
+        Parameters
+        ----------
+        name: str
+            Name of the toolbar to create.
+        register: bool
+            Whether to register the toolbar in the global registry.
         """
-        toolbar = QToolBar(self)
-        TOOLBAR_REGISTRY.register_reference(
-            toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME)
+        toolbar = SpyderToolbar(self, name)
+        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        if register:
+            TOOLBAR_REGISTRY.register_reference(
+                toolbar, name, self.PLUGIN_NAME, self.CONTEXT_NAME
+            )
         return toolbar
 
     def get_toolbar(self, name: str, context: Optional[str] = None,
@@ -250,6 +271,7 @@ class SpyderMenuMixin:
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
         reposition: Optional[bool] = True,
+        register: bool = True,
         MenuClass=SpyderMenu
     ) -> SpyderMenu:
         """
@@ -261,14 +283,15 @@ class SpyderMenuMixin:
           subclass of SpyderMenu.
         * Refer to the documentation for `create_menu` to learn about its args.
         """
-        menus = getattr(self, '_menus', None)
-        if menus is None:
-            self._menus = OrderedDict()
+        if register:
+            menus = getattr(self, '_menus', None)
+            if menus is None:
+                self._menus = OrderedDict()
 
-        if menu_id in self._menus:
-            raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(menu_id)
-            )
+            if menu_id in self._menus:
+                raise SpyderAPIError(
+                    'Menu name "{}" already in use!'.format(menu_id)
+                )
 
         menu = MenuClass(
             parent=self,
@@ -281,11 +304,12 @@ class SpyderMenuMixin:
             menu.menuAction().setIconVisibleInMenu(True)
             menu.setIcon(icon)
 
-        MENU_REGISTRY.register_reference(
-            menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME
-        )
+        if register:
+            MENU_REGISTRY.register_reference(
+                menu, menu_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+            )
+            self._menus[menu_id] = menu
 
-        self._menus[menu_id] = menu
         return menu
 
     def create_menu(
@@ -294,6 +318,7 @@ class SpyderMenuMixin:
         title: Optional[str] = None,
         icon: Optional[QIcon] = None,
         reposition: Optional[bool] = True,
+        register: bool = True
     ) -> SpyderMenu:
         """
         Create a menu for Spyder.
@@ -307,7 +332,9 @@ class SpyderMenuMixin:
         icon: QIcon or None
             Icon to use for the menu.
         reposition: bool, optional (default True)
-            Whether to vertically reposition the menu due to it's padding.
+            Whether to vertically reposition the menu due to its padding.
+        register: bool
+            Whether to register the menu in the global registry.
 
         Returns
         -------
@@ -318,7 +345,8 @@ class SpyderMenuMixin:
             menu_id=menu_id,
             title=title,
             icon=icon,
-            reposition=reposition
+            reposition=reposition,
+            register=register
         )
 
     def get_menu(
@@ -409,7 +437,8 @@ class SpyderActionMixin:
     # other it refers to a section of the configuration (or the widget
     # name where it is applied).
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
-                      toggled=None, triggered=None, shortcut_context=None,
+                      toggled=None, triggered=None, data=None,
+                      shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
                       parent=None, register_action=True, overwrite=False,
@@ -433,6 +462,8 @@ class SpyderActionMixin:
             behave like a checkbox.
         triggered: callable
             The callable to use when triggering this action.
+        data: Any
+            Data to be set on the action.
         shortcut_context: str
             Set the `str` context of the shortcut.
         context: Qt.ShortcutContext
@@ -500,6 +531,7 @@ class SpyderActionMixin:
             tip=tip,
             toggled=toggled,
             triggered=triggered,
+            data=data,
             context=context,
             section=section,
             option=option,
@@ -615,14 +647,11 @@ class SpyderActionMixin:
         raise NotImplementedError('')
 
 
-class SpyderWidgetMixin(SpyderActionMixin, SpyderMenuMixin,
-                        SpyderConfigurationObserver, SpyderToolButtonMixin):
+class SpyderWidgetMixin(SpyderActionMixin, SpyderConfigurationObserver,
+                        SpyderMenuMixin, SpyderToolbarMixin,
+                        SpyderToolButtonMixin):
     """
     Basic functionality for all Spyder widgets and Qt items.
-
-    This mixin does not include toolbar handling as that is limited to the
-    application with the coreui plugin or the PluginMainWidget for dockable
-    plugins.
 
     This provides a simple management of widget options, as well as Qt helpers
     for defining the actions a widget provides.
@@ -703,3 +732,71 @@ class SpyderMainWindowMixin:
         # plugin ones, which usually are not maximized.
         if not hasattr(self, 'is_window_widget'):
             self.showMaximized()
+
+
+class SvgToScaledPixmap(SpyderConfigurationAccessor):
+    """
+    Mixin to transform an SVG to a QPixmap that is scaled according to the
+    factor set by users in Preferences.
+    """
+
+    def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
+        """
+        Transform svg to a QPixmap that is scaled according to the factor set
+        by users in Preferences.
+
+        Parameters
+        ----------
+        svg_file: str
+            Name of or path to the svg file.
+        rescale: float, optional
+            Rescale pixmap according to a factor between 0 and 1.
+        in_package: bool, optional
+            Get svg from the `images` folder in the Spyder package.
+        """
+        if in_package:
+            image_path = get_image_path(svg_file)
+
+        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+            scale_factors = self.get_conf(
+                'high_dpi_custom_scale_factors',
+                section='main'
+            )
+            scale_factor = float(scale_factors.split(":")[0])
+        else:
+            scale_factor = 1
+
+        # Get width and height
+        pm = QPixmap(image_path)
+        width = pm.width()
+        height = pm.height()
+
+        # Rescale but preserving aspect ratio
+        if rescale is not None:
+            aspect_ratio = width / height
+            width = int(width * rescale)
+            height = int(width / aspect_ratio)
+
+        # Paint image using svg renderer
+        image = QImage(
+            int(width * scale_factor), int(height * scale_factor),
+            QImage.Format_ARGB32_Premultiplied
+        )
+        image.fill(0)
+        painter = QPainter(image)
+        renderer = QSvgRenderer(image_path)
+        renderer.render(painter)
+        painter.end()
+
+        # This is also necessary to make the image look good for different
+        # scale factors
+        if scale_factor > 1.0:
+            image.setDevicePixelRatio(scale_factor)
+
+        # Create pixmap out of image
+        final_pm = QPixmap.fromImage(image)
+        final_pm = final_pm.copy(
+            0, 0, int(width * scale_factor), int(height * scale_factor)
+        )
+
+        return final_pm

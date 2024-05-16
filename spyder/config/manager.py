@@ -15,6 +15,9 @@ import os.path as osp
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
+# Third-party imports
+import keyring
+
 # Local imports
 from spyder.api.utils import PrefixedTuple
 from spyder.config.base import (
@@ -310,10 +313,13 @@ class ConfigurationManager(object):
         for section in self._observers:
             self.notify_section_all_observers(section)
 
-    def notify_observers(self,
-                         section: str,
-                         option: ConfigurationKey,
-                         recursive_notification: bool = True):
+    def notify_observers(
+        self,
+        section: str,
+        option: ConfigurationKey,
+        recursive_notification: bool = True,
+        secure: bool = False,
+    ):
         """
         Notify observers of a change in the option `option` of configuration
         section `section`.
@@ -331,6 +337,8 @@ class ConfigurationManager(object):
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            Whether this is a secure option or not.
         """
         if recursive_notification:
             # Notify to section listeners
@@ -353,7 +361,7 @@ class ConfigurationManager(object):
             if option == '__section':
                 self._notify_section(section)
             else:
-                value = self.get(section, option)
+                value = self.get(section, option, secure=secure)
                 self._notify_option(section, option, value)
 
     def _notify_option(self, section: str, option: ConfigurationKey,
@@ -470,7 +478,7 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         return config.options(section)
 
-    def get(self, section, option, default=NoDefault):
+    def get(self, section, option, default=NoDefault, secure=False):
         """
         Get an `option` on a given `section`.
 
@@ -497,11 +505,25 @@ class ConfigurationManager(object):
                 if default is NoDefault:
                     raise cp.NoOptionError(option, section)
         else:
-            value = config.get(section=section, option=option, default=default)
+            if secure:
+                logger.debug(
+                    f"Retrieving option {option} with keyring because it "
+                    f"was marked as secure."
+                )
+                value = keyring.get_password(section, option)
+
+                # This happens when `option` was not actually saved by keyring
+                if value is None:
+                    value = ""
+            else:
+                value = config.get(
+                    section=section, option=option, default=default
+                )
+
         return value
 
     def set(self, section, option, value, verbose=False, save=True,
-            recursive_notification=True, notification=True):
+            recursive_notification=True, notification=True, secure=False):
         """
         Set an `option` on a given `section`.
 
@@ -525,11 +547,26 @@ class ConfigurationManager(object):
             option = base_option
 
         config = self.get_active_conf(section)
-        config.set(section=section, option=option, value=value,
-                   verbose=verbose, save=save)
+
+        if secure:
+            logger.debug(
+                f"Saving option {option} with keyring because it was marked "
+                f"as secure."
+            )
+            keyring.set_password(section, option, value)
+        else:
+            config.set(
+                section=section,
+                option=option,
+                value=value,
+                verbose=verbose,
+                save=save,
+            )
+
         if notification:
             self.notify_observers(
-                section, original_option, recursive_notification)
+                section, original_option, recursive_notification, secure
+            )
 
     def get_default(self, section, option):
         """
@@ -557,9 +594,10 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.remove_section(section)
 
-    def remove_option(self, section, option):
+    def remove_option(self, section, option, secure=False):
         """Remove `option` from `section`."""
         config = self.get_active_conf(section)
+
         if isinstance(option, tuple):
             # The actual option saved in the config
             base_option = option[0]
@@ -588,7 +626,17 @@ class ConfigurationManager(object):
                 self.set(section, base_option,  base_conf)
                 self.notify_observers(section, base_option)
         else:
-            config.remove_option(section, option)
+            if secure:
+                logger.debug(
+                    f"Deleting option {option} with keyring because it was "
+                    f"marked as secure."
+                )
+                try:
+                    keyring.delete_password(section, option)
+                except Exception:
+                    pass
+            else:
+                config.remove_option(section, option)
 
     def reset_to_defaults(self, section=None, notification=True):
         """Reset config to Default values."""
@@ -599,6 +647,11 @@ class ConfigurationManager(object):
                 self.notify_section_all_observers(section)
             else:
                 self.notify_all_observers()
+
+    def reset_manager(self):
+        for observer in self._observer_map_keys.copy():
+            self.unobserve_configuration(observer)
+        self._plugin_configs = {}
 
     # Shortcut configuration management
     # ------------------------------------------------------------------------

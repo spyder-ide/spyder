@@ -141,7 +141,7 @@ def _get_or_default(mylist, i, *, default):
         return mylist[i]
 
 
-def compute_item_matrix(items, empty=None, *, separator_size=2, displaywith=80):
+def compute_item_matrix(items, empty=None, *, separator_size=2, displaywidth=80):
     """Returns a nested list, and info to columnize items
 
     Parameters
@@ -204,7 +204,7 @@ def compute_item_matrix(items, empty=None, *, separator_size=2, displaywith=80):
     )
 
 
-def columnize(items):
+def columnize(items, separator="  ", displaywidth=80):
     """Transform a list of strings into a single string with columns.
 
     Parameters
@@ -216,8 +216,6 @@ def columnize(items):
     -------
     The formatted string.
     """
-    separator = "  "
-    displaywidth = 80
     if not items:
         return "\n"
     matrix, info = compute_item_matrix(

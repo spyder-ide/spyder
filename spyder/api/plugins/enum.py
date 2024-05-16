@@ -35,12 +35,14 @@ class Plugins:
     Projects = 'project_explorer'
     Pylint = 'pylint'
     PythonpathManager = 'pythonpath_manager'
+    RemoteClient = 'remoteclient'
     Run = 'run'
     Shortcuts = 'shortcuts'
     StatusBar = 'statusbar'
     Switcher = 'switcher'
     Toolbar = "toolbar"
     Tours = 'tours'
+    UpdateManager = 'update_manager'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 

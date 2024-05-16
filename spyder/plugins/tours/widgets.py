@@ -34,12 +34,12 @@ from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.stylesheet import DialogStyle
 
 
-MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(QStylePalette.COLOR_BACKGROUND_1)
+MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(SpyderPalette.COLOR_BACKGROUND_1)
 
 MAC = sys.platform == 'darwin'
 
@@ -981,7 +981,8 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
-        self.spy_window.layouts.quick_layout_switch('current_temp')
+        if self.spy_window.layouts:
+            self.spy_window.layouts.quick_layout_switch('current_temp')
         self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):
@@ -1094,14 +1095,13 @@ class OpenTourDialog(QDialog):
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        dialog_tour_color = QStylePalette.COLOR_BACKGROUND_2
-        start_tour_color = QStylePalette.COLOR_ACCENT_2
-        start_tour_hover = QStylePalette.COLOR_ACCENT_3
-        start_tour_pressed = QStylePalette.COLOR_ACCENT_4
-        dismiss_tour_color = QStylePalette.COLOR_BACKGROUND_4
-        dismiss_tour_hover = QStylePalette.COLOR_BACKGROUND_5
-        dismiss_tour_pressed = QStylePalette.COLOR_BACKGROUND_6
-        font_color = QStylePalette.COLOR_TEXT_1
+        start_tour_color = SpyderPalette.COLOR_ACCENT_2
+        start_tour_hover = SpyderPalette.COLOR_ACCENT_3
+        start_tour_pressed = SpyderPalette.COLOR_ACCENT_4
+        dismiss_tour_color = SpyderPalette.COLOR_BACKGROUND_4
+        dismiss_tour_hover = SpyderPalette.COLOR_BACKGROUND_5
+        dismiss_tour_pressed = SpyderPalette.COLOR_BACKGROUND_6
+        font_color = SpyderPalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
         self.launch_tour_button.setStyleSheet((
           "QPushButton {{ "
@@ -1187,7 +1187,7 @@ class OpenTourDialog(QDialog):
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        self.setStyleSheet(f"background-color:{dialog_tour_color}")
+        self.setStyleSheet(f"background-color:{DialogStyle.BackgroundColor}")
         self.setContentsMargins(18, 40, 18, 40)
         if not MAC:
             self.setFixedSize(640, 280)

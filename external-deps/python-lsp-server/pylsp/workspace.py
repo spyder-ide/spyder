@@ -1,19 +1,19 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import functools
 import io
 import logging
-from contextlib import contextmanager
 import os
 import re
 import uuid
-import functools
-from typing import Literal, Optional, Generator, Callable, List
+from contextlib import contextmanager
 from threading import RLock
+from typing import Callable, Generator, List, Optional
 
 import jedi
 
-from . import lsp, uris, _utils
+from . import _utils, lsp, uris
 
 log = logging.getLogger(__name__)
 
@@ -36,8 +36,6 @@ def lock(method):
 
 
 class Workspace:
-    # pylint: disable=too-many-public-methods
-
     M_PUBLISH_DIAGNOSTICS = "textDocument/publishDiagnostics"
     M_PROGRESS = "$/progress"
     M_INITIALIZE_PROGRESS = "window/workDoneProgress/create"
@@ -58,33 +56,21 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
-
-        # We have a sperate AutoImport object for each feature to avoid sqlite errors
-        # from accessing the same database from multiple threads.
-        # An upstream fix discussion is here: https://github.com/python-rope/rope/issues/713
-        self.__rope_autoimport = (
-            {}
-        )  # Type: Dict[Literal["completions", "code_actions"], rope.contrib.autoimport.sqlite.AutoImport]
+        self.__rope_autoimport = None
 
     def _rope_autoimport(
         self,
         rope_config: Optional,
         memory: bool = False,
-        feature: Literal["completions", "code_actions"] = "completions",
     ):
-        # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
 
-        if feature not in ["completions", "code_actions"]:
-            raise ValueError(f"Unknown feature {feature}")
-
-        if self.__rope_autoimport.get(feature, None) is None:
+        if self.__rope_autoimport is None:
             project = self._rope_project_builder(rope_config)
-            self.__rope_autoimport[feature] = AutoImport(project, memory=memory)
-        return self.__rope_autoimport[feature]
+            self.__rope_autoimport = AutoImport(project, memory=memory)
+        return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base.project import Project
 
         # TODO: we could keep track of dirty files and validate only those
@@ -246,7 +232,6 @@ class Workspace:
         def dummy_progress_message(
             message: str, percentage: Optional[int] = None
         ) -> None:
-            # pylint: disable=unused-argument
             pass
 
         yield dummy_progress_message
@@ -265,7 +250,7 @@ class Workspace:
                 self._endpoint.request(
                     self.M_INITIALIZE_PROGRESS, {"token": token}
                 ).result(timeout=1.0)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:
                 log.warning(
                     "There was an error while trying to initialize progress reporting."
                     "Likely progress reporting was used in a synchronous LSP handler, "
@@ -388,8 +373,8 @@ class Workspace:
         )
 
     def close(self):
-        for _, autoimport in self.__rope_autoimport.items():
-            autoimport.close()
+        if self.__rope_autoimport:
+            self.__rope_autoimport.close()
 
 
 class Document:
@@ -422,7 +407,6 @@ class Document:
         return str(self.uri)
 
     def _rope_resource(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base import libutils
 
         return libutils.path_to_resource(
@@ -663,7 +647,7 @@ class Notebook:
             names.update(cell_document.jedi_names(all_scopes, definitions, references))
             if cell_uri == up_to_cell_uri:
                 break
-        return set(name.name for name in names)
+        return {name.name for name in names}
 
 
 class Cell(Document):

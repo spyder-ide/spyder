@@ -59,7 +59,7 @@ class FindInFiles(SpyderDockablePlugin):
     def on_initialize(self):
         self.create_action(
             FindInFilesActions.FindInFiles,
-            text=_("Find in files"),
+            text=_("Search text in the Find pane"),
             tip=_("Search text in multiple files"),
             triggered=self.find,
             register_shortcut=True,

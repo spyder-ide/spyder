@@ -262,7 +262,12 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     editor, _ = completions_codeeditor_linting
     editor.textCursor().insertText("print('test)\n")
 
-    if sys.version_info >= (3, 10):
+    if sys.version_info >= (3, 12):
+        expected = [
+            ['unterminated string literal (detected at line 1)', 1],
+            ['E901 TokenError: unterminated string literal (detected at line 1)', 1]
+        ]
+    elif sys.version_info >= (3, 10):
         expected = [['unterminated string literal (detected at line 1)', 1]]
     else:
         expected = [['EOL while scanning string literal', 1]]
@@ -301,7 +306,12 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     editor, _ = completions_codeeditor_linting
     editor.textCursor().insertText("print('test'\n")
 
-    if sys.version_info >= (3, 10):
+    if sys.version_info >= (3, 12):
+        expected = [
+            ["'(' was never closed", 1],
+            ['E901 TokenError: unexpected EOF in multi-line statement', 1]
+        ]
+    elif sys.version_info >= (3, 10):
         expected = [
             ["'(' was never closed", 1],
             ['E901 TokenError: EOF in multi-line statement', 2]

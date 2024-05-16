@@ -27,8 +27,8 @@ from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
 from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QProxyStyle, QPushButton, QStyle,
-                            QToolButton, QVBoxLayout, QWidget)
+                            QPushButton, QStyle, QToolButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
@@ -39,7 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -293,7 +293,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     return button
 
 
-def create_waitspinner(size=32, n=11, parent=None):
+def create_waitspinner(size=32, n=11, parent=None, name=None):
     """
     Create a wait spinner with the specified size built with n circling dots.
     """
@@ -312,7 +312,9 @@ def create_waitspinner(size=32, n=11, parent=None):
     spinner.setLineLength(dot_size)
     spinner.setLineWidth(dot_size)
     spinner.setInnerRadius(inner_radius)
-    spinner.setColor(QStylePalette.COLOR_TEXT_1)
+    spinner.setColor(SpyderPalette.COLOR_TEXT_1)
+
+    spinner.name = name
 
     return spinner
 
@@ -716,34 +718,6 @@ def set_menu_icons(menu, state, in_app_menu=False):
             continue
 
 
-class SpyderProxyStyle(QProxyStyle):
-    """Style proxy to adjust qdarkstyle issues."""
-
-    def styleHint(self, hint, option=0, widget=0, returnData=0):
-        if hint == QStyle.SH_ComboBox_Popup:
-            # Disable combobox popup top & bottom areas.
-            # See spyder-ide/spyder#9682
-            # Taken from https://stackoverflow.com/a/21019371
-            return 0
-
-        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
-
-    def pixelMetric(self, metric, option=None, widget=None):
-        if metric == QStyle.PM_SmallIconSize:
-            # Change icon size for menus.
-            # Taken from https://stackoverflow.com/a/42145885/438386
-            delta = (
-                -1 if sys.platform == "darwin"
-                else (0 if os.name == "nt" else 1)
-            )
-
-            return (
-                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
-            )
-
-        return QProxyStyle.pixelMetric(self, metric, option, widget)
-
-
 class QInputDialogMultiline(QDialog):
     """
     Build a replica interface of QInputDialog.getMultilineText.
@@ -818,7 +792,8 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
 
         app_font = self.font()
         app_font.setFamily(family)
-        app_font.setPointSize(size)
+        if size > 0:
+            app_font.setPointSize(size)
 
         self.set_monospace_interface_font(app_font)
         self.setFont(app_font)

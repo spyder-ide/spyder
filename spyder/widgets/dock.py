@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (QDockWidget, QHBoxLayout, QSizePolicy, QTabBar,
 from spyder.api.translations import _
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import (
     PanesToolbarStyleSheet, HORIZONTAL_DOCK_TABBAR_STYLESHEET,
     VERTICAL_DOCK_TABBAR_STYLESHEET)
@@ -136,7 +136,7 @@ class CloseButton(QToolButton):
         self.setAutoRaise(True)
         self.setIcon(ima.icon('lock_open'))
         self.setToolTip(_("Lock pane"))
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3, 0)
 
     def _apply_stylesheet(self, bgcolor, bradius):
         css = qstylizer.style.StyleSheet()
@@ -151,18 +151,18 @@ class CloseButton(QToolButton):
 
     def enterEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5, 3)
-        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5, 3)
+        self.parent._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
         self.setIcon(ima.icon('lock'))
         super().enterEvent(event)
 
     def mousePressEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6, 3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_6, 3)
         super().mousePressEvent(event)
 
     def leaveEvent(self, event):
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3, 0)
-        self.parent._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3, 0)
+        self.parent._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         self.setIcon(ima.icon('lock_open'))
         super().leaveEvent(event)
 
@@ -201,28 +201,28 @@ class DockTitleBar(QWidget):
         hlayout.addWidget(right_spacer)
         hlayout.addWidget(close_button)
 
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         QWidget.mouseReleaseEvent(self, event)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_6)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_6)
         QWidget.mousePressEvent(self, event)
 
     def enterEvent(self, event):
         # To signal that dock widgets can be dragged from here
         self.setCursor(Qt.OpenHandCursor)
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_5)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_5)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         """Remove customizations when leaving widget."""
         self.unsetCursor()
-        self._apply_stylesheet(QStylePalette.COLOR_BACKGROUND_3)
+        self._apply_stylesheet(SpyderPalette.COLOR_BACKGROUND_3)
         super().leaveEvent(event)
 
     def _apply_stylesheet(self, bgcolor):
@@ -247,9 +247,13 @@ class SpyderDockWidget(QDockWidget):
     sig_title_bar_shown = Signal(bool)
 
     def __init__(self, title, parent):
-        super(SpyderDockWidget, self).__init__(title, parent)
-        self.title = title
+        super().__init__(title, parent)
 
+        # Attributes
+        self.title = title
+        self._is_shown = False
+
+        # Set features
         self.setFeatures(self.FEATURES)
 
         # Widgets
@@ -273,27 +277,34 @@ class SpyderDockWidget(QDockWidget):
         self.remove_title_bar()
 
         # Signals
-        # To track dockwidget changes the filter is installed when dockwidget
-        # visibility changes. This installs the filter on startup and also
-        # on dockwidgets that are undocked and then docked to a new location.
-        self.visibilityChanged.connect(self.install_tab_event_filter)
+        # This installs the tab filter when dockwidgets are undocked and then
+        # docked to a new location.
+        self.dockLocationChanged.connect(
+            lambda area: self.install_tab_event_filter()
+        )
 
     def closeEvent(self, event):
-        """
-        Reimplement Qt method to send a signal on close so that "Panes" main
-        window menu can be updated correctly
-        """
+        """Send a signal on close so that the "Panes" menu can be updated."""
         self.sig_plugin_closed.emit()
 
-    def install_tab_event_filter(self, value):
+    def showEvent(self, event):
+        """Adjustments when the widget is shown."""
+        if not self._is_shown:
+            # This installs the tab filter at startup
+            self.install_tab_event_filter()
+            self._is_shown = True
+
+        super().showEvent(event)
+
+    def install_tab_event_filter(self):
         """
         Install an event filter to capture mouse events in the tabs of a
         QTabBar holding tabified dockwidgets.
         """
         dock_tabbar = None
 
-        # This is necessary to catch an error when closing the app
-        # in macOS with PyQt 5.15
+        # This is necessary to catch an error when closing the app on macOS
+        # with PyQt 5.15
         try:
             tabbars = self.main.findChildren(QTabBar)
         except RuntimeError:

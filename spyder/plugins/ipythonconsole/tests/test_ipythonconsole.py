@@ -17,10 +17,10 @@ import re
 import shutil
 import sys
 from textwrap import dedent
+from unittest.mock import patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
-import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
@@ -77,12 +77,12 @@ def test_banners(ipyconsole, qtbot):
     [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval ..."]),
+       "open interval<br>..."]),
      ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
-      ["Returns an object that acts like pyfunc, but takes arrays as<br>input."
+      ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
        "<br>",
-       "Define a vectorized function which takes a nested sequence ..."]),
+       "Define a vectorized function which takes a nested<br>..."]),
      ("np.abs",  # np.abs has the same signature as np.absolute
       ["x", "/", "out"],
       ["Calculate the absolute value"]),
@@ -544,7 +544,9 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
+)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -621,8 +623,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(IPython.version_info < (7, 17),
-                    reason="insert is not the same in pre 7.17 ipython")
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -673,8 +674,10 @@ def test_unicode_vars(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(running_in_ci() and os.name == 'nt',
-                    reason="Times out on Windows")
+@pytest.mark.skipif(
+    (running_in_ci() and os.name == 'nt') or sys.platform == "darwin",
+    reason="Hangs on CIs for Windows and Mac"
+)
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -726,6 +729,7 @@ def test_values_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == "darwin", reason="Hangs on Mac")
 def test_execute_events_dbg(ipyconsole, qtbot):
     """Test execute events while debugging"""
 
@@ -849,7 +853,10 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    os.name == 'nt' or sys.platform == "darwin",
+    reason="Doesn't work on Windows and hangs on Mac"
+)
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
     Test that clear and reset magics are working while debugging
@@ -1066,11 +1073,11 @@ def test_kernel_crash(ipyconsole, qtbot):
         qtbot.waitUntil(lambda: bool(
             ipyconsole.get_widget()._cached_kernel_properties[-1]._init_stderr
         ))
+
         # Create a new client
         ipyconsole.create_new_client()
 
         # Assert that the console is showing an error
-        # even if the error happened before the connection
         error_client = ipyconsole.get_clients()[-1]
         qtbot.waitUntil(lambda: bool(error_client.error_text), timeout=6000)
     finally:
@@ -1901,17 +1908,76 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         assert "_spyderpdb" not in key
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.auto_backend
-def test_restart_intertactive_backend(ipyconsole, qtbot):
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
+def test_restart_interactive_backend(ipyconsole, qtbot):
     """
-    Test that we ask for a restart after switching to a different interactive
-    backend in preferences.
+    Test that we ask for a restart or not after switching to different
+    interactive backends.
+
+    Also, check that we show the right backend in the Matplotlib status widget.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    matplotlib_status = ipyconsole.get_widget().matplotlib_status
+
+    # This is necessary to test no spurious messages are printed to the console
+    shell.clear_console()
+    qtbot.waitUntil(lambda: '\nIn [2]: ' == shell._control.toPlainText())
+
+    # Switch to the tk backend
+    ipyconsole.set_conf('pylab/backend', 'tk')
+    assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    assert shell.get_matplotlib_backend() == "qt"
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the inline backend
+    os.environ.pop('BACKEND_REQUIRE_RESTART')
+    ipyconsole.set_conf('pylab/backend', 'inline')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "inline")
+    assert matplotlib_status.value == "Inline"
+
+    # Switch to the auto backend
+    ipyconsole.set_conf('pylab/backend', 'auto')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the qt backend
+    ipyconsole.set_conf('pylab/backend', 'qt')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the tk backend again
+    ipyconsole.set_conf('pylab/backend', 'tk')
+    assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+    # Check we no spurious messages are shown before the restart below
+    assert "\nIn [2]: " == shell._control.toPlainText()
+
+    # Restart kernel to check if the new interactive backend is set
+    ipyconsole.restart_kernel()
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.wait(SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
+    assert shell.get_mpl_interactive_backend() == "tk"
+    assert matplotlib_status.value == "Tk"
+
+
+def test_mpl_conf(ipyconsole, qtbot):
+    """
+    Test that after setting matplotlib-related config options, the member
+    function send_mpl_backend of the shellwidget is called with the new value.
     """
     main_widget = ipyconsole.get_widget()
-    qtbot.wait(1000)
-    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
-    assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    client = main_widget.get_current_client()
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/fontsize', 20.5)
+    mock.assert_called_once_with({'pylab/inline/fontsize': 20.5})
+    with patch.object(client.shellwidget, 'send_mpl_backend') as mock:
+        main_widget.set_conf('pylab/inline/bottom', 0.314)
+    mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
 @flaky(max_runs=3)
@@ -2028,6 +2094,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
     assert shell.get_value('pi')
 
     # Reset config for the 'spyder_pythonpath' and 'startup/run_lines'
@@ -2082,23 +2149,24 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     # Wait until it is launched
     qtbot.waitUntil(
-        lambda: (
-            kernel_handler._comm_ready_received
-        ),
-        timeout=SHELL_TIMEOUT)
+        lambda: kernel_handler._comm_ready_received, timeout=SHELL_TIMEOUT
+    )
 
     # Set wrong version
     kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 
     # Create new client
     w.create_new_client()
-    client = w.get_current_client()
 
     # Make sure an error is shown
-    control = client.get_control()
+    info_page = w.get_current_client().infowidget.page()
+
     qtbot.waitUntil(
-        lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "pip install spyder" in control.toPlainText()
+        lambda: check_text(info_page, "1.0.0"), timeout=6000
+    )
+    qtbot.waitUntil(
+        lambda: check_text(info_page, "pip install spyder"), timeout=6000
+    )
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):

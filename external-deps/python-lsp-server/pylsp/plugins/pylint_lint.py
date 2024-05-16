@@ -3,19 +3,20 @@
 # Copyright 2021- Python Language Server Contributors.
 
 """Linter plugin for pylint."""
+
 import collections
 import logging
-import sys
-import re
-from subprocess import Popen, PIPE
 import os
+import re
 import shlex
+import sys
+from subprocess import PIPE, Popen
 
 from pylsp import hookimpl, lsp
 
 try:
     import ujson as json
-except Exception:  # pylint: disable=broad-except
+except Exception:
     import json
 
 log = logging.getLogger(__name__)
@@ -48,9 +49,7 @@ class PylintLinter:
     last_diags = collections.defaultdict(list)
 
     @classmethod
-    def lint(
-        cls, document, is_saved, flags=""
-    ):  # pylint: disable=too-many-locals,too-many-branches
+    def lint(cls, document, is_saved, flags=""):
         """Plugin interface to pylsp linter.
 
         Args:
@@ -286,12 +285,10 @@ def _run_pylint_stdio(pylint_executable, document, flags):
         p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except IOError:
         log.debug("Can't execute %s. Trying with 'python -m pylint'", pylint_executable)
-        cmd = ["python", "-m", "pylint"]
+        cmd = [sys.executable, "-m", "pylint"]
         cmd.extend(flags)
         cmd.extend(["--from-stdin", document.path])
-        p = Popen(  # pylint: disable=consider-using-with
-            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE
-        )
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     (stdout, stderr) = p.communicate(document.source.encode())
     if stderr:
         log.error("Error while running pylint '%s'", stderr.decode())

@@ -207,6 +207,7 @@ def ipyconsole(qtbot, request, tmpdir):
     debugger.on_ipython_console_available()
     console.on_initialize()
     console._register()
+    console.get_widget().matplotlib_status.register_ipythonconsole(console)
     console.create_new_client(
         special=special,
         given_name=given_name,

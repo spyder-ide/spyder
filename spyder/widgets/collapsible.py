@@ -10,7 +10,7 @@ import qstylizer.style
 from superqt import QCollapsible
 
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -63,12 +63,12 @@ class CollapsibleWidget(QCollapsible):
             padding=f"{2 * AppStyle.MarginSize}px",
             # Make it a bit different from a default QPushButton to not drag
             # the same amount of attention to it.
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3
         )
 
         # Make hover color match the change of background color above
         css["QPushButton#collapsible-toggle:hover"].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
         )
 
         # --- Style for the contents area
@@ -76,11 +76,11 @@ class CollapsibleWidget(QCollapsible):
             # Remove top border to make it appear attached to the header button
             borderTop="0px",
             # Add border to the other edges
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}',
+            border=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}',
             # Add border radius to the bottom to make it match the style of our
             # other widgets.
-            borderBottomLeftRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
-            borderBottomRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+            borderBottomLeftRadius=f'{SpyderPalette.SIZE_BORDER_RADIUS}',
+            borderBottomRightRadius=f'{SpyderPalette.SIZE_BORDER_RADIUS}',
         )
 
         return css
@@ -98,8 +98,8 @@ class CollapsibleWidget(QCollapsible):
             # Restore bottom rounded borders to the header when the widget is
             # collapsed.
             self._css["QPushButton#collapsible-toggle"].setValues(
-                borderBottomLeftRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
-                borderBottomRightRadius=f'{QStylePalette.SIZE_BORDER_RADIUS}',
+                borderBottomLeftRadius=f'{SpyderPalette.SIZE_BORDER_RADIUS}',
+                borderBottomRightRadius=f'{SpyderPalette.SIZE_BORDER_RADIUS}',
             )
 
         self.setStyleSheet(self._css.toString())

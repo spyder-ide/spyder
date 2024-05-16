@@ -14,6 +14,7 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+import functools
 import logging
 import os
 import os.path as osp
@@ -23,7 +24,7 @@ import traceback
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtWidgets import QVBoxLayout, QWidget
+from qtpy.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.translations import _
@@ -35,7 +36,7 @@ from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
@@ -83,23 +84,35 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
 
+    # Signals for remote kernels
+    sig_shutdown_kernel_requested = Signal(str, str)
+    sig_interrupt_kernel_requested = Signal(str, str)
+    sig_restart_kernel_requested = Signal()
+    sig_kernel_died = Signal()
+
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***', ]
 
-    def __init__(self, parent, id_,
-                 config_options,
-                 additional_options,
-                 interpreter_versions,
-                 menu_actions=None,
-                 given_name=None,
-                 give_focus=True,
-                 options_button=None,
-                 handlers=None,
-                 initial_cwd=None,
-                 forcing_custom_interpreter=False,
-                 special_kernel=None):
+    def __init__(
+        self,
+        parent,
+        id_,
+        config_options,
+        additional_options,
+        interpreter_versions,
+        menu_actions=None,
+        given_name=None,
+        give_focus=True,
+        options_button=None,
+        handlers=None,
+        initial_cwd=None,
+        forcing_custom_interpreter=False,
+        special_kernel=None,
+        server_id=None,
+        can_close=True,
+    ):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
@@ -110,6 +123,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.given_name = given_name
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
+        self.server_id = server_id
+        self.can_close = can_close
 
         # --- Other attrs
         self.kernel_handler = None
@@ -121,6 +136,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.allow_rename = True
         self.error_text = None
         self.give_focus = give_focus
+        self.kernel_id = None
+        self.__on_close = lambda: None
 
         css_path = self.get_conf('css_path', section='appearance')
         if css_path is None:
@@ -331,7 +348,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_fault.connect(self.print_fault)
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
-        self._show_loading_page()
+
+        if self.server_id:
+            self._hide_loading_page()
+        else:
+            self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler, first_connect)
@@ -506,7 +527,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "The following argument was not expected",
             # Avoid showing error for kernel restarts after kernel dies when
             # using an external interpreter
-            "conda.cli.main_run"
+            "conda.cli.main_run",
+            # Warning when debugpy is not available because it's an optional
+            # dependency of IPykernel.
+            # See spyder-ide/spyder#21900
+            "debugpy_stream undefined, debugging will not be enabled",
         ]
 
         return any([err in error for err in benign_errors])
@@ -553,21 +578,54 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def close_client(self, is_last_client):
+    def close_client(self, is_last_client, close_console=False):
         """Close the client."""
+        self.__on_close = lambda: None
+        debugging = False
+
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
-            self.stop_button_click_handler()
+            # This is required after spyder-ide/spyder#21788 to prevent freezes
+            # when closing Spyder. That happens not only when a console is in
+            # debugging mode before closing, but also when a kernel restart is
+            # requested while debugging.
+            if self.shellwidget.is_debugging():
+                debugging = True
+                self.__on_close = functools.partial(
+                    self.finish_close,
+                    is_last_client,
+                    close_console,
+                    debugging
+                )
+                self.shellwidget.sig_prompt_ready.connect(self.__on_close)
+                self.shellwidget.stop_debugging()
+            else:
+                self.interrupt_kernel()
         except RuntimeError:
             pass
 
-        # Disconnect timer needed to update elapsed time
+        if not debugging:
+            self.finish_close(is_last_client, close_console, debugging)
+
+    def finish_close(self, is_last_client, close_console, debugging):
+        """Actions to take to finish closing the client."""
+        # Disconnect timer needed to update elapsed time and this slot in case
+        # it was connected.
         try:
+            self.shellwidget.sig_prompt_ready.disconnect(self.__on_close)
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
 
-        self.shutdown(is_last_client)
+        # This is a hack to prevent segfaults when closing Spyder and the
+        # client was debugging before doing it.
+        # It's a side effect of spyder-ide/spyder#21788
+        if debugging and close_console:
+            for __ in range(3):
+                time.sleep(0.08)
+                QApplication.processEvents()
+
+        self.shutdown(is_last_client, close_console=close_console)
 
         # Prevent errors in our tests
         try:
@@ -576,13 +634,23 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def shutdown(self, is_last_client):
+    def shutdown(self, is_last_client, close_console=False):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
         shutdown_kernel = (
-            is_last_client and not self.shellwidget.is_external_kernel
+            is_last_client
+            and (not self.shellwidget.is_external_kernel or self.server_id)
             and not self.error_text
         )
+
+        if self.server_id and shutdown_kernel and not close_console:
+            # This signal allows to shutdown a remote kernel when a client is
+            # closed. And we don't emit it when the console is being closed
+            # because it's not necessary in that case.
+            self.sig_shutdown_kernel_requested.emit(
+                self.server_id, self.kernel_id
+            )
+
         self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
@@ -594,7 +662,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel_handler, shutdown_kernel):
+    def replace_kernel(self, kernel_handler, shutdown_kernel, clear=True):
         """
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
@@ -604,8 +672,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.connect_kernel(kernel_handler, first_connect=False)
 
         # Reset shellwidget and print restart message
-        self.shellwidget.reset(clear=True)
+        self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
+
+    def kernel_restarted_failure_message(self):
+        """Show message when the kernel failed to be restarted."""
+        msg = _("It was not possible to restart the kernel")
+        self.shellwidget._append_html(f"<br>{msg}<br>", before_prompt=False)
+        self.shellwidget.insert_horizontal_ruler()
 
     def print_fault(self, fault):
         """Print fault text."""
@@ -674,9 +748,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         else:
             fmt = "%H:%M:%S"
         if end:
-            color = QStylePalette.COLOR_TEXT_3
+            color = SpyderPalette.COLOR_TEXT_3
         else:
-            color = QStylePalette.COLOR_ACCENT_4
+            color = SpyderPalette.COLOR_ACCENT_4
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))

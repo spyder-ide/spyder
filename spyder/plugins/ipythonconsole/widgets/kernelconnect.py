@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, get_home_dir
 
 
@@ -136,9 +137,11 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         self.rm_group.toggled.connect(self.pw_radio.setChecked)
 
         # Ok and Cancel buttons
-        self.accept_btns = QDialogButtonBox(
+        self.accept_btns = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
+            Qt.Horizontal,
+            self,
+        )
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)

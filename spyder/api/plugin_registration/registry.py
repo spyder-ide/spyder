@@ -26,8 +26,8 @@ from spyder.api.plugins import (
 from spyder.utils.icon_manager import ima
 
 
-# TODO: Remove SpyderPlugin and SpyderPluginWidget once the migration
-# is complete.
+# TODO: Remove SpyderPlugin and SpyderPluginWidget now that the migration
+# is complete
 Spyder5PluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
 Spyder4PluginClass = Union[SpyderPlugin, SpyderPluginWidget]
 SpyderPluginClass = Union[Spyder4PluginClass, Spyder5PluginClass]
@@ -403,18 +403,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         Returns
         -------
-        plugin_deleted: bool
-            True if the plugin can be deleted. False otherwise.
+        can_close: bool
+            True if the plugin can be closed. False otherwise.
         """
         plugin_instance = self.plugin_registry[plugin_name]
         # Determine if plugin can be closed
-        can_delete = True
-        if isinstance(plugin_instance, SpyderPluginV2):
-            can_delete = plugin_instance.can_close()
-        elif isinstance(plugin_instance, SpyderPlugin):
-            can_delete = plugin_instance.closing_plugin(True)
-
-        return can_delete
+        return plugin_instance.can_close()
 
     def dock_undocked_plugin(
             self, plugin_name: str, save_undocked: bool = False):
@@ -598,11 +592,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         for plugin_name in (
                 set(self.external_plugins) | set(self.internal_plugins)):
             if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.can_delete_plugin(plugin_name)
-                    if not can_close:
-                        break
+                can_close &= self.can_delete_plugin(plugin_name)
+                if not can_close:
+                    break
 
         return can_close
 
@@ -793,6 +785,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         except (TypeError, RuntimeError):
             # Omit failures if there are no slots connected
             pass
+
+        dependencies.DEPENDENCIES = []
 
     def set_all_internal_plugins(
             self, all_plugins: Dict[str, Type[SpyderPluginClass]]):

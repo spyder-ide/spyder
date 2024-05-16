@@ -34,7 +34,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_message_box
 from spyder.plugins.variableexplorer.widgets import dataframeeditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
-    DataFrameEditor, DataFrameModel)
+    DataFrameEditor, DataFrameModel, COLS_TO_LOAD, LARGE_COLS)
 
 
 # =============================================================================
@@ -130,6 +130,7 @@ def test_dataframe_to_type(qtbot):
     view.setCurrentIndex(view.model().index(0, 0))
 
     # Show context menu, go down until `Convert to`, and open submenu
+    view.menu.render()
     view.menu.show()
     for _ in range(100):
         activeAction = view.menu.activeAction()
@@ -147,6 +148,77 @@ def test_dataframe_to_type(qtbot):
 
     # Check that changes where made from the editor
     assert editor.btn_save_and_close.isEnabled()
+
+
+def test_dataframe_editor_shows_scrollbar(qtbot):
+    """
+    Test the dataframe editor shows a scrollbar when opening a large dataframe.
+    Regression test for spyder-ide/spyder#21627 .
+    """
+    df = DataFrame(numpy.zeros((100, 100)))
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    with qtbot.waitExposed(editor):
+        editor.show()
+
+    assert editor.dataTable.horizontalScrollBar().isVisible()
+
+
+def test_dataframe_editor_scroll(qtbot):
+    """
+    Test that when opening a "large" dataframe, only a part of it is initially
+    loaded in the editor window. When scrolling past that part, the rest is
+    loaded. When moving to the right-most column and sorting it, the view
+    stay scrolled to the right end.
+
+    Regression test for spyder-ide/spyder#21627 .
+    """
+
+    # Make DataFrame with LARGE_COLS + 5 columns
+    df = DataFrame(numpy.zeros((10, LARGE_COLS + 5)))
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    with qtbot.waitExposed(editor):
+        editor.show()
+
+    # Check that initially, COLS_TO_LOAD columns are loaded in the editor
+    assert model.rowCount() == 10
+    assert model.columnCount() == COLS_TO_LOAD
+
+    # Press the End key to move to the right and wait
+    view = editor.dataTable
+    view.setCurrentIndex(view.model().index(0, 0))
+    qtbot.keyPress(view, Qt.Key_End)
+
+    # Check that now all the columns are loaded in the editor
+    def check_column_count():
+        assert model.columnCount() == LARGE_COLS + 5
+
+    qtbot.waitUntil(check_column_count)
+
+    # Press the End key to move to the right and wait
+    qtbot.keyPress(view, Qt.Key_End)
+    scrollbar = editor.dataTable.horizontalScrollBar()
+
+    # Check that we are at the far right
+    def check_at_far_right():
+        assert scrollbar.value() == scrollbar.maximum()
+
+    qtbot.waitUntil(check_at_far_right)
+
+    # Sort the rightmost column
+    old_index_model = editor.table_index.model()
+    view.sortByColumn(model.columnCount() - 1)
+
+    # Wait until the model for the index is updated
+    def check_index_model_updated():
+        assert editor.table_index.model() != old_index_model
+
+    qtbot.waitUntil(check_index_model_updated)
+
+    # Check that we are at the far right
+    assert scrollbar.value() == scrollbar.maximum()
 
 
 def test_dataframe_datetimeindex(qtbot):
@@ -441,7 +513,7 @@ def test_dataframeeditor_refreshaction_disabled():
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    assert not editor.dataTable.refresh_action.isEnabled()
+    assert not editor.refresh_action.isEnabled()
 
 
 def test_dataframeeditor_refresh():
@@ -454,8 +526,8 @@ def test_dataframeeditor_refresh():
     editor = DataFrameEditor(data_function=lambda: df_new)
     editor.setup_and_check(df_zero)
     assert_frame_equal(editor.get_value(), df_zero)
-    assert editor.dataTable.refresh_action.isEnabled()
-    editor.dataTable.refresh_action.trigger()
+    assert editor.refresh_action.isEnabled()
+    editor.refresh_action.trigger()
     assert_frame_equal(editor.get_value(), df_new)
 
 
@@ -476,7 +548,7 @@ def test_dataframeeditor_refresh_after_edit(result):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.question',
                return_value=result) as mock_question:
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_question.assert_called_once()
     editor.accept()
     if result == QMessageBox.Yes:
@@ -496,7 +568,7 @@ def test_dataframeeditor_refresh_into_int(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 
@@ -514,7 +586,7 @@ def test_dataframeeditor_refresh_when_variable_deleted(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                '.QMessageBox.critical') as mock_critical, \
          qtbot.waitSignal(editor.rejected, timeout=0):
-        editor.dataTable.refresh_action.trigger()
+        editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 
@@ -657,6 +729,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     model_index = view.header_class.model().index(0, 2)
     view.header_class.setCurrentIndex(model_index)
     qtbot.wait(200)
+    view.menu_header_h.render()
     view.menu_header_h.show()
     qtbot.keyPress(view.menu_header_h, Qt.Key_Down)
     qtbot.keyPress(view.menu_header_h, Qt.Key_Return)
@@ -671,6 +744,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     index = editor.table_index.model()
     model_index = editor.table_index.model().index(5, 0)
     editor.table_index.setCurrentIndex(model_index)
+    editor.menu_header_v.render()
     editor.menu_header_v.show()
     qtbot.wait(200)
     qtbot.keyPress(editor.menu_header_v, Qt.Key_Down)
