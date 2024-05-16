@@ -6816,11 +6816,7 @@ def test_undock_plugin_and_close(main_window, qtbot):
     This checks the functionality added in PR spyder-ide/spyder#19784.
     """
     # Select a random plugin and undock it
-    plugin = get_random_dockable_plugin(
-        main_window,
-        # TODO: Remove when the editor is migrated to the new API
-        exclude=[Plugins.Editor]
-    )
+    plugin = get_random_dockable_plugin(main_window)
     plugin.get_widget().undock_action.trigger()
     qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
 
@@ -6946,7 +6942,7 @@ def test_outline_in_maximized_editor(main_window, qtbot):
 def test_editor_window_outline_and_toolbars(main_window, qtbot):
     """Check the behavior of the Outline and toolbars in editor windows."""
     # Create editor window.
-    editorwindow = main_window.editor.create_new_window()
+    editorwindow = main_window.editor.get_widget().create_new_window()
     qtbot.waitUntil(editorwindow.isVisible)
 
     # Check toolbars in editor window are visible
@@ -6979,7 +6975,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
 
     editorwindow.close()
 
-    editorwindow1 = main_window.editor.create_new_window()
+    editorwindow1 = main_window.editor.get_widget().create_new_window()
     qtbot.waitUntil(editorwindow1.isVisible)
     assert not editorwindow1.editorwidget.outlineexplorer.is_visible
 
@@ -6994,7 +6990,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
 
     # Check main toolbars visibility state is synced between main and editor
     # windows
-    editorwindow2 = main_window.editor.create_new_window()
+    editorwindow2 = main_window.editor.get_widget().create_new_window()
 
     for toolbar in editorwindow2.toolbars:
         toolbar_action = toolbar.toggleViewAction()

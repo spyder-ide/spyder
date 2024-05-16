@@ -204,14 +204,6 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             image="none"
         )
 
-        # TODO: Remove when the editor is migrated to the new API!
-        css["QMenu::item"].setValues(
-            height='1.4em',
-            padding='4px 8px 4px 8px',
-            fontFamily=font_family,
-            fontSize=f'{font_size}pt'
-        )
-
         # Increase padding for QPushButton's
         css.QPushButton.setValues(
             padding='3px',
@@ -273,8 +265,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
-        # We need to substract here a tiny bit bigger value to match the size
-        # of comboboxes and lineedits
+        # Do the same for spinboxes
         css.QSpinBox.setValues(
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
