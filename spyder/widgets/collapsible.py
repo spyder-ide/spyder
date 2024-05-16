@@ -7,6 +7,8 @@
 """Collapsible widget to hide and show child widgets."""
 
 import qstylizer.style
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QPushButton
 from superqt import QCollapsible
 
 from spyder.utils.icon_manager import ima
@@ -46,6 +48,9 @@ class CollapsibleWidget(QCollapsible):
 
         # Signals
         self.toggled.connect(self._on_toggled)
+
+        # Set our properties for the toggle button
+        self._set_toggle_btn_properties()
 
     def set_content_bottom_margin(self, bottom_margin):
         """Set bottom margin of the content area to `bottom_margin`."""
@@ -103,3 +108,17 @@ class CollapsibleWidget(QCollapsible):
             )
 
         self.setStyleSheet(self._css.toString())
+
+    def _set_toggle_btn_properties(self):
+        """Set properties for the toogle button."""
+
+        def enter_event(event):
+            self.setCursor(Qt.PointingHandCursor)
+            super(QPushButton, self._toggle_btn).enterEvent(event)
+
+        def leave_event(event):
+            self.setCursor(Qt.ArrowCursor)
+            super(QPushButton, self._toggle_btn).leaveEvent(event)
+
+        self.toggleButton().enterEvent = enter_event
+        self.toggleButton().leaveEvent = leave_event
