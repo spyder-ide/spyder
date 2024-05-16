@@ -917,9 +917,12 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     qtbot.waitUntil(
         lambda: 'HELLO' in shell._control.toPlainText(), timeout=SHELL_TIMEOUT)
 
-    # Restart kernel and wait until it's up again
+    # Restart kernel and wait until it's up again.
+    # NOTE: We trigger the restart_action instead of calling `restart_kernel`
+    # directly to also check that that action is working as expected and avoid
+    # regressions such as spyder-ide/spyder#22084.
     shell._prompt_html = None
-    ipyconsole.restart_kernel()
+    ipyconsole.get_widget().restart_action.trigger()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)

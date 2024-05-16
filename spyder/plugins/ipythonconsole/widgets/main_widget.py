@@ -394,7 +394,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             IPythonConsoleWidgetActions.Restart,
             text=_("Restart kernel"),
             icon=self.create_icon('restart'),
-            triggered=self.restart_kernel,
+            triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
         )
         self.reset_action = self.create_action(
