@@ -473,7 +473,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         if self.prioritize_button.isChecked():
             self.prioritize_button.setIcon(self.create_icon('prepend'))
-            self.prioritize_button.setToolTip(_("Paths are prpended to sys.path"))
+            self.prioritize_button.setToolTip(_("Paths are prepended to sys.path"))
         else:
             self.prioritize_button.setIcon(self.create_icon('append'))
             self.prioritize_button.setToolTip(_("Paths are appended to sys.path"))
