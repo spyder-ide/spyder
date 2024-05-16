@@ -69,8 +69,10 @@ class PythonpathContainer(PluginMainContainer):
     def update_active_project_path(self, path):
         """Update active project path.
 
-        _project_paths is initialized and set here, and nowhere else.
+        _project_paths is initialized in _load_paths, but set in this method
+        and nowhere else.
         """
+        # _project_paths should be reset whenever it is updated.
         self._project_paths = OrderedDict()
         if path is None:
             logger.debug("Update Spyder PYTHONPATH because project was closed")
@@ -86,11 +88,11 @@ class PythonpathContainer(PluginMainContainer):
 
         Send the most up-to-date system paths to the dialog in case they have
         changed. But do not _save_paths until after the dialog exits, in order
-        to consolodate possible changes and avoid emitting multiple signals.
+        to consolidate possible changes and avoid emitting multiple signals.
         This requires that the dialog return its original paths on cancel or
         close.
         """
-        # Do not update paths or run setup if widget is already open,
+        # Do not update paths if widget is already open,
         # see spyder-ide/spyder#20808.
         if not self.path_manager_dialog.isVisible():
             self.path_manager_dialog.update_paths(
@@ -120,8 +122,9 @@ class PythonpathContainer(PluginMainContainer):
         """Load Python paths.
 
         The attributes _project_paths, _user_paths, _system_paths, _prioritize,
-        and _spyder_pythonpath, are initialize here and should be updated only
-        in _save_paths. They are only used to detect changes.
+        and _spyder_pythonpath, are initialized here. All but _project_paths
+        should be updated only in _save_paths. They are only used to detect
+        changes.
         """
         self._project_paths = OrderedDict()
         self._user_paths = OrderedDict()
@@ -162,6 +165,9 @@ class PythonpathContainer(PluginMainContainer):
         `user_paths` is user paths. `system_paths` is system paths, and
         `prioritize` is a boolean indicating whether paths should be
         prepended (True) or appended (False) to sys.path.
+
+        sig_pythonpath_changed is emitted from this method, and nowhere else,
+        on condition that _spyder_pythonpath changed.
         """
         assert isinstance(user_paths, (type(None), OrderedDict))
         assert isinstance(system_paths, (type(None), OrderedDict))
