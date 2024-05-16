@@ -253,19 +253,25 @@ class Layout(SpyderPluginV2):
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
 
-    def _reapply_docktabbar_style(self):
-        """Reapply dock tabbar style if necessary."""
+    def _reapply_docktabbar_style(self, force=False):
+        """Reapply dock tabbar style."""
         saved_state_version = self.get_conf(
             "window_state_version", default=WINDOW_STATE_VERSION
         )
 
-        # Reapplying style by installing the tab event filter if the window
-        # state version changed or the previous session ran a Spyder version
-        # older than 6.0.0a5, which is when this change became necessary.
+        # Reapplying style by installing the tab event filter again.
         if (
+            # Check if the window state version changed. This covers the case
+            # of starting a Spyder 5 session after a Spyder 6 one, but only if
+            # users have 5.5.4 or greater.
             saved_state_version < WINDOW_STATE_VERSION
-            # 82.2.0 is the conf version for 6.0 alpha5
+            # The previous session ran a Spyder version older than 6.0.0a5,
+            # which is when this change became necessary (82.2.0 is the conf
+            # version for that release)
             or parse(self.old_conf_version) < parse("82.2.0")
+            # This is used when switching to a different layout, which also
+            # requires this.
+            or force
         ):
             plugins = self.get_dockable_plugins()
             for plugin in plugins:
@@ -442,6 +448,9 @@ class Layout(SpyderPluginV2):
         ----------
         index_or_layout_id: int or str
         """
+        # We need to do this first so the new layout is applied as expected.
+        self.unmaximize_dockwidget()
+
         section = 'quick_layouts'
         container = self.get_container()
         try:
@@ -489,6 +498,10 @@ class Layout(SpyderPluginV2):
                 # Old API
                 action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
+
+        # This is necessary to restore the style for dock tabbars after the
+        # switch
+        self._reapply_docktabbar_style(force=True)
 
         return index_or_layout_id
 
