@@ -123,14 +123,16 @@ class SpyderToolbar(QToolBar):
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
         ext_button.setToolTip(_("More"))
 
-        # Set style for extension button menu.
-        ext_button.menu().setStyleSheet(
-            SpyderMenu._generate_stylesheet().toString()
-        )
+        # Set style for extension button menu (not all extension buttons have
+        # it).
+        if ext_button.menu():
+            ext_button.menu().setStyleSheet(
+                SpyderMenu._generate_stylesheet().toString()
+            )
 
-        ext_button_menu_style = SpyderMenuProxyStyle(None)
-        ext_button_menu_style.setParent(self)
-        ext_button.menu().setStyle(ext_button_menu_style)
+            ext_button_menu_style = SpyderMenuProxyStyle(None)
+            ext_button_menu_style.setParent(self)
+            ext_button.menu().setStyle(ext_button_menu_style)
 
     def add_item(
         self,

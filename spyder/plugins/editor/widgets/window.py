@@ -374,12 +374,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
 
             new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
             for action in toolbar.actions():
-                new_toolbar.add_item(
-                    action,
-                    # TODO: Remove this omit_id usage when the editor is
-                    # migrated to the new API
-                    omit_id=True if action.action_id is None else False
-                )
+                new_toolbar.add_item(action)
 
             new_toolbar.render()
             new_toolbar.setMovable(False)
@@ -483,6 +478,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             menu_id=EditorMainWindowMenus.View,
             parent=self,
             title=_("&View"),
+            register=False,
             MenuClass=ApplicationMenu
         )
 
