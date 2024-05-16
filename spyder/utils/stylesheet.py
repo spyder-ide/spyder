@@ -191,7 +191,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             marginBottom='0px',
             # This is summed to the separator padding (2px)
             width="3px",
-            # The default iamge is not visiblw at this size
+            # Hide image because the default image is not visible at this size
             image="none"
         )
 
@@ -200,7 +200,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             marginRight='0px',
             # This is summed to the separator padding (2px)
             height='3px',
-            # The default iamge is not visiblw at this size
+            # Hide image because the default image is not visible at this size
             image="none"
         )
 

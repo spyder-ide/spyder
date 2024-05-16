@@ -68,7 +68,7 @@ class EditorMainWindowActions:
 
 # ---- Widgets
 # -----------------------------------------------------------------------------
-class OutlineExplorerinEditorWindow(OutlineExplorerWidget):
+class OutlineExplorerInEditorWindow(OutlineExplorerWidget):
 
     sig_collapse_requested = Signal()
 
@@ -120,7 +120,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # ---- Outline.
         self.outlineexplorer = None
         if outline_plugin is not None:
-            self.outlineexplorer = OutlineExplorerinEditorWindow(
+            self.outlineexplorer = OutlineExplorerInEditorWindow(
                 'outline_explorer',
                 outline_plugin,
                 self,
