@@ -202,7 +202,7 @@ class BasePluginWidgetMixin(object):
 
         self._lock_unlock_action = create_action(
             self,
-            text=_("Move to another position"),
+            text=_("Move"),
             tip=_("Unlock to move pane to another position"),
             icon=ima.icon('drag_dock_widget'),
             triggered=self._lock_unlock_position,
@@ -488,13 +488,13 @@ class BasePluginWidgetMixin(object):
     def _on_title_bar_shown(self, visible):
         """Actions to perform when the title bar is shown/hidden."""
         if visible:
-            self._lock_unlock_action.setText(_('Lock position'))
+            self._lock_unlock_action.setText(_('Lock'))
             self._lock_unlock_action.setIcon(ima.icon('lock_open'))
             for method_name in ['setToolTip', 'setStatusTip']:
                 method = getattr(self._lock_unlock_action, method_name)
                 method(_("Lock pane to the current position"))
         else:
-            self._lock_unlock_action.setText(_('Move to another position'))
+            self._lock_unlock_action.setText(_('Move'))
             self._lock_unlock_action.setIcon(ima.icon('drag_dock_widget'))
             for method_name in ['setToolTip', 'setStatusTip']:
                 method = getattr(self._lock_unlock_action, method_name)

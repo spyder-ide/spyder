@@ -358,7 +358,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         )
         self.lock_unlock_action = self.create_action(
             name=PluginMainWidgetActions.LockUnlockPosition,
-            text=_("Move to another position"),
+            text=_("Move"),
             tip=_("Unlock to move pane to another position"),
             icon=self.create_icon('drag_dock_widget'),
             triggered=self.lock_unlock_position,
@@ -441,13 +441,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Actions to perform when the title bar is shown/hidden.
         """
         if visible:
-            self.lock_unlock_action.setText(_('Lock position'))
+            self.lock_unlock_action.setText(_('Lock'))
             self.lock_unlock_action.setIcon(self.create_icon('lock_open'))
             for method_name in ['setToolTip', 'setStatusTip']:
                 method = getattr(self.lock_unlock_action, method_name)
                 method(_("Lock pane to the current position"))
         else:
-            self.lock_unlock_action.setText(_('Move to another position'))
+            self.lock_unlock_action.setText(_('Move'))
             self.lock_unlock_action.setIcon(
                 self.create_icon('drag_dock_widget'))
             for method_name in ['setToolTip', 'setStatusTip']:
