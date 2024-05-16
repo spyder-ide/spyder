@@ -59,11 +59,9 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
-from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor

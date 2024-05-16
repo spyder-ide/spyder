@@ -161,7 +161,7 @@ class OutlineExplorerWidget(PluginMainWidget):
             )
 
     def update_actions(self):
-        if self.in_maximized_editor:
+        if self.in_maximized_editor or self.windowwidget:
             for action in [self.undock_action, self.lock_unlock_action]:
                 if action.isVisible():
                     action.setVisible(False)
