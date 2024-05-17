@@ -68,6 +68,7 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
         self.clo_edit = QLineEdit(self)
+        self.clo_edit.setMinimumWidth(300)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)

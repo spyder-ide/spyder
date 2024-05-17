@@ -64,6 +64,7 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         self.clo_edit = QLineEdit(self)
+        self.clo_edit.setMinimumWidth(300)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
 
