@@ -33,7 +33,7 @@ from spyder.plugins.run.api import (
     RunConfiguration, ExtendedRunExecutionParameters, RunExecutor, run_execute,
     RunContext, RunResult)
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 

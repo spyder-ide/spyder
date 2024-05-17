@@ -26,7 +26,7 @@ from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
-from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
 )
