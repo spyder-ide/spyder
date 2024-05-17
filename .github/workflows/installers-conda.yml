@@ -318,4 +318,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.DISTDIR }}/*
+          asset_path: ${{ env.DISTDIR }}/*.*
