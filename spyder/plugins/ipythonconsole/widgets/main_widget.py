@@ -938,7 +938,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             symbolic_math_n,
             hide_cmd_windows_n,
         ]
-        restart_needed = option in restart_options
+        restart_needed = (
+            option in restart_options
+            # Deactivating graphics support
+            or (option == pylab_n and not value)
+        )
 
         inline_backend = 'inline'
         pylab_restart = False
