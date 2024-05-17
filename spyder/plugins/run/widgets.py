@@ -877,12 +877,12 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         if main_window:
             x = (
                 main_window.pos().x()
-                + ((main_window.width() - self.width()) / 2)
+                + ((main_window.width() - self.width()) // 2)
             )
 
             y = (
                 main_window.pos().y()
-                + ((main_window.height() - self.height()) / 2)
+                + ((main_window.height() - self.height()) // 2)
             )
 
             self.move(x, y)

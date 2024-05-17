@@ -289,7 +289,7 @@ class RunConfigPage(PluginConfigPage):
                     # Don't display configs set for specific files. Here
                     # users are allowed to configure global configs, i.e. those
                     # that can be used by any file.
-                    if exec_params["file_uuid"] is not None:
+                    if exec_params.get("file_uuid") is not None:
                         continue
 
                     params_key = (ext, context, exec_params_id)

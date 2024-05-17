@@ -138,7 +138,7 @@ class RunExecutorListModel(QAbstractListModel):
         return executor in input_executors
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             executor_indices = self.inverted_pos[self.current_input]
             executor_id = executor_indices[index.row()]
             return self.executor_names[executor_id]
@@ -206,7 +206,7 @@ class RunConfigurationListModel(QAbstractListModel):
         self.executor_model.switch_input(uuid, (ext, context_id))
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             uuid = self.metadata_index[index.row()]
             metadata = self.run_configurations[uuid]
             return metadata['name']
@@ -285,14 +285,14 @@ class RunExecutorParameters(QAbstractListModel):
         pos = index.row()
         total_saved_params = len(self.executor_conf_params)
 
-        if pos == total_saved_params:
-            if role == Qt.DisplayRole:
+        if pos == total_saved_params or pos == -1:
+            if role == Qt.DisplayRole or role == Qt.EditRole:
                 return _("Default")
         else:
             params_id = self.params_index[pos]
             params = self.executor_conf_params[params_id]
             params_name = params['name']
-            if role == Qt.DisplayRole:
+            if role == Qt.DisplayRole or role == Qt.EditRole:
                 return params_name
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
@@ -394,7 +394,7 @@ class RunExecutorNamesListModel(QAbstractListModel):
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> str:
         row = index.row()
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             executor_id = self.executor_indexed_list[row]
             return self.executor_model.executor_names[executor_id]
 
@@ -431,7 +431,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         (extension, context, __) = params_idx
         params = self.executor_conf_params[params_idx]
 
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == self.EXTENSION:
                 return extension
             elif column == self.CONTEXT:
@@ -455,7 +455,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                 return int(Qt.AlignHCenter | Qt.AlignVCenter)
             return int(Qt.AlignRight | Qt.AlignVCenter)
 
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if orientation == Qt.Horizontal:
                 if section == self.EXTENSION:
                     return _('File extension')
