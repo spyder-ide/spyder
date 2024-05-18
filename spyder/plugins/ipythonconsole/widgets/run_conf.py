@@ -19,6 +19,7 @@ from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import AppStyle
 
 
 # Main constants
@@ -40,8 +41,10 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-
         interpreter_layout = QVBoxLayout(interpreter_group)
+        interpreter_layout.setContentsMargins(
+            *((3 * AppStyle.MarginSize,) * 4)
+        )
 
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
@@ -52,6 +55,12 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
         common_layout = QVBoxLayout(common_group)
+        common_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            0,
+        )
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb)

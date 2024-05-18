@@ -19,6 +19,7 @@ from spyder.api.translations import _
 from spyder.plugins.run.api import (
     RunExecutorConfigurationGroup, Context, RunConfigurationMetadata)
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.stylesheet import AppStyle
 
 
 class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):
@@ -31,8 +32,14 @@ class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):
         self.dir = None
 
         # --- General settings ----
-        common_group = QGroupBox(_("Script settings"))
+        common_group = QGroupBox(_("File settings"))
         common_layout = QGridLayout(common_group)
+        common_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            0,
+        )
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
@@ -42,7 +49,7 @@ class ProfilerPyConfigurationGroup(RunExecutorConfigurationGroup):
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.addWidget(common_group)
         layout.addStretch(100)
 

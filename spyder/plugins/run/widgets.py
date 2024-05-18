@@ -531,7 +531,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # --- Runner settings
         self.stack = QStackedWidget()
         self.executor_group = QGroupBox(_("Runner settings"))
-        self.executor_group.setObjectName("run-executor-group")
 
         parameters_layout = QVBoxLayout(self.executor_group)
         parameters_layout.addWidget(self.stack)
@@ -543,7 +542,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         # --- Working directory settings
         self.wdir_group = QGroupBox(_("Working directory settings"))
-        self.wdir_group.setObjectName("run-wdir-group")
         wdir_layout = QVBoxLayout(self.wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
@@ -865,20 +863,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             # Separate it from the widgets above it with the same margin as the
             # one between the header and those widgets.
             marginTop=f"{AppStyle.InnerContentPadding}px"
-        )
-
-        # --- Style for QGroupBoxes
-        # This makes the spacing between this group and the one above it (i.e.
-        # "Configuration properties") to be almost the same as the one between
-        # it and the group below (i.e. "Working directory settings").
-        self._css["QGroupBox#run-executor-group::title"].setValues(
-            marginTop="7px"
-        )
-
-        # Reduce extra top margin for this group to make the spacing between
-        # groups uniform.
-        self._css["QGroupBox#run-wdir-group::title"].setValues(
-            marginTop="-5px"
         )
 
         return self._css.toString()

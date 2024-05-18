@@ -24,6 +24,7 @@ from spyder.plugins.run.api import (
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.stylesheet import AppStyle
 
 
 class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
@@ -38,6 +39,9 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Python interpreter"))
         interpreter_layout = QVBoxLayout(interpreter_group)
+        interpreter_layout.setContentsMargins(
+            *((3 * AppStyle.MarginSize,) * 4)
+        )
 
         # --- System terminal ---
         external_group = QWidget(self)
@@ -64,6 +68,12 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         # --- General settings ----
         common_group = QGroupBox(_("Bash/Batch script settings"))
         common_layout = QGridLayout(common_group)
+        common_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            0,
+        )
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
