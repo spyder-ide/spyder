@@ -223,6 +223,9 @@ class RunContainer(PluginMainContainer):
 
         self.dialog.setup()
         self.dialog.finished.connect(self.process_run_dialog_result)
+        self.dialog.sig_delete_config_requested.connect(
+            self.delete_executor_configuration_parameters
+        )
 
         if selected_executor is not None:
             self.dialog.select_executor(selected_executor)
@@ -961,9 +964,9 @@ class RunContainer(PluginMainContainer):
         executor_name: str
             The identifier of the run executor.
         extension: str
-            The file extension to register the configuration parameters for.
+            The file extension of the configuration parameters to delete.
         context_id: str
-            The context to register the configuration parameters for.
+            The context of the configuration parameters to delete.
         uuid: str
             The run configuration identifier.
         """
@@ -984,7 +987,6 @@ class RunContainer(PluginMainContainer):
         all_execution_params[executor_name] = executor_params
 
         self.set_conf('parameters', all_execution_params)
-
 
     def get_last_used_executor_parameters(
         self,

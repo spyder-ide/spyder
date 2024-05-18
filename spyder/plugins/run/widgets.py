@@ -16,9 +16,22 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QApplication, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QLayout, QRadioButton, QStackedWidget,
-    QVBoxLayout, QWidget)
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QLayout,
+    QMessageBox,
+    QRadioButton,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 import qstylizer.style
 
 # Local imports
@@ -459,6 +472,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     """Run dialog used to configure run executors."""
 
+    sig_delete_config_requested = Signal(str, str, str, str)
+
     def __init__(
         self,
         parent=None,
@@ -476,6 +491,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.current_widget = None
         self.status = RunDialogStatus.Close
         self._is_shown = False
+        self._save_as_global = False
 
     # ---- Public methods
     # -------------------------------------------------------------------------
@@ -510,7 +526,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         # --- Configuration properties
         config_props_group = QGroupBox(_("Configuration properties"))
-        config_props_layout = QVBoxLayout(config_props_group)
+        config_props_layout = QGridLayout(config_props_group)
 
         # Increase margin between title and line edit below so this looks good
         config_props_margins = config_props_layout.contentsMargins()
@@ -520,13 +536,21 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # Name to save custom configuration
         name_params_label = QLabel(_("Name:"))
         self.name_params_text = QLineEdit(self)
-        self.name_params_text.setMinimumWidth(250)
 
-        name_params_layout = QHBoxLayout()
-        name_params_layout.addWidget(name_params_label)
-        name_params_layout.addWidget(self.name_params_text)
-        name_params_layout.addStretch()
-        config_props_layout.addLayout(name_params_layout)
+        # Buttons
+        delete_button = QPushButton(_("Delete"))
+        save_global_button = QPushButton(_("Save globally"))
+        delete_button.clicked.connect(self.delete_btn_clicked)
+        save_global_button.clicked.connect(self.save_global_btn_clicked)
+
+        # Buttons layout
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(delete_button)
+        buttons_layout.addWidget(save_global_button)
+
+        config_props_layout.addWidget(name_params_label, 0, 0)
+        config_props_layout.addWidget(self.name_params_text, 0, 1)
+        config_props_layout.addLayout(buttons_layout, 1, 1)
 
         # --- Runner settings
         self.stack = QStackedWidget()
@@ -632,7 +656,8 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.executor_combo.setCurrentIndex(-1)
         self.run_conf_model.update_index(index)
         self.executor_combo.setCurrentIndex(
-            self.executors_model.get_initial_index())
+            self.executors_model.get_initial_index()
+        )
 
     def update_parameter_set(self, index: int):
         if index < 0:
@@ -742,6 +767,52 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.status |= RunDialogStatus.Run
         self.accept()
 
+    def delete_btn_clicked(self):
+        answer = QMessageBox.question(
+            self,
+            _("Delete"),
+            _("Do you want to delete the current configuration?"),
+        )
+
+        if answer == QMessageBox.Yes:
+            # Get executor name
+            executor_name, __ = self.executors_model.get_selected_run_executor(
+                self.executor_combo.currentIndex()
+            )
+
+            # Get extension and context_id
+            metadata = self.run_conf_model.get_selected_metadata()
+            extension = metadata["input_extension"]
+            context_id = metadata["context"]["identifier"]
+
+            # Get index associated with config
+            idx = self.parameters_combo.currentIndex()
+
+            # Get config uuid
+            uuid, __ = self.parameter_model.get_parameters_uuid_name(idx)
+
+            self.sig_delete_config_requested.emit(
+                executor_name, extension, context_id, uuid
+            )
+
+            # Close dialog to not have to deal with the difficult case of
+            # updating its contents after this config is deleted
+            self.reject()
+
+    def save_global_btn_clicked(self):
+        answer = QMessageBox.question(
+            self,
+            _("Save globally"),
+            _(
+                "Do you want to save the current configuration for other "
+                "files?"
+            ),
+        )
+
+        if answer == QMessageBox.Yes:
+            self._save_as_global = True
+            self.accept()
+
     def get_configuration(
         self
     ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
@@ -804,7 +875,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             uuid=uuid,
             name=name,
             params=exec_params,
-            file_uuid=metadata_info['uuid']
+            file_uuid=None if self._save_as_global else metadata_info['uuid']
         )
 
         executor_name, __ = self.executors_model.get_selected_run_executor(
@@ -813,6 +884,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         self.saved_conf = (metadata_info['uuid'], executor_name,
                            ext_exec_params)
+
+        # Reset attribute for next time
+        self._save_as_global = False
 
         return super().accept()
 
