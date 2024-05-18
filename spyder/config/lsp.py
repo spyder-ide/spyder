@@ -79,7 +79,7 @@ PYTHON_CONFIG = {
                     'environment': None,
                     'extra_paths': [],
                     'env_vars': None,
-                    'prioritize': False,
+                    'prioritize_extra_paths': False,
                     # Until we have a graphical way for users to add modules to
                     # this option
                     'auto_import_modules': [
