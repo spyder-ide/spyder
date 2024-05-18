@@ -809,9 +809,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
             'extra_paths': self.get_conf('spyder_pythonpath',
                                          section='pythonpath_manager',
                                          default=[]),
-            'prioritize': self.get_conf('prioritize',
-                                        section='pythonpath_manager',
-                                        default=False),
+            'prioritize_extra_paths': self.get_conf(
+                'prioritize', section='pythonpath_manager', default=False
+            ),
             'env_vars': env_vars,
         }
         jedi_completion = {
