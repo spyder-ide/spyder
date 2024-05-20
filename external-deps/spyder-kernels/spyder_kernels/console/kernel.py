@@ -498,7 +498,7 @@ class SpyderKernel(IPythonKernel):
         """Get current matplotlib backend."""
         try:
             import matplotlib
-            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend()]
+            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend().lower()]
         except Exception:
             return None
 
