@@ -156,6 +156,9 @@ class GithubBackend(BaseBackend):
                         _('Failed to create issue'),
                         _('Failed to create Github issue. Error %d') %
                         e.response.code)
+                    # Raise error so that SpyderErrorDialog can capture and
+                    # redirect user to web interface.
+                    raise e
             return False
         else:
             issue_nbr = ret['number']
