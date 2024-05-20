@@ -78,7 +78,7 @@ jobs:
       run: |
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
-            include="{'os': 'macos-11', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
+            include="{'os': 'macos-12', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
         fi
         if [[ $BUILD_ARM == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'osx-arm64'"
