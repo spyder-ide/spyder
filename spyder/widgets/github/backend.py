@@ -135,9 +135,9 @@ class GithubBackend(BaseBackend):
             url = self.upload_log_file(application_log)
             body += '\nApplication log: %s' % url
         try:
-            gh = github.GitHub(access_token=token)
+            gh = github.GitHub(token=token)
             repo = gh.repos(self.gh_owner)(self.gh_repo)
-            ret = repo.issues.post(title=title, body=body)
+            ret = repo.issues.post({'title': title, 'body': body})
         except github.ApiError as e:
             _logger().warning('Failed to send bug report on Github. '
                               'response=%r', e.response)
