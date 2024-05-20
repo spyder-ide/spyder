@@ -641,7 +641,6 @@ NAME_MAP = {
         ('run', [
             'breakpoints',
             'configurations',
-            'defaultconfiguration',
             'default/wdir/fixed_directory',
             'last_used_parameters',
             'parameters'

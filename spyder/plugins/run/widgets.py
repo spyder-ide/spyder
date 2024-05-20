@@ -40,9 +40,13 @@ from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.run.api import (
-    RunParameterFlags, WorkingDirSource, WorkingDirOpts,
-    RunExecutionParameters, ExtendedRunExecutionParameters,
-    RunExecutorConfigurationGroup, SupportedExecutionRunConfiguration)
+    ExtendedRunExecutionParameters,
+    RunExecutorConfigurationGroup,
+    RunExecutionParameters,
+    SupportedExecutionRunConfiguration,
+    WorkingDirOpts,
+    WorkingDirSource,
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
@@ -622,6 +626,15 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.display_executor_configuration)
         self.executor_combo.setModel(self.executors_model)
 
+        # This signal needs to be connected after
+        # executor_combo.currentIndexChanged and before
+        # configuration_combo.currentIndexChanged for parameters_combo to be
+        # updated as expected when opening the dialog.
+        self.parameters_combo.currentIndexChanged.connect(
+            self.update_parameter_set
+        )
+        self.parameters_combo.setModel(self.parameter_model)
+
         self.configuration_combo.currentIndexChanged.connect(
             self.update_configuration_run_index)
         self.configuration_combo.setModel(self.run_conf_model)
@@ -632,10 +645,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.executor_combo.setMaxVisibleItems(20)
         self.executor_combo.view().setVerticalScrollBarPolicy(
             Qt.ScrollBarAsNeeded)
-
-        self.parameters_combo.currentIndexChanged.connect(
-            self.update_parameter_set)
-        self.parameters_combo.setModel(self.parameter_model)
 
         self.setWindowTitle(_("Run configuration per file"))
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
@@ -663,17 +672,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         if index < 0:
             return
 
-        if self.index_to_select is not None:
-            index = self.index_to_select
-            self.index_to_select = None
-            self.parameters_combo.setCurrentIndex(index)
-
         action, params = self.parameter_model.get_executor_parameters(index)
         working_dir_params = params['working_dir']
         stored_parameters = params['executor_params']
-
-        if action == RunParameterFlags.SetDefaults:
-            stored_parameters = self.current_widget.get_default_configuration()
         self.current_widget.set_configuration(stored_parameters)
 
         source = working_dir_params['source']
@@ -743,14 +744,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.parameter_model.set_parameters(stored_params)
         selected_params = self.run_conf_model.get_last_used_execution_params(
             uuid, executor_name)
-        index = self.parameter_model.get_parameters_index_by_uuid(
+        params_index = self.parameter_model.get_parameters_index_by_uuid(
             selected_params
         )
 
-        if self.parameters_combo.count() == 0:
-            self.index_to_select = index
-
-        self.parameters_combo.setCurrentIndex(index)
+        self.parameters_combo.setCurrentIndex(params_index)
         self.adjustSize()
 
     def select_executor(self, executor_name: str):

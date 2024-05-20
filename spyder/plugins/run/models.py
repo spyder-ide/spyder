@@ -17,10 +17,15 @@ from qtpy.QtCore import (Qt, Signal, QAbstractListModel, QModelIndex,
 # Local imports
 from spyder.api.translations import _
 from spyder.plugins.run.api import (
-    StoredRunExecutorParameters, RunContext, RunConfigurationMetadata,
-    SupportedExecutionRunConfiguration, RunParameterFlags,
-    StoredRunConfigurationExecutor, ExtendedRunExecutionParameters,
-    RunExecutionParameters, WorkingDirOpts, WorkingDirSource)
+    ExtendedRunExecutionParameters,
+    RunConfigurationMetadata,
+    RunContext,
+    RunExecutionParameters,
+    RunParameterFlags,
+    StoredRunConfigurationExecutor,
+    StoredRunExecutorParameters,
+    SupportedExecutionRunConfiguration,
+)
 
 
 class RunExecutorListModel(QAbstractListModel):
@@ -283,49 +288,29 @@ class RunExecutorParameters(QAbstractListModel):
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         pos = index.row()
-        total_saved_params = len(self.executor_conf_params)
-
-        if pos == total_saved_params or pos == -1:
-            if role == Qt.DisplayRole or role == Qt.EditRole:
-                return _("Default")
-        else:
-            params_id = self.params_index[pos]
-            params = self.executor_conf_params[params_id]
-            params_name = params['name']
-            if role == Qt.DisplayRole or role == Qt.EditRole:
-                return params_name
+        pos = 0 if pos == -1 else pos
+        params_id = self.params_index[pos]
+        params = self.executor_conf_params[params_id]
+        params_name = params['name']
+        if role == Qt.DisplayRole or role == Qt.EditRole:
+            return params_name
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
-        return len(self.executor_conf_params) + 1
+        return len(self.executor_conf_params)
 
     def get_executor_parameters(
         self,
         index: int
     ) -> Tuple[RunParameterFlags, RunExecutionParameters]:
 
-        if index == len(self) - 1:
-            default_working_dir = WorkingDirOpts(
-                source=WorkingDirSource.ConfigurationDirectory,
-                path=None)
-            default_params = RunExecutionParameters(
-                working_dir=default_working_dir,
-                executor_params={})
-
-            return RunParameterFlags.SetDefaults, default_params
-        else:
-            params_id = self.params_index[index]
-            params = self.executor_conf_params[params_id]
-            actual_params = params['params']
-
-            return RunParameterFlags.SwitchValues, actual_params
+        params_id = self.params_index[index]
+        params = self.executor_conf_params[params_id]
+        actual_params = params['params']
+        return RunParameterFlags.SwitchValues, actual_params
 
     def get_parameters_uuid_name(
-        self,
-        index: int
+        self, index: int
     ) -> Tuple[Optional[str], Optional[str]]:
-
-        if index == len(self) - 1:
-            return None, None
 
         params_id = self.params_index[index]
         params = self.executor_conf_params[params_id]
@@ -344,14 +329,9 @@ class RunExecutorParameters(QAbstractListModel):
         self.endResetModel()
 
     def get_parameters_index_by_uuid(
-        self,
-        parameters_uuid: Optional[str]
+        self, parameters_uuid: Optional[str]
     ) -> int:
-        index = self.inverse_index.get(
-            parameters_uuid, len(self.executor_conf_params)
-        )
-
-        return index
+        return self.inverse_index.get(parameters_uuid, 0)
 
     def get_parameters_index_by_name(self, parameters_name: str) -> int:
         index = -1
@@ -363,7 +343,7 @@ class RunExecutorParameters(QAbstractListModel):
         return index
 
     def __len__(self) -> int:
-        return len(self.executor_conf_params) + 1
+        return len(self.executor_conf_params)
 
 
 class RunExecutorNamesListModel(QAbstractListModel):

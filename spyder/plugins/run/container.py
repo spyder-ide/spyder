@@ -10,6 +10,7 @@
 import functools
 import os.path as osp
 from typing import Callable, List, Dict, Tuple, Set, Optional
+from uuid import uuid4
 from weakref import WeakSet, WeakValueDictionary
 
 # Third-party imports
@@ -772,6 +773,21 @@ class RunContainer(PluginMainContainer):
                     ext, context_id, executor_id, config)
                 executor_count += 1
 
+                # Save default configs to our config system so that they are
+                # displayed in the Run confpage
+                config_widget = config["configuration_widget"]
+                default_conf = (
+                    config_widget.get_default_configuration()
+                    if config_widget
+                    else {}
+                )
+                self._save_default_graphical_executor_configuration(
+                    executor_id,
+                    ext,
+                    context_id,
+                    default_conf
+                )
+
         self.executor_use_count[executor_id] = executor_count
         self.executor_model.set_executor_name(executor_id, executor_name)
         self.set_actions_status()
@@ -1087,3 +1103,71 @@ class RunContainer(PluginMainContainer):
 
         mru_executors_uuids[uuid] = params
         self.set_conf('last_used_parameters', mru_executors_uuids)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _save_default_graphical_executor_configuration(
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str,
+        default_conf: dict,
+    ):
+        """
+        Save a default executor configuration to our config system.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
+        default_conf: dict
+            A dictionary containing the run configuration parameters for the
+            given executor.
+        """
+        # Check if there's already a default parameter config to not do this
+        # because it's not necessary.
+        current_params = self.get_executor_configuration_parameters(
+            executor_name,
+            extension,
+            context_id
+        )
+
+        for param in current_params["params"].values():
+            if param["name"] == _("Default"):
+                return
+
+        # Id for this config
+        uuid = str(uuid4())
+
+        # Build config
+        cwd_opts = WorkingDirOpts(
+            source=WorkingDirSource.ConfigurationDirectory,
+            path=None
+        )
+
+        exec_params = RunExecutionParameters(
+            working_dir=cwd_opts, executor_params=default_conf
+        )
+
+        ext_exec_params = ExtendedRunExecutionParameters(
+            uuid=uuid,
+            name=_("Default"),
+            params=exec_params,
+            file_uuid=None,
+        )
+
+        store_params = StoredRunExecutorParameters(
+            params={uuid: ext_exec_params}
+        )
+
+        # Save config
+        self.set_executor_configuration_parameters(
+            executor_name,
+            extension,
+            context_id,
+            store_params,
+        )
