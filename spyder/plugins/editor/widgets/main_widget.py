@@ -357,6 +357,9 @@ class EditorMainWidget(PluginMainWidget):
         self._print_editor = self._create_print_editor()
         self._print_editor.hide()
 
+        # To save run extensions
+        self.supported_run_extensions = []
+
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -3030,6 +3033,8 @@ class EditorMainWidget(PluginMainWidget):
                 input_extension=extension, contexts=ext_contexts)
             self.supported_run_extensions.append(supported_extension)
 
+            # This is necessary for plugins that register run configs after Run
+            # is available
             self.sig_register_run_configuration_provider_requested.emit(
                 [supported_extension]
             )
