@@ -48,9 +48,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
-    OPTIONAL = [Plugins.Editor, Plugins.History, Plugins.MainMenu, Plugins.Run,
-                Plugins.Projects, Plugins.PythonpathManager,
-                Plugins.WorkingDirectory, Plugins.StatusBar]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.History,
+        Plugins.MainMenu,
+        Plugins.Run,
+        Plugins.Projects,
+        Plugins.PythonpathManager,
+        Plugins.RemoteClient,
+        Plugins.WorkingDirectory,
+        Plugins.StatusBar,
+    ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
     CONF_SECTION = NAME
@@ -463,6 +471,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.connect(self.update_path)
 
+    @on_plugin_available(plugin=Plugins.RemoteClient)
+    def on_remote_client_available(self):
+        remote_client = self.get_plugin(Plugins.RemoteClient)
+        remote_client.sig_server_stopped.connect(self._close_remote_clients)
+        remote_client.sig_server_renamed.connect(self._rename_remote_clients)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -516,6 +530,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.disconnect(self.update_path)
 
+    @on_plugin_teardown(plugin=Plugins.RemoteClient)
+    def on_remote_client_teardown(self):
+        remote_client = self.get_plugin(Plugins.RemoteClient)
+        remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
+        remote_client.sig_server_renamed.disconnect(
+            self._rename_remote_clients
+        )
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font(SpyderFontType.Monospace)
@@ -537,6 +559,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
+
+    def _close_remote_clients(self, server_id):
+        self.get_widget().close_remote_clients(server_id)
+
+    def _rename_remote_clients(self, server_id):
+        self.get_widget().rename_remote_clients(server_id)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -668,8 +696,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().create_client_for_file(filename, is_cython=is_cython)
 
-    def create_client_for_kernel(self, connection_file, hostname=None,
-                                 sshkey=None, password=None):
+    def create_client_for_kernel(
+        self,
+        connection_file,
+        hostname=None,
+        sshkey=None,
+        password=None,
+        server_id=None,
+        can_close=True,
+    ):
         """
         Create a client connected to an existing kernel.
 
@@ -687,13 +722,21 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         password: str, optional
             Password to authenticate to the remote machine where the kernel is
             running.
+        server_id: str, optional
+            The remote server id to which this client is connected to.
+        can_close: bool, optional
+            Whether the client can be closed. This is useful to prevent closing
+            the client that will be connected to a remote kernel before the
+            connection is established.
 
         Returns
         -------
-        None.
+        client: ClientWidget
+            The created client.
         """
-        self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password)
+        return self.get_widget().create_client_for_kernel(
+            connection_file, hostname, sshkey, password, server_id, can_close
+        )
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file name."""

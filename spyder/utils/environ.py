@@ -131,7 +131,7 @@ def set_user_env(env, parent=None):
     Set user environment variables via HKCU (Windows) or shell startup file
     (Unix).
     """
-    env_dict = listdict2envdict(env)
+    env_dict = clean_env(listdict2envdict(env))
 
     if os.name == 'nt':
         types = dict()

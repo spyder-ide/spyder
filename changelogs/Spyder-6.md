@@ -54,6 +54,42 @@
 
 ----
 
+## Version 6.0beta1 (2024-05-16)
+
+### Issues Closed
+
+* [Issue 22084](https://github.com/spyder-ide/spyder/issues/22084) - Error when restarting kernel ([PR 22085](https://github.com/spyder-ide/spyder/pull/22085) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22076](https://github.com/spyder-ide/spyder/issues/22076) - Spyder 6.0 beta1 release ([PR 22083](https://github.com/spyder-ide/spyder/pull/22083) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22068](https://github.com/spyder-ide/spyder/issues/22068) - Use Python 3.11 in the Spyder 6 installers ([PR 22072](https://github.com/spyder-ide/spyder/pull/22072) by [@mrclary](https://github.com/mrclary))
+* [Issue 22049](https://github.com/spyder-ide/spyder/issues/22049) - Editor tab no longer called "Editor" ([PR 22050](https://github.com/spyder-ide/spyder/pull/22050) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22012](https://github.com/spyder-ide/spyder/issues/22012) - QThread destroyed when still running error in tests with main_window fixture ([PR 22053](https://github.com/spyder-ide/spyder/pull/22053) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21899](https://github.com/spyder-ide/spyder/issues/21899) - Feature Request: Be able to double click plots so they blow up into a larger screen ([PR 22029](https://github.com/spyder-ide/spyder/pull/22029) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21743](https://github.com/spyder-ide/spyder/issues/21743) - Enhancement proposal: create a plot button in variable explorer to visualize numerical data ([PR 21969](https://github.com/spyder-ide/spyder/pull/21969) by [@dpturibio](https://github.com/dpturibio))
+* [Issue 17468](https://github.com/spyder-ide/spyder/issues/17468) - Editor migration tracker ([PR 22005](https://github.com/spyder-ide/spyder/pull/22005) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 12158](https://github.com/spyder-ide/spyder/issues/12158) - Move plots in Plots pane ([PR 22029](https://github.com/spyder-ide/spyder/pull/22029) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 9 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22085](https://github.com/spyder-ide/spyder/pull/22085) - PR: Fix callable associated to `restart_action` (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([22084](https://github.com/spyder-ide/spyder/issues/22084))
+* [PR 22083](https://github.com/spyder-ide/spyder/pull/22083) - PR: Update core dependencies for 6.0.0 beta1, by [@dalthviz](https://github.com/dalthviz) ([22076](https://github.com/spyder-ide/spyder/issues/22076))
+* [PR 22079](https://github.com/spyder-ide/spyder/pull/22079) - PR: Add UI for the `Remote client` plugin, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22072](https://github.com/spyder-ide/spyder/pull/22072) - PR: Use Python 3.11 for our installers, by [@mrclary](https://github.com/mrclary) ([22068](https://github.com/spyder-ide/spyder/issues/22068))
+* [PR 22059](https://github.com/spyder-ide/spyder/pull/22059) - PR: Use conda-lock files to incrementally update conda-based installers, by [@mrclary](https://github.com/mrclary)
+* [PR 22057](https://github.com/spyder-ide/spyder/pull/22057) - PR: Make Matplotlib status bar widget show the right backend and fix some errors related to kernel restarts for options that require them, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22053](https://github.com/spyder-ide/spyder/pull/22053) - PR: Fix introspection testing (CI), by [@dalthviz](https://github.com/dalthviz) ([22012](https://github.com/spyder-ide/spyder/issues/22012))
+* [PR 22050](https://github.com/spyder-ide/spyder/pull/22050) - PR: Show `Editor` as title when the Editor is tabbed (Editor), by [@dalthviz](https://github.com/dalthviz) ([22049](https://github.com/spyder-ide/spyder/issues/22049))
+* [PR 22029](https://github.com/spyder-ide/spyder/pull/22029) - PR: Improve UX of the Plots plugin, by [@ccordoba12](https://github.com/ccordoba12) ([21899](https://github.com/spyder-ide/spyder/issues/21899), [12158](https://github.com/spyder-ide/spyder/issues/12158))
+* [PR 22025](https://github.com/spyder-ide/spyder/pull/22025) - PR: Improve drag & drop out of file explorer plugin, by [@rear1019](https://github.com/rear1019)
+* [PR 22005](https://github.com/spyder-ide/spyder/pull/22005) - PR: Editor migration missing TODOs (Editor), by [@dalthviz](https://github.com/dalthviz) ([17468](https://github.com/spyder-ide/spyder/issues/17468))
+* [PR 21969](https://github.com/spyder-ide/spyder/pull/21969) - PR: Add ability to show plots for dataframes (Variable Explorer), by [@dpturibio](https://github.com/dpturibio) ([21743](https://github.com/spyder-ide/spyder/issues/21743))
+* [PR 21757](https://github.com/spyder-ide/spyder/pull/21757) - PR: Add backend for a new `Remote client` plugin, by [@hlouzada](https://github.com/hlouzada)
+
+In this release 13 pull requests were closed.
+
+----
+
 ## Version 6.0alpha5 (2024-04-23)
 
 ### Issues Closed

@@ -917,9 +917,12 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     qtbot.waitUntil(
         lambda: 'HELLO' in shell._control.toPlainText(), timeout=SHELL_TIMEOUT)
 
-    # Restart kernel and wait until it's up again
+    # Restart kernel and wait until it's up again.
+    # NOTE: We trigger the restart_action instead of calling `restart_kernel`
+    # directly to also check that that action is working as expected and avoid
+    # regressions such as spyder-ide/spyder#22084.
     shell._prompt_html = None
-    ipyconsole.restart_kernel()
+    ipyconsole.get_widget().restart_action.trigger()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
@@ -2149,23 +2152,24 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     # Wait until it is launched
     qtbot.waitUntil(
-        lambda: (
-            kernel_handler._comm_ready_received
-        ),
-        timeout=SHELL_TIMEOUT)
+        lambda: kernel_handler._comm_ready_received, timeout=SHELL_TIMEOUT
+    )
 
     # Set wrong version
     kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 
     # Create new client
     w.create_new_client()
-    client = w.get_current_client()
 
     # Make sure an error is shown
-    control = client.get_control()
+    info_page = w.get_current_client().infowidget.page()
+
     qtbot.waitUntil(
-        lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "pip install spyder" in control.toPlainText()
+        lambda: check_text(info_page, "1.0.0"), timeout=6000
+    )
+    qtbot.waitUntil(
+        lambda: check_text(info_page, "pip install spyder"), timeout=6000
+    )
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):

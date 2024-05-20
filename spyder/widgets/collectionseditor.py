@@ -1590,6 +1590,8 @@ class CollectionsEditorTableView(BaseTableView):
 
 class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
+    # Dummy conf section to avoid a warning from SpyderConfigurationObserver
+    CONF_SECTION = ""
 
     sig_refresh_requested = Signal()
 

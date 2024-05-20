@@ -9,6 +9,7 @@ import asyncio
 import logging
 import socket
 
+import aiohttp
 import asyncssh
 
 from spyder.api.translations import _
@@ -76,6 +77,17 @@ class SpyderRemoteClient:
 
     async def close(self):
         """Closes the remote server and the SSH connection."""
+        if self._plugin is not None:
+            self._plugin.sig_connection_status_changed.emit(
+                ConnectionInfo(
+                    id=self.config_id,
+                    status=ConnectionStatus.Stopping,
+                    message=_(
+                        "We're closing the connection. Please be patient"
+                    ),
+                )
+            )
+
         await self.close_port_forwarder()
         await self.stop_remote_server()
         await self.close_ssh_connection()
@@ -280,6 +292,14 @@ class SpyderRemoteClient:
             f"{self.server_port}"
         )
 
+        self._plugin.sig_connection_status_changed.emit(
+            ConnectionInfo(
+                id=self.config_id,
+                status=ConnectionStatus.Active,
+                message=_("The connection was established successfully"),
+            )
+        )
+
         return await self.forward_local_port()
 
     async def check_server_installed(self) -> bool:
@@ -392,8 +412,8 @@ class SpyderRemoteClient:
                         id=self.config_id,
                         status=ConnectionStatus.Error,
                         message=_(
-                            "It was not possible to open an SSH connection to "
-                            "this machine"
+                            "It was not possible to open a connection to this "
+                            "machine"
                         ),
                     )
                 )
@@ -594,7 +614,7 @@ class SpyderRemoteClient:
                     ConnectionInfo(
                         id=self.config_id,
                         status=ConnectionStatus.Inactive,
-                        message=_("Connection closed"),
+                        message=_("The connection was closed successfully")
                     )
                 )
 
@@ -623,7 +643,7 @@ class SpyderRemoteClient:
             self._logger.error(
                 "Cannot launch kernel, remote server is not running"
             )
-            return
+            return {}
 
         # This is necessary to avoid an error when the server has not started
         # before
@@ -687,10 +707,13 @@ class SpyderRemoteClient:
         async with JupyterHubAPI(
             self.server_url, api_token=self.api_token
         ) as hub:
-            async with await hub.ensure_server(
-                self.peer_username, self.JUPYTER_SERVER_TIMEOUT
-            ) as jupyter:
-                response = await jupyter.delete_kernel(kernel_id=kernel_id)
+            try:
+                async with await hub.ensure_server(
+                    self.peer_username, self.JUPYTER_SERVER_TIMEOUT
+                ) as jupyter:
+                    response = await jupyter.delete_kernel(kernel_id=kernel_id)
+            except aiohttp.client_exceptions.ClientConnectionError:
+                return True
 
         self._logger.info(f"Kernel terminated for ID {kernel_id}")
         return response

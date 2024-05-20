@@ -7,6 +7,7 @@
 """
 Spyder Remote Client API.
 """
+
 from __future__ import annotations
 import logging
 import typing
@@ -39,6 +40,7 @@ class SSHClientOptions(typing.TypedDict):
     username: str
     password: str | None
     client_keys: str | typing.Sequence[str] | None
+    passphrase: str | None
     known_hosts: str | typing.Sequence[str] | None
     config: typing.Sequence[str] | None
     platform: str | None
@@ -48,6 +50,7 @@ class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
     Active = "active"
+    Stopping = "stopping"
     Error = "error"
 
 

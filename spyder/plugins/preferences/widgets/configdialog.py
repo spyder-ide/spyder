@@ -85,11 +85,11 @@ class ConfigDialog(SidebarDialog):
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
 
-    def add_page(self, page):
+    def add_page(self, page, initialize=False):
         # Signals
         self.check_settings.connect(page.check_settings)
         page.apply_button_enabled.connect(self.apply_btn.setEnabled)
-        super().add_page(page)
+        super().add_page(page, initialize=initialize)
 
     def create_buttons(self):
         bbox = SpyderDialogButtonBox(
@@ -104,10 +104,9 @@ class ConfigDialog(SidebarDialog):
 
         button_reset = QPushButton(_('Reset to defaults'))
         button_reset.clicked.connect(self.sig_reset_preferences_requested)
+        bbox.addButton(button_reset, QDialogButtonBox.ResetRole)
 
         layout = QHBoxLayout()
-        layout.addWidget(button_reset)
-        layout.addStretch(1)
         layout.addWidget(bbox)
 
         return bbox, layout

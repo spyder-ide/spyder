@@ -7,7 +7,7 @@ channels:
   - conda-forge
 dependencies:
   - aiohttp >=3.9.3
-  - asyncssh >=2.0.0
+  - asyncssh >=2.0.0,<3.0.0
   - atomicwrites >=1.2.0
   - chardet >=2.0.0
   - cloudpickle >=0.5.0
@@ -44,7 +44,7 @@ dependencies:
   - rtree >=0.9.7
   - setuptools >=49.6.0
   - sphinx >=0.6.6
-  - spyder-kernels >=3.0.0b5,<3.0.0b6
+  - spyder-kernels >=3.0.0b6,<3.0.0b7
   - superqt >=0.6.1,<1.0.0
   - textdistance >=4.2.0
   - three-merge >=0.1.1
