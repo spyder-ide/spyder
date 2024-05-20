@@ -4743,6 +4743,7 @@ def test_tour_message(main_window, qtbot):
     # Close the tour
     animated_tour.close_tour()
     qtbot.waitUntil(lambda: not animated_tour.is_running, timeout=9000)
+    qtbot.wait(2000)
 
 
 @flaky(max_runs=3)

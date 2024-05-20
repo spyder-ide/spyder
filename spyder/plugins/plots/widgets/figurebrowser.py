@@ -481,16 +481,19 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # immediately after the figure is loaded doesn't work.
         QTimer.singleShot(
             20,
-            lambda: self.verticalScrollBar().setValue(
+            self.update_scrollbars_values,
+        )
+
+    def update_scrollbars_values(self):
+        try:
+            self.verticalScrollBar().setValue(
                 self.current_thumbnail.vscrollbar_value
-            ),
-        )
-        QTimer.singleShot(
-            20,
-            lambda: self.horizontalScrollBar().setValue(
+            )
+            self.horizontalScrollBar().setValue(
                 self.current_thumbnail.hscrollbar_value
-            ),
-        )
+            )
+        except RuntimeError:
+            pass
 
     def eventFilter(self, widget, event):
         """A filter to control the zooming and panning of the figure canvas."""
