@@ -14,9 +14,16 @@ from uuid import uuid4
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QLabel, QVBoxLayout,
-                            QAbstractItemView, QPushButton, QGridLayout,
-                            QHeaderView, QWidget)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
@@ -29,6 +36,7 @@ from spyder.plugins.run.models import (
     RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.plugins.run.widgets import (
     ExecutionParametersDialog, RunDialogStatus)
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import HoverRowsTableView
 
 
@@ -194,34 +202,41 @@ class RunConfigPage(PluginConfigPage):
             ExtendedRunExecutionParameters]] = {}
 
         about_label = QLabel(
-            _("The following are the global configuration settings of the "
-              "different plugins that can run files, cells or selections in "
-              "Spyder. These options can be overridden in the "
-              "<b>Configuration per file</b> entry of the <b>Run</b> menu.")
+            _(
+                "The following are the global configuration settings of the "
+                "different plugins that can execute files in Spyder."
+            )
         )
         about_label.setWordWrap(True)
 
+        # The paremeters table needs to be created before the executor_combo
+        # below, although is displayed after it.
+        params_label = QLabel(_('Available parameters:'))
         self.params_table = RunParametersTableView(self, self.table_model)
         self.params_table.setMaximumHeight(180)
 
+        params_table_layout = QHBoxLayout()
+        params_table_layout.addSpacing(2 * AppStyle.MarginSize)
+        params_table_layout.addWidget(self.params_table)
+        params_table_layout.addSpacing(2 * AppStyle.MarginSize)
+
+        executor_label = QLabel(_("Executor:"))
         self.executor_combo = SpyderComboBox(self)
+        self.executor_combo.setMinimumWidth(250)
         self.executor_combo.currentIndexChanged.connect(
             self.executor_index_changed
         )
         self.executor_combo.setModel(self.executor_model)
 
-        params_group = QGroupBox(_('Available execution parameters'))
-        params_layout = QVBoxLayout(params_group)
-        params_layout.addWidget(self.params_table)
+        executor_layout = QHBoxLayout()
+        executor_layout.addWidget(executor_label)
+        executor_layout.addWidget(self.executor_combo)
+        executor_layout.addStretch()
 
-        self.new_configuration_btn = QPushButton(
-            _("Create new parameters"))
-        self.clone_configuration_btn = QPushButton(
-            _("Clone currently selected parameters"))
-        self.delete_configuration_btn = QPushButton(
-            _("Delete currently selected parameters"))
-        self.reset_configuration_btn = QPushButton(
-            _("Reset parameters"))
+        self.new_configuration_btn = QPushButton(_("New parameters"))
+        self.clone_configuration_btn = QPushButton(_("Clone selected"))
+        self.delete_configuration_btn = QPushButton(_("Delete selected"))
+        self.reset_configuration_btn = QPushButton(_("Reset"))
         self.delete_configuration_btn.setEnabled(False)
         self.clone_configuration_btn.setEnabled(False)
 
@@ -262,12 +277,14 @@ class RunConfigPage(PluginConfigPage):
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
-        vlayout.addSpacing(9)
-        vlayout.addWidget(self.executor_combo)
-        vlayout.addSpacing(9)
-        vlayout.addWidget(params_group)
+        vlayout.addSpacing(3 * AppStyle.MarginSize)
+        vlayout.addLayout(executor_layout)
+        vlayout.addSpacing(3 * AppStyle.MarginSize)
+        vlayout.addWidget(params_label)
+        vlayout.addLayout(params_table_layout)
+        vlayout.addSpacing(2 * AppStyle.MarginSize)
         vlayout.addLayout(sn_buttons_layout)
-        vlayout.addStretch(1)
+        vlayout.addStretch()
         executor_widget = QWidget()
         executor_widget.setLayout(vlayout)
 
