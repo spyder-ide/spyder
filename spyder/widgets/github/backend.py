@@ -129,7 +129,16 @@ class GithubBackend(BaseBackend):
             return False
         logger.debug('got user credentials')
 
-        auth = github.Auth.Token(token)
+        try:
+            auth = github.Auth.Token(token)
+        except Exception as exc:
+            logger.warning("Invalid token.")
+            if self._show_msgbox:
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
+            return False
+
         gh = github.Github(auth=auth)
 
         # upload log file as a gist
@@ -149,6 +158,9 @@ class GithubBackend(BaseBackend):
                     _('Failed to create issue on Github, '
                       'invalid credentials...')
                 )
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
             return False
         except github.GithubException as exc:
             logger.warning('Failed to create issue on Github. '
