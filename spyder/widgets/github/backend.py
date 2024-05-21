@@ -36,8 +36,7 @@ from spyder.config.base import _, running_under_pytest
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 
-def _logger():
-    return logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BaseBackend(object):
@@ -118,17 +117,16 @@ class GithubBackend(BaseBackend):
         self._show_msgbox = True  # False when running the test suite
 
     def send_report(self, title, body, application_log=None):
-        _logger().debug('sending bug report on github\ntitle=%s\nbody=%s',
-                        title, body)
+        logger.debug('sending bug report on github\ntitle=%s\nbody=%s',
+                     title, body)
 
         # Credentials
         credentials = self.get_user_credentials()
         token = credentials['token']
-        remember_token = credentials['remember_token']
 
         if token is None:
             return False
-        _logger().debug('got user credentials')
+        logger.debug('got user credentials')
 
         # upload log file as a gist
         if application_log:
@@ -140,8 +138,8 @@ class GithubBackend(BaseBackend):
             repo = gh.get_repo(f"{self.gh_owner}/{self.gh_repo}")
             issue = repo.create_issues(title=title, body=body)
         except github.BadCredentialsException as exc:
-            _logger().warning('Failed to send bug report on Github. '
-                              'response=%r', e.response)
+            logger.warning('Failed to create issue on Github. '
+                           'Status=%d: %s', exc.status, exc.data['message'])
             if self._show_msgbox:
                 QMessageBox.warning(
                     self.parent_widget, _('Invalid credentials'),
@@ -150,6 +148,8 @@ class GithubBackend(BaseBackend):
                 )
             return False
         except github.GithubException as exc:
+            logger.warning('Failed to create issue on Github. '
+                           'Status=%d: %s', exc.status, exc.data['message'])
             if self._show_msgbox:
                 QMessageBox.warning(
                     self.parent_widget,
@@ -237,7 +237,7 @@ class GithubBackend(BaseBackend):
                 files={'SpyderIDE.log': {"content": log_content}})
             qApp.restoreOverrideCursor()
         except github.ApiError:
-            _logger().warning('Failed to upload log report as a gist')
+            logger.warning('Failed to upload log report as a gist')
             return '"Failed to upload log file as a gist"'
         else:
             return ret['html_url']
