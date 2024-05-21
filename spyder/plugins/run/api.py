@@ -252,6 +252,9 @@ class ExtendedRunExecutionParameters(TypedDict):
     # to, if any.
     file_uuid: Optional[str]
 
+    # To identify these parameters as default
+    default: bool
+
 
 class StoredRunExecutorParameters(TypedDict):
     """Per run executor configuration parameters."""

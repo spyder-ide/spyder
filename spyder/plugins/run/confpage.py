@@ -66,7 +66,17 @@ class RunParametersTableView(HoverRowsTableView):
     def selection(self, index):
         self.update()
         self.isActiveWindow()
-        self._parent.set_clone_delete_btn_status()
+
+        # Detect if a row corresponds to a set of default parameters to prevent
+        # users from deleting it.
+        index = self.currentIndex().row()
+        is_default = False
+        if index >= 0:
+            params_id = self._parent.table_model.params_index[index]
+            params = self._parent.table_model.executor_conf_params[params_id]
+            is_default = True if params.get("default") else False
+
+        self._parent.set_clone_delete_btn_status(is_default=is_default)
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -304,17 +314,23 @@ class RunConfigPage(PluginConfigPage):
         self.previous_executor_index = index
         self.set_clone_delete_btn_status()
 
-    def set_clone_delete_btn_status(self):
-        status = (
-            self.table_model.rowCount() != 0
-            and self.params_table.currentIndex().isValid()
-        )
-
+    def set_clone_delete_btn_status(self, is_default=False):
+        # We need to enclose the code below in a try/except because these
+        # buttons might not be created yet, which gives an AttributeError.
         try:
-            self.delete_configuration_btn.setEnabled(status)
-            self.clone_configuration_btn.setEnabled(status)
+            if is_default:
+                # Don't allow to delete default configurations, only to clone
+                # them
+                self.delete_configuration_btn.setEnabled(False)
+                self.clone_configuration_btn.setEnabled(True)
+            else:
+                status = (
+                    self.table_model.rowCount() != 0
+                    and self.params_table.currentIndex().isValid()
+                )
+                self.delete_configuration_btn.setEnabled(status)
+                self.clone_configuration_btn.setEnabled(status)
         except AttributeError:
-            # Buttons might not be created yet
             pass
 
     def get_executor_configurations(self) -> Dict[

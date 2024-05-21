@@ -1137,7 +1137,7 @@ class RunContainer(PluginMainContainer):
         )
 
         for param in current_params["params"].values():
-            if param["name"] == _("Default"):
+            if param["default"]:
                 return
 
         # Id for this config
@@ -1158,6 +1158,7 @@ class RunContainer(PluginMainContainer):
             name=_("Default"),
             params=exec_params,
             file_uuid=None,
+            default=True,
         )
 
         store_params = StoredRunExecutorParameters(

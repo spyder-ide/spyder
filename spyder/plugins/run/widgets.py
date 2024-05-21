@@ -452,7 +452,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             uuid=uuid,
             name=name,
             params=exec_params,
-            file_uuid=None
+            file_uuid=None,
+            default=False,
         )
 
         self.saved_conf = (self.selected_extension, self.selected_context,
@@ -873,7 +874,8 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             uuid=uuid,
             name=name,
             params=exec_params,
-            file_uuid=None if self._save_as_global else metadata_info['uuid']
+            file_uuid=None if self._save_as_global else metadata_info['uuid'],
+            default=False
         )
 
         executor_name, __ = self.executors_model.get_selected_run_executor(
