@@ -1034,6 +1034,8 @@ class EditorMainWidget(PluginMainWidget):
             'windows_layout_settings',
             [win.get_layout_settings() for win in self.editorwindows]
         )
+        for window in self.editorwindows:
+            window.close()
         self.set_conf('recent_files', self.recent_files)
         self.autosave.stop_autosave_timer()
 

@@ -4382,6 +4382,9 @@ def test_post_mortem(main_window, qtbot, tmpdir):
 
     assert "IPdb [" in control.toPlainText()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
