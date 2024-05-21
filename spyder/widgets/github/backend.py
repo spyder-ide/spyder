@@ -129,13 +129,15 @@ class GithubBackend(BaseBackend):
             return False
         logger.debug('got user credentials')
 
+        auth = github.Auth.Token(token)
+        gh = github.Github(auth=auth)
+
         # upload log file as a gist
         if application_log:
-            url = self.upload_log_file(application_log)
+            url = self.upload_log_file(gh, application_log)
             body += '\nApplication log: %s' % url
+
         try:
-            auth = github.Auth.Token(token)
-            gh = github.Github(auth=auth)
             repo = gh.get_repo(f"{self.gh_owner}/{self.gh_repo}")
             issue = repo.create_issues(title=title, body=body)
         except github.BadCredentialsException as exc:
@@ -228,17 +230,22 @@ class GithubBackend(BaseBackend):
 
         return credentials
 
-    def upload_log_file(self, log_content):
-        gh = github.Github()  # TODO:
+    def upload_log_file(self, gh, log_content):
+        auth_user = gh.get_user()
         try:
             qApp = QApplication.instance()
             qApp.setOverrideCursor(Qt.WaitCursor)
-            ret = gh.gists.post(
+            gist = auth_user.create_gist(
                 description="SpyderIDE log", public=True,
-                files={'SpyderIDE.log': {"content": log_content}})
+                files={'SpyderIDE.log': github.InputFileContent(log_content)}
+            )
             qApp.restoreOverrideCursor()
-        except github.ApiError:
-            logger.warning('Failed to upload log report as a gist')
-            return '"Failed to upload log file as a gist"'
+        except github.GithubException as exc:
+            msg = (
+                'Failed to upload log report as a gist. Status '
+                f'{exc.status}: {exc.data["message"]}'
+            )
+            logger.warning(msg)
+            return msg
         else:
-            return ret['html_url']
+            return gist.html_url
