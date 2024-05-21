@@ -388,9 +388,9 @@ class RunExecutorNamesListModel(QAbstractListModel):
 
 
 class ExecutorRunParametersTableModel(QAbstractTableModel):
-    EXTENSION = 0
-    CONTEXT = 1
-    NAME = 2
+    NAME = 0
+    EXTENSION = 1
+    CONTEXT = 2
 
     sig_data_changed = Signal()
 
@@ -417,7 +417,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
             elif column == self.CONTEXT:
                 return context
             elif column == self.NAME:
-                return params['name']
+                return _("Default") if params['default'] else params['name']
         elif role == Qt.TextAlignmentRole:
             return int(Qt.AlignHCenter | Qt.AlignVCenter)
         elif role == Qt.ToolTipRole:
@@ -440,9 +440,9 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                 if section == self.EXTENSION:
                     return _('File extension')
                 elif section == self.CONTEXT:
-                    return _('Context name')
+                    return _('Context')
                 elif section == self.NAME:
-                    return _('Run parameters name')
+                    return _('Parameters name')
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.params_index)
@@ -455,9 +455,24 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         params: Dict[Tuple[str, str, str], ExtendedRunExecutionParameters]
     ):
         self.beginResetModel()
+
+        # Reorder params so that Python and IPython extensions are shown first
+        # and second by default, respectively.
+        ordered_params = []
+        for k,v in params.items():
+            if k[0] == "py":
+                ordered_params.insert(0, (k, v))
+            elif k[0] == "ipy":
+                ordered_params.insert(1, (k, v))
+            else:
+                ordered_params.append((k, v))
+        params = dict(ordered_params)
+
+        # Update attributes
         self.executor_conf_params = params
         self.params_index = dict(enumerate(params))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
+
         self.endResetModel()
 
     def get_current_view(
