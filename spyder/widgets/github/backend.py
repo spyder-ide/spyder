@@ -16,7 +16,6 @@ Adapted from qcrash/backends/base.py and qcrash/backends/github.py of the
 
 import logging
 import os
-import sys
 import webbrowser
 
 try:
@@ -49,6 +48,7 @@ class BaseBackend(object):
     The report's title and body will be formatted automatically by the
     associated :attr:`formatter`.
     """
+
     def __init__(self, formatter, button_text, button_tooltip,
                  button_icon=None, need_review=True, parent_widget=None):
         """
@@ -103,6 +103,7 @@ class GithubBackend(BaseBackend):
         github_backend = spyder.widgets.github.backend.GithubBackend(
             'spyder-ide', 'spyder')
     """
+
     def __init__(self, gh_owner, gh_repo, formatter=None, parent_widget=None):
         """
         :param gh_owner: Name of the owner of the github repository.
