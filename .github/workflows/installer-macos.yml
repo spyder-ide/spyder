@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         build_type: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
-        os: ["macos-11", "macos-14"]
+        os: ["macos-12", "macos-14"]
         include:
           - os: "macos-12"
             pyver: "3.9.14"
@@ -91,7 +91,7 @@ jobs:
           if [[ -z ${LITE_FLAG} ]]; then
               INSTALL_FLAGS+=('-r' 'req-scientific.txt')
           fi
-          ${pythonLocation}/bin/python -m pip install -U pip setuptools wheel
+          ${pythonLocation}/bin/python -m pip install -U pip wheel
           ${pythonLocation}/bin/python -m pip install -r req-build.txt -r req-extras.txt -r req-plugins.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
       - name: Install Subrepos
         if: ${{github.event_name == 'pull_request'}}
