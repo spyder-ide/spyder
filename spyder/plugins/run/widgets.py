@@ -176,7 +176,11 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         self.parameters_name = None
         if default_params is not None:
-            self.parameters_name = default_params['name']
+            self.parameters_name = (
+                _("Default")
+                if default_params["default"]
+                else default_params["name"]
+            )
 
         self.current_widget = None
         self.status = RunDialogStatus.Close
@@ -294,6 +298,10 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         if self.parameters_name:
             self.store_params_text.setText(self.parameters_name)
+
+            # Don't allow to change name if params are default ones.
+            if self.default_params["default"]:
+                self.store_params_text.setEnabled(False)
 
         # --- Stylesheet
         self.setStyleSheet(self._stylesheet)
