@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         build_type: ${{fromJson(needs.matrix_prep.outputs.build_type)}}
-        os: ["macos-11", "macos-14"]
+        os: ["macos-12", "macos-14"]
         include:
           - os: "macos-12"
             pyver: "3.9.14"
