@@ -20,11 +20,12 @@ else:
 
 # Mapping of matlotlib backends options to Spyder
 MPL_BACKENDS_TO_SPYDER = {
-    inline_backend: "inline",
-    'Qt5Agg': 'qt',
-    'QtAgg': 'qt',  # For Matplotlib 3.5+
-    'TkAgg': 'tk',
-    'MacOSX': 'osx',
+    'inline': 'inline',  # For Matplotlib >=3.9
+    inline_backend: "inline",  # For Matplotlib <3.9
+    'qt5agg': 'qt',
+    'qtagg': 'qt',  # For Matplotlib 3.5+
+    'tkagg': 'tk',
+    'macosx': 'osx',
 }
 
 
