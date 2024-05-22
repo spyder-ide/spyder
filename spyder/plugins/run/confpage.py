@@ -65,12 +65,6 @@ class RunParametersTableView(HoverRowsTableView):
         )
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
-    def focusInEvent(self, e):
-        """Qt Override."""
-        super().focusInEvent(e)
-        self.selectRow(self.currentIndex().row())
-        self.selection(self.currentIndex().row())
-
     def selection(self, index):
         self.update()
         self.isActiveWindow()
@@ -85,6 +79,9 @@ class RunParametersTableView(HoverRowsTableView):
             is_default = True if params.get("default") else False
 
         self._parent.set_clone_delete_btn_status(is_default=is_default)
+
+        # Always enable edit button
+        self._parent.edit_configuration_btn.setEnabled(True)
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -164,6 +161,12 @@ class RunParametersTableView(HoverRowsTableView):
     def clone_configuration(self):
         self.show_editor(clone=True)
 
+    def focusInEvent(self, e):
+        """Qt Override."""
+        super().focusInEvent(e)
+        self.selectRow(self.currentIndex().row())
+        self.selection(self.currentIndex().row())
+
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
@@ -234,14 +237,19 @@ class RunConfigPage(PluginConfigPage):
         executor_layout.addStretch()
 
         self.new_configuration_btn = QPushButton(_("New parameters"))
+        self.edit_configuration_btn = QPushButton(_("Edit selected"))
         self.clone_configuration_btn = QPushButton(_("Clone selected"))
         self.delete_configuration_btn = QPushButton(_("Delete selected"))
         self.reset_configuration_btn = QPushButton(_("Reset"))
+        self.edit_configuration_btn.setEnabled(False)
         self.delete_configuration_btn.setEnabled(False)
         self.clone_configuration_btn.setEnabled(False)
 
         self.new_configuration_btn.clicked.connect(
             self.create_new_configuration)
+        self.edit_configuration_btn.clicked.connect(
+            lambda checked: self.params_table.show_editor()
+        )
         self.clone_configuration_btn.clicked.connect(
             self.clone_configuration)
         self.delete_configuration_btn.clicked.connect(
@@ -251,8 +259,9 @@ class RunConfigPage(PluginConfigPage):
         # Buttons layout
         btns = [
             self.new_configuration_btn,
-            self.clone_configuration_btn,
+            self.edit_configuration_btn,
             self.delete_configuration_btn,
+            self.clone_configuration_btn,
             self.reset_configuration_btn
         ]
         sn_buttons_layout = QGridLayout()
@@ -331,6 +340,11 @@ class RunConfigPage(PluginConfigPage):
         self.previous_executor_index = index
         self.set_clone_delete_btn_status()
 
+        # Repopulating the params table removes any selection, so we need to
+        # disable the edit button.
+        if hasattr(self, "edit_configuration_btn"):
+            self.edit_configuration_btn.setEnabled(False)
+
     def set_clone_delete_btn_status(self, is_default=False):
         # We need to enclose the code below in a try/except because these
         # buttons might not be created yet, which gives an AttributeError.
@@ -395,6 +409,7 @@ class RunConfigPage(PluginConfigPage):
 
     def clone_configuration(self):
         self.params_table.clone_configuration()
+        self.edit_configuration_btn.setEnabled(False)
 
     def delete_configuration(self):
         executor_name, _ = self.executor_model.selected_executor(
@@ -414,6 +429,7 @@ class RunConfigPage(PluginConfigPage):
         self.table_model.reset_model()
         self.set_modified(True)
         self.set_clone_delete_btn_status()
+        self.edit_configuration_btn.setEnabled(False)
 
     def reset_to_default(self):
         self.all_executor_model = deepcopy(self.default_executor_conf_params)
