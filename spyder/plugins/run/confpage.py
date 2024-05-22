@@ -240,7 +240,7 @@ class RunConfigPage(PluginConfigPage):
         self.edit_configuration_btn = QPushButton(_("Edit selected"))
         self.clone_configuration_btn = QPushButton(_("Clone selected"))
         self.delete_configuration_btn = QPushButton(_("Delete selected"))
-        self.reset_configuration_btn = QPushButton(_("Reset"))
+        self.reset_changes_btn = QPushButton(_("Reset changes"))
         self.edit_configuration_btn.setEnabled(False)
         self.delete_configuration_btn.setEnabled(False)
         self.clone_configuration_btn.setEnabled(False)
@@ -254,7 +254,7 @@ class RunConfigPage(PluginConfigPage):
             self.clone_configuration)
         self.delete_configuration_btn.clicked.connect(
             self.delete_configuration)
-        self.reset_configuration_btn.clicked.connect(self.reset_to_default)
+        self.reset_changes_btn.clicked.connect(self.reset_changes)
 
         # Buttons layout
         btns = [
@@ -262,7 +262,7 @@ class RunConfigPage(PluginConfigPage):
             self.edit_configuration_btn,
             self.delete_configuration_btn,
             self.clone_configuration_btn,
-            self.reset_configuration_btn
+            self.reset_changes_btn,
         ]
         sn_buttons_layout = QGridLayout()
         for i, btn in enumerate(btns):
@@ -431,7 +431,8 @@ class RunConfigPage(PluginConfigPage):
         self.set_clone_delete_btn_status()
         self.edit_configuration_btn.setEnabled(False)
 
-    def reset_to_default(self):
+    def reset_changes(self):
+        """Reset changes to the parameters loaded when the page was created."""
         self.all_executor_model = deepcopy(self.default_executor_conf_params)
         executor_name, _ = self.executor_model.selected_executor(
             self.previous_executor_index
@@ -439,7 +440,7 @@ class RunConfigPage(PluginConfigPage):
         executor_params = self.all_executor_model[executor_name]
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
-        self.set_modified(False)
+        self.set_modified(True)
         self.set_clone_delete_btn_status()
 
     def apply_settings(self):
