@@ -382,7 +382,7 @@ class SpyderKernel(IPythonKernel):
         """Get current matplotlib backend."""
         try:
             import matplotlib
-            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend()]
+            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend().lower()]
         except Exception:
             return None
 
@@ -428,7 +428,7 @@ class SpyderKernel(IPythonKernel):
             # equivalent to having the inline one.
             return 0
         elif framework in mapping:
-            return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+            return MPL_BACKENDS_TO_SPYDER[mapping[framework].lower()]
         else:
             # This covers the case of other backends (e.g. Wx or Gtk)
             # which users can set interactively with the %matplotlib
