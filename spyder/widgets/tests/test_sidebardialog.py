@@ -55,7 +55,7 @@ def sidebar_dialog(qapp, qtbot):
     class TestDialog(SidebarDialog):
         PAGE_CLASSES = [Page1, Page2]
 
-    qapp.setStyleSheet(str(APP_STYLESHEET))
+    # qapp.setStyleSheet(str(APP_STYLESHEET))
     dialog = TestDialog()
     qtbot.addWidget(dialog)
     dialog.show()

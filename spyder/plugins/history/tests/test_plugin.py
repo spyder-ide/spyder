@@ -67,7 +67,7 @@ def test_init(historylog):
     sys.platform == "darwin" and running_in_ci(),
     reason="Fails on Mac when running on CI "
 )
-def test_add_history(historylog):
+def test_add_history(historylog, qtbot):
     """
     Test the add_history method.
 
@@ -96,7 +96,7 @@ def test_add_history(historylog):
     assert not hw.editors[0].linenumberarea.isVisible()
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert hw.tabwidget.tabText(1) == tab1
-    assert hw.tabwidget.tabToolTip(1) == path1
+    qtbot.waitUntil(lambda: hw.tabwidget.tabToolTip(1) == path1)
 
     # Try to add same file -- does not process filename again, so
     # linenumbers and wrap doesn't change.

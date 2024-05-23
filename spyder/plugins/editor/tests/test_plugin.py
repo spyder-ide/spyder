@@ -418,6 +418,11 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     # Set options
     editor_plugin.set_conf('convert_eol_on_save', True)
     editor_plugin.set_conf('convert_eol_on_save_to', eol_lookup[os_name])
+    qtbot.waitUntil(
+        lambda:
+            editorstack.convert_eol_on_save
+            and editorstack.convert_eol_on_save_to == eol_lookup[os_name]
+    )
 
     # Load a test file
     fname = filenames[0]
