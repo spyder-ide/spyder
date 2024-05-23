@@ -37,7 +37,7 @@ from qtpy.QtWidgets import (
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import TipWidget
 
@@ -258,7 +258,7 @@ class ArrayBuilderDialog(QDialog):
         buttons_css.QToolButton.setValues(
             height="16px",
             width="16px",
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
         for button in [button_ok, button_close]:
             button.setStyleSheet(buttons_css.toString())
@@ -280,8 +280,8 @@ class ArrayBuilderDialog(QDialog):
         css = qstylizer.style.StyleSheet()
         css.QDialog.setValues(
             margin="0px",
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}",
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
         self.setStyleSheet(css.toString())
 

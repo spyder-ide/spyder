@@ -31,12 +31,12 @@ from qtpy.QtWidgets import (QApplication, QFrame, QLabel, QTextEdit,
 
 # Local imports
 from spyder.config.gui import is_dark_interface
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 BACKGROUND_COLOR = (
-    QStylePalette.COLOR_BACKGROUND_4 if is_dark_interface() else
-    QStylePalette.COLOR_BACKGROUND_2
+    SpyderPalette.COLOR_BACKGROUND_4 if is_dark_interface() else
+    SpyderPalette.COLOR_BACKGROUND_2
 )
 
 
@@ -137,7 +137,7 @@ class ToolTipWidget(QLabel):
 
         css["ToolTipWidget"].setValues(
             backgroundColor=BACKGROUND_COLOR,
-            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+            border=f"1px solid {SpyderPalette.COLOR_TEXT_4}"
         )
 
         return css.toString()
@@ -553,7 +553,10 @@ class CallTipWidget(QLabel):
         # best location based trying to minimize the area that goes off-screen.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = self.screen().geometry()
-        window_rect = self.app.activeWindow().geometry()
+        if self.app.activeWindow():
+            window_rect = self.app.activeWindow().geometry()
+        else:
+            window_rect = screen_rect
         tip_height = self.size().height()
         tip_width = self.size().width()
 
@@ -682,7 +685,7 @@ class CallTipWidget(QLabel):
 
         css["CallTipWidget"].setValues(
             backgroundColor=BACKGROUND_COLOR,
-            border=f"1px solid {QStylePalette.COLOR_TEXT_4}"
+            border=f"1px solid {SpyderPalette.COLOR_TEXT_4}"
         )
 
         return css.toString()

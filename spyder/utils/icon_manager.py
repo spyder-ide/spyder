@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QStyle, QWidget
 from spyder.config.manager import CONF
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 import qtawesome as qta
 
 
@@ -146,9 +146,9 @@ class IconManager():
             'enter_debug':             [('mdi.location-enter',), {'color': SpyderPalette.ICON_2}],
             'run':                     [('mdi.play',), {'color': SpyderPalette.ICON_3}],
             'todo_list':               [('mdi.check-bold',), {'color': self.MAIN_FG_COLOR}],
-            'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
-            'prev_wng':                [('mdi.arrow-left',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
-            'next_wng':                [('mdi.arrow-right',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
+            'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
+            'prev_wng':                [('mdi.arrow-left',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
+            'next_wng':                [('mdi.arrow-right',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
             'prev_cursor':             [('mdi.hand-pointing-left',), {'color': self.MAIN_FG_COLOR}],
             'next_cursor':             [('mdi.hand-pointing-right',), {'color': self.MAIN_FG_COLOR}],
             'comment':                 [('mdi.comment-text-outline',), {'color': self.MAIN_FG_COLOR}],
@@ -168,10 +168,10 @@ class IconManager():
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
-            'question_tip':            [('mdi.help-circle-outline',), {'color': QStylePalette.COLOR_BACKGROUND_6}],
-            'question_tip_hover':      [('mdi.help-circle-outline',), {'color': QStylePalette.COLOR_TEXT_4}],
-            'info_tip':                [('mdi.information-outline',), {'color': QStylePalette.COLOR_BACKGROUND_6}],
-            'info_tip_hover':          [('mdi.information-outline',), {'color': QStylePalette.COLOR_TEXT_4}],
+            'question_tip':            [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_BACKGROUND_6}],
+            'question_tip_hover':      [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_TEXT_4}],
+            'info_tip':                [('mdi.information-outline',), {'color': SpyderPalette.COLOR_BACKGROUND_6}],
+            'info_tip_hover':          [('mdi.information-outline',), {'color': SpyderPalette.COLOR_TEXT_4}],
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
             'online_help':             [('mdi.help-rhombus-outline',), {'color': self.MAIN_FG_COLOR}],
             'lock':                    [('mdi.lock',), {'color': self.MAIN_FG_COLOR}],
@@ -208,6 +208,7 @@ class IconManager():
             'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
+            'plot.fit_to_pane':        [('mdi6.fit-to-screen',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
@@ -377,6 +378,9 @@ class IconManager():
             'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
+            # --- Remote connections ----------------------------------------------
+            'add_server':              [('mdi.server-plus',), {'color': self.MAIN_FG_COLOR}],
+            'remote_server':           [('mdi.server-network',), {'color': self.MAIN_FG_COLOR}],
         }
 
     def get_std_icon(self, name, size=None):
@@ -429,7 +433,7 @@ class IconManager():
 
             # -- Disabled state
             # Taken from https://stackoverflow.com/a/65618075/438386
-            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
+            disabled_color = QColor(SpyderPalette.COLOR_DISABLED)
             disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
@@ -455,7 +459,7 @@ class IconManager():
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:
                     kwargs['scale_factor'] = scale_factor
-                kwargs['color_disabled'] = QStylePalette.COLOR_DISABLED
+                kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
                 return qta.icon(*args, **kwargs)
             except KeyError:
                 # Load custom icons

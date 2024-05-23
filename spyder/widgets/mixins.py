@@ -34,7 +34,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
 
@@ -60,8 +60,8 @@ EOL_SYMBOLS = [
 ]
 
 # Tips style
-TIP_TEXT_COLOR = QStylePalette.COLOR_TEXT_2
-TIP_PARAMETER_HIGHLIGHT_COLOR = QStylePalette.COLOR_TEXT_1
+TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
+TIP_PARAMETER_HIGHLIGHT_COLOR = SpyderPalette.COLOR_TEXT_1
 
 # Tips content
 TIP_DEFAULT_LANGUAGE = 'python'

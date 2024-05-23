@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
-from typing import List, Optional, Type
+from __future__ import annotations
+from typing import List, Type, Union
 
 # Third party imports
 import qstylizer.style
@@ -29,8 +30,9 @@ from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import (
     AppStyle,
     MAC,
@@ -118,6 +120,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         )
         self._is_shown = False
         self._separators = []
+        self._active_pages = {}
 
         # ---- Size
         self.setMinimumWidth(self.MIN_WIDTH)
@@ -162,7 +165,9 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         layout = QVBoxLayout()
         layout.addLayout(contents_and_pages_layout)
-        layout.addSpacing(3)
+        layout.addSpacing(
+            - (2 * AppStyle.MarginSize) if MAC else AppStyle.MarginSize
+        )
         layout.addLayout(buttons_layout)
 
         self.setLayout(layout)
@@ -208,7 +213,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         Override this method if you want different buttons in it.
         """
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok)
+        bbox = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         layout = QHBoxLayout()
         layout.addWidget(bbox)
@@ -225,8 +230,16 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
 
-    def get_page(self, index=None) -> Optional[SidebarPage]:
-        """Return page widget"""
+    def get_item(self, index: int | None = None) -> QListWidgetItem:
+        """Get item on the left panel corresponding to `index`."""
+        if index is None:
+            index = self.get_current_index()
+        return self.contents_widget.item(index)
+
+    def get_page(
+        self, index: int | None = None
+    ) -> Union[QWidget, SidebarPage] | None:
+        """Return page widget on the right panel corresponding to `index`."""
         if index is None:
             page = self.pages_widget.currentWidget()
         else:
@@ -236,6 +249,29 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # as their config page). So, we need to check for this.
         if page and hasattr(page, 'widget'):
             return page.widget()
+
+    def hide_page(self, index=None):
+        """Hide page corresponding to `index`."""
+        if index is None:
+            index = self.get_current_index()
+        self._active_pages[index] = False
+
+        # Hide entry from contents_widget
+        self.contents_widget.item(index).setHidden(True)
+
+        # If the current page is not the first one (index=0), then we set as
+        # the new current one the first active page before it.
+        if index > 1:
+            # With this we move backwards from index-1 up to 0 until we find
+            # an active page.
+            for i in range(index - 1, -1, -1):
+                if self._active_pages.get(i):
+                    self.set_current_index(i)
+                    break
+        elif index == 1:
+            # If the current page is the second one, we set the first one as
+            # current.
+            self.set_current_index(0)
 
     def add_separator(self):
         """Add a horizontal line to separate different sections."""
@@ -261,7 +297,11 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Save separators to perform certain operations only on them
         self._separators.append(hline)
 
-    def add_page(self, page: SidebarPage):
+    def add_page(self, page: SidebarPage, initialize: bool = True):
+        """Add page instance to the dialog."""
+        if initialize:
+            page.initialize()
+
         page.show_this_page.connect(lambda row=self.contents_widget.count():
                                     self.contents_widget.setCurrentRow(row))
 
@@ -291,7 +331,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         item.setText(page.get_name())
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
-        # In case a plugin doesn't have an icon
+        # In case the page doesn't have an icon
         try:
             item.setIcon(page.get_icon())
         except TypeError:
@@ -299,6 +339,13 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Set font for items
         item.setFont(self.items_font)
+
+        # Save which pages are active in case we need to hide some
+        self._active_pages[self.contents_widget.count() - 1] = True
+
+    def number_of_pages(self):
+        """Get the number of pages in the dialog."""
+        return self.pages_widget.count()
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -439,18 +486,18 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # This also sets the background color of the vertical scrollbar
         # associated to this widget
         css.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_2
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2
         )
 
         # Main style
         css.QListView.setValues(
             padding=f'{self.ITEMS_MARGIN}px 0px',
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+            border=f'1px solid {SpyderPalette.COLOR_BACKGROUND_2}',
         )
 
         # Remove border color on focus
         css['QListView:focus'].setValues(
-            border=f'1px solid {QStylePalette.COLOR_BACKGROUND_2}',
+            border=f'1px solid {SpyderPalette.COLOR_BACKGROUND_2}',
         )
 
         # Add margin and padding for items
@@ -462,13 +509,13 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Set border radius and background color for hover, active and inactive
         # states of items
         css['QListView::item:hover'].setValues(
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
         for state in ['item:selected:active', 'item:selected:!active']:
             css[f'QListView::{state}'].setValues(
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
             )
 
         return css
@@ -479,7 +526,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Give border a darker color to stand out over the background
         css.setValues(
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_5}"
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_5}"
         )
 
         return css.toString()
@@ -490,7 +537,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # This makes separators stand out better over the background
         css.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_5
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
         )
 
         return css.toString()
@@ -506,5 +553,4 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         """Add pages to the dialog."""
         for PageClass in self.PAGE_CLASSES:
             page = PageClass(self)
-            page.initialize()
             self.add_page(page)

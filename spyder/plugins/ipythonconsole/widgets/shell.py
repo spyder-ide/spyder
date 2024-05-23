@@ -26,6 +26,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
     ClientContextMenuActions,
     ClientContextMenuSections
@@ -38,7 +39,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
@@ -231,6 +232,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
 
+        # Register handlers declared here before emitting sig_kernel_is_ready
+        # so that handlers declared elsewhere can't be called first, which can
+        # generate errors.
+        for request_id, handler in self.kernel_comm_handlers.items():
+            self.kernel_handler.kernel_comm.register_call_handler(
+                request_id, handler
+            )
+
         if first_connect:
             # Let plugins know that a new kernel is connected
             self.sig_shellwidget_created.emit(self)
@@ -300,8 +309,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """An error occurred when connecting to the kernel."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
-            self.append_html_message(
-                self.kernel_handler.kernel_error_message, before_prompt=True)
+            self.ipyclient.show_kernel_error(
+                self.kernel_handler.kernel_error_message,
+            )
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
@@ -375,10 +385,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
             # Redefine the complete method to work while debugging.
             self._redefine_complete_for_dbg(self.kernel_client)
-
-            for request_id, handler in self.kernel_comm_handlers.items():
-                self.kernel_handler.kernel_comm.register_call_handler(
-                    request_id, handler)
 
         # Setup to do after restart
         # Check for fault and send config
@@ -476,6 +482,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Fixes spyder-ide/spyder#20212
             if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
+            elif self.ipyclient.server_id:
+                # Request an interrupt to the server for remote kernels
+                self.ipyclient.sig_interrupt_kernel_requested.emit(
+                    self.ipyclient.server_id, self.ipyclient.kernel_id
+                )
             else:
                 self._append_html(
                     _("<br><br>The kernel appears to be dead, so it can't be "
@@ -1039,7 +1050,7 @@ the sympy module (e.g. plot)
         # This makes the header text have good contrast against its background
         # for the light theme.
         if is_dark_interface():
-            font_color = QStylePalette.COLOR_TEXT_1
+            font_color = SpyderPalette.COLOR_TEXT_1
         else:
             font_color = 'white'
 
@@ -1332,13 +1343,33 @@ the sympy module (e.g. plot)
         else:
             return self.short_banner()
 
+    def _handle_kernel_died(self, since_last_heartbeat):
+        """Handle the kernel's death (if we do not own the kernel)."""
+        # Disable stop button
+        stop_button = self.get_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.InterruptButton
+        )
+        stop_button.setEnabled(False)
+
+        if self.ipyclient.server_id:
+            # Inform that the kernel died to the Remote client plugin so that
+            # it can try to reconnect to it.
+            self._kernel_restarted_message(died=True)
+            self.ipyclient.sig_kernel_died.emit()
+        else:
+            super()._handle_kernel_died(since_last_heartbeat)
+
     def _kernel_restarted_message(self, died=True):
         msg = (
             _("The kernel died, restarting...") if died
             else _("Restarting kernel...")
         )
 
-        if died and self.kernel_manager is None:
+        if (
+            died
+            and self.kernel_manager is None
+            and self.ipyclient.server_id is None
+        ):
             # The kernel might never restart, show position of fault file
             msg += (
                 "\n" + _("Its crash file is located at:") + " "

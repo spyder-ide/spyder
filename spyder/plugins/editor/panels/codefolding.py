@@ -486,7 +486,6 @@ class FoldingPanel(Panel):
         deco.select_line()
         deco.set_background(self._get_scope_highlight_color())
         deco.set_full_width(flag=True, clear=True)
-
         self._block_decos[start_line] = deco
         self.editor.decorations.add(deco, key='folded')
 

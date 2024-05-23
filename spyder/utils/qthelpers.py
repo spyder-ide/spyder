@@ -39,7 +39,7 @@ from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBUTTON_REGISTRY
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
@@ -293,7 +293,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     return button
 
 
-def create_waitspinner(size=32, n=11, parent=None):
+def create_waitspinner(size=32, n=11, parent=None, name=None):
     """
     Create a wait spinner with the specified size built with n circling dots.
     """
@@ -312,7 +312,9 @@ def create_waitspinner(size=32, n=11, parent=None):
     spinner.setLineLength(dot_size)
     spinner.setLineWidth(dot_size)
     spinner.setInnerRadius(inner_radius)
-    spinner.setColor(QStylePalette.COLOR_TEXT_1)
+    spinner.setColor(SpyderPalette.COLOR_TEXT_1)
+
+    spinner.name = name
 
     return spinner
 
@@ -790,7 +792,8 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
 
         app_font = self.font()
         app_font.setFamily(family)
-        app_font.setPointSize(size)
+        if size > 0:
+            app_font.setPointSize(size)
 
         self.set_monospace_interface_font(app_font)
         self.setFont(app_font)

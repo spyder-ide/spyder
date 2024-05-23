@@ -106,6 +106,7 @@ class FallbackActor(QObject):
         with QMutexLocker(self.mutex):
             logger.debug("Fallback plugin stopping...")
             self.thread.quit()
+            self.thread.wait()
 
     def start(self):
         """Start thread."""

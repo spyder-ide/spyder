@@ -326,6 +326,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 parent=parent
             )
 
+            if hasattr(container, '_setup'):
+                container._setup()
+
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()
                 container.update_actions()
@@ -343,9 +346,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 self.sig_unmaximize_plugin_requested)
 
             self.after_container_creation()
-
-            if hasattr(container, '_setup'):
-                container._setup()
 
         # Load the custom images of the plugin
         if self.IMG_PATH:
@@ -469,7 +469,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 dockable_plugins_required.append(plugin_instance)
         return dockable_plugins_required
 
-    def get_conf(self, option, default=NoDefault, section=None):
+    def get_conf(self, option, default=NoDefault, section=None, secure=False):
         """
         Get an option from Spyder configuration system.
 
@@ -482,6 +482,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             Python object.
         section: str
             Section in the configuration system, e.g. `shortcuts`.
+        secure: bool
+            If True, the option will be retrieved securely using the `keyring`
+            Python package.
 
         Returns
         -------
@@ -495,12 +498,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-            return self._conf.get(section, option, default)
+            return self._conf.get(section, option, default, secure=secure)
 
     @Slot(str, object)
     @Slot(str, object, str)
-    def set_conf(self, option, value, section=None,
-                 recursive_notification=True):
+    def set_conf(
+        self,
+        option,
+        value,
+        section=None,
+        recursive_notification=True,
+        secure=False,
+    ):
         """
         Set an option in Spyder configuration system.
 
@@ -520,6 +529,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            If True, the option will be saved securely using the `keyring`
+            Python package.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -529,11 +541,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'attribute!'
                 )
 
-            self._conf.set(section, option, value,
-                           recursive_notification=recursive_notification)
+            self._conf.set(
+                section,
+                option,
+                value,
+                recursive_notification=recursive_notification,
+                secure=secure,
+            )
             self.apply_conf({option}, False)
 
-    def remove_conf(self, option, section=None):
+    def remove_conf(self, option, section=None, secure=False):
         """
         Delete an option in the Spyder configuration system.
 
@@ -543,6 +560,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             Name of the option, either a string or a tuple of strings.
         section: str
             Section in the configuration system.
+        secure: bool
+            If True, the option will be removed securely using the `keyring`
+            Python package.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -552,7 +572,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'attribute!'
                 )
 
-            self._conf.remove_option(section, option)
+            self._conf.remove_option(section, option, secure=secure)
             self.apply_conf({option}, False)
 
     def apply_conf(self, options_set, notify=True):

@@ -26,7 +26,7 @@ from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.plugins.debugger.widgets.breakpoint_table_view import (
     BreakpointTableView, BreakpointTableViewActions)
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 # =============================================================================
@@ -187,7 +187,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         # This is necessary so that the border radius is maintained when
         # showing/hiding the breakpoints table
         self.splitter.setStyleSheet(
-            f"border-radius: {QStylePalette.SIZE_BORDER_RADIUS}"
+            f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
 
         # Layout
@@ -403,56 +403,59 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update actions."""
-        search_action = self.get_action(DebuggerWidgetActions.Search)
-        enter_debug_action = self.get_action(
-            DebuggerWidgetActions.EnterDebug)
-        inspect_action = self.get_action(
-            DebuggerWidgetActions.Inspect)
+        try:
+            search_action = self.get_action(DebuggerWidgetActions.Search)
+            enter_debug_action = self.get_action(
+                DebuggerWidgetActions.EnterDebug)
+            inspect_action = self.get_action(
+                DebuggerWidgetActions.Inspect)
 
-        widget = self.current_widget()
-        if self.is_current_widget_empty() or widget is None:
-            search_action.setEnabled(False)
-            show_enter_debugger = False
-            executing = False
-            is_inspecting = False
-            pdb_prompt = False
-        else:
-            search_action.setEnabled(True)
-            search_action.setChecked(widget.finder_is_visible())
-            post_mortem = widget.state == FramesBrowserState.Error
-            sw = widget.shellwidget
-            executing = sw._executing
-            show_enter_debugger = post_mortem or executing
-            is_inspecting = widget.state == FramesBrowserState.Inspect
-            pdb_prompt = sw.is_waiting_pdb_input()
+            widget = self.current_widget()
+            if self.is_current_widget_empty() or widget is None:
+                search_action.setEnabled(False)
+                show_enter_debugger = False
+                executing = False
+                is_inspecting = False
+                pdb_prompt = False
+            else:
+                search_action.setEnabled(True)
+                search_action.setChecked(widget.finder_is_visible())
+                post_mortem = widget.state == FramesBrowserState.Error
+                sw = widget.shellwidget
+                executing = sw._executing
+                show_enter_debugger = post_mortem or executing
+                is_inspecting = widget.state == FramesBrowserState.Inspect
+                pdb_prompt = sw.is_waiting_pdb_input()
 
-        enter_debug_action.setEnabled(show_enter_debugger)
-        inspect_action.setEnabled(executing)
-        self.context_menu.setEnabled(is_inspecting)
+            enter_debug_action.setEnabled(show_enter_debugger)
+            inspect_action.setEnabled(executing)
+            self.context_menu.setEnabled(is_inspecting)
 
-        for action_name in [
-                DebuggerWidgetActions.Next,
-                DebuggerWidgetActions.Continue,
-                DebuggerWidgetActions.Step,
-                DebuggerWidgetActions.Return,
-                DebuggerWidgetActions.Stop,
-                DebuggerWidgetActions.GotoCursor]:
-            action = self.get_action(action_name)
-            action.setEnabled(pdb_prompt)
+            for action_name in [
+                    DebuggerWidgetActions.Next,
+                    DebuggerWidgetActions.Continue,
+                    DebuggerWidgetActions.Step,
+                    DebuggerWidgetActions.Return,
+                    DebuggerWidgetActions.Stop,
+                    DebuggerWidgetActions.GotoCursor]:
+                action = self.get_action(action_name)
+                action.setEnabled(pdb_prompt)
 
-        rows = self.breakpoints_table.selectionModel().selectedRows()
-        initial_row = rows[0] if rows else None
+            rows = self.breakpoints_table.selectionModel().selectedRows()
+            initial_row = rows[0] if rows else None
 
-        enabled = (
-            bool(self.breakpoints_table.model.breakpoints)
-            and initial_row is not None
-        )
-        clear_action = self.get_action(
-            BreakpointTableViewActions.ClearBreakpoint)
-        edit_action = self.get_action(
-            BreakpointTableViewActions.EditBreakpoint)
-        clear_action.setEnabled(enabled)
-        edit_action.setEnabled(enabled)
+            enabled = (
+                bool(self.breakpoints_table.model.breakpoints)
+                and initial_row is not None
+            )
+            clear_action = self.get_action(
+                BreakpointTableViewActions.ClearBreakpoint)
+            edit_action = self.get_action(
+                BreakpointTableViewActions.EditBreakpoint)
+            clear_action.setEnabled(enabled)
+            edit_action.setEnabled(enabled)
+        except RuntimeError:
+            pass
 
     @on_conf_change(option='breakpoints_table_visible')
     def on_breakpoints_table_option_update(self, value):
@@ -765,7 +768,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         if is_table_shown:
             border_radius = '0px'
         else:
-            border_radius = QStylePalette.SIZE_BORDER_RADIUS
+            border_radius = SpyderPalette.SIZE_BORDER_RADIUS
 
         css = qstylizer.style.StyleSheet()
         css.setValues(

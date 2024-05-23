@@ -1,21 +1,24 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.3 is released!
+**Subject**: [ANN] Spyder 5.5.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.3** has been released and is available for
+I'm pleased to announce that Spyder **5.5.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes four days after version 5.5.2 and it contains the
-following important fix:
+This release comes three weeks after version 5.5.3 and it contains the
+following important fixes:
 
-* Fix critical error when starting IPython console kernels on macOS and Linux
-  in conda environments.
+* Update QtAwesome version constraint to `>=1.3.1,<1.4.0` (icon fonts access issues).
+* Fix kernel start in conda envs with spaces in their directory paths.
+* Fix installers update (installers download URL handling).
+* Handle no output when trying to process git data.
+* Update macOS installer notarization tooling (from `altool` to `notarytool`).
 
-In this release we fixed 1 issue and not merged any pull request. For a full
+In this release we fixed 6 issues and merged 10 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
@@ -28,7 +31,7 @@ creating your favorite environment!
 
 Enjoy!
 
-Carlos
+Daniel
 
 
 ----
@@ -112,18 +115,18 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.0 alpha4 is released!
+**Subject**: [ANN] Spyder 6.0 beta1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second alpha of our next major version: Spyder **6.0**.
+I'm pleased to announce the first beta of our next major version: Spyder **6.0**.
 
 We've been working on this version for more than one year now and it's working
 relatively well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try. This alpha version includes
-more than 230 commits over our latest alpha release (6.0.0a3).
+people who like the bleeding edge to give it a try. This beta version includes
+more than 201 commits over our latest alpha release (6.0.0a5).
 
 Spyder 6.0 comes with the following interesting new features and fixes:
 
@@ -164,9 +167,9 @@ Spyder 6.0 comes with the following interesting new features and fixes:
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
-You can easily install this alpha if you use conda by running:
+You can easily install this beta if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0a3
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0b1
 
 Or you can use pip with this command:
 
@@ -174,4 +177,4 @@ Or you can use pip with this command:
 
 
 Enjoy!
-Carlos
+Daniel

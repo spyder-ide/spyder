@@ -9,4 +9,4 @@
 	commit = 281be2ba8b74e7808cb054fb011a2a223a73db0d
 	parent = 6e663290e3ade6bef7b8c7270eeb536b91fa7449
 	method = merge
-	cmdver = 0.4.5
+	cmdver = 0.4.3

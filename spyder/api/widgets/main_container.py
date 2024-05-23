@@ -16,10 +16,10 @@ from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
-from spyder.api.widgets.mixins import SpyderToolbarMixin, SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 
 
-class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolbarMixin):
+class PluginMainContainer(QWidget, SpyderWidgetMixin):
     """
     Spyder plugin main container class.
 

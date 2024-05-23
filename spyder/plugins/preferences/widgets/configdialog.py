@@ -10,6 +10,7 @@ from qtpy.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QPushButton
 from superqt.utils import qdebounced
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -84,15 +85,18 @@ class ConfigDialog(SidebarDialog):
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
 
-    def add_page(self, page):
+    def add_page(self, page, initialize=False):
         # Signals
         self.check_settings.connect(page.check_settings)
         page.apply_button_enabled.connect(self.apply_btn.setEnabled)
-        super().add_page(page)
+        super().add_page(page, initialize=initialize)
 
     def create_buttons(self):
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
-                                QDialogButtonBox.Cancel)
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok
+            | QDialogButtonBox.Apply
+            | QDialogButtonBox.Cancel
+        )
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
 
         # This is needed for our tests
@@ -100,10 +104,9 @@ class ConfigDialog(SidebarDialog):
 
         button_reset = QPushButton(_('Reset to defaults'))
         button_reset.clicked.connect(self.sig_reset_preferences_requested)
+        bbox.addButton(button_reset, QDialogButtonBox.ResetRole)
 
         layout = QHBoxLayout()
-        layout.addWidget(button_reset)
-        layout.addStretch(1)
         layout.addWidget(bbox)
 
         return bbox, layout

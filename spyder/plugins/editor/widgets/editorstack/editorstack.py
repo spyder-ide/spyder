@@ -24,11 +24,12 @@ from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
-                            QMessageBox, QMenu, QVBoxLayout, QWidget,
-                            QSizePolicy, QToolBar, QToolButton)
+                            QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
+                            QToolBar, QToolButton)
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.config.decorators import on_conf_change
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -45,22 +46,50 @@ from spyder.plugins.explorer.widgets.explorer import (
 from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
+from spyder.plugins.switcher.api import SwitcherActions
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
-from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons,
-                                    create_waitspinner)
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.qthelpers import mimedata2url, create_waitspinner
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
 
 logger = logging.getLogger(__name__)
 
 
-class EditorStack(QWidget, SpyderConfigurationAccessor):
+class EditorStackActions:
+    CopyAbsolutePath = "copy_absolute_path_action"
+    CopyRelativePath = "copy_relative_path_action"
+    CloseAllRight = "close_all_rigth_action"
+    CloseAllButThis = "close_all_but_this_action"
+    SortTabs = "sort_tabs_action"
+    ShowInExternalFileExplorer = "show in external file explorer"
+    NewWindow = "new_window_action"
+    SplitVertically = "split vertically"
+    SplitHorizontally = "split horizontally"
+    CloseSplitPanel = "close split panel"
+    CloseWindow = "close_window_action"
+
+
+class EditorStackButtons:
+    OptionsButton = "editor_stack_options_button"
+
+
+class EditorStackMenus:
+    OptionsMenu = "editorstack_options_menu"
+
+
+class EditorStackMenuSections:
+    GivenSection = "given_section"
+    SwitcherSection = "switcher_path_section"
+    CloseOrderSection = "close_order_section"
+    SplitCloseSection = "split_close_section"
+    WindowSection = "window_section"
+    NewWindowCloseSection = "new_window_and_close_section"
+
+
+class EditorStack(QWidget, SpyderWidgetMixin):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
@@ -80,7 +109,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     file_saved = Signal(str, str, str)
     file_renamed_in_data = Signal(str, str, str)
     opened_files_list_changed = Signal()
-    active_languages_stats = Signal(set)
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
@@ -100,7 +128,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     sig_perform_completion_request = Signal(str, str, dict)
-    sig_option_changed = Signal(str, object)  # config option needs changing
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
@@ -162,15 +189,17 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        QWidget.__init__(self, parent)
+        super().__init__(parent, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.threadmanager = ThreadManager(self)
+
+        self.is_closable = False
         self.new_window = False
         self.horsplit_action = None
         self.versplit_action = None
-        self.close_action = None
+        self.close_split_action = None
         self.__get_split_actions()
 
         layout = QVBoxLayout()
@@ -178,20 +207,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.setLayout(layout)
 
         self.menu = None
-        self.switcher_manager = None
         self.tabs = None
         self.tabs_switcher = None
-        self.switcher_plugin = None
-
-        switcher_action = None
-        symbolfinder_action = None
-        if use_switcher and self.get_plugin().main:
-            self.switcher_plugin = self.get_plugin().main.switcher
-            if self.switcher_plugin:
-                switcher_action = self.switcher_plugin.get_action(
-                    "file switcher")
-                symbolfinder_action = self.switcher_plugin.get_action(
-                    "symbol finder")
 
         self.stack_history = StackHistory(self)
 
@@ -204,47 +221,68 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
-        copy_absolute_path_action = create_action(
-            self,
-            _("Copy absolute path"),
-            icon=ima.icon('editcopy'),
-            triggered=lambda: self.copy_absolute_path()
-        )
-        copy_relative_path_action = create_action(
-            self,
-            _("Copy relative path"),
-            icon=ima.icon('editcopy'),
-            triggered=lambda:
-            self.copy_relative_path()
-        )
-        close_right = create_action(self, _("Close all to the right"),
-                                    triggered=self.close_all_right)
-        close_all_but_this = create_action(self, _("Close all but this"),
-                                           triggered=self.close_all_but_this)
+        # Actions
+        self.switcher_action = None
+        self.symbolfinder_action = None
+        self.use_switcher = use_switcher
 
-        sort_tabs = create_action(self, _("Sort tabs alphabetically"),
-                                  triggered=self.sort_file_tabs_alphabetically)
+        self.copy_absolute_path_action = self.create_action(
+            EditorStackActions.CopyAbsolutePath,
+            text=_("Copy absolute path"),
+            icon=self.create_icon('editcopy'),
+            triggered=lambda: self.copy_absolute_path(),
+            register_action=False
+        )
+        self.copy_relative_path_action = self.create_action(
+            EditorStackActions.CopyRelativePath,
+            text=_("Copy relative path"),
+            icon=self.create_icon('editcopy'),
+            triggered=lambda: self.copy_relative_path(),
+            register_action=False
+        )
+        self.close_right = self.create_action(
+            EditorStackActions.CloseAllRight,
+            text=_("Close all to the right"),
+            triggered=self.close_all_right,
+            register_action=False
+        )
+        self.close_all_but_this = self.create_action(
+            EditorStackActions.CloseAllButThis,
+            text=_("Close all but this"),
+            triggered=self.close_all_but_this,
+            register_action=False
+        )
+        self.sort_tabs = self.create_action(
+            EditorStackActions.SortTabs,
+            text=_("Sort tabs alphabetically"),
+            triggered=self.sort_file_tabs_alphabetically,
+            register_action=False
+        )
 
         if sys.platform == 'darwin':
             text = _("Show in Finder")
         else:
             text = _("Show in external file explorer")
-        external_fileexp_action = create_action(
-            self, text,
+        self.external_fileexp_action = self.create_action(
+            EditorStackActions.ShowInExternalFileExplorer,
+            text=text,
             triggered=self.show_in_external_file_explorer,
-            shortcut=self.get_shortcut(context="Editor",
-                                       name="show in external file explorer"),
-            context=Qt.WidgetShortcut)
-
-        self.menu_actions = actions + [external_fileexp_action,
-                                       None, switcher_action,
-                                       symbolfinder_action,
-                                       copy_absolute_path_action,
-                                       copy_relative_path_action, None,
-                                       close_right,
-                                       close_all_but_this, sort_tabs]
+            context=Qt.WidgetShortcut,
+            register_shortcut=True,
+            register_action=False
+        )
+        self.new_window_action = None
+        if parent is not None:
+            self.new_window_action = self.create_action(
+                EditorStackActions.NewWindow,
+                text=_("New window"),
+                icon=self.create_icon('newwindow'),
+                tip=_("Create a new editor window"),
+                triggered=parent.main_widget.create_new_window,
+                register_action=False
+            )
+        self._given_actions = actions
         self.outlineexplorer = None
-        self.is_closable = False
         self.new_action = None
         self.open_action = None
         self.save_action = None
@@ -568,6 +606,20 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                 split_horizontally, close_split,
                 prevtab, nexttab, external_fileexp]
 
+    def update_switcher_actions(self, switcher_available):
+        if self.use_switcher and switcher_available:
+            self.switcher_action = self.get_action(
+                SwitcherActions.FileSwitcherAction,
+                plugin="switcher"
+            )
+            self.symbolfinder_action = self.get_action(
+                SwitcherActions.SymbolFinderAction,
+                plugin="switcher"
+            )
+        else:
+            self.switcher_action = None
+            self.symbolfinder_action = None
+
     def get_shortcut_data(self):
         """
         Returns shortcut data, a list of tuples (shortcut, text, default)
@@ -588,10 +640,17 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         layout.addWidget(self.top_toolbar)
 
         # Tabbar
-        menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
-                                     tip=_('Options'))
+        menu_btn = self.create_toolbutton(
+            EditorStackButtons.OptionsButton,
+            icon=self.create_icon('tooloptions'),
+            tip=_('Options'),
+            register=False
+        )
         menu_btn.setStyleSheet(str(PANES_TABBAR_STYLESHEET))
-        self.menu = QMenu(self)
+        self.menu = self.create_menu(
+            EditorStackMenus.OptionsMenu,
+            register=False
+        )
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
@@ -620,12 +679,6 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         tab_layout.addWidget(self.tabs)
         layout.addWidget(tab_container)
 
-        # Show/hide icons in plugin menus for Mac
-        if sys.platform == 'darwin':
-            self.menu.aboutToHide.connect(
-                lambda menu=self.menu:
-                set_menu_icons(menu, False))
-
     def create_top_widgets(self):
         # Filename label
         self.fname_label = QLabel()
@@ -648,7 +701,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         css.QToolBar.setValues(
             margin='0px',
             padding='4px',
-            borderBottom=f'1px solid {QStylePalette.COLOR_BACKGROUND_4}'
+            borderBottom=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}'
         )
         self.top_toolbar.setStyleSheet(css.toString())
 
@@ -714,22 +767,22 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
 
-    def get_plugin(self):
-        """Get the plugin of the parent widget."""
+    def get_main_widget(self):
+        """Get the main_widget of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#10684.
-        return self.parent().plugin
+        return self.parent().main_widget
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.get_plugin().get_plugin_title()
+        return self.get_main_widget().get_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
         if line is not None:
-            # When this method is called from the flileswitcher, a line
+            # When this method is called from the fileswitcher, a line
             # number is specified, so there is no need for the dialog.
             self.get_current_editor().go_to_line(line)
         else:
@@ -778,7 +831,20 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.send_to_help(name, help_text, force=True)
 
-    #  ------ Editor Widget Settings
+    # ---- Editor Widget Settings
+    @on_conf_change(option='connect_to_oi')
+    def on_help_connection_change(self, value):
+        help_option_value = self.get_conf('connect/editor', section='help')
+        self.set_help_enabled(help_option_value)
+
+    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
+    def on_color_scheme_change(self, option, value):
+        if option == 'ui_theme':
+            value = self.get_conf('selected', section='appearance')
+
+        logger.debug(f"Set color scheme to {value}")
+        self.set_color_scheme(value)
+
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
@@ -802,6 +868,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     def set_title(self, text):
         self.title = text
 
+    @on_conf_change(option='show_class_func_dropdown')
     def set_classfunc_dropdown_visible(self, state):
         self.show_class_func_dropdown = state
         if self.data:
@@ -828,66 +895,83 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
 
+    @on_conf_change(option='line_numbers')
     def set_linenumbers_enabled(self, state, current_finfo=None):
         self.linenumbers_enabled = state
         if self.data:
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
 
+    @on_conf_change(option='blank_spaces')
     def set_blanks_enabled(self, state):
         self.blanks_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
 
+    @on_conf_change(option='scroll_past_end')
     def set_scrollpastend_enabled(self, state):
         self.scrollpastend_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_scrollpastend_enabled(state)
 
+    @on_conf_change(option='edge_line')
     def set_edgeline_enabled(self, state):
+        logger.debug(f"Set edge line to {state}")
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.edge_line.set_enabled(state)
 
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'pycodestyle/max_line_length'),
+        section='completions'
+    )
     def set_edgeline_columns(self, columns):
+        logger.debug(f"Set edge line columns to {columns}")
         self.edgeline_columns = columns
         if self.data:
             for finfo in self.data:
                 finfo.editor.edge_line.set_columns(columns)
 
+    @on_conf_change(option='indent_guides')
     def set_indent_guides(self, state):
         self.indent_guides = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_identation_guides(state)
 
+    @on_conf_change(option='close_parentheses')
     def set_close_parentheses_enabled(self, state):
         self.close_parentheses_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_close_parentheses_enabled(state)
 
+    @on_conf_change(option='close_quotes')
     def set_close_quotes_enabled(self, state):
         self.close_quotes_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_close_quotes_enabled(state)
 
+    @on_conf_change(option='add_colons')
     def set_add_colons_enabled(self, state):
         self.add_colons_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_add_colons_enabled(state)
 
+    @on_conf_change(option='auto_unindent')
     def set_auto_unindent_enabled(self, state):
         self.auto_unindent_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_auto_unindent_enabled(state)
 
+    @on_conf_change(option='indent_chars')
     def set_indent_chars(self, indent_chars):
         indent_chars = indent_chars[1:-1]  # removing the leading/ending '*'
         self.indent_chars = indent_chars
@@ -895,6 +979,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             for finfo in self.data:
                 finfo.editor.set_indent_chars(indent_chars)
 
+    @on_conf_change(option='tab_stop_width_spaces')
     def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         if self.data:
@@ -932,102 +1017,134 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
                 if self.occurrence_highlighting_enabled:
                     finfo.editor.mark_occurrences()
 
+    @on_conf_change(option='wrap')
     def set_wrap_enabled(self, state):
         self.wrap_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_wrap_mode(state)
 
+    @on_conf_change(option='tab_always_indent')
     def set_tabmode_enabled(self, state):
         self.tabmode_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_tab_mode(state)
 
+    @on_conf_change(option='strip_trailing_spaces_on_modify')
     def set_stripmode_enabled(self, state):
         self.stripmode_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_strip_mode(state)
 
+    @on_conf_change(option='intelligent_backspace')
     def set_intelligent_backspace_enabled(self, state):
         self.intelligent_backspace_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
+    @on_conf_change(option='enable_code_snippets', section='completions')
     def set_code_snippets_enabled(self, state):
+        logger.debug(f"Set code snippets to {state}")
         self.code_snippets_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_code_snippets(state)
 
+    @on_conf_change(option='code_folding')
     def set_code_folding_enabled(self, state):
         self.code_folding_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_code_folding(state)
 
+    @on_conf_change(option='automatic_completions')
     def set_automatic_completions_enabled(self, state):
+        logger.debug(f"Set automatic completions to {state}")
         self.automatic_completions_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_automatic_completions(state)
 
+    @on_conf_change(option='automatic_completions_after_chars')
     def set_automatic_completions_after_chars(self, chars):
+        logger.debug(f"Set chars for automatic completions to {chars}")
         self.automatic_completion_chars = chars
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_chars(chars)
 
+    @on_conf_change(option='completions_hint')
     def set_completions_hint_enabled(self, state):
+        logger.debug(f"Set completions hint to {state}")
         self.completions_hint_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_completions_hint(state)
 
+    @on_conf_change(option='completions_hint_after_ms')
     def set_completions_hint_after_ms(self, ms):
+        logger.debug(f"Set completions hint after {ms} ms")
         self.completions_hint_after_ms = ms
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_completions_hint_after_ms(ms)
 
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values',
+                'enable_hover_hints'),
+        section='completions'
+    )
     def set_hover_hints_enabled(self, state):
+        logger.debug(f"Set hover hints to {state}")
         self.hover_hints_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_hover_hints(state)
 
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
+        section='completions'
+    )
     def set_format_on_save(self, state):
+        logger.debug(f"Set format on save to {state}")
         self.format_on_save = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_format_on_save(state)
 
+    @on_conf_change(option='occurrence_highlighting')
     def set_occurrence_highlighting_enabled(self, state):
         self.occurrence_highlighting_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_occurrence_highlighting(state)
 
+    @on_conf_change(option='occurrence_highlighting/timeout')
     def set_occurrence_highlighting_timeout(self, timeout):
         self.occurrence_highlighting_timeout = timeout
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_occurrence_timeout(timeout)
 
+    @on_conf_change(option='underline_errors')
     def set_underline_errors_enabled(self, state):
+        logger.debug(f"Set underline errors to {state}")
         self.underline_errors_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_underline_errors_enabled(state)
 
+    @on_conf_change(option='highlight_current_line')
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_highlight_current_line(state)
 
+    @on_conf_change(option='highlight_current_cell')
     def set_highlight_current_cell_enabled(self, state):
         self.highlight_current_cell_enabled = state
         if self.data:
@@ -1037,28 +1154,33 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     def set_checkeolchars_enabled(self, state):
         self.checkeolchars_enabled = state
 
+    @on_conf_change(option='always_remove_trailing_spaces')
     def set_always_remove_trailing_spaces(self, state):
         self.always_remove_trailing_spaces = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_remove_trailing_spaces(state)
 
+    @on_conf_change(option='add_newline')
     def set_add_newline(self, state):
         self.add_newline = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_add_newline(state)
 
+    @on_conf_change(option='always_remove_trailing_newlines')
     def set_remove_trailing_newlines(self, state):
         self.remove_trailing_newlines = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_remove_trailing_newlines(state)
 
+    @on_conf_change(option='convert_eol_on_save')
     def set_convert_eol_on_save(self, state):
         """If `state` is `True`, saving files will convert line endings."""
         self.convert_eol_on_save = state
 
+    @on_conf_change(option='convert_eol_on_save_to')
     def set_convert_eol_on_save_to(self, state):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         self.convert_eol_on_save_to = state
@@ -1075,7 +1197,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         for finfo in self.data:
             finfo.editor.set_current_project_path(root_path)
 
-    #  ------ Stacked widget management
+    # ---- Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()
 
@@ -1093,6 +1215,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         if instance == self or instance is None:
             self.tabs.setCurrentIndex(index)
 
+    @on_conf_change(option='show_tab_bar')
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)
 
@@ -1228,86 +1351,148 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
-    #  ------ Context menu
+    # ---- Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
-        self.menu.clear()
+        self.menu.clear_actions()
         if self.data:
-            actions = self.menu_actions
+            given_actions = self._given_actions + [
+                self.external_fileexp_action
+            ]
+            for given_action in given_actions:
+                self.menu.add_action(
+                    given_action, section=EditorStackMenuSections.GivenSection
+                )
+            # switcher and path section
+            switcher_path_actions = [
+                self.switcher_action,
+                self.symbolfinder_action,
+                self.copy_absolute_path_action,
+                self.copy_relative_path_action
+            ]
+            for switcher_path_action in switcher_path_actions:
+                self.menu.add_action(
+                    switcher_path_action,
+                    section=EditorStackMenuSections.SwitcherSection
+                )
+            # close and order section
+            close_order_actions = [
+                self.close_right,
+                self.close_all_but_this,
+                self.sort_tabs
+            ]
+            for close_order_action in close_order_actions:
+                self.menu.add_action(
+                    close_order_action,
+                    section=EditorStackMenuSections.CloseOrderSection
+                )
         else:
             actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-        add_actions(self.menu, list(actions) + self.__get_split_actions())
-        self.close_action.setEnabled(self.is_closable)
+            for menu_action in actions:
+                self.menu.add_action(menu_action)
 
-        if sys.platform == 'darwin':
-            set_menu_icons(self.menu, True)
+        for split_actions in self.__get_split_actions():
+            self.menu.add_action(
+                split_actions,
+                section=EditorStackMenuSections.SplitCloseSection
+            )
 
-    #  ------ Hor/Ver splitting
+        for window_actions in self.__get_window_actions():
+            self.menu.add_action(
+                window_actions, section=EditorStackMenuSections.WindowSection
+            )
+
+        for new_window_and_close_action in (
+                self.__get_new_window_and_close_actions()
+                ):
+            self.menu.add_action(
+                new_window_and_close_action,
+                section=EditorStackMenuSections.NewWindowCloseSection
+            )
+
+        self.menu.render()
+
+    # ---- Hor/Ver splitting actions
     def __get_split_actions(self):
-        if self.parent() is not None:
-            plugin = self.parent().plugin
-        else:
-            plugin = None
-
-        # New window
-        if plugin is not None:
-            self.new_window_action = create_action(
-                self, _("New window"),
-                icon=ima.icon('newwindow'),
-                tip=_("Create a new editor window"),
-                triggered=plugin.create_new_window)
-
-        # Splitting
-        self.versplit_action = create_action(
-            self,
-            _("Split vertically"),
-            icon=ima.icon('versplit'),
+        self.versplit_action = self.create_action(
+            EditorStackActions.SplitVertically,
+            text=_("Split vertically"),
+            icon=self.create_icon('versplit'),
             tip=_("Split vertically this editor window"),
             triggered=self.sig_split_vertically,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='split vertically'),
-            context=Qt.WidgetShortcut)
-
-        self.horsplit_action = create_action(
-            self,
-            _("Split horizontally"),
-            icon=ima.icon('horsplit'),
+            context=Qt.WidgetShortcut,
+            register_shortcut=True,
+            register_action=False
+        )
+        self.horsplit_action = self.create_action(
+            EditorStackActions.SplitHorizontally,
+            text=_("Split horizontally"),
+            icon=self.create_icon('horsplit'),
             tip=_("Split horizontally this editor window"),
             triggered=self.sig_split_horizontally,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='split horizontally'),
-            context=Qt.WidgetShortcut)
-
-        self.close_action = create_action(
-            self,
-            _("Close this panel"),
-            icon=ima.icon('close_panel'),
+            context=Qt.WidgetShortcut,
+            register_shortcut=True,
+            register_action=False
+        )
+        self.close_split_action = self.create_action(
+            EditorStackActions.CloseSplitPanel,
+            text=_("Close this panel"),
+            icon=self.create_icon('close_panel'),
             triggered=self.close_split,
-            shortcut=self.get_shortcut(context='Editor',
-                                       name='close split panel'),
-            context=Qt.WidgetShortcut)
+            context=Qt.WidgetShortcut,
+            register_shortcut=True,
+            register_action=False
+        )
+        self.close_split_action.setEnabled(self.is_closable)
 
-        # Regular actions
-        actions = [MENU_SEPARATOR, self.versplit_action,
-                   self.horsplit_action, self.close_action]
+        actions = [
+            self.versplit_action,
+            self.horsplit_action,
+            self.close_split_action
+        ]
+
+        return actions
+
+    # ---- Window actions
+    def __get_window_actions(self):
+        actions = []
 
         if self.new_window:
             window = self.window()
-            close_window_action = create_action(
-                self, _("Close window"),
-                icon=ima.icon('close_pane'),
-                triggered=window.close)
-            actions += [MENU_SEPARATOR, self.new_window_action,
-                        close_window_action]
-        elif plugin is not None:
-            if plugin._undocked_window is not None:
-                actions += [MENU_SEPARATOR, plugin._dock_action]
+            close_window_action = self.create_action(
+                EditorStackActions.CloseWindow,
+                text=_("Close window"),
+                icon=self.create_icon('close_pane'),
+                triggered=window.close,
+                register_action=False
+            )
+
+            if self.new_window_action:
+                actions += [self.new_window_action]
+            actions += [close_window_action]
+
+        return actions
+
+    # ---- New window and close/docking/undocking actions
+    def __get_new_window_and_close_actions(self):
+        actions = []
+        if self.parent() is not None:
+            main_widget = self.get_main_widget()
+        else:
+            main_widget = None
+
+        if main_widget is not None:
+            if main_widget.windowwidget is not None:
+                actions += [main_widget.dock_action]
             else:
-                actions += [MENU_SEPARATOR, self.new_window_action,
-                            plugin._lock_unlock_action,
-                            plugin._undock_action,
-                            plugin._close_plugin_action]
+                if self.new_window_action:
+                    actions += [self.new_window_action]
+                actions += [
+                    main_widget.lock_unlock_action,
+                    main_widget.undock_action,
+                    main_widget.close_action
+                ]
 
         return actions
 
@@ -1445,7 +1630,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.blockSignals(False)
         self.refresh()
 
-    #  ------ Close file, tabwidget...
+    # ---- Close file, tabwidget...
     def close_file(self, index=None, force=False):
         """Close file (index=None -> close current file)
         Keep current file index unchanged (if current file
@@ -1467,7 +1652,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             else:
                 new_index = current_index
 
-        can_close_file = self.parent().plugin.can_close_file(
+        can_close_file = self.get_main_widget().can_close_file(
             self.data[index].filename) if self.parent() else True
         is_ok = (force or self.save_if_changed(cancelable=True, index=index)
                  and can_close_file)
@@ -1484,9 +1669,14 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
-            if self.parent():
-                # Can be None in tests
-                self.get_plugin().unregister_widget_shortcuts(editor)
+            # TODO: Check move of this logic to be part of SpyderMenu itself/be
+            # able to call a method to do this unregistration
+            editor.menu.MENUS.remove((editor, None, editor.menu))
+            editor.menu.setParent(None)
+            editor.readonly_menu.MENUS.remove(
+                (editor, None, editor.readonly_menu)
+            )
+            editor.readonly_menu.setParent(None)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -1499,12 +1689,10 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
             self.sig_update_code_analysis_actions.emit()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
-
             if new_index is not None:
                 if index < new_index:
                     new_index -= 1
                 self.set_stack_index(new_index)
-
             # Give focus to the previous editor in the stack
             editor = self.get_current_editor()
             if editor:
@@ -1557,10 +1745,13 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.stop_completion_services()
+        try:
+            for index in range(self.get_stack_count()):
+                editor = self.tabs.widget(index)
+                if editor.language.lower() == language:
+                    editor.stop_completion_services()
+        except RuntimeError:
+            pass
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -1610,7 +1801,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
     def set_last_closed_files(self, fnames):
         self.last_closed_files = fnames
 
-    #  ------ Save
+    # ---- Save
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified.
 
@@ -2363,7 +2554,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.sig_refresh_eol_chars.emit(os_name)
 
-    #  ------ Load, reload
+    # ---- Load, reload
     def reload(self, index):
         """Reload file from disk."""
         finfo = self.data[index]
@@ -2740,7 +2931,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
 
-    #  ------ Run
+    # ---- Run
     def _get_lines_cursor(self, direction):
         """ Select and return all lines from cursor in given direction"""
         editor = self.get_current_editor()
@@ -2856,7 +3047,7 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         return text, off_pos, col_pos, cell_name, encoding
 
-    #  ------ Drag and drop
+    # ---- Drag and drop
     def dragEnterEvent(self, event):
         """
         Reimplemented Qt method.

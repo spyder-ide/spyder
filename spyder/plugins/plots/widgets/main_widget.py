@@ -11,6 +11,7 @@ Plots Main Widget.
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QSpinBox
+from superqt.utils import signals_blocked
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -19,11 +20,11 @@ from spyder.api.widgets.main_widget import PluginMainWidgetMenus
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
-MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
 # --- Constants
@@ -43,17 +44,17 @@ class PlotsWidgetActions:
     # Toggles
     ToggleMuteInlinePlotting = 'toggle_mute_inline_plotting_action'
     ToggleShowPlotOutline = 'toggle_show_plot_outline_action'
-    ToggleAutoFitPlotting = 'toggle_auto_fit_plotting_action'
+    ToggleAutoFitPlotting = 'auto fit'
 
 
 class PlotsWidgetMainToolbarSections:
     Edit = 'edit_section'
-    Move = 'move_section'
-    Zoom = 'zoom_section'
+    ZoomAndMove = 'zoom_section'
 
 
 class PlotsWidgetToolbarItems:
     ZoomSpinBox = 'zoom_spin'
+    ToolbarStretcher = 'toolbar_stretcher'
 
 
 # --- Widgets
@@ -111,11 +112,12 @@ class PlotsWidget(ShellConnectMainWidget):
         )
         self.fit_action = self.create_action(
             name=PlotsWidgetActions.ToggleAutoFitPlotting,
-            text=_("Fit plots to window"),
-            tip=_("Automatically fit plots to Plot pane size."),
-            toggled=True,
-            initial=self.get_conf('auto_fit_plotting'),
-            option='auto_fit_plotting'
+            text=_("Fit plots to pane"),
+            tip=_("Fit plot to the pane size"),
+            icon=self.create_icon("plot.fit_to_pane"),
+            toggled=self.fit_to_pane,
+            initial=False,
+            register_shortcut=True,
         )
 
         # Toolbar actions
@@ -195,17 +197,38 @@ class PlotsWidget(ShellConnectMainWidget):
         options_menu = self.get_options_menu()
         self.add_item_to_menu(self.mute_action, menu=options_menu)
         self.add_item_to_menu(self.outline_action, menu=options_menu)
-        self.add_item_to_menu(self.fit_action, menu=options_menu)
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [save_action, save_all_action, copy_action, remove_action,
-                     remove_all_action, previous_action, next_action,
-                     zoom_in_action, zoom_out_action, self.zoom_disp]:
+        for item in [
+            save_action,
+            save_all_action,
+            copy_action,
+            remove_action,
+            remove_all_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
                 section=PlotsWidgetMainToolbarSections.Edit,
+            )
+
+        stretcher = self.create_stretcher(
+            PlotsWidgetToolbarItems.ToolbarStretcher
+        )
+        for item in [
+            self.zoom_disp,
+            zoom_out_action,
+            zoom_in_action,
+            self.fit_action,
+            stretcher,
+            previous_action,
+            next_action,
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=main_toolbar,
+                section=PlotsWidgetMainToolbarSections.ZoomAndMove,
             )
 
         # Context menu
@@ -217,22 +240,26 @@ class PlotsWidget(ShellConnectMainWidget):
         value = False
         widget = self.current_widget()
         figviewer = None
+
         if widget and not self.is_current_widget_empty():
             figviewer = widget.figviewer
-            thumbnails_sb = widget.thumbnails_sb
             value = figviewer.figcanvas.fig is not None
 
             widget.set_pane_empty(not value)
+            with signals_blocked(self.fit_action):
+                self.fit_action.setChecked(figviewer.auto_fit_plotting)
+
         for __, action in self.get_actions().items():
             try:
-                if action and action not in [self.mute_action,
-                                             self.outline_action,
-                                             self.fit_action,
-                                             self.undock_action,
-                                             self.close_action,
-                                             self.dock_action,
-                                             self.toggle_view_action,
-                                             self.lock_unlock_action]:
+                if action and action not in [
+                    self.mute_action,
+                    self.outline_action,
+                    self.undock_action,
+                    self.close_action,
+                    self.dock_action,
+                    self.toggle_view_action,
+                    self.lock_unlock_action,
+                ]:
                     action.setEnabled(value)
 
                     # IMPORTANT: Since we are defining the main actions in here
@@ -241,6 +268,7 @@ class PlotsWidget(ShellConnectMainWidget):
                     # for shortcuts to work
                     if figviewer:
                         figviewer_actions = figviewer.actions()
+                        thumbnails_sb = widget.thumbnails_sb
                         thumbnails_sb_actions = thumbnails_sb.actions()
 
                         if action not in figviewer_actions:
@@ -253,15 +281,9 @@ class PlotsWidget(ShellConnectMainWidget):
 
         self.zoom_disp.setEnabled(value)
 
-        # Disable zoom buttons if autofit
-        if value:
-            value = not self.get_conf('auto_fit_plotting')
-            self.get_action(PlotsWidgetActions.ZoomIn).setEnabled(value)
-            self.get_action(PlotsWidgetActions.ZoomOut).setEnabled(value)
-            self.zoom_disp.setEnabled(value)
-
-    @on_conf_change(option=['auto_fit_plotting', 'mute_inline_plotting',
-                            'show_plot_outline', 'save_dir'])
+    @on_conf_change(
+        option=["mute_inline_plotting", "show_plot_outline", "save_dir"]
+    )
     def on_section_conf_change(self, option, value):
         for index in range(self.count()):
             widget = self._stack.widget(index)
@@ -303,10 +325,11 @@ class PlotsWidget(ShellConnectMainWidget):
         fig_browser.setParent(None)
 
     def switch_widget(self, fig_browser, old_fig_browser):
-        option_keys = [('auto_fit_plotting', True),
-                       ('mute_inline_plotting', True),
-                       ('show_plot_outline', True),
-                       ('save_dir', getcwd_or_home())]
+        option_keys = [
+            ("mute_inline_plotting", True),
+            ("show_plot_outline", True),
+            ("save_dir", getcwd_or_home()),
+        ]
 
         conf_values = {k: self.get_conf(k, d) for k, d in option_keys}
         fig_browser.setup(conf_values)
@@ -426,10 +449,28 @@ class PlotsWidget(ShellConnectMainWidget):
         """Perform a zoom in on the main figure."""
         widget = self.current_widget()
         if widget:
+            with signals_blocked(self.fit_action):
+                self.fit_action.setChecked(False)
+            widget.figviewer.auto_fit_plotting = False
             widget.zoom_in()
 
     def zoom_out(self):
         """Perform a zoom out on the main figure."""
         widget = self.current_widget()
         if widget:
+            with signals_blocked(self.fit_action):
+                self.fit_action.setChecked(False)
+            widget.figviewer.auto_fit_plotting = False
             widget.zoom_out()
+
+    def fit_to_pane(self, state):
+        """Fit current plot to the pane size."""
+        widget = self.current_widget()
+        if widget:
+            figviewer = widget.figviewer
+            if state:
+                figviewer.auto_fit_plotting = True
+                figviewer.scale_image()
+            else:
+                figviewer.auto_fit_plotting = False
+                figviewer.zoom_in(to_full_size=True)

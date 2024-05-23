@@ -2,8 +2,9 @@ name: spy-inst
 channels:
   - conda-forge
 dependencies:
-  - boa
+  - boa <0.17.0  # See https://github.com/conda-forge/boa-feedstock/issues/81
   - conda >=23.11.0
+  - conda-lock >=2.5.7
   - conda-standalone >=23.11.0
   - constructor >=3.6.0
   - gitpython

@@ -138,49 +138,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def setup(self):
         # ---- Options menu actions
-        self.exclude_private_action = self.create_action(
-            VariableExplorerWidgetActions.ToggleExcludePrivate,
-            text=_("Exclude private variables"),
-            tip=_("Exclude variables that start with an underscore"),
-            toggled=True,
-            option='exclude_private',
-        )
-
-        self.exclude_uppercase_action = self.create_action(
-            VariableExplorerWidgetActions.ToggleExcludeUpperCase,
-            text=_("Exclude all-uppercase variables"),
-            tip=_("Exclude variables whose name is uppercase"),
-            toggled=True,
-            option='exclude_uppercase',
-        )
-
-        self.exclude_capitalized_action = self.create_action(
-            VariableExplorerWidgetActions.ToggleExcludeCapitalized,
-            text=_("Exclude capitalized variables"),
-            tip=_("Exclude variables whose name starts with a capital "
-                  "letter"),
-            toggled=True,
-            option='exclude_capitalized',
-        )
-
-        self.exclude_unsupported_action = self.create_action(
-            VariableExplorerWidgetActions.ToggleExcludeUnsupported,
-            text=_("Exclude unsupported data types"),
-            tip=_("Exclude references to data types that don't have "
-                  "an specialized viewer or can't be edited."),
-            toggled=True,
-            option='exclude_unsupported',
-        )
-
-        self.exclude_callables_and_modules_action = self.create_action(
-            VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
-            text=_("Exclude callables and modules"),
-            tip=_("Exclude references to functions, modules and "
-                  "any other callable."),
-            toggled=True,
-            option='exclude_callables_and_modules'
-        )
-
         self.show_minmax_action = self.create_action(
             VariableExplorerWidgetActions.ToggleMinMax,
             text=_("Show arrays min/max"),
@@ -217,33 +174,6 @@ class VariableExplorerWidget(ShellConnectMainWidget):
             icon=self.create_icon('editdelete'),
             triggered=lambda x: self.reset_namespace(),
         )
-
-        self.search_action = self.create_action(
-            VariableExplorerWidgetActions.Search,
-            text=_("Search variable names and types"),
-            icon=self.create_icon('find'),
-            toggled=self.toggle_finder,
-            register_shortcut=True
-        )
-
-        self.refresh_action = self.create_action(
-            VariableExplorerWidgetActions.Refresh,
-            text=_("Refresh variables"),
-            icon=self.create_icon('refresh'),
-            triggered=self.refresh_table,
-            register_shortcut=True,
-        )
-
-        self.filter_button = self.create_action(
-            VariableExplorerWidgetActions.ToggleFilter,
-            text="",
-            icon=ima.icon('filter'),
-            toggled=self._enable_filter_actions,
-            option='filter_on',
-            tip=_("Filter variables")
-            )
-        self.filter_button.setCheckable(True)
-        self.filter_button.toggled.connect(self._set_filter_button_state)
 
         # ---- Context menu actions
         resize_rows_action = self.create_action(
@@ -440,6 +370,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         Create options menu and adjacent toolbar buttons, etc.
 
+        This creates base actions related with Search, Filter and Refresh.
+
         This calls the parent's method to setup default actions, create the
         spinner and the options menu, and connect signals. After that, it adds
         the Search, Filter and Refresh buttons between the spinner and the
@@ -447,14 +379,84 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         super()._setup()
 
-        corner_widget = self._corner_widget
-        for action in corner_widget.actions():
-            if action.defaultWidget() == self.get_options_menu_button():
-                options_menu_action = action
+        # ---- Base Options menu actions
+        self.exclude_private_action = self.create_action(
+            VariableExplorerWidgetActions.ToggleExcludePrivate,
+            text=_("Exclude private variables"),
+            tip=_("Exclude variables that start with an underscore"),
+            toggled=True,
+            option='exclude_private',
+        )
 
-        for action in [self.search_action, self.filter_button,
-                       self.refresh_action]:
-            corner_widget.insertAction(options_menu_action, action)
+        self.exclude_uppercase_action = self.create_action(
+            VariableExplorerWidgetActions.ToggleExcludeUpperCase,
+            text=_("Exclude all-uppercase variables"),
+            tip=_("Exclude variables whose name is uppercase"),
+            toggled=True,
+            option='exclude_uppercase',
+        )
+
+        self.exclude_capitalized_action = self.create_action(
+            VariableExplorerWidgetActions.ToggleExcludeCapitalized,
+            text=_("Exclude capitalized variables"),
+            tip=_("Exclude variables whose name starts with a capital "
+                  "letter"),
+            toggled=True,
+            option='exclude_capitalized',
+        )
+
+        self.exclude_unsupported_action = self.create_action(
+            VariableExplorerWidgetActions.ToggleExcludeUnsupported,
+            text=_("Exclude unsupported data types"),
+            tip=_("Exclude references to data types that don't have "
+                  "an specialized viewer or can't be edited."),
+            toggled=True,
+            option='exclude_unsupported',
+        )
+
+        self.exclude_callables_and_modules_action = self.create_action(
+            VariableExplorerWidgetActions.ToggleExcludeCallablesAndModules,
+            text=_("Exclude callables and modules"),
+            tip=_("Exclude references to functions, modules and "
+                  "any other callable."),
+            toggled=True,
+            option='exclude_callables_and_modules'
+        )
+
+        # ---- Base Toolbar actions
+        self.search_action = self.create_action(
+            VariableExplorerWidgetActions.Search,
+            text=_("Search variable names and types"),
+            icon=self.create_icon('find'),
+            toggled=self.toggle_finder,
+            register_shortcut=True
+        )
+
+        self.refresh_action = self.create_action(
+            VariableExplorerWidgetActions.Refresh,
+            text=_("Refresh variables"),
+            icon=self.create_icon('refresh'),
+            triggered=self.refresh_table,
+            register_shortcut=True,
+        )
+
+        self.filter_button = self.create_action(
+            VariableExplorerWidgetActions.ToggleFilter,
+            text="",
+            icon=ima.icon('filter'),
+            toggled=self._enable_filter_actions,
+            option='filter_on',
+            tip=_("Filter variables")
+        )
+        self.filter_button.setCheckable(True)
+        self.filter_button.toggled.connect(self._set_filter_button_state)
+
+        for action in [
+            self.search_action,
+            self.filter_button,
+            self.refresh_action,
+        ]:
+            self.add_corner_widget(action, before=self._options_button)
 
     def update_actions(self):
         """Update the actions."""

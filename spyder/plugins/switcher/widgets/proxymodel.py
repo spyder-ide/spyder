@@ -54,7 +54,14 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         right_item = self.sourceModel().itemFromIndex(right)
 
         # Check for attribute, otherwise, check for data
-        if hasattr(left_item, self.__sort_by):
+        if (
+            hasattr(left_item, self.__sort_by)
+            and getattr(left_item, self.__sort_by) is not None
+            and hasattr(right_item, self.__sort_by)
+            and getattr(right_item, self.__sort_by) is not None
+        ):
             left_data = getattr(left_item, self.__sort_by)
             right_data = getattr(right_item, self.__sort_by)
             return left_data < right_data
+
+        return super().lessThan(left, right)

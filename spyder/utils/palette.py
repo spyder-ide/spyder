@@ -21,13 +21,13 @@ from spyder.utils.color_system import (Green, Red, Orange, GroupDark,
 # =============================================================================
 # ---- Spyder palettes
 # =============================================================================
-class SpyderPaletteDark:
+class SpyderPaletteDark(DarkPalette):
     """Dark palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
-    COLOR_SUCCESS_3 = Green.B110
+    COLOR_SUCCESS_3 = Green.B90
 
     COLOR_ERROR_1 = Red.B40
     COLOR_ERROR_2 = Red.B70
@@ -36,6 +36,7 @@ class SpyderPaletteDark:
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B90
+    COLOR_WARN_4 = Orange.B100
 
     # Icon colors
     ICON_1 = Gray.B140
@@ -70,6 +71,7 @@ class SpyderPaletteDark:
     COLOR_OCCURRENCE_2 = Gray.B20
     COLOR_OCCURRENCE_3 = Gray.B30
     COLOR_OCCURRENCE_4 = Gray.B50
+    COLOR_OCCURRENCE_5 = Gray.B80
 
     # Colors for Spyder and Python logos
     PYTHON_LOGO_UP = Logos.B10
@@ -87,13 +89,13 @@ class SpyderPaletteDark:
     TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90
 
 
-class SpyderPaletteLight:
+class SpyderPaletteLight(LightPalette):
     """Light palette for Spyder."""
 
     # Colors for information and feedback in dialogs
     COLOR_SUCCESS_1 = Green.B40
     COLOR_SUCCESS_2 = Green.B70
-    COLOR_SUCCESS_3 = Green.B110
+    COLOR_SUCCESS_3 = Green.B30
 
     COLOR_ERROR_1 = Red.B40
     COLOR_ERROR_2 = Red.B70
@@ -102,6 +104,7 @@ class SpyderPaletteLight:
     COLOR_WARN_1 = Orange.B40
     COLOR_WARN_2 = Orange.B70
     COLOR_WARN_3 = Orange.B50
+    COLOR_WARN_4 = Orange.B40
 
     # Icon colors
     ICON_1 = Gray.B30
@@ -136,6 +139,7 @@ class SpyderPaletteLight:
     COLOR_OCCURRENCE_2 = Gray.B110
     COLOR_OCCURRENCE_3 = Gray.B100
     COLOR_OCCURRENCE_4 = Gray.B90
+    COLOR_OCCURRENCE_5 = Gray.B60
 
     # Colors for Spyder and Python logos
     PYTHON_LOGO_UP = Logos.B10
@@ -158,7 +162,5 @@ class SpyderPaletteLight:
 # =============================================================================
 if is_dark_interface():
     SpyderPalette = SpyderPaletteDark
-    QStylePalette = DarkPalette
 else:
     SpyderPalette = SpyderPaletteLight
-    QStylePalette = LightPalette

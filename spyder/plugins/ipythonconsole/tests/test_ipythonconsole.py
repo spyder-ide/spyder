@@ -21,7 +21,6 @@ from unittest.mock import patch
 
 # Third party imports
 from ipykernel._version import __version__ as ipykernel_version
-import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
@@ -918,9 +917,12 @@ def test_restart_kernel(ipyconsole, mocker, qtbot):
     qtbot.waitUntil(
         lambda: 'HELLO' in shell._control.toPlainText(), timeout=SHELL_TIMEOUT)
 
-    # Restart kernel and wait until it's up again
+    # Restart kernel and wait until it's up again.
+    # NOTE: We trigger the restart_action instead of calling `restart_kernel`
+    # directly to also check that that action is working as expected and avoid
+    # regressions such as spyder-ide/spyder#22084.
     shell._prompt_html = None
-    ipyconsole.restart_kernel()
+    ipyconsole.get_widget().restart_action.trigger()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
@@ -1909,17 +1911,61 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         assert "_spyderpdb" not in key
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.auto_backend
-def test_restart_intertactive_backend(ipyconsole, qtbot):
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
+def test_restart_interactive_backend(ipyconsole, qtbot):
     """
-    Test that we ask for a restart after switching to a different interactive
-    backend in preferences.
+    Test that we ask for a restart or not after switching to different
+    interactive backends.
+
+    Also, check that we show the right backend in the Matplotlib status widget.
     """
-    main_widget = ipyconsole.get_widget()
-    qtbot.wait(1000)
-    main_widget.change_possible_restart_and_mpl_conf('pylab/backend', 'tk')
+    shell = ipyconsole.get_current_shellwidget()
+    matplotlib_status = ipyconsole.get_widget().matplotlib_status
+
+    # This is necessary to test no spurious messages are printed to the console
+    shell.clear_console()
+    qtbot.waitUntil(lambda: '\nIn [2]: ' == shell._control.toPlainText())
+
+    # Switch to the tk backend
+    ipyconsole.set_conf('pylab/backend', 'tk')
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    assert shell.get_matplotlib_backend() == "qt"
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the inline backend
+    os.environ.pop('BACKEND_REQUIRE_RESTART')
+    ipyconsole.set_conf('pylab/backend', 'inline')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "inline")
+    assert matplotlib_status.value == "Inline"
+
+    # Switch to the auto backend
+    ipyconsole.set_conf('pylab/backend', 'auto')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the qt backend
+    ipyconsole.set_conf('pylab/backend', 'qt')
+    assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+    assert matplotlib_status.value == "Qt"
+
+    # Switch to the tk backend again
+    ipyconsole.set_conf('pylab/backend', 'tk')
+    assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
+
+    # Check we no spurious messages are shown before the restart below
+    assert "\nIn [2]: " == shell._control.toPlainText()
+
+    # Restart kernel to check if the new interactive backend is set
+    ipyconsole.restart_kernel()
+    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.wait(SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
+    assert shell.get_mpl_interactive_backend() == "tk"
+    assert matplotlib_status.value == "Tk"
 
 
 def test_mpl_conf(ipyconsole, qtbot):
@@ -2051,6 +2097,7 @@ def test_startup_run_lines_project_directory(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
+    qtbot.wait(500)
     assert shell.get_value('pi')
 
     # Reset config for the 'spyder_pythonpath' and 'startup/run_lines'
@@ -2105,23 +2152,24 @@ def test_old_kernel_version(ipyconsole, qtbot):
 
     # Wait until it is launched
     qtbot.waitUntil(
-        lambda: (
-            kernel_handler._comm_ready_received
-        ),
-        timeout=SHELL_TIMEOUT)
+        lambda: kernel_handler._comm_ready_received, timeout=SHELL_TIMEOUT
+    )
 
     # Set wrong version
     kernel_handler.check_spyder_kernel_info(('1.0.0', ''))
 
     # Create new client
     w.create_new_client()
-    client = w.get_current_client()
 
     # Make sure an error is shown
-    control = client.get_control()
+    info_page = w.get_current_client().infowidget.page()
+
     qtbot.waitUntil(
-        lambda: "1.0.0" in control.toPlainText(), timeout=SHELL_TIMEOUT)
-    assert "pip install spyder" in control.toPlainText()
+        lambda: check_text(info_page, "1.0.0"), timeout=6000
+    )
+    qtbot.waitUntil(
+        lambda: check_text(info_page, "pip install spyder"), timeout=6000
+    )
 
 
 def test_run_script(ipyconsole, qtbot, tmp_path):

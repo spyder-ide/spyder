@@ -132,6 +132,9 @@ class RunContainer(PluginMainContainer):
     ) -> Callable:
 
         def anonymous_execution_run():
+            if self.currently_selected_configuration is None:
+                return
+
             input_provider = self.run_metadata_provider[
                 self.currently_selected_configuration]
 
@@ -327,6 +330,12 @@ class RunContainer(PluginMainContainer):
             return
 
         if self.currently_selected_configuration is None:
+            return
+
+        if (
+            self.current_input_provider
+            not in self.supported_extension_contexts
+        ):
             return
 
         input_provider_ext_ctxs = self.supported_extension_contexts[

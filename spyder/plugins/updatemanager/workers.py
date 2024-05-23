@@ -8,6 +8,7 @@
 import logging
 import os
 import os.path as osp
+import shutil
 from time import sleep
 import traceback
 
@@ -55,14 +56,43 @@ class UpdateDownloadIncompleteError(Exception):
     pass
 
 
-class WorkerUpdate(QObject):
+class BaseWorker(QObject):
+    """Base worker class for the updater"""
+
+    sig_ready = Signal()
+    """Signal to inform that the worker has finished."""
+
+    sig_exception_occurred = Signal(dict)
+    """
+    Send untracked exceptions to the error reporter
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The allowed keys are:
+        text: str
+            Error text to display. This may be a translated string or
+            formatted exception string.
+        is_traceback: bool
+            Whether `text` is plain text or an error traceback.
+        repo: str
+            Customized display of repo in GitHub error submission report.
+        title: str
+            Customized display of title in GitHub error submission report.
+        label: str
+            Customized content of the error dialog.
+        steps: str
+            Customized content of the error dialog.
+    """
+
+
+class WorkerUpdate(BaseWorker):
     """
     Worker that checks for releases using either the Anaconda
     default channels or the Github Releases page without
     blocking the Spyder user interface, in case of connection
     issues.
     """
-    sig_ready = Signal()
 
     def __init__(self, stable_only):
         super().__init__()
@@ -99,21 +129,20 @@ class WorkerUpdate(QObject):
         self.update_available = False
         error_msg = None
         pypi_url = "https://pypi.org/pypi/spyder/json"
+        github_url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
         if is_conda_based_app():
-            url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+            url = github_url
         elif is_anaconda():
             self.channel, channel_url = get_spyder_conda_channel()
 
             if self.channel is None or channel_url is None:
-                # Emit signal before returning so the slots connected to it
-                # can do their job.
-                try:
-                    self.sig_ready.emit()
-                except RuntimeError:
-                    pass
+                logger.debug(
+                    f"channel = {self.channel}; channel_url = {channel_url}. "
+                )
 
-                return
+                # Spyder installed in development mode, use GitHub
+                url = github_url
             elif self.channel == "pypi":
                 url = pypi_url
             else:
@@ -128,16 +157,17 @@ class WorkerUpdate(QObject):
             data = page.json()
 
             if self.releases is None:
-                if is_conda_based_app():
+                if url == github_url:
                     self.releases = [
                         item['tag_name'].replace('v', '') for item in data
                     ]
-                elif is_anaconda() and url != pypi_url:
+                elif url == pypi_url:
+                    self.releases = [data['info']['version']]
+                else:
+                    # Conda type url
                     spyder_data = data['packages'].get('spyder')
                     if spyder_data:
                         self.releases = [spyder_data["version"]]
-                else:
-                    self.releases = [data['info']['version']]
             self.releases.sort(key=parse)
 
             self._check_update_available()
@@ -151,11 +181,14 @@ class WorkerUpdate(QObject):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except Exception as err:
-            # Only log the error when it's a generic one because we can't give
-            # users proper feedback on how to address it. Otherwise we'd show
-            # a long traceback that most probably would be incomprehensible to
-            # them.
-            logger.warning(err, exc_info=err)
+            # Send untracked errors to our error reporter
+            error_data = dict(
+                text=traceback.format_exc(),
+                is_traceback=True,
+                title="Error when checking for updates",
+            )
+            self.sig_exception_occurred.emit(error_data)
+            logger.error(err, exc_info=err)
         finally:
             self.error = error_msg
 
@@ -169,14 +202,11 @@ class WorkerUpdate(QObject):
                 pass
 
 
-class WorkerDownloadInstaller(QObject):
+class WorkerDownloadInstaller(BaseWorker):
     """
     Worker that donwloads standalone installers for Windows, macOS,
     and Linux without blocking the Spyder user interface.
     """
-
-    sig_ready = Signal()
-    """Signal to inform that the worker has finished successfully."""
 
     sig_download_progress = Signal(int, int)
     """
@@ -248,10 +278,12 @@ class WorkerDownloadInstaller(QObject):
 
     def _clean_installer_path(self):
         """Remove downloaded file"""
-        if osp.exists(self.installer_path):
-            os.remove(self.installer_path)
-        if osp.exists(self.installer_size_path):
-            os.remove(self.installer_size_path)
+        installer_dir = osp.dirname(self.installer_path)
+        if osp.exists(installer_dir):
+            try:
+                shutil.rmtree(installer_dir)
+            except OSError as err:
+                logger.debug(err, stack_info=True)
 
     def start(self):
         """Main method of the worker."""

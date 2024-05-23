@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QVBoxLayout, QLabel)
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
@@ -97,7 +98,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.selection_widgets = []
         self.right_buttons = self._setup_right_toolbar()
         self.listwidget = QListWidget(self)
-        self.bbox = QDialogButtonBox(
+        self.bbox = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)

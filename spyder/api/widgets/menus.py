@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 # Local imports
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 
 
@@ -192,6 +192,11 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         item_id = None
         if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
             item_id = action.action_id
+
+            # This is necessary when we set a menu for `action`, e.g. for
+            # todo_list_action in EditorMainWidget.
+            if action.menu() and isinstance(action.menu(), SpyderMenu):
+                action.menu()._is_submenu = True
         elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
             action._is_submenu = True
@@ -386,12 +391,12 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             paddingTop=f'{2 * AppStyle.MarginSize}px',
             paddingBottom=f'{2 * AppStyle.MarginSize}px',
             # This uses the same color as the separator
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}"
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}"
         )
 
         # Set the right background color This is the only way to do it!
         css['QWidget:disabled QMenu'].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
         # Add padding around separators to prevent that hovering on items hides
@@ -421,19 +426,19 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         # Set hover and pressed state of items
         for state in ['selected', 'pressed']:
             if state == 'selected':
-                bg_color = QStylePalette.COLOR_BACKGROUND_4
+                bg_color = SpyderPalette.COLOR_BACKGROUND_4
             else:
-                bg_color = QStylePalette.COLOR_BACKGROUND_5
+                bg_color = SpyderPalette.COLOR_BACKGROUND_5
 
             css[f"QMenu::item:{state}"].setValues(
                 backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
             )
 
         # Set disabled state of items
         for state in ['disabled', 'selected:disabled']:
             css[f"QMenu::item:{state}"].setValues(
-                color=QStylePalette.COLOR_DISABLED,
+                color=SpyderPalette.COLOR_DISABLED,
                 backgroundColor="transparent"
             )
 
@@ -461,14 +466,17 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             self._is_shown = True
 
         # Reposition menus horizontally due to border
-        if QCursor().pos().x() - self.pos().x() < 40:
-            # If the difference between the current cursor x position and the
-            # menu one is small, it means the menu will be shown to the right,
-            # so we need to move it in that direction.
-            delta_x = 1
+        if self.APP_MENU:
+            delta_x = 0 if MAC else 3
         else:
-            # This happens when the menu is shown to the left.
-            delta_x = -1
+            if QCursor().pos().x() - self.pos().x() < 40:
+                # If the difference between the current cursor x position and
+                # the menu one is small, it means the menu will be shown to the
+                # right, so we need to move it in that direction.
+                delta_x = 1
+            else:
+                # This happens when the menu is shown to the left.
+                delta_x = -1
 
         self.move(self.pos().x() + delta_x, self.pos().y())
 

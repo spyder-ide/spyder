@@ -89,26 +89,7 @@ class Toolbar(SpyderPluginV2):
     def on_mainwindow_visible(self):
         container = self.get_container()
 
-        # TODO: Until all core plugins are migrated, this is needed.
-        ACTION_MAP = {
-            ApplicationToolbars.File: self._main.file_toolbar_actions
-        }
         for toolbar in container.get_application_toolbars():
-            toolbar_id = toolbar.ID
-            if toolbar_id in ACTION_MAP:
-                section = 0
-                for item in ACTION_MAP[toolbar_id]:
-                    if item is None:
-                        section += 1
-                        continue
-
-                    self.add_item_to_application_toolbar(
-                        item,
-                        toolbar_id=toolbar_id,
-                        section=str(section),
-                        omit_id=True
-                    )
-
             toolbar._render()
 
         container.create_toolbars_menu()

@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, WIN
 
 
@@ -56,7 +56,7 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
         if data and data == "separator":
-            painter.setPen(QColor(QStylePalette.COLOR_BACKGROUND_6))
+            painter.setPen(QColor(SpyderPalette.COLOR_BACKGROUND_6))
             painter.drawLine(
                 option.rect.left() + AppStyle.MarginSize,
                 option.rect.center().y(),
@@ -149,7 +149,7 @@ class _SpyderComboBoxMixin:
         # Make color of hovered combobox items match the one used in other
         # Spyder widgets
         css["QComboBox QAbstractItemView::item:selected:active"].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
         return css
@@ -231,8 +231,8 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
             # Make borders rounded when popup is not visible. This doesn't work
             # reliably on Mac.
             self._css.QComboBox.setValues(
-                borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+                borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+                borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             )
 
             self.setStyleSheet(self._css.toString())

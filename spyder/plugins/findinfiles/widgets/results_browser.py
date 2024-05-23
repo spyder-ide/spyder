@@ -22,7 +22,7 @@ from spyder.api.translations import _
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.onecolumntree import OneColumnTree
 
@@ -127,7 +127,7 @@ class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
         self._margin = None
-        self._background_color = QColor(QStylePalette.COLOR_BACKGROUND_3)
+        self._background_color = QColor(SpyderPalette.COLOR_BACKGROUND_3)
         self.width = 0
 
     def paint(self, painter, option, index):

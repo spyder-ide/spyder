@@ -23,7 +23,7 @@ import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
-from ipykernel import eventloops, get_connection_info
+from ipykernel import get_connection_info
 from traitlets.config.loader import LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -75,6 +75,9 @@ class SpyderKernel(IPythonKernel):
 
         # Socket to signal shell_stream locally
         self.loopback_socket = None
+
+        # To track the interactive backend
+        self.interactive_backend = None
 
     @property
     def kernel_info(self):
@@ -495,7 +498,7 @@ class SpyderKernel(IPythonKernel):
         """Get current matplotlib backend."""
         try:
             import matplotlib
-            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend()]
+            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend().lower()]
         except Exception:
             return None
 
@@ -505,43 +508,20 @@ class SpyderKernel(IPythonKernel):
         Get current Matplotlib interactive backend.
 
         This is different from the current backend because, for instance, the
-        user can set first the Qt5 backend, then the Inline one. In that case,
-        the current backend is Inline, but the current interactive one is Qt5,
+        user can set first the Qt backend, then the Inline one. In that case,
+        the current backend is Inline, but the current interactive one is Qt,
         and this backend can't be changed without a kernel restart.
         """
-        # Mapping from frameworks to backend names.
-        mapping = {
-            'qt': 'QtAgg',
-            'tk': 'TkAgg',
-            'macosx': 'MacOSX'
-        }
-
-        # --- Get interactive framework
-        framework = None
-
-        # Detect if there is a graphical framework running by checking the
-        # eventloop function attached to the kernel.eventloop attribute (see
-        # `ipykernel.eventloops.enable_gui` for context).
-        loop_func = self.eventloop
-
-        if loop_func is not None:
-            if loop_func == eventloops.loop_tk:
-                framework = 'tk'
-            elif loop_func == eventloops.loop_qt5:
-                framework = 'qt'
-            elif loop_func == eventloops.loop_cocoa:
-                framework = 'macosx'
-            else:
-                # Spyder doesn't handle other backends
-                framework = 'other'
+        # Backends that Spyder can handle
+        recognized_backends = {'qt', 'tk', 'macosx'}
 
         # --- Return backend according to framework
-        if framework is None:
-            # Since no interactive backend has been set yet, this is
-            # equivalent to having the inline one.
+        if self.interactive_backend is None:
+            # Since no interactive backend has been set yet, this is equivalent
+            # to having the inline one.
             return 'inline'
-        elif framework in mapping:
-            return MPL_BACKENDS_TO_SPYDER[mapping[framework]]
+        elif self.interactive_backend in recognized_backends:
+            return self.interactive_backend
         else:
             # This covers the case of other backends (e.g. Wx or Gtk)
             # which users can set interactively with the %matplotlib

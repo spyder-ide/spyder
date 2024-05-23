@@ -15,6 +15,7 @@ import os.path as osp
 import shlex
 import subprocess
 import sys
+import time
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -28,6 +29,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -38,6 +40,7 @@ from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
     IPythonConsoleWidgetMenus,
+    IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetOptionsMenuSections,
     IPythonConsoleWidgetTabsContextMenuSections
 )
@@ -49,9 +52,10 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.conda import is_conda_env, find_conda
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
@@ -67,7 +71,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # ---- Constants
 # =============================================================================
-MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
 # --- Widgets
@@ -235,10 +239,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_new_client_if_empty = True
         self.run_cell_filename = None
         self.interrupt_action = None
-        self.initial_conf_options = self.get_conf_options()
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
         self.default_interpreter = sys.executable
+
+        # Attributes needed for the restart dialog
+        self._restart_dialog = ConsoleRestartDialog(self)
+        self._initial_conf_options = self.get_conf_options()
+        self._last_time_for_restart_dialog = None
 
         # Disable infowidget if requested by the user
         self.enable_infowidget = True
@@ -295,12 +303,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
         pager_label_css = qstylizer.style.StyleSheet()
         pager_label_css.setValues(**{
-            'background-color': f'{QStylePalette.COLOR_ACCENT_2}',
-            'color': f'{QStylePalette.COLOR_TEXT_1}',
+            'background-color': f'{SpyderPalette.COLOR_ACCENT_2}',
+            'color': f'{SpyderPalette.COLOR_TEXT_1}',
             'margin': '2px 1px 1px 1px',
             'padding': '5px',
             'qproperty-alignment': 'AlignCenter',
-            'border-radius': f'{QStylePalette.SIZE_BORDER_RADIUS}'
+            'border-radius': f'{SpyderPalette.SIZE_BORDER_RADIUS}'
         })
         self.pager_label.setStyleSheet(pager_label_css.toString())
         self.pager_label.hide()
@@ -386,7 +394,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             IPythonConsoleWidgetActions.Restart,
             text=_("Restart kernel"),
             icon=self.create_icon('restart'),
-            triggered=self.restart_kernel,
+            triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
         )
         self.reset_action = self.create_action(
@@ -619,25 +627,28 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # --- Widgets for the tab corner
         self.reset_button = self.create_toolbutton(
-            'reset',
+            IPythonConsoleWidgetCornerWidgets.ResetButton,
             text=_("Remove all variables"),
-            tip=_("Remove all variables from kernel namespace"),
+            tip=_("Remove all variables from namespace"),
             icon=self.create_icon("editdelete"),
             triggered=self.reset_namespace,
         )
         self.stop_button = self.create_toolbutton(
-            'interrupt',
+            IPythonConsoleWidgetCornerWidgets.InterruptButton,
             text=_("Interrupt kernel"),
             tip=_("Interrupt kernel"),
             icon=self.create_icon('stop'),
             triggered=self.interrupt_kernel,
         )
         self.time_label = QLabel("")
+        self.time_label.name = (
+            IPythonConsoleWidgetCornerWidgets.TimeElapsedLabel
+        )
 
         # --- Add tab corner widgets.
-        self.add_corner_widget('timer', self.time_label)
-        self.add_corner_widget('reset', self.reset_button)
-        self.add_corner_widget('start_interrupt', self.stop_button)
+        self.add_corner_widget(self.stop_button)
+        self.add_corner_widget(self.reset_button)
+        self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
         tabs_context_menu = self.create_menu(
@@ -870,30 +881,42 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.shellwidget.set_autocall,
                 value)
 
-    @on_conf_change(option=[
-        'symbolic_math', 'hide_cmd_windows',
-        'startup/run_lines', 'startup/use_run_file', 'startup/run_file',
-        'pylab', 'pylab/backend', 'pylab/autoload',
-        'pylab/inline/figure_format', 'pylab/inline/resolution',
-        'pylab/inline/width', 'pylab/inline/height',
-        'pylab/inline/fontsize', 'pylab/inline/bottom',
-        'pylab/inline/bbox_inches'])
+    @on_conf_change(
+        option=[
+            "symbolic_math",
+            "hide_cmd_windows",
+            "startup/run_lines",
+            "startup/use_run_file",
+            "startup/run_file",
+            "pylab",
+            "pylab/backend",
+            "pylab/autoload",
+            "pylab/inline/figure_format",
+            "pylab/inline/resolution",
+            "pylab/inline/width",
+            "pylab/inline/height",
+            "pylab/inline/fontsize",
+            "pylab/inline/bottom",
+            "pylab/inline/bbox_inches",
+        ]
+    )
     def change_possible_restart_and_mpl_conf(self, option, value):
         """
         Apply options that possibly require a kernel restart or related to
         Matplotlib inline backend options.
         """
         # Check that we are not triggering validations in the initial
-        # notification sent when Spyder is starting or when another option
-        # already required a restart and the restart dialog was shown
+        # notification sent when Spyder is starting.
         if not self._testing:
-            if option in self.initial_conf_options:
-                self.initial_conf_options.remove(option)
+            if option in self._initial_conf_options:
+                self._initial_conf_options.remove(option)
                 return
 
         restart_needed = False
         restart_options = []
+
         # Startup options (needs a restart)
+        autoload_n = "pylab/autoload"
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
         run_file_n = 'startup/run_file'
@@ -907,8 +930,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         symbolic_math_n = 'symbolic_math'
         hide_cmd_windows_n = 'hide_cmd_windows'
 
-        restart_options += [run_lines_n, use_run_file_n, run_file_n,
-                            symbolic_math_n, hide_cmd_windows_n]
+        restart_options += [
+            autoload_n,
+            run_lines_n,
+            use_run_file_n,
+            run_file_n,
+            symbolic_math_n,
+            hide_cmd_windows_n,
+        ]
         restart_needed = option in restart_options
 
         inline_backend = 'inline'
@@ -937,21 +966,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
-                    interactive_backend = (
-                        client.shellwidget.get_mpl_interactive_backend()
-                    )
+                    interactive_backend = sw.get_mpl_interactive_backend()
 
                 if (
                     # There was an error getting the interactive backend in
                     # the kernel, so we can't proceed.
-                    interactive_backend is not None and
+                    interactive_backend is not None
                     # There has to be an interactive backend (i.e. different
                     # from inline) set in the kernel before. Else, a restart
                     # is not necessary.
-                    interactive_backend != inline_backend and
+                    and interactive_backend != inline_backend
                     # The interactive backend to switch to has to be different
                     # from the current one
-                    interactive_backend != pylab_backend_o
+                    and interactive_backend != pylab_backend_o
+                    # There's no need to request a restart for the auto backend
+                    and pylab_backend_o != "auto"
                 ):
                     clients_backend_require_restart.append(True)
 
@@ -968,12 +997,37 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             pylab_restart = any(clients_backend_require_restart)
 
         if (restart_needed or pylab_restart) and not running_under_pytest():
-            self.initial_conf_options = self.get_conf_options()
-            self.initial_conf_options.remove(option)
-            restart_dialog = ConsoleRestartDialog(self)
-            restart_dialog.exec_()
-            (restart_all, restart_current,
-             no_restart) = restart_dialog.get_action_value()
+            # This allows us to decide if we need to show the restart dialog.
+            # For that we compare the last time it was shown with the current
+            # one. If difference is less than 300 ms, it means this method was
+            # called after users changed several options at the same time in
+            # Preferences. And if that's case, we don't need to show the
+            # dialog each time.
+            show_restart_dialog = True
+            if self._last_time_for_restart_dialog is not None:
+                current_time = time.time()
+                if current_time - self._last_time_for_restart_dialog < 0.3:
+                    show_restart_dialog = False
+                    self._last_time_for_restart_dialog = current_time
+                else:
+                    self._last_time_for_restart_dialog = None
+
+            if show_restart_dialog:
+                self._restart_dialog.exec_()
+                (
+                    restart_all,
+                    restart_current,
+                    no_restart,
+                ) = self._restart_dialog.get_action_value()
+
+                if self._last_time_for_restart_dialog is None:
+                    self._last_time_for_restart_dialog = time.time()
+            else:
+                # If there's no need to show the dialog, we reuse the values
+                # saved on it the last time it was used.
+                restart_all = self._restart_dialog.restart_all
+                restart_current = self._restart_dialog.restart_current
+                no_restart = self._restart_dialog.no_restart
         else:
             restart_all = False
             restart_current = False
@@ -988,6 +1042,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             )
 
             if not (restart and restart_all) or no_restart:
+                # Autoload can't be applied without a restart. This avoids an
+                # incorrect message in the console too.
+                if autoload_n in options:
+                    options.pop(autoload_n)
+
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
                     # Apply conf when the next Pdb prompt is available
@@ -1281,8 +1340,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Rename tabs after a change in name."""
         client = self.get_current_client()
 
-        # Prevent renames that want to assign the same name of
-        # a previous tab
+        # Prevent renames that want to assign the same name of a previous tab
         repeated = False
         for cl in self.clients:
             if id(client) != id(cl) and given_name == cl.given_name:
@@ -1299,6 +1357,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client.allow_rename and u'/' not in given_name and not repeated:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
+
+    def rename_remote_clients(self, server_id):
+        """Rename all clients connected to a remote server."""
+        auth_method = self.get_conf(
+            f"{server_id}/auth_method", section="remoteclient"
+        )
+        hostname = self.get_conf(
+            f"{server_id}/{auth_method}/name", section="remoteclient"
+        )
+
+        for client in self.clients:
+            if client.server_id == server_id:
+                client.hostname = hostname
+                index = self.get_client_index_from_id(id(client))
+                self.tabwidget.setTabText(index, client.get_name())
 
     def tab_name_editor(self):
         """Trigger the tab name editor."""
@@ -1389,10 +1462,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         else:
             versions = {}
             pyexec = self.get_conf('executable', section='main_interpreter')
+            py_cmd = '"%s" -c "import sys; print(sys.version)"' % pyexec
             if path_to_custom_interpreter:
                 pyexec = path_to_custom_interpreter
 
-            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
+            # If this is a conda env, it needs to be activated to get the
+            # IPython version below.
+            if is_conda_env(pyexec=pyexec):
+                conda = find_conda()
+                if conda:
+                    # If we're unable to find conda, the command below will
+                    # fail in any case.
+                    pyexec = f'"{conda}" run "{pyexec}"'
+
             ipy_cmd = (
                 '%s -c "import IPython.core.release as r; print(r.version)"'
                 % pyexec
@@ -1512,7 +1594,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password):
+                                 password, server_id=None, can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1557,7 +1639,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             interpreter_versions=self.interpreter_versions(),
-            handlers=self.registered_spyder_kernel_handlers
+            handlers=self.registered_spyder_kernel_handlers,
+            server_id=server_id,
+            can_close=can_close,
         )
 
         # add hostname for get_name
@@ -1572,19 +1656,27 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
 
-        try:
-            # Get new client for kernel
-            if master_client is not None:
-                kernel_handler = master_client.kernel_handler.copy()
-            else:
-                kernel_handler = KernelHandler.from_connection_file(
-                    connection_file, hostname, sshkey, password)
-        except Exception as e:
-            client.show_kernel_error(e)
-            return
+        if server_id:
+            # This is a client created by the RemoteClient plugin. So, we only
+            # create the client and show it as loading because the kernel
+            # connection part will be done by that plugin.
+            client._show_loading_page()
+        else:
+            try:
+                # Get new client for kernel
+                if master_client is not None:
+                    kernel_handler = master_client.kernel_handler.copy()
+                else:
+                    kernel_handler = KernelHandler.from_connection_file(
+                        connection_file, hostname, sshkey, password)
+            except Exception as e:
+                client.show_kernel_error(e)
+                return
 
-        # Connect kernel
-        client.connect_kernel(kernel_handler)
+            # Connect kernel
+            client.connect_kernel(kernel_handler)
+
+        return client
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
@@ -1700,19 +1792,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close client tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
+
         if client is not None:
+            # Client already closed
             if client not in self.clients:
-                # Client already closed
                 return
-            index = self.tabwidget.indexOf(client)
+
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
+            index = self.tabwidget.indexOf(client)
             if index == -1:
                 return
         if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
             client = self.tabwidget.widget(index)
+
+        if not client.can_close:
+            return
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
@@ -1784,6 +1881,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.close_cached_kernel()
         self.filenames = []
         return True
+
+    def close_remote_clients(self, server_id):
+        """Close all clients connected to a remote server."""
+        open_clients = self.clients.copy()
+        for client in self.clients:
+            if client.server_id == server_id:
+                is_last_client = (
+                    len(self.get_related_clients(client, open_clients)) == 0
+                )
+                client.close_client(is_last_client)
+                open_clients.remove(client)
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1953,7 +2061,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """
         self.registered_spyder_kernel_handlers.pop(handler_id, None)
 
-    @Slot()
+    @qdebounced(timeout=200)
     def restart_kernel(self, client=None, ask_before_restart=True):
         """Restart kernel of current client."""
         if client is None:
@@ -1962,7 +2070,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         km = client.kernel_handler.kernel_manager
-        if km is None:
+        if km is None and client.server_id is None:
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -1983,6 +2091,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             do_restart = result == QMessageBox.Yes
 
         if not do_restart:
+            return
+
+        # For remote kernels we need to request the server for a restart
+        if client.server_id:
+            client.sig_restart_kernel_requested.emit()
             return
 
         # Get new kernel

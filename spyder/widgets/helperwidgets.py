@@ -9,7 +9,10 @@ Helper widgets.
 """
 
 # Standard imports
+from __future__ import annotations
 import re
+import textwrap
+from typing import Callable
 
 # Third party imports
 import qtawesome as qta
@@ -62,7 +65,7 @@ from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -167,7 +170,7 @@ class HTMLDelegate(QStyledItemDelegate):
         # row (see HoverRowsTableView for an example).
         if index.row() == self._hovered_row:
             painter.fillRect(
-                options.rect, QColor(QStylePalette.COLOR_BACKGROUND_3)
+                options.rect, QColor(SpyderPalette.COLOR_BACKGROUND_3)
             )
 
         # Note: We need to pass the options widget as an argument of
@@ -340,7 +343,7 @@ class IconLineEdit(QLineEdit):
             fm = QFontMetrics(self.font())
             text = fm.elidedText(self.text(), self.ellipsis_place,
                                  text_rect.width())
-            painter.setPen(QColor(QStylePalette.COLOR_TEXT_1))
+            painter.setPen(QColor(SpyderPalette.COLOR_TEXT_1))
             painter.drawText(text_rect, int(Qt.AlignLeft | Qt.AlignVCenter),
                              text)
             return
@@ -699,16 +702,16 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def _apply_stylesheet(self, focus):
         if focus:
-            border_color = QStylePalette.COLOR_ACCENT_3
+            border_color = SpyderPalette.COLOR_ACCENT_3
         else:
-            border_color = QStylePalette.COLOR_BACKGROUND_4
+            border_color = SpyderPalette.COLOR_BACKGROUND_4
 
         qss = qstylizer.style.StyleSheet()
         qss.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
         self.setStyleSheet(qss.toString())
@@ -757,7 +760,7 @@ class HoverRowsTableView(QTableView):
         # over the widget.
         css = qstylizer.style.StyleSheet()
         css["QTableView::item"].setValues(
-            backgroundColor=f"{QStylePalette.COLOR_BACKGROUND_1}"
+            backgroundColor=f"{SpyderPalette.COLOR_BACKGROUND_1}"
         )
         self._stylesheet = css.toString()
 
@@ -793,10 +796,16 @@ class TipWidget(QLabel):
         tip_text: str,
         icon: QIcon,
         hover_icon: QIcon,
-        size: int = 20
+        size: int | None = None,
+        wrap_text: bool = False
     ):
         super().__init__()
+
+        if wrap_text:
+            tip_text = '\n'.join(textwrap.wrap(tip_text, 50))
         self.tip_text = tip_text
+
+        size = size if size is not None else AppStyle.ConfigPageIconSize
         self.icon = icon.pixmap(QSize(size, size))
         self.hover_icon = hover_icon.pixmap(QSize(size, size))
 
@@ -838,6 +847,56 @@ class TipWidget(QLabel):
     def mouseReleaseEvent(self, event):
         """Show tooltip when the widget is clicked."""
         self.show_tip()
+
+
+class ValidationLineEdit(QLineEdit):
+    """Lineedit that validates its contents in focus out."""
+
+    sig_focus_out = Signal(str)
+
+    def __init__(
+        self,
+        validate_callback: Callable,
+        validate_reason: str,
+        text: str = "",
+        parent: QWidget | None = None,
+    ):
+        super().__init__(text, parent)
+
+        # Attributes
+        self._validate_callback = validate_callback
+        self._validate_reason = validate_reason
+        self._is_show = False
+
+        # Action to signal that text is not valid
+        self.error_action = QAction(self)
+        self.error_action.setIcon(ima.icon("error"))
+        self.addAction(self.error_action, QLineEdit.TrailingPosition)
+
+        # Signals
+        self.sig_focus_out.connect(self._validate)
+
+    def focusOutEvent(self, event):
+        if self.text():
+            self.sig_focus_out.emit(self.text())
+        else:
+            self.error_action.setVisible(False)
+        super().focusOutEvent(event)
+
+    def focusInEvent(self, event):
+        self.error_action.setVisible(False)
+        super().focusInEvent(event)
+
+    def showEvent(self, event):
+        if not self._is_show:
+            self.error_action.setVisible(False)
+            self._is_show = True
+        super().showEvent(event)
+
+    def _validate(self, text):
+        if not self._validate_callback(text):
+            self.error_action.setVisible(True)
+            self.error_action.setToolTip(self._validate_reason)
 
 
 def test_msgcheckbox():

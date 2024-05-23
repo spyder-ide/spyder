@@ -7,13 +7,12 @@
 """Custom text snippets completion plugin."""
 
 # Standard library imports
-import os
 import bisect
 import logging
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.api import (SpyderCompletionProvider,
                                            SUPPORTED_LANGUAGES)
@@ -81,10 +80,6 @@ class SnippetsProvider(SpyderCompletionProvider):
 
     @on_conf_change
     def update_snippets(self, snippets):
-        if running_under_pytest():
-            if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
-                return
-
         self.config = snippets
         snippet_info = {}
         for language in SUPPORTED_LANGUAGES_PY:
