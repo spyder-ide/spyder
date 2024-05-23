@@ -74,10 +74,6 @@ class DebuggerContextMenuSections:
     Locals = 'locals_section'
 
 
-class DebuggerContextMenuActions:
-    ViewLocalsAction = 'view_locals_action'
-
-
 # =============================================================================
 # ---- Widgets
 # =============================================================================
@@ -169,8 +165,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         super().__init__(name, plugin, parent, set_layout=False)
 
         # Widgets
-        self.context_menu = None
-        self.empty_context_menu = None
         self.breakpoints_table = BreakpointTableView(self, {})
         self.breakpoints_table.hide()
 
@@ -346,14 +340,6 @@ class DebuggerWidget(ShellConnectMainWidget):
             option='breakpoints_table_visible'
         )
 
-        # ---- Context menu actions
-        self.view_locals_action = self.create_action(
-            DebuggerContextMenuActions.ViewLocalsAction,
-            _("View variables with the Variable Explorer"),
-            icon=self.create_icon('outline_explorer'),
-            triggered=self.view_item_locals
-        )
-
         # Options menu
         options_menu = self.get_options_menu()
         for item in [exclude_internal_action]:
@@ -381,26 +367,6 @@ class DebuggerWidget(ShellConnectMainWidget):
                 section=DebuggerWidgetMainToolBarSections.Main,
             )
 
-        # ---- Context menu to show when there are frames present
-        self.context_menu = self.create_menu(
-            DebuggerWidgetMenus.PopulatedContextMenu)
-        for item in [self.view_locals_action, inspect_action]:
-            self.add_item_to_menu(
-                item,
-                menu=self.context_menu,
-                section=DebuggerContextMenuSections.Locals,
-            )
-
-        # ---- Context menu when the debugger is empty
-        self.empty_context_menu = self.create_menu(
-            DebuggerWidgetMenus.EmptyContextMenu)
-        for item in [inspect_action]:
-            self.add_item_to_menu(
-                item,
-                menu=self.empty_context_menu,
-                section=DebuggerContextMenuSections.Locals,
-            )
-
     def update_actions(self):
         """Update actions."""
         try:
@@ -415,7 +381,6 @@ class DebuggerWidget(ShellConnectMainWidget):
                 search_action.setEnabled(False)
                 show_enter_debugger = False
                 executing = False
-                is_inspecting = False
                 pdb_prompt = False
             else:
                 search_action.setEnabled(True)
@@ -424,12 +389,10 @@ class DebuggerWidget(ShellConnectMainWidget):
                 sw = widget.shellwidget
                 executing = sw._executing
                 show_enter_debugger = post_mortem or executing
-                is_inspecting = widget.state == FramesBrowserState.Inspect
                 pdb_prompt = sw.is_waiting_pdb_input()
 
             enter_debug_action.setEnabled(show_enter_debugger)
             inspect_action.setEnabled(executing)
-            self.context_menu.setEnabled(is_inspecting)
 
             for action_name in [
                     DebuggerWidgetActions.Next,
@@ -504,12 +467,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             widget.on_config_kernel)
 
         widget.setup()
-        widget.set_context_menu(
-            self.context_menu,
-            self.empty_context_menu
-        )
 
-        widget.results_browser.view_locals_action = self.view_locals_action
         self.sig_breakpoints_saved.connect(widget.set_breakpoints)
 
         shellwidget.sig_pdb_state_changed.connect(self.sig_pdb_state_changed)
@@ -624,10 +582,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         """Hide finder."""
         action = self.get_action(DebuggerWidgetActions.Search)
         action.setChecked(False)
-
-    def view_item_locals(self):
-        """Request to view item locals."""
-        self.current_widget().results_browser.view_item_locals()
 
     def enter_debug(self):
         """

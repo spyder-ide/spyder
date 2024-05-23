@@ -110,11 +110,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             # take back focus
             self.shellwidget._control.setFocus()
 
-    def set_context_menu(self, context_menu, empty_context_menu):
-        """Set the context menus."""
-        self.results_browser.menu = context_menu
-        self.results_browser.empty_ws_menu = empty_context_menu
-
     def toggle_finder(self, show):
         """Show and hide the finder."""
         self.finder.set_visible(show)
@@ -352,7 +347,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 class LineFrameItem(QTreeWidgetItem):
 
     def __init__(self, parent, index, filename, line, lineno, name,
-                 f_locals, font, color_scheme=None):
+                 font, color_scheme=None):
         self.index = index
         self.filename = filename
         self.text = line
@@ -360,7 +355,6 @@ class LineFrameItem(QTreeWidgetItem):
         self.context = name
         self.color_scheme = color_scheme
         self.font = font
-        self.locals = f_locals
         QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
                                  QTreeWidgetItem.Type)
 
@@ -497,9 +491,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
         self.color_scheme = color_scheme
         self.text_color = color_scheme['normal'][0]
         self.frames = None
-        self.menu = None
-        self.empty_ws_menu = None
-        self.view_locals_action = None
 
         # Setup
         self.setItemsExpandable(True)
@@ -526,36 +517,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
             self.sig_edit_goto.emit(filename, lineno, '')
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
-
-    def view_item_locals(self):
-        """View item locals."""
-        item = self.currentItem()
-        item_has_locals = (
-            isinstance(item, LineFrameItem) and
-            item.locals is not None)
-        if item_has_locals:
-            self.sig_show_namespace.emit(item.locals)
-
-    def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
-        if self.menu is None:
-            return
-
-        if self.frames:
-            self.refresh_menu()
-            self.menu.popup(event.globalPos())
-            event.accept()
-        else:
-            self.empty_ws_menu.popup(event.globalPos())
-            event.accept()
-
-    def refresh_menu(self):
-        """Refresh context menu"""
-        item = self.currentItem()
-        item_has_locals = (
-            isinstance(item, LineFrameItem) and
-            item.locals is not None)
-        self.view_locals_action.setEnabled(item_has_locals)
 
     @Slot(int)
     def sort_section(self, idx):
@@ -592,7 +553,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
                         frame.line,
                         frame.lineno,
                         frame.name,
-                        frame.locals,
                         self.font,
                         self.color_scheme
                     )
