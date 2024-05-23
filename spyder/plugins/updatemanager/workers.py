@@ -5,12 +5,14 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+from datetime import datetime as dt
 import logging
 import os
 import os.path as osp
 import shutil
 from time import sleep
 import traceback
+import warnings
 
 # Third party imports
 from packaging.version import parse
@@ -153,6 +155,8 @@ class WorkerUpdate(BaseWorker):
         logger.info(f"Checking for updates from {url}")
         try:
             page = requests.get(url)
+            if url == github_url:
+                rate_limits(page)
             page.raise_for_status()
             data = page.json()
 
@@ -321,3 +325,17 @@ class WorkerDownloadInstaller(BaseWorker):
                 self.sig_ready.emit()
             except RuntimeError:
                 pass
+
+
+def rate_limits(page):
+    xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
+    msg_items = [
+        "Rate Limits:",
+        f"Resource:  {page.headers['X-RateLimit-Resource']}",
+        f"Reset:     {xrlr}",
+        f"Limit:     {page.headers['X-RateLimit-Limit']:>5s}",
+        f"Used:      {page.headers['X-RateLimit-Used']:>5s}",
+        f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
+    ]
+    logger.debug("\n\t".join(msg_items))
+    warnings.warn("\n\t".join(msg_items), RuntimeWarning)

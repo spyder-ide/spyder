@@ -31,7 +31,7 @@ def worker():
 # ---- Test WorkerUpdate
 
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-def test_updates_appenv(qtbot, mocker, version):
+def test_updates_appenv(qtbot, mocker, version, caplog):
     """
     Test whether or not we offer updates for our installers according to the
     current Spyder version.
@@ -51,9 +51,10 @@ def test_updates_appenv(qtbot, mocker, version):
         return_value=("conda-forge", "https://conda.anaconda.org/conda-forge")
     )
 
-    um = UpdateManagerWidget(None)
-    um.start_check_update()
-    qtbot.waitUntil(um.update_thread.isFinished)
+    with caplog.at_level(logging.DEBUG, logger='spyder.plugins.updatemanager'):
+        um = UpdateManagerWidget(None)
+        um.start_check_update()
+        qtbot.waitUntil(um.update_thread.isFinished)
 
     update_available = um.update_worker.update_available
     if version.split('.')[0] == '1':
