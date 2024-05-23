@@ -11,6 +11,7 @@ Spyder kernel for Jupyter.
 """
 
 # Standard library imports
+from collections import namedtuple
 import faulthandler
 import json
 import logging
@@ -261,6 +262,10 @@ class SpyderKernel(IPythonKernel):
         thread_names = {thread.ident: thread.name
                         for thread in threading.enumerate()}
 
+        SpyderFrameSummary = namedtuple(
+            "SpyderFrameSummary", ["filename", "lineno", "name", "line"]
+        )
+
         for thread_id, frame in sys._current_frames().items():
             stack = traceback.StackSummary.extract(
                 traceback.walk_stack(frame))
@@ -274,7 +279,17 @@ class SpyderKernel(IPythonKernel):
                     thread_name = thread_names[thread_id]
                 else:
                     thread_name = str(thread_id)
-                frames[thread_name] = stack
+                # Transform stack in a named tuple because FrameSummary objects
+                # are not compatible between versions of python
+                frames[thread_name] = [
+                    SpyderFrameSummary(
+                        frame.filename,
+                        frame.lineno,
+                        frame.name,
+                        frame.line
+                    )
+                    for frame in stack
+                ]
         return frames
 
     # --- For the Variable Explorer
@@ -705,7 +720,7 @@ class SpyderKernel(IPythonKernel):
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
-           
+
         if special == "sympy":
             import sympy  # noqa
             sympy_init = "\n".join([
