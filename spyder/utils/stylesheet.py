@@ -295,11 +295,6 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             padding="1px 2px",
         )
 
-        # Substract extra padding that comes from QLineEdit
-        css["QLineEdit QToolTip"].setValues(
-            padding="-2px -3px",
-        )
-
         # Add padding to tree widget items to make them look better
         css["QTreeWidget::item"].setValues(
             padding=f"{AppStyle.MarginSize - 1}px 0px",
