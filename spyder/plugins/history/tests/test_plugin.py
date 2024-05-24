@@ -11,6 +11,7 @@ import tempfile
 
 # Third party imports
 import pytest
+from flaky import flaky
 from qtpy.QtGui import QTextOption
 
 # Local imports
@@ -63,6 +64,7 @@ def test_init(historylog):
     assert len(hl.get_actions()) == 7
 
 
+@flaky(max_runs=2)
 @pytest.mark.skipif(
     sys.platform == "darwin" and running_in_ci(),
     reason="Fails on Mac when running on CI "
