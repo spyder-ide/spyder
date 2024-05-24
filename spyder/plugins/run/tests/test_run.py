@@ -599,7 +599,7 @@ def test_run_plugin(qtbot, run_mock):
 
     # Ensure that the executor run configuration was saved
     assert exec_conf['uuid'] is not None
-    assert exec_conf['name'] == "Custom"
+    assert exec_conf['name'] == "Custom for this file"
 
     # Check that the configuration parameters are the ones defined by the
     # dialog
@@ -742,6 +742,7 @@ def test_run_plugin(qtbot, run_mock):
     # Switch to other run configuration and register a set of custom run
     # executor parameters
     exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
+    dialog.exec_()
 
     # Spawn the configuration dialog
     run_act = run.get_action(RunActions.Run)
@@ -773,7 +774,7 @@ def test_run_plugin(qtbot, run_mock):
     saved_params = run.get_executor_configuration_parameters(
         executor_name, 'ext3', RunContext.AnotherSuperContext)
     executor_params = saved_params['params']
-    assert len(executor_params) == 1
+    assert len(executor_params) == 2
 
     # Check that the configuration passed to the executor is the same that was
     # saved.
@@ -805,14 +806,14 @@ def test_run_plugin(qtbot, run_mock):
     new_ext_ctx_params = (
         new_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
     )
-    assert new_ext_ctx_params == {}
+    assert len(new_ext_ctx_params) == 1
 
     # Check that adding new parameters preserves the previous ones
     current_exec_params = container.get_conf('parameters')[executor_name]
     assert (
         len(current_exec_params[('ext1', RunContext.RegisteredContext)]
             ['params']
-        ) == 1
+        ) == 2
     )  # Check that we have one config in this context
 
     new_exec_conf_uuid = str(uuid4())
@@ -838,7 +839,7 @@ def test_run_plugin(qtbot, run_mock):
     assert (
         len(
             new_exec_params[('ext1', RunContext.RegisteredContext)]['params']
-        ) == 2
+        ) == 3
     )  # Now we should have two configs in the same context
 
     # Test teardown functions

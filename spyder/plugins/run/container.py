@@ -246,7 +246,10 @@ class RunContainer(PluginMainContainer):
 
         if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
             exec_uuid = ext_params['uuid']
-            if exec_uuid is not None:
+
+            # Default parameters should already be saved in our config system.
+            # So, there is no need to save them again here.
+            if exec_uuid is not None and not ext_params["default"]:
 
                 info = self.metadata_model.get_metadata_context_extension(uuid)
                 context, ext =  info
@@ -259,6 +262,7 @@ class RunContainer(PluginMainContainer):
                 )
                 exec_params = all_exec_params['params']
                 exec_params[exec_uuid] = ext_params
+
                 self.set_executor_configuration_parameters(
                     executor_name,
                     ext,
@@ -996,6 +1000,10 @@ class RunContainer(PluginMainContainer):
 
         for params_id in ext_ctx_params:
             if params_id == uuid:
+                # Prevent to remove default parameters
+                if ext_ctx_params[params_id]["default"]:
+                    return
+
                 ext_ctx_params.pop(params_id, None)
                 break
 

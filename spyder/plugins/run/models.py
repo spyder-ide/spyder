@@ -20,8 +20,6 @@ from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
     RunConfigurationMetadata,
     RunContext,
-    RunExecutionParameters,
-    RunParameterFlags,
     StoredRunConfigurationExecutor,
     StoredRunExecutorParameters,
     SupportedExecutionRunConfiguration,
@@ -298,15 +296,9 @@ class RunExecutorParameters(QAbstractListModel):
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.executor_conf_params)
 
-    def get_executor_parameters(
-        self,
-        index: int
-    ) -> Tuple[RunParameterFlags, RunExecutionParameters]:
-
+    def get_parameters(self, index: int) -> ExtendedRunExecutionParameters:
         params_id = self.params_index[index]
-        params = self.executor_conf_params[params_id]
-        actual_params = params['params']
-        return RunParameterFlags.SwitchValues, actual_params
+        return self.executor_conf_params[params_id]
 
     def get_parameters_uuid_name(
         self, index: int

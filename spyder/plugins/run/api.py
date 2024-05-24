@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import functools
-from enum import IntEnum
 from datetime import datetime
 import logging
 from typing import Any, Callable, Set, List, Union, Optional, Dict, TypedDict
@@ -21,11 +20,6 @@ from qtpy.QtWidgets import QWidget
 from typing_extensions import NotRequired # Available from Python 3.11+
 
 logger = logging.getLogger(__name__)
-
-
-class RunParameterFlags(IntEnum):
-    SetDefaults = 0
-    SwitchValues = 1
 
 
 class RunActions:

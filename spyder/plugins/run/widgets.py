@@ -16,6 +16,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
+    QAction,
     QApplication,
     QDialog,
     QDialogButtonBox,
@@ -550,6 +551,21 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         name_params_label = QLabel(_("Name:"))
         self.name_params_text = QLineEdit(self)
 
+        # This action needs to be added before setting an icon for it so that
+        # it doesn't show up in the line edit (despite being set as not visible
+        # below). That's probably a Qt bug.
+        status_action = QAction(self)
+        self.name_params_text.addAction(
+            status_action, QLineEdit.TrailingPosition
+        )
+        self.name_params_text.status_action = status_action
+
+        status_action.setIcon(ima.icon("error"))
+        status_action.setToolTip(
+            _("You need to provide a name to save this configuration")
+        )
+        status_action.setVisible(False)
+
         # Buttons
         delete_button = QPushButton(_("Delete"))
         save_global_button = QPushButton(_("Save globally"))
@@ -681,10 +697,22 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         if index < 0:
             return
 
-        action, params = self.parameter_model.get_executor_parameters(index)
+        # Get parameters
+        stored_params = self.parameter_model.get_parameters(index)
+
+        # Set parameters name
+        if stored_params["default"]:
+            # We set this name for default paramaters so users don't have to
+            # think about selecting one when customizing them
+            self.name_params_text.setText(_("Custom for this file"))
+        else:
+            self.name_params_text.setText(stored_params["name"])
+
+        # Set parameters in their corresponding graphical elements
+        params = stored_params["params"]
         working_dir_params = params['working_dir']
-        stored_parameters = params['executor_params']
-        self.current_widget.set_configuration(stored_parameters)
+        exec_params = params['executor_params']
+        self.current_widget.set_configuration(exec_params)
 
         source = working_dir_params['source']
         path = working_dir_params['path']
@@ -833,28 +861,34 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         default_conf = self.current_widget.get_default_configuration()
         widget_conf = self.current_widget.get_configuration()
+        self.name_params_text.status_action.setVisible(False)
 
-        # Check if config is named
-        given_name = self.name_params_text.text()
-        if not given_name and widget_conf != default_conf:
-            # If parameters are not named and are different from the default
-            # ones, we always save them in a config named "Custom". This avoids
-            # the hassle of asking users to provide a name when they want to
-            # customize the config.
-            given_name = _("Custom")
+        # Check if config is named but only when the dialog is visible
+        params_name = self.name_params_text.text()
+        if self.isVisible() and not params_name:
+            # Don't allow to save configs without a name
+            self.name_params_text.status_action.setVisible(True)
+
+            # This allows to close the dialog when clicking the Cancel button
+            self.status = RunDialogStatus.Close
+            return
 
         # Get index associated with config
-        if given_name:
-            idx = self.parameter_model.get_parameters_index_by_name(given_name)
+        if widget_conf == default_conf:
+            # This avoids saving an unnecessary "Custom for this file" config
+            # when the parameters haven't been modified
+            idx = 0
         else:
-            idx = self.parameters_combo.currentIndex()
+            idx = self.parameter_model.get_parameters_index_by_name(
+                params_name
+            )
 
         # Get uuid and name from index
         if idx == -1:
-            # This means that there are no saved parameters for given_name, so
+            # This means that there are no saved parameters for params_name, so
             # we need to generate a new uuid for them.
             uuid = str(uuid4())
-            name = given_name
+            name = params_name
         else:
             # Retrieve uuid and name from our config system
             uuid, name = self.parameter_model.get_parameters_uuid_name(idx)
@@ -883,7 +917,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             name=name,
             params=exec_params,
             file_uuid=None if self._save_as_global else metadata_info['uuid'],
-            default=False
+            default=True if (widget_conf == default_conf) else False
         )
 
         executor_name, __ = self.executors_model.get_selected_run_executor(
