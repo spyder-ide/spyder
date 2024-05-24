@@ -38,6 +38,7 @@ on:
   workflow_dispatch:
     inputs:
       ssh:
+        # github_cli: gh workflow run test-mac.yml --ref <branch> -f ssh=true
         description: 'Enable ssh debugging'
         required: false
         default: false
@@ -75,7 +76,7 @@ jobs:
       - name: Setup Remote SSH Connection
         if: env.ENABLE_SSH == 'true'
         uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 10
+        timeout-minutes: 60
         with:
           detached: true
       - name: Checkout Pull Requests

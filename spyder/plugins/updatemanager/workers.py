@@ -21,7 +21,8 @@ from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version, is_conda_based_app
+from spyder.config.base import (_, is_stable_version, is_conda_based_app,
+                                running_in_ci)
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
@@ -45,6 +46,23 @@ SSL_ERROR_MSG = _(
     'SSL certificate verification failed while checking for Spyder updates.'
     '<br><br>Please contact your network administrator for assistance.'
 )
+
+
+def _rate_limits(page):
+    """Log rate limits for GitHub.com"""
+    if page.headers.get('Server') != 'GitHub.com':
+        return
+
+    xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
+    msg_items = [
+        "Rate Limits:",
+        f"Resource:  {page.headers['X-RateLimit-Resource']}",
+        f"Reset:     {xrlr}",
+        f"Limit:     {page.headers['X-RateLimit-Limit']:>5s}",
+        f"Used:      {page.headers['X-RateLimit-Used']:>5s}",
+        f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
+    ]
+    logger.debug("\n\t".join(msg_items))
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -153,7 +171,7 @@ class WorkerUpdate(BaseWorker):
 
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
-        if url == github_url and token:
+        if running_in_ci() and url == github_url and token:
             headers.update(Authorization=f"Bearer {token}")
 
         logger.info(f"Checking for updates from {url}")
@@ -328,20 +346,3 @@ class WorkerDownloadInstaller(BaseWorker):
                 self.sig_ready.emit()
             except RuntimeError:
                 pass
-
-
-def _rate_limits(page):
-    """Log rate limits for GitHub.com"""
-    if page.headers.get('Server') != 'GitHub.com':
-        return
-
-    xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
-    msg_items = [
-        "Rate Limits:",
-        f"Resource:  {page.headers['X-RateLimit-Resource']}",
-        f"Reset:     {xrlr}",
-        f"Limit:     {page.headers['X-RateLimit-Limit']:>5s}",
-        f"Used:      {page.headers['X-RateLimit-Used']:>5s}",
-        f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
-    ]
-    logger.debug("\n\t".join(msg_items))

@@ -52,6 +52,9 @@ def test_updates_appenv(qtbot, mocker, version, caplog):
     )
 
     with caplog.at_level(logging.DEBUG, logger='spyder.plugins.updatemanager'):
+        # Capture >=DEBUG logging messages for spyder.plugins.updatemanager
+        # while checking for updates. Messages will be reported at the end
+        # of the pytest run, and only if this test fails.
         um = UpdateManagerWidget(None)
         um.start_check_update()
         qtbot.waitUntil(um.update_thread.isFinished)
