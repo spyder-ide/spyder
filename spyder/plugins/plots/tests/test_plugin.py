@@ -27,6 +27,7 @@ def plots_plugin(qapp, qtbot):
     plots.get_widget().setMinimumSize(700, 500)
     plots.get_widget().add_shellwidget(Mock())
     qtbot.addWidget(plots.get_widget())
+    # TODO: This is causing a segfault (?)
     # qapp.setStyleSheet(str(APP_STYLESHEET))
     plots.get_widget().show()
     return plots

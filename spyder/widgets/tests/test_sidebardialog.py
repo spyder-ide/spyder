@@ -55,6 +55,7 @@ def sidebar_dialog(qapp, qtbot):
     class TestDialog(SidebarDialog):
         PAGE_CLASSES = [Page1, Page2]
 
+    # TODO: This is causing a segfault (?)
     # qapp.setStyleSheet(str(APP_STYLESHEET))
     dialog = TestDialog()
     qtbot.addWidget(dialog)

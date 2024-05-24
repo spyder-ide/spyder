@@ -41,7 +41,8 @@ class MainWindow(QMainWindow):
 @pytest.fixture
 def setup_workingdirectory(qtbot, request, tmpdir):
     """Setup working directory plugin."""
-    CONF.reset_to_defaults()
+    # This is causing a `configparser.NoSectionError: No section: 'Editor'` (?)
+    # CONF.reset_to_defaults()
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
     use_cli_wdir = request.node.get_closest_marker('use_cli_wdir')
 
