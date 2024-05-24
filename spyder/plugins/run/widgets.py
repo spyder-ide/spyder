@@ -31,7 +31,6 @@ from qtpy.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
-    QWidget,
 )
 import qstylizer.style
 
@@ -636,14 +635,18 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.header_label,
             self.configuration_combo,  # Hidden for simplicity
             executor_layout,
-            custom_config
+            custom_config,
+            2 * AppStyle.MarginSize,
+        )
+        layout.setContentsMargins(
+            AppStyle.InnerContentPadding,
+            # This needs to be bigger to make the layout look better
+            AppStyle.InnerContentPadding + AppStyle.MarginSize,
+            # This makes the left and right padding be the same
+            AppStyle.InnerContentPadding + 4,
+            AppStyle.InnerContentPadding,
         )
 
-        widget_dialog = QWidget(self)
-        widget_dialog.setMinimumWidth(600)
-        widget_dialog.setLayout(layout)
-        scroll_layout = QVBoxLayout(self)
-        scroll_layout.addWidget(widget_dialog)
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         # --- Settings
@@ -965,20 +968,21 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self._css["QLabel#run-header-label"].setValues(
             # Give it a background color to make it highlight over the other
             # widgets.
-            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
             # The left and right margins are a bit bigger to prevent the file
             # name from being too close to the borders in case it's too long.
             padding=f"{2 * AppStyle.MarginSize} {4 * AppStyle.MarginSize}",
             borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             # Add good enough margin with the widgets below it.
-            marginBottom=f"{AppStyle.InnerContentPadding}px"
+            marginBottom=f"{3 * AppStyle.MarginSize}px",
+            # This is necessary to align the label to the widgets below it.
+            marginLeft="4px",
         )
 
         # --- Style for the collapsible
         self._css["CollapsibleWidget"].setValues(
-            # Separate it from the widgets above it with the same margin as the
-            # one between the header and those widgets.
-            marginTop=f"{AppStyle.InnerContentPadding}px"
+            # Separate it from the widgets above it
+            marginTop=f"{3 * AppStyle.MarginSize}px"
         )
 
         return self._css.toString()
