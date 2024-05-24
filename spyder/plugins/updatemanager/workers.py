@@ -12,7 +12,6 @@ import os.path as osp
 import shutil
 from time import sleep
 import traceback
-import warnings
 
 # Third party imports
 from packaging.version import parse
@@ -152,14 +151,18 @@ class WorkerUpdate(BaseWorker):
         else:
             url = pypi_url
 
+        headers = {}
+        token = os.getenv('GITHUB_TOKEN')
+        if url == github_url and token:
+            headers.update(Authorization=f"Bearer {token}")
+
         logger.info(f"Checking for updates from {url}")
         try:
-            page = requests.get(url)
-            if url == github_url:
-                rate_limits(page)
+            page = requests.get(url, headers=headers)
+            _rate_limits(page)
             page.raise_for_status()
-            data = page.json()
 
+            data = page.json()
             if self.releases is None:
                 if url == github_url:
                     self.releases = [
@@ -327,7 +330,11 @@ class WorkerDownloadInstaller(BaseWorker):
                 pass
 
 
-def rate_limits(page):
+def _rate_limits(page):
+    """Log rate limits for GitHub.com"""
+    if page.headers.get('Server') != 'GitHub.com':
+        return
+
     xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
     msg_items = [
         "Rate Limits:",
@@ -338,4 +345,3 @@ def rate_limits(page):
         f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
     ]
     logger.debug("\n\t".join(msg_items))
-    warnings.warn("\n\t".join(msg_items), RuntimeWarning)
