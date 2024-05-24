@@ -36,10 +36,20 @@ on:
       - '!.github/workflows/build-subrepos.yml'
 
   workflow_dispatch:
+    inputs:
+      ssh:
+        # github_cli: gh workflow run test-win.yml --ref <branch> -f ssh=true
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: test-win-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
 
 jobs:
   build:
@@ -63,6 +73,12 @@ jobs:
         TEST_TYPE: ['fast', 'slow']
     timeout-minutes: 90
     steps:
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          detached: true
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v4
@@ -120,15 +136,6 @@ jobs:
           micromamba info
           micromamba list
           pip list
-      # Notes:
-      # 1. This only works for conda, probably because it has the necessary
-      #    MSYS2 packages to create the connection.
-      # 2. Check https://github.com/marketplace/actions/debugging-with-tmate for
-      #    usage.
-      #- name: Setup remote ssh connection
-      #  if: env.USE_CONDA == 'true'
-      #  uses: mxschmitt/action-tmate@v3
-      #  timeout-minutes: 45
       - name: Run manifest checks
         shell: bash -l {0}
         run: check-manifest
