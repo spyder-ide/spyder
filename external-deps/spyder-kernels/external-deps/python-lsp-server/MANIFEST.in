@@ -1,7 +1,0 @@
-include README.md
-include versioneer.py
-include pylsp/_version.py
-include LICENSE
-include ruff.toml
-include .pylintrc
-recursive-include test *.py

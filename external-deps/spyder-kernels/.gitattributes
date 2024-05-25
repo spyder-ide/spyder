@@ -1,7 +1,6 @@
-# Standard gitattributes config
-
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text eol=lf
+
 
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
@@ -9,32 +8,23 @@
 *.txt       text
 
 # Source code
-*.bash      text eol=lf
 *.c         text
 *.cpp       text
-*.csh       text eol=lf
-*.fish      text eol=lf
 *.inc       text
 *.ipynb     text
 *.h         text
-*.ksh       text eol=lf
-*.ps1       text
-*.pxd       text diff=python
-*.py        text diff=python
-*.py3       text diff=python
-*.pyi       text diff=python
-*.pyw       text diff=python
-*.pyx       text diff=python
+*.py        text
+*.py3 		text
+*.pxd       text
+*.pyw 		text
+*.pyx       text
 *.qss       text
 *.r         text
 *.R         text
 *.rb        text
-*.rmd       text
 *.Rmd       text
-*.rnw       text
 *.Rnw       text
-*.sh        text eol=lf
-*.zsh       text eol=lf
+*.sh        text
 
 # Documentation
 *.adoc      text
@@ -44,8 +34,6 @@
 *.md        text
 *.po        text
 *.pot       text
-*.rd        text
-*.Rd        text
 *.rst       text
 *.tex       text
 *.TeX       text
@@ -89,14 +77,12 @@
 *.geojson   text
 *.gml       text
 *.kml       text
+*.Rdata     text
+*.RData     text
 *.sql       text
 *.tab       text
 *.tsv       text
 *.wkt       text
-
-# Other text files
-*.diff      -text
-*.patch     -text
 
 # Special files
 .*rc            text
@@ -104,11 +90,10 @@
 .ciocheck       text
 .ciocopyright   text
 .editorconfig   text
-.gitattributes  export-ignore
-.gitconfig      export-ignore
-.gitignore      export-ignore
-.gitmodules     export-ignore
-.gitkeep        export-ignore
+.gitattributes  text
+.gitconfig      text
+.gitignore      text
+.gitmodules     text
 *.lektorproject text
 .nojekyll       text
 .project        text
@@ -135,10 +120,9 @@ MANIFEST.in     text
 
 
 # Declare files that will always have CRLF line endings on checkout.
-*.bat           text eol=crlf
-*.cmd           text eol=crlf
-*.vbs           text eol=crlf
-*.vb            text eol=crlf
+*.bat text eol=crlf
+*.vbs text eol=crlf
+*.ps1 text eol=crlf
 
 
 # Denote all files that are truly binary and should not be modified.
@@ -160,7 +144,6 @@ MANIFEST.in     text
 *.pyd       binary
 *.pyo       binary
 *.rdb       binary
-*.Rdb       binary
 *.rdx       binary
 *.Rdx       binary
 *.rpm       binary
@@ -193,11 +176,6 @@ MANIFEST.in     text
 *.parquet   binary
 *.pickle    binary
 *.pkl       binary
-*.rdata     binary
-*.Rdata     binary
-*.RData     binary
-*.rda       binary
-*.Rda       binary
 *.rds       binary
 *.Rds       binary
 *.sav       binary
@@ -209,8 +187,8 @@ MANIFEST.in     text
 *.XLSX      binary
 
 # Documents
-*.doc       binary
-*.DOC       binary
+*.doc	    binary
+*.DOC	    binary
 *.docx      binary
 *.DOCX      binary
 *.epub      binary
@@ -219,12 +197,12 @@ MANIFEST.in     text
 *.odp       binary
 *.odt       binary
 *.pdf       binary
-*.PDF       binary
+*.PDF	    binary
 *.ppt       binary
 *.PPT       binary
 *.pptx      binary
 *.PPTX      binary
-*.rtf       binary
+*.rtf	    binary
 *.RTF       binary
 
 # Graphics
@@ -282,7 +260,6 @@ MANIFEST.in     text
 *.gz        binary
 *.lz        binary
 *.lzma      binary
-*.pyz       binary
 *.rar       binary
 *.sz        binary
 *.tar       binary
@@ -302,6 +279,3 @@ MANIFEST.in     text
 *.lnk       binary
 *.temp      binary
 *.tmp       binary
-
-# Github helper pieces to make some files not show up in diffs automatically
-external-deps/**/* linguist-generated=true

@@ -1,2 +1,0 @@
-This is a sample file with encoded in windows-1252
-€š

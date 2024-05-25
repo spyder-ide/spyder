@@ -1,3 +1,0 @@
-spam spam ham
-eggs sausage
-lorem ipsum sit dolor spam

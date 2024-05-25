@@ -1,9 +1,0 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "packaging",
-]
-
-# We're not ready yet to build Spyder with the setuptools backend, but we're
-# leaving this for the future.
-# build-backend = "setuptools.build_meta"

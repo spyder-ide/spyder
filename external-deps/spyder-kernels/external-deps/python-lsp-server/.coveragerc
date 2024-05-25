@@ -1,2 +1,0 @@
-[run]
-omit = pylsp/_version.py
