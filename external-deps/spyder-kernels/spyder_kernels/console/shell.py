@@ -271,7 +271,18 @@ class SpyderShell(ZMQInteractiveShell):
         if not exception_only:
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
+                etype = etype.__name__
+                value = value.args
                 stack = traceback.extract_tb(tb.tb_next)
+                stack = [
+                    {
+                        "filename": frame.filename,
+                        "lineno": frame.lineno,
+                        "name": frame.name,
+                        "line": frame.line
+                    }
+                    for frame in stack
+                ]
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:
