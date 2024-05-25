@@ -549,14 +549,14 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
                     item = LineFrameItem(
                         parent,
                         idx,
-                        frame.filename,
-                        frame.line,
-                        frame.lineno,
-                        frame.name,
+                        frame["filename"],
+                        frame["line"],
+                        frame["lineno"],
+                        frame["name"],
                         self.font,
                         self.color_scheme
                     )
-                    self.data[id(item)] = (frame.filename, frame.lineno)
+                    self.data[id(item)] = (frame["filename"], frame["lineno"])
             else:
                 item = LineFrameItem(
                     parent,
