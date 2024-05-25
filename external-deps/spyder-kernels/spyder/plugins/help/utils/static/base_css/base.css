@@ -1,0 +1,12 @@
+/*
+ * --- Parameters ---
+ * Needed to provide a separator between a
+ * parameters name and its classifier with sphinx>=2
+ * See spyder-ide/spyder#9888
+ * Based on https://github.com/numpy/numpydoc/issues/215#issuecomment-529037079
+ */
+.classifier:before {
+    font-style: normal;
+    margin: 0.2em;
+    content: ": ";
+}

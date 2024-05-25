@@ -1,0 +1,2 @@
+import numpy
+numpy.linspace

@@ -1,0 +1,111 @@
+name: File tests
+
+on:
+  push:
+    branches:
+      - master
+      - 5.*
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
+
+  pull_request:
+    branches:
+      - master
+      - 5.*
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
+
+  workflow_dispatch:
+
+concurrency:
+  group: test-files-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Use this to disable the workflow
+    # if: false
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      USE_CONDA: 'true'
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.9', '3.10']
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+      - name: Fetch branches
+        if: github.event_name == 'pull_request'
+        run: git fetch --prune --unshallow
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
+      - name: Cache conda
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache if requirements/*.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
+      - name: Create conda test environment
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+      - name: Install additional dependencies
+        shell: bash -l {0}
+        run: bash -l .github/scripts/install.sh
+      - name: Show test environment
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Run file tests
+        shell: bash -l {0}
+        run: xvfb-run --auto-servernum .github/scripts/modules_test.sh || xvfb-run --auto-servernum .github/scripts/modules_test.sh
+      # Uncomment this to debug the CI job
+      # - name: Setup tmate session
+      #   if: ${{ failure() }}
+      #   uses: mxschmitt/action-tmate@v3

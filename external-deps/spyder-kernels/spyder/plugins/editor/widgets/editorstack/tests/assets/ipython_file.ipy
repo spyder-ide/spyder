@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec 14 12:25:29 2020
+
+@author: carlos
+"""
+
+import numpy as np
+
+# %%
+%%timeit 1+1

@@ -1,5 +1,5 @@
 # Compiled python files
-*.py[ocd]
+*.py[oc]
 
 # gedit files
 *~
@@ -10,27 +10,37 @@ nppBackup/
 # Pytest dirs/files
 .pytest_cache/
 
-# git .orig files
-*.orig
-
-# Sphinx doc build dir
-_build/
-
-# Pickle results from tests
-*.pickle
-
 # Special dirs and files
+installers/Windows/assets/
 build/
 dist/
 bin/
 *.egg-info/
 Thumbs.db
+desktop.ini
 .DS_Store/
 spyder_crash.log
 .DS_Store
 .spyproject
 .idea/
 .cache
-*.tmp
-*.temp
-*.bak
+.coverage*
+MANIFEST
+.boot_branch.txt
+
+# git .orig files
+*.orig
+
+# log files
+*.log
+
+# Rope project folders
+.ropeproject/
+.vscode/
+result.xml
+
+# Pylint dirs/files
+.pylint.d/
+
+# Ignore setuptools development files in the PyLS subrepo
+external-deps/python-lsp-server/.installation-dir/

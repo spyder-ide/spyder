@@ -1,0 +1,82 @@
+name: Linux tests
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+  workflow_dispatch:
+
+concurrency:
+  group: linux-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux Py${{ matrix.PYTHON_VERSION }} - ${{ matrix.INSTALL_TYPE }} - ${{ matrix.QT_LIB }}
+    runs-on: ubuntu-latest
+    env:
+      CI: True
+      QTCONSOLE_TESTING: True
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: 'ubuntu'
+      COVERALLS_REPO_TOKEN: XWVhJf2AsO7iouBLuCsh0pPhwHy81Uz1v
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11']
+        INSTALL_TYPE: ['conda', 'pip']
+        QT_LIB: ['pyqt5', 'pyqt6']
+        exclude:
+          - INSTALL_TYPE: 'conda'
+            QT_LIB: 'pyqt6'
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+      - name: Install System Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+           activate-environment: test
+           auto-update-conda: false
+           auto-activate-base: false
+           channels: conda-forge
+           channel-priority: strict
+           miniforge-variant: Mambaforge
+           python-version: ${{ matrix.PYTHON_VERSION }}
+      - name: Install dependencies with conda
+        if: matrix.INSTALL_TYPE == 'conda'
+        shell: bash -l {0}
+        run: mamba env update --file requirements/environment.yml
+      - name: Install dependencies with pip
+        if: matrix.INSTALL_TYPE == 'pip'
+        shell: bash -l {0}
+        run: |
+          pip install -e .[test]
+          if [ ${{ matrix.QT_LIB }} = "pyqt6" ]; then
+            pip install pyqt6!=6.4.0 pyqt6-qt6!=6.4.0 coveralls pytest-cov
+          else
+            pip install ${{ matrix.QT_LIB }} coveralls pytest-cov
+          fi
+      - name: Show environment information
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+          pip list
+      - name: Run tests
+        shell: bash -l {0}
+        run: xvfb-run --auto-servernum pytest -vv -s --full-trace --color=yes --cov=qtconsole qtconsole
+        env:
+          QT_API: ${{ matrix.QT_LIB }}
+          PYTEST_QT_API: ${{ matrix.QT_LIB }}
+      - name: Upload coverage to Codecov
+        if: matrix.PYTHON_VERSION == '3.8'
+        shell: bash -l {0}
+        run: coveralls

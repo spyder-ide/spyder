@@ -1,0 +1,42 @@
+name: Chatops Binder
+on: [issue_comment] # issues and PRs are equivalent in terms of comments for the GitHub API
+
+jobs:
+  trigger-chatops:
+    # Make sure the comment is from one in our organization, it's on a PR, and contains the command "/binder"
+    if: |
+      (
+        (github.event.issue.pull_request != null) &&
+        (
+          contains(github.event.comment.body, '/Show binder') ||
+          contains(github.event.comment.body, '/show binder')
+        )
+      )
+    runs-on: ubuntu-latest
+    steps:
+      # Use the GitHub API to: 
+      #  (1) Get the branch name of the PR that has been commented on with "/binder" 
+      #  (2) make a comment on the PR with the binder badge
+    - name: comment on PR with Binder link
+      uses: actions/github-script@v1
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          // Get the branch name
+          github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.issue.number
+          }).then( (pr) => {
+
+            // use the branch name to make a comment  on the PR with a Binder badge
+            var BRANCH_NAME = pr.data.head.ref;
+            var USER_NAME = pr.data.head.user.login;
+            var BASE_NAME = pr.data.base.ref
+            github.issues.createComment({
+              issue_number: context.payload.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/binder-environments/${BASE_NAME}?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252F${USER_NAME}%252Fspyder%26urlpath%3Ddesktop%252F%26branch%3D${BRANCH_NAME}%26depth%3D500) :point_left: Launch a Binder instance on this branch`
+            })
+          })

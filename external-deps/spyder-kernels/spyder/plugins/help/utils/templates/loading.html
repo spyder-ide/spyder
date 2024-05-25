@@ -1,0 +1,94 @@
+{#
+    loading.html
+    ~~~~~~~~~~~~
+
+    Loading template for the IPython console
+
+    :copyright: Copyright by the Spyder Project Contributors
+    :license: MIT license
+#}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css"/>
+
+  <!-- Generate throbber animation using an sprites png and javascript
+       Taken from https://icons8.com/preloaders/
+  -->
+  <script type="text/javascript">
+    var cSpeed=6;
+    var cWidth=16;
+    var cHeight=16;
+    var cTotalFrames=18;
+    var cFrameWidth=16;
+    var cImageSrc='file:///{{loading_img}}';
+
+    var cImageTimeout=false;
+    var cIndex=0;
+    var cXpos=0;
+    var cPreloaderTimeout=false;
+    var SECONDS_BETWEEN_FRAMES=0;
+
+    function startAnimation(){
+
+      document.getElementById('loading-image').style.backgroundImage='url('+cImageSrc+')';
+      document.getElementById('loading-image').style.width=cWidth+'px';
+      document.getElementById('loading-image').style.height=cHeight+'px';
+
+      //FPS = Math.round(100/(maxSpeed+2-speed));
+      FPS = Math.round(100/cSpeed);
+      SECONDS_BETWEEN_FRAMES = 1 / FPS;
+
+      cPreloaderTimeout=setTimeout('continueAnimation()', SECONDS_BETWEEN_FRAMES/1000);
+    }
+
+    function continueAnimation(){
+      cXpos += cFrameWidth;
+      //increase the index so we know which frame of our animation we are currently on
+      cIndex += 1;
+
+      //if our cIndex is higher than our total number of frames, we're at the end and should restart
+      if (cIndex >= cTotalFrames) {
+        cXpos =0;
+        cIndex=0;
+      }
+
+      if(document.getElementById('loading-image'))
+        document.getElementById('loading-image').style.backgroundPosition=(-cXpos)+'px 0';
+
+      cPreloaderTimeout=setTimeout('continueAnimation()', SECONDS_BETWEEN_FRAMES*1000);
+    }
+
+    function stopAnimation(){//stops animation
+      clearTimeout(cPreloaderTimeout);
+      cPreloaderTimeout=false;
+    }
+
+    function imageLoader(s, fun)//Pre-loads the sprites image
+    {
+      clearTimeout(cImageTimeout);
+      cImageTimeout=0;
+      genImage = new Image();
+      genImage.onload=function (){cImageTimeout=setTimeout(fun, 0)};
+      genImage.onerror=new Function('alert(\'Could not load the image\')');
+      genImage.src=s;
+    }
+
+    //The following code starts the animation
+    new imageLoader(cImageSrc, 'startAnimation()');
+  </script>
+</head>
+
+<body>
+  <div class="loading">
+    <div id="loading-image"></div>
+    <div id="loading-message">{{message}}</div>
+  </div>
+</body>
+
+</html>

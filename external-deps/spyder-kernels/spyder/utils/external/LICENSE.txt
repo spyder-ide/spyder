@@ -1,0 +1,24 @@
+External Utilities License Information
+######################################
+
+See __init__.py in this directory for general information about its contents.
+
+If adding or modifying a file or directory in this module,
+please see README.rst in this directory for important information. Thanks!
+
+Source files in this directory originate from sources other than Spyder itself,
+and each is covered by its own license and copyright notice.
+These are listed in the headers for all files, and in the LICENSE.txt file
+in the package's subdirectory if multiple are present. Additionally,
+they are all listed in full in NOTICE.txt at the root of this repo/package,
+which should be included with any distribution that includes these files.
+The NOTICE.txt file can also be viewed online at Spyder's Github repository:
+https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt
+
+Any file not otherwise listed is covered by Spyder's MIT (Expat) License,
+described in the LICENSE.txt file in this repository and Spyder's __init__.py,
+which should also be included with any distribution.
+The current version can also be viewed online at:
+https://github.com/spyder-ide/spyder/blob/master/LICENSE.txt
+
+All trademarks are the property of their respective owners.

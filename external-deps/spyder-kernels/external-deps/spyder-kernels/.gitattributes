@@ -1,0 +1,281 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text eol=lf
+
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+
+*.txt       text
+
+# Source code
+*.c         text
+*.cpp       text
+*.inc       text
+*.ipynb     text
+*.h         text
+*.py        text
+*.py3 		text
+*.pxd       text
+*.pyw 		text
+*.pyx       text
+*.qss       text
+*.r         text
+*.R         text
+*.rb        text
+*.Rmd       text
+*.Rnw       text
+*.sh        text
+
+# Documentation
+*.adoc      text
+*.latex     text
+*.LaTeX     text
+*.markdown  text
+*.md        text
+*.po        text
+*.pot       text
+*.rst       text
+*.tex       text
+*.TeX       text
+*.tmpl      text
+*.tpl       text
+
+# Web
+*.atom      text
+*.css       text
+*.htm       text
+*.html      text
+*.js        text
+*.jsx       text
+*.json      text
+*.php       text
+*.pl        text
+*.rss       text
+*.sass      text
+*.scss      text
+*.xht       text
+*.xhtml     text
+
+# Configuration
+*.cfg       text
+*.cnf       text
+*.conf      text
+*.config    text
+*.desktop   text
+*.inf       text
+*.ini       text
+*.plist     text
+*.toml      text
+*.xml       text
+*.yml       text
+*.yaml      text
+
+# Plain text data
+*.cdl       text
+*.csv       text
+*.dif       text
+*.geojson   text
+*.gml       text
+*.kml       text
+*.Rdata     text
+*.RData     text
+*.sql       text
+*.tab       text
+*.tsv       text
+*.wkt       text
+
+# Special files
+.*rc            text
+.checkignore    text
+.ciocheck       text
+.ciocopyright   text
+.editorconfig   text
+.gitattributes  text
+.gitconfig      text
+.gitignore      text
+.gitmodules     text
+*.lektorproject text
+.nojekyll       text
+.project        text
+
+AUTHORS         text
+CHANGELOG       text
+CHANGES         text
+CONTRIBUTING    text
+INSTALL         text
+license         text
+LICENSE         text
+NEWS            text
+NOTICES         text
+readme          text
+*README*        text
+RELEASE         text
+TODO            text
+
+browserslist    text
+contents.lr     text
+makefile        text
+Makefile        text
+MANIFEST.in     text
+
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat text eol=crlf
+*.vbs text eol=crlf
+*.ps1 text eol=crlf
+
+
+# Denote all files that are truly binary and should not be modified.
+
+# Executable
+*.app       binary
+*.bin       binary
+*.deb       binary
+*.dll       binary
+*.dylib     binary
+*.elf       binary
+*.exe       binary
+*.ko        binary
+*.lib       binary
+*.msi       binary
+*.o         binary
+*.obj       binary
+*.pyc       binary
+*.pyd       binary
+*.pyo       binary
+*.rdb       binary
+*.rdx       binary
+*.Rdx       binary
+*.rpm       binary
+*.so        binary
+*.sys       binary
+
+# Data
+*.cdf       binary
+*.db        binary
+*.dta       binary
+*.feather   binary
+*.fit       binary
+*.fits      binary
+*.fts       binary
+*.fods      binary
+*.geotiff   binary
+*.gpkg      binary
+*.h4        binary
+*.h5        binary
+*.hdf       binary
+*.hdf4      binary
+*.hdf5      binary
+*.mat       binary
+*.nc        binary
+*.npy       binary
+*.npz       binary
+*.odb       binary
+*.ods       binary
+*.p         binary
+*.parquet   binary
+*.pickle    binary
+*.pkl       binary
+*.rds       binary
+*.Rds       binary
+*.sav       binary
+*.sqlite    binary
+*.wkb       binary
+*.xls       binary
+*.XLS       binary
+*.xlsx      binary
+*.XLSX      binary
+
+# Documents
+*.doc	    binary
+*.DOC	    binary
+*.docx      binary
+*.DOCX      binary
+*.epub      binary
+*.fodp      binary
+*.fodt      binary
+*.odp       binary
+*.odt       binary
+*.pdf       binary
+*.PDF	    binary
+*.ppt       binary
+*.PPT       binary
+*.pptx      binary
+*.PPTX      binary
+*.rtf	    binary
+*.RTF       binary
+
+# Graphics
+*.ai        binary
+*.bmp       binary
+*.eps       binary
+*.fodg      binary
+*.gif       binary
+*.icns      binary
+*.ico       binary
+*.jp2       binary
+*.jpeg      binary
+*.jpg       binary
+*.mo        binary
+*.pdn       binary
+*.png       binary
+*.PNG       binary
+*.psd       binary
+*.odg       binary
+*.svg       binary
+*.svgz      binary
+*.tif       binary
+*.tiff      binary
+*.webp      binary
+*.xcf       binary
+
+# Fonts
+*.eot       binary
+*.otc       binary
+*.otf       binary
+*.ttc       binary
+*.ttf       binary
+*.woff      binary
+*.woff2     binary
+
+# Audio/Video
+*.aac       binary
+*.flac      binary
+*.mka       binary
+*.mkv       binary
+*.mp3       binary
+*.mp4       binary
+*.oga       binary
+*.ogg       binary
+*.ogv       binary
+*.opus      binary
+*.wav       binary
+*.webm      binary
+
+
+# Archives
+*.7z        binary
+*.bz2       binary
+*.dmg       binary
+*.gz        binary
+*.lz        binary
+*.lzma      binary
+*.rar       binary
+*.sz        binary
+*.tar       binary
+*.tbz2      binary
+*.tgz       binary
+*.tlz       binary
+*.txz       binary
+*.xz        binary
+*.zip       binary
+
+# Spyder-related
+*.results   binary
+*.spydata   binary
+
+# Other
+*.bak       binary
+*.lnk       binary
+*.temp      binary
+*.tmp       binary

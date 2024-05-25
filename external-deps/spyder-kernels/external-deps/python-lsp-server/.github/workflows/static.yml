@@ -1,0 +1,52 @@
+name: Static code analysis
+
+on:
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - '*'
+
+concurrency:
+  group: static-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Static code analysis
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+    timeout-minutes: 2
+    steps:
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: static-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: static-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          # TODO: check with Python 3, but need to fix the
+          # errors first
+          python-version: '3.8'
+          architecture: 'x64'
+      - run: python -m pip install --upgrade pip setuptools jsonschema
+      # If we don't install pycodestyle, pylint will throw an unused-argument error in pylsp/plugins/pycodestyle_lint.py:72
+      # This error cannot be resolved by adding a pylint: disable=unused-argument comment ...
+      - run: |
+          pip install -e .[pylint,pycodestyle]
+          pip install ruff
+      - name: ruff linter and code style checks
+        run: ruff check pylsp test
+      - name: ruff code formatter check
+        run: ruff format --check pylsp test
+      - name: Validate JSON schema
+        run: echo {} | jsonschema pylsp/config/schema.json
+      - name: Ensure JSON schema and Markdown docs are in sync
+        run: |
+          python scripts/jsonschema2md.py pylsp/config/schema.json EXPECTED_CONFIGURATION.md
+          diff EXPECTED_CONFIGURATION.md CONFIGURATION.md

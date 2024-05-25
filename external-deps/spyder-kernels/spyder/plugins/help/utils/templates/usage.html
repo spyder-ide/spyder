@@ -1,0 +1,38 @@
+{#
+    usage.html
+    ~~~~~~~~~~
+
+    A simple page to inform users how to get help on the Help plugin
+
+    :copyright: Copyright (c) Spyder Project Contributors.
+    :license: MIT license
+#}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css" />
+</head>
+<body>
+  <div class="panel panel-usage">
+    <div class="panel-heading">
+      <div class="panel-title">{{title}}</div>
+    </div>
+    <div class="panel-body">
+      {{intro_message}}
+      <br><br>
+      <div class="hr"></div>
+      <br>
+      <center>
+        {{tutorial_message}}
+        <a href="spy://tutorial">{{tutorial}}</a>
+      </center>
+    </div>
+  </div>
+</body>
+
+</html>

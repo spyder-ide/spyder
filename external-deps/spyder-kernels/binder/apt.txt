@@ -1,0 +1,15 @@
+dbus-x11
+xfce4
+xfce4-panel
+xfce4-session
+xfce4-settings
+xorg
+xubuntu-icon-theme
+libxss1
+libpci3
+libasound2
+fonts-ubuntu
+qutebrowser
+htop
+nano
+libgles2

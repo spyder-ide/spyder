@@ -1,0 +1,6 @@
+scanner:
+    diff_only: True  # Errors caused by only the patch are shown
+    linter: pycodestyle
+
+pycodestyle:
+    exclude: external-deps

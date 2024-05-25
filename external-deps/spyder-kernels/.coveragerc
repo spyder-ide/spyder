@@ -2,6 +2,10 @@
 omit =
     # Omit tests
     */tests/*
+    # Omit external files
+    */external/*
+    # Omit site files
+    */utils/site/*
 
 [report]
 # Regexes for lines to exclude from consideration
@@ -11,3 +15,4 @@ exclude_lines =
 
     # Don't complain if non-runnable code isn't run
     if __name__ == .__main__.:
+fail_under=0

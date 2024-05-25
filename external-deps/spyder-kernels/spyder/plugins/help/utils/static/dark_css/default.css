@@ -1,0 +1,504 @@
+body {
+    background-color: #19232D;
+    color: #FAFAFA;
+    margin: 0px 25px 15px 25px;
+}
+
+
+/* --- Title style --- */
+div.title h1 {
+    font-size: 180%;
+    font-family: 'Trebuchet MS', sans-serif;
+    background-color: #107EEC;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        from(#375A7F),
+        color-stop(60%, #26486B),
+        to(#26486B)
+    );
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    font-weight: normal;
+    padding: 6px 0px 6px 20px;
+    margin: 0px -25px;
+    color: #FFFFFF;
+}
+
+/*
+ * The next two styles are needed to
+ * modify the anchors present on the
+ * title of pages like scipy.stats or
+ * scipy.io
+ */
+div.title h1 a {
+    color: transparent;
+    cursor: default;
+}
+
+div.title h1 tt {
+    font-size: 95%;
+    background-color: transparent;
+    color: #FFFFFF;
+}
+
+
+/* --- Metadata style --- */
+div.metadata {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    margin-right: 1px;
+    padding: 1px;
+    background-color: #37414F;
+    color: #FFFFFF;
+    border: 1px solid #CED1D4;
+    border-radius: 6px 6px 6px 6px;
+}
+
+div.metadata p {
+    margin: 7px 0px 7px 10px;
+}
+
+span.def {
+    font-family: monospace;
+    font-size: 90%;
+}
+
+span.argspec-highlight {
+    color: red;
+    font-size: 110%;
+    font-weight: 900;
+}
+
+
+/* --- Docstring div style --- */
+div.docstring {
+    margin-top: -1px;
+}
+
+div.docstring p {
+    padding: 0px 2px 0px;
+}
+
+
+/* --- Headers style --- */
+h2, h3, h4 {
+    font-family: 'Helvetica', sans-serif;
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 140%;
+    font-weight: normal;
+    border-bottom: 1px solid #E0E1E3;
+    padding: 4px 0px 4px 0px;
+}
+
+h3 {
+    font-size: 115%;
+}
+
+h4 {
+    font-size: 100%;
+    margin-top: 14px;
+    font-weight: normal;
+}
+
+h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
+    padding-left: 20px;
+}
+
+.collapsed > h2, .collapsed > h3, .collapsed > h4, .expanded > h2, .expanded > h3, .expanded > h4 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand_dark.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    cursor: pointer;
+}
+
+.collapsed > h2 {
+    background-position: 2px 7px;
+}
+
+.collapsed > h3 {
+    background-position: 2px 2px;
+}
+
+.collapsed > h4 {
+    background-position: 2px 0px;
+}
+
+.expanded > h2 {
+    background-position: 0px -31px;
+}
+
+.expanded > h3 {
+    background-position: 0px -38px;
+}
+
+.expanded > h4 {
+    background-position: 0px -39px;
+}
+
+dl.docutils {
+    padding: 0px 10px 0px;
+}
+
+div.section p {
+    padding: 0px 2px 0px;
+}
+
+#warning {
+    margin-top: 5px;
+    background-color:  #E74C3C;
+    border: 1px solid  #E74C3C;
+    padding: 4px 8px 4px 8px;
+    text-align: center;
+}
+
+#doc-warning {
+    margin-top: 16px;
+    width: 45%;
+    margin-left: auto;
+    margin-right: auto;
+    color: white;
+    background-color:  #E74C3C;
+    border: 1px solid  #E74C3C;
+    border-radius: 4px 4px 4px 4px;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 105%;
+}
+
+
+/* --- Links --- */
+a {
+    text-decoration: none;
+    color: #20C997;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* --- Images --- */
+img {
+    box-shadow: 0px 2px 6px #C9CDD0;
+    border: 1px solid #CED1D4;
+}
+
+img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* --- Lists style --- */
+ol.arabic {
+    margin-left: -10px;
+}
+
+ul {
+    margin-left: -5px;
+}
+
+/* --- Literal blocks style --- */
+pre.literal-block {
+    padding-left: 35px;
+    font-size: 95%;
+}
+
+
+/* --- Docutils table style --- */
+table.docutils {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: #CED1D4;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    width: 90%;
+}
+
+table.docutils td {
+    padding: 0px 0px 0px 5px;
+}
+
+table.docutils tr.row-odd {
+    background-color: #293544;
+}
+
+
+/* --- Docutils table headers --- */
+table.docutils th {
+    background-color: #37414F;
+    border-bottom-color: #CED1D4;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-top-color: #CED1D4;
+    border-top-style: solid;
+    border-top-width: 1px;
+    font-weight: bold;
+    text-align: left;
+    padding: 0px 0px 0px 5px;
+    color: #FFFFFF;
+}
+
+
+/* --- Field-list table style --- */
+table.docutils.field-list {
+    font-size: 80%;
+    border-collapse: collapse;
+    border-left: transparent;
+    border-right: transparent;
+    margin-top: 15px;
+    margin-left: 40px;
+    width: 83%;
+}
+
+
+/* --- Field-list table headers --- */
+table.docutils.field-list th {
+    background-color: transparent;
+    border-top: transparent;
+    border-bottom: transparent;
+    color: black;
+    font-weight: bold;
+    text-align: left;
+    padding: 4px 0px 4px 8px;
+}
+
+
+/* --- Spacing around example code --- */
+div.highlight pre {
+    padding: 9px 14px;
+    background-color: #293544;
+    border-radius: 4px 4px 4px 4px;
+    border: 1px solid #ffffff;
+}
+
+div.highlight {
+    padding: 0px 10px 0px;
+    color: #F5FFFD;
+}
+
+dt {
+    font-weight: bold;
+    /*font-size: 16px;*/
+}
+
+.classifier {
+    /*font-size: 10pt;*/
+    font-weight: normal;
+}
+
+tt {
+    background-color: #54687A;
+    /*font-size: 95%;*/
+    padding: 0px 1px;
+}
+
+
+
+div.admonition.note {
+    font-size: 0.95em;
+    margin: 1.3em;
+    border: 1px solid #062647;
+    background-color: #062647;
+    padding: 0px 5px 0 5px;
+    color: #FFFFFF;
+}
+
+div.admonition p.admonition-title {
+    font-size: 1em;
+    margin-top: 7px;
+    font-weight: bold;
+}
+
+
+/* ----------- Panels ----------- */
+
+.panel {
+    margin-top: 15px;
+    background-color: #19232D;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 110%;
+    color: white;
+}
+
+.panel-body {
+    padding: 15px;
+    background-color: #19232D;
+}
+
+.panel-usage {
+    border-color: #26486B;
+    margin-top: 15px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.panel-usage > .panel-heading {
+    color: white;
+    background-color: #26486B;
+    border-color: #19232D;
+}
+
+.panel-usage > .panel-body > center > a {
+    color: #20C997;
+}
+
+.panel-usage > .panel-body > br {
+    display: block;
+    margin: 12px 0;
+    content: "";
+    background-color: #19232D;
+}
+
+.hr {
+    background-color: #CED1D4;
+    height: 1px;
+}
+
+
+/* ----------- IPython console styles ----------- */
+
+/* --- Loading --- */
+.loading {
+    position: absolute;
+    margin: -20px 0 0 -95px;
+    width: 180px;
+    height: auto;
+    left: 50%;
+    top: 50%;
+    color: black;
+    background-color: #ACB1B6;
+    border: 1px solid #CED1D4;
+    border-radius: 6px;
+    color: #293544;
+    padding: 12px;
+    text-align: center;
+}
+
+#loading-image {
+    float: left;
+}
+
+#loading-message {
+    margin-left: 23px;
+}
+
+/* --- Kernel error messages --- */
+.panel-danger {
+    border-color: #E74C3C;
+    background-color: #19232D;
+    color: white;
+}
+
+.panel-danger > .panel-heading {
+    color: white;
+    border-color: #E74C3C;
+    background-color: #E74C3C;
+}
+
+.panel-danger > .panel-body {
+    background-color: #19232D;
+}
+
+/* --- Scrollbar -- */
+
+::-webkit-scrollbar {
+    background-color: #19232D;
+    width: 14px;
+    height: 14px;
+    margin: 16px 2px 16px 2px;
+    border: 1px solid #37414F;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #788D9C;
+    border: 1px solid #37414F;
+    min-height: 8px;
+    border-radius: 10px;
+    width: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #346792;
+    border: 1px solid #346792;
+    border-radius: 10px;
+    min-height: 8px;
+    width: 1px;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_disabled.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_disabled.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:increment:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:decrement:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow.png);
+    background-position: center center;
+}

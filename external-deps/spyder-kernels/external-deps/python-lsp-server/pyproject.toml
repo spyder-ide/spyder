@@ -1,0 +1,186 @@
+# Copyright 2017-2020 Palantir Technologies, Inc.
+# Copyright 2021- Python Language Server Contributors.
+
+[build-system]
+requires = ["setuptools>=61.2.0", "setuptools_scm[toml]>=3.4.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-lsp-server"
+authors = [{name = "Python Language Server Contributors"}]
+description = "Python Language Server for the Language Server Protocol"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "docstring-to-markdown",
+    "importlib_metadata>=4.8.3;python_version<\"3.10\"",
+    "jedi>=0.17.2,<0.20.0",
+    "pluggy>=1.0.0",
+    "python-lsp-jsonrpc>=1.1.0,<2.0.0",
+    "ujson>=3.0.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/python-lsp/python-lsp-server"
+
+[project.optional-dependencies]
+all = [
+    "autopep8>=2.0.4,<2.1.0",
+    "flake8>=7,<8",
+    "mccabe>=0.7.0,<0.8.0",
+    "pycodestyle>=2.11.0,<2.12.0",
+    "pydocstyle>=6.3.0,<6.4.0",
+    "pyflakes>=3.2.0,<3.3.0",
+    "pylint>=3.1,<4",
+    "rope>=1.11.0",
+    "yapf>=0.33.0",
+    "whatthepatch>=1.0.2,<2.0.0"
+]
+autopep8 = ["autopep8>=2.0.4,<2.1.0"]
+flake8 = ["flake8>=7,<8"]
+mccabe = ["mccabe>=0.7.0,<0.8.0"]
+pycodestyle = ["pycodestyle>=2.11.0,<2.12.0"]
+pydocstyle = ["pydocstyle>=6.3.0,<6.4.0"]
+pyflakes = ["pyflakes>=3.2.0,<3.3.0"]
+pylint = ["pylint>=3.1,<4"]
+rope = ["rope>=1.11.0"]
+yapf = ["yapf>=0.33.0", "whatthepatch>=1.0.2,<2.0.0"]
+websockets = ["websockets>=10.3"]
+test = [
+    "pylint>=3.1,<4",
+    "pytest",
+    "pytest-cov",
+    "coverage",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pyqt5",
+    "flaky",
+]
+
+[project.entry-points.pylsp]
+autopep8 = "pylsp.plugins.autopep8_format"
+folding = "pylsp.plugins.folding"
+flake8 = "pylsp.plugins.flake8_lint"
+jedi_completion = "pylsp.plugins.jedi_completion"
+jedi_definition = "pylsp.plugins.definition"
+jedi_hover = "pylsp.plugins.hover"
+jedi_highlight = "pylsp.plugins.highlight"
+jedi_references = "pylsp.plugins.references"
+jedi_rename = "pylsp.plugins.jedi_rename"
+jedi_signature_help = "pylsp.plugins.signature"
+jedi_symbols = "pylsp.plugins.symbols"
+mccabe = "pylsp.plugins.mccabe_lint"
+preload = "pylsp.plugins.preload_imports"
+pycodestyle = "pylsp.plugins.pycodestyle_lint"
+pydocstyle = "pylsp.plugins.pydocstyle_lint"
+pyflakes = "pylsp.plugins.pyflakes_lint"
+pylint = "pylsp.plugins.pylint_lint"
+rope_completion = "pylsp.plugins.rope_completion"
+rope_autoimport = "pylsp.plugins.rope_autoimport"
+yapf = "pylsp.plugins.yapf_format"
+
+[project.scripts]
+pylsp = "pylsp.__main__:main"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.8
+target-version = "py38"
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = ["E", "F", "W", "C", "I"]
+ignore = [
+    "C901",  # McCabe complexity warning
+    "E501",  # Line too long
+    "E722",  # Do not use bare `except`
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["contrib", "docs", "test", "test.*", "test.plugins", "test.plugins.*"]
+namespaces = false
+
+[tool.setuptools_scm]
+write_to = "pylsp/_version.py"
+write_to_template = "__version__ = \"{version}\"\n"  # VERSION_INFO is populated in __main__
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "--cov-report html --cov-report term --junitxml=pytest.xml --cov pylsp --cov test"
+
+[tool.coverage.run]
+concurrency = ["multiprocessing", "thread"]

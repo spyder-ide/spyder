@@ -1,0 +1,416 @@
+[
+    {
+        "name": "d",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 13,
+                    "character": 0
+                },
+                "end": {
+                    "line": 17,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "inner",
+        "containerName": "d",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 14,
+                    "character": 4
+                },
+                "end": {
+                    "line": 16,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "func1",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 21,
+                    "character": 0
+                },
+                "end": {
+                    "line": 24,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "i",
+        "containerName": "func1",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 22,
+                    "character": 4
+                },
+                "end": {
+                    "line": 24,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 13
+    },
+    {
+        "name": "func2",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 26,
+                    "character": 0
+                },
+                "end": {
+                    "line": 29,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "a",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 33,
+                    "character": 0
+                },
+                "end": {
+                    "line": 35,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "b",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 37,
+                    "character": 0
+                },
+                "end": {
+                    "line": 39,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "c",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 41,
+                    "character": 0
+                },
+                "end": {
+                    "line": 43,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "func3",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 45,
+                    "character": 0
+                },
+                "end": {
+                    "line": 47,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 12
+    },
+    {
+        "name": "Class1",
+        "containerName": "None",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 49,
+                    "character": 0
+                },
+                "end": {
+                    "line": 62,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 5
+    },
+    {
+        "name": "__init__",
+        "containerName": "Class1",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 50,
+                    "character": 4
+                },
+                "end": {
+                    "line": 53,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 6
+    },
+    {
+        "name": "method3",
+        "containerName": "Class1",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 54,
+                    "character": 4
+                },
+                "end": {
+                    "line": 56,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 6
+    },
+    {
+        "name": "method2",
+        "containerName": "Class1",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 57,
+                    "character": 4
+                },
+                "end": {
+                    "line": 59,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 6
+    },
+    {
+        "name": "method1",
+        "containerName": "Class1",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 60,
+                    "character": 4
+                },
+                "end": {
+                    "line": 62,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 6
+    },
+    {
+        "name": "x",
+        "containerName": "__init__",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 52,
+                    "character": 8
+                },
+                "end": {
+                    "line": 52,
+                    "character": 18
+                }
+            }
+        },
+        "kind": 8
+    },
+    {
+        "name": "functions",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 12,
+                    "character": 0
+                },
+                "end": {
+                    "line": 47,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    },
+    {
+        "name": "func 1 and 2",
+        "containerName": "",
+        "location": {
+            "uri":"file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 19,
+                    "character": 0
+                },
+                "end": {
+                    "line": 19,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 224
+    },
+    {
+        "name": "other functions",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 30,
+                    "character": 0
+                },
+                "end": {
+                    "line": 30,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 224
+    },
+    {
+        "name": "cell level 2",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 32,
+                    "character": 0
+                },
+                "end": {
+                    "line": 47,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    },
+    {
+        "name": "cell level 3",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 36,
+                    "character": 0
+                },
+                "end": {
+                    "line": 43,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    },
+    {
+        "name": "cell level 4",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 40,
+                    "character": 0
+                },
+                "end": {
+                    "line": 43,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    },
+    {
+        "name": "cell level 3-1",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 44,
+                    "character": 0
+                },
+                "end": {
+                    "line": 47,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    },
+    {
+        "name": "classes",
+        "containerName": "",
+        "location": {
+            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
+            "range": {
+                "start": {
+                    "line": 48,
+                    "character": 0
+                },
+                "end": {
+                    "line": 61,
+                    "character": 0
+                }
+            }
+        },
+        "kind": 225
+    }
+]

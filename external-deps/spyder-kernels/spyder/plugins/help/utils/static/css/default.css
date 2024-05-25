@@ -1,0 +1,417 @@
+body {
+    background-color: #FAFAFA;
+    color: #293544;
+    margin: 0px 25px 15px 25px;
+}
+
+
+/* --- Title style --- */
+div.title h1 {
+    font-size: 180%;
+    font-family: 'Trebuchet MS', sans-serif;
+    background-color: #107EEC;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        from(#37AEFE),
+        color-stop(60%, #259AE9),
+        to(#1d9ce5)
+    );
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    font-weight: normal;
+    padding: 6px 0px 6px 20px;
+    margin: 0px -25px;
+    color: #FFFFFF;
+}
+
+/*
+ * The next two styles are needed to
+ * modify the anchors present on the
+ * title of pages like scipy.stats or
+ * scipy.io
+ */
+div.title h1 a {
+    color: transparent;
+    cursor: default;
+}
+
+div.title h1 tt {
+    font-size: 95%;
+    background-color: transparent;
+    color: #FFFFFF;
+}
+
+
+/* --- Metadata style --- */
+div.metadata {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    margin-right: 1px;
+    padding: 1px;
+    background-color: #E0E1E3;
+    border: 1px solid #CED1D4;
+    border-radius: 6px 6px 6px 6px;
+    box-shadow: 1px 1px 7px #C9CDD0;
+}
+
+div.metadata p {
+    margin: 7px 0px 7px 10px;
+}
+
+span.def {
+    font-family: monospace;
+    font-size: 90%;
+}
+
+span.argspec-highlight {
+    color: red;
+    font-size: 110%;
+    font-weight: 900;
+}
+
+
+/* --- Docstring div style --- */
+div.docstring {
+    margin-top: -1px;
+}
+
+div.docstring p {
+    padding: 0px 2px 0px;
+}
+
+
+/* --- Headers style --- */
+h2, h3, h4 {
+    font-family: 'Helvetica', sans-serif;
+    color: #1A72BB;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 140%;
+    font-weight: normal;
+    border-bottom: 1px solid #E0E1E3;
+    padding: 4px 0px 4px 0px;
+}
+
+h3 {
+    font-size: 115%;
+}
+
+h4 {
+    font-size: 100%;
+    margin-top: 14px;
+    font-weight: normal;
+}
+
+h2.html-toggle-button, h3.html-toggle-button, h4.html-toggle-button {
+    padding-left: 20px;
+}
+
+.collapsed > h2, .collapsed > h3, .collapsed > h4, .expanded > h2, .expanded > h3, .expanded > h4 {
+    background-color: transparent;
+    background-image: url(../images/collapse_expand.png);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    cursor: pointer;
+}
+
+.collapsed > h2 {
+    background-position: 2px 7px;
+}
+
+.collapsed > h3 {
+    background-position: 2px 2px;
+}
+
+.collapsed > h4 {
+    background-position: 2px 0px;
+}
+
+.expanded > h2 {
+    background-position: 0px -31px;
+}
+
+.expanded > h3 {
+    background-position: 0px -38px;
+}
+
+.expanded > h4 {
+    background-position: 0px -39px;
+}
+
+dl.docutils {
+    padding: 0px 10px 0px;
+}
+
+div.section p {
+    padding: 0px 2px 0px;
+}
+
+#warning {
+    margin-top: 5px;
+    background-color: #FFDDA7;
+    border: 1px solid #F37E12;
+    padding: 4px 8px 4px 8px;
+    text-align: center;
+}
+
+#doc-warning {
+    margin-top: 16px;
+    width: 45%;
+    margin-left: auto;
+    margin-right: auto;
+    color: #E74C3C;
+    background-color: #FFDDA7;
+    border: 1px solid #FFC3BD;
+    border-radius: 4px 4px 4px 4px;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 105%;
+}
+
+
+/* --- Links --- */
+a {
+    text-decoration: none;
+    color: rgba(40, 130, 180, 1);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* --- Images --- */
+img {
+    box-shadow: 0px 2px 6px #C9CDD0;
+    border: 1px solid #CED1D4;
+}
+
+img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* --- Lists style --- */
+ol.arabic {
+    margin-left: -10px;
+}
+
+ul {
+    margin-left: -5px;
+}
+
+/* --- Literal blocks style --- */
+pre.literal-block {
+    padding-left: 35px;
+    font-size: 95%;
+}
+
+
+/* --- Docutils table style --- */
+table.docutils {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: #CED1D4;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    width: 90%;
+}
+
+table.docutils td {
+    padding: 0px 0px 0px 5px;
+}
+
+table.docutils tr.row-odd {
+    background-color: #FAFAFA;
+}
+
+
+/* --- Docutils table headers --- */
+table.docutils th {
+    background-color: #E0E1E3;
+    border-bottom-color: #CED1D4;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-top-color: #CED1D4;
+    border-top-style: solid;
+    border-top-width: 1px;
+    font-weight: bold;
+    text-align: left;
+    padding: 0px 0px 0px 5px;
+    color: #455364;
+}
+
+
+/* --- Field-list table style --- */
+table.docutils.field-list {
+    font-size: 80%;
+    border-collapse: collapse;
+    border-left: transparent;
+    border-right: transparent;
+    margin-top: 15px;
+    margin-left: 40px;
+    width: 83%;
+}
+
+
+/* --- Field-list table headers --- */
+table.docutils.field-list th {
+    background-color: transparent;
+    border-top: transparent;
+    border-bottom: transparent;
+    color: black;
+    font-weight: bold;
+    text-align: left;
+    padding: 4px 0px 4px 8px;
+}
+
+
+/* --- Spacing around example code --- */
+div.highlight pre {
+    padding: 9px 14px;
+    background-color: #FAFAFA;
+    border-radius: 4px 4px 4px 4px;
+    border: 1px solid #E0E1E3;
+}
+
+div.highlight {
+    padding: 0px 10px 0px;
+}
+
+dt {
+    font-weight: bold;
+    /*font-size: 16px;*/
+}
+
+.classifier {
+    /*font-size: 10pt;*/
+    font-weight: normal;
+}
+
+tt {
+    background-color: #F5FAFF;
+    /*font-size: 95%;*/
+    padding: 0px 1px;
+}
+
+
+
+div.admonition.note {
+    font-size: 0.95em;
+    margin: 1.3em;
+    border: 1px solid #B0F5E1;
+    background-color: #C2DFFA;
+    padding: 0px 5px 0 5px;
+    color: #346792;
+}
+
+div.admonition p.admonition-title {
+    font-size: 1em;
+    margin-top: 7px;
+    font-weight: bold;
+}
+
+
+/* ----------- Panels ----------- */
+
+.panel {
+    margin-top: 15px;
+    background-color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 110%;
+    color: #FAFAFA);
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.panel-usage {
+    border-color: #37AEFE;
+    margin-top: 15px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.panel-usage > .panel-heading {
+    color: #ffffff;
+    background-color: #37AEFE;
+    border-color: #37AEFE;
+}
+
+.panel-usage > .panel-body > br {
+    display: block;
+    margin: 12px 0;
+    content: "";
+}
+
+.hr {
+    background-color: #CED1D4;
+    height: 1px;
+}
+
+
+/* ----------- IPython console styles ----------- */
+
+/* --- Loading --- */
+.loading {
+    position: absolute;
+    margin: -20px 0 0 -95px;
+    width: 180px;
+    height: auto;
+    left: 50%;
+    top: 50%;
+    background-color: #E0E1E3;
+    border: 1px solid #CED1D4;
+    border-radius: 6px;
+    box-shadow: 0px 0px 7px #C9CDD0;
+    color: #293544;
+    padding: 12px;
+    text-align: center;
+}
+
+#loading-image {
+    float: left;
+}
+
+#loading-message {
+    margin-left: 23px;
+}
+
+/* --- Kernel error messages --- */
+.panel-danger {
+    border-color: #E74C3C;
+}
+
+.panel-danger > .panel-heading {
+    color: #FAFAFA;
+    background-color: #FFC3BD;
+    border-color: #E74C3C;
+    background-color: #E74C3C;
+}

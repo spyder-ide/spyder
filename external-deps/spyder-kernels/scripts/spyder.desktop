@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Spyder
+GenericName=Spyder
+Comment=The Scientific Python Development Environment
+Icon=spyder
+TryExec=spyder
+Exec=spyder %F
+Terminal=false
+MimeType=text/x-python;
+Categories=Development;Science;IDE;Qt;
+Keywords=Development;Science;IDE;Qt;
+StartupNotify=true
+StartupWMClass=Spyder

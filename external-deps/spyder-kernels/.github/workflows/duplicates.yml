@@ -1,0 +1,116 @@
+name: Close duplicate issues
+
+on: [issues]
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: spyder-ide/action-close-duplicate-issues@master
+        with:
+          repo-token: ${{ secrets.SECRET_TOKEN }}
+          items: >-
+            [
+             {
+               "pattern": "ValueError: cannot set WRITEABLE flag to True of this array",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: _start_server() missing 1 required positional argument",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'NoneType' object has no attribute 'execute'",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: module 'dateutil.tz' has no attribute 'UTC'",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: '_ModuleMock' object has no attribute 'PLUGIN_CLASS'",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: _handle_remote_call_reply() missing 1 required positional argument: 'load_exception'",
+               "reply": "Thanks for reporting. This issue is fixed in our latest Spyder 4 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "psutil.NoSuchProcess: psutil.NoSuchProcess process no longer exists",
+               "reply": "Thanks for reporting. This issue is a duplicate of #11872 and fixed in our latest Spyder 4 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "current_pos_text = text[offset - utf16_diff - 1]",
+               "reply": "Thanks for reporting. This issue is a duplicate of #12266 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TimeoutError: Timeout while waiting for comm port.",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13288 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.2.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: __init__() got an unexpected keyword argument 'size'",
+               "reply": "Thanks for reporting. This issue is a duplicate of #11875 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: CodeEditor.sig_display_object_info[str, bool].emit(): argument 1 has unexpected type 'list'",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13297 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.1.5`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "triggered=lambda v: self.open_project()",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13346 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.1.5`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: module 'qdarkstyle.palette' has no attribute 'DarkPalette'",
+               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install qdarkstyle=2.8.1`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'SpyderKernelManager' object has no attribute 'kernel'",
+               "reply": "Thanks for reporting. To fix this, please close Spyder, open the Anaconda Prompt and run there:<br><br>`conda install jupyter_client=6.1.12 freetype=2.10.4`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: _show_prompt() got an unexpected keyword argument 'separator'",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: '_asyncio.Future' object has no attribute 'index'",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt and run the following command there:<br><br>`conda install jupyter_client=7.3.1`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'DataFrame' object has no attribute 'iteritems'",
+               "reply": "Thanks for reporting. To fix this error, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there the commands mentioned in [our documentation](http://docs.spyder-ide.org/current/installation.html#updating-with-anaconda).",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             }
+             ]

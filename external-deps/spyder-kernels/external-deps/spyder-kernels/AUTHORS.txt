@@ -1,0 +1,12 @@
+The Spyder Kernels Contributors are composed of:
+
+* Pierre Raybaut <pierre.raybaut@gmail.com> (Original Spyder author)
+* Carlos Cordoba <ccordoba12@gmail.com> (Current Spyder/-Kernels maintainer)
+* All other developers that have committed to the spyder-kernels repository:
+  <https://github.com/spyder-ide/spyder-kernels/graphs/contributors>
+  and contributors listed on the original files in the main spyder repository:
+  <https://github.com/spyder-ide/spyder/blob/48c96725c9/spyderlib/py3compat.py>
+  <https://github.com/spyder-ide/spyder/blob/48c96725c9/spyderlib/widgets/externalshell/start_ipython_kernel.py>
+  <https://github.com/spyder-ide/spyder/blob/48c96725c9/spyderlib/widgets/externalshell/sitecustomize.py>
+  <https://github.com/spyder-ide/spyder/blob/48c96725c9/spyderlib/utils/dochelpers.py>
+  <https://github.com/spyder-ide/spyder/blob/48c96725c9/spyderlib/utils/iofuncs.py>

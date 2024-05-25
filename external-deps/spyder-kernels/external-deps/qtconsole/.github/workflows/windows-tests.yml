@@ -1,0 +1,52 @@
+name: Windows tests
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+concurrency:
+  group: windows-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows Py${{ matrix.PYTHON_VERSION }}
+    runs-on: windows-latest
+    env:
+      CI: True
+      QTCONSOLE_TESTING: True
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: 'windows'
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11']
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+           activate-environment: test
+           auto-update-conda: false
+           auto-activate-base: false
+           python-version: ${{ matrix.PYTHON_VERSION }}
+           miniforge-variant: Mambaforge
+           channels: conda-forge
+           channel-priority: strict
+      - name: Install package dependencies
+        shell: bash -l {0}
+        run: mamba env update --file requirements/environment.yml
+      - name: Show environment information
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Run tests
+        shell: bash -l {0}
+        run: pytest -vv --color=yes --cov=qtconsole qtconsole

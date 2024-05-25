@@ -1,0 +1,3 @@
+#! /usr/bin/python3
+from spyder.app import start
+start.main()
