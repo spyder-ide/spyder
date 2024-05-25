@@ -242,7 +242,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def show_exception(self, etype, error, tb):
         """Set frames from exception"""
         self._show_frames(
-            {etype.__name__: tb}, _("Exception occured"),
+            {etype: tb}, _("Exception occured"),
             FramesBrowserState.Error)
         self.sig_update_actions_requested.emit()
 
