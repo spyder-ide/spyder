@@ -73,7 +73,7 @@ class CommsErrorWrapper():
         self.call_id = call_id
         self.etype, self.error, tb = sys.exc_info()
         self.tb = traceback.extract_tb(tb)
-    
+
     def to_json(self):
         return {
             "call_name": self.call_name,
@@ -81,11 +81,11 @@ class CommsErrorWrapper():
             "etype": self.etype.__name__,
             "args": self.error.args,
             "tb": [
-                (frame.filename, frame.lineno, frame.name, frame.line) 
+                (frame.filename, frame.lineno, frame.name, frame.line)
                 for frame in self.tb
             ]
         }
-    
+
     @classmethod
     def from_json(cls, json_data):
         instance = cls.__new__(cls)
@@ -93,8 +93,8 @@ class CommsErrorWrapper():
         instance.call_id = json_data["call_id"]
         etype = json_data["etype"]
         instance.etype = getattr(
-            builtins, 
-            etype, 
+            builtins,
+            etype,
             type(etype, (Exception,), {})
         )
         instance.error = instance.etype(json_data["args"])
