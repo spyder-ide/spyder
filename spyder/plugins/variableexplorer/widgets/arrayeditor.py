@@ -808,7 +808,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                      options_button]:
             self.add_item_to_toolbar(item, toolbar)
 
-        toolbar._render()
+        toolbar.render()
 
         # ---- Stack widget (empty)
 

@@ -1948,7 +1948,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                 section=DataframeEditorToolbarSections.ColumnAndRest
             )
 
-        self.toolbar._render()
+        self.toolbar.render()
 
         return True
 
