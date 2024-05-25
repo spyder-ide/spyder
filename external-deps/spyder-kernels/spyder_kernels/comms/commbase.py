@@ -54,6 +54,7 @@ import logging
 import sys
 import uuid
 import traceback
+import builtins
 
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,12 @@ class CommsErrorWrapper():
         instance = cls.__new__(cls)
         instance.call_name = json_data["call_name"]
         instance.call_id = json_data["call_id"]
-        instance.etype = type(json_data["etype"], (Exception,), {})
+        etype = json_data["etype"]
+        instance.etype = getattr(
+            builtins, 
+            etype, 
+            type(etype, (Exception,), {})
+        )
         instance.error = instance.etype(json_data["args"])
         instance.tb = traceback.StackSummary.from_list(json_data["tb"])
         return instance
