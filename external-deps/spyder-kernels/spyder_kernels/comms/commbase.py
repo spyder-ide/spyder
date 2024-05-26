@@ -17,7 +17,6 @@ The messages exchanged have the following msg_dict:
     msg_dict = {
         'spyder_msg_type': spyder_msg_type,
         'content': content,
-        'python_version': sys.version,
         }
     ```
 
@@ -95,7 +94,7 @@ class CommsErrorWrapper():
             etype,
             type(etype, (Exception,), {})
         )
-        instance.error = instance.etype(json_data["args"])
+        instance.error = instance.etype(*json_data["args"])
         instance.tb = traceback.StackSummary.from_list(json_data["tb"])
         return instance
 
@@ -248,7 +247,6 @@ class CommBase:
             msg_dict = {
                 'spyder_msg_type': spyder_msg_type,
                 'content': content,
-                'python_version': sys.version,
                 }
 
             self._comms[comm_id]['comm'].send(msg_dict)
@@ -413,14 +411,14 @@ class CommBase:
 
         self._wait_reply(comm_id, call_id, call_name, timeout)
 
-        reply = self._reply_inbox.pop(call_id)
+        content = self._reply_inbox.pop(call_id)
 
-        value = reply['content']['call_return_value']
+        return_value = content['call_return_value']
 
-        if reply['is_error']:
-            return self._sync_error(value)
+        if content['is_error']:
+            return self._sync_error(return_value)
 
-        return value
+        return return_value
 
     def _wait_reply(self, comm_id, call_id, call_name, timeout):
         """
@@ -436,11 +434,12 @@ class CommBase:
         call_id = content['call_id']
         call_name = content['call_name']
         is_error = content['is_error']
+        return_value = content['call_return_value']
 
         # Unexpected reply
         if call_id not in self._reply_waitlist:
             if is_error:
-                return self._async_error(msg_dict['call_return_value'])
+                return self._async_error(return_value)
             else:
                 logger.debug('Got an unexpected reply {}, id:{}'.format(
                     call_name, call_id))
@@ -450,18 +449,15 @@ class CommBase:
 
         # Async error
         if is_error and not blocking:
-            return self._async_error(content['call_return_value'])
+            return self._async_error(return_value)
 
         # Callback
         if callback is not None and not is_error:
-            callback(content['call_return_value'])
+            callback(return_value)
 
         # Blocking inbox
         if blocking:
-            self._reply_inbox[call_id] = {
-                    'is_error': is_error,
-                    'content': content
-                    }
+            self._reply_inbox[call_id] = content
 
     def _async_error(self, error_wrapper):
         """
