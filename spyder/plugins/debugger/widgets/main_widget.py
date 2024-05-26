@@ -98,18 +98,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         Word to select on given row.
     """
 
-    sig_show_namespace = Signal(dict, object)
-    """
-    Show the namespace
-
-    Parameters
-    ----------
-    namespace: dict
-        A namespace view created by spyder_kernels
-    shellwidget: object
-        The shellwidget the request originated from
-    """
-
     sig_breakpoints_saved = Signal()
     """Breakpoints have been saved"""
 
@@ -452,7 +440,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
 
-        widget.sig_show_namespace.connect(self.sig_show_namespace)
         shellwidget.sig_prompt_ready.connect(widget.clear_if_needed)
         shellwidget.sig_pdb_prompt_ready.connect(widget.clear_if_needed)
 
@@ -491,8 +478,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget.sig_update_actions_requested.disconnect(self.update_actions)
 
         shellwidget = widget.shellwidget
-
-        widget.sig_show_namespace.disconnect(self.sig_show_namespace)
 
         try:
             shellwidget.sig_prompt_ready.disconnect(widget.clear_if_needed)

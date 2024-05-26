@@ -58,17 +58,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         Word to select on given row.
     """
 
-    sig_show_namespace = Signal(dict, object)
-    """
-    Show the namespace
-
-    Parameters
-    ----------
-    namespace: dict
-        A namespace view created by spyder_kernels
-    shellwidget: ShellWidget
-        The shellwidget the request originated from
-    """
     sig_update_actions_requested = Signal()
     """Update the widget actions."""
 
@@ -142,8 +131,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
         self.results_browser = ResultsBrowser(self, self.color_scheme)
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
-        self.results_browser.sig_show_namespace.connect(
-            self._show_namespace)
 
         self.finder = FinderWidget(self)
         self.finder.sig_find_text.connect(self.do_find)
@@ -177,12 +164,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.container = QWidget(self)
         self.container.setLayout(layout)
         self.stack_layout.addWidget(self.container)
-
-    def _show_namespace(self, namespace):
-        """
-        Request for the given namespace to be shown in the Variable Explorer.
-        """
-        self.sig_show_namespace.emit(namespace, self.shellwidget)
 
     def _show_frames(self, frames, title, state):
         """Set current frames"""
@@ -481,7 +462,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
-    sig_show_namespace = Signal(dict)
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
