@@ -36,6 +36,7 @@ def get_version(module='spyder_kernels'):
 
 
 REQUIREMENTS = [
+    'cloudpickle',
     'ipykernel>=6.29.3,<7',
     'ipython>=8.12.2,<8.13; python_version=="3.8"',
     'ipython>=8.13.0,<9,!=8.17.1; python_version>"3.8"',

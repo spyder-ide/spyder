@@ -22,6 +22,8 @@ import sys
 import inspect
 import uuid
 from collections import namedtuple
+import cloudpickle
+import base64
 
 # Test imports
 import pytest
@@ -346,7 +348,11 @@ def test_set_value(kernel):
     name = 'a'
     asyncio.run(kernel.do_execute('a = 0', True))
     value = 10
-    kernel.set_value(name, value)
+    # Encode with cloudpickle and base64
+    encoded_value = base64.b64encode(
+        cloudpickle.dumps(value)
+    ).decode()
+    kernel.set_value(name, encoded_value)
     log_text = get_log_text(kernel)
     assert "'__builtin__': <module " in log_text
     assert "'__builtins__': <module " in log_text

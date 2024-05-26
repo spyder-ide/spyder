@@ -41,6 +41,7 @@ pip install spyder-kernels
 This project depends on:
 
 * [ipykernel](https://github.com/ipython/ipykernel/)
+* [cloudpickle](https://github.com/cloudpipe/cloudpickle)
 * [wurlitzer](https://github.com/minrk/wurlitzer) (only on Linux and macOS).
 
 ## Changelog

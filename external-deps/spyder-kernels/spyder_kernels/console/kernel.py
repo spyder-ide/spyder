@@ -11,6 +11,7 @@ Spyder kernel for Jupyter.
 """
 
 # Standard library imports
+import base64
 import faulthandler
 import json
 import logging
@@ -20,6 +21,7 @@ import sys
 import traceback
 import tempfile
 import threading
+import cloudpickle
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
@@ -359,11 +361,20 @@ class SpyderKernel(IPythonKernel):
     def get_value(self, name):
         """Get the value of a variable"""
         ns = self.shell._get_current_namespace()
-        return ns[name]
+        value = ns[name]
+        
+        # Encode with cloudpickle and base64
+        encoded_value = base64.b64encode(
+            cloudpickle.dumps(value)
+        ).decode()
+        
+        return encoded_value
 
     @comm_handler
     def set_value(self, name, value):
         """Set the value of a variable"""
+        # Decode_value
+        value = cloudpickle.loads(base64.b64decode(value.encode()))
         ns = self.shell._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
