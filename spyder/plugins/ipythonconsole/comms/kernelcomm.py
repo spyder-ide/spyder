@@ -10,7 +10,6 @@ In addition to the remote_call mechanism implemented in CommBase:
 """
 from contextlib import contextmanager
 import logging
-import pickle
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
@@ -70,14 +69,14 @@ class KernelComm(CommBase, QObject):
                 self._comms[comm_id]['comm']._send_channel = (
                     self.kernel_client.shell_channel)
 
-    def _set_call_return_value(self, call_dict, data, is_error=False):
+    def _set_call_return_value(self, call_dict, is_error=False):
         """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id, False):
             if is_error and (get_debug_level() or running_under_pytest()):
                 # Disable error muting when debugging or testing
                 call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
-                call_dict, data, is_error)
+                call_dict, is_error)
 
     def remove(self, comm_id=None, only_closing=False):
         """
@@ -106,8 +105,8 @@ class KernelComm(CommBase, QObject):
         try:
             self._register_comm(
                 # Create new comm and send the highest protocol
-                kernel_client.comm_manager.new_comm(self._comm_name, data={
-                    'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL}))
+                kernel_client.comm_manager.new_comm(self._comm_name)
+            )
         except AttributeError:
             logger.info(
                 "Unable to open comm due to unexistent comm manager: " +
@@ -134,7 +133,7 @@ class KernelComm(CommBase, QObject):
             self._comms[self.calling_comm_id]['status'] = 'ready'
             self.sig_comm_ready.emit()
 
-    def _send_call(self, call_dict, call_data, comm_id):
+    def _send_call(self, call_dict, comm_id):
         """Send call and interupt the kernel if needed."""
         settings = call_dict['settings']
         blocking = 'blocking' in settings and settings['blocking']
@@ -155,7 +154,7 @@ class KernelComm(CommBase, QObject):
         with self.comm_channel_manager(
                 comm_id, queue_message=queue_message):
             return super(KernelComm, self)._send_call(
-                call_dict, call_data, comm_id)
+                call_dict, comm_id)
 
     def _get_call_return_value(self, call_dict, comm_id):
         """
@@ -231,12 +230,11 @@ class KernelComm(CommBase, QObject):
         self.kernel_client.hb_channel.kernel_died.disconnect(
             wait_loop.quit)
 
-    def _handle_remote_call_reply(self, msg_dict, buffer):
+    def _handle_remote_call_reply(self, msg_dict):
         """
         A blocking call received a reply.
         """
-        super(KernelComm, self)._handle_remote_call_reply(
-            msg_dict, buffer)
+        super(KernelComm, self)._handle_remote_call_reply(msg_dict)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):
