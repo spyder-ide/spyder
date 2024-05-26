@@ -110,9 +110,12 @@ class PythonpathContainer(PluginMainContainer):
 
     def get_spyder_pythonpath(self):
         """Return active Spyder PYTHONPATH as a list of paths."""
-        # Place project path first so that modules developed in a
-        # project are not shadowed by those present in other paths.
-        all_paths = self._project_paths | self._user_paths | self._system_paths
+        # Desired behavior is project_paths | user_paths | system_paths, but
+        # Python 3.8 does not support | operator for OrderedDict.
+        all_paths = OrderedDict(reversed(self._system_paths.items()))
+        all_paths.update(reversed(self._user_paths.items()))
+        all_paths.update(reversed(self._project_paths.items()))
+        all_paths = OrderedDict(reversed(all_paths.items()))
 
         return [p for p, v in all_paths.items() if v]
 
