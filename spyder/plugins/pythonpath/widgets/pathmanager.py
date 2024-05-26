@@ -366,9 +366,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
         active_system_paths = OrderedDict({p: v for p, v in system_paths.items() if v})
         inactive_system_paths = OrderedDict({p: v for p, v in system_paths.items() if not v})
 
-        new_system_paths = active_user_paths | active_system_paths
+        # Desired behavior is active_user | active_system, but Python 3.8 does
+        # not support | operator for OrderedDict.
+        new_system_paths = OrderedDict(reversed(active_system_paths.items()))
+        new_system_paths.update(reversed(active_user_paths.items()))
         if answer == QMessageBox.No:
-            new_system_paths = inactive_system_paths | new_system_paths
+            # Desired behavior is inactive_system | active_user | active_system
+            new_system_paths.update(reversed(inactive_system_paths.items()))
+        new_system_paths = OrderedDict(reversed(new_system_paths.items()))
 
         env = get_user_env()
         env['PYTHONPATH'] = list(new_system_paths.keys())
