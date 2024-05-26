@@ -349,10 +349,7 @@ def test_set_value(kernel):
     asyncio.run(kernel.do_execute('a = 0', True))
     value = 10
     # Encode with cloudpickle and base64
-    encoded_value = base64.b64encode(
-        cloudpickle.dumps(value)
-    ).decode()
-    kernel.set_value(name, encoded_value)
+    kernel.set_value(name, value)
     log_text = get_log_text(kernel)
     assert "'__builtin__': <module " in log_text
     assert "'__builtins__': <module " in log_text

@@ -358,23 +358,24 @@ class SpyderKernel(IPythonKernel):
             return None
 
     @comm_handler
-    def get_value(self, name):
+    def get_value(self, name, encoded=False):
         """Get the value of a variable"""
         ns = self.shell._get_current_namespace()
         value = ns[name]
+        if encoded:
+            # Encode with cloudpickle and base64
+            value = base64.b64encode(
+                cloudpickle.dumps(value)
+            ).decode()
         
-        # Encode with cloudpickle and base64
-        encoded_value = base64.b64encode(
-            cloudpickle.dumps(value)
-        ).decode()
-        
-        return encoded_value
+        return value
 
     @comm_handler
-    def set_value(self, name, value):
+    def set_value(self, name, value, encoded=False):
         """Set the value of a variable"""
-        # Decode_value
-        value = cloudpickle.loads(base64.b64decode(value.encode()))
+        if encoded:
+            # Decode_value
+            value = cloudpickle.loads(base64.b64decode(value.encode()))
         ns = self.shell._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
