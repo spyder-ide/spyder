@@ -110,9 +110,15 @@ class PythonpathContainer(PluginMainContainer):
 
     def get_spyder_pythonpath(self):
         """Return active Spyder PYTHONPATH as a list of paths."""
-        # Place project path first so that modules developed in a
-        # project are not shadowed by those present in other paths.
-        all_paths = self._project_paths | self._user_paths | self._system_paths
+        # Order should be project paths then user paths then system paths.
+        # Lower priority paths should not overwrite higher priority paths,
+        # so cannot use update method naively. Python 3.8 does not support
+        # | operator.
+        all_paths = self._project_paths.copy()
+        all_paths.update(item for item in self._user_paths.items()
+                         if item[0] not in all_paths)
+        all_paths.update(item for item in self._system_paths.items()
+                         if item[0] not in all_paths)
 
         return [p for p, v in all_paths.items() if v]
 
