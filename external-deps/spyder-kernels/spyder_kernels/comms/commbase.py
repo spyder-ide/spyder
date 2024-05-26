@@ -414,7 +414,7 @@ class CommBase:
         self._wait_reply(comm_id, call_id, call_name, timeout)
 
         reply = self._reply_inbox.pop(call_id)
-        
+
         value = reply['content']['call_return_value']
 
         if reply['is_error']:
