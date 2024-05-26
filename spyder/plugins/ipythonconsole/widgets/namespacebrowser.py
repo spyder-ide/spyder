@@ -51,7 +51,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 blocking=True,
                 display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT
-            ).get_value(name)
+            ).get_value(name, encoded=True)
             value = cloudpickle.loads(base64.b64decode(value.encode()))
             return value
         except TimeoutError:
@@ -77,7 +77,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             interrupt=True,
             blocking=False,
             display_error=True,
-            ).set_value(name, encoded_value)
+            ).set_value(name, encoded_value, encoded=True)
 
     def remove_value(self, name):
         """Remove a variable"""
