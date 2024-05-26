@@ -139,8 +139,8 @@ def test_comm_base(comms):
 
     received_messages = []
 
-    def handler(msg_dict, buffer):
-        received_messages.append((msg_dict, buffer))
+    def handler(msg_dict):
+        received_messages.append((msg_dict,))
 
     # Register callback
     commrecv._register_message_handler('test_message', handler)
