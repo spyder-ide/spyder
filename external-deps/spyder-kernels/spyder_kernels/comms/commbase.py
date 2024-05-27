@@ -457,12 +457,13 @@ class CommBase:
         call_name = content['call_name']
         is_error = content['is_error']
         return_value = content['call_return_value']
+        # Prepare return value
         if is_error:
             return_value = CommsErrorWrapper.from_json(return_value)
         elif buffers:
             assert len(buffers) == 1
             return_value = buffers[0]
-            content['call_return_value'] = return_value
+        content['call_return_value'] = return_value
 
         # Unexpected reply
         if call_id not in self._reply_waitlist:
