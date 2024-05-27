@@ -139,7 +139,7 @@ def test_comm_base(comms):
 
     received_messages = []
 
-    def handler(msg_dict):
+    def handler(msg_dict, buffers):
         received_messages.append((msg_dict,))
 
     # Register callback

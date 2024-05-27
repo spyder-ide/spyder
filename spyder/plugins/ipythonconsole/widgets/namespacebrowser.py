@@ -13,7 +13,6 @@ the Variable Explorer
 import logging
 from pickle import PicklingError, UnpicklingError
 import cloudpickle
-import base64
 
 # Third-party imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -52,7 +51,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT
             ).get_value(name, encoded=True)
-            value = cloudpickle.loads(base64.b64decode(value.encode()))
+            value = cloudpickle.loads(value)
             return value
         except TimeoutError:
             raise ValueError(msg % reason_big)
@@ -70,9 +69,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def set_value(self, name, value):
         """Set value for a variable"""
         # Encode with cloudpickle and base64
-        encoded_value = base64.b64encode(
-            cloudpickle.dumps(value)
-        ).decode()
+        encoded_value = cloudpickle.dumps(value)
         self.call_kernel(
             interrupt=True,
             blocking=False,

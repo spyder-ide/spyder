@@ -13,7 +13,7 @@ import logging
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
-from spyder_kernels.comms.commbase import CommBase
+from spyder_kernels.comms.commbase import CommBase, CommsErrorWrapper
 
 from spyder.config.base import (
     get_debug_level, running_under_pytest)
@@ -133,7 +133,7 @@ class KernelComm(CommBase, QObject):
             self._comms[self.calling_comm_id]['status'] = 'ready'
             self.sig_comm_ready.emit()
 
-    def _send_call(self, call_dict, comm_id):
+    def _send_call(self, call_dict, comm_id, buffers):
         """Send call and interupt the kernel if needed."""
         settings = call_dict['settings']
         blocking = 'blocking' in settings and settings['blocking']
@@ -154,7 +154,7 @@ class KernelComm(CommBase, QObject):
         with self.comm_channel_manager(
                 comm_id, queue_message=queue_message):
             return super(KernelComm, self)._send_call(
-                call_dict, comm_id)
+                call_dict, comm_id, buffers)
 
     def _get_call_return_value(self, call_dict, comm_id):
         """
@@ -230,17 +230,18 @@ class KernelComm(CommBase, QObject):
         self.kernel_client.hb_channel.kernel_died.disconnect(
             wait_loop.quit)
 
-    def _handle_remote_call_reply(self, msg_dict):
+    def _handle_remote_call_reply(self, *args, **kwargs):
         """
         A blocking call received a reply.
         """
-        super(KernelComm, self)._handle_remote_call_reply(msg_dict)
+        super(KernelComm, self)._handle_remote_call_reply(*args, **kwargs)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):
         """
         Handle an error that was raised on the other side and sent back.
         """
+        error_wrapper = CommsErrorWrapper.from_json(error_wrapper)
         for line in error_wrapper.format_error():
             self.sig_exception_occurred.emit(
                 dict(text=line, is_traceback=True)
