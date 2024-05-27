@@ -276,7 +276,7 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
         ]:
             self.add_item_to_toolbar(item, self.toolbar)
 
-        self.toolbar._render()
+        self.toolbar.render()
 
     def _show_callable_attributes(self, value: bool):
         """

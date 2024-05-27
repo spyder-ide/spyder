@@ -59,11 +59,9 @@ from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
-from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
-from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
@@ -319,8 +317,6 @@ class EditorMainWidget(PluginMainWidget):
         self.last_focused_editorstack = {}
         self.editorwindows = []
         self.editorwindows_to_be_created = []
-        self.toolbar_list = None
-        self.menu_list = None
 
         # Configuration dialog size
         self.dialog_size = None
@@ -1696,46 +1692,6 @@ class EditorMainWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def setup_other_windows(self, main, outline_plugin):
         """Setup toolbars and menus for 'New window' instances"""
-        # Menus
-        file_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.File).get_actions()
-        edit_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Edit).get_actions()
-        search_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Search).get_actions()
-        source_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Source).get_actions()
-        run_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Run).get_actions()
-        tools_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Tools).get_actions()
-        help_menu_actions = main.mainmenu.get_application_menu(
-            ApplicationMenus.Help).get_actions()
-
-        self.menu_list = ((_("&File"), file_menu_actions),
-                          (_("&Edit"), edit_menu_actions),
-                          (_("&Search"), search_menu_actions),
-                          (_("Sour&ce"), source_menu_actions),
-                          (_("&Run"), run_menu_actions),
-                          (_("&Tools"), tools_menu_actions),
-                          (_("&View"), []),
-                          (_("&Help"), help_menu_actions))
-
-        # Toolbars
-        file_toolbar_actions = main.toolbar.get_application_toolbar(
-            ApplicationToolbars.File).actions()
-        debug_toolbar_actions = main.toolbar.get_application_toolbar(
-            ApplicationToolbars.Debug).actions()
-        run_toolbar_actions = main.toolbar.get_application_toolbar(
-            ApplicationToolbars.Run).actions()
-
-        self.toolbar_list = ((_("File toolbar"), "file_toolbar",
-                              file_toolbar_actions),
-                             (_("Run toolbar"), "run_toolbar",
-                              run_toolbar_actions),
-                             (_("Debug toolbar"), "debug_toolbar",
-                              debug_toolbar_actions))
-
         # Outline setup
         self.outline_plugin = outline_plugin
 
@@ -1754,13 +1710,9 @@ class EditorMainWidget(PluginMainWidget):
         window = EditorMainWindow(
             self,
             self.stack_menu_actions,
-            self.toolbar_list,
-            self.menu_list,
             outline_plugin=self.outline_plugin
         )
 
-        window.add_toolbars_to_menu("&View", window.get_toolbars())
-        window.load_toolbars()
         window.resize(self.size())
         window.show()
         window.editorwidget.editorsplitter.editorstack.new_window = True
