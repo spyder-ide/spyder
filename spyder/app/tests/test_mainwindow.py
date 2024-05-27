@@ -3986,6 +3986,9 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 
         # Make sure the events are not processed.
         assert not processEvents.called
+
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("q")
     finally:
         QApplication.processEvents = super_processEvents
 
@@ -4086,6 +4089,9 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
         assert osp.samefile(
             main_window.editor.get_current_editor().filename,
             str(test_file))
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
 
 
 @flaky(max_runs=3)

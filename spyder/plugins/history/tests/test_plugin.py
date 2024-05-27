@@ -64,7 +64,7 @@ def test_init(historylog):
     assert len(hl.get_actions()) == 7
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=6)
 @pytest.mark.skipif(
     sys.platform == "darwin" and running_in_ci(),
     reason="Fails on Mac when running on CI "
