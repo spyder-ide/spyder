@@ -9,7 +9,7 @@ Class that handles communications between Spyder kernel and frontend.
 
 Comms transmit data in a list of buffers, and in a json-able dictionnary.
 Here, we only support json to avoid issues of compatibility between python
-versions.
+versions. In the abstraction below, buffers is used to send bytes.
 
 The messages exchanged have the following msg_dict:
 
@@ -36,6 +36,8 @@ The messages exchanged are:
             'settings': A dictionnary of settings,
             'call_args': The function args,
             'call_kwargs': The function kwargs,
+            'buffers_args_idx': The args index that are bytes,
+            'buffers_kwargs_keys': the kwargs keys that are bytes
             }
     - If the 'settings' has `'blocking' =  True`, a reply is sent.
       (spyder_msg_type = 'remote_call_reply'):
@@ -225,7 +227,9 @@ class CommBase:
         return RemoteCallFactory(self, comm_id, callback, **settings)
 
     # ---- Private -----
-    def _send_message(self, spyder_msg_type, content=None, comm_id=None):
+    def _send_message(
+            self, spyder_msg_type, content=None, comm_id=None, buffers=None
+        ):
         """
         Publish custom messages to the other side.
 
@@ -249,7 +253,7 @@ class CommBase:
                 'content': content,
                 }
 
-            self._comms[comm_id]['comm'].send(msg_dict)
+            self._comms[comm_id]['comm'].send(msg_dict, buffers=buffers)
 
     @property
     def _comm_name(self):
@@ -302,21 +306,34 @@ class CommBase:
         # Get message dict
         msg_dict = msg['content']['data']
         spyder_msg_type = msg_dict['spyder_msg_type']
+        buffers = msg['buffers']
 
         if spyder_msg_type in self._message_handlers:
-            self._message_handlers[spyder_msg_type](msg_dict)
+            self._message_handlers[spyder_msg_type](msg_dict, buffers)
         else:
             logger.debug("No such spyder message type: %s" % spyder_msg_type)
 
-    def _handle_remote_call(self, msg):
+    def _handle_remote_call(self, msg, buffers):
         """Handle a remote call."""
         msg_dict = msg['content']
         self.on_incoming_call(msg_dict)
         try:
+            # read buffers
+            args = msg_dict['call_args']
+            kwargs = msg_dict['call_kwargs']
+            
+            if buffers:
+                for idx in msg_dict['buffers_args_idx']:
+                    args[idx] = buffers.pop(0)
+                for name in msg_dict['buffers_kwargs_keys']:
+                    kwargs[name] = buffers.pop(0)
+                assert len(buffers) == 0
+            
             return_value = self._remote_callback(
                     msg_dict['call_name'],
-                    msg_dict['call_args'],
-                    msg_dict['call_kwargs'])
+                    args,
+                    kwargs
+                    )
             self._set_call_return_value(msg_dict, return_value)
         except Exception:
             exc_infos = CommsErrorWrapper(
@@ -350,6 +367,10 @@ class CommBase:
         if not send_reply:
             # Nothing to send back
             return
+        buffers = None
+        if isinstance(return_value, bytes):
+            buffers = [return_value]
+            return_value = None
         content = {
             'is_error': is_error,
             'call_id': call_dict['call_id'],
@@ -358,7 +379,8 @@ class CommBase:
         }
 
         self._send_message(
-            'remote_call_reply', content=content, comm_id=self.calling_comm_id
+            'remote_call_reply', content=content, comm_id=self.calling_comm_id,
+            buffers=buffers
         )
 
     def _register_call(self, call_dict, callback=None):
@@ -379,11 +401,11 @@ class CommBase:
         """A call was received"""
         pass
 
-    def _send_call(self, call_dict, comm_id):
+    def _send_call(self, call_dict, comm_id, buffers=None):
         """Send call."""
         call_dict = self.on_outgoing_call(call_dict)
         self._send_message(
-            'remote_call', content=call_dict, comm_id=comm_id
+            'remote_call', content=call_dict, comm_id=comm_id, buffers=buffers
         )
 
     def _get_call_return_value(self, call_dict, comm_id):
@@ -426,7 +448,7 @@ class CommBase:
         """
         raise NotImplementedError
 
-    def _handle_remote_call_reply(self, msg_dict):
+    def _handle_remote_call_reply(self, msg_dict, buffers):
         """
         A blocking call received a reply.
         """
@@ -435,6 +457,12 @@ class CommBase:
         call_name = content['call_name']
         is_error = content['is_error']
         return_value = content['call_return_value']
+        if is_error:
+            return_value = CommsErrorWrapper.from_json(return_value)
+        elif buffers:
+            assert len(buffers) == 1
+            return_value = buffers[0]
+            content['call_return_value'] = return_value
 
         # Unexpected reply
         if call_id not in self._reply_waitlist:
@@ -463,13 +491,13 @@ class CommBase:
         """
         Handle an error that was raised on the other side asyncronously.
         """
-        CommsErrorWrapper.from_json(error_wrapper).print_error()
+        error_wrapper.print_error()
 
     def _sync_error(self, error_wrapper):
         """
         Handle an error that was raised on the other side syncronously.
         """
-        CommsErrorWrapper.from_json(error_wrapper).raise_error()
+        error_wrapper.raise_error()
 
 
 class RemoteCallFactory:
@@ -511,6 +539,23 @@ class RemoteCall():
         """
         blocking = 'blocking' in self._settings and self._settings['blocking']
         self._settings['send_reply'] = blocking or self._callback is not None
+        
+        # put all bytes in a buffer
+        buffers = []
+        buffers_args_idx = []
+        args = list(args)
+        for i, arg in enumerate(args):
+            if isinstance(arg, bytes):
+                buffers.append(arg)
+                buffers_args_idx.append(i)
+                args[i] = None
+        buffers_kwargs_keys = []
+        for name in kwargs:
+            arg = kwargs[name]
+            if isinstance(arg, bytes):
+                buffers.append(arg)
+                buffers_kwargs_keys.append(name)
+                kwargs[name] = None
 
         call_id = uuid.uuid4().hex
         call_dict = {
@@ -519,6 +564,8 @@ class RemoteCall():
             'settings': self._settings,
             'call_args': args,
             'call_kwargs': kwargs,
+            'buffers_args_idx': buffers_args_idx,
+            'buffers_kwargs_keys': buffers_kwargs_keys
             }
 
         if not self._comms_wrapper.is_open(self._comm_id):
@@ -528,6 +575,6 @@ class RemoteCall():
             logger.debug("Call to unconnected comm: %s" % self._name)
             return
         self._comms_wrapper._register_call(call_dict, self._callback)
-        self._comms_wrapper._send_call(call_dict, self._comm_id)
+        self._comms_wrapper._send_call(call_dict, self._comm_id, buffers)
         return self._comms_wrapper._get_call_return_value(
             call_dict, self._comm_id)

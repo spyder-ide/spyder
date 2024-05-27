@@ -194,7 +194,7 @@ class FrontendComm(CommBase):
         """
         Send an async error back to the frontend to be displayed.
         """
-        self.remote_call()._async_error(error_wrapper)
+        self.remote_call()._async_error(error_wrapper.to_json())
 
     def _register_comm(self, comm):
         """
