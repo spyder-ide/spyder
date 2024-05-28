@@ -417,6 +417,20 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     editorstack = editor_plugin.get_current_editorstack()
     eol_lookup = {'posix': 'LF', 'nt': 'CRLF', 'mac': 'CR'}
 
+    # Check default options values are set
+    qtbot.waitUntil(
+        lambda:
+            not editorstack.convert_eol_on_save
+            and editorstack.convert_eol_on_save_to == 'LF'
+    )
+
+
+    # Load a test file
+    fname = filenames[0]
+    editor_plugin.load(fname)
+    qtbot.wait(500)
+    codeeditor = editor_plugin.get_current_editor()
+
     # Set options
     editor_plugin.set_conf('convert_eol_on_save', True)
     editor_plugin.set_conf('convert_eol_on_save_to', eol_lookup[os_name])
@@ -425,12 +439,6 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
             editorstack.convert_eol_on_save
             and editorstack.convert_eol_on_save_to == eol_lookup[os_name]
     )
-
-    # Load a test file
-    fname = filenames[0]
-    editor_plugin.load(fname)
-    qtbot.wait(500)
-    codeeditor = editor_plugin.get_current_editor()
 
     # Set file as dirty, save it and check that it has the right eol.
     codeeditor.document().setModified(True)
