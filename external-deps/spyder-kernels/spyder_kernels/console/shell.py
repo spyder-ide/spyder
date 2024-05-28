@@ -26,6 +26,7 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
@@ -273,16 +274,7 @@ class SpyderShell(ZMQInteractiveShell):
                 etype, value, tb = self._get_exc_info(exc_tuple)
                 etype = etype.__name__
                 value = value.args
-                stack = traceback.extract_tb(tb.tb_next)
-                stack = [
-                    {
-                        "filename": frame.filename,
-                        "lineno": frame.lineno,
-                        "name": frame.name,
-                        "line": frame.line
-                    }
-                    for frame in stack
-                ]
+                stack = stacksummary_to_json(traceback.extract_tb(tb.tb_next))
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:

@@ -31,6 +31,7 @@ from zmq.utils.garbage import gc
 
 # Local imports
 import spyder_kernels
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
     register_comm_handlers, comm_handler)
@@ -258,7 +259,7 @@ class SpyderKernel(IPythonKernel):
         """Get the current frames."""
         ignore_list = self.get_system_threads_id()
         main_id = threading.main_thread().ident
-        frames = {}
+        stack_dict = {}
         thread_names = {thread.ident: thread.name
                         for thread in threading.enumerate()}
 
@@ -275,18 +276,10 @@ class SpyderKernel(IPythonKernel):
                     thread_name = thread_names[thread_id]
                 else:
                     thread_name = str(thread_id)
-                # Transform stack in a named tuple because FrameSummary objects
+                # Transform stack in a dict because FrameSummary objects
                 # are not compatible between versions of python
-                frames[thread_name] = [
-                    {
-                        "filename": frame.filename,
-                        "lineno": frame.lineno,
-                        "name": frame.name,
-                        "line": frame.line
-                    }
-                    for frame in stack
-                ]
-        return frames
+                stack_dict[thread_name] = stacksummary_to_json(stack)
+        return stack_dict
 
     # --- For the Variable Explorer
     @comm_handler
@@ -362,7 +355,7 @@ class SpyderKernel(IPythonKernel):
         ns = self.shell._get_current_namespace()
         value = ns[name]
         if encoded:
-            # Encode with cloudpickle 
+            # Encode with cloudpickle
             value = cloudpickle.dumps(value)
         return value
 

@@ -24,6 +24,7 @@ from IPython.core.debugger import Pdb as ipyPdb
 from IPython.core.inputtransformer2 import TransformerManager
 
 import spyder_kernels
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.utils import (
     path_is_library, capture_last_Expr, exec_encapsulate_locals
@@ -829,21 +830,10 @@ class SpyderPdb(ipyPdb):
 
         if self.pdb_publish_stack:
             # Publish Pdb stack so we can update the Debugger plugin on Spyder
-            pdb_stack = traceback.StackSummary.extract(self.stack)
-
-            pdb_stack = [
-                {
-                    "filename": frame.filename,
-                    "lineno": frame.lineno,
-                    "name": frame.name,
-                    "line": frame.line
-                }
-                for frame in pdb_stack
-            ]
-
-
+            pdb_stack = stacksummary_to_json(
+                traceback.StackSummary.extract(self.stack)
+            )
             pdb_index = self.curindex
-
             skip_hidden = getattr(self, 'skip_hidden', False)
 
             if skip_hidden:
