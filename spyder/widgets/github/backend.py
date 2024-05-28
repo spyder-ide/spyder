@@ -148,7 +148,7 @@ class GithubBackend(BaseBackend):
 
         try:
             repo = gh.get_repo(f"{self.gh_owner}/{self.gh_repo}")
-            issue = repo.create_issues(title=title, body=body)
+            issue = repo.create_issue(title=title, body=body)
         except github.BadCredentialsException as exc:
             logger.warning('Failed to create issue on Github. '
                            'Status=%d: %s', exc.status, exc.data['message'])
@@ -176,6 +176,13 @@ class GithubBackend(BaseBackend):
                 # redirect user to web interface.
                 raise exc
             return False
+        except Exception as exc:
+            logger.warning('Failed to create issue on Github.\n%s', exc)
+            if self._show_msgbox:
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
+            return False
         else:
             if self._show_msgbox:
                 ret = QMessageBox.question(
@@ -183,7 +190,7 @@ class GithubBackend(BaseBackend):
                     _('Issue successfully created. Would you like to open the '
                       'issue in your web browser?'))
                 if ret in [QMessageBox.Yes, QMessageBox.Ok]:
-                    webbrowser.open(issue.url)
+                    webbrowser.open(issue.html_url)
             return True
 
     def _get_credentials_from_settings(self):
