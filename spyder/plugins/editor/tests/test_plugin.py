@@ -408,7 +408,7 @@ def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
     assert get_eol_chars(text) == get_eol_chars_from_os_name(os_name)
 
 
-@flaky(max_runs=6)
+@pytest.mark.order(1)
 @pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
 def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
                                        os_name):
