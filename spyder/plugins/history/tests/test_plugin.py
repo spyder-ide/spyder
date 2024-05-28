@@ -64,7 +64,7 @@ def test_init(historylog):
     assert len(hl.get_actions()) == 7
 
 
-@flaky(max_runs=6)
+@pytest.mark.order(1)
 @pytest.mark.skipif(
     sys.platform == "darwin" and running_in_ci(),
     reason="Fails on Mac when running on CI "
@@ -98,7 +98,7 @@ def test_add_history(historylog, qtbot):
     assert not hw.editors[0].linenumberarea.isVisible()
     assert hw.editors[0].wordWrapMode() == QTextOption.NoWrap
     assert hw.tabwidget.tabText(1) == tab1
-    qtbot.waitUntil(lambda: hw.tabwidget.tabToolTip(1) == path1)
+    assert hw.tabwidget.tabToolTip(1) == path1
 
     # Try to add same file -- does not process filename again, so
     # linenumbers and wrap doesn't change.
