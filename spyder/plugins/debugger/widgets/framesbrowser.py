@@ -165,7 +165,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.container.setLayout(layout)
         self.stack_layout.addWidget(self.container)
 
-    def _show_frames(self, frames, title, state):
+    def _show_frames(self, stack_dict, title, state):
         """Set current frames"""
         # Reset defaults
         self._persistence = -1  # survive to the next prompt
@@ -173,11 +173,11 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pdb_curindex = None
 
         if self.results_browser is not None:
-            if frames is not None:
+            if stack_dict is not None:
                 self.set_pane_empty(False)
             else:
                 self.set_pane_empty(True)
-            self.results_browser.set_frames(frames)
+            self.results_browser.set_frames(stack_dict)
             self.results_browser.set_title(title)
             try:
                 self.results_browser.sig_activated.disconnect(
@@ -227,18 +227,21 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             FramesBrowserState.Error)
         self.sig_update_actions_requested.emit()
 
-    def show_captured_frames(self, frames):
+    def show_captured_frames(self, stack_dict):
         """Set from captured frames"""
         self._show_frames(
-            frames, _("Snapshot of frames"), FramesBrowserState.Inspect)
+            stack_dict, _("Snapshot of frames"), FramesBrowserState.Inspect)
         self.sig_update_actions_requested.emit()
 
-    def show_pdb_preview(self, frames):
+    def show_pdb_preview(self, stack_dict):
         """Set from captured frames"""
-        if "MainThread" in frames:
-            frames = {_("Waiting for debugger"): frames["MainThread"]}
+        if "MainThread" in stack_dict:
+            stack_dict = {_("Waiting for debugger"): stack_dict["MainThread"]}
         self._show_frames(
-            frames, _("Waiting for debugger"), FramesBrowserState.DebugWait)
+            stack_dict,
+            _("Waiting for debugger"),
+            FramesBrowserState.DebugWait
+        )
         # Disappear immediately
         self._persistence = 0
         self.sig_update_actions_requested.emit()
@@ -470,7 +473,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
         self.threads = None
         self.color_scheme = color_scheme
         self.text_color = color_scheme['normal'][0]
-        self.frames = None
+        self.stack_dict = None
 
         # Setup
         self.setItemsExpandable(True)
@@ -508,17 +511,17 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
         item = self.topLevelItem(top_idx).child(sub_index)
         self.setCurrentItem(item)
 
-    def set_frames(self, frames):
+    def set_frames(self, stack_dict):
         """Set frames."""
         self.clear()
         self.threads = {}
         self.data = {}
-        self.frames = frames
+        self.stack_dict = stack_dict
 
-        if frames is None:
+        if stack_dict is None:
             return
 
-        for thread_id, stack in frames.items():
+        for thread_id, stack in stack_dict.items():
             parent = ThreadItem(
                 self, thread_id, self.text_color)
             parent.setExpanded(True)

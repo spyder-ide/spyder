@@ -5814,11 +5814,11 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
 
-    if len(frames_browser.frames) != expected_number_threads:
+    if len(frames_browser.stack_dict) != expected_number_threads:
         # Failed, print stack for debugging
         import pprint
-        pprint.pprint(frames_browser.frames)
-    assert len(frames_browser.frames) == expected_number_threads
+        pprint.pprint(frames_browser.stack_dict)
+    assert len(frames_browser.stack_dict) == expected_number_threads
 
 
 @flaky(max_runs=3)
@@ -5841,46 +5841,46 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "ZeroDivisionError"
     assert enter_debug_action.isEnabled()
 
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
         debugger.enter_debug()
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Test that executing a statement doesn't change the frames browser
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 1')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('w')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
@@ -5888,7 +5888,7 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         widget.restart_kernel(shell.ipyclient, False)
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
     if os.name == 'nt':
@@ -5899,15 +5899,15 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Crash Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         shell.execute("import ctypes; ctypes.string_at(0)")
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
 
@@ -6014,7 +6014,7 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # a in framesbrowser
-    assert frames_browser.frames['pdb'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
 
     # Recursive debug
     with qtbot.waitSignal(shell.executed):
@@ -6022,13 +6022,13 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # b in framesbrowser
-    assert frames_browser.frames['pdb'][2]["name"] == 'b'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'b'
 
     # Quit recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
     # a in framesbrowser
-    assert frames_browser.frames['pdb'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
 
     # quit debugger
     with qtbot.waitSignal(shell.executed):
@@ -6058,7 +6058,7 @@ def test_interrupt(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
     assert 0 < shell.get_value("i") < 99
-    assert list(frames_browser.frames.keys())[0] == "KeyboardInterrupt"
+    assert list(frames_browser.stack_dict.keys())[0] == "KeyboardInterrupt"
 
     # Interrupt debugging
     with qtbot.waitSignal(shell.executed):
