@@ -76,7 +76,8 @@ class KernelComm(CommBase, QObject):
                 # Disable error muting when debugging or testing
                 call_dict['settings']['display_error'] = True
             super(KernelComm, self)._set_call_return_value(
-                call_dict, return_value, is_error=is_error)
+                call_dict, return_value, is_error=is_error
+            )
 
     def remove(self, comm_id=None, only_closing=False):
         """
@@ -154,7 +155,8 @@ class KernelComm(CommBase, QObject):
         with self.comm_channel_manager(
                 comm_id, queue_message=queue_message):
             return super(KernelComm, self)._send_call(
-                call_dict, comm_id, buffers)
+                call_dict, comm_id, buffers
+            )
 
     def _get_call_return_value(self, call_dict, comm_id):
         """

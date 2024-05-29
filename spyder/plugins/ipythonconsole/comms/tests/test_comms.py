@@ -120,8 +120,7 @@ def comms(kernel):
     kernel_comm._register_comm(commA)
 
     # Bypass the target system as this is not what is being tested
-    frontend_comm._comm_open(
-        commB, {'content': {}})
+    frontend_comm._comm_open(commB, {'content': {}})
 
     return (kernel_comm, frontend_comm)
 

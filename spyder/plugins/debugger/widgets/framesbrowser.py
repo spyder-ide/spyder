@@ -230,7 +230,8 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def show_captured_frames(self, stack_dict):
         """Set from captured frames"""
         self._show_frames(
-            stack_dict, _("Snapshot of frames"), FramesBrowserState.Inspect)
+            stack_dict, _("Snapshot of frames"), FramesBrowserState.Inspect
+        )
         self.sig_update_actions_requested.emit()
 
     def show_pdb_preview(self, stack_dict):
@@ -523,7 +524,8 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
 
         for thread_id, stack in stack_dict.items():
             parent = ThreadItem(
-                self, thread_id, self.text_color)
+                self, thread_id, self.text_color
+            )
             parent.setExpanded(True)
             self.threads[thread_id] = parent
 
