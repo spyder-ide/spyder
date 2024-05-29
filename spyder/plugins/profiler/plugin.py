@@ -84,7 +84,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                     'name': 'File'
                 },
                 'output_formats': [],
-                'configuration_widget': ProfilerPyConfigurationGroup,
+                'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
                 'priority': 3
             },
