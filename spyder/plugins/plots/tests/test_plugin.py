@@ -28,7 +28,9 @@ def plots_plugin(qapp, qtbot):
     plots.get_widget().setMinimumSize(700, 500)
     plots.get_widget().add_shellwidget(Mock())
     qtbot.addWidget(plots.get_widget())
-    plots.get_widget().show()
+    with qtbot.waitExposed(plots.get_widget()):
+        plots.get_widget().show()
+
     return plots
 
 

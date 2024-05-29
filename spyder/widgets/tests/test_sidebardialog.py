@@ -58,7 +58,11 @@ def sidebar_dialog(qapp, qtbot):
 
     dialog = TestDialog()
     qtbot.addWidget(dialog)
-    dialog.show()
+
+    # To check the dialog visually
+    with qtbot.waitExposed(dialog):
+        dialog.show()
+
     return dialog
 
 
@@ -67,9 +71,6 @@ def sidebar_dialog(qapp, qtbot):
 def test_sidebardialog(sidebar_dialog, qtbot):
     dialog = sidebar_dialog
     assert dialog is not None
-
-    # To check the dialog visually
-    qtbot.wait(1000)
 
     # Check label displayed in the initial page
     assert "one" in dialog.get_page().label.text()
