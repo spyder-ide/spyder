@@ -276,9 +276,11 @@ class SpyderKernel(IPythonKernel):
                     thread_name = thread_names[thread_id]
                 else:
                     thread_name = str(thread_id)
+
                 # Transform stack in a dict because FrameSummary objects
-                # are not compatible between versions of python
+                # are not compatible between versions of Python
                 stack_dict[thread_name] = stacksummary_to_json(stack)
+
         return stack_dict
 
     # --- For the Variable Explorer
@@ -365,6 +367,7 @@ class SpyderKernel(IPythonKernel):
         if encoded:
             # Decode_value
             value = cloudpickle.loads(value)
+
         ns = self.shell._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
