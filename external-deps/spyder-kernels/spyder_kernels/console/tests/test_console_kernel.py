@@ -1272,13 +1272,12 @@ def test_interrupt():
     """
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
-    import pickle
     with setup_kernel(cmd) as client:
         kernel_comm = CommBase()
 
         # Create new comm and send the highest protocol
         comm = Comm(kernel_comm._comm_name, client)
-        comm.open(data={'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL})
+        comm.open(data={})
         comm._send_channel = client.control_channel
         kernel_comm._register_comm(comm)
 
@@ -1328,13 +1327,12 @@ def test_enter_debug_after_interruption():
     """
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
-    import pickle
     with setup_kernel(cmd) as client:
         kernel_comm = CommBase()
 
         # Create new comm and send the highest protocol
         comm = Comm(kernel_comm._comm_name, client)
-        comm.open(data={'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL})
+        comm.open(data={})
         comm._send_channel = client.control_channel
         kernel_comm._register_comm(comm)
 
@@ -1389,6 +1387,27 @@ def test_django_settings(kernel):
 
     nsview = repr(kernel.get_namespace_view())
     assert "'settings':" in nsview
+
+
+def test_hard_link_pdb(tmpdir):
+    """
+    Test that breakpoints on a file are recognised even when the path is
+    different.
+    """
+    # Create a file and a hard link
+    d = tmpdir.join("file.py")
+    d.write('def func():\n    bb = "hello"\n')
+    folder = tmpdir.join("folder")
+    os.mkdir(folder)
+    hard_link = folder.join("file.py")
+    os.link(d, hard_link)
+
+    # Make sure both paths point to the same file
+    assert os.path.samefile(d, hard_link)
+
+    # Make sure canonic returns the same path for a single file
+    pdb_obj = SpyderPdb()
+    assert pdb_obj.canonic(str(d)) == pdb_obj.canonic(str(hard_link))
 
 
 if __name__ == "__main__":

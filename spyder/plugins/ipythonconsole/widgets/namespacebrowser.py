@@ -12,6 +12,7 @@ the Variable Explorer
 # Standard library imports
 import logging
 from pickle import PicklingError, UnpicklingError
+import cloudpickle
 
 # Third-party imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -45,10 +46,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 "<b>Note</b>: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
         try:
-            return self.call_kernel(
+            value = self.call_kernel(
                 blocking=True,
                 display_error=True,
-                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
+                timeout=CALL_KERNEL_TIMEOUT
+            ).get_value(name, encoded=True)
+            value = cloudpickle.loads(value)
+            return value
         except TimeoutError:
             raise ValueError(msg % reason_big)
         except (PicklingError, UnpicklingError, TypeError):
@@ -64,11 +68,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_value(self, name, value):
         """Set value for a variable"""
+        # Encode with cloudpickle and base64
+        encoded_value = cloudpickle.dumps(value)
         self.call_kernel(
             interrupt=True,
             blocking=False,
             display_error=True,
-            ).set_value(name, value)
+            ).set_value(name, encoded_value, encoded=True)
 
     def remove_value(self, name):
         """Remove a variable"""

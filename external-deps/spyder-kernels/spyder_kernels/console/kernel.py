@@ -20,6 +20,7 @@ import sys
 import traceback
 import tempfile
 import threading
+import cloudpickle
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
@@ -30,6 +31,7 @@ from zmq.utils.garbage import gc
 
 # Local imports
 import spyder_kernels
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
     register_comm_handlers, comm_handler)
@@ -257,7 +259,7 @@ class SpyderKernel(IPythonKernel):
         """Get the current frames."""
         ignore_list = self.get_system_threads_id()
         main_id = threading.main_thread().ident
-        frames = {}
+        stack_dict = {}
         thread_names = {thread.ident: thread.name
                         for thread in threading.enumerate()}
 
@@ -274,8 +276,12 @@ class SpyderKernel(IPythonKernel):
                     thread_name = thread_names[thread_id]
                 else:
                     thread_name = str(thread_id)
-                frames[thread_name] = stack
-        return frames
+
+                # Transform stack in a dict because FrameSummary objects
+                # are not compatible between versions of Python
+                stack_dict[thread_name] = stacksummary_to_json(stack)
+
+        return stack_dict
 
     # --- For the Variable Explorer
     @comm_handler
@@ -346,14 +352,22 @@ class SpyderKernel(IPythonKernel):
             return None
 
     @comm_handler
-    def get_value(self, name):
+    def get_value(self, name, encoded=False):
         """Get the value of a variable"""
         ns = self.shell._get_current_namespace()
-        return ns[name]
+        value = ns[name]
+        if encoded:
+            # Encode with cloudpickle
+            value = cloudpickle.dumps(value)
+        return value
 
     @comm_handler
-    def set_value(self, name, value):
+    def set_value(self, name, value, encoded=False):
         """Set the value of a variable"""
+        if encoded:
+            # Decode_value
+            value = cloudpickle.loads(value)
+
         ns = self.shell._get_reference_namespace(name)
         ns[name] = value
         self.log.debug(ns)
@@ -705,7 +719,7 @@ class SpyderKernel(IPythonKernel):
             exec("from pylab import *", self.shell.user_ns)
             self.shell.special = special
             return
-           
+
         if special == "sympy":
             import sympy  # noqa
             sympy_init = "\n".join([

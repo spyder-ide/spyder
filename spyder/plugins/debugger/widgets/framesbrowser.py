@@ -58,17 +58,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         Word to select on given row.
     """
 
-    sig_show_namespace = Signal(dict, object)
-    """
-    Show the namespace
-
-    Parameters
-    ----------
-    namespace: dict
-        A namespace view created by spyder_kernels
-    shellwidget: ShellWidget
-        The shellwidget the request originated from
-    """
     sig_update_actions_requested = Signal()
     """Update the widget actions."""
 
@@ -110,11 +99,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
             # take back focus
             self.shellwidget._control.setFocus()
 
-    def set_context_menu(self, context_menu, empty_context_menu):
-        """Set the context menus."""
-        self.results_browser.menu = context_menu
-        self.results_browser.empty_ws_menu = empty_context_menu
-
     def toggle_finder(self, show):
         """Show and hide the finder."""
         self.finder.set_visible(show)
@@ -147,8 +131,6 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
         self.results_browser = ResultsBrowser(self, self.color_scheme)
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
-        self.results_browser.sig_show_namespace.connect(
-            self._show_namespace)
 
         self.finder = FinderWidget(self)
         self.finder.sig_find_text.connect(self.do_find)
@@ -183,13 +165,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.container.setLayout(layout)
         self.stack_layout.addWidget(self.container)
 
-    def _show_namespace(self, namespace):
-        """
-        Request for the given namespace to be shown in the Variable Explorer.
-        """
-        self.sig_show_namespace.emit(namespace, self.shellwidget)
-
-    def _show_frames(self, frames, title, state):
+    def _show_frames(self, stack_dict, title, state):
         """Set current frames"""
         # Reset defaults
         self._persistence = -1  # survive to the next prompt
@@ -197,11 +173,11 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.pdb_curindex = None
 
         if self.results_browser is not None:
-            if frames is not None:
+            if stack_dict is not None:
                 self.set_pane_empty(False)
             else:
                 self.set_pane_empty(True)
-            self.results_browser.set_frames(frames)
+            self.results_browser.set_frames(stack_dict)
             self.results_browser.set_title(title)
             try:
                 self.results_browser.sig_activated.disconnect(
@@ -247,22 +223,26 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def show_exception(self, etype, error, tb):
         """Set frames from exception"""
         self._show_frames(
-            {etype.__name__: tb}, _("Exception occured"),
+            {etype: tb}, _("Exception occured"),
             FramesBrowserState.Error)
         self.sig_update_actions_requested.emit()
 
-    def show_captured_frames(self, frames):
+    def show_captured_frames(self, stack_dict):
         """Set from captured frames"""
         self._show_frames(
-            frames, _("Snapshot of frames"), FramesBrowserState.Inspect)
+            stack_dict, _("Snapshot of frames"), FramesBrowserState.Inspect
+        )
         self.sig_update_actions_requested.emit()
 
-    def show_pdb_preview(self, frames):
+    def show_pdb_preview(self, stack_dict):
         """Set from captured frames"""
-        if "MainThread" in frames:
-            frames = {_("Waiting for debugger"): frames["MainThread"]}
+        if "MainThread" in stack_dict:
+            stack_dict = {_("Waiting for debugger"): stack_dict["MainThread"]}
         self._show_frames(
-            frames, _("Waiting for debugger"), FramesBrowserState.DebugWait)
+            stack_dict,
+            _("Waiting for debugger"),
+            FramesBrowserState.DebugWait
+        )
         # Disappear immediately
         self._persistence = 0
         self.sig_update_actions_requested.emit()
@@ -352,7 +332,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 class LineFrameItem(QTreeWidgetItem):
 
     def __init__(self, parent, index, filename, line, lineno, name,
-                 f_locals, font, color_scheme=None):
+                 font, color_scheme=None):
         self.index = index
         self.filename = filename
         self.text = line
@@ -360,7 +340,6 @@ class LineFrameItem(QTreeWidgetItem):
         self.context = name
         self.color_scheme = color_scheme
         self.font = font
-        self.locals = f_locals
         QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
                                  QTreeWidgetItem.Type)
 
@@ -487,7 +466,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
     CONF_SECTION = 'debugger'
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
-    sig_show_namespace = Signal(dict)
 
     def __init__(self, parent, color_scheme):
         super().__init__(parent)
@@ -496,10 +474,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
         self.threads = None
         self.color_scheme = color_scheme
         self.text_color = color_scheme['normal'][0]
-        self.frames = None
-        self.menu = None
-        self.empty_ws_menu = None
-        self.view_locals_action = None
+        self.stack_dict = None
 
         # Setup
         self.setItemsExpandable(True)
@@ -527,36 +502,6 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
             # Index exists if the item is in self.data
             self.sig_activated.emit(self.currentItem().index)
 
-    def view_item_locals(self):
-        """View item locals."""
-        item = self.currentItem()
-        item_has_locals = (
-            isinstance(item, LineFrameItem) and
-            item.locals is not None)
-        if item_has_locals:
-            self.sig_show_namespace.emit(item.locals)
-
-    def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
-        if self.menu is None:
-            return
-
-        if self.frames:
-            self.refresh_menu()
-            self.menu.popup(event.globalPos())
-            event.accept()
-        else:
-            self.empty_ws_menu.popup(event.globalPos())
-            event.accept()
-
-    def refresh_menu(self):
-        """Refresh context menu"""
-        item = self.currentItem()
-        item_has_locals = (
-            isinstance(item, LineFrameItem) and
-            item.locals is not None)
-        self.view_locals_action.setEnabled(item_has_locals)
-
     @Slot(int)
     def sort_section(self, idx):
         """Sort section"""
@@ -567,19 +512,20 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
         item = self.topLevelItem(top_idx).child(sub_index)
         self.setCurrentItem(item)
 
-    def set_frames(self, frames):
+    def set_frames(self, stack_dict):
         """Set frames."""
         self.clear()
         self.threads = {}
         self.data = {}
-        self.frames = frames
+        self.stack_dict = stack_dict
 
-        if frames is None:
+        if stack_dict is None:
             return
 
-        for thread_id, stack in frames.items():
+        for thread_id, stack in stack_dict.items():
             parent = ThreadItem(
-                self, thread_id, self.text_color)
+                self, thread_id, self.text_color
+            )
             parent.setExpanded(True)
             self.threads[thread_id] = parent
 
@@ -588,15 +534,14 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
                     item = LineFrameItem(
                         parent,
                         idx,
-                        frame.filename,
-                        frame.line,
-                        frame.lineno,
-                        frame.name,
-                        frame.locals,
+                        frame["filename"],
+                        frame["line"],
+                        frame["lineno"],
+                        frame["name"],
                         self.font,
                         self.color_scheme
                     )
-                    self.data[id(item)] = (frame.filename, frame.lineno)
+                    self.data[id(item)] = (frame["filename"], frame["lineno"])
             else:
                 item = LineFrameItem(
                     parent,

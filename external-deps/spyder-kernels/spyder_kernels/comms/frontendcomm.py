@@ -176,8 +176,6 @@ class FrontendComm(CommBase):
         """
         self.calling_comm_id = comm.comm_id
         self._register_comm(comm)
-        self._set_pickle_protocol(
-            msg['content']['data']['pickle_highest_protocol'])
 
         # IOPub might not be connected yet, keep sending messages until a
         # reply is received.
@@ -196,7 +194,7 @@ class FrontendComm(CommBase):
         """
         Send an async error back to the frontend to be displayed.
         """
-        self.remote_call()._async_error(error_wrapper)
+        self.remote_call()._async_error(error_wrapper.to_json())
 
     def _register_comm(self, comm):
         """
