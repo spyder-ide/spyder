@@ -58,6 +58,12 @@ class CollapsibleWidget(QCollapsible):
         margins.setBottom(bottom_margin)
         self.content().layout().setContentsMargins(margins)
 
+    def set_content_right_margin(self, right_margin):
+        """Set right margin of the content area to `right_margin`."""
+        margins = self.content().layout().contentsMargins()
+        margins.setRight(right_margin)
+        self.content().layout().setContentsMargins(margins)
+
     def _generate_stylesheet(self):
         """Generate base stylesheet for this widget."""
         css = qstylizer.style.StyleSheet()

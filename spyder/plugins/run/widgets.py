@@ -658,8 +658,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         custom_config.addWidget(self.executor_group)
         custom_config.addWidget(self.wdir_group)
 
-        # Remove unnecessary margin at the bottom.
+        # Fix bottom and left margins.
         custom_config.set_content_bottom_margin(0)
+        custom_config.set_content_right_margin(AppStyle.MarginSize)
 
         # Center dialog after custom_config is expanded/collapsed
         custom_config._animation.finished.connect(self._center_dialog)
@@ -1054,10 +1055,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         main_window = getattr(QApplication.instance(), 'main_window', None)
 
         if main_window:
-            x = (
-                main_window.pos().x()
-                + ((main_window.width() - self.width()) // 2)
-            )
+            # We only center the dialog vertically because there's no need to
+            # do it horizontally.
+            x = self.x()
 
             y = (
                 main_window.pos().y()
