@@ -16,7 +16,6 @@ Adapted from qcrash/backends/base.py and qcrash/backends/github.py of the
 
 import logging
 import os
-import sys
 import webbrowser
 
 try:
@@ -26,18 +25,17 @@ try:
 except Exception:
     pass
 
+import github
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication, QMessageBox
 
 
 from spyder.config.manager import CONF
 from spyder.config.base import _, running_under_pytest
-from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 
-def _logger():
-    return logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BaseBackend(object):
@@ -50,6 +48,7 @@ class BaseBackend(object):
     The report's title and body will be formatted automatically by the
     associated :attr:`formatter`.
     """
+
     def __init__(self, formatter, button_text, button_tooltip,
                  button_icon=None, need_review=True, parent_widget=None):
         """
@@ -104,6 +103,7 @@ class GithubBackend(BaseBackend):
         github_backend = spyder.widgets.github.backend.GithubBackend(
             'spyder-ide', 'spyder')
     """
+
     def __init__(self, gh_owner, gh_repo, formatter=None, parent_widget=None):
         """
         :param gh_owner: Name of the owner of the github repository.
@@ -118,56 +118,79 @@ class GithubBackend(BaseBackend):
         self._show_msgbox = True  # False when running the test suite
 
     def send_report(self, title, body, application_log=None):
-        _logger().debug('sending bug report on github\ntitle=%s\nbody=%s',
-                        title, body)
+        logger.debug('sending bug report on github\ntitle=%s\nbody=%s',
+                     title, body)
 
         # Credentials
         credentials = self.get_user_credentials()
         token = credentials['token']
-        remember_token = credentials['remember_token']
 
         if token is None:
             return False
-        _logger().debug('got user credentials')
+        logger.debug('got user credentials')
+
+        try:
+            auth = github.Auth.Token(token)
+        except Exception as exc:
+            logger.warning("Invalid token.")
+            if self._show_msgbox:
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
+            return False
+
+        gh = github.Github(auth=auth)
 
         # upload log file as a gist
         if application_log:
-            url = self.upload_log_file(application_log)
+            url = self.upload_log_file(gh, application_log)
             body += '\nApplication log: %s' % url
+
         try:
-            gh = github.GitHub(access_token=token)
-            repo = gh.repos(self.gh_owner)(self.gh_repo)
-            ret = repo.issues.post(title=title, body=body)
-        except github.ApiError as e:
-            _logger().warning('Failed to send bug report on Github. '
-                              'response=%r', e.response)
-            # invalid credentials
-            if e.response.code == 401:
-                if self._show_msgbox:
-                    QMessageBox.warning(
-                        self.parent_widget, _('Invalid credentials'),
-                        _('Failed to create Github issue, '
-                          'invalid credentials...'))
-            else:
-                # other issue
-                if self._show_msgbox:
-                    QMessageBox.warning(
-                        self.parent_widget,
-                        _('Failed to create issue'),
-                        _('Failed to create Github issue. Error %d') %
-                        e.response.code)
+            repo = gh.get_repo(f"{self.gh_owner}/{self.gh_repo}")
+            issue = repo.create_issue(title=title, body=body)
+        except github.BadCredentialsException as exc:
+            logger.warning('Failed to create issue on Github. '
+                           'Status=%d: %s', exc.status, exc.data['message'])
+            if self._show_msgbox:
+                QMessageBox.warning(
+                    self.parent_widget, _('Invalid credentials'),
+                    _('Failed to create issue on Github, '
+                      'invalid credentials...')
+                )
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
+            return False
+        except github.GithubException as exc:
+            logger.warning('Failed to create issue on Github. '
+                           'Status=%d: %s', exc.status, exc.data['message'])
+            if self._show_msgbox:
+                QMessageBox.warning(
+                    self.parent_widget,
+                    _('Failed to create issue'),
+                    _('Failed to create issue on Github. Status %d: %s') %
+                    (exc.status, exc.data['message'])
+                )
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
+            return False
+        except Exception as exc:
+            logger.warning('Failed to create issue on Github.\n%s', exc)
+            if self._show_msgbox:
+                # Raise error so that SpyderErrorDialog can capture and
+                # redirect user to web interface.
+                raise exc
             return False
         else:
-            issue_nbr = ret['number']
             if self._show_msgbox:
                 ret = QMessageBox.question(
                     self.parent_widget, _('Issue created on Github'),
                     _('Issue successfully created. Would you like to open the '
                       'issue in your web browser?'))
-            if ret in [QMessageBox.Yes, QMessageBox.Ok]:
-                webbrowser.open(
-                    'https://github.com/%s/%s/issues/%d' % (
-                        self.gh_owner, self.gh_repo, issue_nbr))
+                if ret in [QMessageBox.Yes, QMessageBox.Ok]:
+                    webbrowser.open(issue.html_url)
             return True
 
     def _get_credentials_from_settings(self):
@@ -191,7 +214,6 @@ class GithubBackend(BaseBackend):
                                           'an issue.'))
                 remember = False
         CONF.set('main', 'report_error/remember_token', remember)
-
 
     def get_user_credentials(self):
         """Get user credentials with the login dialog."""
@@ -227,17 +249,22 @@ class GithubBackend(BaseBackend):
 
         return credentials
 
-    def upload_log_file(self, log_content):
-        gh = github.GitHub()
+    def upload_log_file(self, gh, log_content):
+        auth_user = gh.get_user()
         try:
             qApp = QApplication.instance()
             qApp.setOverrideCursor(Qt.WaitCursor)
-            ret = gh.gists.post(
+            gist = auth_user.create_gist(
                 description="SpyderIDE log", public=True,
-                files={'SpyderIDE.log': {"content": log_content}})
+                files={'SpyderIDE.log': github.InputFileContent(log_content)}
+            )
             qApp.restoreOverrideCursor()
-        except github.ApiError:
-            _logger().warning('Failed to upload log report as a gist')
-            return '"Failed to upload log file as a gist"'
+        except github.GithubException as exc:
+            msg = (
+                'Failed to upload log report as a gist. Status '
+                f'{exc.status}: {exc.data["message"]}'
+            )
+            logger.warning(msg)
+            return msg
         else:
-            return ret['html_url']
+            return gist.html_url
