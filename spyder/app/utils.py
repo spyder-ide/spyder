@@ -187,6 +187,15 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         # This is shown when expanding/collpasing folders in the Files plugin
         # after spyder-ide/spyder#
         "QFont::setPixelSize: Pixel size <= 0 (0)",
+        # These warnings are shown uncollapsing CollapsibleWidget
+        "QPainter::begin: Paint device returned engine == 0, type: 2",
+        "QPainter::save: Painter not active",
+        "QPainter::setPen: Painter not active",
+        "QPainter::setWorldTransform: Painter not active",
+        "QPainter::setOpacity: Painter not active",
+        "QFont::setPixelSize: Pixel size <= 0 (-3)",
+        "QPainter::setFont: Painter not active",
+        "QPainter::restore: Unbalanced save/restore",
     ]
     if msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
