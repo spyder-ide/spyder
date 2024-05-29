@@ -69,7 +69,7 @@ def test_init(historylog):
     sys.platform == "darwin" and running_in_ci(),
     reason="Fails on Mac when running on CI "
 )
-def test_add_history(historylog, qtbot):
+def test_add_history(historylog):
     """
     Test the add_history method.
 
