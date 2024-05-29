@@ -549,6 +549,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # Name to save custom configuration
         name_params_label = QLabel(_("Name:"))
         self.name_params_text = QLineEdit(self)
+        self.name_params_text.setPlaceholderText(
+            _("Set a name for this configuration")
+        )
 
         # This action needs to be added before setting an icon for it so that
         # it doesn't show up in the line edit (despite being set as not visible
@@ -560,9 +563,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.name_params_text.status_action = status_action
 
         status_action.setIcon(ima.icon("error"))
-        status_action.setToolTip(
-            _("You need to provide a name to save this configuration")
-        )
         status_action.setVisible(False)
 
         # Buttons
@@ -866,15 +866,38 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         widget_conf = self.current_widget.get_configuration()
         self.name_params_text.status_action.setVisible(False)
 
-        # Check if config is named but only when the dialog is visible
+        # Different checks for the config name
         params_name = self.name_params_text.text()
-        if self.isVisible() and not params_name:
-            # Don't allow to save configs without a name
-            self.name_params_text.status_action.setVisible(True)
+        if self.isVisible():
+            allow_to_close = True
 
-            # This allows to close the dialog when clicking the Cancel button
-            self.status = RunDialogStatus.Close
-            return
+            if not params_name:
+                # Don't allow to save configs without a name
+                self.name_params_text.status_action.setVisible(True)
+                self.name_params_text.status_action.setToolTip(
+                    _("You need to provide a name to save this configuration")
+                )
+                allow_to_close = False
+                self._save_as_global = False
+            elif self._save_as_global and (
+                params_name == _("Custom for this file")
+                or params_name == self.parameters_combo.lineEdit().text()
+            ):
+                # Don't allow to save a global config named "Custom for this
+                # file" or with the current config name because it'll end up
+                # being confusing.
+                allow_to_close = False
+                self.name_params_text.status_action.setVisible(True)
+                self.name_params_text.status_action.setToolTip(
+                    _("Select a different name for this configuration")
+                )
+                self._save_as_global = False
+
+            if not allow_to_close:
+                # With this the dialog can be closed when clicking the Cancel
+                # button
+                self.status = RunDialogStatus.Close
+                return
 
         # Get index associated with config
         if widget_conf == default_conf:
