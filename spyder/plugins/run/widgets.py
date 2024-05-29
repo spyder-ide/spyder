@@ -53,6 +53,7 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.collapsible import CollapsibleWidget
+from spyder.widgets.helperwidgets import TipWidget
 
 
 # Main constants
@@ -521,17 +522,39 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # --- Executor and parameters widgets
         executor_label = QLabel(_("Run this file in:"))
         self.executor_combo = SpyderComboBox(self)
+        self.executor_combo.setMinimumWidth(250)
+        executor_tip = TipWidget(
+            _(
+                "This is the plugin that will be used for execution when you "
+                "click on the Run button"
+            ),
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover'),
+            size=23,
+            wrap_text=True
+        )
+
         parameters_label = QLabel(_("Preset configuration:"))
         self.parameters_combo = SpyderComboBox(self)
-
-        self.executor_combo.setMinimumWidth(250)
         self.parameters_combo.setMinimumWidth(250)
+        parameters_tip = TipWidget(
+            _(
+                "Select here between global or local (i.e. for this file) "
+                "execution parameters. You can set the latter below"
+            ),
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover'),
+            size=23,
+            wrap_text=True
+        )
 
         executor_g_layout = QGridLayout()
         executor_g_layout.addWidget(executor_label, 0, 0)
         executor_g_layout.addWidget(self.executor_combo, 0, 1)
+        executor_g_layout.addWidget(executor_tip, 0, 2)
         executor_g_layout.addWidget(parameters_label, 1, 0)
         executor_g_layout.addWidget(self.parameters_combo, 1, 1)
+        executor_g_layout.addWidget(parameters_tip, 1, 2)
 
         executor_layout = QHBoxLayout()
         executor_layout.addLayout(executor_g_layout)
@@ -551,6 +574,16 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.name_params_text = QLineEdit(self)
         self.name_params_text.setPlaceholderText(
             _("Set a name for this configuration")
+        )
+        name_params_tip = TipWidget(
+            _(
+                "Select a name for the execution parameters you want to set. "
+                "They will be saved after clicking the Ok button below"
+            ),
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover'),
+            size=23,
+            wrap_text=True
         )
 
         # This action needs to be added before setting an icon for it so that
@@ -578,6 +611,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         config_props_layout.addWidget(name_params_label, 0, 0)
         config_props_layout.addWidget(self.name_params_text, 0, 1)
+        config_props_layout.addWidget(name_params_tip, 0, 2)
         config_props_layout.addLayout(buttons_layout, 1, 1)
 
         # --- Runner settings
