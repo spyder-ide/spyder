@@ -11,6 +11,7 @@ from qtpy.QtWidgets import QLabel, QVBoxLayout
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.sidebardialog import SidebarDialog, SidebarPage
 

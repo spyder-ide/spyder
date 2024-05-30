@@ -12,6 +12,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.plots.plugin import Plots
 from spyder.plugins.plots.widgets.main_widget import PlotsWidgetActions
