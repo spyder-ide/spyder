@@ -55,9 +55,8 @@ def sidebar_dialog(qapp, qtbot):
     class TestDialog(SidebarDialog):
         PAGE_CLASSES = [Page1, Page2]
 
-    # TODO: Setting app style causes test run to segfault over CI.
-    # Should the style be set elsewhere?
-    # qapp.setStyleSheet(str(APP_STYLESHEET))
+    if running_in_ci():
+        qapp.setStyleSheet(str(APP_STYLESHEET))
     dialog = TestDialog()
     qtbot.addWidget(dialog)
 

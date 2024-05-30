@@ -27,9 +27,8 @@ def plots_plugin(qapp, qtbot):
     plots.get_widget().setMinimumSize(700, 500)
     plots.get_widget().add_shellwidget(Mock())
     qtbot.addWidget(plots.get_widget())
-    # TODO: Setting app style causes test run to segfault over CI
-    # should the style be set elsewhere?
-    # qapp.setStyleSheet(str(APP_STYLESHEET))
+    if not running_in_ci():
+        qapp.setStyleSheet(str(APP_STYLESHEET))
     with qtbot.waitExposed(plots.get_widget()):
         plots.get_widget().show()
 

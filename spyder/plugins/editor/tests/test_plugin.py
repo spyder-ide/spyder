@@ -416,7 +416,7 @@ def test_save_with_preferred_eol_chars(editor_plugin, python_files, qtbot,
     editorstack = editor_plugin.get_current_editorstack()
     eol_lookup = {'posix': 'LF', 'nt': 'CRLF', 'mac': 'CR'}
 
-    # Check default options values are set
+    # Check default options value are set
     qtbot.waitUntil(
         lambda:
             not editorstack.convert_eol_on_save

@@ -482,9 +482,9 @@ def main_window(request, tmpdir, qtbot):
             # after running test that uses the fixture
             # Currently 'test_out_runfile_runcell' is the last tests so
             # in order to prevent errors finalizing the test suit such test has
-            # this marker
+            # this marker.
             # Also, try to decrease chances of freezes/timeouts from tests that
-            # are known to have leaks by also closing the mainwindow for them
+            # are known to have leaks by also closing the main window for them.
             known_leak = request.node.get_closest_marker(
                 'known_leak')
             close_main_window = request.node.get_closest_marker(
