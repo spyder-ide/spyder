@@ -185,24 +185,23 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             spacing='0px',
         )
 
-        # Remove margins around separators
+        # Remove margins around separators and decrease size a bit
         css['QMainWindow::separator:horizontal'].setValues(
             marginTop='0px',
-            marginBottom='0px'
+            marginBottom='0px',
+            # This is summed to the separator padding (2px)
+            width="3px",
+            # Hide image because the default image is not visible at this size
+            image="none"
         )
 
         css['QMainWindow::separator:vertical'].setValues(
             marginLeft='0px',
             marginRight='0px',
-            height='3px'
-        )
-
-        # TODO: Remove when the editor is migrated to the new API!
-        css["QMenu::item"].setValues(
-            height='1.4em',
-            padding='4px 8px 4px 8px',
-            fontFamily=font_family,
-            fontSize=f'{font_size}pt'
+            # This is summed to the separator padding (2px)
+            height='3px',
+            # Hide image because the default image is not visible at this size
+            image="none"
         )
 
         # Increase padding for QPushButton's
@@ -266,8 +265,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
-        # We need to substract here a tiny bit bigger value to match the size
-        # of comboboxes and lineedits
+        # Do the same for spinboxes
         css.QSpinBox.setValues(
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
@@ -283,6 +281,27 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
+        )
+
+        # Decrease splitter handle size to be a bit smaller than QMainWindow
+        # separators.
+        css['QSplitter::handle'].setValues(
+            padding="0px",
+        )
+
+        css['QSplitter::handle:horizontal'].setValues(
+            width="5px",
+            image="none"
+        )
+
+        css['QSplitter::handle:vertical'].setValues(
+            height="5px",
+            image="none"
+        )
+
+        # Make splitter handle color match the one of QMainWindow separators
+        css['QSplitter::handle:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_6,
         )
 
         # Add padding to tooltips

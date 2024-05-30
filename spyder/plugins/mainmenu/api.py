@@ -10,7 +10,51 @@ Spyder application menu constants.
 
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import AppStyle, SpyderStyleSheet
 
+
+# ---- Stylesheet
+# -----------------------------------------------------------------------------
+class _MenuBarStylesheet(SpyderStyleSheet):
+    """Stylesheet for menubars used in Spyder."""
+
+    def set_stylesheet(self):
+        css = self.get_stylesheet()
+
+        # Set the same color as the one used for the app toolbar
+        css.QMenuBar.setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+        )
+
+        # Give more padding and margin to items
+        css['QMenuBar::item'].setValues(
+            padding=f'{2 * AppStyle.MarginSize}px',
+            margin='0px 2px'
+        )
+
+        # Remove padding when pressing main menus
+        css['QMenuBar::item:pressed'].setValues(
+            padding='0px'
+        )
+
+        # Set hover and pressed state of items in the menu bar
+        for state in ['selected', 'pressed']:
+            # Don't use a different color for the QMenuBar pressed state
+            # because a lighter color has too little contrast with the text.
+            bg_color = SpyderPalette.COLOR_BACKGROUND_5
+
+            css[f"QMenuBar::item:{state}"].setValues(
+                backgroundColor=bg_color,
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
+            )
+
+
+MENUBAR_STYLESHEET = _MenuBarStylesheet()
+
+
+# ---- Menu constants
+# -----------------------------------------------------------------------------
 class ApplicationContextMenu:
     Documentation = 'context_documentation_section'
     About = 'context_about_section'
@@ -104,6 +148,8 @@ class HelpMenuSections:
     About = 'about_section'
 
 
+# ---- App menu class
+# -----------------------------------------------------------------------------
 class ApplicationMenu(SpyderMenu):
     """
     Spyder main window application menu.

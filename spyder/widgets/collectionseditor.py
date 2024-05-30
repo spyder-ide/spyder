@@ -1654,7 +1654,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 section=CollectionsEditorToolbarSections.ViewAndRest
             )
 
-        toolbar._render()
+        toolbar.render()
 
         # Update the toolbar actions state
         self.editor.refresh_menu()

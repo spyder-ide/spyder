@@ -90,7 +90,7 @@ class Toolbar(SpyderPluginV2):
         container = self.get_container()
 
         for toolbar in container.get_application_toolbars():
-            toolbar._render()
+            toolbar.render()
 
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()

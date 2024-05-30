@@ -24,6 +24,7 @@ from IPython.core.debugger import Pdb as ipyPdb
 from IPython.core.inputtransformer2 import TransformerManager
 
 import spyder_kernels
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.utils import (
     path_is_library, capture_last_Expr, exec_encapsulate_locals
@@ -117,6 +118,10 @@ class SpyderPdb(ipyPdb):
         # enable it in Spyder.
         # Fixes spyder-ide/spyder#20639.
         self._predicates["debuggerskip"] = False
+
+        # Save seen files inodes
+        self._canonic_inode_to_filename = {}
+        self._canonic_filename_to_inode = {}
 
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
@@ -621,8 +626,42 @@ class SpyderPdb(ipyPdb):
 
     @lru_cache
     def canonic(self, filename):
-        """Return canonical form of filename."""
-        return super().canonic(filename)
+        """
+        Return canonical form of filename.
+
+        In some case two path can point to the same file. For this reason
+        os.path.samefile uses os.stat. Here we normalise the path with os.stat
+        so a single path is returned for the same file.
+
+        see: https://docs.python.org/3/library/os.path.html#os.path.samefile
+        note: os.stat can be slow on windows so call it once per file.
+        """
+        if filename == "<" + filename[1:-1] + ">":
+            return filename
+
+        filename = super().canonic(filename)
+
+        if filename in self._canonic_filename_to_inode:
+            inode = self._canonic_filename_to_inode[filename]
+        else:
+            try:
+                stat = os.stat(filename)
+            except OSError:
+                self._canonic_filename_to_inode[filename] = None
+                return filename
+
+            inode = (stat.st_dev, stat.st_ino)
+            if stat.st_ino == 0:
+                inode = None
+            self._canonic_filename_to_inode[filename] = inode
+            if inode is not None and inode not in self._canonic_inode_to_filename:
+                # First time this inode is seen
+                self._canonic_inode_to_filename[inode] = filename
+
+        if inode is None:
+            return filename
+        return self._canonic_inode_to_filename[inode]
+
 
     def do_exitdb(self, arg):
         """Exit the debugger"""
@@ -791,9 +830,10 @@ class SpyderPdb(ipyPdb):
 
         if self.pdb_publish_stack:
             # Publish Pdb stack so we can update the Debugger plugin on Spyder
-            pdb_stack = traceback.StackSummary.extract(self.stack)
+            pdb_stack = stacksummary_to_json(
+                traceback.StackSummary.extract(self.stack)
+            )
             pdb_index = self.curindex
-
             skip_hidden = getattr(self, 'skip_hidden', False)
 
             if skip_hidden:

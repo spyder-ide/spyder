@@ -258,6 +258,7 @@ DEFAULTS = [
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': False,
+              'show_outline_in_editor_window': True,
               }),
             ('historylog',
              {
@@ -296,7 +297,8 @@ DEFAULTS = [
               'sort_files_alphabetically': False,
               'show_comments': True,
               'follow_cursor': True,
-              'display_variables': False
+              'display_variables': False,
+              'show_with_maximized_editor': True,
               }),
             ('preferences',
              {

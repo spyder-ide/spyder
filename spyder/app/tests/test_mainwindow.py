@@ -48,10 +48,20 @@ from spyder.api.utils import get_class_values
 from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.api.plugins import Plugins
 from spyder.app.tests.conftest import (
-    COMPILE_AND_EVAL_TIMEOUT, COMPLETION_TIMEOUT, EVAL_TIMEOUT,
-    generate_run_parameters, find_desired_tab_in_window, LOCATION,
-    open_file_in_editor, preferences_dialog_helper, read_asset_file,
-    reset_run_code, SHELL_TIMEOUT, start_new_kernel)
+    COMPILE_AND_EVAL_TIMEOUT,
+    COMPLETION_TIMEOUT,
+    EVAL_TIMEOUT,
+    get_random_dockable_plugin,
+    generate_run_parameters,
+    find_desired_tab_in_window,
+    LOCATION,
+    open_file_in_editor,
+    preferences_dialog_helper,
+    read_asset_file,
+    reset_run_code,
+    SHELL_TIMEOUT,
+    start_new_kernel
+)
 from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci,
     running_in_ci_with_conda)
@@ -1744,22 +1754,6 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    def get_random_plugin():
-        """Get a random dockable plugin and give it focus"""
-        plugins = main_window.get_dockable_plugins()
-        for plugin_name, plugin in plugins:
-            if plugin_name in [Plugins.Editor, Plugins.IPythonConsole]:
-                plugins.remove((plugin_name, plugin))
-
-        plugin = random.choice(plugins)[1]
-
-        if not plugin.get_widget().toggle_view_action.isChecked():
-            plugin.toggle_view(True)
-            plugin._hide_after_test = True
-
-        plugin.get_widget().get_focus_widget().setFocus()
-        return plugin
-
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -1773,7 +1767,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     max_button = main_toolbar.widgetForAction(max_action)
 
     # Maximize a random plugin
-    plugin_1 = get_random_plugin()
+    plugin_1 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     # Load test file
@@ -1808,7 +1805,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after clicking the
     # debug button
-    plugin_2 = get_random_plugin()
+    plugin_2 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     debug_button = main_window.debug_button
     with qtbot.waitSignal(shell.executed):
@@ -1843,7 +1843,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         shell.stop_debugging()
 
     # Maximize a plugin and check that it's unmaximized after running a file
-    plugin_3 = get_random_plugin()
+    plugin_3 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
 
     run_parameters = generate_run_parameters(main_window, test_file)
@@ -1856,7 +1859,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
         plugin_3.toggle_view(False)
 
     # Maximize a plugin and check that it's unmaximized after running a cell
-    plugin_4 = get_random_plugin()
+    plugin_4 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
     assert not plugin_4.get_widget().get_maximized_state()
@@ -1866,7 +1872,10 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Maximize a plugin and check that it's unmaximized after running a
     # selection
-    plugin_5 = get_random_plugin()
+    plugin_5 = get_random_dockable_plugin(
+        main_window,
+        exclude=[Plugins.Editor, Plugins.IPythonConsole]
+    )
     qtbot.mouseClick(max_button, Qt.LeftButton)
     qtbot.mouseClick(main_window.run_selection_button, Qt.LeftButton)
     assert not plugin_5.get_widget().get_maximized_state()
@@ -5028,8 +5037,8 @@ def test_no_update_outline(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: all(trees_update_state(treewidget)))
     check_symbols_number(1, treewidget)
 
-    # Hide outline from view
-    outline_explorer.toggle_view_action.setChecked(False)
+    # Dock outline back to the main window
+    outline_explorer.get_widget().dock_window()
     assert outline_explorer.get_widget().windowwidget is None
 
     # Change code again and save it to emulate what users need to do to close
@@ -5973,11 +5982,11 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
 
-    if len(frames_browser.frames) != expected_number_threads:
+    if len(frames_browser.stack_dict) != expected_number_threads:
         # Failed, print stack for debugging
         import pprint
-        pprint.pprint(frames_browser.frames)
-    assert len(frames_browser.frames) == expected_number_threads
+        pprint.pprint(frames_browser.stack_dict)
+    assert len(frames_browser.stack_dict) == expected_number_threads
 
 
 @flaky(max_runs=3)
@@ -6000,46 +6009,46 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "ZeroDivisionError"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "ZeroDivisionError"
     assert enter_debug_action.isEnabled()
 
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
         debugger.enter_debug()
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Test that executing a statement doesn't change the frames browser
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 1')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('w')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
@@ -6047,7 +6056,7 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         widget.restart_kernel(shell.ipyclient, False)
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
     if os.name == 'nt':
@@ -6058,15 +6067,15 @@ def test_debugger_plugin(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert len(frames_browser.frames) == 1
-    assert list(frames_browser.frames.keys())[0] == "pdb"
+    assert len(frames_browser.stack_dict) == 1
+    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
     assert not enter_debug_action.isEnabled()
 
     # Crash Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         shell.execute("import ctypes; ctypes.string_at(0)")
 
-    assert frames_browser.frames is None
+    assert frames_browser.stack_dict is None
     assert not enter_debug_action.isEnabled()
 
 
@@ -6173,7 +6182,7 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # a in framesbrowser
-    assert frames_browser.frames['pdb'][2].name == 'a'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
 
     # Recursive debug
     with qtbot.waitSignal(shell.executed):
@@ -6181,13 +6190,13 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # b in framesbrowser
-    assert frames_browser.frames['pdb'][2].name == 'b'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'b'
 
     # Quit recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
     # a in framesbrowser
-    assert frames_browser.frames['pdb'][2].name == 'a'
+    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
 
     # quit debugger
     with qtbot.waitSignal(shell.executed):
@@ -6217,7 +6226,7 @@ def test_interrupt(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
     assert 0 < shell.get_value("i") < 99
-    assert list(frames_browser.frames.keys())[0] == "KeyboardInterrupt"
+    assert list(frames_browser.stack_dict.keys())[0] == "KeyboardInterrupt"
 
     # Interrupt debugging
     with qtbot.waitSignal(shell.executed):
@@ -6964,6 +6973,207 @@ def test_icons_in_menus(main_window, qtbot):
     show_env_consoles_menu(consoles_menu)
     assert env_consoles_menu.isVisible()
     assert not env_consoles_menu.get_actions()[0].isIconVisibleInMenu()
+
+
+@flaky(max_runs=3)
+def test_undock_plugin_and_close(main_window, qtbot):
+    """
+    Test that the UX of plugins that are closed while being undocked works as
+    expected.
+
+    This checks the functionality added in PR spyder-ide/spyder#19784.
+    """
+    # Select a random plugin and undock it
+    plugin = get_random_dockable_plugin(main_window)
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+
+    # Do a normal close and check the plugin was docked
+    plugin.get_widget().windowwidget.close()
+    qtbot.waitUntil(lambda: plugin.get_widget().is_visible)
+    assert not plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Undock plugin, toggle its visibility and check it's hidden
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.toggle_view_action.setChecked(False)
+    qtbot.waitUntil(lambda: not plugin.get_widget().is_visible)
+    assert plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Toggle plugin's visibility and check it's undocked directly
+    plugin.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+
+    # Dock plugin and check the default dock/undock behavior is restored
+    plugin.get_widget().dock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is None)
+
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.get_widget().windowwidget.close()
+    qtbot.waitUntil(lambda: plugin.get_widget().is_visible)
+    assert not plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Undock plugin, close it with the close action and check it's hidden
+    plugin.get_widget().undock_action.trigger()
+    qtbot.waitUntil(lambda: plugin.get_widget().windowwidget is not None)
+    plugin.get_widget().close_action.trigger()
+    qtbot.waitUntil(lambda: not plugin.get_widget().is_visible)
+    assert plugin.get_conf('window_was_undocked_before_hiding')
+
+    # Reset undocked state of selected plugin
+    plugin.set_conf('window_was_undocked_before_hiding', False)
+
+
+@flaky(max_runs=3)
+def test_outline_in_maximized_editor(main_window, qtbot):
+    """
+    Test that the visibility of the Outline when shown with the maximized
+    editor works as expected.
+
+    This is a regression test for issue spyder-ide/spyder#16265.
+    """
+    editor = main_window.get_plugin(Plugins.Editor)
+    outline = main_window.get_plugin(Plugins.OutlineExplorer)
+
+    # Grab maximize button
+    max_action = main_window.layouts.maximize_action
+    toolbar = main_window.get_plugin(Plugins.Toolbar)
+    main_toolbar = toolbar.get_application_toolbar(ApplicationToolbars.Main)
+    max_button = main_toolbar.widgetForAction(max_action)
+
+    # Maxmimize editor
+    editor.get_focus_widget().setFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+
+    # Check outline is visible
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+    assert outline.get_conf('show_with_maximized_editor')
+
+    # Check undock and lock/unlock actions are hidden in Outline's Options menu
+    outline.get_widget()._options_menu.popup(QPoint(100, 100))
+    qtbot.waitUntil(outline.get_widget()._options_menu.isVisible)
+    assert not outline.get_widget().undock_action.isVisible()
+    assert not outline.get_widget().lock_unlock_action.isVisible()
+    outline.get_widget()._options_menu.hide()
+
+    # Close Outline, unmaximize and maximize again, and check it's not visible
+    outline.get_widget().close_action.trigger()
+    qtbot.waitUntil(lambda: not outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert not outline.get_widget().is_visible
+    assert not outline.get_conf('show_with_maximized_editor')
+
+    # Unmaximize, show Outline in regular layout, maximize and check is not
+    # visible, and unmaximize and check it's visible again.
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+
+    assert not outline.toggle_view_action.isChecked()
+    outline.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert not outline.get_widget().is_visible
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert outline.get_widget().is_visible
+
+    # Maximize, show Outline, unmaximize and maximize again, and check Outline
+    # is still visible.
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+
+    assert not outline.toggle_view_action.isChecked()
+    outline.toggle_view_action.setChecked(True)
+    qtbot.waitUntil(lambda: outline.get_widget().is_visible)
+
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+    assert editor.get_focus_widget().hasFocus()
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    qtbot.wait(500)
+
+    assert outline.get_widget().is_visible
+    assert outline.get_conf('show_with_maximized_editor')
+
+
+@flaky(max_runs=3)
+def test_editor_window_outline_and_toolbars(main_window, qtbot):
+    """Check the behavior of the Outline and toolbars in editor windows."""
+    # Create editor window.
+    editorwindow = main_window.editor.get_widget().create_new_window()
+    qtbot.waitUntil(editorwindow.isVisible)
+
+    # Check toolbars in editor window are visible
+    for toolbar in editorwindow.toolbars:
+        assert toolbar.isVisible()
+        assert toolbar.toggleViewAction().isChecked()
+
+    # Hide Outline from its close action
+    editorwindow.editorwidget.outlineexplorer.close_action.trigger()
+    assert not editorwindow.editorwidget.outlineexplorer.is_visible
+
+    # Check splitter handle is hidden and disabled
+    assert editorwindow.editorwidget.splitter.handleWidth() == 0
+    assert not editorwindow.editorwidget.splitter.handle(1).isEnabled()
+
+    # Show outline again and check it's visible
+    editorwindow.toggle_outline_action.setChecked(True)
+    qtbot.waitUntil(
+        lambda: editorwindow.editorwidget.outlineexplorer.is_visible
+    )
+
+    # Check splitter handle is shown and active
+    assert editorwindow.editorwidget.splitter.handle(1).isEnabled()
+    assert editorwindow.editorwidget.splitter.handleWidth() > 0
+
+    # Hide Outline and check its visible state is preserved for new editor
+    # windows
+    editorwindow.toggle_outline_action.setChecked(False)
+    assert not editorwindow.editorwidget.outlineexplorer.is_visible
+
+    editorwindow.close()
+
+    editorwindow1 = main_window.editor.get_widget().create_new_window()
+    qtbot.waitUntil(editorwindow1.isVisible)
+    assert not editorwindow1.editorwidget.outlineexplorer.is_visible
+
+    editorwindow1.close()
+
+    # Hide debug toolbar in main window
+    main_toolbar = main_window.get_plugin(Plugins.Toolbar)
+    debug_toolbar_action = main_toolbar.get_action(
+        f"toggle_view_{ApplicationToolbars.Debug}"
+    )
+    debug_toolbar_action.trigger()
+
+    # Check main toolbars visibility state is synced between main and editor
+    # windows
+    editorwindow2 = main_window.editor.get_widget().create_new_window()
+
+    for toolbar in editorwindow2.toolbars:
+        toolbar_action = toolbar.toggleViewAction()
+
+        if toolbar.ID == ApplicationToolbars.Debug:
+            assert not toolbar.isVisible()
+            assert not toolbar_action.isChecked()
+        else:
+            assert toolbar.isVisible()
+            assert toolbar_action.isChecked()
+
+    editorwindow2.close()
+
+    # Restore debug toolbar
+    debug_toolbar_action.trigger()
 
 
 if __name__ == "__main__":

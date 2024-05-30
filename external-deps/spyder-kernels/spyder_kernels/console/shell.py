@@ -26,6 +26,7 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
@@ -271,7 +272,9 @@ class SpyderShell(ZMQInteractiveShell):
         if not exception_only:
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
-                stack = traceback.extract_tb(tb.tb_next)
+                etype = etype.__name__
+                value = value.args
+                stack = stacksummary_to_json(traceback.extract_tb(tb.tb_next))
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:
