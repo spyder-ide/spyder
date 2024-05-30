@@ -485,15 +485,12 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         )
 
     def update_scrollbars_values(self):
-        try:
-            self.verticalScrollBar().setValue(
-                self.current_thumbnail.vscrollbar_value
-            )
-            self.horizontalScrollBar().setValue(
-                self.current_thumbnail.hscrollbar_value
-            )
-        except RuntimeError:
-            pass
+        self.verticalScrollBar().setValue(
+            self.current_thumbnail.vscrollbar_value
+        )
+        self.horizontalScrollBar().setValue(
+            self.current_thumbnail.hscrollbar_value
+        )
 
     def eventFilter(self, widget, event):
         """A filter to control the zooming and panning of the figure canvas."""
