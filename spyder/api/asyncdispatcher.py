@@ -7,14 +7,28 @@
 from __future__ import annotations
 import asyncio
 import atexit
+from concurrent.futures import CancelledError, Future
 import contextlib
-from concurrent.futures import Future, CancelledError
 import functools
-import threading
 import logging
+import sys
+import threading
 import typing
 
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec  # noqa: ICN003
+
 _logger = logging.getLogger(__name__)
+
+
+LoopID = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
+
+P = ParamSpec("P")
+
+T = typing.TypeVar("T")
 
 
 class AsyncDispatcher:
@@ -43,12 +57,18 @@ class AsyncDispatcher:
     ```
     """
 
+    __rlock = threading.RLock()
+
     __closed = False
-    __running_loops: typing.ClassVar[dict[int, asyncio.AbstractEventLoop]] = {}
-    __running_threads: typing.ClassVar[dict[int, threading.Thread]] = {}
+    __running_threads: typing.ClassVar[dict[typing.Hashable, _LoopRunner]] = {}
     _running_tasks: typing.ClassVar[list[Future]] = []
 
-    def __init__(self, coro, *, loop=None, early_return=True):
+    def __init__(self,
+                 async_func: typing.Callable[..., typing.Coroutine[
+                             typing.Any, typing.Any, typing.Any]],
+                 *,
+                 loop: LoopID | None = None,
+                 early_return: bool = True):
         """Initialize the decorator.
 
         Parameters
@@ -58,16 +78,16 @@ class AsyncDispatcher:
         loop : asyncio.AbstractEventLoop, optional
             The event loop to be used, by default get the current event loop.
         """
-        if not asyncio.iscoroutinefunction(coro):
-            msg = f"{coro} is not a coroutine function"
+        if not asyncio.iscoroutinefunction(async_func):
+            msg = f"{async_func} is not a coroutine function"
             raise TypeError(msg)
-        self._coro = coro
+        self._async_func = async_func
         self._loop = self._ensure_running_loop(loop)
         self._early_return = early_return
 
     def __call__(self, *args, **kwargs):
         task = asyncio.run_coroutine_threadsafe(
-            self._coro(*args, **kwargs), loop=self._loop
+            self._async_func(*args, **kwargs), loop=self._loop
         )
         if self._early_return:
             AsyncDispatcher._running_tasks.append(task)
@@ -76,13 +96,19 @@ class AsyncDispatcher:
         return task.result()
 
     @classmethod
-    def dispatch(cls, *, loop=None, early_return=True):
+    def dispatch(cls,
+                 *,
+                 loop: LoopID | None = None,
+                 early_return: bool = True):
         """Create a decorator to run the coroutine with a given event loop."""
 
-        def decorator(coro):
-            @functools.wraps(coro)
+        def decorator(
+            async_func: typing.Callable[P, typing.Coroutine[typing.Any,
+                                                            typing.Any, T]]
+        ) -> typing.Callable[P, Future[T] | T]:
+            @functools.wraps(async_func)
             def wrapper(*args, **kwargs):
-                return cls(coro, loop=loop, early_return=early_return)(
+                return cls(async_func, loop=loop, early_return=early_return)(
                     *args, **kwargs
                 )
 
@@ -90,26 +116,18 @@ class AsyncDispatcher:
 
         return decorator
 
-    def _callback_task_done(self, future):
+    def _callback_task_done(self, future: Future):
         AsyncDispatcher._running_tasks.remove(future)
         with contextlib.suppress(asyncio.CancelledError, CancelledError):
             if (exception := future.exception()) is not None:
                 raise exception
 
     @classmethod
-    def _ensure_running_loop(cls, loop=None):
-        if loop is None:
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-            finally:
-                loop_id = hash(loop)
-        elif not isinstance(loop, asyncio.AbstractEventLoop):
-            loop_id = loop
-            loop = cls.__running_loops.get(loop_id, asyncio.new_event_loop())
-        else:
-            loop_id = hash(loop)
+    def _ensure_running_loop(
+        cls,
+        loop_id: LoopID | None = None
+    ) -> asyncio.AbstractEventLoop:
+        loop, loop_id = cls.get_event_loop(loop_id)
 
         try:
             if loop.is_running():
@@ -121,16 +139,43 @@ class AsyncDispatcher:
             )
             return asyncio.get_event_loop()
 
-        return cls.__run_loop(loop_id, loop)
+        with cls.__rlock:
+            # Re-check, perhaps it was created in the meantime...
+            if loop_id not in cls.__running_threads:
+                cls.__run_loop(loop_id, loop)
+                if loop_id is None:
+                    asyncio.set_event_loop(loop)
+
+        return loop
 
     @classmethod
-    def __run_loop(cls, loop_id, loop):
-        cls.__running_threads[loop_id] = threading.Thread(
-            target=loop.run_forever, daemon=True
-        )
-        cls.__running_threads[loop_id].start()
-        cls.__running_loops[loop_id] = loop
-        return loop
+    def get_event_loop(
+        cls, loop_id: LoopID | None = None
+    ) -> tuple[asyncio.AbstractEventLoop, typing.Hashable | None]:
+        if loop_id is None:
+            try:
+                return asyncio.get_running_loop(), None
+            except RuntimeError:  # noqa: S110
+                pass
+        elif isinstance(loop_id, asyncio.AbstractEventLoop):
+            return loop_id, hash(loop_id)
+
+        running_thread = cls.__running_threads.get(loop_id)
+        if running_thread is not None:
+            return running_thread.loop, loop_id
+
+        return asyncio.new_event_loop(), loop_id
+
+    @classmethod
+    def __run_loop(cls,
+                   loop_id: typing.Hashable,
+                   loop: asyncio.AbstractEventLoop):
+        if loop_id not in cls.__running_threads:
+            with cls.__rlock:
+                if loop_id not in cls.__running_threads:
+                    cls.__running_threads[loop_id] = \
+                        _LoopRunner(loop_id, loop)
+                    cls.__running_threads[loop_id].start()
 
     @staticmethod
     @atexit.register
@@ -151,32 +196,48 @@ class AsyncDispatcher:
     @classmethod
     def join(cls, timeout: float | None = None):
         """Close all running loops and join the threads."""
-        for loop_id in list(cls.__running_loops.keys()):
+        for loop_id in list(cls.__running_threads.keys()):
             cls._stop_running_loop(loop_id, timeout)
 
     @classmethod
-    def _stop_running_loop(cls, loop_id, timeout=None):
-        thread = cls.__running_threads.pop(loop_id, None)
-        loop = cls.__running_loops.pop(loop_id, None)
+    def _stop_running_loop(cls,
+                           loop_id: LoopID,
+                           timeout: int | None = None):
+        runner = cls.__running_threads.pop(loop_id, None)
 
-        if loop is None:
+        if runner is None:
             return
 
-        if thread is None:
-            return
+        runner.join(timeout)
 
-        if loop.is_closed():
-            thread.join(timeout)
-            return
 
-        loop_stoped = threading.Event()
+class _LoopRunner(threading.Thread):
+    """A task runner that runs an asyncio event loop on a background thread."""
 
-        def _stop():
-            loop.stop()
-            loop_stoped.set()
+    def __init__(self, loop_id: str,
+                 loop: asyncio.AbstractEventLoop):
+        super().__init__(daemon=True, name=f"AsyncDispatcher-{loop_id}")
+        self.__loop = loop
+        self.__loop_stopped = threading.Event()
 
-        loop.call_soon_threadsafe(_stop)
+    @property
+    def loop(self):
+        return self.__loop
 
-        loop_stoped.wait(timeout)
-        thread.join(timeout)
-        loop.close()
+    def run(self):
+        asyncio.set_event_loop(self.__loop)
+        try:
+            self.__loop.run_forever()
+        finally:
+            self.__loop.close()
+            self.__loop_stopped.set()
+
+    def stop(self):
+        self.__loop.call_soon_threadsafe(self.__loop.stop)
+
+    def join(self, timeout: float | None = None):
+        if not self.__loop_stopped.is_set():
+            self.stop()
+            self.__loop_stopped.wait(timeout)
+        super().join(timeout)
+
