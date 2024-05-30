@@ -6826,6 +6826,12 @@ def test_undock_plugin_and_close(main_window, qtbot):
 
     This checks the functionality added in PR spyder-ide/spyder#19784.
     """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
     # Select a random plugin and undock it
     plugin = get_random_dockable_plugin(main_window)
     plugin.get_widget().undock_action.trigger()
@@ -6876,6 +6882,12 @@ def test_outline_in_maximized_editor(main_window, qtbot):
 
     This is a regression test for issue spyder-ide/spyder#16265.
     """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
     editor = main_window.get_plugin(Plugins.Editor)
     outline = main_window.get_plugin(Plugins.OutlineExplorer)
 
