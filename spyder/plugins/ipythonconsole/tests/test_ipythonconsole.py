@@ -104,7 +104,7 @@ def test_banners(ipyconsole, qtbot):
      ("foo",  # Check we display the right tooltip for interactive objects
       ["x", "y"],
       ["My function"])
-    ]
+     ]
 )
 @pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
@@ -504,7 +504,7 @@ def test_request_env(ipyconsole, qtbot):
 
     # Add a new entry to os.environ
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; os.environ['FOO'] = 'bar'" )
+        shell.execute("import os; os.environ['FOO'] = 'bar'")
 
     # Ask for os.environ contents
     with qtbot.waitSignal(shell.sig_show_env) as blocker:
@@ -749,10 +749,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to True
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
-    shell.set_kernel_configuration(
-        "pdb", {
-        'pdb_execute_events': True
-    })
+    shell.set_kernel_configuration("pdb", {'pdb_execute_events': True})
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -764,10 +761,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to False
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
-    shell.set_kernel_configuration(
-        "pdb", {
-        'pdb_execute_events': False
-    })
+    shell.set_kernel_configuration("pdb", {'pdb_execute_events': False})
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -849,7 +843,6 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
     # Assert that there's a single inline plot in the console
     assert shell._control.toHtml().count('img src') == 1
-
 
 
 @flaky(max_runs=10)
@@ -1513,19 +1506,33 @@ def test_stderr_poll(ipyconsole, qtbot):
             'import sys; print("test_" + "test", file=sys.__stderr__)')
 
     # Wait for the poll
-    qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText())
-    assert "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText()
+    qtbot.waitUntil(
+        lambda: "test_test" in ipyconsole.get_widget()
+                                         .get_focus_widget()
+                                         .toPlainText()
+    )
+    assert (
+        "test_test" in ipyconsole.get_widget()
+                                 .get_focus_widget()
+                                 .toPlainText()
+    )
     # Write a second time, makes sure it is not duplicated
     with qtbot.waitSignal(shell.executed):
         shell.execute(
             'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
-    qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText().count("test_test") == 2)
-    assert ipyconsole.get_widget().get_focus_widget().toPlainText(
-        ).count("test_test") == 2
+    qtbot.waitUntil(
+        lambda: ipyconsole.get_widget()
+                          .get_focus_widget()
+                          .toPlainText()
+                          .count("test_test") == 2
+    )
+    assert (
+        ipyconsole.get_widget()
+                  .get_focus_widget()
+                  .toPlainText()
+                  .count("test_test") == 2
+    )
 
 
 @flaky(max_runs=3)
@@ -1536,8 +1543,12 @@ def test_stdout_poll(ipyconsole, qtbot):
         shell.execute('import sys; print("test_test", file=sys.__stdout__)')
 
     # Wait for the poll
-    qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText(), timeout=5000)
+    qtbot.waitUntil(
+        lambda: "test_test" in ipyconsole.get_widget()
+                                         .get_focus_widget()
+                                         .toPlainText(),
+        timeout=5000
+    )
 
 
 @flaky(max_runs=10)
@@ -1893,17 +1904,18 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     assert "test 11" in control.toPlainText()
 
     settings = {
-     'check_all': False,
-     'exclude_callables_and_modules': True,
-     'exclude_capitalized': False,
-     'exclude_private': True,
-     'exclude_unsupported': False,
-     'exclude_uppercase': True,
-     'excluded_names': [],
-     'minmax': False,
-     'show_callable_attributes': True,
-     'show_special_attributes': False,
-     'filter_on': True}
+        'check_all': False,
+        'exclude_callables_and_modules': True,
+        'exclude_capitalized': False,
+        'exclude_private': True,
+        'exclude_unsupported': False,
+        'exclude_uppercase': True,
+        'excluded_names': [],
+        'minmax': False,
+        'show_callable_attributes': True,
+        'show_special_attributes': False,
+        'filter_on': True
+    }
 
     shell.set_kernel_configuration("namespace_view_settings", settings)
     namespace = shell.call_kernel(blocking=True).get_namespace_view()
@@ -2000,8 +2012,10 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-            timeout=SHELL_TIMEOUT)
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT
+        )
 
         with qtbot.waitSignal(shell.executed):
             shell.execute('import os; cwd = os.getcwd()')
@@ -2122,7 +2136,6 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug f()")
-
 
     # Get to an object that can be plotted
     for _ in range(4):
