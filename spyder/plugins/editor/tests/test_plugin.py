@@ -14,7 +14,6 @@ import os.path as osp
 import shutil
 
 # Third party imports
-from flaky import flaky
 from qtpy.QtCore import Qt
 import pytest
 

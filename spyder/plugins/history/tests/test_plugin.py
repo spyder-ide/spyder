@@ -11,7 +11,6 @@ import tempfile
 
 # Third party imports
 import pytest
-from flaky import flaky
 from qtpy.QtGui import QTextOption
 
 # Local imports
