@@ -206,7 +206,7 @@ def exec_encapsulate_locals(
             exec_fun = exec
         if filename is None:
             filename = "<stdin>"
-        exec_fun(compile(code_ast, filename, "exec"), globals)
+        exec_fun(compile(code_ast, filename, "exec"), globals, None)
     finally:
         if use_locals_hack:
             # Cleanup code

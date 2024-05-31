@@ -357,6 +357,8 @@ DEFAULTS = [
             ('profiler',
              {
               'enable': True,
+              'switch_to_plugin': True,
+              'n_slow_children': 25
               }),
             ('pylint',
              {
@@ -508,6 +510,9 @@ DEFAULTS = [
               'pylint/run file in pylint': "F8",
               # -- Profiler --
               'profiler/run file in profiler': "F10",
+              'profiler/run cell in profiler': "Alt+F10",
+              'profiler/run selection in profiler': "",
+              'profiler/find_action': "Ctrl+F",
               # -- Switcher --
               'switcher/file switcher': 'Ctrl+P',
               'switcher/symbol finder': 'Ctrl+Alt+P',
