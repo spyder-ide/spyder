@@ -343,15 +343,15 @@ def ipyconsole(qtbot, request, tmpdir):
 
 
 @pytest.fixture
-def mpl_rc_file():
+def mpl_rc_file(tmp_path):
     """Create matplotlibrc file"""
-    file_contents = """\
+    file_contents = """
 figure.dpi: 99
 figure.figsize: 9, 9
 figure.subplot.bottom: 0.9
 font.size: 9
 """
-    rc_file = osp.join(TEMP_DIRECTORY, 'matplotlibrc')
+    rc_file = str(tmp_path / 'matplotlibrc')
     with open(rc_file, 'w') as f:
         f.write(file_contents)
     os.environ['MATPLOTLIBRC'] = rc_file

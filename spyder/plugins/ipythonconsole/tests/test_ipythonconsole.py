@@ -1507,14 +1507,11 @@ def test_stderr_poll(ipyconsole, qtbot):
 
     # Wait for the poll
     qtbot.waitUntil(
-        lambda: "test_test" in ipyconsole.get_widget()
-                                         .get_focus_widget()
-                                         .toPlainText()
+        lambda: "test_test"
+        in ipyconsole.get_widget().get_focus_widget().toPlainText()
     )
     assert (
-        "test_test" in ipyconsole.get_widget()
-                                 .get_focus_widget()
-                                 .toPlainText()
+        "test_test" in ipyconsole.get_widget().get_focus_widget().toPlainText()
     )
     # Write a second time, makes sure it is not duplicated
     with qtbot.waitSignal(shell.executed):
@@ -1523,15 +1520,17 @@ def test_stderr_poll(ipyconsole, qtbot):
     # Wait for the poll
     qtbot.waitUntil(
         lambda: ipyconsole.get_widget()
-                          .get_focus_widget()
-                          .toPlainText()
-                          .count("test_test") == 2
+        .get_focus_widget()
+        .toPlainText()
+        .count("test_test")
+        == 2
     )
     assert (
         ipyconsole.get_widget()
-                  .get_focus_widget()
-                  .toPlainText()
-                  .count("test_test") == 2
+        .get_focus_widget()
+        .toPlainText()
+        .count("test_test")
+        == 2
     )
 
 
@@ -1544,10 +1543,9 @@ def test_stdout_poll(ipyconsole, qtbot):
 
     # Wait for the poll
     qtbot.waitUntil(
-        lambda: "test_test" in ipyconsole.get_widget()
-                                         .get_focus_widget()
-                                         .toPlainText(),
-        timeout=5000
+        lambda: "test_test"
+        in ipyconsole.get_widget().get_focus_widget().toPlainText(),
+        timeout=5000,
     )
 
 
@@ -1995,12 +1993,11 @@ def test_mpl_conf(ipyconsole, qtbot):
     mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
-def test_rc_params(mpl_rc_file, ipyconsole, qtbot):
+def test_matplotlib_rc_params(mpl_rc_file, ipyconsole, qtbot):
     """
-    Test that rcParams are correctly set/reset when changing backends and
-    setting inline preferences.
+    Test that Matplotlib rcParams are correctly set/reset when changing
+    backends and setting inline preferences.
     """
-    # import pdb; pdb.set_trace()
     rc_file = os.getenv('MATPLOTLIBRC')
     assert rc_file is not None
     assert osp.exists(rc_file)
