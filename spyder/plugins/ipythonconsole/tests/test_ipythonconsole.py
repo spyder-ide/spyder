@@ -40,7 +40,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY, PY312_OR_GREATER)
+    NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
 
@@ -390,18 +390,18 @@ def test_console_import_namespace(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_console_disambiguation(ipyconsole, qtbot):
+def test_console_disambiguation(tmp_path, ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
-    # Create directories and file for TEMP_DIRECTORY/a/b/c.py
-    # and TEMP_DIRECTORY/a/d/c.py
-    dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
+    # Create directories and file for tmp_path/a/b/c.py
+    # and tmp_path/a/d/c.py
+    dir_b = osp.join(tmp_path, 'a', 'b')
     filename_b =  osp.join(dir_b, 'c.py')
     if not osp.isdir(dir_b):
         os.makedirs(dir_b)
     if not osp.isfile(filename_b):
         file_c = open(filename_b, 'w+')
         file_c.close()
-    dir_d = osp.join(TEMP_DIRECTORY, 'a', 'd')
+    dir_d = osp.join(tmp_path, 'a', 'd')
     filename_d =  osp.join(dir_d, 'c.py')
     if not osp.isdir(dir_d):
         os.makedirs(dir_d)
