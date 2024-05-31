@@ -248,8 +248,7 @@ def ipyconsole(qtbot, request, tmpdir):
                 timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
-        print(console.get_current_shellwidget(
-            )._control.toPlainText())
+        print(console.get_current_shellwidget()._control.toPlainText())
         client = console.get_current_client()
         if client.info_page != client.blank_page:
             print('info_page')
@@ -275,8 +274,7 @@ def ipyconsole(qtbot, request, tmpdir):
     if request.node.rep_setup.passed:
         if request.node.rep_call.failed:
             # Print content of shellwidget and close window
-            print(console.get_current_shellwidget(
-                )._control.toPlainText())
+            print(console.get_current_shellwidget()._control.toPlainText())
             client = console.get_current_client()
             if client.info_page != client.blank_page:
                 print('info_page')
@@ -342,3 +340,23 @@ def ipyconsole(qtbot, request, tmpdir):
         files = [repr(f) for f in proc.open_files()]
         show_diff(init_files, files, "files")
         raise
+
+
+@pytest.fixture
+def mpl_rc_file():
+    """Create matplotlibrc file"""
+    file_contents = """\
+figure.dpi: 99
+figure.figsize: 9, 9
+figure.subplot.bottom: 0.9
+font.size: 9
+"""
+    rc_file = osp.join(TEMP_DIRECTORY, 'matplotlibrc')
+    with open(rc_file, 'w') as f:
+        f.write(file_contents)
+    os.environ['MATPLOTLIBRC'] = rc_file
+
+    yield
+
+    os.environ.pop('MATPLOTLIBRC')
+    os.remove(rc_file)

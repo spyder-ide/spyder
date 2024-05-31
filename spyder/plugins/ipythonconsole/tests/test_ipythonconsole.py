@@ -1995,6 +1995,82 @@ def test_mpl_conf(ipyconsole, qtbot):
     mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
+def test_rc_params(mpl_rc_file, ipyconsole, qtbot):
+    """
+    Test that rcParams are correctly set/reset when changing backends and
+    setting inline preferences.
+    """
+    # import pdb; pdb.set_trace()
+    rc_file = os.getenv('MATPLOTLIBRC')
+    assert rc_file is not None
+    assert osp.exists(rc_file)
+
+    main_widget = ipyconsole.get_widget()
+    shell = ipyconsole.get_current_shellwidget()
+    assert shell.get_matplotlib_backend().lower() == 'inline'
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import matplotlib as mpl;'
+            'rcp = mpl.rcParams;'
+            'rc_file = mpl.matplotlib_fname()'
+        )
+
+    # Test that the rc file is loaded
+    assert rc_file == shell.get_value('rc_file')
+
+    # Test that inline preferences are at defaults
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 144
+    assert rcp['figure.figsize'] == [6, 4]
+    assert rcp['figure.subplot.bottom'] == 0.11
+    assert rcp['font.size'] == 10
+
+    # Test that changing inline preferences are effective immediately
+    def set_conf(option, value):
+        main_widget.set_conf(option, value)
+        # Allow time for the %config magic to run for each config change
+        qtbot.wait(20)
+
+    set_conf('pylab/inline/resolution', 112)
+    set_conf('pylab/inline/width', 12)
+    set_conf('pylab/inline/height', 12)
+    set_conf('pylab/inline/bottom', 0.12)
+    set_conf('pylab/inline/fontsize', 12)
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 112
+    assert rcp['figure.figsize'] == [12, 12]
+    assert rcp['figure.subplot.bottom'] == 0.12
+    assert rcp['font.size'] == 12
+
+    # Test that setting explicitly does not persist on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('mpl.rcParams["font.size"] = 15')
+
+    # Test that file defaults are restored on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%matplotlib qt')
+    assert shell.get_matplotlib_backend().lower() == 'qt'
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 99
+    assert rcp['figure.figsize'] == [9, 9]
+    assert rcp['figure.subplot.bottom'] == 0.9
+    assert rcp['font.size'] == 9
+
+    # Test that setting explicitly does not persist on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('mpl.rcParams["font.size"] = 15')
+
+    # Test that inline preferences are restored on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%matplotlib inline')
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 112
+    assert rcp['figure.figsize'] == [12, 12]
+    assert rcp['figure.subplot.bottom'] == 0.12
+    assert rcp['font.size'] == 12
+
+
 @flaky(max_runs=3)
 @pytest.mark.no_web_widgets
 def test_no_infowidget(ipyconsole):
