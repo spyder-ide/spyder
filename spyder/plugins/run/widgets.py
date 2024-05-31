@@ -209,6 +209,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         context_combo_label = QLabel(_("Select a run context:"))
 
         self.extension_combo = SpyderComboBox(self)
+        self.extension_combo.addItems(self.extensions)
         self.extension_combo.currentIndexChanged.connect(
             self.extension_changed)
 
@@ -285,17 +286,20 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         )
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
 
-        self.extension_combo.addItems(self.extensions)
-
         extension_index = 0
         if self.extension is not None:
             extension_index = self.extensions.index(self.extension)
             self.extension_combo.setEnabled(False)
 
+        self.extension_combo.setCurrentIndex(extension_index)
+
+        # This is necessary because extension_changed is not triggered
+        # automatically for this extension_index.
+        if extension_index == 0:
+            self.extension_changed(extension_index)
+
         if self.context is not None:
             self.context_combo.setEnabled(False)
-
-        self.extension_combo.setCurrentIndex(extension_index)
 
         if self.parameters_name:
             self.store_params_text.setText(self.parameters_name)
@@ -831,10 +835,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.executors_model.get_run_executor_index(executor_name))
 
     def reset_btn_clicked(self):
-        self.parameters_combo.setCurrentIndex(-1)
-        index = self.executor_combo.currentIndex()
-        self.display_executor_configuration(index)
-        self.name_params_text.setText('')
+        self.parameters_combo.setCurrentIndex(0)
 
     def run_btn_clicked(self):
         self.status |= RunDialogStatus.Run
