@@ -3986,6 +3986,9 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 
         # Make sure the events are not processed.
         assert not processEvents.called
+
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("q")
     finally:
         QApplication.processEvents = super_processEvents
 
@@ -4086,6 +4089,9 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
         assert osp.samefile(
             main_window.editor.get_current_editor().filename,
             str(test_file))
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
 
 
 @flaky(max_runs=3)
@@ -4390,6 +4396,9 @@ def test_post_mortem(main_window, qtbot, tmpdir):
         shell.execute("%runfile " + repr(str(test_file)) + " --post-mortem")
 
     assert "IPdb [" in control.toPlainText()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
 
 
 @flaky(max_runs=3)
@@ -4701,6 +4710,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.close_main_window
 @pytest.mark.parametrize(
     'main_window',
     [{'spy_config': ('tours', 'show_tour_message', True)}],
@@ -4751,6 +4761,7 @@ def test_tour_message(main_window, qtbot):
     # Close the tour
     animated_tour.close_tour()
     qtbot.waitUntil(lambda: not animated_tour.is_running, timeout=9000)
+    qtbot.wait(2000)
 
 
 @flaky(max_runs=3)
@@ -6815,6 +6826,12 @@ def test_undock_plugin_and_close(main_window, qtbot):
 
     This checks the functionality added in PR spyder-ide/spyder#19784.
     """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
     # Select a random plugin and undock it
     plugin = get_random_dockable_plugin(main_window)
     plugin.get_widget().undock_action.trigger()
@@ -6865,6 +6882,12 @@ def test_outline_in_maximized_editor(main_window, qtbot):
 
     This is a regression test for issue spyder-ide/spyder#16265.
     """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
     editor = main_window.get_plugin(Plugins.Editor)
     outline = main_window.get_plugin(Plugins.OutlineExplorer)
 

@@ -481,15 +481,15 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         # immediately after the figure is loaded doesn't work.
         QTimer.singleShot(
             20,
-            lambda: self.verticalScrollBar().setValue(
-                self.current_thumbnail.vscrollbar_value
-            ),
+            self.update_scrollbars_values,
         )
-        QTimer.singleShot(
-            20,
-            lambda: self.horizontalScrollBar().setValue(
-                self.current_thumbnail.hscrollbar_value
-            ),
+
+    def update_scrollbars_values(self):
+        self.verticalScrollBar().setValue(
+            self.current_thumbnail.vscrollbar_value
+        )
+        self.horizontalScrollBar().setValue(
+            self.current_thumbnail.hscrollbar_value
         )
 
     def eventFilter(self, widget, event):
