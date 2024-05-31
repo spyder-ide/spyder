@@ -938,7 +938,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             symbolic_math_n,
             hide_cmd_windows_n,
         ]
-        restart_needed = option in restart_options
+        restart_needed = (
+            option in restart_options
+            # Deactivating graphics support
+            or (option == pylab_n and not value)
+        )
 
         inline_backend = 'inline'
         pylab_restart = False
@@ -1040,31 +1044,36 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 (pylab_restart and clients_backend_require_restart[idx]) or
                 restart_needed
             )
+            _options = options.copy()
 
-            if not (restart and restart_all) or no_restart:
+            if autoload_n in options:
                 # Autoload can't be applied without a restart. This avoids an
                 # incorrect message in the console too.
-                if autoload_n in options:
-                    options.pop(autoload_n)
+                _options.pop(autoload_n)
 
+            if pylab_n in _options and pylab_o:
+                # Activating support requires sending all inline configs
+                _options = None
+
+            if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
                     # Apply conf when the next Pdb prompt is available
-                    def change_client_mpl_conf(o=options, c=client):
+                    def change_client_mpl_conf(o=_options, c=client):
                         self._change_client_mpl_conf(o, c)
                         sw.sig_pdb_prompt_ready.disconnect(
                             change_client_mpl_conf)
 
                     sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
                 else:
-                    self._change_client_mpl_conf(options, client)
+                    self._change_client_mpl_conf(_options, client)
             elif restart and restart_all:
                 self.restart_kernel(client, ask_before_restart=False)
 
         if (
             (
                 (pylab_restart and current_client_backend_require_restart)
-                 or restart_needed
+                or restart_needed
             )
             and restart_current
             and current_client
@@ -1984,7 +1993,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # This makes the print dialog have the same style as the rest of
             # the app.
             printer = SpyderPrinter(mode=QPrinter.HighResolution)
-            if(QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
+            if (QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
                 return
             client.shellwidget._control.print_(printer)
 

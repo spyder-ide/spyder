@@ -640,7 +640,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if option is None or pylab_autoload_n in option:
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
 
-        if matplotlib_conf:
+        if matplotlib_conf and pylab_o:
             self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
