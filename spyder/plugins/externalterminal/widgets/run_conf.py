@@ -103,7 +103,7 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         return {
             'args_enabled': False,
             'args': '',
-            'interact': False,
+            'interact': True,
             'python_args_enabled': False,
             'python_args': '',
         }
@@ -144,45 +144,65 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Interpreter"))
-        interpreter_layout = QGridLayout(interpreter_group)
+        interpreter_layout = QVBoxLayout(interpreter_group)
+        interpreter_layout.setContentsMargins(
+            *((3 * AppStyle.MarginSize,) * 4)
+        )
 
         interpreter_label = QLabel(_("Shell interpreter:"))
-        interpreter_layout.addWidget(interpreter_label, 0, 0)
-        edit_layout = QHBoxLayout()
-        self.interpreter_edit = QLineEdit()
+        self.interpreter_edit = QLineEdit(self)
         browse_btn = create_toolbutton(
             self,
             triggered=self.select_directory,
             icon=ima.icon('DirOpenIcon'),
             tip=_("Select directory")
         )
-        edit_layout.addWidget(self.interpreter_edit)
-        edit_layout.addWidget(browse_btn)
-        interpreter_layout.addLayout(edit_layout, 0, 1)
+
+        shell_layout = QHBoxLayout()
+        shell_layout.addWidget(interpreter_label)
+        shell_layout.addWidget(self.interpreter_edit)
+        shell_layout.addWidget(browse_btn)
+        interpreter_layout.addLayout(shell_layout)
 
         self.interpreter_opts_cb = QCheckBox(_("Interpreter arguments:"))
-        interpreter_layout.addWidget(self.interpreter_opts_cb, 1, 0)
-        self.interpreter_opts_edit = QLineEdit()
+        self.interpreter_opts_edit = QLineEdit(self)
+        self.interpreter_opts_edit.setMinimumWidth(250)
         self.interpreter_opts_cb.toggled.connect(
-            self.interpreter_opts_edit.setEnabled)
+            self.interpreter_opts_edit.setEnabled
+        )
         self.interpreter_opts_edit.setEnabled(False)
-        interpreter_layout.addWidget(self.interpreter_opts_edit, 1, 1)
+
+        interpreter_opts_layout = QHBoxLayout()
+        interpreter_opts_layout.addWidget(self.interpreter_opts_cb)
+        interpreter_opts_layout.addWidget(self.interpreter_opts_edit)
+        interpreter_layout.addLayout(interpreter_opts_layout)
 
         # --- Script ---
         script_group = QGroupBox(_('Script'))
-        script_layout = QGridLayout(script_group)
+        script_layout = QVBoxLayout(script_group)
+        script_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            0,
+        )
 
         self.script_opts_cb = QCheckBox(_("Script arguments:"))
-        script_layout.addWidget(self.script_opts_cb, 1, 0)
-        self.script_opts_edit = QLineEdit()
+        self.script_opts_edit = QLineEdit(self)
         self.script_opts_cb.toggled.connect(
-            self.script_opts_edit.setEnabled)
+            self.script_opts_edit.setEnabled
+        )
         self.script_opts_edit.setEnabled(False)
-        script_layout.addWidget(self.script_opts_edit, 1, 1)
+
+        script_args_layout = QHBoxLayout()
+        script_args_layout.addWidget(self.script_opts_cb)
+        script_args_layout.addWidget(self.script_opts_edit)
+        script_layout.addLayout(script_args_layout)
 
         self.close_after_exec_cb = QCheckBox(
-            _('Close terminal after execution'))
-        script_layout.addWidget(self.close_after_exec_cb, 2, 0)
+            _("Close terminal after execution")
+        )
+        script_layout.addWidget(self.close_after_exec_cb)
 
         layout = QVBoxLayout(self)
         layout.addWidget(interpreter_group)
