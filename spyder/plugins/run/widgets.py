@@ -816,7 +816,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # Only show global parameters (i.e. those with file_uuid = None) or
         # those that correspond to the current file.
         stored_params = {
-            k:v for (k, v) in stored_params.items()
+            k: v for (k, v) in stored_params.items()
             if v.get("file_uuid") in [None, uuid]
         }
 

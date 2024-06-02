@@ -451,7 +451,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         # Reorder params so that Python and IPython extensions are shown first
         # and second by default, respectively.
         ordered_params = []
-        for k,v in params.items():
+        for k, v in params.items():
             if k[0] == "py":
                 ordered_params.insert(0, (k, v))
             elif k[0] == "ipy":

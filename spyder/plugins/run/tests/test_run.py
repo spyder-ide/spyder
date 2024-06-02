@@ -641,7 +641,7 @@ def test_run_plugin(qtbot, run_mock):
     # saved in the Custom config
     _, _, _, exec_conf = sig.args[0]
     params = exec_conf['params']
-    assert params['executor_params']['opt1'] == False
+    assert params['executor_params']['opt1'] is False
     assert exec_conf['uuid'] == current_exec_uuid
 
     # Focus into another configuration
@@ -811,9 +811,12 @@ def test_run_plugin(qtbot, run_mock):
     # Check that adding new parameters preserves the previous ones
     current_exec_params = container.get_conf('parameters')[executor_name]
     assert (
-        len(current_exec_params[('ext1', RunContext.RegisteredContext)]
-            ['params']
-        ) == 2
+        len(
+            current_exec_params[("ext1", RunContext.RegisteredContext)][
+                "params"
+            ]
+        )
+        == 2
     )  # Check that we have one config in this context
 
     new_exec_conf_uuid = str(uuid4())
