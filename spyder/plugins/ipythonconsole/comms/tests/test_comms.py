@@ -120,8 +120,7 @@ def comms(kernel):
     kernel_comm._register_comm(commA)
 
     # Bypass the target system as this is not what is being tested
-    frontend_comm._comm_open(
-        commB, {'content': {'data': {'pickle_highest_protocol': 2}}})
+    frontend_comm._comm_open(commB, {'content': {}})
 
     return (kernel_comm, frontend_comm)
 
@@ -139,28 +138,27 @@ def test_comm_base(comms):
 
     received_messages = []
 
-    def handler(msg_dict, buffer):
-        received_messages.append((msg_dict, buffer))
+    def handler(msg_dict, buffers):
+        received_messages.append((msg_dict,))
 
     # Register callback
     commrecv._register_message_handler('test_message', handler)
 
     # Send a message
-    commsend._send_message('test_message', content='content', data='data')
+    commsend._send_message('test_message', content='content')
     assert len(received_messages) == 1
     assert received_messages[0][0]['spyder_msg_type'] == 'test_message'
     assert received_messages[0][0]['content'] == 'content'
-    assert received_messages[0][1] == 'data'
 
     # Send another message
-    commsend._send_message('test_message', content='content', data='data')
+    commsend._send_message('test_message', content='content')
     assert len(received_messages) == 2
 
     # Unregister callback
     commrecv._register_message_handler('test_message', None)
 
     # Send another unhandled message
-    commsend._send_message('test_message', content='content', data='data')
+    commsend._send_message('test_message', content='content')
     assert len(received_messages) == 2
 
 

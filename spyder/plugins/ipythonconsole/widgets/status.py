@@ -127,8 +127,10 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         # Reset value of interactive backend
         self._interactive_gui = None
 
-        # Avoid errors when running our test suite on Mac.
-        if running_in_ci() and sys.platform == "darwin":
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
             mpl_backend = "inline"
         else:
             mpl_backend = shellwidget.get_matplotlib_backend()

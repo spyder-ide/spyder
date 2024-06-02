@@ -55,6 +55,7 @@ PARSO_REQVER = '>=0.7.0,<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
+PYGITHUB_REQVER = '>=2.3.0'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
@@ -184,6 +185,10 @@ DESCRIPTIONS = [
      'package_name': "psutil",
      'features': _("CPU and memory usage info in the status bar"),
      'required_version': PSUTIL_REQVER},
+    {'modname': "github",
+     'package_name': "pygithub",
+     'features': _("Python API for Github REST API"),
+     'required_version': PYGITHUB_REQVER},
     {'modname': "pygments",
      'package_name': "pygments",
      'features': _("Syntax highlighting for a lot of file types in the Editor"),

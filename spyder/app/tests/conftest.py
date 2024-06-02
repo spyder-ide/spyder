@@ -8,6 +8,7 @@
 # Standard library imports
 import os
 import os.path as osp
+import random
 import sys
 import threading
 import traceback
@@ -254,6 +255,24 @@ def generate_run_parameters(mainwindow, filename, selected=None,
     return {file_uuid: file_run_params}
 
 
+def get_random_dockable_plugin(main_window, exclude=None):
+    """Get a random dockable plugin and give it focus."""
+    plugins = main_window.get_dockable_plugins()
+    for plugin_name, plugin in plugins:
+        if exclude and plugin_name in exclude:
+            plugins.remove((plugin_name, plugin))
+
+    plugin = random.choice(plugins)[1]
+
+    if not plugin.get_widget().toggle_view_action.isChecked():
+        plugin.toggle_view(True)
+        plugin._hide_after_test = True
+
+    plugin.switch_to_plugin()
+    plugin.get_widget().get_focus_widget().setFocus()
+    return plugin
+
+
 # =============================================================================
 # ---- Pytest hooks
 # =============================================================================
@@ -462,10 +481,14 @@ def main_window(request, tmpdir, qtbot):
             # after running test that uses the fixture
             # Currently 'test_out_runfile_runcell' is the last tests so
             # in order to prevent errors finalizing the test suit such test has
-            # this marker
+            # this marker.
+            # Also, try to decrease chances of freezes/timeouts from tests that
+            # are known to have leaks by also closing the main window for them.
+            known_leak = request.node.get_closest_marker(
+                'known_leak')
             close_main_window = request.node.get_closest_marker(
                 'close_main_window')
-            if close_main_window:
+            if close_main_window or known_leak:
                 main_window.window = None
                 window.closing(close_immediately=True)
                 window.close()
@@ -523,12 +546,6 @@ def main_window(request, tmpdir, qtbot):
 
                 if os.name == 'nt':
                     # Do not test leaks on windows
-                    return
-
-                known_leak = request.node.get_closest_marker(
-                    'known_leak')
-                if known_leak:
-                    # This test has a known leak
                     return
 
                 def show_diff(init_list, now_list, name):

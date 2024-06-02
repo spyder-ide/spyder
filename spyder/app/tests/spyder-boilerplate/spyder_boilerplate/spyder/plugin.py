@@ -64,7 +64,7 @@ class SpyderBoilerplateWidget(PluginMainWidget):
         return "Spyder boilerplate plugin"
 
     def get_focus_widget(self):
-        pass
+        return self
 
     def setup(self):
         # Create an example action

@@ -84,7 +84,7 @@ def pytest_collection_modifyitems(config, items):
         ]
 
         if os.name == 'nt':
-            percentage = 0.5
+            percentage = 0.4
         elif sys.platform == 'darwin':
             percentage = 0.5
         else:

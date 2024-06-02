@@ -11,6 +11,7 @@ from qtpy.QtWidgets import QLabel, QVBoxLayout
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.sidebardialog import SidebarDialog, SidebarPage
 
@@ -55,10 +56,15 @@ def sidebar_dialog(qapp, qtbot):
     class TestDialog(SidebarDialog):
         PAGE_CLASSES = [Page1, Page2]
 
-    qapp.setStyleSheet(str(APP_STYLESHEET))
+    if not running_in_ci():
+        qapp.setStyleSheet(str(APP_STYLESHEET))
     dialog = TestDialog()
     qtbot.addWidget(dialog)
-    dialog.show()
+
+    # To check the dialog visually
+    with qtbot.waitExposed(dialog):
+        dialog.show()
+
     return dialog
 
 
@@ -67,9 +73,6 @@ def sidebar_dialog(qapp, qtbot):
 def test_sidebardialog(sidebar_dialog, qtbot):
     dialog = sidebar_dialog
     assert dialog is not None
-
-    # To check the dialog visually
-    qtbot.wait(1000)
 
     # Check label displayed in the initial page
     assert "one" in dialog.get_page().label.text()

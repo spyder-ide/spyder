@@ -1072,7 +1072,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         super().after_long_process(message)
         self.get_widget().stop_spinner()
 
-    def get_widget(self):
+    def get_widget(self) -> PluginMainWidget:
         """
         Return the plugin main widget.
         """
@@ -1128,7 +1128,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self.get_widget().create_window()
 
     def close_window(self, save_undocked=False):
-        self.get_widget().close_window(save_undocked=save_undocked)
+        self.get_widget()._close_window(save_undocked=save_undocked)
 
     def change_visibility(self, state, force_focus=False):
         self.get_widget().change_visibility(state, force_focus)
