@@ -49,9 +49,8 @@ from spyder.plugins.run.api import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.helperwidgets import TipWidget
 
@@ -108,6 +107,7 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         self.bbox = SpyderDialogButtonBox(stdbtns)
 
+
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
                 _("Run"), QDialogButtonBox.ActionRole)
@@ -116,13 +116,14 @@ class BaseRunConfigDialog(QDialog):
         reset_deafults_btn = self.bbox.addButton(
             _('Reset'), QDialogButtonBox.ResetRole)
         reset_deafults_btn.clicked.connect(self.reset_btn_clicked)
+
+        # Align this button to the text above it
+        reset_deafults_btn.setStyleSheet("margin-left: 5px")
+
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
 
-        btnlayout = QHBoxLayout()
-        btnlayout.addStretch(1)
-        btnlayout.addWidget(self.bbox)
-        self.layout().addLayout(btnlayout)
+        self.layout().addWidget(self.bbox)
 
     def resizeEvent(self, event):
         """
@@ -205,8 +206,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         store_params_layout.addStretch(1)
 
         # --- Extension and context widgets
-        ext_combo_label = QLabel(_("Select a file extension:"))
-        context_combo_label = QLabel(_("Select a run context:"))
+        ext_combo_label = QLabel(_("File extension:"))
+        context_combo_label = QLabel(_("Run context:"))
 
         self.extension_combo = SpyderComboBox(self)
         self.extension_combo.addItems(self.extensions)
@@ -233,11 +234,23 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.stack = QStackedWidget(self)
         self.executor_group = QGroupBox(_("Runner settings"))
         executor_layout = QVBoxLayout(self.executor_group)
+        executor_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            0 if MAC else AppStyle.MarginSize,
+        )
         executor_layout.addWidget(self.stack)
 
         # --- Working directory settings
         self.wdir_group = QGroupBox(_("Working directory settings"))
         wdir_layout = QVBoxLayout(self.wdir_group)
+        wdir_layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            3 * AppStyle.MarginSize,
+            AppStyle.MarginSize if MAC else 0,
+        )
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
         wdir_layout.addWidget(self.file_dir_radio)
@@ -262,18 +275,15 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
-        # --- All settings layout
-        all_settings_layout = QVBoxLayout()
-        all_settings_layout.addWidget(self.executor_group)
-        all_settings_layout.addWidget(self.wdir_group)
-
         # --- Final layout
         layout = self.add_widgets(
             store_params_layout,
-            5 * AppStyle.MarginSize,
+            4 * AppStyle.MarginSize,
             ext_context_layout,
-            5 * AppStyle.MarginSize,
-            all_settings_layout
+            (3 if MAC else 4) * AppStyle.MarginSize,
+            self.executor_group,
+            self.wdir_group,
+            (-2 if MAC else 1) * AppStyle.MarginSize,
         )
         layout.addStretch()
         layout.setContentsMargins(*((AppStyle.InnerContentPadding,) * 4))
@@ -675,7 +685,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.configuration_combo,  # Hidden for simplicity
             executor_layout,
             custom_config,
-            2 * AppStyle.MarginSize,
+            (-2 if MAC else 1) * AppStyle.MarginSize,
         )
         layout.setContentsMargins(
             AppStyle.InnerContentPadding,
@@ -1025,13 +1035,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     def _stylesheet(self):
         # --- Style for the header
         self._css["QLabel#run-header-label"].setValues(
-            # Give it a background color to make it highlight over the other
-            # widgets.
-            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
-            # The left and right margins are a bit bigger to prevent the file
-            # name from being too close to the borders in case it's too long.
-            padding=f"{2 * AppStyle.MarginSize} {4 * AppStyle.MarginSize}",
-            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             # Add good enough margin with the widgets below it.
             marginBottom=f"{3 * AppStyle.MarginSize}px",
             # This is necessary to align the label to the widgets below it.
