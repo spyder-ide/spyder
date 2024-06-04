@@ -234,7 +234,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         enter_debug_action = self.create_action(
             DebuggerWidgetActions.EnterDebug,
             text=_("Interrupt execution and enter debugger"),
-            icon=self.create_icon('enter_debug'),
+            icon=self.create_icon("interrupt_and_debug"),
             triggered=self.enter_debug,
             register_shortcut=True,
         )
@@ -281,11 +281,13 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         goto_cursor_action = self.create_action(
             DebuggerWidgetActions.GotoCursor,
-            text=_("Show in the editor the file and line where the debugger "
-                   "is placed"),
-            icon=self.create_icon('fromcursor'),
+            text=_(
+                "Show the file and line where the debugger is placed in the "
+                "editor"
+            ),
+            icon=self.create_icon("go_to_editor"),
             triggered=self.goto_current_step,
-            register_shortcut=True
+            register_shortcut=True,
         )
 
         self.create_action(
@@ -322,7 +324,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         toggle_breakpoints_action = self.create_action(
             DebuggerBreakpointActions.ToggleBreakpointsTable,
             _("Show breakpoints"),
-            icon=self.create_icon('breakpoint_big'),
+            icon=self.create_icon("list_breakpoints"),
             toggled=True,
             initial=self.get_conf('breakpoints_table_visible'),
             option='breakpoints_table_visible'
