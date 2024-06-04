@@ -10,10 +10,19 @@
 import os.path as osp
 
 # Third-party imports
-from qtpy.compat import getexistingdirectory, getopenfilename
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import QSize
 from qtpy.QtWidgets import (
-    QWidget, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit,
-    QHBoxLayout, QLabel)
+    QCheckBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.translations import _
@@ -23,7 +32,6 @@ from spyder.plugins.run.api import (
     RunExecutorConfigurationGroupFactory)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle
 
 
@@ -88,16 +96,6 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         layout.addWidget(common_group)
         layout.addStretch(100)
 
-    def select_directory(self):
-        """Select directory"""
-        basedir = str(self.wd_edit.text())
-        if not osp.isdir(basedir):
-            basedir = getcwd_or_home()
-        directory = getexistingdirectory(self, _("Select directory"), basedir)
-        if directory:
-            self.wd_edit.setText(directory)
-            self.dir = directory
-
     @staticmethod
     def get_default_configuration() -> dict:
         return {
@@ -151,11 +149,11 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
 
         interpreter_label = QLabel(_("Shell interpreter:"))
         self.interpreter_edit = QLineEdit(self)
-        browse_btn = create_toolbutton(
-            self,
-            triggered=self.select_directory,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select interpreter"))
+        browse_btn.clicked.connect(self.select_interpreter)
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
         )
 
         shell_layout = QHBoxLayout()
@@ -209,8 +207,8 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
         layout.addWidget(script_group)
         layout.addStretch(100)
 
-    def select_directory(self):
-        """Select directory"""
+    def select_interpreter(self):
+        """Select an interpreter."""
         basedir = str(self.interpreter_edit.text())
         if not osp.isdir(basedir):
             basedir = getcwd_or_home()

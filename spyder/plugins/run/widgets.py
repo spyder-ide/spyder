@@ -49,7 +49,6 @@ from spyder.plugins.run.api import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.helperwidgets import TipWidget
@@ -258,20 +257,20 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.cwd_radio = QRadioButton(CW_DIR)
         wdir_layout.addWidget(self.cwd_radio)
 
-        fixed_dir_layout = QHBoxLayout()
         self.fixed_dir_radio = QRadioButton(FIXED_DIR)
-        fixed_dir_layout.addWidget(self.fixed_dir_radio)
-
         self.wd_edit = QLineEdit(self)
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
-        fixed_dir_layout.addWidget(self.wd_edit)
-        browse_btn = create_toolbutton(
-            self,
-            triggered=self.select_directory,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select directory"))
+        browse_btn.clicked.connect(self.select_directory)
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
         )
+
+        fixed_dir_layout = QHBoxLayout()
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
+        fixed_dir_layout.addWidget(self.wd_edit)
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
@@ -650,19 +649,20 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.cwd_radio = QRadioButton(CW_DIR)
         wdir_layout.addWidget(self.cwd_radio)
 
-        fixed_dir_layout = QHBoxLayout()
         self.fixed_dir_radio = QRadioButton(FIXED_DIR)
-        fixed_dir_layout.addWidget(self.fixed_dir_radio)
         self.wd_edit = QLineEdit(self)
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
-        fixed_dir_layout.addWidget(self.wd_edit)
-        browse_btn = create_toolbutton(
-            self,
-            triggered=self.select_directory,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select directory"))
+        browse_btn.clicked.connect(self.select_directory)
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
         )
+
+        fixed_dir_layout = QHBoxLayout()
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
+        fixed_dir_layout.addWidget(self.wd_edit)
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
