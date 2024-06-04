@@ -62,7 +62,12 @@ class DebuggerWidgetOptionsMenuSections:
 
 
 class DebuggerWidgetMainToolBarSections:
-    Main = 'main_section'
+    Control = 'control_section'
+    Extras = "extras_section"
+
+
+class DebuggerWidgetToolbarItems:
+    ToolbarStretcher = 'toolbar_stretcher'
 
 
 class DebuggerWidgetMenus:
@@ -78,9 +83,6 @@ class DebuggerContextMenuSections:
 # ---- Widgets
 # =============================================================================
 class DebuggerWidget(ShellConnectMainWidget):
-
-    # PluginMainWidget class constants
-    ENABLE_SPINNER = True
 
     # Signals
     sig_edit_goto = Signal(str, int, str)
@@ -341,20 +343,34 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [next_action,
-                     continue_action,
-                     step_action,
-                     return_action,
-                     stop_action,
-                     goto_cursor_action,
-                     enter_debug_action,
-                     inspect_action,
-                     search_action,
-                     toggle_breakpoints_action]:
+        for item in [
+            next_action,
+            continue_action,
+            step_action,
+            return_action,
+            stop_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
-                section=DebuggerWidgetMainToolBarSections.Main,
+                section=DebuggerWidgetMainToolBarSections.Control,
+            )
+
+        stretcher = self.create_stretcher(
+            DebuggerWidgetToolbarItems.ToolbarStretcher
+        )
+        for item in [
+            goto_cursor_action,
+            enter_debug_action,
+            inspect_action,
+            search_action,
+            stretcher,
+            toggle_breakpoints_action,
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=main_toolbar,
+                section=DebuggerWidgetMainToolBarSections.Extras,
             )
 
     def update_actions(self):
