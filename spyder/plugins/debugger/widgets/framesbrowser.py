@@ -25,9 +25,9 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
 
 
@@ -76,11 +76,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         The line number the debugger stepped in
     """
 
-    def __init__(self, parent, shellwidget, color_scheme):
+    def __init__(self, parent, shellwidget):
         super().__init__(parent)
         self.shellwidget = shellwidget
         self.results_browser = None
-        self.color_scheme = color_scheme
         # -1 means never clear, otherwise number of calls
         self._persistence = -1
         self.state = None
@@ -129,7 +128,7 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         if self.results_browser is not None:
             return
 
-        self.results_browser = ResultsBrowser(self, self.color_scheme)
+        self.results_browser = ResultsBrowser(self)
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
 
         self.finder = FinderWidget(self)
@@ -212,7 +211,10 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
     def show_pdb(self, pdb_stack, curindex):
         """Show pdb frames."""
         self._show_frames(
-            {'pdb': pdb_stack}, _("Pdb stack"), FramesBrowserState.Debug)
+            {_("Frames"): pdb_stack},
+            _("Debugger stack"),
+            FramesBrowserState.Debug,
+        )
         self._persistence = 0
         self.pdb_curindex = curindex
         self.set_current_item(0, curindex)
@@ -329,43 +331,49 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         })
 
 
-class LineFrameItem(QTreeWidgetItem):
+class LineFrameItem(QTreeWidgetItem, SpyderFontsMixin):
 
-    def __init__(self, parent, index, filename, line, lineno, name,
-                 font, color_scheme=None):
+    def __init__(self, parent, index, filename, line, lineno, name):
         self.index = index
         self.filename = filename
         self.text = line
         self.lineno = lineno
         self.context = name
-        self.color_scheme = color_scheme
-        self.font = font
-        QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
-                                 QTreeWidgetItem.Type)
+        QTreeWidgetItem.__init__(
+            self, parent, [self.__repr__()], QTreeWidgetItem.Type
+        )
 
     def __repr__(self):
-        """Prints item as html."""
-        if self.filename is None:
-            return ("<!-- LineFrameItem -->"
-                    '<p><span style="color:{0}">idle</span></p>').format(
-                        self.color_scheme['normal'][0])
-        _str = ("<!-- LineFrameItem -->" +
-                "<p style=\"color:'{0}';\"><b> ".format(
-                    self.color_scheme['normal'][0]) +
-                "<span style=\"color:'{0}';\">{1}</span>:".format(
-                    self.color_scheme['string'][0],
-                    html.escape(osp.basename(self.filename))) +
-                "<span style=\"color:'{0}';\">{1}</span></b>".format(
-                    self.color_scheme['number'][0], self.lineno))
-        if self.context:
-            _str += " (<span style=\"color:'{0}';\">{1}</span>)".format(
-                self.color_scheme['builtin'][0], html.escape(self.context))
+        """Print item as html."""
+        text_color = SpyderPalette.COLOR_TEXT_1
+        idle = _("Idle")
 
-        _str += (
-            "    <span style=\"font-family:{0};".format(self.font.family())
-            + "color:'{0}';font-size:50%;\"><em>{1}</em></span></p>".format(
-                self.color_scheme['comment'][0], self.text))
-        return _str
+        if self.filename is None:
+            return f'<p><span style="color:{text_color}">{idle}</span></p>'
+
+        fname = html.escape(osp.basename(self.filename))
+        formatted_text = (
+            f"<p style=\"color:'{text_color}';\">"
+            f"<b>{fname}</b> ({self.lineno}): "
+        )
+
+        monospace_font = self.get_font(SpyderFontType.Monospace).family()
+        formatted_text += (
+            f"<span style=\"font-family:{monospace_font};\">"
+            f"{self.text}"
+            f"</span>"
+        )
+
+        if self.context:
+            scope = _("Scope")
+            formatted_text += (
+                f"&nbsp;&nbsp;&nbsp;&#8212;&nbsp;&nbsp;&nbsp;"
+                f"{scope}: {html.escape(self.context)}</p>"
+            )
+        else:
+            formatted_text += "</p>"
+
+        return formatted_text
 
     def to_plain_text(self):
         """Represent item as plain text."""
@@ -394,8 +402,9 @@ class LineFrameItem(QTreeWidgetItem):
 
 class ThreadItem(QTreeWidgetItem):
 
-    def __init__(self, parent, name, text_color):
+    def __init__(self, parent, name):
         self.name = str(name)
+        text_color = SpyderPalette.COLOR_TEXT_1
 
         title_format = str(
             '<!-- ThreadItem -->'
@@ -461,19 +470,15 @@ class ItemDelegate(QStyledItemDelegate):
         return size
 
 
-class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
-                     SpyderFontsMixin):
-    CONF_SECTION = 'debugger'
+class ResultsBrowser(QTreeWidget):
     sig_edit_goto = Signal(str, int, str)
     sig_activated = Signal(int)
 
-    def __init__(self, parent, color_scheme):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.font = self.get_font(SpyderFontType.MonospaceInterface)
         self.data = None
         self.threads = None
-        self.color_scheme = color_scheme
-        self.text_color = color_scheme['normal'][0]
+        self.text_color = SpyderPalette.COLOR_TEXT_1
         self.stack_dict = None
 
         # Setup
@@ -523,9 +528,7 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
             return
 
         for thread_id, stack in stack_dict.items():
-            parent = ThreadItem(
-                self, thread_id, self.text_color
-            )
+            parent = ThreadItem(self, thread_id)
             parent.setExpanded(True)
             self.threads[thread_id] = parent
 
@@ -538,21 +541,11 @@ class ResultsBrowser(QTreeWidget, SpyderConfigurationAccessor,
                         frame["line"],
                         frame["lineno"],
                         frame["name"],
-                        self.font,
-                        self.color_scheme
                     )
                     self.data[id(item)] = (frame["filename"], frame["lineno"])
             else:
                 item = LineFrameItem(
-                    parent,
-                    0,
-                    None,
-                    '',
-                    0,
-                    '',
-                    None,
-                    self.font,
-                    self.color_scheme
+                    parent, 0, None, '', 0, '', None,
                 )
 
     def do_find(self, text):

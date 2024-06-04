@@ -20,8 +20,6 @@ import qstylizer.style
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.api.translations import _
-from spyder.config.manager import CONF
-from spyder.config.gui import get_color_scheme
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.plugins.debugger.widgets.breakpoint_table_view import (
@@ -446,13 +444,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     # ------------------------------------------------------------------------
     def create_new_widget(self, shellwidget):
         """Create a new widget."""
-        color_scheme = get_color_scheme(
-            CONF.get('appearance', 'selected'))
-        widget = FramesBrowser(
-            self,
-            shellwidget=shellwidget,
-            color_scheme=color_scheme
-        )
+        widget = FramesBrowser(self, shellwidget=shellwidget)
 
         widget.sig_edit_goto.connect(self.sig_edit_goto)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
