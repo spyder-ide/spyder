@@ -295,12 +295,17 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         self._unintroduced_actions = {}
 
-    def render(self):
+    def render(self, force=False):
         """
         Create the menu prior to showing it. This takes into account sections
         and location of menus.
+
+        Parameters
+        ----------
+        force: bool, optional
+            Whether to force rendering the menu.
         """
-        if self._dirty:
+        if self._dirty or force:
             self.clear()
             self._add_missing_actions()
 
