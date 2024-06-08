@@ -531,7 +531,9 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
 
         self.params_index = dict(enumerate(self.executor_conf_params))
         self.inverse_index = {v: k for k, v in self.params_index.items()}
+
         self.endResetModel()
+
         self.sig_data_changed.emit()
 
     def get_parameter_names(self) -> Dict[Tuple[str, str], List[str]]:
@@ -557,5 +559,5 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
     ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
 
         tuple_index = self.params_index[index]
-        (ext, context, _) = tuple_index
+        (ext, context, __) = tuple_index
         return (ext, context, self.executor_conf_params[tuple_index])

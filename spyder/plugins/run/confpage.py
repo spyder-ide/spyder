@@ -47,6 +47,7 @@ def move_file_to_front(contexts: List[str]) -> List[str]:
 
 
 class RunParametersTableView(HoverRowsTableView):
+
     def __init__(self, parent, model):
         super().__init__(parent)
         self._parent = parent
@@ -78,7 +79,7 @@ class RunParametersTableView(HoverRowsTableView):
             params = self._parent.table_model.executor_conf_params[params_id]
             is_default = True if params.get("default") else False
 
-        self._parent.set_clone_delete_btn_status(is_default=is_default)
+        self._parent.set_buttons_status(is_default=is_default)
 
         # Always enable edit button
         self._parent.edit_configuration_btn.setEnabled(True)
@@ -194,7 +195,7 @@ class RunConfigPage(PluginConfigPage):
             self, self.plugin_container.executor_model)
         self.table_model = ExecutorRunParametersTableModel(self)
         self.table_model.sig_data_changed.connect(
-            lambda: self.set_modified(True)
+            self.on_table_data_changed
         )
 
         self.all_executor_model: Dict[
@@ -241,18 +242,15 @@ class RunConfigPage(PluginConfigPage):
         self.edit_configuration_btn = QPushButton(_("Edit selected"))
         self.clone_configuration_btn = QPushButton(_("Clone selected"))
         self.delete_configuration_btn = QPushButton(_("Delete selected"))
-        self.reset_changes_btn = QPushButton(_("Reset changes"))
+        self.reset_changes_btn = QPushButton(_("Reset current changes"))
         self.edit_configuration_btn.setEnabled(False)
         self.delete_configuration_btn.setEnabled(False)
         self.clone_configuration_btn.setEnabled(False)
 
         self.new_configuration_btn.clicked.connect(
             self.create_new_configuration)
-        self.edit_configuration_btn.clicked.connect(
-            lambda checked: self.params_table.show_editor()
-        )
-        self.clone_configuration_btn.clicked.connect(
-            self.clone_configuration)
+        self.edit_configuration_btn.clicked.connect(self.edit_configuration)
+        self.clone_configuration_btn.clicked.connect(self.clone_configuration)
         self.delete_configuration_btn.clicked.connect(
             self.delete_configuration)
         self.reset_changes_btn.clicked.connect(self.reset_changes)
@@ -339,29 +337,32 @@ class RunConfigPage(PluginConfigPage):
 
         self.table_model.set_parameters(executor_conf_params)
         self.previous_executor_index = index
-        self.set_clone_delete_btn_status()
+        self.set_buttons_status()
 
-        # Repopulating the params table removes any selection, so we need to
-        # disable the edit button.
-        if hasattr(self, "edit_configuration_btn"):
-            self.edit_configuration_btn.setEnabled(False)
+    def on_table_data_changed(self):
+        # Buttons need to be disabled because the table model is reset when
+        # data is changed and focus is lost
+        self.set_buttons_status(False)
+        self.set_modified(True)
 
-    def set_clone_delete_btn_status(self, is_default=False):
+    def set_buttons_status(self, status=None, is_default=False):
         # We need to enclose the code below in a try/except because these
         # buttons might not be created yet, which gives an AttributeError.
         try:
-            if is_default:
-                # Don't allow to delete default configurations, only to clone
-                # them
-                self.delete_configuration_btn.setEnabled(False)
-                self.clone_configuration_btn.setEnabled(True)
-            else:
+            if status is None:
                 status = (
                     self.table_model.rowCount() != 0
                     and self.params_table.currentIndex().isValid()
                 )
+
+            # Don't allow to delete default configurations
+            if is_default:
+                self.delete_configuration_btn.setEnabled(False)
+            else:
                 self.delete_configuration_btn.setEnabled(status)
-                self.clone_configuration_btn.setEnabled(status)
+
+            self.edit_configuration_btn.setEnabled(status)
+            self.clone_configuration_btn.setEnabled(status)
         except AttributeError:
             pass
 
@@ -408,9 +409,11 @@ class RunConfigPage(PluginConfigPage):
     def create_new_configuration(self):
         self.params_table.show_editor(new=True)
 
+    def edit_configuration(self):
+        self.params_table.show_editor()
+
     def clone_configuration(self):
         self.params_table.clone_configuration()
-        self.edit_configuration_btn.setEnabled(False)
 
     def delete_configuration(self):
         executor_name, _ = self.executor_model.selected_executor(
@@ -429,8 +432,7 @@ class RunConfigPage(PluginConfigPage):
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
         self.set_modified(True)
-        self.set_clone_delete_btn_status()
-        self.edit_configuration_btn.setEnabled(False)
+        self.set_buttons_status()
 
     def reset_changes(self):
         """Reset changes to the parameters loaded when the page was created."""
@@ -442,7 +444,7 @@ class RunConfigPage(PluginConfigPage):
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
         self.set_modified(True)
-        self.set_clone_delete_btn_status()
+        self.set_buttons_status()
 
     def apply_settings(self):
         prev_executor_info = self.table_model.get_current_view()
