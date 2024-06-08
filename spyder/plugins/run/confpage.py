@@ -16,11 +16,9 @@ from uuid import uuid4
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QAbstractItemView,
-    QGridLayout,
     QHBoxLayout,
     QHeaderView,
     QLabel,
-    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -36,6 +34,7 @@ from spyder.plugins.run.models import (
     RunExecutorNamesListModel, ExecutorRunParametersTableModel)
 from spyder.plugins.run.widgets import (
     ExecutionParametersDialog, RunDialogStatus)
+from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.helperwidgets import HoverRowsTableView
 
@@ -190,6 +189,7 @@ class RunConfigPage(PluginConfigPage):
     def setup_page(self):
         self._params_to_delete = {}
 
+        # --- Executors tab ---
         self.plugin_container: RunContainer = self.plugin.get_container()
         self.executor_model = RunExecutorNamesListModel(
             self, self.plugin_container.executor_model)
@@ -238,24 +238,40 @@ class RunConfigPage(PluginConfigPage):
         executor_layout.addWidget(self.executor_combo)
         executor_layout.addStretch()
 
-        self.new_configuration_btn = QPushButton(_("New parameters"))
-        self.edit_configuration_btn = QPushButton(_("Edit selected"))
-        self.clone_configuration_btn = QPushButton(_("Clone selected"))
-        self.delete_configuration_btn = QPushButton(_("Delete selected"))
-        self.reset_changes_btn = QPushButton(_("Reset current changes"))
-        self.edit_configuration_btn.setEnabled(False)
-        self.delete_configuration_btn.setEnabled(False)
-        self.clone_configuration_btn.setEnabled(False)
+        # Buttons
+        self.new_configuration_btn = self.create_button(
+            icon=ima.icon("edit_add"),
+            callback=self.create_new_configuration,
+            tooltip=_("New parameters"),
+        )
+        self.edit_configuration_btn = self.create_button(
+            icon=ima.icon("edit"),
+            callback=self.edit_configuration,
+            tooltip=_("Edit selected"),
+        )
+        self.clone_configuration_btn = self.create_button(
+            icon=ima.icon("editcopy"),
+            callback=self.clone_configuration,
+            tooltip=_("Clone selected"),
+        )
+        self.delete_configuration_btn = self.create_button(
+            icon=ima.icon("editclear"),
+            callback=self.delete_configuration,
+            tooltip=_("Delete selected"),
+        )
+        self.reset_changes_btn = self.create_button(
+            icon=ima.icon("restart"),
+            callback=self.reset_changes,
+            tooltip=_("Reset current changes"),
+        )
 
-        self.new_configuration_btn.clicked.connect(
-            self.create_new_configuration)
-        self.edit_configuration_btn.clicked.connect(self.edit_configuration)
-        self.clone_configuration_btn.clicked.connect(self.clone_configuration)
-        self.delete_configuration_btn.clicked.connect(
-            self.delete_configuration)
-        self.reset_changes_btn.clicked.connect(self.reset_changes)
+        # Disable edition button at startup
+        self.set_buttons_status(status=False)
 
         # Buttons layout
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
         btns = [
             self.new_configuration_btn,
             self.edit_configuration_btn,
@@ -263,12 +279,24 @@ class RunConfigPage(PluginConfigPage):
             self.clone_configuration_btn,
             self.reset_changes_btn,
         ]
-        sn_buttons_layout = QGridLayout()
-        for i, btn in enumerate(btns):
-            sn_buttons_layout.addWidget(btn, i, 1)
-        sn_buttons_layout.setColumnStretch(0, 1)
-        sn_buttons_layout.setColumnStretch(1, 2)
-        sn_buttons_layout.setColumnStretch(2, 1)
+        for btn in btns:
+            buttons_layout.addWidget(btn)
+
+        buttons_layout.addStretch()
+
+        # Final layout
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(about_label)
+        vlayout.addSpacing(3 * AppStyle.MarginSize)
+        vlayout.addLayout(executor_layout)
+        vlayout.addSpacing(3 * AppStyle.MarginSize)
+        vlayout.addWidget(params_label)
+        vlayout.addLayout(params_table_layout)
+        vlayout.addSpacing(AppStyle.MarginSize)
+        vlayout.addLayout(buttons_layout)
+        vlayout.addStretch()
+        executor_widget = QWidget(self)
+        executor_widget.setLayout(vlayout)
 
         # --- Editor interactions tab ---
         newcb = self.create_checkbox
@@ -280,22 +308,10 @@ class RunConfigPage(PluginConfigPage):
         run_layout = QVBoxLayout()
         run_layout.addWidget(saveall_box)
         run_layout.addWidget(run_cell_box)
-        run_widget = QWidget()
+        run_widget = QWidget(self)
         run_widget.setLayout(run_layout)
 
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(about_label)
-        vlayout.addSpacing(3 * AppStyle.MarginSize)
-        vlayout.addLayout(executor_layout)
-        vlayout.addSpacing(3 * AppStyle.MarginSize)
-        vlayout.addWidget(params_label)
-        vlayout.addLayout(params_table_layout)
-        vlayout.addSpacing(2 * AppStyle.MarginSize)
-        vlayout.addLayout(sn_buttons_layout)
-        vlayout.addStretch()
-        executor_widget = QWidget()
-        executor_widget.setLayout(vlayout)
-
+        # --- Tabs ---
         self.create_tab(_("Run executors"), executor_widget)
         self.create_tab(_("Editor interactions"), run_widget)
 

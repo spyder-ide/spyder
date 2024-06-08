@@ -482,6 +482,11 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
             marginBottom='15px',
         )
 
+        # Substract extra padding
+        css["QToolTip"].setValues(
+            paddingRight="-2px",
+        )
+
         # Substract extra padding that comes from QLineEdit
         css["QLineEdit QToolTip"].setValues(
             padding="-2px -3px",

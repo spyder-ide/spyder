@@ -1041,12 +1041,33 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
             return widget
 
-    def create_button(self, text, callback):
-        btn = QPushButton(text)
+    def create_button(
+        self,
+        callback,
+        text=None,
+        icon=None,
+        tooltip=None,
+        set_modified_on_click=False,
+    ):
+        if icon is not None:
+            btn = QPushButton(icon, "", parent=self)
+            btn.setIconSize(
+                QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+            )
+        else:
+            btn = QPushButton(text, parent=self)
+
         btn.clicked.connect(callback)
-        btn.clicked.connect(
-            lambda checked=False, opt='': self.has_been_modified(
-                self.CONF_SECTION, opt))
+        if tooltip is not None:
+            btn.setToolTip(tooltip)
+
+        if set_modified_on_click:
+            btn.clicked.connect(
+                lambda checked=False, opt="": self.has_been_modified(
+                    self.CONF_SECTION, opt
+                )
+            )
+
         return btn
 
     def create_tab(self, name, widgets):
