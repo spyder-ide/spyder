@@ -905,13 +905,19 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
                     _("You need to provide a name to save this configuration")
                 )
                 allow_to_close = False
-            elif params_name == self.parameters_combo.lineEdit().text():
-                # Don't allow to save a config named with the current config
-                # name because it'd end up being confusing.
+            elif (
+                params_name != self.parameters_combo.lineEdit().text()
+                and params_name in self.parameter_model.get_parameter_names()
+            ):
+                # Don't allow to save a config with the same name of an
+                # existing one because it doesn't make sense.
                 allow_to_close = False
                 self.name_params_text.status_action.setVisible(True)
                 self.name_params_text.status_action.setToolTip(
-                    _("Select a different name for this configuration")
+                    _(
+                        "You need to select a different name for this "
+                        "configuration"
+                    )
                 )
 
             if not allow_to_close:

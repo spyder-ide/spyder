@@ -334,6 +334,14 @@ class RunExecutorParameters(QAbstractListModel):
 
         return index
 
+    def get_parameter_names(self) -> List[str]:
+        """Get all parameter names for this executor."""
+        names = []
+        for params in self.executor_conf_params.values():
+            names.append(params["name"])
+
+        return names
+
     def __len__(self) -> int:
         return len(self.executor_conf_params)
 
