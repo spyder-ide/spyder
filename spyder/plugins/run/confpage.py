@@ -114,6 +114,7 @@ class RunParametersTableView(HoverRowsTableView):
             self,
             plugin_name,
             executor_params,
+            self.model().get_parameter_names(),
             extensions,
             contexts,
             params,

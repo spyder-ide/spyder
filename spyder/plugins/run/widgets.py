@@ -58,6 +58,9 @@ from spyder.widgets.helperwidgets import TipWidget
 FILE_DIR = _("The directory of the configuration being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
+EMPTY_NAME = _("Provide a name for this configuration")
+REPEATED_NAME = _("Select a different name for this configuration")
+
 
 class RunDialogStatus:
     Close = 0
@@ -155,7 +158,10 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self,
         parent,
         executor_name,
-        executor_params: Dict[Tuple[str, str], SupportedExecutionRunConfiguration],
+        executor_params: Dict[
+            Tuple[str, str], SupportedExecutionRunConfiguration
+        ],
+        param_names: Dict[Tuple[str, str], List[str]],
         extensions: Optional[List[str]] = None,
         contexts: Optional[Dict[str, List[str]]] = None,
         default_params: Optional[ExtendedRunExecutionParameters] = None,
@@ -167,6 +173,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         self.executor_name = executor_name
         self.executor_params = executor_params
+        self.param_names = param_names
         self.default_params = default_params
         self.extensions = extensions or []
         self.contexts = contexts or {}
@@ -202,6 +209,26 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         store_params_layout.addWidget(params_name_label)
         store_params_layout.addWidget(self.store_params_text)
         store_params_layout.addStretch(1)
+
+        # This action needs to be added before setting an icon for it so that
+        # it doesn't show up in the line edit (despite being set as not visible
+        # below). That's probably a Qt bug.
+        status_action = QAction(self)
+        self.store_params_text.addAction(
+            status_action, QLineEdit.TrailingPosition
+        )
+        self.store_params_text.status_action = status_action
+
+        status_action.setIcon(ima.icon("error"))
+        status_action.setVisible(False)
+
+        # This is necessary to fix the style of the tooltip shown inside the
+        # lineedit
+        store_params_css = qstylizer.style.StyleSheet()
+        store_params_css["QLineEdit QToolTip"].setValues(
+            padding="1px 2px",
+        )
+        self.store_params_text.setStyleSheet(store_params_css.toString())
 
         # --- Extension and context widgets
         ext_combo_label = QLabel(_("File extension:"))
@@ -312,8 +339,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         if self.parameters_name:
             self.store_params_text.setText(self.parameters_name)
 
-            # Don't allow to change name if params are default ones.
-            if self.default_params["default"]:
+            # Don't allow to change name for default or already saved params.
+            if self.default_params["default"] or not self.new_config:
                 self.store_params_text.setEnabled(False)
 
         # --- Stylesheet
@@ -441,6 +468,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
     def accept(self) -> None:
         self.status |= RunDialogStatus.Save
         widget_conf = self.current_widget.get_configuration()
+        self.store_params_text.status_action.setVisible(False)
 
         path = None
         source = None
@@ -462,12 +490,23 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         else:
             uuid = str(uuid4())
 
+        # Validate name only for new configurations
         name = self.store_params_text.text()
-        if name == '':
-            self.store_params_text.setPlaceholderText(
-                _("Set a name here to proceed!")
-            )
-            return
+        if self.new_config:
+            if name == '':
+                self.store_params_text.status_action.setVisible(True)
+                self.store_params_text.status_action.setToolTip(EMPTY_NAME)
+                return
+            else:
+                extension = self.extension_combo.lineEdit().text()
+                context = self.context_combo.lineEdit().text()
+                current_names = self.param_names[(extension, context)]
+                if name in current_names:
+                    self.store_params_text.status_action.setVisible(True)
+                    self.store_params_text.status_action.setToolTip(
+                        REPEATED_NAME
+                    )
+                    return
 
         ext_exec_params = ExtendedRunExecutionParameters(
             uuid=uuid,
@@ -901,9 +940,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             if not params_name:
                 # Don't allow to save configs without a name
                 self.name_params_text.status_action.setVisible(True)
-                self.name_params_text.status_action.setToolTip(
-                    _("You need to provide a name to save this configuration")
-                )
+                self.name_params_text.status_action.setToolTip(EMPTY_NAME)
                 allow_to_close = False
             elif (
                 params_name != self.parameters_combo.lineEdit().text()
@@ -913,12 +950,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
                 # existing one because it doesn't make sense.
                 allow_to_close = False
                 self.name_params_text.status_action.setVisible(True)
-                self.name_params_text.status_action.setToolTip(
-                    _(
-                        "You need to select a different name for this "
-                        "configuration"
-                    )
-                )
+                self.name_params_text.status_action.setToolTip(REPEATED_NAME)
 
             if not allow_to_close:
                 # With this the dialog can be closed when clicking the Cancel

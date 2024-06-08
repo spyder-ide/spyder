@@ -534,6 +534,17 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
         self.endResetModel()
         self.sig_data_changed.emit()
 
+    def get_parameter_names(self) -> Dict[Tuple[str, str], List[str]]:
+        """Get all parameter names per extension and context."""
+        names = {}
+        for k, v in self.executor_conf_params.items():
+            extension_context = (k[0], k[1])
+            current_names = names.get(extension_context, [])
+            current_names.append(_("Default") if v["default"] else v["name"])
+            names[extension_context] = current_names
+
+        return names
+
     def __len__(self):
         return len(self.inverse_index)
 
