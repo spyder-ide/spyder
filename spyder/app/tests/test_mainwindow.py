@@ -720,7 +720,11 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     exec_uuid = str(uuid.uuid4())
     ext_exec_conf = ExtendedRunExecutionParameters(
-        uuid=exec_uuid, name='TestConf', params=exec_conf, default=False
+        uuid=exec_uuid,
+        name="TestConf",
+        params=exec_conf,
+        default=False,
+        file_uuid=None,
     )
 
     ipy_dict = {ipyconsole.NAME: {
@@ -804,7 +808,11 @@ def test_dedicated_consoles(main_window, qtbot):
 
     exec_uuid = str(uuid.uuid4())
     ext_exec_conf = ExtendedRunExecutionParameters(
-        uuid=exec_uuid, name='TestConf', params=exec_conf, default=False
+        uuid=exec_uuid,
+        name="TestConf",
+        params=exec_conf,
+        default=False,
+        file_uuid=None,
     )
 
     ipy_dict = {ipyconsole.NAME: {
@@ -914,7 +922,11 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 
     exec_uuid = str(uuid.uuid4())
     ext_exec_conf = ExtendedRunExecutionParameters(
-        uuid=exec_uuid, name='TestConf', params=exec_conf, default=False
+        uuid=exec_uuid,
+        name="TestConf",
+        params=exec_conf,
+        default=False,
+        file_uuid=None,
     )
 
     ipy_dict = {external_terminal.NAME: {

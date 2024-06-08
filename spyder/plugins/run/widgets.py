@@ -106,7 +106,6 @@ class BaseRunConfigDialog(QDialog):
         """Create dialog button box and add it to the dialog layout"""
         self.bbox = SpyderDialogButtonBox(stdbtns)
 
-
         if not self.disable_run_btn:
             run_btn = self.bbox.addButton(
                 _("Run"), QDialogButtonBox.ActionRole)
@@ -518,7 +517,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.current_widget = None
         self.status = RunDialogStatus.Close
         self._is_shown = False
-        self._save_as_global = False
 
     # ---- Public methods
     # -------------------------------------------------------------------------
@@ -611,21 +609,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         status_action.setIcon(ima.icon("error"))
         status_action.setVisible(False)
 
-        # Buttons
-        delete_button = QPushButton(_("Delete"))
-        save_global_button = QPushButton(_("Save globally"))
-        delete_button.clicked.connect(self.delete_btn_clicked)
-        save_global_button.clicked.connect(self.save_global_btn_clicked)
-
-        # Buttons layout
-        buttons_layout = QHBoxLayout()
-        buttons_layout.addWidget(delete_button)
-        buttons_layout.addWidget(save_global_button)
-
         config_props_layout.addWidget(name_params_label, 0, 0)
         config_props_layout.addWidget(self.name_params_text, 0, 1)
         config_props_layout.addWidget(name_params_tip, 0, 2)
-        config_props_layout.addLayout(buttons_layout, 1, 1)
 
         # --- Runner settings
         self.stack = QStackedWidget()
@@ -697,6 +683,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         )
 
         self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.delete_button = QPushButton(_("Delete"))
+        self.delete_button.clicked.connect(self.delete_btn_clicked)
+        self.bbox.addButton(self.delete_button, QDialogButtonBox.ActionRole)
 
         # --- Settings
         self.executor_combo.currentIndexChanged.connect(
@@ -759,6 +748,12 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             self.name_params_text.setText(_("Custom for this file"))
         else:
             self.name_params_text.setText(stored_params["name"])
+
+        # Disable delete button for default or global configs
+        if stored_params["default"] or stored_params["file_uuid"] is None:
+            self.delete_button.setEnabled(False)
+        else:
+            self.delete_button.setEnabled(True)
 
         # Set parameters in their corresponding graphical elements
         params = stored_params["params"]
@@ -883,20 +878,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             # updating its contents after this config is deleted
             self.reject()
 
-    def save_global_btn_clicked(self):
-        answer = QMessageBox.question(
-            self,
-            _("Save globally"),
-            _(
-                "Do you want to save the current configuration for other "
-                "files?"
-            ),
-        )
-
-        if answer == QMessageBox.Yes:
-            self._save_as_global = True
-            self.accept()
-
     def get_configuration(
         self
     ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
@@ -924,20 +905,14 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
                     _("You need to provide a name to save this configuration")
                 )
                 allow_to_close = False
-                self._save_as_global = False
-            elif self._save_as_global and (
-                params_name == _("Custom for this file")
-                or params_name == self.parameters_combo.lineEdit().text()
-            ):
-                # Don't allow to save a global config named "Custom for this
-                # file" or with the current config name because it'll end up
-                # being confusing.
+            elif params_name == self.parameters_combo.lineEdit().text():
+                # Don't allow to save a config named with the current config
+                # name because it'd end up being confusing.
                 allow_to_close = False
                 self.name_params_text.status_action.setVisible(True)
                 self.name_params_text.status_action.setToolTip(
                     _("Select a different name for this configuration")
                 )
-                self._save_as_global = False
 
             if not allow_to_close:
                 # With this the dialog can be closed when clicking the Cancel
@@ -988,7 +963,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             uuid=uuid,
             name=name,
             params=exec_params,
-            file_uuid=None if self._save_as_global else metadata_info['uuid'],
+            file_uuid=metadata_info['uuid'],
             default=True if (widget_conf == default_conf) else False
         )
 
@@ -998,9 +973,6 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         self.saved_conf = (metadata_info['uuid'], executor_name,
                            ext_exec_params)
-
-        # Reset attribute for next time
-        self._save_as_global = False
 
         return super().accept()
 
