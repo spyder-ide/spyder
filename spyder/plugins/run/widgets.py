@@ -362,7 +362,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             context_index = contexts.index(self.context)
         self.context_combo.setCurrentIndex(context_index)
 
-    def context_changed(self, index: int):
+    def context_changed(self, index: int, reset: bool = False):
         if index < 0:
             return
 
@@ -406,7 +406,11 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             working_dir_params = params['working_dir']
             exec_params = params
 
-        params_set = exec_params['executor_params'] or default_params
+        params_set = (
+            default_params
+            if reset
+            else (exec_params["executor_params"] or default_params)
+        )
 
         if params_set.keys() == default_params.keys():
             self.current_widget.set_configuration(params_set)
@@ -449,7 +453,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
     def reset_btn_clicked(self):
         index = self.context_combo.currentIndex()
-        self.context_changed(index)
+        self.context_changed(index, reset=True)
 
     def run_btn_clicked(self):
         self.status |= RunDialogStatus.Run
