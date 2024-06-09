@@ -55,7 +55,7 @@ from spyder.widgets.helperwidgets import TipWidget
 
 
 # Main constants
-FILE_DIR = _("The directory of the configuration being executed")
+FILE_DIR = _("The directory of the file being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
 EMPTY_NAME = _("Provide a name for this configuration")
@@ -257,15 +257,6 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         # --- Runner settings
         self.stack = QStackedWidget(self)
-        self.executor_group = QGroupBox(_("Runner settings"))
-        executor_layout = QVBoxLayout(self.executor_group)
-        executor_layout.setContentsMargins(
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            0 if MAC else AppStyle.MarginSize,
-        )
-        executor_layout.addWidget(self.stack)
 
         # --- Working directory settings
         self.wdir_group = QGroupBox(_("Working directory settings"))
@@ -306,7 +297,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             4 * AppStyle.MarginSize,
             ext_context_layout,
             (3 if MAC else 4) * AppStyle.MarginSize,
-            self.executor_group,
+            self.stack,
             self.wdir_group,
             (-2 if MAC else 1) * AppStyle.MarginSize,
         )
@@ -382,9 +373,9 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
                         RunExecutorConfigurationGroup)
 
         if executor_conf_metadata['configuration_widget'] is None:
-            self.executor_group.setEnabled(False)
+            self.stack.setEnabled(False)
         else:
-            self.executor_group.setEnabled(True)
+            self.stack.setEnabled(True)
 
         self.wdir_group.setEnabled(requires_cwd)
 
@@ -434,8 +425,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             self.fixed_dir_radio.setChecked(True)
             self.wd_edit.setText(path)
 
-        if (not self.executor_group.isEnabled() and not
-                self.wdir_group.isEnabled()):
+        if not self.stack.isEnabled() and not self.wdir_group.isEnabled():
             ok_btn = self.bbox.button(QDialogButtonBox.Ok)
             ok_btn.setEnabled(False)
 
@@ -657,16 +647,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         config_props_layout.addWidget(name_params_tip, 0, 2)
 
         # --- Runner settings
-        self.stack = QStackedWidget()
-        self.executor_group = QGroupBox(_("Runner settings"))
-
-        parameters_layout = QVBoxLayout(self.executor_group)
-        parameters_layout.addWidget(self.stack)
-
-        # Remove bottom margin because it adds unnecessary space
-        parameters_layout_margins = parameters_layout.contentsMargins()
-        parameters_layout_margins.setBottom(0)
-        parameters_layout.setContentsMargins(parameters_layout_margins)
+        self.stack = QStackedWidget(self)
 
         # --- Working directory settings
         self.wdir_group = QGroupBox(_("Working directory settings"))
@@ -698,7 +679,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # --- Group all customization widgets into a collapsible one
         custom_config = CollapsibleWidget(self, _("Custom configuration"))
         custom_config.addWidget(config_props_group)
-        custom_config.addWidget(self.executor_group)
+        custom_config.addWidget(self.stack)
         custom_config.addWidget(self.wdir_group)
 
         # Fix bottom and left margins.
@@ -842,9 +823,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
                         RunExecutorConfigurationGroup)
 
         if executor_info['configuration_widget'] is None:
-            self.executor_group.setVisible(False)
+            self.stack.setVisible(False)
         else:
-            self.executor_group.setVisible(True)
+            self.stack.setVisible(True)
 
         metadata = self.run_conf_model.get_selected_metadata()
         context = metadata['context']

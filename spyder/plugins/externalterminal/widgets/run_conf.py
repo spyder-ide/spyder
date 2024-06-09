@@ -47,9 +47,6 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Python interpreter"))
         interpreter_layout = QVBoxLayout(interpreter_group)
-        interpreter_layout.setContentsMargins(
-            *((3 * AppStyle.MarginSize,) * 4)
-        )
 
         # --- System terminal ---
         external_group = QWidget(self)
@@ -76,12 +73,6 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         # --- General settings ----
         common_group = QGroupBox(_("Bash/Batch script settings"))
         common_layout = QGridLayout(common_group)
-        common_layout.setContentsMargins(
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            0,
-        )
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
@@ -92,6 +83,7 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         common_layout.addWidget(self.clo_edit, 0, 1)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addStretch(100)
@@ -143,9 +135,6 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Interpreter"))
         interpreter_layout = QVBoxLayout(interpreter_group)
-        interpreter_layout.setContentsMargins(
-            *((3 * AppStyle.MarginSize,) * 4)
-        )
 
         interpreter_label = QLabel(_("Shell interpreter:"))
         self.interpreter_edit = QLineEdit(self)
@@ -178,12 +167,6 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
         # --- Script ---
         script_group = QGroupBox(_('Script'))
         script_layout = QVBoxLayout(script_group)
-        script_layout.setContentsMargins(
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            3 * AppStyle.MarginSize,
-            0,
-        )
 
         self.script_opts_cb = QCheckBox(_("Script arguments:"))
         self.script_opts_edit = QLineEdit(self)
@@ -203,6 +186,7 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
         script_layout.addWidget(self.close_after_exec_cb)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(script_group)
         layout.addStretch(100)
