@@ -232,6 +232,11 @@ def get_spyder_conda_channel():
     if 'error' in out:
         return None, None
 
+    # These variables can be unassigned after the next for, so we need to give
+    # them a default value at this point.
+    # Fixes spyder-ide/spyder#22054
+    channel, channel_url = None, None
+
     for package_info in out:
         if package_info["name"] == 'spyder':
             channel = package_info["channel"]
