@@ -38,6 +38,7 @@ class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     sig_run_action_created = Signal(str, bool, str)
+    sig_open_preferences_requested = Signal()
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -87,6 +88,12 @@ class RunContainer(PluginMainContainer):
             register_shortcut=True,
             shortcut_context='_',
             context=Qt.ApplicationShortcut
+        )
+
+        self.create_action(
+            RunActions.GlobalConfigurations,
+            _("Global configurations"),
+            triggered=self.sig_open_preferences_requested
         )
 
         self.re_run_action = self.create_action(

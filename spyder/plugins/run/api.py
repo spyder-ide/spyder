@@ -26,6 +26,7 @@ class RunActions:
     Run = 'run'
     Configure = 'configure'
     ReRun = 're-run last script'
+    GlobalConfigurations = "global configurations"
 
 
 class RunContextType(dict):

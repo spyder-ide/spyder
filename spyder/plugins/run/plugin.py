@@ -88,7 +88,11 @@ class Run(SpyderPluginV2):
 
         container = self.get_container()
         container.sig_run_action_created.connect(
-            self.register_action_shortcuts)
+            self.register_action_shortcuts
+        )
+        container.sig_open_preferences_requested.connect(
+            self._open_run_preferences
+        )
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
@@ -101,7 +105,12 @@ class Run(SpyderPluginV2):
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+        for action in [
+            RunActions.Run,
+            RunActions.ReRun,
+            RunActions.Configure,
+            RunActions.GlobalConfigurations,
+        ]:
             main_menu.add_item_to_application_menu(
                 self.get_action(action),
                 ApplicationMenus.Run,
@@ -154,7 +163,12 @@ class Run(SpyderPluginV2):
     def on_main_menu_teardown(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+        for action in [
+            RunActions.Run,
+            RunActions.ReRun,
+            RunActions.Configure,
+            RunActions.GlobalConfigurations,
+        ]:
             main_menu.remove_item_from_application_menu(
                 action,
                 ApplicationMenus.Run
@@ -800,3 +814,12 @@ class Run(SpyderPluginV2):
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))
+
+    def _open_run_preferences(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.open_dialog()
+
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("run")
+        dlg.set_current_index(index)

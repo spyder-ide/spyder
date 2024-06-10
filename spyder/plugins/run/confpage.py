@@ -312,7 +312,7 @@ class RunConfigPage(PluginConfigPage):
         run_widget.setLayout(run_layout)
 
         # --- Tabs ---
-        self.create_tab(_("Run executors"), executor_widget)
+        self.create_tab(_("Global configurations"), executor_widget)
         self.create_tab(_("Editor interactions"), run_widget)
 
     def executor_index_changed(self, index: int):
