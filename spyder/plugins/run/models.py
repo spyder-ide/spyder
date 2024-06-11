@@ -397,7 +397,8 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
     def __init__(self, parent):
         super().__init__(parent)
         self.executor_conf_params: Dict[
-            Tuple[str, str, str], ExtendedRunExecutionParameters] = {}
+            Tuple[str, str, str], ExtendedRunExecutionParameters
+        ] = {}
 
         self.params_index: Dict[int, Tuple[str, str, str]] = {}
         self.inverse_index: Dict[Tuple[str, str, str], int] = {}

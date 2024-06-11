@@ -432,13 +432,13 @@ class RunConfigPage(PluginConfigPage):
         self.params_table.clone_configuration()
 
     def delete_configuration(self):
-        executor_name, _ = self.executor_model.selected_executor(
+        executor_name, __ = self.executor_model.selected_executor(
             self.previous_executor_index
         )
         index = self.params_table.currentIndex().row()
         conf_index = self.table_model.get_tuple_index(index)
 
-        executor_params = self.all_executor_model[executor_name]
+        executor_params = self.table_model.executor_conf_params
         executor_params.pop(conf_index, None)
 
         if executor_name not in self._params_to_delete:
@@ -447,6 +447,7 @@ class RunConfigPage(PluginConfigPage):
 
         self.table_model.set_parameters(executor_params)
         self.table_model.reset_model()
+
         self.set_modified(True)
         self.set_buttons_status()
 
