@@ -60,8 +60,10 @@ class SpyderRemoteClient:
         self.options = options
         self._plugin = _plugin
 
+        self.__server_installed = asyncio.Event()
         self.__server_started = asyncio.Event()
         self.__connection_established = asyncio.Event()
+        self.__installing_server = False
         self.__starting_server = False
         self.__creating_connection = False
 
@@ -221,31 +223,22 @@ class SpyderRemoteClient:
     # -- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:
         """Connect to the remote server and install the server."""
-        if self.__creating_connection:
-            await self.__connection_established.wait()
-
         if await self.create_new_connection():
-            if self.__starting_server:
-                await self.__server_started.wait()
-
             return await self.install_remote_server()
 
         return False
 
     async def connect_and_start_server(self) -> bool:
         """Connect to the remote server and start the server."""
-        if self.__creating_connection:
-            await self.__connection_established.wait()
-
         if await self.create_new_connection():
-            if self.__starting_server:
-                await self.__server_started.wait()
-
             return await self.start_remote_server()
 
         return False
 
     async def ensure_connection_and_server(self) -> bool:
+        """
+        Ensure the SSH connection is open and the remote server is running.
+        """
         if self.ssh_is_connected and not self.server_started:
             return await self.ensure_server()
 
@@ -258,33 +251,42 @@ class SpyderRemoteClient:
         """
         Connect to the remote server and ensure it is installed and running.
         """
-        if self.__creating_connection:
-            await self.__connection_established.wait()
-
-        if await self.create_new_connection():
+        if await self.create_new_connection() and not self.server_started:
             return await self.ensure_server()
+
+        if self.server_started:
+            return True
 
         return False
 
-    async def ensure_server(self, check_installed=True) -> bool:
-        """Ensure remote server is installed and running."""
+    async def ensure_connection(self) -> bool:
+        """Ensure the SSH connection is open."""
+        if self.ssh_is_connected:
+            return True
 
-        if self.__starting_server:
-            await self.__server_started.wait()
+        return await self.create_new_connection()
+
+    async def ensure_server(self, *, check_installed=True) -> bool:
+        """Ensure remote server is installed and running."""
+        if self.server_started:
+            return True
 
         if (
-            check_installed and
-            not await self.check_server_installed()
-            and not await self.install_remote_server()
+            check_installed and not await self.ensure_server_installed()
         ):
             return False
 
         return await self.start_remote_server()
 
     async def start_remote_server(self):
+        """Start remote server."""
+        if self.__starting_server:
+            await self.__server_started.wait()
+            return True
+
         self.__starting_server = True
         try:
-            if await self._start_remote_server():
+            if await self.__start_remote_server():
                 self.__server_started.set()
                 return True
         finally:
@@ -293,7 +295,7 @@ class SpyderRemoteClient:
         self.__server_started.clear()
         return False
 
-    async def _start_remote_server(self):
+    async def __start_remote_server(self):
         """Start remote server."""
         if not self.ssh_is_connected:
             self._logger.error("SSH connection is not open")
@@ -386,6 +388,13 @@ class SpyderRemoteClient:
             _("It was not possible to forward the local port")
         )
 
+    async def ensure_server_installed(self) -> bool:
+        """Ensure remote server is installed."""
+        if not await self.check_server_installed():
+            return await self.install_remote_server()
+
+        return True
+
     async def check_server_installed(self) -> bool:
         """Check if remote server is installed."""
         if not self.ssh_is_connected:
@@ -413,7 +422,24 @@ class SpyderRemoteClient:
 
         return True
 
-    async def install_remote_server(self):
+    async def install_remote_server(self) -> bool:
+        """Install remote server."""
+        if self.__installing_server:
+            await self.__server_installed.wait()
+            return True
+
+        self.__installing_server = True
+        try:
+            if await self.__install_remote_server():
+                self.__server_installed.set()
+                return True
+        finally:
+            self.__installing_server = False
+
+        self.__server_installed.clear()
+        return False
+
+    async def __install_remote_server(self):
         """Install remote server."""
         if not self.ssh_is_connected:
             self._logger.error("SSH connection is not open")
@@ -447,9 +473,13 @@ class SpyderRemoteClient:
         return True
 
     async def create_new_connection(self) -> bool:
+        if self.__creating_connection:
+            await self.__connection_established.wait()
+            return True
+
         self.__creating_connection = True
         try:
-            if await self._create_new_connection():
+            if await self.__create_new_connection():
                 self.__connection_established.set()
                 return True
         finally:
@@ -458,7 +488,7 @@ class SpyderRemoteClient:
         self.__connection_established.clear()
         return False
 
-    async def _create_new_connection(self) -> bool:
+    async def __create_new_connection(self) -> bool:
         """Creates a new SSH connection to the remote server machine.
 
         Args
