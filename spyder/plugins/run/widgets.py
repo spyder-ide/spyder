@@ -8,6 +8,7 @@
 
 # Standard library imports
 import os.path as osp
+import textwrap
 from typing import Optional, Tuple, List, Dict
 from uuid import uuid4
 
@@ -54,12 +55,17 @@ from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.helperwidgets import TipWidget
 
 
-# Main constants
+# ---- Main constants
+# -----------------------------------------------------------------------------
 FILE_DIR = _("The directory of the file being executed")
 CW_DIR = _("The current working directory")
 FIXED_DIR = _("The following directory:")
 EMPTY_NAME = _("Provide a name for this configuration")
 REPEATED_NAME = _("Select a different name for this configuration")
+SAME_PARAMETERS = _(
+    "You are trying to save a configuration that is exactly the same as the "
+    "current one"
+)
 
 
 class RunDialogStatus:
@@ -68,6 +74,8 @@ class RunDialogStatus:
     Run = 2
 
 
+# ---- Base class
+# -----------------------------------------------------------------------------
 class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
     size_change = Signal(QSize)
@@ -151,6 +159,8 @@ class BaseRunConfigDialog(QDialog):
         raise NotImplementedError
 
 
+# ---- Dialogs
+# -----------------------------------------------------------------------------
 class ExecutionParametersDialog(BaseRunConfigDialog):
     """Run execution parameters edition dialog."""
 
@@ -489,7 +499,9 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         if self.new_config:
             if name == '':
                 self.store_params_text.status_action.setVisible(True)
-                self.store_params_text.status_action.setToolTip(EMPTY_NAME)
+                self.store_params_text.status_action.setToolTip(
+                    '\n'.join(textwrap.wrap(EMPTY_NAME, 50))
+                )
                 return
             else:
                 extension = self.extension_combo.lineEdit().text()
@@ -498,7 +510,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
                 if name in current_names:
                     self.store_params_text.status_action.setVisible(True)
                     self.store_params_text.status_action.setToolTip(
-                        REPEATED_NAME
+                        '\n'.join(textwrap.wrap(REPEATED_NAME, 50))
                     )
                     return
 
@@ -583,7 +595,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.parameters_combo.setMinimumWidth(250)
         parameters_tip = TipWidget(
             _(
-                "Select here between global or local (i.e. for this file) "
+                "Select between global or local (i.e. for this file) "
                 "execution parameters. You can set the latter below"
             ),
             icon=ima.icon('question_tip'),
@@ -621,8 +633,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         )
         name_params_tip = TipWidget(
             _(
-                "Select a name for the execution parameters you want to set. "
-                "They will be saved after clicking the Ok button below"
+                "You can set as many configurations as you want by providing "
+                "different names. Each one will be saved after clicking the "
+                "Ok button below"
             ),
             icon=ima.icon('question_tip'),
             hover_icon=ima.icon('question_tip_hover'),
@@ -764,17 +777,20 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         # Get parameters
         stored_params = self.parameter_model.get_parameters(index)
+        global_params = stored_params["file_uuid"] is None
 
         # Set parameters name
-        if stored_params["default"]:
-            # We set this name for default paramaters so users don't have to
-            # think about selecting one when customizing them
-            self.name_params_text.setText(_("Custom for this file"))
+        if global_params:
+            # We set this name for global params so users don't have to think
+            # about selecting one when customizing them
+            custom_name = self._get_auto_custom_name(stored_params["name"])
+            self.name_params_text.setText(custom_name)
         else:
+            # We show the actual name for file params
             self.name_params_text.setText(stored_params["name"])
 
-        # Disable delete button for default or global configs
-        if stored_params["default"] or stored_params["file_uuid"] is None:
+        # Disable delete button for global configs
+        if global_params:
             self.delete_button.setEnabled(False)
         else:
             self.delete_button.setEnabled(True)
@@ -913,29 +929,74 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     def accept(self) -> None:
         self.status |= RunDialogStatus.Save
 
-        default_conf = self.current_widget.get_default_configuration()
+        # Configuration to save/execute
         widget_conf = self.current_widget.get_configuration()
+
+        # Hide status action in case users fix the problem reported through it
+        # on a successive try
         self.name_params_text.status_action.setVisible(False)
 
-        # Different checks for the config name
+        # Detect if the current params are global
+        current_index = self.parameters_combo.currentIndex()
+        params = self.parameter_model.get_parameters(current_index)
+        global_params = params["file_uuid"] is None
+
+        if global_params:
+            custom_name = self._get_auto_custom_name(params["name"])
+        else:
+            custom_name = ""
+
+        # Working directory params
+        path = None
+        source = None
+        if self.file_dir_radio.isChecked():
+            source = WorkingDirSource.ConfigurationDirectory
+        elif self.cwd_radio.isChecked():
+            source = WorkingDirSource.CurrentDirectory
+        else:
+            source = WorkingDirSource.CustomDirectory
+            path = self.wd_edit.text()
+
+        cwd_opts = WorkingDirOpts(source=source, path=path)
+
+        # Execution params
+        exec_params = RunExecutionParameters(
+            working_dir=cwd_opts, executor_params=widget_conf
+        )
+
+        # Different validations for the params name
         params_name = self.name_params_text.text()
         if self.isVisible():
             allow_to_close = True
 
             if not params_name:
-                # Don't allow to save configs without a name
+                # Don't allow to save params without a name
                 self.name_params_text.status_action.setVisible(True)
-                self.name_params_text.status_action.setToolTip(EMPTY_NAME)
+                self.name_params_text.status_action.setToolTip(
+                    '\n'.join(textwrap.wrap(EMPTY_NAME, 50))
+                )
                 allow_to_close = False
-            elif (
-                params_name != self.parameters_combo.lineEdit().text()
-                and params_name in self.parameter_model.get_parameter_names()
-            ):
-                # Don't allow to save a config with the same name of an
-                # existing one because it doesn't make sense.
-                allow_to_close = False
-                self.name_params_text.status_action.setVisible(True)
-                self.name_params_text.status_action.setToolTip(REPEATED_NAME)
+            elif global_params and params_name == custom_name:
+                # We don't need to perform a validation in this case because we
+                # set the params name on behalf of users
+                pass
+            elif params_name != self.parameters_combo.lineEdit().text():
+                if params_name in self.parameter_model.get_parameter_names():
+                    # Don't allow to save params with the same name of an
+                    # existing one because it doesn't make sense.
+                    allow_to_close = False
+                    self.name_params_text.status_action.setVisible(True)
+                    self.name_params_text.status_action.setToolTip(
+                        '\n'.join(textwrap.wrap(REPEATED_NAME, 50))
+                    )
+                elif params["params"] == exec_params:
+                    # Don't allow to save params that are exactly the same as
+                    # the current ones.
+                    allow_to_close = False
+                    self.name_params_text.status_action.setVisible(True)
+                    self.name_params_text.status_action.setToolTip(
+                       '\n'.join(textwrap.wrap(SAME_PARAMETERS, 50))
+                    )
 
             if not allow_to_close:
                 # With this the dialog can be closed when clicking the Cancel
@@ -944,10 +1005,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
                 return
 
         # Get index associated with config
-        if widget_conf == default_conf:
-            # This avoids saving an unnecessary "Custom for this file" config
-            # when the parameters haven't been modified
-            idx = 0
+        if params["params"] == exec_params:
+            # This avoids saving an unnecessary custom config when the current
+            # parameters haven't been modified with respect to the selected
+            # config
+            idx = current_index
         else:
             idx = self.parameter_model.get_parameters_index_by_name(
                 params_name
@@ -963,21 +1025,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             # Retrieve uuid and name from our config system
             uuid, name = self.parameter_model.get_parameters_uuid_name(idx)
 
-        path = None
-        source = None
-        if self.file_dir_radio.isChecked():
-            source = WorkingDirSource.ConfigurationDirectory
-        elif self.cwd_radio.isChecked():
-            source = WorkingDirSource.CurrentDirectory
-        else:
-            source = WorkingDirSource.CustomDirectory
-            path = self.wd_edit.text()
-
-        cwd_opts = WorkingDirOpts(source=source, path=path)
-
-        exec_params = RunExecutionParameters(
-            working_dir=cwd_opts, executor_params=widget_conf)
-
+        # Build configuration to be saved or executed
         metadata_info = self.run_conf_model.get_metadata(
             self.configuration_combo.currentIndex()
         )
@@ -986,16 +1034,23 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             uuid=uuid,
             name=name,
             params=exec_params,
-            file_uuid=metadata_info['uuid'],
-            default=True if (widget_conf == default_conf) else False
+            file_uuid=None
+            if (global_params and idx >= 0)
+            else metadata_info["uuid"],
+            default=True
+            if (global_params and params["default"] and idx >= 0)
+            else False,
         )
 
         executor_name, __ = self.executors_model.get_selected_run_executor(
             self.executor_combo.currentIndex()
         )
 
-        self.saved_conf = (metadata_info['uuid'], executor_name,
-                           ext_exec_params)
+        self.saved_conf = (
+            metadata_info["uuid"],
+            executor_name,
+            ext_exec_params,
+        )
 
         return super().accept()
 
@@ -1064,3 +1119,18 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
             )
 
             self.move(x, y)
+
+    def _get_auto_custom_name(self, global_params_name: str) -> str:
+        """
+        Get an auto-generated custom name given the a global parameters one.
+        """
+        n_custom = self.parameter_model.get_number_of_custom_params(
+            global_params_name
+        )
+
+        return (
+            global_params_name
+            + " ("
+            + _("custom")
+            + (")" if n_custom == 0 else f" {n_custom})")
+        )

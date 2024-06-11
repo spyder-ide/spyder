@@ -334,13 +334,38 @@ class RunExecutorParameters(QAbstractListModel):
 
         return index
 
-    def get_parameter_names(self) -> List[str]:
-        """Get all parameter names for this executor."""
+    def get_parameter_names(self, filter_global: bool = False) -> List[str]:
+        """
+        Get all parameter names for this executor.
+
+        Parameters
+        ----------
+        filter_global: bool, optional
+            Whether to filter global parameters from the results.
+        """
         names = []
         for params in self.executor_conf_params.values():
-            names.append(params["name"])
+            if filter_global:
+                if params["file_uuid"] is not None:
+                    names.append(params["name"])
+            else:
+                names.append(params["name"])
 
         return names
+
+    def get_number_of_custom_params(self, global_params_name: str) -> int:
+        """
+        Get the number of custom parameters derived from a set of global ones.
+
+        Parameters
+        ----------
+        global_params_name: str
+            Name of the global parameters.
+        """
+        names = self.get_parameter_names(filter_global=True)
+        return len(
+            [name for name in names if name.startswith(global_params_name)]
+        )
 
     def __len__(self) -> int:
         return len(self.executor_conf_params)

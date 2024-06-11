@@ -599,7 +599,7 @@ def test_run_plugin(qtbot, run_mock):
 
     # Ensure that the executor run configuration was saved
     assert exec_conf['uuid'] is not None
-    assert exec_conf['name'] == "Custom for this file"
+    assert exec_conf['name'] == "Default (custom)"
 
     # Check that the configuration parameters are the ones defined by the
     # dialog
