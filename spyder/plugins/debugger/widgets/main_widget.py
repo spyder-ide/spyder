@@ -166,7 +166,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.splitter.addWidget(self._stack)
         self.splitter.addWidget(self.breakpoints_table)
         self.splitter.setContentsMargins(0, 0, 0, 0)
-        self.splitter.setChildrenCollapsible(False)
+        self.splitter.setChildrenCollapsible(True)
 
         # This is necessary so that the border radius is maintained when
         # showing/hiding the breakpoints table
@@ -456,13 +456,13 @@ class DebuggerWidget(ShellConnectMainWidget):
         if value:
             self.breakpoints_table.show()
             action.setToolTip(_("Hide breakpoints"))
+            action.setText(_("Hide breakpoints"))
             self._update_stylesheet(is_table_shown=True)
-            self._stack.setMinimumWidth(450)
         else:
             self.breakpoints_table.hide()
             action.setToolTip(_("Show breakpoints"))
+            action.setText(_("Show breakpoints"))
             self._update_stylesheet(is_table_shown=False)
-            self._stack.setMinimumWidth(100)
 
     # ---- ShellConnectMainWidget API
     # ------------------------------------------------------------------------
@@ -724,17 +724,17 @@ class DebuggerWidget(ShellConnectMainWidget):
     def _update_splitter_widths(self, base_width):
         """
         Update the splitter widths to provide the breakpoints table with a
-        fixed minimum width.
+        reasonable initial width.
 
         Parameters
         ----------
         base_width: int
-            The available splitter width.
+            The available widget width.
         """
-        if (base_width / 3) > self.breakpoints_table.MIN_WIDTH:
-            table_width = base_width / 3
+        if (base_width // 3) > self.breakpoints_table.MIN_INITIAL_WIDTH:
+            table_width = base_width // 3
         else:
-            table_width = self.breakpoints_table.MIN_WIDTH
+            table_width = self.breakpoints_table.MIN_INITIAL_WIDTH
 
         if base_width - table_width > 0:
             self.splitter.setSizes([base_width - table_width, table_width])

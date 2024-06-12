@@ -166,7 +166,7 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
     """
 
     # Constants
-    MIN_WIDTH = 300
+    MIN_INITIAL_WIDTH = 300
 
     # Signals
     sig_clear_all_breakpoints_requested = Signal()
@@ -194,7 +194,6 @@ class BreakpointTableView(QTableView, SpyderWidgetMixin):
         self._adjust_columns()
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
-        self.setMinimumWidth(self.MIN_WIDTH)
 
         # Attributes
         self._update_when_shown = True
