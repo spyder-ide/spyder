@@ -5858,10 +5858,10 @@ def test_debugger_plugin(main_window, qtbot):
 
     # Test post mortem
     with qtbot.waitSignal(shell.executed):
-        debugger.enter_debug()
+        debugger.enter_debugger_after_exception()
 
     assert len(frames_browser.stack_dict) == 1
-    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
+    assert list(frames_browser.stack_dict.keys())[0] == "Frames"
     assert not enter_debug_action.isEnabled()
 
     # Test that executing a statement doesn't change the frames browser
@@ -5869,14 +5869,14 @@ def test_debugger_plugin(main_window, qtbot):
         shell.execute('a = 1')
 
     assert len(frames_browser.stack_dict) == 1
-    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
+    assert list(frames_browser.stack_dict.keys())[0] == "Frames"
     assert not enter_debug_action.isEnabled()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('w')
 
     assert len(frames_browser.stack_dict) == 1
-    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
+    assert list(frames_browser.stack_dict.keys())[0] == "Frames"
     assert not enter_debug_action.isEnabled()
 
     # Test that quitting resets the explorer
@@ -5891,7 +5891,7 @@ def test_debugger_plugin(main_window, qtbot):
         shell.execute('%debug print()')
 
     assert len(frames_browser.stack_dict) == 1
-    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
+    assert list(frames_browser.stack_dict.keys())[0] == "Frames"
     assert not enter_debug_action.isEnabled()
 
     # Restart Kernel
@@ -5911,7 +5911,7 @@ def test_debugger_plugin(main_window, qtbot):
         shell.execute('%debug print()')
 
     assert len(frames_browser.stack_dict) == 1
-    assert list(frames_browser.stack_dict.keys())[0] == "pdb"
+    assert list(frames_browser.stack_dict.keys())[0] == "Frames"
     assert not enter_debug_action.isEnabled()
 
     # Crash Kernel
@@ -5923,7 +5923,7 @@ def test_debugger_plugin(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_enter_debugger(main_window, qtbot):
+def test_interrupt_and_debug(main_window, qtbot):
     """
     Test that we can enter the debugger while code is running in the kernel.
     """
@@ -5934,8 +5934,8 @@ def test_enter_debugger(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     debugger = main_window.debugger.get_widget()
-    enter_debug_action = debugger.get_action(
-        DebuggerWidgetActions.EnterDebug)
+    interrupt_debug_action = debugger.get_action(
+        DebuggerWidgetActions.InterrupAndDebug)
     inspect_action = debugger.get_action(
         DebuggerWidgetActions.Inspect)
 
@@ -5944,18 +5944,18 @@ def test_enter_debugger(main_window, qtbot):
         shell.execute('import time')
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug for i in range(100): time.sleep(.1)')
-    assert not enter_debug_action.isEnabled()
+    assert not interrupt_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
     shell.execute('c')
     qtbot.wait(200)
-    assert enter_debug_action.isEnabled()
+    assert interrupt_debug_action.isEnabled()
     assert inspect_action.isEnabled()
 
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        debugger.enter_debug()
+        debugger.interrupt_and_debug()
     # make sure we are stopped somewhere in the middle
-    assert not enter_debug_action.isEnabled()
+    assert not interrupt_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
     assert shell.is_debugging()
     assert 0 < shell.get_value("i") < 99
@@ -5970,21 +5970,21 @@ def test_enter_debugger(main_window, qtbot):
         return
 
     # Check we can enter the debugger
-    assert not enter_debug_action.isEnabled()
+    assert not interrupt_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
     shell.execute('for i in range(100): time.sleep(.1)')
     qtbot.wait(200)
 
-    assert enter_debug_action.isEnabled()
+    assert interrupt_debug_action.isEnabled()
     assert inspect_action.isEnabled()
 
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        debugger.enter_debug()
+        debugger.interrupt_and_debug()
     assert shell.is_debugging()
 
     # make sure we are stopped somewhere in the middle
-    assert not enter_debug_action.isEnabled()
+    assert not interrupt_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
     assert 0 < shell.get_value("i") < 99
 
@@ -5992,10 +5992,10 @@ def test_enter_debugger(main_window, qtbot):
     qtbot.wait(200)
     # enter the debugger
     with qtbot.waitSignal(shell.executed):
-        debugger.enter_debug()
+        debugger.interrupt_and_debug()
 
     # make sure we are stopped somewhere in the middle
-    assert not enter_debug_action.isEnabled()
+    assert not interrupt_debug_action.isEnabled()
     assert not inspect_action.isEnabled()
     assert 0 < shell.get_value("i") < 99
 
@@ -6025,7 +6025,7 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # a in framesbrowser
-    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['Frames'][2]["name"] == 'a'
 
     # Recursive debug
     with qtbot.waitSignal(shell.executed):
@@ -6033,13 +6033,13 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # b in framesbrowser
-    assert frames_browser.stack_dict['pdb'][2]["name"] == 'b'
+    assert frames_browser.stack_dict['Frames'][2]["name"] == 'b'
 
     # Quit recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
     # a in framesbrowser
-    assert frames_browser.stack_dict['pdb'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['Frames'][2]["name"] == 'a'
 
     # quit debugger
     with qtbot.waitSignal(shell.executed):
