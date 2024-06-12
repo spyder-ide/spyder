@@ -35,6 +35,7 @@ class DebuggerWidgetActions:
     Search = 'search'
     Inspect = 'inspect'
     EnterDebug = 'enter_debug'
+    InterrupAndDebug = "interrupt_and_debug"
     Next = "next"
     Continue = "continue"
     Step = "step"
@@ -61,6 +62,7 @@ class DebuggerWidgetOptionsMenuSections:
 
 class DebuggerWidgetMainToolBarSections:
     Control = 'control_section'
+    InteractWithConsole = "interact_with_console_section"
     Extras = "extras_section"
 
 
@@ -233,9 +235,17 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         enter_debug_action = self.create_action(
             DebuggerWidgetActions.EnterDebug,
-            text=_("Interrupt execution and enter debugger"),
+            text=_("Start debugging after last error"),
+            icon=self.create_icon("postmortem_debug"),
+            triggered=self.enter_debugger_after_exception,
+            register_shortcut=True,
+        )
+
+        interrupt_and_debug_action = self.create_action(
+            DebuggerWidgetActions.InterrupAndDebug,
+            text=_("Interrupt execution and start the debugger"),
             icon=self.create_icon("interrupt_and_debug"),
-            triggered=self.enter_debug,
+            triggered=self.interrupt_and_debug,
             register_shortcut=True,
         )
 
@@ -354,13 +364,22 @@ class DebuggerWidget(ShellConnectMainWidget):
                 section=DebuggerWidgetMainToolBarSections.Control,
             )
 
+        for item in [
+            enter_debug_action,
+            interrupt_and_debug_action,
+            inspect_action,
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=main_toolbar,
+                section=DebuggerWidgetMainToolBarSections.InteractWithConsole,
+            )
+
         stretcher = self.create_stretcher(
             DebuggerWidgetToolbarItems.ToolbarStretcher
         )
         for item in [
             goto_cursor_action,
-            enter_debug_action,
-            inspect_action,
             search_action,
             stretcher,
             toggle_breakpoints_action,
@@ -376,14 +395,19 @@ class DebuggerWidget(ShellConnectMainWidget):
         try:
             search_action = self.get_action(DebuggerWidgetActions.Search)
             enter_debug_action = self.get_action(
-                DebuggerWidgetActions.EnterDebug)
+                DebuggerWidgetActions.EnterDebug
+            )
+            interrupt_and_debug_action = self.get_action(
+                DebuggerWidgetActions.InterrupAndDebug
+            )
             inspect_action = self.get_action(
-                DebuggerWidgetActions.Inspect)
+                DebuggerWidgetActions.Inspect
+            )
 
             widget = self.current_widget()
             if self.is_current_widget_empty() or widget is None:
                 search_action.setEnabled(False)
-                show_enter_debugger = False
+                post_mortem = False
                 executing = False
                 pdb_prompt = False
             else:
@@ -392,10 +416,10 @@ class DebuggerWidget(ShellConnectMainWidget):
                 post_mortem = widget.state == FramesBrowserState.Error
                 sw = widget.shellwidget
                 executing = sw._executing
-                show_enter_debugger = post_mortem or executing
                 pdb_prompt = sw.is_waiting_pdb_input()
 
-            enter_debug_action.setEnabled(show_enter_debugger)
+            enter_debug_action.setEnabled(post_mortem and not executing)
+            interrupt_and_debug_action.setEnabled(executing)
             inspect_action.setEnabled(executing)
 
             for action_name in [
@@ -578,12 +602,22 @@ class DebuggerWidget(ShellConnectMainWidget):
         action = self.get_action(DebuggerWidgetActions.Search)
         action.setChecked(False)
 
-    def enter_debug(self):
-        """
-        Enter the debugger.
+    def enter_debugger_after_exception(self):
+        """Enter the debugger after an exception."""
+        widget = self.current_widget()
+        if widget is None:
+            return
 
+        # Enter the debugger
+        sw = widget.shellwidget
+        if widget.state == FramesBrowserState.Error:
+            # Debug the last exception
+            sw.execute("%debug")
+            return
+
+    def interrupt_and_debug(self):
+        """
         If the shell is executing, interrupt execution and enter debugger.
-        If an exception took place, run post mortem.
         """
         widget = self.current_widget()
         if widget is None:
@@ -599,11 +633,6 @@ class DebuggerWidget(ShellConnectMainWidget):
                 )
 
             sw.call_kernel(interrupt=True).request_pdb_stop()
-            return
-
-        if widget.state == FramesBrowserState.Error:
-            # Debug the last exception
-            sw.execute("%debug")
             return
 
     def capture_frames(self):
