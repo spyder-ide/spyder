@@ -1,5 +1,46 @@
 # History of changes for Spyder 5
 
+## Version 5.5.5 (2024-06-12)
+
+### Important fixes
+
+* Fix to ensure compatibility with `matplotlib` 3.9.0.
+* Fix kernel start when connection file has spaces in its path.
+* Improve compatibility with PySide2.
+* Handle no output/error output when checking for updates on conda installations.
+* Fix installers update validation logic to choose installer executable name to download/use.
+* Update macOS installer workflow to macOS 12 and constraint installer dependencies to prevent errors (`setuptools<70.0.0`, `zipp<3.19`).
+
+### Issues Closed
+
+* [Issue 22158](https://github.com/spyder-ide/spyder/issues/22158) - Release 5.5.5 ([PR 22162](https://github.com/spyder-ide/spyder/pull/22162) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22054](https://github.com/spyder-ide/spyder/issues/22054) - `local variable 'channel_url' referenced before assignment` error when checking for updates ([PR 22156](https://github.com/spyder-ide/spyder/pull/22156) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22007](https://github.com/spyder-ide/spyder/issues/22007) - TypeError: string indices must be integers, not 'str' ([PR 21997](https://github.com/spyder-ide/spyder/pull/21997) by [@dpizetta](https://github.com/dpizetta))
+* [Issue 22001](https://github.com/spyder-ide/spyder/issues/22001) - Upload when doing a release installers with all the possible names used for the update process ([PR 22041](https://github.com/spyder-ide/spyder/pull/22041) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21937](https://github.com/spyder-ide/spyder/issues/21937) - Connecting to the kernel never succeeds. ([PR 22028](https://github.com/spyder-ide/spyder/pull/22028) by [@dalthviz](https://github.com/dalthviz))
+
+In this release 5 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22162](https://github.com/spyder-ide/spyder/pull/22162) - PR: Update core dependencies for 5.5.5 , by [@dalthviz](https://github.com/dalthviz) ([22158](https://github.com/spyder-ide/spyder/issues/22158))
+* [PR 22157](https://github.com/spyder-ide/spyder/pull/22157) - PR: Fix standalone macOS bundle crash, by [@mrclary](https://github.com/mrclary)
+* [PR 22156](https://github.com/spyder-ide/spyder/pull/22156) - PR: Fix error when we can't detect Spyder in `conda list` output (Utils), by [@ccordoba12](https://github.com/ccordoba12) ([22054](https://github.com/spyder-ide/spyder/issues/22054))
+* [PR 22117](https://github.com/spyder-ide/spyder/pull/22117) - PR: Constrain setuptools for macOS standalone installer, by [@mrclary](https://github.com/mrclary)
+* [PR 22102](https://github.com/spyder-ide/spyder/pull/22102) - PR: Update macOS from 11 to 12 in installer workflow, by [@mrclary](https://github.com/mrclary)
+* [PR 22100](https://github.com/spyder-ide/spyder/pull/22100) - PR: Fix detecting Matplotlib backend for its 3.9.0 version (IPython console), by [@mrclary](https://github.com/mrclary)
+* [PR 22041](https://github.com/spyder-ide/spyder/pull/22041) - PR: Add step to upload Windows installer following new naming format on release (CI), by [@dalthviz](https://github.com/dalthviz) ([22001](https://github.com/spyder-ide/spyder/issues/22001))
+* [PR 22028](https://github.com/spyder-ide/spyder/pull/22028) - PR: Quote kernel connection file in conda activation script (IPython Console), by [@dalthviz](https://github.com/dalthviz) ([21937](https://github.com/spyder-ide/spyder/issues/21937))
+* [PR 22024](https://github.com/spyder-ide/spyder/pull/22024) - PR: Fixes to improve compatibility with PySide2, by [@rear1019](https://github.com/rear1019)
+* [PR 21998](https://github.com/spyder-ide/spyder/pull/21998) - PR: Fix macOS check when defining installer name string for download (Installers), by [@dalthviz](https://github.com/dalthviz)
+* [PR 21997](https://github.com/spyder-ide/spyder/pull/21997) - PR: Avoid iterating over non-dict objects if conda responds with errors, by [@dpizetta](https://github.com/dpizetta) ([22007](https://github.com/spyder-ide/spyder/issues/22007))
+
+In this release 11 pull requests were closed.
+
+
+----
+
+
 ## Version 5.5.4 (2024-04-09)
 
 ### Important fixes
