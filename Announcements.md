@@ -1,24 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 5.5.4 is released!
+**Subject**: [ANN] Spyder 5.5.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **5.5.4** has been released and is available for
+I'm pleased to announce that Spyder **5.5.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 5.5.3 and it contains the
+This release comes nine weeks after version 5.5.4 and it contains the
 following important fixes:
 
-* Update QtAwesome version constraint to `>=1.3.1,<1.4.0` (icon fonts access issues).
-* Fix kernel start in conda envs with spaces in their directory paths.
-* Fix installers update (installers download URL handling).
-* Handle no output when trying to process git data.
-* Update macOS installer notarization tooling (from `altool` to `notarytool`).
+** Fix to ensure compatibility with `matplotlib` 3.9.0.
+* Fix kernel start when connection file has spaces in its path.
+* Improve compatibility with PySide2.
+* Handle no output/error output when checking for updates on conda installations.
+* Fix installers update validation logic to choose installer executable name to download/use.
+* Update macOS installer workflow to macOS 12 and constraint installer dependencies to prevent errors (`setuptools<70.0.0`, `zipp<3.19`).
 
-In this release we fixed 6 issues and merged 10 pull requests. For a full
+In this release we fixed 5 issues and merged 11 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/5.x/CHANGELOG.md).
 
