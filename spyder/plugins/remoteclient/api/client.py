@@ -378,6 +378,7 @@ class SpyderRemoteClient:
                 ConnectionStatus.Active,
                 _("The connection was established successfully")
             )
+            return True
 
         self._logger.error(
             "Error forwarding local port."
@@ -387,6 +388,7 @@ class SpyderRemoteClient:
             ConnectionStatus.Error,
             _("It was not possible to forward the local port")
         )
+        return False
 
     async def ensure_server_installed(self) -> bool:
         """Ensure remote server is installed."""
