@@ -38,11 +38,6 @@ class MainInterpreterContainer(PluginMainContainer):
     Signal to report that the interpreter has changed.
     """
 
-    sig_add_to_custom_interpreters_requested = Signal(str)
-    """
-    Signal to request adding an interpreter to the list of custom ones.
-    """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -86,12 +81,13 @@ class MainInterpreterContainer(PluginMainContainer):
 
     @on_conf_change(option=['default', 'custom_interpreter', 'custom'])
     def on_interpreter_changed(self, option, value):
-        if ((option == 'default' and value) or
-                (option == 'custom' and not value)):
+        if (option == "default" and value) or (
+            option == "custom" and not value
+        ):
             executable = get_python_executable()
         else:
             executable = osp.normpath(self.get_conf('custom_interpreter'))
-            self.sig_add_to_custom_interpreters_requested.emit(executable)
+            self.add_to_custom_interpreters(executable)
 
         # Setting executable option that will be used by other plugins in Spyder.
         if executable != self.get_conf('executable'):
@@ -112,6 +108,13 @@ class MainInterpreterContainer(PluginMainContainer):
     # -------------------------------------------------------------------------
     def get_main_interpreter(self):
         return self.get_conf('executable', get_python_executable())
+
+    def add_to_custom_interpreters(self, interpreter):
+        """Add a new interpreter to the list of saved ones."""
+        custom_list = self.get_conf('custom_interpreters_list')
+        if interpreter not in custom_list:
+            custom_list.append(interpreter)
+            self.set_conf('custom_interpreters_list', custom_list)
 
     # ---- Private API
     # -------------------------------------------------------------------------
