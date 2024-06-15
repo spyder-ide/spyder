@@ -55,7 +55,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         elif not self.get_option('custom_interpreter'):
             self.set_option('custom_interpreter', ' ')
 
-        plugin._add_to_custom_interpreters(executable)
+        plugin.get_container().add_to_custom_interpreters(executable)
         self.validate_custom_interpreters_list()
 
     def initialize(self):
@@ -75,7 +75,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             button_group=pyexec_bg,
         )
         self.cus_exec_radio = self.create_radiobutton(
-            _("Use the following Python interpreter:"),
+            _("Use the following interpreter:"),
             'custom',
             button_group=pyexec_bg,
         )
@@ -99,6 +99,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
             adjust_to_contents=True,
             validate_callback=programs.is_python_interpreter,
         )
+        self.cus_exec_combo.setStyleSheet("margin-left: 3px")
+
         self.def_exec_radio.radiobutton.toggled.connect(
             self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.radiobutton.toggled.connect(
