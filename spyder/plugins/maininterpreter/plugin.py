@@ -21,7 +21,9 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.plugins.maininterpreter.confpage import MainInterpreterConfigPage
-from spyder.plugins.maininterpreter.container import MainInterpreterContainer
+from spyder.plugins.maininterpreter.widgets.container import (
+    MainInterpreterContainer,
+)
 from spyder.utils.misc import get_python_executable
 
 
