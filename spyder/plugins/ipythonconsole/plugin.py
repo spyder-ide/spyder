@@ -51,6 +51,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     OPTIONAL = [
         Plugins.Editor,
         Plugins.History,
+        Plugins.MainInterpreter,
         Plugins.MainMenu,
         Plugins.Run,
         Plugins.Projects,
@@ -449,6 +450,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         remote_client.sig_server_stopped.connect(self._close_remote_clients)
         remote_client.sig_server_renamed.connect(self._rename_remote_clients)
 
+    @on_plugin_available(plugin=Plugins.MainInterpreter)
+    def on_main_interpreter_available(self):
+        main_interpreter = self.get_plugin(Plugins.MainInterpreter)
+        main_interpreter.sig_environments_updated.connect(self._update_envs)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -510,6 +516,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             self._rename_remote_clients
         )
 
+    @on_plugin_teardown(plugin=Plugins.MainInterpreter)
+    def on_main_interpreter_teardown(self):
+        main_interpreter = self.get_plugin(Plugins.MainInterpreter)
+        main_interpreter.sig_environments_updated.disconnect(self._update_envs)
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font(SpyderFontType.Monospace)
@@ -537,6 +548,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _rename_remote_clients(self, server_id):
         self.get_widget().rename_remote_clients(server_id)
+
+    def _update_envs(self, envs):
+        self.get_widget().update_envs(envs)
 
     # ---- Public API
     # -------------------------------------------------------------------------

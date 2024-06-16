@@ -12,6 +12,9 @@ Main interpreter Plugin.
 # Standard library imports
 import os.path as osp
 
+# Third-party import
+from qtpy.QtCore import Signal
+
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
@@ -36,6 +39,20 @@ class MainInterpreter(SpyderPluginV2):
     CONF_FILE = False
     CAN_BE_DISABLED = False
 
+    # ---- Signals
+    # -------------------------------------------------------------------------
+    sig_environments_updated = Signal(dict)
+    """
+    This signal is emitted when the conda, pyenv or custom environments tracked
+    by this plugin were updated.
+
+    Parameters
+    ----------
+    envs: dict
+        Environments dictionary in the format given by
+        :py:meth:`spyder.utils.envs.get_list_envs`.
+    """
+
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -56,9 +73,12 @@ class MainInterpreter(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
 
-        # Connect signal to open preferences
+        # Connect container signals
         container.sig_open_preferences_requested.connect(
             self._open_interpreter_preferences
+        )
+        container.sig_environments_updated.connect(
+            self.sig_environments_updated
         )
 
         # Validate that the custom interpreter from the previous session

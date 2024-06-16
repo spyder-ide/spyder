@@ -52,11 +52,9 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.conda import is_conda_env, find_conda
-from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
-from spyder.utils.workers import WorkerManager
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.printer import SpyderPrinter
@@ -357,12 +355,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
-
-        # Worker to compute envs in a thread
-        self._worker_manager = WorkerManager(max_threads=1)
-
-        # Update the list of envs at startup
-        self.get_envs()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -734,25 +726,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
 
-    def get_envs(self):
-        """
-        Get the list of environments/interpreters in a worker.
-        """
-        self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(get_list_envs)
-        worker.sig_finished.connect(self.update_envs)
-        worker.start()
-
-    def update_envs(self, worker, output, error):
+    def update_envs(self, envs):
         """Update the list of environments in the system."""
-        if output is not None:
-            self.envs.update(**output)
+        self.envs = envs
 
     def update_environment_menu(self):
         """
         Update context menu submenu with entries for available interpreters.
         """
-        self.get_envs()
         self.console_environment_menu.clear_actions()
 
         for env_key, env_info in self.envs.items():

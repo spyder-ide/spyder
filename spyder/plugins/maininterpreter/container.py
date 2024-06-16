@@ -38,6 +38,18 @@ class MainInterpreterContainer(PluginMainContainer):
     Signal to report that the interpreter has changed.
     """
 
+    sig_environments_updated = Signal(dict)
+    """
+    This signal is emitted when the conda, pyenv or custom environments tracked
+    by this plugin were updated.
+
+    Parameters
+    ----------
+    envs: dict
+        Environments dictionary in the format given by
+        :py:meth:`spyder.utils.envs.get_list_envs`.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -89,7 +101,8 @@ class MainInterpreterContainer(PluginMainContainer):
             executable = osp.normpath(self.get_conf('custom_interpreter'))
             self.add_to_custom_interpreters(executable)
 
-        # Setting executable option that will be used by other plugins in Spyder.
+        # Setting executable option that will be used by other plugins in
+        # Spyder.
         if executable != self.get_conf('executable'):
             self.set_conf('executable', executable)
 
@@ -147,17 +160,25 @@ class MainInterpreterContainer(PluginMainContainer):
         # This is necessary to avoid an error when the worker can't return a
         # proper output.
         # Fixes spyder-ide/spyder#20539
-        if output is not None:
-            self.envs.update(**output)
+        if output is None:
+            return
 
-        for env in list(self.envs.keys()):
-            path, version = self.envs[env]
-            # Save paths in lowercase on Windows to avoid issues with
-            # capitalization.
-            path = path.lower() if os.name == 'nt' else path
-            self.path_to_env[path] = env
+        # Update current envs with `output`.
+        new_envs = self.envs.copy()
+        new_envs.update(**output)
 
-        self._update_interpreter()
+        if new_envs != self.envs:
+            self.envs = new_envs
+
+            for env in list(self.envs.keys()):
+                path, version = self.envs[env]
+                # Save paths in lowercase on Windows to avoid issues with
+                # capitalization.
+                path = path.lower() if os.name == 'nt' else path
+                self.path_to_env[path] = env
+
+            self._update_interpreter()
+            self.sig_environments_updated.emit(self.envs)
 
     def _update_interpreter(self, interpreter=None):
         """Set main interpreter and update information."""
