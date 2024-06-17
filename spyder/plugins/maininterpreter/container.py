@@ -56,6 +56,9 @@ class MainInterpreterContainer(PluginMainContainer):
         super().__init__(*args, **kwargs)
 
         self._interpreter = self.get_main_interpreter()
+        self._startup = True
+        self._current_envs = None
+
         self.path_to_env = {}
         self.envs = {}
         self.internal_interpreter = sys.executable
@@ -100,12 +103,19 @@ class MainInterpreterContainer(PluginMainContainer):
         ):
             executable = get_python_executable()
         else:
-            executable = osp.normpath(self.get_conf('custom_interpreter'))
-            self.add_to_custom_interpreters(executable)
+            executable = ""
+            if self.get_conf("custom"):
+                custom_interpreter = self.get_conf('custom_interpreter')
+                if custom_interpreter:
+                    executable = osp.normpath(custom_interpreter)
+                    if osp.isfile(executable):
+                        self.add_to_custom_interpreters(executable)
 
         # Setting executable option that will be used by other plugins in
         # Spyder.
-        if executable != self.get_conf('executable'):
+        if osp.isfile(executable) and executable != self.get_conf(
+            "executable"
+        ):
             self.set_conf('executable', executable)
 
     @on_conf_change(option=['executable'])
@@ -118,6 +128,7 @@ class MainInterpreterContainer(PluginMainContainer):
         self._get_envs_timer.stop()
         self._check_interpreter_timer.stop()
         self._worker_manager.terminate_all()
+        self.set_conf("last_envs", self.envs)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -131,6 +142,16 @@ class MainInterpreterContainer(PluginMainContainer):
             custom_list.append(interpreter)
             self.set_conf('custom_interpreters_list', custom_list)
 
+    def validate_custom_interpreters_list(self):
+        """Check that the used custom interpreters are still valid."""
+        custom_list = self.get_conf('custom_interpreters_list')
+        valid_custom_list = []
+        for value in custom_list:
+            if osp.isfile(value) and not is_conda_based_app(value):
+                valid_custom_list.append(value)
+
+        self.set_conf('custom_interpreters_list', valid_custom_list)
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _update_status(self):
@@ -141,37 +162,53 @@ class MainInterpreterContainer(PluginMainContainer):
         """
         Get the list of environments in a thread to keep them up to date.
         """
+        # Save copy of current envs to compare it after they are updated
+        self._current_envs = self.envs.copy()
+
+        # Validate list of custom interpreters before updating them
+        self.validate_custom_interpreters_list()
+
+        # Update envs
         self._worker_manager.terminate_all()
-
-        # Compute info of default interpreter to have it available in case we
-        # need to switch to it. This will avoid lags when doing that in
-        # _check_interpreter.
-        if self.internal_interpreter not in self.path_to_env:
-            default_worker = self._worker_manager.create_python_worker(
-                self._get_env_info,
-                self.internal_interpreter
-            )
-            default_worker.start()
-
-        worker = self._worker_manager.create_python_worker(get_list_envs)
-        worker.sig_finished.connect(self._update_envs)
+        worker = self._worker_manager.create_python_worker(self._update_envs)
+        worker.sig_finished.connect(self._finish_updating_envs)
         worker.start()
 
-    def _update_envs(self, worker, output, error):
-        """Update the list of environments in the system."""
+    def _update_envs(self):
+        """Update environments."""
+        # Compute info of default interpreter. We only need to do this once (at
+        # startup).
+        if self._startup:
+            self._get_env_info(self.internal_interpreter)
+            self._startup = False
+
+        # Update custom envs
+        last_envs: dict[str, tuple[str, str]] = self.get_conf("last_envs")
+        if last_envs:
+            for env in last_envs:
+                if not(
+                    last_envs[env][0] == self.internal_interpreter
+                    or env.startswith("Conda")
+                    or env.startswith("Pyenv")
+                ):
+                    path = last_envs[env][0]
+                    if osp.isfile(path):
+                        self._get_env_info(path)
+                    else:
+                        self.envs.pop(env)
+
+        # Update conda/pyenv envs
+        return get_list_envs()
+
+    def _finish_updating_envs(self, worker, output, error):
+        """Finish updating environments."""
         # This is necessary to avoid an error when the worker can't return a
         # proper output.
         # Fixes spyder-ide/spyder#20539
-        if output is None:
-            return
+        if output is not None:
+            self.envs.update(**output)
 
-        # Update current envs with `output`.
-        new_envs = self.envs.copy()
-        new_envs.update(**output)
-
-        if new_envs != self.envs:
-            self.envs = new_envs
-
+        if self._current_envs != self.envs:
             for env in list(self.envs.keys()):
                 path, version = self.envs[env]
                 # Save paths in lowercase on Windows to avoid issues with

@@ -136,6 +136,7 @@ DEFAULTS = [
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
+              'last_envs': {}
               }),
             ('ipython_console',
              {
@@ -615,6 +616,7 @@ NAME_MAP = {
             'custom_interpreters_list',
             'custom_interpreter',
             'executable',
+            'last_envs',
              ]
          ),
         ('onlinehelp', [
