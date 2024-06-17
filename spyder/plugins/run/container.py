@@ -92,7 +92,7 @@ class RunContainer(PluginMainContainer):
 
         self.create_action(
             RunActions.GlobalConfigurations,
-            _("Global configurations"),
+            _("&Global configurations"),
             triggered=self.sig_open_preferences_requested
         )
 
