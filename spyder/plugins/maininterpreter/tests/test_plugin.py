@@ -35,20 +35,20 @@ def test_conda_interpreters(maininterpreter, qtbot):
     container = maininterpreter.get_container()
     container._interpreter = ''
 
-    name_base = 'conda: base'
-    name_test = 'conda: jedi-test-env'
+    name_base = 'Conda: base'
+    name_test = 'Conda: jedi-test-env'
 
     # Wait until envs are computed
     qtbot.wait(4000)
 
     # Update to the base conda environment
     path_base, version = container.envs[name_base]
-    expected = 'conda: base ({})'.format(version)
+    expected = 'Conda: base ({})'.format(version)
     assert expected == container._get_env_info(path_base)
 
     # Update to the foo conda environment
     path_foo, version = container.envs[name_test]
-    expected = 'conda: jedi-test-env ({})'.format(version)
+    expected = 'Conda: jedi-test-env ({})'.format(version)
     assert expected == container._get_env_info(path_foo)
 
 

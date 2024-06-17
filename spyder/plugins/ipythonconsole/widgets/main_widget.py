@@ -243,7 +243,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.interrupt_action = None
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
-        self.default_interpreter = sys.executable
 
         # Attributes needed for the restart dialog
         self._restart_dialog = ConsoleRestartDialog(self)
