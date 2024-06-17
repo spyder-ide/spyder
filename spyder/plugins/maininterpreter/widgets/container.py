@@ -10,6 +10,7 @@
 # Standard library imports
 import os
 import os.path as osp
+from pathlib import Path
 import sys
 
 # Third-party imports
@@ -17,6 +18,7 @@ from qtpy.QtCore import QTimer, Signal
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
@@ -56,12 +58,12 @@ class MainInterpreterContainer(PluginMainContainer):
         self._interpreter = self.get_main_interpreter()
         self.path_to_env = {}
         self.envs = {}
-        self.default_interpreter = sys.executable
+        self.internal_interpreter = sys.executable
 
         if os.name == 'nt' and is_conda_based_app():
             # Be sure to use 'python' executable instead of 'pythonw' since
             # no output is generated with 'pythonw'.
-            self.default_interpreter = self.default_interpreter.replace(
+            self.internal_interpreter = self.internal_interpreter.replace(
                 "pythonw.exe", "python.exe"
             ).lower()
 
@@ -75,7 +77,7 @@ class MainInterpreterContainer(PluginMainContainer):
         self._get_envs_timer.start()
 
         self._check_interpreter_timer = QTimer(self)
-        self._check_interpreter_timer .setInterval(2000)
+        self._check_interpreter_timer.setInterval(2000)
         self._check_interpreter_timer.start(2000)
 
         # Update the list of envs at startup
@@ -144,10 +146,10 @@ class MainInterpreterContainer(PluginMainContainer):
         # Compute info of default interpreter to have it available in case we
         # need to switch to it. This will avoid lags when doing that in
         # _check_interpreter.
-        if self.default_interpreter not in self.path_to_env:
+        if self.internal_interpreter not in self.path_to_env:
             default_worker = self._worker_manager.create_python_worker(
                 self._get_env_info,
-                self.default_interpreter
+                self.internal_interpreter
             )
             default_worker.start()
 
@@ -189,19 +191,21 @@ class MainInterpreterContainer(PluginMainContainer):
 
     def _get_env_info(self, path):
         """Get environment information."""
+        original_path = path
         path = path.lower() if os.name == 'nt' else path
 
         try:
             name = self.path_to_env[path]
         except KeyError:
-            if self.default_interpreter == path and is_conda_based_app():
-                name = 'internal'
-            elif 'conda' in path:
-                name = 'conda'
+            env_name = self._get_env_dir(original_path, only_dir=True)
+
+            if 'conda' in path:
+                name = 'Conda: ' + env_name
             elif 'pyenv' in path:
-                name = 'pyenv'
+                name = 'Pyenv: ' + env_name
             else:
-                name = 'custom'
+                name = _("Custom") + ": " + env_name
+
             version = get_interpreter_info(path)
             self.path_to_env[path] = name
             self.envs[name] = (path, version)
@@ -235,12 +239,11 @@ class MainInterpreterContainer(PluginMainContainer):
             if self._interpreter in self.path_to_env:
                 self._update_interpreter()
 
-    def _get_env_dir(self, interpreter):
+    def _get_env_dir(self, interpreter, only_dir=False):
         """Get env directory from interpreter executable."""
-        if os.name == 'nt':
-            return osp.dirname(interpreter)
-        else:
-            return osp.dirname(osp.dirname(interpreter))
+        path = Path(interpreter)
+        env_dir = path.parent if os.name == 'nt' else path.parents[1]
+        return env_dir.parts[-1] if only_dir else str(env_dir)
 
     def _on_interpreter_removed(self):
         """

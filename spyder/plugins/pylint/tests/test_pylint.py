@@ -299,7 +299,7 @@ def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
                             custom_interpreter):
     """Test that the plugin works as expected with custom interpreters."""
     # Get conda env to use
-    conda_env = get_list_conda_envs()['conda: jedi-test-env'][0]
+    conda_env = get_list_conda_envs()['Conda: jedi-test-env'][0]
 
     # Set custom interpreter
     if custom_interpreter:

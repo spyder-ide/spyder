@@ -9,7 +9,6 @@
 import os
 import os.path as osp
 import sys
-import tempfile
 import threading
 import traceback
 from unittest.mock import Mock
@@ -74,7 +73,7 @@ def get_conda_test_env():
     its executable.
     """
     # Get conda env to use
-    test_env_executable = get_list_conda_envs()['conda: spytest-ž'][0]
+    test_env_executable = get_list_conda_envs()['Conda: spytest-ž'][0]
 
     # Get the env prefix
     if os.name == 'nt':

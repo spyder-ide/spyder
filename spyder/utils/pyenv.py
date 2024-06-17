@@ -52,7 +52,7 @@ def get_list_pyenv_envs():
         data = env.split(osp.sep)
         path = get_pyenv_path(data[-1])
 
-        name = f'pyenv: {data[-1]}'
+        name = f'Pyenv: {data[-1]}'
         version = f'Python {data[0]}'
         env_list[name] = (path, version)
 
