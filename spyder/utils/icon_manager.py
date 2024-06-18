@@ -49,8 +49,7 @@ class IconManager():
 
         self.ICONS_BY_EXTENSION = {}
 
-        # Magnification factors for attribute icons
-        # per platform
+        # Magnification factors for attribute icons per platform
         if sys.platform.startswith('linux'):
             self.BIG_ATTR_FACTOR = 1.0
             self.SMALL_ATTR_FACTOR = 0.9
@@ -377,6 +376,9 @@ class IconManager():
             # --- Remote connections ----------------------------------------------
             'add_server':              [('mdi.server-plus',), {'color': self.MAIN_FG_COLOR}],
             'remote_server':           [('mdi.server-network',), {'color': self.MAIN_FG_COLOR}],
+            # --- For our collapsed widget
+            'collapsed':               [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.3}],
+            'expanded':                [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.3}],
         }
 
     def get_std_icon(self, name, size=None):

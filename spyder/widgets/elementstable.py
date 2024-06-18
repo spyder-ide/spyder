@@ -154,7 +154,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
 class ElementsTable(HoverRowsTableView):
 
     def __init__(self, parent: Optional[QWidget], elements: List[Element]):
-        HoverRowsTableView.__init__(self, parent)
+        HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self.elements = elements
 
         # Check for additional features

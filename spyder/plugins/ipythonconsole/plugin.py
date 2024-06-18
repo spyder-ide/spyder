@@ -26,7 +26,7 @@ from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
-from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
 )
@@ -249,9 +249,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             'origin': self.NAME,
             'extension': 'pyx',
             'contexts': [
-                {
-                    'name': 'File'
-                }
+                {'name': 'File'}
             ]
         }
 
@@ -259,15 +257,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             'origin': self.NAME,
             'extension': 'py',
             'contexts': [
-                {
-                    'name': 'File'
-                },
-                {
-                    'name': 'Cell'
-                },
-                {
-                    'name': 'Selection'
-                },
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
             ]
         }
 
@@ -275,24 +267,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             'origin': self.NAME,
             'extension': 'ipy',
             'contexts': [
-                {
-                    'name': 'File'
-                },
-                {
-                    'name': 'Cell'
-                },
-                {
-                    'name': 'Selection'
-                },
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
             ]
         }
 
         self.executor_configuration = [
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
@@ -300,9 +284,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
@@ -310,9 +292,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'Cell'
-                },
+                'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -320,9 +300,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'Cell'
-                },
+                'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -330,9 +308,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -340,9 +316,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -350,9 +324,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'pyx',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,

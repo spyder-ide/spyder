@@ -154,6 +154,13 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         if sys.platform == 'darwin':
             menu.aboutToShow.connect(self._hide_options_menus)
 
+            # This is necessary because for some strange reason the
+            # "Configuration per file" entry disappears after showing other
+            # dialogs and the only way to make it visible again is by
+            # re-rendering the menu.
+            if menu_id == ApplicationMenus.Run:
+                menu.aboutToShow.connect(lambda: menu.render(force=True))
+
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)
             for pending in pending_items:

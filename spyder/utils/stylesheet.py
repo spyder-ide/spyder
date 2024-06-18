@@ -66,6 +66,9 @@ class AppStyle(SpyderFontsMixin):
 
         return min_height
 
+    # Padding for content inside an element of higher hierarchy
+    InnerContentPadding = 5 * MarginSize
+
 
 # =============================================================================
 # ---- Base stylesheet class
@@ -270,14 +273,16 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
-        # Change QGroupBox style to avoid the "boxes within boxes" antipattern
-        # in Preferences
+        # Remove border in QGroupBox to avoid the "boxes within boxes"
+        # antipattern. Also, increase its title font in one point to make it
+        # more relevant.
         css.QGroupBox.setValues(
             border='0px',
-            marginBottom='15px',
             fontSize=f'{font_size + 1}pt',
         )
 
+        # Increase separation between title and content of QGroupBoxes and fix
+        # its alignment.
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
@@ -307,11 +312,6 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Add padding to tooltips
         css.QToolTip.setValues(
             padding="1px 2px",
-        )
-
-        # Substract extra padding that comes from QLineEdit
-        css["QLineEdit QToolTip"].setValues(
-            padding="-2px -3px",
         )
 
         # Add padding to tree widget items to make them look better
@@ -713,7 +713,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='15px',
+            padding=f'{AppStyle.InnerContentPadding}px',
         )
 
 

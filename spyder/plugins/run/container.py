@@ -10,6 +10,7 @@
 import functools
 import os.path as osp
 from typing import Callable, List, Dict, Tuple, Set, Optional
+from uuid import uuid4
 from weakref import WeakSet, WeakValueDictionary
 
 # Third-party imports
@@ -37,6 +38,7 @@ class RunContainer(PluginMainContainer):
     """Non-graphical container used to spawn dialogs and creating actions."""
 
     sig_run_action_created = Signal(str, bool, str)
+    sig_open_preferences_requested = Signal()
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -74,7 +76,7 @@ class RunContainer(PluginMainContainer):
 
         self.configure_action = self.create_action(
             RunActions.Configure,
-            _('&Open run settings'),
+            _('&Configuration per file'),
             self.create_icon('run_settings'),
             tip=_('Run settings'),
             triggered=functools.partial(
@@ -86,6 +88,12 @@ class RunContainer(PluginMainContainer):
             register_shortcut=True,
             shortcut_context='_',
             context=Qt.ApplicationShortcut
+        )
+
+        self.create_action(
+            RunActions.GlobalConfigurations,
+            _("&Global configurations"),
+            triggered=self.sig_open_preferences_requested
         )
 
         self.re_run_action = self.create_action(
@@ -203,13 +211,8 @@ class RunContainer(PluginMainContainer):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
-        exec_params = self.get_last_used_executor_parameters(
-            self.currently_selected_configuration)
-
-        display_dialog = exec_params['display_dialog']
-
         self.edit_run_configurations(
-            display_dialog=display_dialog,
+            display_dialog=False,
             selected_executor=selected_executor)
 
     def edit_run_configurations(
@@ -219,10 +222,18 @@ class RunContainer(PluginMainContainer):
         selected_executor=None
     ):
         self.dialog = RunDialog(
-            self, self.metadata_model, self.executor_model,
-            self.parameter_model, disable_run_btn=disable_run_btn)
+            self,
+            self.metadata_model,
+            self.executor_model,
+            self.parameter_model,
+            disable_run_btn=disable_run_btn
+        )
+
         self.dialog.setup()
         self.dialog.finished.connect(self.process_run_dialog_result)
+        self.dialog.sig_delete_config_requested.connect(
+            self.delete_executor_configuration_parameters
+        )
 
         if selected_executor is not None:
             self.dialog.select_executor(selected_executor)
@@ -238,27 +249,37 @@ class RunContainer(PluginMainContainer):
         if status == RunDialogStatus.Close:
             return
 
-        (uuid, executor_name,
-         ext_params, open_dialog) = self.dialog.get_configuration()
+        uuid, executor_name, ext_params = self.dialog.get_configuration()
 
         if (status & RunDialogStatus.Save) == RunDialogStatus.Save:
             exec_uuid = ext_params['uuid']
-            if exec_uuid is not None:
+
+            # Default parameters should already be saved in our config system.
+            # So, there is no need to save them again here.
+            if exec_uuid is not None and not ext_params["default"]:
 
                 info = self.metadata_model.get_metadata_context_extension(uuid)
                 context, ext =  info
                 context_name = context['name']
                 context_id = getattr(RunContext, context_name)
                 all_exec_params = self.get_executor_configuration_parameters(
-                    executor_name, ext, context_id)
+                    executor_name,
+                    ext,
+                    context_id
+                )
                 exec_params = all_exec_params['params']
                 exec_params[exec_uuid] = ext_params
+
                 self.set_executor_configuration_parameters(
-                    executor_name, ext, context_id, all_exec_params)
+                    executor_name,
+                    ext,
+                    context_id,
+                    all_exec_params,
+                )
 
             last_used_conf = StoredRunConfigurationExecutor(
-                executor=executor_name, selected=ext_params['uuid'],
-                display_dialog=open_dialog)
+                executor=executor_name, selected=ext_params['uuid']
+            )
 
             self.set_last_used_execution_params(uuid, last_used_conf)
 
@@ -763,6 +784,21 @@ class RunContainer(PluginMainContainer):
                     ext, context_id, executor_id, config)
                 executor_count += 1
 
+                # Save default configs to our config system so that they are
+                # displayed in the Run confpage
+                config_widget = config["configuration_widget"]
+                default_conf = (
+                    config_widget.get_default_configuration()
+                    if config_widget
+                    else {}
+                )
+                self._save_default_graphical_executor_configuration(
+                    executor_id,
+                    ext,
+                    context_id,
+                    default_conf
+                )
+
         self.executor_use_count[executor_id] = executor_count
         self.executor_model.set_executor_name(executor_id, executor_name)
         self.set_actions_status()
@@ -884,15 +920,16 @@ class RunContainer(PluginMainContainer):
             run configuration.
         """
 
-        all_executor_params: Dict[
+        all_execution_params: Dict[
             str,
-            Dict[Tuple[str, str],
-            StoredRunExecutorParameters]
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
         ] = self.get_conf('parameters', default={})
 
-        executor_params = all_executor_params.get(executor_name, {})
+        executor_params = all_execution_params.get(executor_name, {})
         params = executor_params.get(
-            (extension, context_id), StoredRunExecutorParameters(params={}))
+            (extension, context_id),
+            StoredRunExecutorParameters(params={})
+        )
 
         return params
 
@@ -919,16 +956,68 @@ class RunContainer(PluginMainContainer):
             A dictionary containing the run configuration parameters for the
             given executor.
         """
-        all_executor_params: Dict[
+        all_execution_params: Dict[
             str,
-            Dict[Tuple[str, str],
-            StoredRunExecutorParameters]
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
         ] = self.get_conf('parameters', default={})
 
-        executor_params = all_executor_params.get(executor_name, {})
-        executor_params[(extension, context_id)] = params
-        all_executor_params[executor_name] = executor_params
-        self.set_conf('parameters', all_executor_params)
+        executor_params = all_execution_params.get(executor_name, {})
+        ext_ctx_params = executor_params.get((extension, context_id), {})
+
+        if ext_ctx_params:
+            # Update current parameters in case the user has already saved some
+            # before.
+            ext_ctx_params['params'].update(params['params'])
+        else:
+            # Create a new entry of executor parameters in case there isn't any
+            executor_params[(extension, context_id)] = params
+
+        all_execution_params[executor_name] = executor_params
+
+        self.set_conf('parameters', all_execution_params)
+
+    def delete_executor_configuration_parameters(
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str,
+        uuid: str
+    ):
+        """
+        Delete an executor parameter set from our config system.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension of the configuration parameters to delete.
+        context_id: str
+            The context of the configuration parameters to delete.
+        uuid: str
+            The run configuration identifier.
+        """
+        all_execution_params: Dict[
+            str,
+            Dict[Tuple[str, str], StoredRunExecutorParameters]
+        ] = self.get_conf('parameters', default={})
+
+        executor_params = all_execution_params[executor_name]
+        ext_ctx_params = executor_params[(extension, context_id)]['params']
+
+        for params_id in ext_ctx_params:
+            if params_id == uuid:
+                # Prevent to remove default parameters
+                if ext_ctx_params[params_id]["default"]:
+                    return
+
+                ext_ctx_params.pop(params_id, None)
+                break
+
+        executor_params[(extension, context_id)]['params'] = ext_ctx_params
+        all_execution_params[executor_name] = executor_params
+
+        self.set_conf('parameters', all_execution_params)
 
     def get_last_used_executor_parameters(
         self,
@@ -958,8 +1047,7 @@ class RunContainer(PluginMainContainer):
             uuid,
             StoredRunConfigurationExecutor(
                 executor=None,
-                selected=None,
-                display_dialog=False,
+                selected=None
             )
         )
 
@@ -996,8 +1084,7 @@ class RunContainer(PluginMainContainer):
 
         default = StoredRunConfigurationExecutor(
             executor=executor_name,
-            selected=None,
-            display_dialog=False
+            selected=None
         )
         params = mru_executors_uuids.get(uuid, default)
 
@@ -1031,3 +1118,72 @@ class RunContainer(PluginMainContainer):
 
         mru_executors_uuids[uuid] = params
         self.set_conf('last_used_parameters', mru_executors_uuids)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _save_default_graphical_executor_configuration(
+        self,
+        executor_name: str,
+        extension: str,
+        context_id: str,
+        default_conf: dict,
+    ):
+        """
+        Save a default executor configuration to our config system.
+
+        Parameters
+        ----------
+        executor_name: str
+            The identifier of the run executor.
+        extension: str
+            The file extension to register the configuration parameters for.
+        context_id: str
+            The context to register the configuration parameters for.
+        default_conf: dict
+            A dictionary containing the run configuration parameters for the
+            given executor.
+        """
+        # Check if there's already a default parameter config to not do this
+        # because it's not necessary.
+        current_params = self.get_executor_configuration_parameters(
+            executor_name,
+            extension,
+            context_id
+        )
+
+        for param in current_params["params"].values():
+            if param["default"]:
+                return
+
+        # Id for this config
+        uuid = str(uuid4())
+
+        # Build config
+        cwd_opts = WorkingDirOpts(
+            source=WorkingDirSource.ConfigurationDirectory,
+            path=None
+        )
+
+        exec_params = RunExecutionParameters(
+            working_dir=cwd_opts, executor_params=default_conf
+        )
+
+        ext_exec_params = ExtendedRunExecutionParameters(
+            uuid=uuid,
+            name=_("Default"),
+            params=exec_params,
+            file_uuid=None,
+            default=True,
+        )
+
+        store_params = StoredRunExecutorParameters(
+            params={uuid: ext_exec_params}
+        )
+
+        # Save config
+        self.set_executor_configuration_parameters(
+            executor_name,
+            extension,
+            context_id,
+            store_params,
+        )

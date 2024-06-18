@@ -201,26 +201,6 @@ class Editor(SpyderDockablePlugin):
             lambda: self.switch_to_plugin(force_focus=True)
         )
 
-        # ---- Run plugin config definitions
-        widget.supported_run_extensions = [
-            {
-                'input_extension': 'py',
-                'contexts': [
-                    {'context': {'name': 'File'}, 'is_super': True},
-                    {'context': {'name': 'Selection'}, 'is_super': False},
-                    {'context': {'name': 'Cell'}, 'is_super': False}
-                ]
-            },
-            {
-                'input_extension': 'ipy',
-                'contexts': [
-                    {'context': {'name': 'File'}, 'is_super': True},
-                    {'context': {'name': 'Selection'}, 'is_super': False},
-                    {'context': {'name': 'Cell'}, 'is_super': False}
-                ]
-            },
-        ]
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -273,9 +253,11 @@ class Editor(SpyderDockablePlugin):
                     self.NAME, unsupported_extensions
                 )
         )
-        run.register_run_configuration_provider(
-            self.NAME, widget.supported_run_extensions
-        )
+
+        # This is necessary to register run configs that were added before Run
+        # is available
+        for extension in widget.supported_run_extensions:
+            run.register_run_configuration_provider(self.NAME, [extension])
 
         # Buttons creation
         run.create_run_button(
