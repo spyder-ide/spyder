@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 
 # Third-party imports
-from qtpy.QtCore import QTimer, Signal
+from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Signal
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -58,6 +58,7 @@ class MainInterpreterContainer(PluginMainContainer):
         self._interpreter = self.get_main_interpreter()
         self._startup = True
         self._current_envs = None
+        self._lock = QMutex()
 
         self.path_to_env = {}
         self.envs = {}
@@ -70,8 +71,8 @@ class MainInterpreterContainer(PluginMainContainer):
                 "pythonw.exe", "python.exe"
             ).lower()
 
-        # Worker to compute envs in a thread
-        self._worker_manager = WorkerManager(max_threads=1)
+        # Worker to compute envs info in a thread
+        self._worker_manager = WorkerManager(self)
 
         # Timer to get envs every minute
         self._get_envs_timer = QTimer(self)
@@ -79,6 +80,7 @@ class MainInterpreterContainer(PluginMainContainer):
         self._get_envs_timer.timeout.connect(self._get_envs)
         self._get_envs_timer.start()
 
+        # Timer to check the current interpreter
         self._check_interpreter_timer = QTimer(self)
         self._check_interpreter_timer.setInterval(2000)
         self._check_interpreter_timer.start(2000)
@@ -169,7 +171,6 @@ class MainInterpreterContainer(PluginMainContainer):
         self.validate_custom_interpreters_list()
 
         # Update envs
-        self._worker_manager.terminate_all()
         worker = self._worker_manager.create_python_worker(self._update_envs)
         worker.sig_finished.connect(self._finish_updating_envs)
         worker.start()
@@ -223,32 +224,51 @@ class MainInterpreterContainer(PluginMainContainer):
         """Set main interpreter and update information."""
         if interpreter:
             self._interpreter = interpreter
-        value = self._get_env_info(self._interpreter)
-        self.interpreter_status.set_value(value)
+
+        if self._interpreter not in self.path_to_env:
+            worker = self._worker_manager.create_python_worker(
+                self._get_env_info,
+                self._interpreter
+            )
+            worker.start()
+            worker.sig_finished.connect(self._finish_updating_interpreter)
+        else:
+            value = self._get_env_info(self._interpreter)
+            self.interpreter_status.set_value(value)
+
+    def _finish_updating_interpreter(self, worker, output, error):
+        if output is None or error:
+            return
+
+        # We need to inform about envs being updated in case a custom env was
+        # added in Preferences, which will update its info.
+        self.sig_environments_updated.emit(self.envs)
+        self.interpreter_status.set_value(output)
 
     def _get_env_info(self, path):
         """Get environment information."""
-        original_path = path
-        path = path.lower() if os.name == 'nt' else path
+        with QMutexLocker(self._lock):
+            original_path = path
+            path = path.lower() if os.name == 'nt' else path
 
-        try:
-            name = self.path_to_env[path]
-        except KeyError:
-            env_name = self._get_env_dir(original_path, only_dir=True)
+            try:
+                name = self.path_to_env[path]
+            except KeyError:
+                env_name = self._get_env_dir(original_path, only_dir=True)
 
-            if 'conda' in path:
-                name = 'Conda: ' + env_name
-            elif 'pyenv' in path:
-                name = 'Pyenv: ' + env_name
-            else:
-                name = _("Custom") + ": " + env_name
+                if 'conda' in path:
+                    name = 'Conda: ' + env_name
+                elif 'pyenv' in path:
+                    name = 'Pyenv: ' + env_name
+                else:
+                    name = _("Custom") + ": " + env_name
 
-            version = get_interpreter_info(path)
-            self.path_to_env[path] = name
-            self.envs[name] = (path, version)
+                version = get_interpreter_info(path)
+                self.path_to_env[path] = name
+                self.envs[name] = (path, version)
 
-        __, version = self.envs[name]
-        return f'{name} ({version})'
+            __, version = self.envs[name]
+            return f'{name} ({version})'
 
     def _check_interpreter(self):
         """
