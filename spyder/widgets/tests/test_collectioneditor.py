@@ -20,6 +20,7 @@ from unittest.mock import Mock, patch
 
 # Third party imports
 import numpy
+from packaging.version import parse
 import pandas
 import pytest
 from flaky import flaky
@@ -351,6 +352,9 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
 
 
 def test_sort_numpy_numeric_collectionsmodel():
+    if parse(numpy.__version__) >= parse("2.0.0"):
+        numpy.set_printoptions(legacy="1.25")
+
     var_list = [
         numpy.float64(1e16), numpy.float64(10), numpy.float64(1),
         numpy.float64(0.1), numpy.float64(1e-6),
