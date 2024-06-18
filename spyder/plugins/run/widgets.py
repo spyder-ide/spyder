@@ -18,7 +18,6 @@ from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
     QAction,
-    QApplication,
     QDialog,
     QDialogButtonBox,
     QGridLayout,
@@ -37,6 +36,7 @@ import qstylizer.style
 
 # Local imports
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
@@ -50,6 +50,7 @@ from spyder.plugins.run.api import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.qthelpers import qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.helperwidgets import TipWidget
@@ -1104,21 +1105,21 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         Center dialog relative to the main window after collapsing/expanding
         the custom configuration widget.
         """
-        # main_window is usually not available in our tests, so we need to
-        # check for this.
-        main_window = getattr(QApplication.instance(), 'main_window', None)
+        # This doesn't work in our tests because the main window is usually
+        # not available in them.
+        if running_under_pytest():
+            return
 
-        if main_window:
-            # We only center the dialog vertically because there's no need to
-            # do it horizontally.
-            x = self.x()
+        qapp = qapplication()
+        main_window_pos = qapp.get_mainwindow_position()
+        main_window_height = qapp.get_mainwindow_height()
 
-            y = (
-                main_window.pos().y()
-                + ((main_window.height() - self.height()) // 2)
-            )
+        # We only center the dialog vertically because there's no need to
+        # do it horizontally.
+        x = self.x()
+        y = main_window_pos.y() + ((main_window_height - self.height()) // 2)
 
-            self.move(x, y)
+        self.move(x, y)
 
     def _get_auto_custom_name(self, global_params_name: str) -> str:
         """

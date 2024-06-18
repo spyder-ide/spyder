@@ -367,15 +367,13 @@ def create_window(WindowClass, app, splash, options, args):
     main.show()
     main.post_visible_setup()
 
-    # Add a reference to the main window so it can be accessed from anywhere.
+    # Add a reference to the main window so it can be accessed from the
+    # application.
     #
     # Notes
     # -----
-    # * This should be used to get main window properties (such as width,
-    #   height or position) that other widgets can need to position relative to
-    #   it.
     # * **DO NOT** use it to access other plugins functionality through it.
-    app.main_window = main
+    app._main_window = main
 
     if main.console:
         main.console.start_interpreter(namespace={})
