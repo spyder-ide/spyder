@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-21 00:01\n"
+"PO-Revision-Date: 2024-06-19 21:42\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -13,25 +13,25 @@ msgstr ""
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
 "X-Crowdin-Language: uk\n"
-"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 80\n"
+"X-Crowdin-File: /master/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 88\n"
 "Language: uk_UA\n"
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "Тут ви можете ввімкнути/вимкнути будь-який внутрішній або зовнішній плагін Spyder, щоб вимкнути небажану функціональність або полегшити роботу з програмою. Не позначені на цій сторінці плагіни буде негайно вивантажено і не буде завантажено під час наступного запуску Spyder."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "Внутрішні плагіни"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "Зовнішні плагіни"
 
 #: spyder/api/plugin_registration/registry.py:809
 msgid "Plugins"
-msgstr ""
+msgstr "Плагіни"
 
 #: spyder/api/widgets/main_widget.py:253
 msgid "Main widget toolbar"
@@ -59,11 +59,11 @@ msgstr "Закріпити панель"
 
 #: spyder/api/widgets/main_widget.py:353 spyder/api/widgets/main_widget.py:457 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Unlock position"
-msgstr ""
+msgstr "Розблокувати положення"
 
 #: spyder/api/widgets/main_widget.py:354 spyder/api/widgets/main_widget.py:462 spyder/plugins/base.py:206 spyder/plugins/base.py:501
 msgid "Unlock to move pane to another position"
-msgstr ""
+msgstr "Розблокуйте, щоб перемістити панель в інше положення"
 
 #: spyder/api/widgets/main_widget.py:360 spyder/plugins/base.py:213
 msgid "Undock"
@@ -83,15 +83,15 @@ msgstr "Закрити панель"
 
 #: spyder/api/widgets/main_widget.py:451 spyder/plugins/base.py:491
 msgid "Lock position"
-msgstr ""
+msgstr "Заблокувати положення"
 
 #: spyder/api/widgets/main_widget.py:455 spyder/plugins/base.py:495
 msgid "Lock pane to the current position"
-msgstr ""
+msgstr "Зафіксувати панель у поточному положенні"
 
 #: spyder/api/widgets/toolbars.py:120
 msgid "More"
-msgstr ""
+msgstr "Більше"
 
 #: spyder/app/mainwindow.py:329
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: {color}'><b>netsh winsock reset </b></span><br>"
@@ -99,11 +99,11 @@ msgstr "Сталася помилка при створенні сокету, н
 
 #: spyder/app/mainwindow.py:399
 msgid "Plugin compatibility check"
-msgstr ""
+msgstr "Перевірка сумісності плагіна"
 
 #: spyder/app/mainwindow.py:401
 msgid "It was not possible to load the {} plugin. The problem was:<br><br>{}"
-msgstr ""
+msgstr "Не вдалося завантажити плагін {}. Проблема полягає в наступному:<br><br>{}"
 
 #: spyder/app/mainwindow.py:423
 msgid "Loading {}..."
@@ -167,7 +167,7 @@ msgstr "Виконати"
 
 #: spyder/app/mainwindow.py:1521
 msgid "Running an external system terminal is not supported on platform %s."
-msgstr ""
+msgstr "Запуск зовнішнього системного терміналу не підтримується на платформі %s."
 
 #: spyder/app/mainwindow.py:1574 spyder/plugins/application/confpage.py:256 spyder/plugins/application/confpage.py:281 spyder/plugins/application/container.py:539 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:205 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:223 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:168 spyder/plugins/editor/widgets/editor.py:2571 spyder/plugins/explorer/widgets/explorer.py:1213 spyder/plugins/explorer/widgets/explorer.py:1566 spyder/plugins/ipythonconsole/widgets/shell.py:831 spyder/plugins/layout/container.py:298 spyder/plugins/profiler/widgets/main_widget.py:571 spyder/plugins/profiler/widgets/main_widget.py:729 spyder/plugins/projects/plugin.py:458 spyder/plugins/projects/plugin.py:477 spyder/plugins/projects/plugin.py:735 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/pylint/main_widget.py:390 spyder/plugins/pylint/main_widget.py:422 spyder/plugins/variableexplorer/widgets/arrayeditor.py:627 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:129 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:150 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:457 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:665 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1315 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1319 spyder/widgets/collectionseditor.py:1620 spyder/widgets/reporterror.py:412
 msgid "Error"
@@ -175,7 +175,7 @@ msgstr "Помилка"
 
 #: spyder/app/mainwindow.py:1575
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "Щоб відкрити <code>{fpath}</code> як проєкт за допомогою Spyder, скористайтеся <code>spyder -p \"{fname}\"</code>."
 
 #: spyder/app/mainwindow.py:1801
 msgid "Initializing..."
@@ -225,16 +225,17 @@ msgstr "Перезавантаження"
 
 #: spyder/config/manager.py:616
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
-msgstr ""
+msgstr "Контекст ярлика повинен відповідати '_' або плагіну `CONF_SECTION`!"
 
 #: spyder/config/manager.py:697
 msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
+msgstr "Виникла помилка під час завантаження параметрів конфігурації Spyder. Вам потрібно скинути їх, щоб Spyder зміг запуститися.\n\n"
+"Бажаєте продовжити?"
 
 #: spyder/config/manager.py:705
 msgid "Spyder configuration files resetted!"
-msgstr ""
+msgstr "Конфігураційні файли Spyder скинуто!"
 
 #: spyder/config/utils.py:25 spyder/plugins/console/widgets/main_widget.py:514 spyder/plugins/explorer/widgets/explorer.py:1727 spyder/plugins/profiler/widgets/main_widget.py:462 spyder/plugins/pylint/main_widget.py:868
 msgid "Python files"
@@ -322,7 +323,7 @@ msgstr "Блокноти IPython"
 
 #: spyder/config/utils.py:47
 msgid "Enaml files"
-msgstr ""
+msgstr "Enaml файли"
 
 #: spyder/config/utils.py:48
 msgid "Configuration files"
@@ -346,15 +347,15 @@ msgstr "Сповістити macOS, що Spyder може відкривати ф
 
 #: spyder/dependencies.py:106
 msgid "Atomic file writes in the Editor"
-msgstr ""
+msgstr "Atomatic файл записується в редакторі"
 
 #: spyder/dependencies.py:110
 msgid "Character encoding auto-detection for the Editor"
-msgstr ""
+msgstr "Автоматичне визначення кодування символів для редактора"
 
 #: spyder/dependencies.py:114
 msgid "Handle communications between kernel and frontend"
-msgstr ""
+msgstr "Керування зв'язком між ядром і фронтендом"
 
 #: spyder/dependencies.py:118
 msgid "Create projects from cookiecutter templates"
@@ -362,39 +363,39 @@ msgstr "Створити проєкти з шаблонів cookiecutter"
 
 #: spyder/dependencies.py:122
 msgid "Compute text file diff changes during edition"
-msgstr ""
+msgstr "Обчислення змін у текстовому файлі під час редагування"
 
 #: spyder/dependencies.py:126
 msgid "Compute folding range nesting levels"
-msgstr ""
+msgstr "Обчислення рівнів вкладеності діапазону складання"
 
 #: spyder/dependencies.py:130
 msgid "IPython interactive python environment"
-msgstr ""
+msgstr "Інтерактивне середовище пайтона IPython"
 
 #: spyder/dependencies.py:134
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Основний бекенд для сервера мови Python"
 
 #: spyder/dependencies.py:138
 msgid "Optimize algorithms for folding"
-msgstr ""
+msgstr "Оптимізувати алгоритми складання"
 
 #: spyder/dependencies.py:142
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "Перевірте, чи дійсні файли фрагментів"
 
 #: spyder/dependencies.py:146
 msgid "Save Github credentials to report internal errors securely"
-msgstr ""
+msgstr "Збережіть облікові дані Github, щоб безпечно повідомляти про внутрішні помилки"
 
 #: spyder/dependencies.py:151
 msgid "Manipulate Jupyter notebooks in the Editor"
-msgstr ""
+msgstr "Керування блокнотами Jupyter у редакторі"
 
 #: spyder/dependencies.py:155
 msgid "Improve code completion for objects that use Numpy docstrings"
-msgstr ""
+msgstr "Покращити завершення коду для об'єктів, які використовують рядки Numpy"
 
 #: spyder/dependencies.py:159
 msgid "Connect to remote kernels through SSH"
@@ -402,23 +403,23 @@ msgstr "Підключення до віддалених ядер через SSH
 
 #: spyder/dependencies.py:164
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "Парсер Python з підтримкою відновлення помилок та зворотного розбору"
 
 #: spyder/dependencies.py:169
 msgid "Stdio support for our language server client"
-msgstr ""
+msgstr "Підтримка Stdio для клієнта нашої мови"
 
 #: spyder/dependencies.py:173
 msgid "Cache the list of installed Python modules"
-msgstr ""
+msgstr "Кешування списку встановлених модулів Python"
 
 #: spyder/dependencies.py:177
 msgid "CPU and memory usage info in the status bar"
-msgstr ""
+msgstr "Інформація про використання процесора та пам'яті в рядку стану"
 
 #: spyder/dependencies.py:181
 msgid "Syntax highlighting for a lot of file types in the Editor"
-msgstr ""
+msgstr "Підсвічування синтаксису для багатьох типів файлів у редакторі"
 
 #: spyder/dependencies.py:185
 msgid "Static code analysis"
@@ -426,67 +427,67 @@ msgstr "Статичний аналіз коду"
 
 #: spyder/dependencies.py:189
 msgid "Use the same Pylint installation with different virtual environments"
-msgstr ""
+msgstr "Використовуйте ту саму інсталяцію Pylint з різними віртуальними середовищами"
 
 #: spyder/dependencies.py:194
 msgid "Code completion and linting for the Editor"
-msgstr ""
+msgstr "Завершення коду та підшивка для редактора"
 
 #: spyder/dependencies.py:198
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr ""
+msgstr "Автоматичне форматування файлів Python у редакторі з пакетом Black"
 
 #: spyder/dependencies.py:203
 msgid "Spyder plugin for the Python LSP Server"
-msgstr ""
+msgstr "Плагін Spyder для Python LSP Server"
 
 #: spyder/dependencies.py:207
 msgid "Parse desktop files on Linux"
-msgstr ""
+msgstr "Розбір файлів робочого столу в Linux"
 
 #: spyder/dependencies.py:212
 msgid "Client for the language server protocol (LSP)"
-msgstr ""
+msgstr "Клієнт для протоколу мовного сервера (LSP)"
 
 #: spyder/dependencies.py:216
 msgid "Dark style for the entire interface"
-msgstr ""
+msgstr "Темний стиль для всього інтерфейсу"
 
 #: spyder/dependencies.py:220
 msgid "Customize Qt stylesheets"
-msgstr ""
+msgstr "Налаштування таблиць стилів Qt"
 
 #: spyder/dependencies.py:224
 msgid "Icon theme based on FontAwesome and Material Design icons"
-msgstr ""
+msgstr "Тема іконок на основі FontAwesome та Material Design"
 
 #: spyder/dependencies.py:228
 msgid "Main package for the IPython console"
-msgstr ""
+msgstr "Основний пакет для консолі IPython"
 
 #: spyder/dependencies.py:232
 msgid "Abstraction layer for Python Qt bindings."
-msgstr ""
+msgstr "Рівень абстракції для зв'язування Python Qt."
 
 #: spyder/dependencies.py:236
 msgid "Fast access to code snippets regions"
-msgstr ""
+msgstr "Швидкий доступ до регіонів фрагментів коду"
 
 #: spyder/dependencies.py:240
 msgid "Determine package version"
-msgstr ""
+msgstr "Визначте версію пакунка"
 
 #: spyder/dependencies.py:244
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
-msgstr ""
+msgstr "Показувати довідку для об'єктів у редакторі та консолях на спеціальній панелі"
 
 #: spyder/dependencies.py:248
 msgid "Jupyter kernels for the Spyder console"
-msgstr ""
+msgstr "Ядра Jupyter для консолі Spyder"
 
 #: spyder/dependencies.py:252
 msgid "Compute distances between strings"
-msgstr ""
+msgstr "Обчислення відстані між рядками"
 
 #: spyder/dependencies.py:256
 msgid "3-way merge algorithm to merge document changes"
