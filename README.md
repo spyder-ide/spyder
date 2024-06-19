@@ -9,8 +9,8 @@
 
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
-[![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
-[![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
+[![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://anaconda.org/conda-forge/spyder)
+[![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://anaconda.org/conda-forge/spyder)
 [![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
@@ -18,9 +18,9 @@
 
 ## Build status
 
-[![Win](https://github.com/spyder-ide/spyder/workflows/Win%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Win+tests%22)
-[![Mac](https://github.com/spyder-ide/spyder/workflows/Mac%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Mac+tests%22)
-[![Linux](https://github.com/spyder-ide/spyder/workflows/Linux%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%Linux+tests%22)
+[![Win](https://github.com/spyder-ide/spyder/actions/workflows/test-win.yml/badge.svg)](https://github.com/spyder-ide/spyder/actions/workflows/test-win.yml)
+[![Mac](https://github.com/spyder-ide/spyder/actions/workflows/test-mac.yml/badge.svg)](https://github.com/spyder-ide/spyder/actions/workflows/test-mac.yml)
+[![Linux](https://github.com/spyder-ide/spyder/actions/workflows/test-linux.yml/badge.svg)](https://github.com/spyder-ide/spyder/actions/workflows/test-linux.yml)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
