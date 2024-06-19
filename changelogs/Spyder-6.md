@@ -54,6 +54,46 @@
 
 ----
 
+## Version 6.0beta2 (2024-06-19)
+
+### Issues Closed
+
+* [Issue 22176](https://github.com/spyder-ide/spyder/issues/22176) - Spyder 6.0 beta2 release  ([PR 22177](https://github.com/spyder-ide/spyder/pull/22177) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22070](https://github.com/spyder-ide/spyder/issues/22070) - Snapping Spyder 6 while `Show breakpoints` is active is broken ([PR 22163](https://github.com/spyder-ide/spyder/pull/22163) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22034](https://github.com/spyder-ide/spyder/issues/22034) - IPython console Matplotlib rc parameters are inconsistent when switching backends ([PR 22088](https://github.com/spyder-ide/spyder/pull/22088) by [@mrclary](https://github.com/mrclary))
+* [Issue 22030](https://github.com/spyder-ide/spyder/issues/22030) - Issue reporter submit to Github results in 403 error ([PR 22108](https://github.com/spyder-ide/spyder/pull/22108) by [@mrclary](https://github.com/mrclary))
+* [Issue 21878](https://github.com/spyder-ide/spyder/issues/21878) - KeyError when changing run options in 6.0.0a4 ([PR 22141](https://github.com/spyder-ide/spyder/pull/22141) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21771](https://github.com/spyder-ide/spyder/issues/21771) - Adding "User environment variables in Windows registry" ([PR 22075](https://github.com/spyder-ide/spyder/pull/22075) by [@mrclary](https://github.com/mrclary))
+* [Issue 20700](https://github.com/spyder-ide/spyder/issues/20700) - Run settings can not be changed in master ([PR 22141](https://github.com/spyder-ide/spyder/pull/22141) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20569](https://github.com/spyder-ide/spyder/issues/20569) - Run after closing  all files ([PR 22141](https://github.com/spyder-ide/spyder/pull/22141) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 16265](https://github.com/spyder-ide/spyder/issues/16265) - Outline pane is automatically shown when editor is maximized ([PR 19784](https://github.com/spyder-ide/spyder/pull/19784) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 10932](https://github.com/spyder-ide/spyder/issues/10932) - Spyder is ignoring matplotlib user settings ([PR 22088](https://github.com/spyder-ide/spyder/pull/22088) by [@mrclary](https://github.com/mrclary))
+
+In this release 10 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22177](https://github.com/spyder-ide/spyder/pull/22177) - PR: Update core dependencies for 6.0.0 beta2, by [@dalthviz](https://github.com/dalthviz) ([22176](https://github.com/spyder-ide/spyder/issues/22176))
+* [PR 22163](https://github.com/spyder-ide/spyder/pull/22163) - PR: Improve UI/UX of the Debugger pane, by [@ccordoba12](https://github.com/ccordoba12) ([22070](https://github.com/spyder-ide/spyder/issues/22070))
+* [PR 22155](https://github.com/spyder-ide/spyder/pull/22155) - PR: Use `jupyter_server` instead of `jupyterhub` for remote client plugin, by [@hlouzada](https://github.com/hlouzada)
+* [PR 22143](https://github.com/spyder-ide/spyder/pull/22143) - PR: Add new icons to be used in the Debugger toolbar, by [@conradolandia](https://github.com/conradolandia)
+* [PR 22141](https://github.com/spyder-ide/spyder/pull/22141) - PR: Improve UI/UX of the Run plugin configuration widgets, by [@ccordoba12](https://github.com/ccordoba12) ([21878](https://github.com/spyder-ide/spyder/issues/21878), [20700](https://github.com/spyder-ide/spyder/issues/20700), [20569](https://github.com/spyder-ide/spyder/issues/20569))
+* [PR 22137](https://github.com/spyder-ide/spyder/pull/22137) - PR: Fix conflict between AsyncDispatcher and `run_sync` function of `jupyter_core`, by [@hlouzada](https://github.com/hlouzada)
+* [PR 22120](https://github.com/spyder-ide/spyder/pull/22120) - PR: Enable comms to work across different Python versions (IPython console), by [@impact27](https://github.com/impact27)
+* [PR 22118](https://github.com/spyder-ide/spyder/pull/22118) - PR: Use `GITHUB_TOKEN` to make authorized user requests against GitHub (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 22110](https://github.com/spyder-ide/spyder/pull/22110) - PR: Adjust emblems for Projects menu icons, by [@conradolandia](https://github.com/conradolandia)
+* [PR 22108](https://github.com/spyder-ide/spyder/pull/22108) - PR: Replace `github.py` with `pygithub` package, by [@mrclary](https://github.com/mrclary) ([22030](https://github.com/spyder-ide/spyder/issues/22030))
+* [PR 22103](https://github.com/spyder-ide/spyder/pull/22103) - PR: Update macOS from 11 to 12 in installer workflow, by [@mrclary](https://github.com/mrclary)
+* [PR 22089](https://github.com/spyder-ide/spyder/pull/22089) - PR: Fix workflow glob (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 22088](https://github.com/spyder-ide/spyder/pull/22088) - PR: Fix issue where Spyder's inline graphics preferences were not applied, by [@mrclary](https://github.com/mrclary) ([22034](https://github.com/spyder-ide/spyder/issues/22034), [10932](https://github.com/spyder-ide/spyder/issues/10932))
+* [PR 22077](https://github.com/spyder-ide/spyder/pull/22077) - PR: Try to decrease timeouts when running tests and check general tests robustness and speed (CI/Testing), by [@dalthviz](https://github.com/dalthviz)
+* [PR 22075](https://github.com/spyder-ide/spyder/pull/22075) - PR: Fix setting user environment variables on Windows, by [@mrclary](https://github.com/mrclary) ([21771](https://github.com/spyder-ide/spyder/issues/21771))
+* [PR 19784](https://github.com/spyder-ide/spyder/pull/19784) - PR: Remember undocked state of plugins when closed and allow to close Outline when the Editor is maximized or in an Editor window, by [@ccordoba12](https://github.com/ccordoba12) ([16265](https://github.com/spyder-ide/spyder/issues/16265))
+
+In this release 16 pull requests were closed.
+
+----
+
 ## Version 6.0beta1 (2024-05-16)
 
 ### Issues Closed
