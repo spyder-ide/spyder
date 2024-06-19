@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-24 00:16\n"
+"PO-Revision-Date: 2024-06-19 21:42\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -13,8 +13,8 @@ msgstr ""
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
 "X-Crowdin-Language: es-ES\n"
-"X-Crowdin-File: /5.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 80\n"
+"X-Crowdin-File: /master/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 88\n"
 "Language: es_ES\n"
 
 #: spyder/api/plugin_registration/_confpage.py:26
@@ -1634,7 +1634,7 @@ msgstr "Completado, análisis de código, \n"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:76
 msgid "Restart {} Language Server"
-msgstr "Reiniciar el Servidor de lenguaje de {}"
+msgstr "Reiniciar el servidor de lenguaje de {}"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:33
 msgid "Snippets"
@@ -4240,7 +4240,7 @@ msgstr "Conectarse a un núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr "<p>Seleccione el archivo de conexión JSON (<i>por ejemplo</i><tt>kernel-1234.json</tt>) del kernel existente e ingrese la información de SSH si se conecta a una máquina remota. Para obtener más información sobre cómo iniciar kernels externos y conectarse a ellos, consulte <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">nuestra documentación</a>.</p>"
+msgstr "<p>Seleccione el archivo de conexión JSON (<i>por ejemplo</i><tt>kernel-1234.json</tt>) del núcleo existente e ingrese la información de SSH si se conecta a una máquina remota. Para obtener más información sobre cómo iniciar kernels externos y conectarse a ellos, consulte <a href=\"https://docs.spyder-ide.org/5/panes/ipythonconsole.html#using-external-kernels\">nuestra documentación</a>.</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Connection file:"
@@ -5048,7 +5048,7 @@ msgstr "Spyder se reiniciará y volverá a su configuración por defecto: <br><b
 
 #: spyder/plugins/preferences/widgets/container.py:115
 msgid "Reset Spyder to factory defaults"
-msgstr "Restaurar Spyder a su  configuración por defecto"
+msgstr "Restaurar Spyder a su configuración por defecto"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:42
 msgid "Results"
@@ -5174,7 +5174,7 @@ msgstr "Llamados"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:673
 msgid "Local Time"
-msgstr "Tiempo Local"
+msgstr "Tiempo local"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:674
 msgid "File:line"
