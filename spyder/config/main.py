@@ -520,6 +520,8 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
+              'ipython_console/go to next console': "Ctrl+Alt+Right",
+              'ipython_console/go to previous console': "Ctrl+Alt+Left",
               # -- Array buider --
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
