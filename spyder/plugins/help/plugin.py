@@ -46,6 +46,7 @@ class Help(SpyderDockablePlugin):
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    REQUIRE_WEB_WIDGETS = True
 
     # Signals
     sig_focus_changed = Signal()  # TODO: What triggers this?
