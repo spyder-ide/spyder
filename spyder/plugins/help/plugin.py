@@ -44,6 +44,7 @@ class Help(SpyderDockablePlugin):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    REQUIRE_WEB_WIDGETS = True
 
     # Signals
     sig_focus_changed = Signal()  # TODO: What triggers this?

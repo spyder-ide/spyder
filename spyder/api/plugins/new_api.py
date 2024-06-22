@@ -159,6 +159,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     # disabled. Default: True
     CAN_BE_DISABLED = True
 
+    # Qt Web Widgets may be a heavy dependency for many packagers
+    # (e.g. conda-forge)
+    # We thus ask plugins to declare whether or not they need
+    # web widgets to enhance the distribution of Spyder to users
+    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+    REQUIRE_WEB_WIDGETS = False
+
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and

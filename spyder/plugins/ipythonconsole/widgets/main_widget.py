@@ -25,7 +25,6 @@ from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
-from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
@@ -58,10 +57,15 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.utils.workers import WorkerManager
-from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.printer import SpyderPrinter
+
+# In case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 
 # Logging
@@ -252,7 +256,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.enable_infowidget = True
         if plugin:
             cli_options = plugin.get_command_line_options()
-            if cli_options.no_web_widgets:
+            if cli_options.no_web_widgets or not WEBENGINE:
                 self.enable_infowidget = False
 
         # Attrs for testing
@@ -288,6 +292,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Info widget
         if self.enable_infowidget:
+            from spyder.widgets.browser import FrameWebView
+
             self.infowidget = FrameWebView(self)
             if WEBENGINE:
                 self.infowidget.page().setBackgroundColor(
