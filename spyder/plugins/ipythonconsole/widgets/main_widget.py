@@ -23,7 +23,10 @@ import qstylizer.style
 from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor
-from qtpy.QtWebEngineWidgets import WEBENGINE
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
@@ -46,7 +49,6 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import QStylePalette
-from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.plugins.ipythonconsole.utils.stdfile import StdFile
@@ -308,7 +310,7 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.enable_infowidget = True
         if plugin:
             cli_options = plugin.get_command_line_options()
-            if cli_options.no_web_widgets:
+            if cli_options.no_web_widgets or not WEBENGINE:
                 self.enable_infowidget = False
 
         # Attrs for testing
@@ -351,6 +353,7 @@ class IPythonConsoleWidget(PluginMainWidget):
 
         # Info widget
         if self.enable_infowidget:
+            from spyder.widgets.browser import FrameWebView
             self.infowidget = FrameWebView(self)
             if WEBENGINE:
                 self.infowidget.page().setBackgroundColor(

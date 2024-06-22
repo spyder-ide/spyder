@@ -54,7 +54,10 @@ from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets  # analysis:ignore
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 from qtawesome.iconic_font import FontError
 
@@ -762,7 +765,7 @@ class MainWindow(
             # Disable panes that use web widgets (currently Help and Online
             # Help) if the user asks for it.
             # See spyder-ide/spyder#16518
-            if self._cli_options.no_web_widgets:
+            if self._cli_options.no_web_widgets or not WEBENGINE:
                 if "help" in plugin_name:
                     continue
             plugin_main_attribute_name = (
