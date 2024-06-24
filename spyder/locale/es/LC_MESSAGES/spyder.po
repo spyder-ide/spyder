@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-24 21:05\n"
+"PO-Revision-Date: 2024-06-24 22:02\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -295,7 +295,7 @@ msgstr "Archivos de texto soportados"
 
 #: spyder/dependencies.py:102
 msgid "Async http client/server"
-msgstr ""
+msgstr "Cliente/servidor http asíncrono"
 
 #: spyder/dependencies.py:106
 msgid "Notify macOS that Spyder can open Python files"
@@ -375,7 +375,7 @@ msgstr "Uso de memoria y CPU en la barra de estado"
 
 #: spyder/dependencies.py:190
 msgid "Python API for Github REST API"
-msgstr ""
+msgstr "API en Python para la API REST de GitHub"
 
 #: spyder/dependencies.py:194
 msgid "Syntax highlighting for a lot of file types in the Editor"
@@ -403,7 +403,7 @@ msgstr "Plugin de Spyder para el servidor del lenguaje de Python"
 
 #: spyder/dependencies.py:220
 msgid "Properly sort lists of non-English strings"
-msgstr ""
+msgstr "Ordena adecuadamente listas de cadenas que no están en inglés"
 
 #: spyder/dependencies.py:224
 msgid "Parse desktop files on Linux"
@@ -435,11 +435,11 @@ msgstr "Capa de abstracción para enlaces de Python Qt."
 
 #: spyder/dependencies.py:253
 msgid "Fast access to code snippet regions"
-msgstr ""
+msgstr "Acceso rápido a regiones de fragmento de código"
 
 #: spyder/dependencies.py:257
 msgid "Determine package versions"
-msgstr ""
+msgstr "Determinar versión del paquete"
 
 #: spyder/dependencies.py:261
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -451,7 +451,7 @@ msgstr "Núcleos de Jupyter para la terminal de IPython"
 
 #: spyder/dependencies.py:269
 msgid "Special widgets and utilities for PyQt applications"
-msgstr ""
+msgstr "Widgets especiales y utilidades para aplicaciones hechas con PyQt"
 
 #: spyder/dependencies.py:273
 msgid "Compute distances between strings"
@@ -467,7 +467,7 @@ msgstr "Seguir cambios de archivos en los directorios de proyectos"
 
 #: spyder/dependencies.py:285
 msgid "URL parsing and changing"
-msgstr ""
+msgstr "Parseo y transformación de URL"
 
 #: spyder/dependencies.py:294
 msgid "Run Cython files in the IPython Console"
@@ -539,7 +539,7 @@ msgstr "Tipo de letra"
 
 #: spyder/plugins/appearance/confpage.py:125
 msgid "Monospace"
-msgstr ""
+msgstr "Monoespaciado"
 
 #: spyder/plugins/appearance/confpage.py:131 spyder/plugins/application/confpage.py:258 spyder/plugins/application/confpage.py:263 spyder/plugins/editor/confpage.py:366 spyder/plugins/ipythonconsole/confpage.py:423 spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Interface"
@@ -547,11 +547,11 @@ msgstr "Interfaz"
 
 #: spyder/plugins/appearance/confpage.py:138
 msgid "Changing the interface font does not work reliably on macOS"
-msgstr ""
+msgstr "La modificación de la fuente de la interfaz no funciona de manera confiable en macOS"
 
 #: spyder/plugins/appearance/confpage.py:144
 msgid "Use the system default interface font"
-msgstr ""
+msgstr "Utilizar la fuente predeterminada del sistema"
 
 #: spyder/plugins/appearance/confpage.py:174 spyder/plugins/variableexplorer/widgets/importwizard.py:522
 msgid "Preview"
@@ -623,7 +623,7 @@ msgstr "Buscar actualizaciones al inicio"
 
 #: spyder/plugins/application/confpage.py:78
 msgid "Check for stable releases only"
-msgstr ""
+msgstr "Buscar nuevas versiones estables únicamente"
 
 #: spyder/plugins/application/confpage.py:110 spyder/plugins/layout/container.py:163
 msgid "Panes"
@@ -697,7 +697,7 @@ msgstr "Activar esta opción en pantallas de alta resolución cuando el auto-esc
 #: spyder/plugins/application/confpage.py:219
 msgid "Enter values for different screens separated by semicolons ';'.\n"
 " Float values are supported"
-msgstr ""
+msgstr "Introduzca los valores para las diferentes pantallas separadas por punto y coma ‘;’. Es posible utilizar tanto números reales como enteros"
 
 #: spyder/plugins/application/confpage.py:267 spyder/plugins/editor/confpage.py:373 spyder/plugins/ipythonconsole/confpage.py:438 spyder/plugins/ipythonconsole/widgets/run_conf.py:52
 msgid "Advanced settings"
@@ -884,7 +884,7 @@ msgstr "Completado y análisis de código"
 
 #: spyder/plugins/completion/plugin.py:249
 msgid "Handle code completion, analysis, formatting, introspection, folding and more via the Language Server Protocol and other providers."
-msgstr ""
+msgstr "Manejar el completado de código, análisis, formateo, introspección, plegado y más a través del Protocolo de Servidor de Lenguage y otros proveedores."
 
 #: spyder/plugins/completion/providers/fallback/provider.py:42
 msgid "Fallback"
@@ -1491,7 +1491,7 @@ msgstr "Terminal interna"
 
 #: spyder/plugins/console/plugin.py:91
 msgid "An internal Python console running Spyder itself."
-msgstr ""
+msgstr "Una consola interna de Python ejecutando Spyder en sí mismo."
 
 #: spyder/plugins/console/plugin.py:114
 msgid "<h3>Spyder crashed during last session</h3>"
@@ -1699,7 +1699,7 @@ msgstr "Ejecutar código al depurar"
 
 #: spyder/plugins/debugger/confpage.py:26
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
-msgstr ""
+msgstr "Se pueden ejecutar varias líneas de código al depurar en una terminal. Por favor introduzca cada una separada por punto y comas, por ejemplo:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
 
 #: spyder/plugins/debugger/confpage.py:34 spyder/plugins/ipythonconsole/confpage.py:236
 msgid "Lines:"
@@ -1707,7 +1707,7 @@ msgstr "Líneas:"
 
 #: spyder/plugins/debugger/confpage.py:42
 msgid "Interaction"
-msgstr ""
+msgstr "Interacción"
 
 #: spyder/plugins/debugger/confpage.py:46
 msgid "Prevent editor from closing files while debugging"
@@ -1739,7 +1739,7 @@ msgstr "Procesar ejecución de eventos al depurar"
 
 #: spyder/plugins/debugger/confpage.py:68
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib <tt>show</tt> command."
-msgstr ""
+msgstr "Esta opción le permite decidir si el depurador debe procesar los 'eventos de ejecución' después de cada comando, como por ejemplo el comando de matplotlib <tt>show</tt>."
 
 #: spyder/plugins/debugger/confpage.py:74
 msgid "Use exclamation mark prefix for Pdb commands"
@@ -1751,7 +1751,7 @@ msgstr "Esta opción te permite decidir si los comandos Pdb deben ser precedidos
 
 #: spyder/plugins/debugger/confpage.py:83
 msgid "Execution Inspector"
-msgstr ""
+msgstr "Inspector de ejecución"
 
 #: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:213
 msgid "Exclude internal frames when inspecting execution"
