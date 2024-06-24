@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-20 22:38\n"
+"PO-Revision-Date: 2024-06-24 21:05\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -19,11 +19,11 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
-msgstr ""
+msgstr "Deshabilita un plugin de Spyder (externo o integrado) para evitar que se cargue hasta que se vuelva a activar aquí, para simplificar la interfaz o en caso de que cause problemas."
 
 #: spyder/api/plugin_registration/_confpage.py:56
 msgid "Built-in"
-msgstr ""
+msgstr "Integrado"
 
 #: spyder/api/plugin_registration/registry.py:806
 msgid "Plugins"
@@ -31,11 +31,11 @@ msgstr "Plugins"
 
 #: spyder/api/shellconnect/main_widget.py:153
 msgid "No connected console"
-msgstr ""
+msgstr "Sin consola conectada"
 
 #: spyder/api/shellconnect/main_widget.py:154
 msgid "The current console failed to start, so there is no content to show here."
-msgstr ""
+msgstr "La consola actual no pudo iniciarse, así que no hay contenido que mostrar aquí."
 
 #: spyder/api/widgets/main_widget.py:259
 msgid "Main widget toolbar"
@@ -63,7 +63,7 @@ msgstr "Acoplar el panel"
 
 #: spyder/api/widgets/main_widget.py:361 spyder/api/widgets/main_widget.py:450 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Move"
-msgstr ""
+msgstr "Mover"
 
 #: spyder/api/widgets/main_widget.py:362 spyder/api/widgets/main_widget.py:455 spyder/plugins/base.py:206 spyder/plugins/base.py:501
 msgid "Unlock to move pane to another position"
