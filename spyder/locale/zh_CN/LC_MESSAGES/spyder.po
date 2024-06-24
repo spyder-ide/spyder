@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-24 10:29\n"
+"PO-Revision-Date: 2024-06-24 12:22\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -881,7 +881,7 @@ msgstr "代码补全及语法检查"
 
 #: spyder/plugins/completion/plugin.py:249
 msgid "Handle code completion, analysis, formatting, introspection, folding and more via the Language Server Protocol and other providers."
-msgstr ""
+msgstr "通过语言服务器协议和其他提供商处理代码补全、分析、格式化、内省、折叠及其他问题。"
 
 #: spyder/plugins/completion/providers/fallback/provider.py:42
 msgid "Fallback"
@@ -1486,7 +1486,7 @@ msgstr "内部控制台"
 
 #: spyder/plugins/console/plugin.py:91
 msgid "An internal Python console running Spyder itself."
-msgstr ""
+msgstr "运行 Spyder 本身的 Python 内置控制台。"
 
 #: spyder/plugins/console/plugin.py:114
 msgid "<h3>Spyder crashed during last session</h3>"
