@@ -1058,7 +1058,14 @@ class Layout(SpyderPluginV2):
             return False
 
         # Get the actual plugins from their names
-        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
+        next_to_plugins = [
+            self.get_plugin(p, error=False) for p in next_to_plugins
+        ]
+
+        # Remove not available plugins from next_to_plugins
+        next_to_plugins = [
+            p for p in next_to_plugins if p is not None
+        ]
 
         if plugin.get_conf('first_time', True):
             # This tabifies external and internal plugins that are loaded for
