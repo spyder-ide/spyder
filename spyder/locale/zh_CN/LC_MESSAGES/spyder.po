@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-24 12:22\n"
+"PO-Revision-Date: 2024-06-25 14:02\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1691,7 +1691,7 @@ msgstr "在调试时运行代码"
 
 #: spyder/plugins/debugger/confpage.py:26
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
-msgstr ""
+msgstr "当调试时你可以在每个新提示符中运行多行代码。 请以分号加空格来引入每行代码，例如：<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
 
 #: spyder/plugins/debugger/confpage.py:34 spyder/plugins/ipythonconsole/confpage.py:236
 msgid "Lines:"
@@ -1699,7 +1699,7 @@ msgstr "行："
 
 #: spyder/plugins/debugger/confpage.py:42
 msgid "Interaction"
-msgstr ""
+msgstr "交互"
 
 #: spyder/plugins/debugger/confpage.py:46
 msgid "Prevent editor from closing files while debugging"
@@ -1731,7 +1731,7 @@ msgstr "调试时处理执行事件"
 
 #: spyder/plugins/debugger/confpage.py:68
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib <tt>show</tt> command."
-msgstr ""
+msgstr "此选项可让你决定调试器是否应当在每个提示符后处理‘执行事件’，例如 matplotlib <tt>show</tt> 命令。"
 
 #: spyder/plugins/debugger/confpage.py:74
 msgid "Use exclamation mark prefix for Pdb commands"
@@ -1743,11 +1743,11 @@ msgstr "此选项允许你决定 Pdb 命令是否要带一个感叹号前缀。 
 
 #: spyder/plugins/debugger/confpage.py:83
 msgid "Execution Inspector"
-msgstr ""
+msgstr "执行检查器"
 
 #: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:213
 msgid "Exclude internal frames when inspecting execution"
-msgstr ""
+msgstr "在检查执行时排除内部帧"
 
 #: spyder/plugins/debugger/plugin.py:57 spyder/plugins/debugger/widgets/main_widget.py:199
 msgid "Debugger"
@@ -1755,11 +1755,11 @@ msgstr "调试器"
 
 #: spyder/plugins/debugger/plugin.py:61
 msgid "View, explore and navigate stack frames while debugging."
-msgstr ""
+msgstr "在调试时查看、探索和导航栈帧。"
 
 #: spyder/plugins/debugger/plugin.py:158
 msgid "&Debug file"
-msgstr ""
+msgstr "&D调试文件"
 
 #: spyder/plugins/debugger/plugin.py:159
 msgid "Debug file"
@@ -1771,7 +1771,7 @@ msgstr "调试单元格"
 
 #: spyder/plugins/debugger/plugin.py:190 spyder/plugins/debugger/plugin.py:191
 msgid "Debug selection or current line"
-msgstr ""
+msgstr "调试选定的代码或当前行"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:154
 msgid "Breakpoint"
@@ -1807,55 +1807,55 @@ msgstr "编辑选中的断点"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:143
 msgid "Debugging is not active"
-msgstr ""
+msgstr "调试未激活"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:144
 msgid "Start a debugging session with the ⏯ button, allowing you to step through your code and see the functions here that Python has run."
-msgstr ""
+msgstr "使用 ⏯ 按钮启动调试会话，让你能够步进你的代码并查看 Python 所运行的函数。"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:214
 msgid "Frames"
-msgstr ""
+msgstr "帧"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:215
 msgid "Debugger stack"
-msgstr ""
+msgstr "调试器栈"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:228
 msgid "Exception occured"
-msgstr ""
+msgstr "发生异常"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:235
 msgid "Snapshot of frames"
-msgstr ""
+msgstr "帧快照"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:242 spyder/plugins/debugger/widgets/framesbrowser.py:245
 msgid "Waiting for debugger"
-msgstr ""
+msgstr "等待调试器"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:349
 msgid "Idle"
-msgstr ""
+msgstr "空闲"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:368
 msgid "Scope"
-msgstr ""
+msgstr "作用域"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:214
 msgid "Exclude frames that are not part of the user code"
-msgstr ""
+msgstr "排除不属于用户代码组成部分的帧"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:222
 msgid "Search frames"
-msgstr ""
+msgstr "搜索帧"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:230
 msgid "Inspect execution"
-msgstr ""
+msgstr "检查执行"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:238
 msgid "Start debugging after last error"
-msgstr ""
+msgstr "在上次错误之后启动调试"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:246
 msgid "Interrupt execution and start the debugger"
