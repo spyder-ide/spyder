@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-25 00:50\n"
+"PO-Revision-Date: 2024-06-25 20:20\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3342,7 +3342,7 @@ msgstr "Intérprete de Python"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:57
 msgid "Interact with the interpreter after execution"
-msgstr ""
+msgstr "Interactuar con el interprete después de la ejecución"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:61
 msgid "Interpreter options:"
