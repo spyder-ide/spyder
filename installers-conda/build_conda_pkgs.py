@@ -130,12 +130,14 @@ class BuildCondaPkg:
         self.logger.info("Patching 'conda_build_config.yaml'...")
 
         file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
-        contents = yaml.load(file.read_text())
+        if file.exists():
+            contents = yaml.load(file.read_text())
+            file.rename(file.parent / ("_" + file.name))  # copy of original
+        else:
+            contents = {}
 
         pyver = sys.version_info
         contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
-
-        file.rename(file.parent / ("_" + file.name))  # keep copy of original
         yaml.dump(contents, file)
 
         self.logger.info(
