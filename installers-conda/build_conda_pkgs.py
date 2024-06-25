@@ -43,6 +43,9 @@ REQ_LINUX = REQUIREMENTS / 'linux.yml'
 BUILD.mkdir(exist_ok=True)
 SPYPATCHFILE = BUILD / "installers-conda.patch"
 
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+
 
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
@@ -125,8 +128,6 @@ class BuildCondaPkg:
 
     def _patch_conda_build_config(self):
         self.logger.info("Patching 'conda_build_config.yaml'...")
-        yaml = YAML()
-        yaml.indent(mapping=2, sequence=4, offset=2)
 
         file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
         contents = yaml.load(file.read_text())
@@ -249,9 +250,6 @@ class SpyderCondaPkg(BuildCondaPkg):
     def _add_recipe_clobber(self):
         self.logger.info("Creating 'recipe_clobber.yaml'...")
 
-        yaml = YAML()
-        yaml.indent(mapping=2, sequence=4, offset=2)
-
         # Get current Spyder requirements
         current_requirements = ['python']
         current_requirements += yaml.load(
@@ -294,9 +292,6 @@ class SpyderCondaPkg(BuildCondaPkg):
             return
         else:
             self.logger.info("Creating 'recipe_append.yaml'...")
-
-        yaml = YAML()
-        yaml.indent(mapping=2, sequence=4, offset=2)
 
         append_contents = {"source": {"patches": [self.patchfile.name]}}
 
@@ -387,9 +382,6 @@ if __name__ == "__main__":
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
-
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
 
     if SPECS.exists():
         specs = yaml.load(SPECS.read_text())
