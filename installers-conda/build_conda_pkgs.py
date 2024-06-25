@@ -124,6 +124,7 @@ class BuildCondaPkg:
         pass
 
     def _patch_conda_build_config(self):
+        self.logger.info("Patching 'conda_build_config.yaml'...")
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
 
@@ -135,6 +136,10 @@ class BuildCondaPkg:
 
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         yaml.dump(contents, file)
+
+        self.logger.info(
+            f"Patched 'conda_build_config.yaml' contents:\n{file.read_text()}"
+        )
 
     def _patch_meta(self):
         self.logger.info("Patching 'meta.yaml'...")
@@ -223,6 +228,7 @@ class SpyderCondaPkg(BuildCondaPkg):
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
+
         file = self._bld_src / "spyder/__init__.py"
         file_text = file.read_text()
         ver_str = tuple(self.version.split('.'))
@@ -236,10 +242,13 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         # Only write patch if necessary
         if self.repo.git.diff():
+            self.logger.info(f"Creating {self.patchfile.name}...")
             self.repo.git.diff(output=self.patchfile.as_posix())
             self.repo.git.stash()
 
     def _add_recipe_clobber(self):
+        self.logger.info("Creating 'recipe_clobber.yaml'...")
+
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
 
@@ -274,10 +283,17 @@ class SpyderCondaPkg(BuildCondaPkg):
         file = self._fdstk_path / "recipe" / "recipe_clobber.yaml"
         yaml.dump(clobber_contents, file)
 
+        self.logger.info(
+            f"'recipe_clobber.yaml' contents:\n{file.read_text()}"
+        )
+
     def _add_recipe_append(self):
         if not self.patchfile.exists():
             # No need to append list of patches
+            self.logger.info("Skipping 'recipe_append.yaml'")
             return
+        else:
+            self.logger.info("Creating 'recipe_append.yaml'...")
 
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
@@ -286,6 +302,8 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         file = self._fdstk_path / "recipe" / "recipe_append.yaml"
         yaml.dump(append_contents, file)
+
+        self.logger.info(f"'recipe_append.yaml' contents:\n{file.read_text()}")
 
 
 class PylspCondaPkg(BuildCondaPkg):
