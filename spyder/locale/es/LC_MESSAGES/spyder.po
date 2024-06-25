@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-24 22:02\n"
+"PO-Revision-Date: 2024-06-25 00:50\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1755,7 +1755,7 @@ msgstr "Inspector de ejecución"
 
 #: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:213
 msgid "Exclude internal frames when inspecting execution"
-msgstr ""
+msgstr "Excluir frames internos al inspeccionar la ejecución"
 
 #: spyder/plugins/debugger/plugin.py:57 spyder/plugins/debugger/widgets/main_widget.py:199
 msgid "Debugger"
@@ -1763,11 +1763,11 @@ msgstr "Depurador"
 
 #: spyder/plugins/debugger/plugin.py:61
 msgid "View, explore and navigate stack frames while debugging."
-msgstr ""
+msgstr "Ver, explorar y navegar la pila de frames mientras depura."
 
 #: spyder/plugins/debugger/plugin.py:158
 msgid "&Debug file"
-msgstr ""
+msgstr "&Depurar archivo"
 
 #: spyder/plugins/debugger/plugin.py:159
 msgid "Debug file"
@@ -1779,7 +1779,7 @@ msgstr "Depurar celda"
 
 #: spyder/plugins/debugger/plugin.py:190 spyder/plugins/debugger/plugin.py:191
 msgid "Debug selection or current line"
-msgstr ""
+msgstr "Depurar la selección o línea actual"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:154
 msgid "Breakpoint"
@@ -1815,63 +1815,63 @@ msgstr "Editar el breakpoint seleccionado"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:143
 msgid "Debugging is not active"
-msgstr ""
+msgstr "La depuración no está activa"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:144
 msgid "Start a debugging session with the ⏯ button, allowing you to step through your code and see the functions here that Python has run."
-msgstr ""
+msgstr "Comience una sesión de depuración con el botón ⏯️, permitiéndole recorrer su código y ver las funciones que Python ha ejecutado."
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:214
 msgid "Frames"
-msgstr ""
+msgstr "Frames"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:215
 msgid "Debugger stack"
-msgstr ""
+msgstr "Pila de depuración"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:228
 msgid "Exception occured"
-msgstr ""
+msgstr "Ha ocurrido una excepción"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:235
 msgid "Snapshot of frames"
-msgstr ""
+msgstr "Instantánea de los frames"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:242 spyder/plugins/debugger/widgets/framesbrowser.py:245
 msgid "Waiting for debugger"
-msgstr ""
+msgstr "Esperando al depurador"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:349
 msgid "Idle"
-msgstr ""
+msgstr "Inactivo"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:368
 msgid "Scope"
-msgstr ""
+msgstr "Scope"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:214
 msgid "Exclude frames that are not part of the user code"
-msgstr ""
+msgstr "Excluir los frames que no son parte del código de usuario"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:222
 msgid "Search frames"
-msgstr ""
+msgstr "Buscar frames"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:230
 msgid "Inspect execution"
-msgstr ""
+msgstr "Inspeccionar ejecución"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:238
 msgid "Start debugging after last error"
-msgstr ""
+msgstr "Empezar a depurar después del último error"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:246
 msgid "Interrupt execution and start the debugger"
-msgstr ""
+msgstr "Interrumpir la ejecución e iniciar el depurador"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:254
 msgid "Execute current line"
-msgstr ""
+msgstr "Ejecutar la línea actual"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:262
 msgid "Continue execution until next breakpoint"
@@ -1879,11 +1879,11 @@ msgstr "Continuar con la ejecución hasta el siguiente punto de interrupción"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:270
 msgid "Step into function or method"
-msgstr ""
+msgstr "Entrar en la función o método"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:278
 msgid "Execute until function or method returns"
-msgstr ""
+msgstr "Ejecutar hasta que la función o método actual termine"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:286
 msgid "Stop debugging"
@@ -1891,7 +1891,7 @@ msgstr "Detener la depuración"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:294
 msgid "Show the file and line where the debugger is placed in the editor"
-msgstr ""
+msgstr "Mostrar el archivo y la línea donde el depurador se encuentra en el editor"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:305 spyder/plugins/debugger/widgets/main_widget.py:306
 msgid "Set/Clear breakpoint"
@@ -1907,11 +1907,11 @@ msgstr "Listar puntos de interrupción"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:336 spyder/plugins/debugger/widgets/main_widget.py:463 spyder/plugins/debugger/widgets/main_widget.py:464 spyder/plugins/editor/confpage.py:74
 msgid "Show breakpoints"
-msgstr ""
+msgstr "Mostrar puntos de interrupción"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:458 spyder/plugins/debugger/widgets/main_widget.py:459
 msgid "Hide breakpoints"
-msgstr ""
+msgstr "Ocultar puntos de interrupción"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:557
 msgid "The current file cannot be closed because it is in debug mode."
@@ -2004,7 +2004,7 @@ msgstr "Si esta opción está activada, el oprimir Tab\n"
 
 #: spyder/plugins/editor/confpage.py:155
 msgid "Automatic stripping of trailing spaces on changed lines"
-msgstr ""
+msgstr "Eliminación automática de espacios en blanco en las líneas modificadas"
 
 #: spyder/plugins/editor/confpage.py:157
 msgid "If enabled, modified lines of code (excluding strings)\n"
@@ -2021,11 +2021,11 @@ msgstr "Tecla de retroceso (\"backspace\") inteligente"
 
 #: spyder/plugins/editor/confpage.py:163
 msgid "Make the backspace key automatically remove the amount of indentation characters set above."
-msgstr ""
+msgstr "Hacer que la tecla de retroceso elimine automáticamente la cantidad de caracteres de indentación establecidos arriba."
 
 #: spyder/plugins/editor/confpage.py:167
 msgid "Automatic removal of trailing spaces when saving files"
-msgstr ""
+msgstr "Eliminación automática de espacios en blanco al guardar un archivo"
 
 #: spyder/plugins/editor/confpage.py:171
 msgid "Insert a newline at the end if one does not exist when saving a file"
@@ -2081,15 +2081,15 @@ msgstr "espacios"
 
 #: spyder/plugins/editor/confpage.py:226
 msgid "Automatic changes"
-msgstr ""
+msgstr "Cambios automáticos"
 
 #: spyder/plugins/editor/confpage.py:238
 msgid "Indentation"
-msgstr ""
+msgstr "Indentación"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Templates"
-msgstr ""
+msgstr "Plantillas"
 
 #: spyder/plugins/editor/confpage.py:249
 msgid "Edit template for new files"
@@ -2189,7 +2189,7 @@ msgstr "<Ninguno>"
 
 #: spyder/plugins/editor/plugin.py:170
 msgid "Edit Python, Markdown, Cython and many other types of text files."
-msgstr ""
+msgstr "Edite Python, Markdown, Cython y muchos otros tipos de archivos de texto."
 
 #: spyder/plugins/editor/plugin.py:265
 msgid "Run cell"
@@ -2198,7 +2198,8 @@ msgstr "Ejecutar la celda"
 #: spyder/plugins/editor/plugin.py:267
 msgid "Run current cell\n"
 "[Use #%% to create cells]"
-msgstr ""
+msgstr "Ejecutar la celda actual\n"
+"[Usar #%% para crear celdas]"
 
 #: spyder/plugins/editor/plugin.py:275
 msgid "Run cell and advance"
@@ -2206,7 +2207,7 @@ msgstr "Ejecutar la celda y avanzar"
 
 #: spyder/plugins/editor/plugin.py:277
 msgid "Run current cell and go to the next one"
-msgstr ""
+msgstr "Ejecutar la celda actual y avanzar a la siguiente"
 
 #: spyder/plugins/editor/plugin.py:286
 msgid "Re-run last cell"
@@ -2226,19 +2227,19 @@ msgstr "Ejecutar la &selección o línea actual"
 
 #: spyder/plugins/editor/plugin.py:306
 msgid "Run &to line"
-msgstr ""
+msgstr "Ejecutar has&ta la línea"
 
 #: spyder/plugins/editor/plugin.py:307
 msgid "Run selection up to the current line"
-msgstr ""
+msgstr "Ejecutar la selección hasta la línea actual"
 
 #: spyder/plugins/editor/plugin.py:316
 msgid "Run &from line"
-msgstr ""
+msgstr "Ejecutar desde la línea"
 
 #: spyder/plugins/editor/plugin.py:317
 msgid "Run selection from the current line"
-msgstr ""
+msgstr "Ejecutar la selección desde la línea actual"
 
 #: spyder/plugins/editor/utils/autosave.py:312
 msgid "Error while removing autosave file {}"
@@ -2394,11 +2395,11 @@ msgstr "¡Este archivo no es parte de un repositorio local o los remotos upstrea
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:231
 msgid "Copy absolute path"
-msgstr ""
+msgstr "Copiar la ruta absoluta"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:238
 msgid "Copy relative path"
-msgstr ""
+msgstr "Copiar ruta relativa"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:245
 msgid "Close all to the right"
@@ -2434,11 +2435,11 @@ msgstr "Spyder no puede mostrar este archivo en el explorador de archivos extern
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:405
 msgid "No available relative path"
-msgstr ""
+msgstr "No hay ruta relativa disponible"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:406
 msgid "It is not possible to copy a relative path for this file because it is placed in a different drive than your current working directory. Please copy its absolute path."
-msgstr ""
+msgstr "No es posible copiar una ruta relativa para este archivo porque se encuentra en una unidad diferente a la de su directorio de trabajo actual. Por favor copie la ruta absoluta."
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1250
 msgid "Temporary file"
@@ -2470,11 +2471,11 @@ msgstr "Cerrar ventana"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1862
 msgid "<b>%s</b> has been modified.<br><br>Do you want to save changes?"
-msgstr ""
+msgstr "<b>%s</b> ha sido modificado.<br><br>¿Desea guardar los cambios?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1869 spyder/widgets/collectionseditor.py:774
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1870 spyder/plugins/editor/widgets/recover.py:186
 msgid "Discard"
@@ -2482,11 +2483,11 @@ msgstr "Descartar"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1875
 msgid "Save all"
-msgstr ""
+msgstr "Guardar todo"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1877
 msgid "Discard all"
-msgstr ""
+msgstr "Descartar todo"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:2009 spyder/plugins/editor/widgets/editorstack/editorstack.py:2200 spyder/plugins/explorer/widgets/utils.py:63
 msgid "Save Error"
@@ -2775,11 +2776,11 @@ msgstr "Reemplazar caracteres de tabulación por espacios"
 
 #: spyder/plugins/editor/widgets/main_widget.py:768
 msgid "Create new cell"
-msgstr ""
+msgstr "Crear una celda nueva"
 
 #: spyder/plugins/editor/widgets/main_widget.py:770
 msgid "Create new cell at the current line"
-msgstr ""
+msgstr "Crear una nueva celda en la línea actual"
 
 #: spyder/plugins/editor/widgets/main_widget.py:779
 msgid "Comment current line or selection"
@@ -2993,7 +2994,7 @@ msgstr "Archivos"
 
 #: spyder/plugins/explorer/plugin.py:163
 msgid "Explore your filesystem in a tree view."
-msgstr ""
+msgstr "Explore su sistema de archivos en una vista de árbol."
 
 #: spyder/plugins/explorer/widgets/explorer.py:388
 msgid "File..."
@@ -3325,11 +3326,11 @@ msgstr "Agregar nueva extensión de archivo. Puede agregar varios valores separ�
 
 #: spyder/plugins/externalterminal/plugin.py:50
 msgid "External terminal"
-msgstr ""
+msgstr "Terminal de comandos externa"
 
 #: spyder/plugins/externalterminal/plugin.py:54
 msgid "Run scripts in an external system terminal."
-msgstr ""
+msgstr "Ejecutar scripts en una terminal de comandos del sistema."
 
 #: spyder/plugins/externalterminal/plugin.py:225
 msgid "Running an external system terminal is not supported on platform %s."
