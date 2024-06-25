@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-25 20:20\n"
+"PO-Revision-Date: 2024-06-25 21:52\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3342,11 +3342,11 @@ msgstr "Intérprete de Python"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:57
 msgid "Interact with the interpreter after execution"
-msgstr "Interactuar con el interprete después de la ejecución"
+msgstr "Interactuar con el intérprete después de la ejecución"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:61
 msgid "Interpreter options:"
-msgstr ""
+msgstr "Opciones del intérprete:"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:67
 msgid "<b>-u</b> is added to the other options you set here"
@@ -3354,7 +3354,7 @@ msgstr "La opción <b>-u</b> se añade a estas opciones"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:74
 msgid "Bash/Batch script settings"
-msgstr ""
+msgstr "Ajustes del script Bash/Batch"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:77 spyder/plugins/ipythonconsole/widgets/run_conf.py:64 spyder/plugins/profiler/widgets/run_conf.py:37
 msgid "Command line options:"
@@ -3362,7 +3362,7 @@ msgstr "Opciones de línea de comandos:"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:136
 msgid "Interpreter"
-msgstr ""
+msgstr "Intérprete"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:139
 msgid "Shell interpreter:"
@@ -3370,27 +3370,27 @@ msgstr ""
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:142
 msgid "Select interpreter"
-msgstr ""
+msgstr "Seleccionar intérprete"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:154
 msgid "Interpreter arguments:"
-msgstr ""
+msgstr "Argumentos del intérprete:"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:168
 msgid "Script"
-msgstr ""
+msgstr "Script"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:171
 msgid "Script arguments:"
-msgstr ""
+msgstr "Argumentos del script:"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:184
 msgid "Close terminal after execution"
-msgstr ""
+msgstr "Cerrar terminal después de la ejecución"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:199
 msgid "Select executable"
-msgstr ""
+msgstr "Seleccione el ejecutable"
 
 #: spyder/plugins/findinfiles/plugin.py:49 spyder/plugins/findinfiles/widgets/main_widget.py:248 spyder/plugins/onlinehelp/widgets.py:206 spyder/plugins/tours/tours.py:178
 msgid "Find"
