@@ -66,6 +66,7 @@ class BuildCondaPkg:
 
         self._bld_src = BUILD / self.name
         self._fdstk_path = BUILD / self.feedstock.split("/")[-1]
+        self._patchfile = self._fdstk_path / "recipe" / "version.patch"
 
         self._get_source(shallow=shallow)
         self._get_version()
@@ -160,10 +161,41 @@ class BuildCondaPkg:
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
     def _add_recipe_append(self):
+        if not self._patchfile.exists():
+            # No need to append list of patches
+            self.logger.info("Skipping 'recipe_append.yaml'")
+            return
+        else:
+            self.logger.info("Creating 'recipe_append.yaml'...")
+
+        append_contents = {"source": {"patches": [self._patchfile.name]}}
+
+        file = self._fdstk_path / "recipe" / "recipe_append.yaml"
+        yaml.dump(append_contents, file)
+
+        self.logger.info(f"'recipe_append.yaml' contents:\n{file.read_text()}")
+
+    def add_recipe_clobber(self, clobber_contents):
         pass
 
     def _add_recipe_clobber(self):
-        pass
+        self.logger.info("Creating 'recipe_clobber.yaml'...")
+
+        clobber_contents = {
+            "source": {
+                "url": None,
+                "sha256": None,
+                "path": self._bld_src.as_posix()},
+        }
+
+        clobber_contents = self.add_recipe_clobber(clobber_contents)
+
+        file = self._fdstk_path / "recipe" / "recipe_clobber.yaml"
+        yaml.dump(clobber_contents, file)
+
+        self.logger.info(
+            f"'recipe_clobber.yaml' contents:\n{file.read_text()}"
+        )
 
     def patch_recipe(self):
         """
@@ -225,10 +257,6 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock_branch = "dev"
     shallow_ver = "v5.3.2"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.patchfile = self._fdstk_path / "recipe" / "version.patch"
-
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
 
@@ -245,13 +273,11 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         # Only write patch if necessary
         if self.repo.git.diff():
-            self.logger.info(f"Creating {self.patchfile.name}...")
-            self.repo.git.diff(output=self.patchfile.as_posix())
+            self.logger.info(f"Creating {self._patchfile.name}...")
+            self.repo.git.diff(output=self._patchfile.as_posix())
             self.repo.git.stash()
 
-    def _add_recipe_clobber(self):
-        self.logger.info("Creating 'recipe_clobber.yaml'...")
-
+    def add_recipe_clobber(self, ):
         # Get current Spyder requirements
         current_requirements = ['python']
         current_requirements += yaml.load(
@@ -273,34 +299,10 @@ class SpyderCondaPkg(BuildCondaPkg):
             current_requirements += linux_requirements
 
         clobber_contents = {
-            "source": {
-                "url": None,
-                "sha256": None,
-                "path": self._bld_src.as_posix()},
             "requirements": {"run": current_requirements}
         }
 
-        file = self._fdstk_path / "recipe" / "recipe_clobber.yaml"
-        yaml.dump(clobber_contents, file)
-
-        self.logger.info(
-            f"'recipe_clobber.yaml' contents:\n{file.read_text()}"
-        )
-
-    def _add_recipe_append(self):
-        if not self.patchfile.exists():
-            # No need to append list of patches
-            self.logger.info("Skipping 'recipe_append.yaml'")
-            return
-        else:
-            self.logger.info("Creating 'recipe_append.yaml'...")
-
-        append_contents = {"source": {"patches": [self.patchfile.name]}}
-
-        file = self._fdstk_path / "recipe" / "recipe_append.yaml"
-        yaml.dump(append_contents, file)
-
-        self.logger.info(f"'recipe_append.yaml' contents:\n{file.read_text()}")
+        return clobber_contents
 
 
 class PylspCondaPkg(BuildCondaPkg):
