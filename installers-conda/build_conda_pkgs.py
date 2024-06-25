@@ -70,8 +70,6 @@ class BuildCondaPkg:
         self.data = {'version': self.version}
         self.data.update(data)
 
-        self._patch_source()
-
         self._recipe_patched = False
 
     def _get_source(self, shallow=False):
@@ -182,12 +180,14 @@ class BuildCondaPkg:
         """
         Build the conda package.
 
-        1. Patch the recipe
-        2. Build the package
-        3. Remove cloned repositories
+        1. Patch source
+        2. Patch the recipe
+        3. Build the package
+        4. Remove cloned repositories
         """
         t0 = time()
         try:
+            self._patch_source()
             self.patch_recipe()
 
             self.logger.info("Building conda package "
@@ -217,6 +217,10 @@ class SpyderCondaPkg(BuildCondaPkg):
     feedstock_branch = "dev"
     shallow_ver = "v5.3.2"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.patchfile = self._fdstk_path / "recipe" / "version.patch"
+
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
         file = self._bld_src / "spyder/__init__.py"
@@ -231,10 +235,9 @@ class SpyderCondaPkg(BuildCondaPkg):
         file.write_text(file_text)
 
         # Only write patch if necessary
-        self.repo.git.diff(
-            output=(self._fdstk_path / "recipe" / "version.patch").as_posix()
-        )
-        self.repo.git.stash()
+        if self.repo.git.diff():
+            self.repo.git.diff(output=self.patchfile.as_posix())
+            self.repo.git.stash()
 
     def _add_recipe_clobber(self):
         yaml = YAML()
@@ -272,11 +275,14 @@ class SpyderCondaPkg(BuildCondaPkg):
         yaml.dump(clobber_contents, file)
 
     def _add_recipe_append(self):
+        if not self.patchfile.exists():
+            # No need to append list of patches
+            return
+
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
 
-        # only write append if patch file exists
-        append_contents = {"source": {"patches": ["version.patch"]}}
+        append_contents = {"source": {"patches": [self.patchfile.name]}}
 
         file = self._fdstk_path / "recipe" / "recipe_append.yaml"
         yaml.dump(append_contents, file)
