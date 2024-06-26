@@ -178,7 +178,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Install generated wheel locally and check for errors
 
-* `twine check dist/*`
+* `twine check --strict dist/*`
 
 * `twine upload dist/*`
 
