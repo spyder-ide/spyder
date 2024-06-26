@@ -532,7 +532,7 @@ class Layout(SpyderPluginV2):
         # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
-        screen_shape = self.main.screen().geometry()
+        screen_shape = self.main.screen().virtualGeometry()
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
