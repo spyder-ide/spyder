@@ -2415,7 +2415,7 @@ class EditorStack(QWidget):
                               "Spyder."
                               "<br><br>"
                               "Do you want to reload it and lose all your "
-                              "changes?").format(name, dt),
+                              "changes?").format(name),
                             QMessageBox.Yes | QMessageBox.No,
                             self
                         )
