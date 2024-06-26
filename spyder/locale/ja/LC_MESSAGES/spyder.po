@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-26 06:37\n"
+"PO-Revision-Date: 2024-06-26 07:36\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -5761,27 +5761,27 @@ msgstr "この構成の別の名前を選択"
 
 #: spyder/plugins/run/widgets.py:66
 msgid "You are trying to save a configuration that is exactly the same as the current one"
-msgstr ""
+msgstr "現在の設定とまったく同じ設定を保存しようとしています"
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
-msgstr ""
+msgstr "リセット"
 
 #: spyder/plugins/run/widgets.py:212
 msgid "Save configuration as:"
-msgstr ""
+msgstr "設定に名前をつけて保存："
 
 #: spyder/plugins/run/widgets.py:214
 msgid "Configuration name:"
-msgstr ""
+msgstr "設定の名前："
 
 #: spyder/plugins/run/widgets.py:245
 msgid "File extension:"
-msgstr ""
+msgstr "ファイル拡張子:"
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
-msgstr ""
+msgstr "コンテキストを実行:"
 
 #: spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:667
 msgid "Working directory settings"
@@ -5789,43 +5789,43 @@ msgstr "作業ディレクトリの設定"
 
 #: spyder/plugins/run/widgets.py:322
 msgid "New run configuration for: {}"
-msgstr ""
+msgstr "以下への新しい実行設定：{}"
 
 #: spyder/plugins/run/widgets.py:580
 msgid "Run this file in:"
-msgstr ""
+msgstr "このファイルを以下で実行:"
 
 #: spyder/plugins/run/widgets.py:584
 msgid "This is the plugin that will be used for execution when you click on the Run button"
-msgstr ""
+msgstr "これは実行ボタンをクリックしたときに使用されるプラグインです。"
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
-msgstr ""
+msgstr "プリセット設定："
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Select between global or local (i.e. for this file) execution parameters. You can set the latter below"
-msgstr ""
+msgstr "グローバルあるいはローカル (即ちこのファイル) で実行パラメータを選択します。後者は以下で設定できます"
 
 #: spyder/plugins/run/widgets.py:621
 msgid "Configuration properties"
-msgstr ""
+msgstr "設定のプロパティ"
 
 #: spyder/plugins/run/widgets.py:630
 msgid "Name:"
-msgstr ""
+msgstr "名前:"
 
 #: spyder/plugins/run/widgets.py:633
 msgid "Set a name for this configuration"
-msgstr ""
+msgstr "この設定の名前を選択"
 
 #: spyder/plugins/run/widgets.py:636
 msgid "You can set as many configurations as you want by providing different names. Each one will be saved after clicking the Ok button below"
-msgstr ""
+msgstr "異なる名前を適用することで、必要な数の設定をセットできます。下のOKボタンをクリックするとそれぞれの設定が保存されます"
 
 #: spyder/plugins/run/widgets.py:694
 msgid "Custom configuration"
-msgstr ""
+msgstr "カスタム設定"
 
 #: spyder/plugins/run/widgets.py:753
 msgid "Run configuration per file"
@@ -5833,11 +5833,11 @@ msgstr "ファイルごとの実行設定"
 
 #: spyder/plugins/run/widgets.py:894
 msgid "Do you want to delete the current configuration?"
-msgstr ""
+msgstr "現在の設定を削除しますか？"
 
 #: spyder/plugins/run/widgets.py:1135
 msgid "custom"
-msgstr ""
+msgstr "カスタム"
 
 #: spyder/plugins/shortcuts/confpage.py:27
 msgid "Search: "
@@ -5865,7 +5865,7 @@ msgstr "キーボード・ショートカット"
 
 #: spyder/plugins/shortcuts/plugin.py:67
 msgid "Manage application, pane and actions shortcuts."
-msgstr ""
+msgstr "アプリ、ペイン、ショートカットを管理"
 
 #: spyder/plugins/shortcuts/plugin.py:78
 msgid "Shortcuts Summary"
