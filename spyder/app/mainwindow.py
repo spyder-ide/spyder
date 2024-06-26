@@ -381,8 +381,8 @@ class MainWindow(
 
         # Center message
         screen_geometry = self.screen().geometry()
-        x = (screen_geometry.width() - messageBox.width()) / 2
-        y = (screen_geometry.height() - messageBox.height()) / 2
+        x = (screen_geometry.width() - messageBox.width()) // 2
+        y = (screen_geometry.height() - messageBox.height()) // 2
         messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
