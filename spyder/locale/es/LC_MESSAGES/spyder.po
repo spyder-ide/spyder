@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-25 21:52\n"
+"PO-Revision-Date: 2024-06-26 23:49\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3366,7 +3366,7 @@ msgstr "Intérprete"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:139
 msgid "Shell interpreter:"
-msgstr ""
+msgstr "Intérprete de shell:"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:142
 msgid "Select interpreter"
@@ -3398,11 +3398,11 @@ msgstr "Búsqueda"
 
 #: spyder/plugins/findinfiles/plugin.py:53
 msgid "Search for text patterns in files."
-msgstr ""
+msgstr "Buscar patrones de texto en los archivos."
 
 #: spyder/plugins/findinfiles/plugin.py:62
 msgid "Search text in the Find pane"
-msgstr ""
+msgstr "Buscar texto en el panel de Búsqueda"
 
 #: spyder/plugins/findinfiles/plugin.py:63
 msgid "Search text in multiple files"
@@ -3418,11 +3418,11 @@ msgstr "Proyecto"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:65
 msgid "Current file"
-msgstr ""
+msgstr "Archivo actual"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:69
 msgid "Select another directory"
-msgstr ""
+msgstr "Seleccionar otro directorio"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:70
 msgid "Clear the list of other directories"
@@ -3442,11 +3442,11 @@ msgstr "Error en la expresión regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:167
 msgid "Nothing searched for yet"
-msgstr ""
+msgstr "Aún no se ha buscado nada"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:168
 msgid "Search the content of text files in any directory using the search box."
-msgstr ""
+msgstr "Busque el contenido de los archivos de texto en cualquier directorio usando la cuadro de búsqueda."
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:179
 msgid "Write text to search"
@@ -3570,7 +3570,7 @@ msgstr "Sphinx %s está instalado actualmente."
 
 #: spyder/plugins/help/plugin.py:66
 msgid "Get documentation for objects in the Editor and IPython console."
-msgstr ""
+msgstr "Obtener documentación de objetos en el Editor y Terminal de IPython."
 
 #: spyder/plugins/help/plugin.py:87
 msgid "Spyder tutorial"
@@ -3682,7 +3682,7 @@ msgstr "Historial"
 
 #: spyder/plugins/history/plugin.py:60
 msgid "View command history for the IPython console."
-msgstr ""
+msgstr "Ver historial de comandos para la Terminal de IPython."
 
 #: spyder/plugins/ipythonconsole/confpage.py:29
 msgid "Display initial banner"
@@ -3701,7 +3701,7 @@ msgstr "Mostrar el tiempo transcurrido"
 
 #: spyder/plugins/ipythonconsole/confpage.py:43
 msgid "Confirmations"
-msgstr ""
+msgstr "Confirmaciones"
 
 #: spyder/plugins/ipythonconsole/confpage.py:45
 msgid "Ask for confirmation before closing"
@@ -3779,11 +3779,11 @@ msgstr "Activar el soporte"
 
 #: spyder/plugins/ipythonconsole/confpage.py:101
 msgid "Automatically load Matplotlib and NumPy modules"
-msgstr ""
+msgstr "Cargar automáticamente los módulos de Matplotlib y NumPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:103
 msgid "This lets you generate graphics and work with arrays <b>without</b> importing the commands to do it. It's also useful to develop GUIs with Spyder."
-msgstr ""
+msgstr "Esto le permite generar gráficos y trabajar con arreglos <b>sin</b> tener que importar los comandos para hacerlo. Es igualmente útil para desarrollar GUIs con Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:118 spyder/plugins/ipythonconsole/widgets/status.py:90
 msgid "Inline"
