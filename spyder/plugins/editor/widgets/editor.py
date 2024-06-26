@@ -2411,8 +2411,8 @@ class EditorStack(QWidget):
                         self.msgbox = QMessageBox(
                             QMessageBox.Question,
                             self.title,
-                            _("It looks like <b>{}</b> has been modified "
-                              "outside Spyder. The working copy is from {} milliseconds ago."
+                            _("The file <b>{}</b> has been modified outside "
+                              "Spyder."
                               "<br><br>"
                               "Do you want to reload it and lose all your "
                               "changes?").format(name, dt),
