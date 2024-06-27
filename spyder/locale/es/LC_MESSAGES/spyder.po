@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-26 23:49\n"
+"PO-Revision-Date: 2024-06-27 22:51\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3795,7 +3795,7 @@ msgstr "Salida gráfica"
 
 #: spyder/plugins/ipythonconsole/confpage.py:121
 msgid "Decide how Matplotlib graphics are displayed"
-msgstr ""
+msgstr "Decida cómo se muestran los gráficos de Matplotlib"
 
 #: spyder/plugins/ipythonconsole/confpage.py:135
 msgid "Backend:"
@@ -3803,7 +3803,7 @@ msgstr "Salida:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:138
 msgid "If unsure, select <b>%s</b> to put graphics in the Plots pane or <b>%s</b> to interact with them (through zooming and panning) in a separate window."
-msgstr ""
+msgstr "Si no está seguro, seleccione <b>%s</b> para poner los gráficos en el panel de Gráficos o <b>%s</b> para interactuar con ellos (mediante uso de zoom y paneos) en una ventana separada."
 
 #: spyder/plugins/ipythonconsole/confpage.py:153
 msgid "Inline backend"
@@ -3851,29 +3851,31 @@ msgstr "Por defecto es 4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:175
 msgid "Font size:"
-msgstr ""
+msgstr "Tamaño de la fuente:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
 msgid "points"
-msgstr ""
+msgstr "puntos"
 
 #: spyder/plugins/ipythonconsole/confpage.py:181
 msgid "Default is 10"
-msgstr ""
+msgstr "Por defecto es 10"
 
 #: spyder/plugins/ipythonconsole/confpage.py:184
 msgid "Bottom edge:"
-msgstr ""
+msgstr "Borde inferior:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:185
 msgid "of figure height"
-msgstr ""
+msgstr "de la altura de la figura"
 
 #: spyder/plugins/ipythonconsole/confpage.py:190
 msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height.\n"
 "The default is 0.11."
-msgstr ""
+msgstr "La posición del borde inferior de las subgráficas,\n"
+"como una fracción de la altura de la figura.\n"
+"El valor predeterminado es 0.11."
 
 #: spyder/plugins/ipythonconsole/confpage.py:195
 msgid "Use a tight layout for inline plots"
@@ -3933,7 +3935,7 @@ msgstr "Completado ambicioso"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't.<br><br>"
-msgstr ""
+msgstr "Habilita el completado usando la tecla <tt>Tab</tt> en elementos de listas, resultados de llamadas de funciones, etc, <i>sin</i> asignarlos a una variable.<br>De esta forma se pueden obtener sugerencias de completado en expresiones como <tt>li[0].&lt;Tab&gt;</tt> o <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Advertencia:</b> Debido a un error, el completado ambicioso de IPython requiere de un <tt>&lt;Espacio&gt;</tt> inicial en algunas expresiones; por ejemplo, <tt>np.sin(&lt;Espacio&gt;np.&lt;Tab&gt;</tt> funciona, mientras que <tt>np.sin(np.&lt;Tab&gt; </tt> no.<br><br>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:298
 msgid "Use greedy completion in the IPython console"
@@ -3969,19 +3971,19 @@ msgstr "En modo <b>%s</b>, Autollamar no se usa si no hay argumentos después de
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
-msgstr ""
+msgstr "Recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Autoreload reloads modules automatically every time before executing your Python code.<br>This is a different mechanism than the User Module Reloader (UMR) and it can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "La recarga automática recarga módulos automáticamente antes de ejecutar su código Python.<br>Este es un mécanismo diferente al Recargador de Módulos del Usuario (RMU) y puede que sea lento en Windows debido a limitaciones en el sistema de archivos."
 
 #: spyder/plugins/ipythonconsole/confpage.py:347
 msgid "Use autoreload"
-msgstr ""
+msgstr "Usar recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "Esta opción activa el comando mágico de autoreload.<br>Por favor lea su documentación para aprender como usarla."
 
 #: spyder/plugins/ipythonconsole/confpage.py:361
 msgid "Symbolic mathematics"
@@ -4045,7 +4047,7 @@ msgstr "Terminal de IPython"
 
 #: spyder/plugins/ipythonconsole/plugin.py:219
 msgid "Run Python files, cells, code and commands interactively."
-msgstr ""
+msgstr "Ejecute archivos Python, celdas, código y comandos interactivamente."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:39
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4053,15 +4055,15 @@ msgstr "El directorio {} no tiene permisos de escritura, lo cual es requerido pa
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:44
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
-msgstr ""
+msgstr "El entorno o instalación de Python cuyo intérprete esta localizado en<pre> <tt>{0}</tt></pre>no tiene instalada la versión correcta del módulo <tt>spyder-kernels</tt> ({1} en lugar de >= {2} y < {3}). Sin este módulo no es posible para Spyder crear una terminal.<br><br>Puede instalarlo activando su entorno (de ser necesario) y luego ejecutando en una consola de comandos del sistema:<pre> <tt>{4}</tt></pre>o<pre> <tt>{5}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:64
 msgid "This Python environment doesn't have the right version of <tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "Este entorno de Python no tiene instalada la versión correcta del módulo <tt>spyder-kernels</tt> (>= {0} y < {1}). Sin este módulo no es posible para Spyder crear una terminal.<br><br>Puede instalarlo activando su entorno (de ser necesario) y luego ejecutando en una consola de comandos del sistema:<pre> <tt>{2}</tt></pre>o<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:381
 msgid "It was not possible to open an SSH tunnel for the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "No fue posible abrir un túnel SSH para el núcleo remoto. Por favor, compruebe sus credenciales y el estado de conexión del servidor."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:470
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
@@ -4069,7 +4071,7 @@ msgstr "Ocurrió un error al tratar de cargar el archivo de conexión del núcle
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:39
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "El entorno o instalación de Python cuyo interprete esta localizado en<pre> <tt>{0}</tt></pre>no tiene instalada la versión <tt>{1}</tt> del módulo <tt>spyder-kernels</tt>. Sin este módulo y versión especifica no es posible para Spyder crear una terminal.<br><br>Puede instalarlo activando su entorno (de ser necesario) y luego ejecutando en una consola de comandos del sistema:<pre> <tt>{2}</tt></pre>o<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:67
 msgid "The authenticity of host <b>%s</b> can't be established. Are you sure you want to continue connecting?"
@@ -4101,11 +4103,11 @@ msgstr "El error es:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:486
 msgid "An error occurred while starting the kernel"
-msgstr ""
+msgstr "Ocurrió un error mientras iniciaba el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:680
 msgid "It was not possible to restart the kernel"
-msgstr ""
+msgstr "No fue posible reiniciar el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4117,7 +4119,7 @@ msgstr "Conectarse a un núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:38
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>Seleccione el archivo de conexión JSON (<i>por ejemplo</i><tt>kernel-1234.json</tt>) del núcleo existente e ingrese la información de SSH si se conecta a una máquina remota. Para obtener más información sobre cómo iniciar kernels externos y conectarse a ellos, consulte <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">nuestra documentación</a>.</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:51
 msgid "Connection file:"
@@ -4181,7 +4183,7 @@ msgstr "Presione <b>Q</b> para salir del paginador"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:375
 msgid "New console in environment"
-msgstr ""
+msgstr "Nueva terminal en entorno"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:388
 msgid "New console (default settings)"
@@ -4217,7 +4219,7 @@ msgstr "Contenidos del sys.path"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:473
 msgid "Copy (raw text)"
-msgstr ""
+msgstr "Copiar (texto sin formato)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:487 spyder/widgets/browser.py:147
 msgid "Select all"
@@ -4233,11 +4235,11 @@ msgstr "Introducir arreglo en línea"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:517
 msgid "Save as html..."
-msgstr ""
+msgstr "Guardar como html..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:524
 msgid "Print..."
-msgstr ""
+msgstr "Imprimir..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:531
 msgid "Clear line or block"
@@ -4253,19 +4255,19 @@ msgstr "Copiar imagen"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:553
 msgid "Save image as..."
-msgstr ""
+msgstr "Guardar imagen como..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:559
 msgid "Copy SVG"
-msgstr ""
+msgstr "Copiar SVG"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:565
 msgid "Save SVG as..."
-msgstr ""
+msgstr "Guardar SVG como..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:577
 msgid "New special console"
-msgstr ""
+msgstr "Nueva terminal especial"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:602
 msgid "New Pylab console (data plotting)"
@@ -4281,7 +4283,7 @@ msgstr "Nueva terminal de Cython (Python con extensiones de C)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:632
 msgid "Remove all variables from namespace"
-msgstr ""
+msgstr "Eliminar todas las variables del espacio de nombres"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:684
 msgid "IPython documentation"
