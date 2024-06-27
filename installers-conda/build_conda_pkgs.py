@@ -43,6 +43,9 @@ REQ_LINUX = REQUIREMENTS / 'linux.yml'
 BUILD.mkdir(exist_ok=True)
 SPYPATCHFILE = BUILD / "installers-conda.patch"
 
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+
 
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
@@ -63,6 +66,7 @@ class BuildCondaPkg:
 
         self._bld_src = BUILD / self.name
         self._fdstk_path = BUILD / self.feedstock.split("/")[-1]
+        self._patchfile = self._fdstk_path / "recipe" / "version.patch"
 
         self._get_source(shallow=shallow)
         self._get_version()
@@ -70,7 +74,8 @@ class BuildCondaPkg:
         self.data = {'version': self.version}
         self.data.update(data)
 
-        self._patch_source()
+        self.recipe_append = {}
+        self.recipe_clobber = {}
 
         self._recipe_patched = False
 
@@ -125,21 +130,23 @@ class BuildCondaPkg:
     def _patch_source(self):
         pass
 
-    def _patch_meta(self, meta):
-        return meta
+    def _patch_conda_build_config(self):
+        file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
+        if file.exists():
+            contents = yaml.load(file.read_text())
+            file.rename(file.parent / ("_" + file.name))  # copy of original
+        else:
+            contents = {}
 
-    def patch_recipe(self):
-        """
-        Patch conda build recipe
+        pyver = sys.version_info
+        contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
+        yaml.dump(contents, file)
 
-        1. Patch meta.yaml
-        2. Patch build script
-        """
-        if self._recipe_patched:
-            return
+        self.logger.info(
+            f"Patched 'conda_build_config.yaml' contents:\n{file.read_text()}"
+        )
 
-        self.logger.info("Patching 'meta.yaml'...")
-
+    def _patch_meta(self):
         file = self._fdstk_path / "recipe" / "meta.yaml"
         meta = file.read_text()
 
@@ -147,17 +154,59 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
-        # Replace source, but keep patches
-        meta = re.sub(r'^(source:\n)(  (url|sha256):.*\n)*',
-                      rf'\g<1>  path: {self._bld_src.as_posix()}\n',
-                      meta, flags=re.MULTILINE)
-
-        meta = self._patch_meta(meta)
-
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(meta)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
+
+    def _add_recipe_append(self):
+        if self._patchfile.exists():
+            self.recipe_append.update(
+                {"source": {"patches": [self._patchfile.name]}}
+            )
+
+        if self.recipe_append:
+            file = self._fdstk_path / "recipe" / "recipe_append.yaml"
+            yaml.dump(self.recipe_append, file)
+            self.logger.info(
+                f"'recipe_append.yaml' contents:\n{file.read_text()}"
+            )
+        else:
+            self.logger.info("Skipping 'recipe_append.yaml'.")
+
+    def _add_recipe_clobber(self):
+        self.recipe_clobber.update({
+            "source": {
+                "url": None,
+                "sha256": None,
+                "path": self._bld_src.as_posix()},
+        })
+
+        if self.recipe_clobber:
+            file = self._fdstk_path / "recipe" / "recipe_clobber.yaml"
+            yaml.dump(self.recipe_clobber, file)
+            self.logger.info(
+                f"'recipe_clobber.yaml' contents:\n{file.read_text()}"
+            )
+        else:
+            self.logger.info("Skipping 'recipe_clobber.yaml'.")
+
+    def patch_recipe(self):
+        """
+        Patch conda build recipe
+
+        1. Patch conda_build_config.yaml
+        2. Patch meta.yaml
+        3. Add recipe_append.yaml
+        4. Add recipe_clobber.yaml
+        """
+        if self._recipe_patched:
+            return
+
+        self._patch_conda_build_config()
+        self._patch_meta()
+        self._add_recipe_append()
+        self._add_recipe_clobber()
 
         self._recipe_patched = True
 
@@ -165,18 +214,20 @@ class BuildCondaPkg:
         """
         Build the conda package.
 
-        1. Patch the recipe
-        2. Build the package
-        3. Remove cloned repositories
+        1. Patch source
+        2. Patch the recipe
+        3. Build the package
+        4. Remove cloned repositories
         """
         t0 = time()
         try:
+            self._patch_source()
             self.patch_recipe()
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call([
-                "conda", "mambabuild",
+                "conda", "build",
                 "--skip-existing", "--build-id-pat={n}",
                 "--no-test", "--no-anaconda-upload",
                 str(self._fdstk_path / "recipe")
@@ -202,6 +253,7 @@ class SpyderCondaPkg(BuildCondaPkg):
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
+
         file = self._bld_src / "spyder/__init__.py"
         file_text = file.read_text()
         ver_str = tuple(self.version.split('.'))
@@ -213,14 +265,14 @@ class SpyderCondaPkg(BuildCondaPkg):
         )
         file.write_text(file_text)
 
-        self.repo.git.diff(
-            output=(self._fdstk_path / "recipe" / "version.patch").as_posix()
-        )
-        self.repo.git.stash()
+        # Only write patch if necessary
+        if self.repo.git.diff():
+            self.logger.info(f"Creating {self._patchfile.name}...")
+            self.repo.git.diff(output=self._patchfile.as_posix())
+            self.repo.git.stash()
 
-    def _patch_meta(self, meta):
+    def patch_recipe(self):
         # Get current Spyder requirements
-        yaml = YAML()
         current_requirements = ['python']
         current_requirements += yaml.load(
             REQ_MAIN.read_text())['dependencies']
@@ -240,16 +292,11 @@ class SpyderCondaPkg(BuildCondaPkg):
                 REQ_LINUX.read_text())['dependencies']
             current_requirements += linux_requirements
 
-        # Replace run requirements
-        cr_string = '\n    - '.join(current_requirements)
-        meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
-                      rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
+        self.recipe_clobber.update({
+            "requirements": {"run": current_requirements}
+        })
 
-        # Add version patch
-        meta = re.sub(r'^(source:\n(.*\n)*  patches:\n)',
-                      r'\g<1>    - version.patch\n',
-                      meta, flags=re.MULTILINE)
-        return meta
+        super().patch_recipe()
 
 
 class PylspCondaPkg(BuildCondaPkg):
@@ -333,9 +380,6 @@ if __name__ == "__main__":
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
-
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
 
     if SPECS.exists():
         specs = yaml.load(SPECS.read_text())
