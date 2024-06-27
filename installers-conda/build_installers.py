@@ -304,6 +304,7 @@ def _definitions():
             "menuinst >=2.0.2",
             "mamba",
         ],
+        "exclude": ["pip"],
         "installer_filename": OUTPUT_FILE.name,
         "installer_type": args.install_type,
         "initialize_by_default": False,

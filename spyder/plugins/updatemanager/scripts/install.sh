@@ -24,7 +24,7 @@ launch_spyder(){
     shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
 
     if [[ "$OSTYPE" = "darwin"* ]]; then
-        open -a $shortcut
+        open -a "$shortcut_path"
     elif [[ -n "$(which gtk-launch)" ]]; then
         gtk-launch $(basename ${shortcut_path%.*})
     else
