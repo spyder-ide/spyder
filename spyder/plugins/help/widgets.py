@@ -17,7 +17,6 @@ import sys
 from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
-from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
                             QMessageBox, QSizePolicy, QStackedWidget,
                             QVBoxLayout, QWidget)
@@ -37,10 +36,15 @@ from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import start_file
-from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
+
+# In case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 
 # --- Constants
@@ -157,6 +161,9 @@ class RichText(QWidget, SpyderWidgetMixin):
         else:
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
+
+        from qtpy.QtWebEngineWidgets import QWebEnginePage
+        from spyder.widgets.browser import FrameWebView
 
         self.webview = FrameWebView(self)
         self.webview.setup()

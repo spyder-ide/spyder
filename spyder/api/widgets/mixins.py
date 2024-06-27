@@ -667,6 +667,13 @@ class SpyderWidgetMixin(SpyderActionMixin, SpyderConfigurationObserver,
     # Context name used to store actions, toolbars, toolbuttons and menus
     CONTEXT_NAME = None
 
+    # Qt Web Widgets may be a heavy dependency for many packagers
+    # (e.g. conda-forge)
+    # We thus ask plugins to declare whether or not they need
+    # web widgets to enhance the distribution of Spyder to users
+    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+    REQUIRE_WEB_WIDGETS = False
+
     def __init__(self, class_parent=None):
         for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
             if getattr(self, attr, None) is None:

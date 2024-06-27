@@ -33,6 +33,8 @@ class OnlineHelp(SpyderDockablePlugin):
     WIDGET_CLASS = PydocBrowser
     LOG_PATH = get_conf_path(NAME)
 
+    REQUIRE_WEB_WIDGETS = True
+
     # --- Signals
     # ------------------------------------------------------------------------
     sig_load_finished = Signal()

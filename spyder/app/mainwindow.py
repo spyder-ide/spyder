@@ -53,7 +53,10 @@ from qtpy.QtWidgets import (
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets  # analysis:ignore
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 from qtawesome.iconic_font import FontError
 
@@ -724,12 +727,6 @@ class MainWindow(
 
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable plugins that use web widgets (currently Help and Online
-            # Help) if the user asks for it.
-            # See spyder-ide/spyder#16518
-            if self._cli_options.no_web_widgets:
-                if "help" in plugin_name:
-                    continue
 
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
@@ -772,6 +769,18 @@ class MainWindow(
             if plugin_name in enabled_plugins:
                 PluginClass = internal_plugins[plugin_name]
                 if issubclass(PluginClass, SpyderPluginV2):
+                    # Disable plugins that use web widgets (currently Help and
+                    # Online Help) if the user asks for it.
+                    # See spyder-ide/spyder#16518
+                    # The plugins that require QtWebengine must declare
+                    # themselves as needing that dependency
+                    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+                    if PluginClass.REQUIRE_WEB_WIDGETS and (
+                        not WEBENGINE or
+                        self._cli_options.no_web_widgets
+                    ):
+                        continue
+
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass,
                                                     external=False)
 
