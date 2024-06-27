@@ -38,6 +38,7 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
+    EnvironmentConsolesMenuSections,
     IPythonConsoleWidgetActions,
     IPythonConsoleWidgetMenus,
     IPythonConsoleWidgetCornerWidgets,
@@ -53,11 +54,9 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.conda import is_conda_env, find_conda
-from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
-from spyder.utils.workers import WorkerManager
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
@@ -241,7 +240,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.interrupt_action = None
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
-        self.default_interpreter = sys.executable
 
         # Attributes needed for the restart dialog
         self._restart_dialog = ConsoleRestartDialog(self)
@@ -352,12 +350,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
 
-        # Worker to compute envs in a thread
-        self._worker_manager = WorkerManager(max_threads=1)
-
-        # Update the list of envs at startup
-        self.get_envs()
-
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -380,7 +372,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.console_environment_menu.setStyleSheet(css.toString())
 
         self.console_environment_menu.aboutToShow.connect(
-            self.update_environment_menu)
+            self._update_environment_menu
+        )
 
         # --- Options menu actions
         self.create_client_action = self.create_action(
@@ -727,51 +720,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
-
-    def get_envs(self):
-        """
-        Get the list of environments/interpreters in a worker.
-        """
-        self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(get_list_envs)
-        worker.sig_finished.connect(self.update_envs)
-        worker.start()
-
-    def update_envs(self, worker, output, error):
-        """Update the list of environments in the system."""
-        if output is not None:
-            self.envs.update(**output)
-
-    def update_environment_menu(self):
-        """
-        Update context menu submenu with entries for available interpreters.
-        """
-        self.get_envs()
-        self.console_environment_menu.clear_actions()
-
-        for env_key, env_info in self.envs.items():
-            env_name = env_key.split()[-1]
-            path_to_interpreter, python_version = env_info
-            action = self.create_action(
-                name=env_key,
-                text=f'{env_key} ({python_version})',
-                icon=self.create_icon('ipython_console'),
-                triggered=(
-                    lambda checked, env_name=env_name,
-                    path_to_interpreter=path_to_interpreter:
-                    self.create_environment_client(
-                        env_name,
-                        path_to_interpreter
-                    )
-                ),
-                overwrite=True
-            )
-            self.add_item_to_menu(
-                action,
-                menu=self.console_environment_menu
-            )
-
-        self.console_environment_menu.render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -1176,6 +1124,109 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_client_for_kernel(
             connection_file, hostname, sshkey, password)
 
+    def _update_environment_menu(self):
+        """Update submenu with entries for available interpreters."""
+        self.console_environment_menu.clear_actions()
+
+        internal_action = None
+        conda_actions = []
+        pyenv_actions = []
+        custom_actions = []
+        for env_key, env_info in self.envs.items():
+            env_name = env_key.split()[-1]
+            path_to_interpreter, python_version = env_info
+
+            # Text for actions
+            text = f"{env_key} ({python_version})"
+
+            # Change text in case env is the default or internal (i.e. same as
+            # Spyder) one
+            default_interpreter = self.get_conf(
+                "executable", section="main_interpreter"
+            )
+            if path_to_interpreter == default_interpreter:
+                text = _("Default") + " / " + text
+            elif (
+                path_to_interpreter == sys.executable
+                and default_interpreter != sys.executable
+            ):
+                text = _("Internal") + " / " + text
+
+            # Create action
+            action = self.create_action(
+                name=env_key,
+                text=text,
+                icon=self.create_icon('ipython_console'),
+                triggered=(
+                    lambda checked, env_name=env_name,
+                    path_to_interpreter=path_to_interpreter:
+                    self.create_environment_client(
+                        env_name,
+                        path_to_interpreter
+                    )
+                ),
+                overwrite=True
+            )
+
+            # Add default env as the first entry in the menu
+            if text.startswith(_("Default")):
+                self.add_item_to_menu(
+                    action,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Default
+                )
+
+            # Group other actions to add them later
+            if text.startswith(_("Internal")):
+                internal_action = action
+            elif text.startswith("Conda"):
+                conda_actions.append(action)
+            elif text.startswith("Pyenv"):
+                pyenv_actions.append(action)
+            elif text.startswith(_("Custom")):
+                custom_actions.append(action)
+
+        # Add internal action, if available
+        if internal_action:
+            self.add_item_to_menu(
+                internal_action,
+                menu=self.console_environment_menu,
+                section=EnvironmentConsolesMenuSections.Default
+            )
+
+        # Add other envs to their respective sections but only if there are two
+        # or more per category. Otherwise we group them in a single section
+        # called "Other". We do that because having many menu sections with a
+        # single entry makes the UI look odd.
+        for action in conda_actions:
+            self.add_item_to_menu(
+                action,
+                menu=self.console_environment_menu,
+                section=EnvironmentConsolesMenuSections.Conda
+                if len(conda_actions) > 1
+                else EnvironmentConsolesMenuSections.Other,
+            )
+
+        for action in pyenv_actions:
+            self.add_item_to_menu(
+                action,
+                menu=self.console_environment_menu,
+                section=EnvironmentConsolesMenuSections.Pyenv
+                if len(pyenv_actions) > 1
+                else EnvironmentConsolesMenuSections.Other,
+            )
+
+        for action in custom_actions:
+            self.add_item_to_menu(
+                action,
+                menu=self.console_environment_menu,
+                section=EnvironmentConsolesMenuSections.Custom
+                if len(custom_actions) > 1
+                else EnvironmentConsolesMenuSections.Other,
+            )
+
+        self.console_environment_menu.render()
+
     def find_connection_file(self, connection_file):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
@@ -1204,6 +1255,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         for client in self.clients:
             client.set_font(font)
+
+    def update_envs(self, envs: dict):
+        """Update the detected environments in the system."""
+        self.envs = envs
 
     def refresh_container(self, give_focus=False):
         """

@@ -25,7 +25,7 @@ if not find_program('pyenv'):
                     reason="Only runs on Linux")
 def test_get_list_pyenv_envs():
     output = get_list_pyenv_envs()
-    expected_envs = ['pyenv: 3.8.1']
+    expected_envs = ['Pyenv: 3.8.1']
     assert set(expected_envs) == set(output.keys())
 
 

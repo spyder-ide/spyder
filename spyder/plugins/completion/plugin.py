@@ -15,7 +15,6 @@ introspection providers.
 import functools
 import inspect
 import logging
-import os
 from typing import List, Union
 import weakref
 
@@ -25,11 +24,10 @@ from pkg_resources import iter_entry_points
 from qtpy.QtCore import QRecursiveMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
@@ -492,7 +490,7 @@ class CompletionPlugin(SpyderPluginV2):
         mi_status = maininterpreter.get_container().interpreter_status
 
         value = mi_status.value
-        tool_tip = mi_status._interpreter
+        tool_tip = maininterpreter.get_container()._interpreter
 
         if '(' in value:
             value = value.split('(')[0]
