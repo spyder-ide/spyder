@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build:
     name: Mac Py${{ matrix.PYTHON_VERSION }}
-    runs-on: macos-latest
+    runs-on: macos-13
     env:
       CI: 'true'
       OS: 'macos'
