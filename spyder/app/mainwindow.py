@@ -773,7 +773,7 @@ class MainWindow(
                     # Online Help) if the user asks for it.
                     # See spyder-ide/spyder#16518
                     # The plugins that require QtWebengine must declare
-                    # themselves as needed that dependency
+                    # themselves as needing that dependency
                     # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
                     if PluginClass.REQUIRE_WEB_WIDGETS and (
                         not WEBENGINE or
