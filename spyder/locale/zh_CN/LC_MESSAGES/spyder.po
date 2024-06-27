@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-25 16:18\n"
+"PO-Revision-Date: 2024-06-27 07:10\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3757,7 +3757,7 @@ msgstr "自动加载 Matplotlib 和 NumPy 模块"
 
 #: spyder/plugins/ipythonconsole/confpage.py:103
 msgid "This lets you generate graphics and work with arrays <b>without</b> importing the commands to do it. It's also useful to develop GUIs with Spyder."
-msgstr ""
+msgstr "这使你能够生成图形并使用数组 <b>而不必</b> 导入相关命令。 它在使用 Spyder 开发 GUI 时也很有用处。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:118 spyder/plugins/ipythonconsole/widgets/status.py:90
 msgid "Inline"
@@ -3769,7 +3769,7 @@ msgstr "图形的后端"
 
 #: spyder/plugins/ipythonconsole/confpage.py:121
 msgid "Decide how Matplotlib graphics are displayed"
-msgstr ""
+msgstr "决定 Matplotlib 图形如何显示"
 
 #: spyder/plugins/ipythonconsole/confpage.py:135
 msgid "Backend:"
@@ -3777,7 +3777,7 @@ msgstr "后端:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:138
 msgid "If unsure, select <b>%s</b> to put graphics in the Plots pane or <b>%s</b> to interact with them (through zooming and panning) in a separate window."
-msgstr ""
+msgstr "如果不确定，可选择 <b>%s</b> 将图形放置在绘图空格中或 <b>%s</b> 在一个单独窗口中与它们交互 (使用缩放和平移)。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:153
 msgid "Inline backend"
@@ -3825,23 +3825,23 @@ msgstr "默认值是4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:175
 msgid "Font size:"
-msgstr ""
+msgstr "字体大小："
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
 msgid "points"
-msgstr ""
+msgstr "点"
 
 #: spyder/plugins/ipythonconsole/confpage.py:181
 msgid "Default is 10"
-msgstr ""
+msgstr "默认为 10"
 
 #: spyder/plugins/ipythonconsole/confpage.py:184
 msgid "Bottom edge:"
-msgstr ""
+msgstr "底边："
 
 #: spyder/plugins/ipythonconsole/confpage.py:185
 msgid "of figure height"
-msgstr ""
+msgstr "图表高度"
 
 #: spyder/plugins/ipythonconsole/confpage.py:190
 msgid "The position of the bottom edge of the subplots,\n"
