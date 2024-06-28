@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-28 03:09\n"
+"PO-Revision-Date: 2024-06-28 06:12\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3942,19 +3942,19 @@ msgstr "在<b>%s </b>模式下，如果可调用对象后没有参数，则不�
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
-msgstr ""
+msgstr "自动重载"
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Autoreload reloads modules automatically every time before executing your Python code.<br>This is a different mechanism than the User Module Reloader (UMR) and it can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "自动重加载就是每当要执行你的 Python 代码之前自动重新加载模块。<br>这是一个不同于用户模块重新加载器 (UMR) 的机制，由于文件系统的限制它在 Windows 上可能会很慢。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:347
 msgid "Use autoreload"
-msgstr ""
+msgstr "使用自动重加载"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "此选项将启用自动重加载魔法特性。<br>请参阅其文档以了解如何使用它。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:361
 msgid "Symbolic mathematics"
