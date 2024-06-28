@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-27 07:10\n"
+"PO-Revision-Date: 2024-06-28 01:49\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3847,7 +3847,9 @@ msgstr "图表高度"
 msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height.\n"
 "The default is 0.11."
-msgstr ""
+msgstr "子图底部边缘的位置，\n"
+"是图表高度的一部分。\n"
+"默认值为 0.11。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:195
 msgid "Use a tight layout for inline plots"
@@ -5989,11 +5991,11 @@ msgstr "在文件内快速搜索符号"
 
 #: spyder/plugins/switcher/plugin.py:89
 msgid "Switcher"
-msgstr ""
+msgstr "切换器"
 
 #: spyder/plugins/switcher/plugin.py:93
 msgid "Quickly switch between files and other items."
-msgstr ""
+msgstr "在文件和其他项目之间快速切换。"
 
 #: spyder/plugins/switcher/tests/test_switcher.py:27 spyder/plugins/switcher/tests/test_switcher.py:193
 msgid "Commands"
@@ -6077,7 +6079,7 @@ msgstr "工具栏"
 
 #: spyder/plugins/toolbar/plugin.py:49
 msgid "Manage application toolbars."
-msgstr ""
+msgstr "管理应用程序工具栏。"
 
 #: spyder/plugins/toolbar/plugin.py:57
 msgid "File toolbar"
@@ -6105,7 +6107,7 @@ msgstr "交互式导览"
 
 #: spyder/plugins/tours/plugin.py:45
 msgid "Provide interactive tours of the Spyder interface."
-msgstr ""
+msgstr "提供 Spider 界面的交互式导览。"
 
 #: spyder/plugins/tours/plugin.py:54
 msgid "Introduction to Spyder"
@@ -6113,7 +6115,7 @@ msgstr "Spyder 简介"
 
 #: spyder/plugins/tours/tours.py:22
 msgid "Please click on the button below to run some simple code in this console. This will be useful to show you other important features."
-msgstr ""
+msgstr "请点击下面的按钮在此控制台中运行一些简单的代码。 这将有助于向你展示其他的重要功能。"
 
 #: spyder/plugins/tours/tours.py:71
 msgid "Welcome to the introduction tour!"
@@ -6221,15 +6223,15 @@ msgstr "检查更新…"
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
-msgstr ""
+msgstr "正在检查更新..."
 
 #: spyder/plugins/updatemanager/plugin.py:38
 msgid "Update Manager"
-msgstr ""
+msgstr "更新管理器"
 
 #: spyder/plugins/updatemanager/plugin.py:46
 msgid "Manage application updates."
-msgstr ""
+msgstr "管理应用程序更新。"
 
 #: spyder/plugins/updatemanager/widgets/status.py:77
 msgid "Downloading the update will continue in the background.\n"
