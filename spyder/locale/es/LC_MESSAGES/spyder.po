@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-28 20:35\n"
+"PO-Revision-Date: 2024-06-28 21:59\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5313,11 +5313,11 @@ msgstr "Resultados para "
 
 #: spyder/plugins/pylint/main_widget.py:322
 msgid "Code not analyzed yet"
-msgstr ""
+msgstr "Código no analizado aún"
 
 #: spyder/plugins/pylint/main_widget.py:323
 msgid "Run an analysis using Pylint to get feedback on style issues, bad practices, potential bugs, and suggested improvements in your code."
-msgstr ""
+msgstr "Ejecute un análisis usando Pylint para obtener comentarios sobre problemas de estilo, malas prácticas, posibles errores y sugerencias de mejora en su código."
 
 #: spyder/plugins/pylint/main_widget.py:495 spyder/plugins/pylint/plugin.py:68 spyder/plugins/tours/tours.py:196
 msgid "Code Analysis"
@@ -5365,7 +5365,7 @@ msgstr "Resultado del análisis de código"
 
 #: spyder/plugins/pylint/plugin.py:72
 msgid "Analyze code and view the results from both static and real-time analysis."
-msgstr ""
+msgstr "Analizar código y ver los resultados tanto de análisis estático como en tiempo real."
 
 #: spyder/plugins/pythonpath/container.py:69 spyder/plugins/pythonpath/plugin.py:61 spyder/plugins/pythonpath/widgets/pathmanager.py:107
 msgid "PYTHONPATH manager"
@@ -5373,11 +5373,11 @@ msgstr "Administrador del PYTHONPATH"
 
 #: spyder/plugins/pythonpath/plugin.py:65
 msgid "Manage additional locations to search for Python modules."
-msgstr ""
+msgstr "Administre ubicaciones adicionales para buscar módulos de Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:114
 msgid "The paths listed below will be passed to the IPython console and to the Editor as additional locations to search for Python modules."
-msgstr ""
+msgstr "Las rutas listadas a continuación se pasarán a las terminales de IPython y al Editor como ubicaciones adicionales para buscar módulos de Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:160
 msgid "Move path to the top"
@@ -5441,11 +5441,11 @@ msgstr "¿Realmente desea eliminar la ruta seleccionada?"
 
 #: spyder/plugins/remoteclient/api/client.py:183
 msgid "We're closing the connection. Please be patient"
-msgstr ""
+msgstr "Estamos cerrando la conexión. Por favor sea paciente"
 
 #: spyder/plugins/remoteclient/api/client.py:319 spyder/plugins/remoteclient/api/client.py:334 spyder/plugins/remoteclient/api/client.py:379
 msgid "The connection was established successfully"
-msgstr ""
+msgstr "Se ha establecido la conexión con éxito"
 
 #: spyder/plugins/remoteclient/api/client.py:329 spyder/plugins/remoteclient/api/client.py:389
 msgid "It was not possible to forward the local port"
