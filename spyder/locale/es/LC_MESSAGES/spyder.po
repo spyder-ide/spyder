@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-27 22:51\n"
+"PO-Revision-Date: 2024-06-28 19:34\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4331,7 +4331,7 @@ msgstr "Reiniciar el núcleo?"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2171 spyder/plugins/ipythonconsole/widgets/main_widget.py:2254
 msgid "The console is not running a Spyder-kernel, so it can't execute <b>{}</b>.<br><br>Please use a Spyder-kernel for this."
-msgstr ""
+msgstr "La consola no está ejecutando un núcleo con soporte para Spyder, por lo que no puede ejecutar <b>{}</b>.<br><br>Por favor, use un núcleo con soporte para Spyder para esto."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2188
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
@@ -4367,19 +4367,19 @@ msgstr "<br><i>%s.</i><br><br><br><b>Nota</b>: Por favor, no reporte este proble
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
-msgstr ""
+msgstr "Reiniciar los núcleos"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:46
 msgid "Keep existing kernels"
-msgstr ""
+msgstr "Mantener núcleos existentes"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:47
 msgid "Restart current kernel"
-msgstr ""
+msgstr "Reiniciar el núcleo actual"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:48
 msgid "Restart all kernels"
-msgstr ""
+msgstr "Reiniciar todos los núcleos"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:59
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
