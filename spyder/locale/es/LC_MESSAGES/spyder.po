@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-28 19:34\n"
+"PO-Revision-Date: 2024-06-28 20:35\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4387,7 +4387,7 @@ msgstr "Por defecto, algunas preferencias de la terminal IPython se aplicarán �
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:70
 msgid "Don't apply changes to existing consoles"
-msgstr ""
+msgstr "No aplicar los cambios a las terminales existentes"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:73
 msgid "Apply to current console and restart kernel"
@@ -4423,7 +4423,7 @@ msgstr "<br><br>Parece que el kernel está muerto, por lo que no puede interrump
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:498
 msgid "<br><br>It is not possible to interrupt a non-Spyder kernel I did not start.<br>"
-msgstr ""
+msgstr "<br><br>No es posible interrumpir un núcleo sin soporte para Spyder que no inicié.<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:837
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -4443,15 +4443,15 @@ msgstr "Importante"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1364
 msgid "The kernel died, restarting..."
-msgstr ""
+msgstr "El núcleo dejó de funcionar, reiniciándolo..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1365
 msgid "Restarting kernel..."
-msgstr ""
+msgstr "Reiniciando el núcleo..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1375
 msgid "Its crash file is located at:"
-msgstr ""
+msgstr "Su archivo de fallo se encuentra en:"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1440
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
@@ -4459,7 +4459,7 @@ msgstr "Parece que estás intentando usar un módulo que no viene con nuestro in
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:38
 msgid "Click to toggle between inline and interactive Matplotlib plotting"
-msgstr ""
+msgstr "Haga clic para alternar entre el graficado en línea y el interactivo de Matplotlib"
 
 #: spyder/plugins/layout/container.py:79
 msgid "Close current pane"
@@ -4581,7 +4581,7 @@ msgstr "Orden y visualización de las disposiciones"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the Python interpreter used for default Spyder consoles and code completion"
-msgstr ""
+msgstr "Seleccione el intérprete Python utilizado para las terminales de Spyder por defecto y el completado de código"
 
 #: spyder/plugins/maininterpreter/confpage.py:73
 msgid "Default (i.e. the same as Spyder's)"
@@ -4651,7 +4651,7 @@ msgstr "Por favor tenga en cuenta que estos cambios sólo se aplicarán a nuevas
 
 #: spyder/plugins/maininterpreter/plugin.py:49
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
-msgstr ""
+msgstr "Administre el intérprete de Python utilizado para ejecutar, analizar y perfilar su código en Spyder por defecto."
 
 #: spyder/plugins/mainmenu/plugin.py:48
 msgid "Main menus"
@@ -4707,7 +4707,7 @@ msgstr "Ayuda en línea"
 
 #: spyder/plugins/onlinehelp/plugin.py:51
 msgid "Browse and search documentation for installed Python modules interactively."
-msgstr ""
+msgstr "Navegar y buscar interactivamente la documentación de los módulos instalados."
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:827
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
@@ -4771,7 +4771,7 @@ msgstr "Explorador de código"
 
 #: spyder/plugins/outlineexplorer/plugin.py:39
 msgid "Explore functions, classes and methods in open files. Note that if you disable the 'Completion and linting' plugin, this one won't work."
-msgstr ""
+msgstr "Explora funciones, clases y métodos en archivos abiertos. Tenga en cuenta que si desactiva el plugin 'Completado y análisis de código', esto no funcionará."
 
 #: spyder/plugins/outlineexplorer/widgets.py:39 spyder/widgets/dependencies.py:34
 msgid "Module"
@@ -4879,15 +4879,15 @@ msgstr "Gráficos"
 
 #: spyder/plugins/plots/plugin.py:38
 msgid "View, browse and save generated figures."
-msgstr ""
+msgstr "Ver, navegar y guardar las figuras generadas."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "No plots to show"
-msgstr ""
+msgstr "No hay gráficos para mostrar"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:191
 msgid "Run plot-generating code in the Editor or IPython console to see your figures appear here. This pane only supports static images, so it can't display interactive plots like Bokeh, Plotly or Altair."
-msgstr ""
+msgstr "Ejecute el código generador de gráficos en el Editor o la terminal de IPython para ver sus figuras aparecer aquí. Este panel solo soporta imágenes estáticas, por lo que no puede mostrar gráficos interactivos como Bokeh, Plotly o Altair."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:617
 msgid "The image is broken, please try to generate it again"
@@ -4911,11 +4911,11 @@ msgstr "Mostrar el borde del gráfico."
 
 #: spyder/plugins/plots/widgets/main_widget.py:115
 msgid "Fit plots to pane"
-msgstr ""
+msgstr "Ajustar gráficos al panel"
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Ajustar la gráfica al tamaño del panel"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -4947,7 +4947,7 @@ msgstr "Siguiente gráfico"
 
 #: spyder/plugins/preferences/plugin.py:298
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
-msgstr ""
+msgstr "Spyder se reiniciará y volverá a su configuración por defecto:<br><br>¿Desea continuar?"
 
 #: spyder/plugins/preferences/plugin.py:312 spyder/plugins/preferences/widgets/configdialog.py:30 spyder/plugins/preferences/widgets/container.py:120
 msgid "Preferences"
@@ -4955,7 +4955,7 @@ msgstr "Preferencias"
 
 #: spyder/plugins/preferences/plugin.py:316
 msgid "Manage Spyder's preferences."
-msgstr ""
+msgstr "Administrar las preferencias de Spyder."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset Spyder to factory defaults"
@@ -4977,7 +4977,7 @@ msgstr "Perfilador (Profiler)"
 
 #: spyder/plugins/profiler/plugin.py:65
 msgid "Profile Python files to find execution bottlenecks."
-msgstr ""
+msgstr "Perfilar archivos Python para encontrar cuellos de botella en ejecución."
 
 #: spyder/plugins/profiler/plugin.py:115 spyder/plugins/profiler/plugin.py:116 spyder/plugins/profiler/widgets/main_widget.py:212 spyder/plugins/profiler/widgets/main_widget.py:213
 msgid "Run profiler"
@@ -4985,11 +4985,11 @@ msgstr "Ejecutar el perfilador"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:180
 msgid "Code not profiled yet"
-msgstr ""
+msgstr "Código aún no perfilado"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:181
 msgid "Profile your code to explore which functions and methods took the longest to run and were called the most, and find out where to optimize it."
-msgstr ""
+msgstr "Perfile su código para explorar cuáles fueron las funciones y métodos que más tardaron en ejecutarse y que más se llamaron, y averiguar dónde optimizarlo."
 
 #: spyder/plugins/profiler/widgets/main_widget.py:220 spyder/plugins/profiler/widgets/main_widget.py:473 spyder/plugins/pylint/main_widget.py:517 spyder/plugins/pylint/main_widget.py:518 spyder/plugins/pylint/main_widget.py:876
 msgid "Select Python file"
@@ -5129,7 +5129,7 @@ msgstr "recursión"
 
 #: spyder/plugins/profiler/widgets/run_conf.py:34
 msgid "File settings"
-msgstr ""
+msgstr "Ajustes de archivo"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5145,11 +5145,11 @@ msgstr "Crear proyectos Spyder y administrar sus archivos."
 
 #: spyder/plugins/projects/widgets/main_widget.py:188
 msgid "No project opened"
-msgstr ""
+msgstr "No hay proyecto abierto"
 
 #: spyder/plugins/projects/widgets/main_widget.py:189
 msgid "Create one using the menu entry Projects > New project."
-msgstr ""
+msgstr "Cree uno utilizando la entrada de menú Proyectos > Nuevo proyecto."
 
 #: spyder/plugins/projects/widgets/main_widget.py:231
 msgid "New Project..."
@@ -5189,7 +5189,7 @@ msgstr "<b>%s</b> no es un proyecto de Spyder!"
 
 #: spyder/plugins/projects/widgets/main_widget.py:466
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr ""
+msgstr "¿Realmente desea eliminar el proyecto <b>{filename}</b>?<br><br><b>Nota</b>: Esta acción solo eliminará el proyecto. Los archivos del mismo no serán eliminados del disco."
 
 #: spyder/plugins/projects/widgets/main_widget.py:482
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
