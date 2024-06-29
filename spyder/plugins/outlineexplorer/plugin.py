@@ -149,8 +149,20 @@ class OutlineExplorer(SpyderDockablePlugin):
         """
         self.get_widget().in_maximized_editor = True
         if self.get_conf('show_with_maximized_editor'):
-            self.main.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.main.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+            # This width is enough to show all buttons in the main toolbar
+            max_width = 360
+
+            # Give an appropiate width to the Outline
+            editor = self.get_plugin(Plugins.Editor)
+            self.main.resizeDocks(
+                [editor.dockwidget, self.dockwidget],
+                [self.main.width(), min(self.main.width() // 7, max_width)],
+                Qt.Horizontal
+            )
+
         self._set_toggle_view_action_state()
 
     def hide_from_maximized_editor(self):
