@@ -475,7 +475,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.bookmarks = []
 
         # Keyboard shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.create_shortcuts()
 
         # Paint event
         self.__visible_blocks = []  # Visible blocks, update with repaint
@@ -649,21 +649,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('editor', 'scroll line up', self.scroll_line_up)
             )
 
-        shortcuts = []
         for context, name, callback in shortcut_context_name_callbacks:
-            shortcuts.append(
-                self.config_shortcut(
-                    callback, context=context, name=name, parent=self))
-        return shortcuts
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
+            self.config_shortcut(
+                callback, context=context, name=name, parent=self
+            )
 
     def closeEvent(self, event):
         if isinstance(self.highlighter, sh.PygmentsSH):

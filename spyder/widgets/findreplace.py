@@ -257,7 +257,7 @@ class FindReplace(QWidget):
         # Additional adjustments
         self.search_text.setTabOrder(self.search_text, self.replace_text)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.shortcuts = self.create_shortcuts(parent)
+        self.create_shortcuts(parent)
 
         # To highlight found results in the editor
         self.highlight_timer = QTimer(self)
@@ -318,46 +318,35 @@ class FindReplace(QWidget):
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
-        findnext = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.find_next,
             context='find_replace',
             name='Find next',
             parent=parent)
 
-        findprev = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.find_previous,
             context='find_replace',
             name='Find previous',
             parent=parent)
 
-        togglefind = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.show,
             context='find_replace',
             name='Find text',
             parent=parent)
 
-        togglereplace = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.show_replace,
             context='find_replace',
             name='Replace text',
             parent=parent)
 
-        hide = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.hide,
             context='find_replace',
             name='hide find and replace',
             parent=self)
-
-        return [findnext, findprev, togglefind, togglereplace, hide]
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
 
     def update_search_combo(self):
         self.search_text.lineEdit().returnPressed.emit()

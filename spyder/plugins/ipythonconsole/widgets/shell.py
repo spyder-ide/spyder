@@ -159,7 +159,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
-        self.shortcuts = self.create_shortcuts()
+        self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -927,56 +927,53 @@ the sympy module (e.g. plot)
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = self.config_shortcut(
+        self.config_shortcut(
             self._control.inspect_current_object,
             context='ipython_console',
             name='Inspect current object',
             parent=self)
 
-        clear_console = self.config_shortcut(
+        self.config_shortcut(
             self.clear_console,
             context='ipython_console',
             name='Clear shell',
             parent=self)
 
-        restart_kernel = self.config_shortcut(
+        self.config_shortcut(
             self.sig_restart_kernel,
             context='ipython_console',
             name='Restart kernel',
             parent=self)
 
-        new_tab = self.config_shortcut(
+        self.config_shortcut(
             self.sig_new_client,
             context='ipython_console',
             name='new tab',
             parent=self)
 
-        reset_namespace = self.config_shortcut(
+        self.config_shortcut(
             self._reset_namespace,
             context='ipython_console',
             name='reset namespace',
             parent=self)
 
-        array_inline = self.config_shortcut(
+        self.config_shortcut(
             self._control.enter_array_inline,
             context='ipython_console',
             name='enter array inline',
             parent=self)
 
-        array_table = self.config_shortcut(
+        self.config_shortcut(
             self._control.enter_array_table,
             context='ipython_console',
             name='enter array table',
             parent=self)
 
-        clear_line = self.config_shortcut(
+        self.config_shortcut(
             self.ipyclient.clear_line,
             context='ipython_console',
             name='clear line',
             parent=self)
-
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):

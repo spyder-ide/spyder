@@ -352,7 +352,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.setAcceptDrops(True)
 
         # Local shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.create_shortcuts()
 
         # For opening last closed tabs
         self.last_closed_files = []
@@ -422,189 +422,179 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def create_shortcuts(self):
         """Create local shortcuts"""
         # --- Configurable shortcuts
-        inspect = self.config_shortcut(
+        self.config_shortcut(
             self.inspect_current_object,
             context='Editor',
             name='Inspect current object',
             parent=self)
 
-        gotoline = self.config_shortcut(
+        self.config_shortcut(
             self.go_to_line,
             context='Editor',
             name='Go to line',
             parent=self)
 
-        tab = self.config_shortcut(
+        self.config_shortcut(
             lambda: self.tab_navigation_mru(forward=False),
             context='Editor',
             name='Go to previous file',
             parent=self)
 
-        tabshift = self.config_shortcut(
+        self.config_shortcut(
             self.tab_navigation_mru,
             context='Editor',
             name='Go to next file',
             parent=self)
 
-        prevtab = self.config_shortcut(
+        self.config_shortcut(
             lambda: self.tabs.tab_navigate(-1),
             context='Editor',
             name='Cycle to previous file',
             parent=self)
 
-        nexttab = self.config_shortcut(
+        self.config_shortcut(
             lambda: self.tabs.tab_navigate(1),
             context='Editor',
             name='Cycle to next file',
             parent=self)
 
-        new_file = self.config_shortcut(
+        self.config_shortcut(
             self.sig_new_file[()],
             context='Editor',
             name='New file',
             parent=self)
 
-        open_file = self.config_shortcut(
+        self.config_shortcut(
             self.plugin_load[()],
             context='Editor',
             name='Open file',
             parent=self)
 
-        save_file = self.config_shortcut(
+        self.config_shortcut(
             self.save,
             context='Editor',
             name='Save file',
             parent=self)
 
-        save_all = self.config_shortcut(
+        self.config_shortcut(
             self.save_all,
             context='Editor',
             name='Save all',
             parent=self)
 
-        save_as = self.config_shortcut(
+        self.config_shortcut(
             self.sig_save_as,
             context='Editor',
             name='Save As',
             parent=self)
 
-        close_all = self.config_shortcut(
+        self.config_shortcut(
             self.close_all_files,
             context='Editor',
             name='Close all',
             parent=self)
 
-        prev_edit_pos = self.config_shortcut(
+        self.config_shortcut(
             self.sig_prev_edit_pos,
             context="Editor",
             name="Last edit location",
             parent=self)
 
-        prev_cursor = self.config_shortcut(
+        self.config_shortcut(
             self.sig_prev_cursor,
             context="Editor",
             name="Previous cursor position",
             parent=self)
 
-        next_cursor = self.config_shortcut(
+        self.config_shortcut(
             self.sig_next_cursor,
             context="Editor",
             name="Next cursor position",
             parent=self)
 
-        zoom_in_1 = self.config_shortcut(
+        self.config_shortcut(
             self.zoom_in,
             context="Editor",
             name="zoom in 1",
             parent=self)
 
-        zoom_in_2 = self.config_shortcut(
+        self.config_shortcut(
             self.zoom_in,
             context="Editor",
             name="zoom in 2",
             parent=self)
 
-        zoom_out = self.config_shortcut(
+        self.config_shortcut(
             self.zoom_out,
             context="Editor",
             name="zoom out",
             parent=self)
 
-        zoom_reset = self.config_shortcut(
+        self.config_shortcut(
             self.zoom_reset,
             context="Editor",
             name="zoom reset",
             parent=self)
 
-        close_file_1 = self.config_shortcut(
+        self.config_shortcut(
             self.close_file,
             context="Editor",
             name="close file 1",
             parent=self)
 
-        close_file_2 = self.config_shortcut(
+        self.config_shortcut(
             self.close_file,
             context="Editor",
             name="close file 2",
             parent=self)
 
-        go_to_next_cell = self.config_shortcut(
+        self.config_shortcut(
             self.advance_cell,
             context="Editor",
             name="go to next cell",
             parent=self)
 
-        go_to_previous_cell = self.config_shortcut(
+        self.config_shortcut(
             lambda: self.advance_cell(reverse=True),
             context="Editor",
             name="go to previous cell",
             parent=self)
 
-        prev_warning = self.config_shortcut(
+        self.config_shortcut(
             self.sig_prev_warning,
             context="Editor",
             name="Previous warning",
             parent=self)
 
-        next_warning = self.config_shortcut(
+        self.config_shortcut(
             self.sig_next_warning,
             context="Editor",
             name="Next warning",
             parent=self)
 
-        split_vertically = self.config_shortcut(
+        self.config_shortcut(
             self.sig_split_vertically,
             context="Editor",
             name="split vertically",
             parent=self)
 
-        split_horizontally = self.config_shortcut(
+        self.config_shortcut(
             self.sig_split_horizontally,
             context="Editor",
             name="split horizontally",
             parent=self)
 
-        close_split = self.config_shortcut(
+        self.config_shortcut(
             self.close_split,
             context="Editor",
             name="close split panel",
             parent=self)
 
-        external_fileexp = self.config_shortcut(
+        self.config_shortcut(
             self.show_in_external_file_explorer,
             context="Editor",
             name="show in external file explorer",
             parent=self)
-
-        # Return configurable ones
-        return [inspect, gotoline, tab, tabshift, new_file, open_file,
-                save_file, save_all, save_as, close_all, prev_edit_pos,
-                prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
-                zoom_out, zoom_reset, close_file_1, close_file_2,
-                go_to_next_cell, go_to_previous_cell,
-                prev_warning, next_warning, split_vertically,
-                split_horizontally, close_split,
-                prevtab, nexttab, external_fileexp]
 
     def update_switcher_actions(self, switcher_available):
         if self.use_switcher and switcher_available:
@@ -619,15 +609,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         else:
             self.switcher_action = None
             self.symbolfinder_action = None
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""

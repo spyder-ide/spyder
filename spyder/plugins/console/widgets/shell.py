@@ -665,56 +665,50 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    def __init__(self, parent, history_filename, profile=False, initial_message=None):
-        ShellBaseWidget.__init__(self, parent, history_filename,
-                                 profile=profile,
-                                 initial_message=initial_message)
+    def __init__(
+        self, parent, history_filename, profile=False, initial_message=None
+    ):
+        ShellBaseWidget.__init__(
+            self,
+            parent,
+            history_filename,
+            profile=profile,
+            initial_message=initial_message
+        )
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 
         # Local shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.create_shortcuts()
 
     def create_shortcuts(self):
-        array_inline = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.enter_array_inline,
             context='array_builder',
             name='enter array inline',
             parent=self)
-        array_table = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.enter_array_table,
             context='array_builder',
             name='enter array table',
             parent=self)
-        inspectsc = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.inspect_current_object,
             context='Console',
             name='Inspect current object',
             parent=self)
-        clear_line_sc = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.clear_line,
             context='Console',
             name="Clear line",
             parent=self,
         )
-        clear_shell_sc = CONF.config_shortcut(
+        CONF.config_shortcut(
             self.clear_terminal,
             context='Console',
             name="Clear shell",
             parent=self,
         )
-
-        return [inspectsc, array_inline, array_table, clear_line_sc,
-                clear_shell_sc]
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
 
     #------ Context menu
     def setup_context_menu(self):
