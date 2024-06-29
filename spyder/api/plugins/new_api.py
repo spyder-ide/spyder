@@ -10,6 +10,8 @@ New API for plugins.
 All plugins in Spyder 5+ must inherit from the classes present in this file.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 from collections import OrderedDict
 import inspect
@@ -23,7 +25,7 @@ import warnings
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMainWindow
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -320,7 +322,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self._actions = {}
         self.is_compatible = None
         self.is_registered = None
-        self.main = parent
+        self.main: QMainWindow = parent
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -421,7 +423,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         return self._main
 
-    def get_plugin(self, plugin_name, error=True):
+    def get_plugin(self, plugin_name, error=True) -> SpyderPluginV2:
         """
         Get a plugin instance by providing its name.
 
