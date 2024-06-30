@@ -38,7 +38,6 @@ from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
@@ -471,13 +470,10 @@ class ArrayView(QTableView, SpyderWidgetMixin):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        CONF.config_shortcut(
-            self.copy,
-            context='variable_explorer',
-            name='copy',
-            parent=self)
+        self.register_shortcut_for_widget(name='copy', triggered=self.copy)
         self.horizontalScrollBar().valueChanged.connect(
-            self._load_more_columns)
+            self._load_more_columns
+        )
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
 
     def _load_more_columns(self, value):

@@ -3268,17 +3268,19 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
         timeout=SHELL_TIMEOUT)
 
     # Setup shortcuts (set run cell and advance shortcut to run selection)
-    base_run_cell_advance = CONF.get_shortcut(
-        'editor', 'run cell and advance')  # Should be Shift+Return
-    base_run_selection = CONF.get_shortcut(
-        'editor', 'run selection and advance')  # Should be F9
+    base_run_cell_advance = main_window.get_shortcut(
+        'run cell and advance', 'editor'
+    )  # Should be Shift+Return
+    base_run_selection = main_window.get_shortcut(
+        'run selection and advance', 'editor'
+    )  # Should be F9
     assert base_run_cell_advance == 'Shift+Return'
     assert base_run_selection == 'F9'
 
-    CONF.set_shortcut(
-        'editor', 'run cell and advance', '')
-    CONF.set_shortcut(
-        'editor', 'run selection and advance', base_run_cell_advance)
+    main_window.set_shortcut('', 'run cell and advance', 'editor')
+    main_window.set_shortcut(
+        base_run_cell_advance, 'run selection and advance', 'editor'
+    )
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):
         main_window.shortcuts.apply_shortcuts()
 
@@ -3286,7 +3288,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     # Create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.set_text(u'print(0)\n#%%\nprint(ññ)')
+    code_editor.set_text('print(0)\n#%%\nprint(ññ)')
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
@@ -3294,8 +3296,8 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     assert u'ññ' not in shell._control.toPlainText()
 
     # Reset shortcuts
-    CONF.set_shortcut('editor', 'run selection and advance', 'F9')
-    CONF.set_shortcut('editor', 'run cell and advance', 'Shift+Return')
+    main_window.set_shortcut('F9', 'run selection and advance', 'editor')
+    main_window.set_shortcut('Shift+Return', 'run cell and advance', 'editor')
 
     # Wait for shortcut change to actually be applied
     with qtbot.waitSignal(main_window.shortcuts.sig_shortcuts_updated):

@@ -159,7 +159,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
-        self.create_shortcuts()
+        self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -925,55 +925,22 @@ the sympy module (e.g. plot)
         )
         self.ipyclient.reset_warning = not message_box.is_checked()
 
-    def create_shortcuts(self):
-        """Create shortcuts for ipyconsole."""
-        self.config_shortcut(
-            self._control.inspect_current_object,
-            context='ipython_console',
-            name='Inspect current object',
-            parent=self)
+    def regiter_shortcuts(self):
+        """Register shortcuts for this widget."""
 
-        self.config_shortcut(
-            self.clear_console,
-            context='ipython_console',
-            name='Clear shell',
-            parent=self)
+        shortcuts = (
+            ('Inspect current object', self._control.inspect_current_object),
+            ('Clear shell', self.clear_console),
+            ('Restart kernel', self.sig_restart_kernel),
+            ('new tab', self.sig_new_client),
+            ('reset namespace', self._reset_namespace),
+            ('enter array inline', self._control.enter_array_inline),
+            ('enter array table', self._control.enter_array_table),
+            ('clear line', self.ipyclient.clear_line),
+        )
 
-        self.config_shortcut(
-            self.sig_restart_kernel,
-            context='ipython_console',
-            name='Restart kernel',
-            parent=self)
-
-        self.config_shortcut(
-            self.sig_new_client,
-            context='ipython_console',
-            name='new tab',
-            parent=self)
-
-        self.config_shortcut(
-            self._reset_namespace,
-            context='ipython_console',
-            name='reset namespace',
-            parent=self)
-
-        self.config_shortcut(
-            self._control.enter_array_inline,
-            context='ipython_console',
-            name='enter array inline',
-            parent=self)
-
-        self.config_shortcut(
-            self._control.enter_array_table,
-            context='ipython_console',
-            name='enter array table',
-            parent=self)
-
-        self.config_shortcut(
-            self.ipyclient.clear_line,
-            context='ipython_console',
-            name='clear line',
-            parent=self)
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
     # --- To communicate with the kernel
     def silent_execute(self, code):

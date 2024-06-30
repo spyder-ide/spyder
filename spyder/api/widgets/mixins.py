@@ -29,6 +29,7 @@ from spyder.api.config.mixins import (
     SpyderConfigurationObserver
 )
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.manager import CONF
@@ -650,9 +651,14 @@ class SpyderActionMixin:
         raise NotImplementedError('')
 
 
-class SpyderWidgetMixin(SpyderActionMixin, SpyderConfigurationObserver,
-                        SpyderMenuMixin, SpyderToolbarMixin,
-                        SpyderToolButtonMixin):
+class SpyderWidgetMixin(
+    SpyderActionMixin,
+    SpyderConfigurationObserver,
+    SpyderMenuMixin,
+    SpyderToolbarMixin,
+    SpyderToolButtonMixin,
+    SpyderShortcutsMixin,
+):
     """
     Basic functionality for all Spyder widgets and Qt items.
 

@@ -246,11 +246,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         for name in editor_shortcuts:
             action = self.get_action(name)
             # TODO: This should be handled differently?
-            CONF.config_shortcut(
-                action.trigger,
-                context=self.CONF_SECTION,
+            self.get_widget().register_shortcut_for_widget(
                 name=name,
-                parent=editor.get_widget()
+                triggered=action.trigger,
             )
             editor.get_widget().pythonfile_dependent_actions += [action]
 

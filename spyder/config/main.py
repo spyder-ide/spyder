@@ -500,10 +500,12 @@ DEFAULTS = [
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
+              'editor/enter array inline': "Ctrl+Alt+M",
+              'editor/enter array table': "Ctrl+M",
               # -- Internal console --
-              'console/inspect current object': "Ctrl+I",
-              'console/clear shell': "Ctrl+L",
-              'console/clear line': "Shift+Escape",
+              'internal_console/inspect current object': "Ctrl+I",
+              'internal_console/clear shell': "Ctrl+L",
+              'internal_console/clear line': "Shift+Escape",
               # -- Pylint --
               'pylint/run file in pylint': "F8",
               # -- Profiler --
@@ -520,9 +522,6 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              # -- Array buider --
-              'array_builder/enter array inline': "Ctrl+Alt+M",
-              'array_builder/enter array table': "Ctrl+M",
               # -- Variable explorer --
               'variable_explorer/copy': 'Ctrl+C',
               'variable_explorer/search': 'Ctrl+F',
@@ -671,4 +670,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '83.0.0'
+CONF_VERSION = '84.0.0'
