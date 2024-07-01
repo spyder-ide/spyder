@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-01 22:47\n"
+"PO-Revision-Date: 2024-07-01 23:59\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5465,147 +5465,147 @@ msgstr "Estamos estableciendo la conexión. Por favor sea paciente"
 
 #: spyder/plugins/remoteclient/api/client.py:533
 msgid "It was not possible to open a connection to this machine"
-msgstr ""
+msgstr "No fue posible conectarse a esta máquina"
 
 #: spyder/plugins/remoteclient/api/client.py:643
 msgid "The connection was closed successfully"
-msgstr ""
+msgstr "Se ha cerrado la conexión con éxito"
 
 #: spyder/plugins/remoteclient/api/ssh.py:61
 msgid "The connection was lost"
-msgstr ""
+msgstr "La conexión se ha perdido"
 
 #: spyder/plugins/remoteclient/plugin.py:79
 msgid "Remote client"
-msgstr ""
+msgstr "Cliente remoto"
 
 #: spyder/plugins/remoteclient/plugin.py:83
 msgid "Connect to remote machines to run code on them."
-msgstr ""
+msgstr "Conéctese a máquinas remotas para ejecutar código en ellas."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:104
 msgid "The name you selected is already used by another connection."
-msgstr ""
+msgstr "El nombre seleccionado ya está siendo usado por otra conexión."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:114
 msgid "The address you provided is not a valid IP or domain name."
-msgstr ""
+msgstr "La dirección que ha proporcionado no es una IP o nombre de dominio válido."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:124
 msgid "There are missing fields on this page."
-msgstr ""
+msgstr "Faltan campos en esta página."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:225
 msgid "Configure SSH settings for connecting to remote hosts"
-msgstr ""
+msgstr "Configurar ajustes SSH para conectarse a hosts remotos"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:227
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely, such as on a cloud instance, office workstation or high-performance cluster."
-msgstr ""
+msgstr "Spyder utilizará esta conexión para iniciar núcleos remotos en la Terminal de IPython. Esto le permite usar Spyder localmente mientras ejecuta código de forma remota, como en una instancia en la nube, estación de trabajo de oficina o clúster de alto rendimiento."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:256
 msgid "Password"
-msgstr ""
+msgstr "Contraseña"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:257
 msgid "Key file"
-msgstr ""
+msgstr "Archivo de clave"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:258
 msgid "Configuration file"
-msgstr ""
+msgstr "Archivo de configuración"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:309 spyder/plugins/remoteclient/widgets/connectiondialog.py:484
 msgid "Name *"
-msgstr ""
+msgstr "Nombre *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:311 spyder/plugins/remoteclient/widgets/connectiondialog.py:486
 msgid "Introduce a name to identify your connection"
-msgstr ""
+msgstr "Introduzca un nombre para identificar su conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:313
 msgid "This connection name is already taken"
-msgstr ""
+msgstr "Este nombre de conexión ya está en uso"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:317
 msgid "Remote address *"
-msgstr ""
+msgstr "Dirección remota *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:319
 msgid "This is the IP address or domain name of your remote machine"
-msgstr ""
+msgstr "Esta es la dirección IP o el nombre de dominio de su máquina remota"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:323
 msgid "The address is not a valid IP or domain name"
-msgstr ""
+msgstr "La dirección no es una IP o nombre de dominio válido"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:327
 msgid "Port"
-msgstr ""
+msgstr "Puerto"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:336
 msgid "Username *"
-msgstr ""
+msgstr "Nombre de usuario *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:382
 msgid "Password *"
-msgstr ""
+msgstr "Contraseña *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:385
 msgid "Your password will be saved securely by Spyder"
-msgstr ""
+msgstr "Su contraseña será guardada de forma segura por Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:387
 msgid "Your password is saved securely by Spyder"
-msgstr ""
+msgstr "Su contraseña ha sido guardada de forma segura por Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:431
 msgid "Key file *"
-msgstr ""
+msgstr "Archivo de clave *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:438
 msgid "Passpharse"
-msgstr ""
+msgstr "Frase de contraseña (passphrase)"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:441
 msgid "Your passphrase will be saved securely by Spyder"
-msgstr ""
+msgstr "Su frase de contraseña (passphrase) será guardada de forma segura por Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:443
 msgid "Your passphrase is saved securely by Spyder"
-msgstr ""
+msgstr "Su frase de contraseña (passphrase) ha sido guardada de forma segura por Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:491
 msgid "Configuration file *"
-msgstr ""
+msgstr "Archivo de configuración *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:574
 msgid "New connection"
-msgstr ""
+msgstr "Nueva conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:633
 msgid "Connection status"
-msgstr ""
+msgstr "Estado de la conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:634
 msgid "Connection info"
-msgstr ""
+msgstr "Información de la conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:743
 msgid "Save connection"
-msgstr ""
+msgstr "Guardar conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:751 spyder/plugins/remoteclient/widgets/connectiondialog.py:869
 msgid "Remove connection"
-msgstr ""
+msgstr "Eliminar conexión"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:759
 msgid "Clear settings"
-msgstr ""
+msgstr "Borrar la configuración"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:765
 msgid "Connect"
-msgstr ""
+msgstr "Conectar"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:769 spyder/widgets/browser.py:200
 msgid "Stop"
@@ -5613,43 +5613,43 @@ msgstr "Detener"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:870
 msgid "Do you want to remove the connection called <b>{}</b>?"
-msgstr ""
+msgstr "¿Desea eliminar la conexión llamada <b>{}</b>?"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:28
 msgid "Inactive"
-msgstr ""
+msgstr "Inactiva"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:29
 msgid "Connecting..."
-msgstr ""
+msgstr "Conectando..."
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:30
 msgid "Active"
-msgstr ""
+msgstr "Activa"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:31
 msgid "Stopping..."
-msgstr ""
+msgstr "Deteniendo..."
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:80
 msgid "Username: {}"
-msgstr ""
+msgstr "Nombre de usuario: {}"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:159
 msgid "The connection hasn't been used"
-msgstr ""
+msgstr "La conexión no ha sido usada"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:167
 msgid "Connection to: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Conexión a: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:173
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Estado: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:131
 msgid "Manage remote connections..."
-msgstr ""
+msgstr "Gestionar conexiones remotas..."
 
 #: spyder/plugins/remoteclient/widgets/container.py:138
 msgid "New console in remote server"
@@ -6266,7 +6266,8 @@ msgstr ""
 #: spyder/plugins/updatemanager/widgets/status.py:77
 msgid "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
-msgstr ""
+msgstr "La descarga de la actualización continuará en segundo plano.\n"
+"Haga clic aquí para mostrar el diálogo de descarga de nuevo."
 
 #: spyder/plugins/updatemanager/widgets/update.py:42
 msgid "Downloading update"
@@ -6286,7 +6287,7 @@ msgstr "Comprobando actualizaciones"
 
 #: spyder/plugins/updatemanager/widgets/update.py:46
 msgid "Install on close"
-msgstr ""
+msgstr "Instalar al cerrar"
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "<h3>Spyder {} is available!</h3><br>"
@@ -6310,23 +6311,23 @@ msgstr "¿Desea descargarla e instalarla automáticamente?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:337
 msgid "Downloading Spyder {} ..."
-msgstr ""
+msgstr "Descargando Spyder {} ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:380
 msgid "Do you really want to cancel the download?"
-msgstr ""
+msgstr "¿Realmente desea cancelar la descarga?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:382
 msgid "Spyder download"
-msgstr ""
+msgstr "Descarga de Spyder"
 
 #: spyder/plugins/updatemanager/widgets/update.py:410
 msgid "Would you like to install it?"
-msgstr ""
+msgstr "¿Le gustaría instalarla?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:414
 msgid "Spyder install"
-msgstr ""
+msgstr "Instalación de Spyder"
 
 #: spyder/plugins/updatemanager/widgets/update.py:480
 msgid "Check for updates at startup"
@@ -6338,7 +6339,7 @@ msgstr "Aceptar"
 
 #: spyder/plugins/updatemanager/widgets/update.py:523
 msgid "Spyder update error"
-msgstr ""
+msgstr "Error de actualización de Spyder"
 
 #: spyder/plugins/updatemanager/widgets/update.py:534
 msgid "New Spyder version"
@@ -6426,7 +6427,7 @@ msgstr "Explorador de variables"
 
 #: spyder/plugins/variableexplorer/plugin.py:45
 msgid "Explore, edit, save and load the lists, arrays, dataframes and other global variables generated by running your code."
-msgstr ""
+msgstr "Explore, edite, guarde y cargue las listas, arreglos, dataframes y otras variables globales generadas al ejecutar tu código."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:612
 msgid "It was not possible to copy values for this array"
@@ -6446,7 +6447,7 @@ msgstr "El formato (%s) es incorrecto"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:756 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1721
 msgid "Set format of floating-point numbers"
-msgstr ""
+msgstr "Establecer el formato de números de punto flotante"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:762 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1710 spyder/widgets/browser.py:191 spyder/widgets/collectionseditor.py:1612
 msgid "Refresh"
@@ -6454,7 +6455,7 @@ msgstr "Actualizar"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:764 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1712 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:245 spyder/widgets/collectionseditor.py:1614
 msgid "Refresh editor with current value of variable in console"
-msgstr ""
+msgstr "Actualizar el editor con el valor actual de la variable en la consola"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:771
 msgid "Resize"
@@ -6478,7 +6479,7 @@ msgstr "<u>Advertencia</u>: Los cambios son aplicados de forma separada"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:850
 msgid "For performance reasons, changes applied to masked arrays won'tbe reflected in array's data (and vice-versa)."
-msgstr ""
+msgstr "Por razones de rendimiento, los cambios aplicados a arreglos enmascarados no se verán reflejados en los datos del arreglo (y viceversa)."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:859 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1819 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:353 spyder/plugins/variableexplorer/widgets/texteditor.py:65 spyder/widgets/collectionseditor.py:1737
 msgid "Save and Close"
@@ -6534,19 +6535,19 @@ msgstr "Eje:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1146 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2288 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:433 spyder/widgets/collectionseditor.py:1796
 msgid "The variable no longer exists."
-msgstr ""
+msgstr "La variable ya no existe."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1151
 msgid "The new value cannot be displayed in the array editor."
-msgstr ""
+msgstr "El nuevo valor no se puede mostrar en el editor de arreglos."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1162 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2305 spyder/widgets/collectionseditor.py:1816
 msgid "Refreshing the editor will overwrite the changes that you made. Do you want to proceed?"
-msgstr ""
+msgstr "Al actualizar el editor se sobrescribirán los cambios realizados. ¿Desea continuar?"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1166
 msgid "Refresh array editor?"
-msgstr ""
+msgstr "¿Actualizar el editor de arreglos?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:152 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:553
 msgid "Opening this variable can be slow\n\n"
@@ -6556,11 +6557,11 @@ msgstr "Abrir e inspeccionar esta variable puede tomar mucho tiempo\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:170
 msgid "Spyder is unable to show the {val_type} object you're trying to view because <tt>{module}</tt> is missing. Please install that package in your Spyder environment to fix this problem."
-msgstr ""
+msgstr "Spyder no puede mostrar el objeto {val_type} que está intentando ver porque falta <tt>{module}</tt>. Por favor, instale este paquete en su entorno de Spyder para arreglar este problema."
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:180
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported by Spyder's standalone application.<br>"
-msgstr ""
+msgstr "Spyder no puede mostrar la variable que intenta ver porque el módulo <tt>{module}</tt> no es soportado por la aplicación independiente (standalone) de Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:185
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not found in your Spyder environment. Please install this package in this environment.<br>"
@@ -6585,7 +6586,8 @@ msgstr "Spyder no fue capaz de extraer el valor de esta variable de la terminal.
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:463
 msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
-msgstr ""
+msgstr "No es posible mostrar este valor porque ocurrió\n"
+"un error mientras se intentaba hacerlo"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:798 spyder/plugins/variableexplorer/widgets/main_widget.py:181 spyder/widgets/collectionseditor.py:715
 msgid "Resize rows to contents"
@@ -6601,51 +6603,51 @@ msgstr "Insertar debajo"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:833
 msgid "Insert before"
-msgstr ""
+msgstr "Insertar antes"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:840
 msgid "Insert after"
-msgstr ""
+msgstr "Insertar después"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:847
 msgid "Remove row"
-msgstr ""
+msgstr "Quitar fila"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:854
 msgid "Remove column"
-msgstr ""
+msgstr "Quitar columna"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:861
 msgid "Duplicate row"
-msgstr ""
+msgstr "Duplicar fila"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:868
 msgid "Duplicate column"
-msgstr ""
+msgstr "Duplicar columna"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:887
 msgid "Convert to"
-msgstr ""
+msgstr "Convertir a"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:891
 msgid "Bool"
-msgstr ""
+msgstr "Bool"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:892
 msgid "Complex"
-msgstr ""
+msgstr "Complex"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:893
 msgid "Int"
-msgstr ""
+msgstr "Int"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:894
 msgid "Float"
-msgstr ""
+msgstr "Float"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:895
 msgid "Str"
-msgstr ""
+msgstr "Str"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:968
 msgid "Text can't be copied."
@@ -6653,15 +6655,15 @@ msgstr "El texto no puede ser copiado."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1022 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1023
 msgid "Enter a value"
-msgstr ""
+msgstr "Introduzca un valor"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1054
 msgid "Warning: Duplicate column"
-msgstr ""
+msgstr "Advertencia: Columna duplicada"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1055
 msgid "Column with name \"{}\" already exists!"
-msgstr ""
+msgstr "¡La columna con el nombre \"{}\" ya existe!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1376 spyder/widgets/collectionseditor.py:1177
 msgid "Do you want to remove the selected item?"
@@ -6673,23 +6675,23 @@ msgstr "¿Desea eliminar todas las variables seleccionadas?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1392
 msgid "Warning: It was not possible to remove this item!"
-msgstr ""
+msgstr "Advertencia: ¡No fue posible eliminar este elemento!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1393 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1585
 msgid "ValueError: {} must be removed from index."
-msgstr ""
+msgstr "ValueError: {} debe ser eliminado del índice."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1583
 msgid "Warning: It was not possible to remove this index!"
-msgstr ""
+msgstr "Advertencia: ¡No fue posible eliminar este índice!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1592
 msgid "Warning: Duplicate index!"
-msgstr ""
+msgstr "Advertencia: ¡Índice duplicado!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1593
 msgid "Row with name \"{}\" already exists!"
-msgstr ""
+msgstr "¡La fila con el nombre \"{}\" ya existe!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1659 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1664 spyder/widgets/collectionseditor.py:224
 msgid "Index"
