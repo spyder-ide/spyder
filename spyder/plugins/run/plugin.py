@@ -11,11 +11,12 @@ Run Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 from threading import Lock
 from typing import List, Optional
 
 # Third-party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAction
 
@@ -406,8 +407,8 @@ class Run(SpyderPluginV2):
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
         context_modificator: Optional[str] = None,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False,
+        add_to_toolbar: bool | str = False,
+        add_to_menu: bool | dict = False,
         re_run: bool = False
     ) -> QAction:
         """
@@ -435,10 +436,10 @@ class Run(SpyderPluginV2):
         context_modificator: Optional[str]
             The name of the modification to apply to the action, e.g. run
             selection <up to line>.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
             main toolbar. If a string, it must be a toolbar_id
-        add_to_menu: object
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
@@ -613,8 +614,9 @@ class Run(SpyderPluginV2):
         tip: Optional[str] = None,
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False
+        add_to_toolbar: bool | str = False,
+        add_to_menu: bool | dict = False,
+        shortcut_widget_context: Qt.ShortcutContext = Qt.WidgetShortcut,
     ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
@@ -637,13 +639,15 @@ class Run(SpyderPluginV2):
         register_shortcut: bool
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
             main toolbar. If a string, it will be a toolbat id
-        add_to_menu: object
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
+        shortcut_widget_context: Qt.ShortcutContext
+            Qt context for the shorctut set for this button.
 
         Returns
         -------
@@ -676,7 +680,8 @@ class Run(SpyderPluginV2):
             icon=icon,
             tip=tip,
             shortcut_context=shortcut_context,
-            register_shortcut=register_shortcut
+            register_shortcut=register_shortcut,
+            shortcut_widget_context=shortcut_widget_context,
         )
 
         if add_to_toolbar:

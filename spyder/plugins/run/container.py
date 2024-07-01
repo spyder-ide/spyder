@@ -516,6 +516,7 @@ class RunContainer(PluginMainContainer):
         tip: Optional[str] = None,
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
+        shortcut_widget_context: int = Qt.WidgetShortcut
     ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
@@ -585,7 +586,7 @@ class RunContainer(PluginMainContainer):
             triggered=func,
             register_shortcut=register_shortcut,
             shortcut_context=shortcut_context,
-            context=Qt.ApplicationShortcut
+            context=shortcut_widget_context
         )
 
         self.run_executor_actions[(context_name, executor_name)] = (

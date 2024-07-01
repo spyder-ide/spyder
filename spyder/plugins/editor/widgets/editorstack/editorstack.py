@@ -30,6 +30,7 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.plugins import Plugins
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
@@ -133,6 +134,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
     sig_trigger_run_action = Signal(str)
+    sig_trigger_debugger_action = Signal(str)
 
     sig_codeeditor_created = Signal(object)
     """
@@ -472,6 +474,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "run selection and advance",
             "run selection up to line",
             "run selection from line",
+            "run cell in debugger",
+            "run selection in debugger",
         ]:
             self.register_shortcut_for_widget(
                 name=action_id,
@@ -479,6 +483,23 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     self.sig_trigger_run_action.emit,
                     action_id,
                 ),
+            )
+
+        for action_id in [
+            "next",
+            "continue",
+            "step",
+            "return",
+            "toggle breakpoint",
+            "toggle conditional breakpoint",
+        ]:
+            self.register_shortcut_for_widget(
+                name=action_id,
+                triggered=functools.partial(
+                    self.sig_trigger_debugger_action.emit,
+                    action_id,
+                ),
+                context=Plugins.Debugger,
             )
 
     def update_switcher_actions(self, switcher_available):

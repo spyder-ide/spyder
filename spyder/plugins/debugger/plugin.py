@@ -11,7 +11,7 @@ import os.path as osp
 from typing import List
 
 # Third-party imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Qt, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -19,7 +19,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.shellconnect.mixins import ShellConnectPluginMixin
 from spyder.api.translations import _
-from spyder.config.manager import CONF
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
@@ -165,7 +164,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug
+            add_to_toolbar=ApplicationToolbars.Debug,
+            shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
         run.create_run_in_executor_button(
@@ -246,10 +246,6 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         for name in editor_shortcuts:
             action = self.get_action(name)
             # TODO: This should be handled differently?
-            self.get_widget().register_shortcut_for_widget(
-                name=name,
-                triggered=action.trigger,
-            )
             editor.get_widget().pythonfile_dependent_actions += [action]
 
     @on_plugin_teardown(plugin=Plugins.Editor)

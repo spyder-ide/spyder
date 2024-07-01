@@ -1643,6 +1643,9 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
         editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
         editorstack.sig_trigger_run_action.connect(self.trigger_run_action)
+        editorstack.sig_trigger_debugger_action.connect(
+            self.trigger_debugger_action
+        )
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -2968,7 +2971,7 @@ class EditorMainWidget(PluginMainWidget):
 
         return editor.toPlainText()
 
-    # ---- Run files
+    # ---- Run/debug files
     # -------------------------------------------------------------------------
     def add_supported_run_configuration(self, config: EditorRunConfiguration):
         origin = config['origin']
@@ -3166,6 +3169,11 @@ class EditorMainWidget(PluginMainWidget):
     def trigger_run_action(self, action_id):
         """Trigger a run action according to its id."""
         action = self.get_action(action_id, plugin=Plugins.Run)
+        action.trigger()
+
+    def trigger_debugger_action(self, action_id):
+        """Trigger a run action according to its id."""
+        action = self.get_action(action_id, plugin=Plugins.Debugger)
         action.trigger()
 
     # ---- Code bookmarks
