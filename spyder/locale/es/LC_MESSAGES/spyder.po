@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-28 21:59\n"
+"PO-Revision-Date: 2024-07-01 22:47\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5449,19 +5449,19 @@ msgstr "Se ha establecido la conexión con éxito"
 
 #: spyder/plugins/remoteclient/api/client.py:329 spyder/plugins/remoteclient/api/client.py:389
 msgid "It was not possible to forward the local port"
-msgstr ""
+msgstr "No fue posible enrutar el puerto local"
 
 #: spyder/plugins/remoteclient/api/client.py:352
 msgid "Error starting the remote server"
-msgstr ""
+msgstr "Error iniciando el servidor remoto"
 
 #: spyder/plugins/remoteclient/api/client.py:365
 msgid "Error getting server info"
-msgstr ""
+msgstr "Error obteniendo la información del servidor"
 
 #: spyder/plugins/remoteclient/api/client.py:515
 msgid "We're establishing the connection. Please be patient"
-msgstr ""
+msgstr "Estamos estableciendo la conexión. Por favor sea paciente"
 
 #: spyder/plugins/remoteclient/api/client.py:533
 msgid "It was not possible to open a connection to this machine"
