@@ -490,7 +490,7 @@ class RunContainer(PluginMainContainer):
             triggered=func,
             register_shortcut=register_shortcut,
             shortcut_context=shortcut_context,
-            context=Qt.ApplicationShortcut
+            context=Qt.WidgetShortcut,
         )
 
         if re_run:

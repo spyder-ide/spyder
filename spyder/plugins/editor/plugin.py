@@ -264,7 +264,7 @@ class Editor(SpyderDockablePlugin):
             RunContext.Cell,
             _("Run cell"),
             icon=self.create_icon('run_cell'),
-            tip=_("Run current cell\n[Use #%% to create cells]"),
+            tip=_("Run current cell"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,

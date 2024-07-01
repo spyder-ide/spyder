@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import functools
 import logging
 import os
 import os.path as osp
@@ -131,6 +132,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+    sig_trigger_run_action = Signal(str)
 
     sig_codeeditor_created = Signal(object)
     """
@@ -461,6 +463,23 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
+
+        # Register shortcuts for run actions
+        for action_id in [
+            "run cell",
+            "run cell and advance",
+            "re-run cell",
+            "run selection and advance",
+            "run selection up to line",
+            "run selection from line",
+        ]:
+            self.register_shortcut_for_widget(
+                name=action_id,
+                triggered=functools.partial(
+                    self.sig_trigger_run_action.emit,
+                    action_id,
+                ),
+            )
 
     def update_switcher_actions(self, switcher_available):
         if self.use_switcher and switcher_available:
