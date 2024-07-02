@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-01 23:59\n"
+"PO-Revision-Date: 2024-07-02 01:02\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -6707,11 +6707,11 @@ msgstr "Editor de %s"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2293
 msgid "The new value cannot be displayed in the dataframe editor."
-msgstr ""
+msgstr "El nuevo valor no se puede mostrar en el editor de dataframes."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2309
 msgid "Refresh dataframe editor?"
-msgstr ""
+msgstr "¿Actualizar el editor de dataframes?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2316
 msgid "Dataframe editor"
