@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-02 01:02\n"
+"PO-Revision-Date: 2024-07-02 21:10\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5653,15 +5653,15 @@ msgstr "Gestionar conexiones remotas..."
 
 #: spyder/plugins/remoteclient/widgets/container.py:138
 msgid "New console in remote server"
-msgstr ""
+msgstr "Nueva terminal en servidor remoto"
 
 #: spyder/plugins/remoteclient/widgets/container.py:215
 msgid "There was an error connecting to the server <b>{}</b>"
-msgstr ""
+msgstr "Hubo un error conectándose al servidor <b>{}</b>"
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
-msgstr ""
+msgstr "%s (copia)"
 
 #: spyder/plugins/run/confpage.py:210
 msgid "The following are the global configuration settings of the different plugins that can execute files in Spyder."
