@@ -275,7 +275,7 @@ class RemoteClientContainer(PluginMainContainer):
 
         kernel_handler = KernelHandler.from_connection_info(
             connection_info,
-            conn=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
+            ssh_conn=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
         )
 
         # Connect client to the kernel
