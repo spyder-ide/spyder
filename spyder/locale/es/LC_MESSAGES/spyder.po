@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-02 21:10\n"
+"PO-Revision-Date: 2024-07-02 22:07\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5665,35 +5665,35 @@ msgstr "%s (copia)"
 
 #: spyder/plugins/run/confpage.py:210
 msgid "The following are the global configuration settings of the different plugins that can execute files in Spyder."
-msgstr ""
+msgstr "Las siguientes son las configuraciones globales de los diferentes plugins que pueden ejecutar archivos en Spyder."
 
 #: spyder/plugins/run/confpage.py:219
 msgid "Available parameters:"
-msgstr ""
+msgstr "Parámetros disponibles:"
 
 #: spyder/plugins/run/confpage.py:228
 msgid "Executor:"
-msgstr ""
+msgstr "Ejecutor:"
 
 #: spyder/plugins/run/confpage.py:245
 msgid "New parameters"
-msgstr ""
+msgstr "Nuevos parámetros"
 
 #: spyder/plugins/run/confpage.py:250
 msgid "Edit selected"
-msgstr ""
+msgstr "Editar seleccionado"
 
 #: spyder/plugins/run/confpage.py:255
 msgid "Clone selected"
-msgstr ""
+msgstr "Clonar seleccionado"
 
 #: spyder/plugins/run/confpage.py:260
 msgid "Delete selected"
-msgstr ""
+msgstr "Eliminar seleccionado"
 
 #: spyder/plugins/run/confpage.py:265
 msgid "Reset current changes"
-msgstr ""
+msgstr "Restablecer los cambios actuales"
 
 #: spyder/plugins/run/confpage.py:303
 msgid "Save all files before running script"
@@ -5705,11 +5705,11 @@ msgstr "Copiar el contenido completo de las celdas a la terminal cuando se ejecu
 
 #: spyder/plugins/run/confpage.py:315
 msgid "Global configurations"
-msgstr ""
+msgstr "Configuraciones globales"
 
 #: spyder/plugins/run/confpage.py:316
 msgid "Editor interactions"
-msgstr ""
+msgstr "Interacciones del Editor"
 
 #: spyder/plugins/run/container.py:67
 msgid "Run file"
@@ -5717,7 +5717,7 @@ msgstr "Ejecutar archivo"
 
 #: spyder/plugins/run/container.py:79
 msgid "&Configuration per file"
-msgstr ""
+msgstr "&Configuración por archivo"
 
 #: spyder/plugins/run/container.py:81
 msgid "Run settings"
@@ -5725,11 +5725,11 @@ msgstr "Ajustes de ejecución"
 
 #: spyder/plugins/run/container.py:95
 msgid "&Global configurations"
-msgstr ""
+msgstr "Confi&guraciones globales"
 
 #: spyder/plugins/run/container.py:101
 msgid "Re-run &last file"
-msgstr ""
+msgstr "Ejecutar de nuevo e&l último archivo"
 
 #: spyder/plugins/run/container.py:103
 msgid "Run again last file"
@@ -5741,7 +5741,7 @@ msgstr "Por defecto"
 
 #: spyder/plugins/run/models.py:467
 msgid "File extension"
-msgstr ""
+msgstr "Extensión del archivo"
 
 #: spyder/plugins/run/models.py:469 spyder/plugins/shortcuts/widgets/table.py:577
 msgid "Context"
@@ -5749,11 +5749,11 @@ msgstr "Contexto"
 
 #: spyder/plugins/run/models.py:471
 msgid "Parameters name"
-msgstr ""
+msgstr "Nombre de los parámetros"
 
 #: spyder/plugins/run/plugin.py:73
 msgid "Manage run configuration for executing files."
-msgstr ""
+msgstr "Administrar configuraciones para la ejecución de archivos."
 
 #: spyder/plugins/run/widgets.py:61
 msgid "The directory of the file being executed"
@@ -5769,35 +5769,35 @@ msgstr "El siguiente directorio:"
 
 #: spyder/plugins/run/widgets.py:64
 msgid "Provide a name for this configuration"
-msgstr ""
+msgstr "Proporcione un nombre para esta configuración"
 
 #: spyder/plugins/run/widgets.py:65
 msgid "Select a different name for this configuration"
-msgstr ""
+msgstr "Seleccione un nombre diferente para esta configuración"
 
 #: spyder/plugins/run/widgets.py:66
 msgid "You are trying to save a configuration that is exactly the same as the current one"
-msgstr ""
+msgstr "Está intentando guardar una configuración que es exactamente igual a la actual"
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
-msgstr ""
+msgstr "Restablecer"
 
 #: spyder/plugins/run/widgets.py:212
 msgid "Save configuration as:"
-msgstr ""
+msgstr "Guardar configuración como:"
 
 #: spyder/plugins/run/widgets.py:214
 msgid "Configuration name:"
-msgstr ""
+msgstr "Nombre de la configuración:"
 
 #: spyder/plugins/run/widgets.py:245
 msgid "File extension:"
-msgstr ""
+msgstr "Extensión del archivo:"
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
-msgstr ""
+msgstr "Contexto de ejecución:"
 
 #: spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:667
 msgid "Working directory settings"
@@ -5805,43 +5805,43 @@ msgstr "Configuración del directorio de trabajo"
 
 #: spyder/plugins/run/widgets.py:322
 msgid "New run configuration for: {}"
-msgstr ""
+msgstr "Nueva configuración de ejecución para: {}"
 
 #: spyder/plugins/run/widgets.py:580
 msgid "Run this file in:"
-msgstr ""
+msgstr "Ejecutar este archivo en:"
 
 #: spyder/plugins/run/widgets.py:584
 msgid "This is the plugin that will be used for execution when you click on the Run button"
-msgstr ""
+msgstr "Este es el plugin que se utilizará para la ejecución cuando haga clic en el botón Ejecutar"
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
-msgstr ""
+msgstr "Configuración preestablecida:"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Select between global or local (i.e. for this file) execution parameters. You can set the latter below"
-msgstr ""
+msgstr "Seleccione entre parámetros de ejecución globales o locales (es decir, únicamente para este archivo). Puede establecer estos últimos a continuación"
 
 #: spyder/plugins/run/widgets.py:621
 msgid "Configuration properties"
-msgstr ""
+msgstr "Propiedades de configuración"
 
 #: spyder/plugins/run/widgets.py:630
 msgid "Name:"
-msgstr ""
+msgstr "Nombre:"
 
 #: spyder/plugins/run/widgets.py:633
 msgid "Set a name for this configuration"
-msgstr ""
+msgstr "Establezca un nombre para esta configuración"
 
 #: spyder/plugins/run/widgets.py:636
 msgid "You can set as many configurations as you want by providing different names. Each one will be saved after clicking the Ok button below"
-msgstr ""
+msgstr "Puede establecer tantas configuraciones como desee proporcionando diferentes nombres. Cada una se guardará después de hacer clic en el botón Ok de abajo"
 
 #: spyder/plugins/run/widgets.py:694
 msgid "Custom configuration"
-msgstr ""
+msgstr "Configuración personalizada"
 
 #: spyder/plugins/run/widgets.py:753
 msgid "Run configuration per file"
@@ -5849,11 +5849,11 @@ msgstr "Configuración de ejecución por archivo"
 
 #: spyder/plugins/run/widgets.py:894
 msgid "Do you want to delete the current configuration?"
-msgstr ""
+msgstr "¿Desea eliminar la configuración actual?"
 
 #: spyder/plugins/run/widgets.py:1135
 msgid "custom"
-msgstr ""
+msgstr "personalizado"
 
 #: spyder/plugins/shortcuts/confpage.py:27
 msgid "Search: "
@@ -5881,7 +5881,7 @@ msgstr "Atajos de teclado"
 
 #: spyder/plugins/shortcuts/plugin.py:67
 msgid "Manage application, pane and actions shortcuts."
-msgstr ""
+msgstr "Gestionar atajos de la aplicación, los paneles y las acciones."
 
 #: spyder/plugins/shortcuts/plugin.py:78
 msgid "Shortcuts Summary"
@@ -5893,7 +5893,7 @@ msgstr "Atajos de teclado de Spyder"
 
 #: spyder/plugins/shortcuts/widgets/table.py:179
 msgid "Press the new shortcut and select <b>Ok</b> to confirm, click <b>Cancel</b> to revert to the previous state, or use <b>Clear</b> to unbind the command from a shortcut."
-msgstr ""
+msgstr "Oprima el nuevo atajo y seleccione <b>Ok</b> para confirmar, oprima <b>Cancelar</b> para revertir al estado anterior, u oprima <b>Limpiar</b> para desvincular el comando de un atajo."
 
 #: spyder/plugins/shortcuts/widgets/table.py:190
 msgid "Current shortcut:"
@@ -5989,7 +5989,7 @@ msgstr "Barra de estado"
 
 #: spyder/plugins/statusbar/plugin.py:62
 msgid "Display the main window status bar."
-msgstr ""
+msgstr "Mostrar la barra de estado de la ventana principal."
 
 #: spyder/plugins/statusbar/widgets/status.py:30
 msgid "Global memory usage"
@@ -6021,11 +6021,11 @@ msgstr "Búsqueda rápida de símbolos en el archivo"
 
 #: spyder/plugins/switcher/plugin.py:89
 msgid "Switcher"
-msgstr ""
+msgstr "Cambiador"
 
 #: spyder/plugins/switcher/plugin.py:93
 msgid "Quickly switch between files and other items."
-msgstr ""
+msgstr "Cambie rápidamente entre archivos y otros elementos."
 
 #: spyder/plugins/switcher/tests/test_switcher.py:27 spyder/plugins/switcher/tests/test_switcher.py:193
 msgid "Commands"
@@ -6109,7 +6109,7 @@ msgstr "Barra de herramientas"
 
 #: spyder/plugins/toolbar/plugin.py:49
 msgid "Manage application toolbars."
-msgstr ""
+msgstr "Gestionar barras de herramientas de aplicación."
 
 #: spyder/plugins/toolbar/plugin.py:57
 msgid "File toolbar"
@@ -6137,7 +6137,7 @@ msgstr "Tours interactivos"
 
 #: spyder/plugins/tours/plugin.py:45
 msgid "Provide interactive tours of the Spyder interface."
-msgstr ""
+msgstr "Proporciona tours interactivos de la interfaz de Spyder."
 
 #: spyder/plugins/tours/plugin.py:54
 msgid "Introduction to Spyder"
@@ -6145,7 +6145,7 @@ msgstr "Introducción a Spyder"
 
 #: spyder/plugins/tours/tours.py:22
 msgid "Please click on the button below to run some simple code in this console. This will be useful to show you other important features."
-msgstr ""
+msgstr "Por favor, haga clic en el botón de abajo para ejecutar un código simple en esta terminal. Esto será útil para mostrar otras características importantes."
 
 #: spyder/plugins/tours/tours.py:71
 msgid "Welcome to the introduction tour!"
@@ -6253,15 +6253,15 @@ msgstr "Buscar actualizaciones..."
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
-msgstr ""
+msgstr "Comprobando actualizaciones..."
 
 #: spyder/plugins/updatemanager/plugin.py:38
 msgid "Update Manager"
-msgstr ""
+msgstr "Gestor de actualizaciones"
 
 #: spyder/plugins/updatemanager/plugin.py:46
 msgid "Manage application updates."
-msgstr ""
+msgstr "Gestionar actualizaciones de la aplicación."
 
 #: spyder/plugins/updatemanager/widgets/status.py:77
 msgid "Downloading the update will continue in the background.\n"
@@ -6715,7 +6715,7 @@ msgstr "¿Actualizar el editor de dataframes?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2316
 msgid "Dataframe editor"
-msgstr ""
+msgstr "Editor de dataframe"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2332
 msgid "Format ({}) is incorrect"
@@ -6851,7 +6851,7 @@ msgstr "Insertar"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:255
 msgid "Edit filters"
-msgstr ""
+msgstr "Editar filtros"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:276 spyder/widgets/collectionseditor.py:817 spyder/widgets/collectionseditor.py:1228
 msgid "Duplicate"
@@ -6903,15 +6903,15 @@ msgstr "Actualizar variables"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:449
 msgid "Filter variables"
-msgstr ""
+msgstr "Filtrar variables"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:94
 msgid "No variables to show"
-msgstr ""
+msgstr "No hay variables para mostrar"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:95
 msgid "Run code in the Editor or IPython console to see any global variables listed here for exploration and editing."
-msgstr ""
+msgstr "Ejecute código en el Editor o terminal de IPython para ver cualquier variable global listada aquí para su exploración y edición."
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:283
 msgid "<b>Warning: %s files can contain malicious code!</b><br><br>Do not continue unless this file is from a trusted source. Would you like to import it anyway?"
@@ -7091,7 +7091,7 @@ msgstr "Mostrar todos los atributos llamables"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:222
 msgid "Shows/hides attributes that are callable (functions, methods etc)"
-msgstr ""
+msgstr "Muestra u oculta los atributos que son \"llamables\" (callable) (funciones, métodos, etc.)"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:231
 msgid "Show __special__ attributes"
@@ -7107,7 +7107,7 @@ msgstr "Detalles"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:432
 msgid "Object explorer"
-msgstr ""
+msgstr "Explorador de objetos"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:73
 msgid "Shows or hides the {} column"
@@ -7187,7 +7187,7 @@ msgstr "Directorio de trabajo"
 
 #: spyder/plugins/workingdirectory/plugin.py:66
 msgid "Manage the current working directory used in Spyder."
-msgstr ""
+msgstr "Administrar el directorio de trabajo actual utilizado en Spyder."
 
 #: spyder/utils/environ.py:157
 msgid "Module <b>pywin32 was not found</b>.<br>Please restart this Windows <i>session</i> (not the computer) for changes to take effect."
@@ -7292,7 +7292,12 @@ msgid "\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
+msgstr "\n"
+"           <b>Ayudante de arreglos de Numpy</b><br><br>\n"
+"           * Escriba un arreglo usando la sintaxis: <tt>1 2;3 4</tt><br>\n"
+"           * Use dos espacios o tabulaciones para generar un <b>;</b>.<br>\n"
+"           * Puede presionar <b>Shift+Enter</b> para finalizar.\n"
+"           "
 
 #: spyder/widgets/arraybuilder.py:236
 msgid "\n"
@@ -7303,15 +7308,22 @@ msgid "\n"
 "           * Use two tabs at the end of a row to move to the next one.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
+msgstr "\n"
+"          <b>Ayudante de arreglos de Numpy</b><br><br>\n"
+"           * Introduzca un arreglo en la tabla.<br>\n"
+"           * Use <b>Tabulación</b> para moverse entre celdas o introducir\n"
+"             filas y columnas adicionales.<br>\n"
+"           * Use dos tabulaciones al final de una fila para moverse a la siguiente.<br>\n"
+"           * Puede presionar <b>Shift+Enter</b> para finalizar.\n"
+"           "
 
 #: spyder/widgets/arraybuilder.py:249
 msgid "Introduce contents"
-msgstr ""
+msgstr "Introduzca contenido"
 
 #: spyder/widgets/arraybuilder.py:425
 msgid "Array dimensions are not valid"
-msgstr ""
+msgstr "Las dimensiones del arreglo no son válidas"
 
 #: spyder/widgets/browser.py:136
 msgid "Forward"
@@ -7427,11 +7439,11 @@ msgstr "No hay nada para importar desde el portapapeles."
 
 #: spyder/widgets/collectionseditor.py:1795
 msgid "Collection editor"
-msgstr ""
+msgstr "Editor de colecciones"
 
 #: spyder/widgets/collectionseditor.py:1820
 msgid "Refresh collections editor?"
-msgstr ""
+msgstr "¿Actualizar el editor de colecciones?"
 
 #: spyder/widgets/comboboxes.py:194
 msgid "Press enter to validate this entry"
@@ -7475,11 +7487,11 @@ msgstr "Tipo de letra"
 
 #: spyder/widgets/config.py:1007
 msgid "{} font"
-msgstr ""
+msgstr "{} tipo de letra"
 
 #: spyder/widgets/config.py:1015
 msgid "{} font size"
-msgstr ""
+msgstr "{} tamaño de la fuente"
 
 #: spyder/widgets/config.py:1026
 msgid "Font style"
@@ -7519,7 +7531,7 @@ msgstr "Los módulos opcionales no son necesarios para correr Spyder pero mejora
 
 #: spyder/widgets/dependencies.py:110
 msgid "New dependencies or changed ones will be correctly detected only after Spyder is restarted."
-msgstr ""
+msgstr "Las dependencias nuevas o modificadas serán detectadas correctamente una vez que se reinicie Spyder."
 
 #: spyder/widgets/dependencies.py:130
 msgid "Copy to clipboard"
@@ -7527,11 +7539,11 @@ msgstr "Copiar al portapapeles"
 
 #: spyder/widgets/dependencies.py:135
 msgid "Dependencies for Spyder {}"
-msgstr ""
+msgstr "Dependencias de Spyder {}"
 
 #: spyder/widgets/dependencies.py:147
 msgid "Dependency information will be retrieved shortly. Please wait..."
-msgstr ""
+msgstr "La información de dependencias será recuperada en breve. Por favor espere..."
 
 #: spyder/widgets/dock.py:108
 msgid "Drag and drop pane to a different position"
@@ -7591,7 +7603,7 @@ msgstr "Credenciales inválidas"
 
 #: spyder/widgets/github/backend.py:158
 msgid "Failed to create issue on Github, invalid credentials..."
-msgstr ""
+msgstr "No fue posible crear el reporte de error en GitHub, sus credenciales son inválidas..."
 
 #: spyder/widgets/github/backend.py:171
 msgid "Failed to create issue"
@@ -7599,7 +7611,7 @@ msgstr "Ocurrió un problema al generar el reporte de error"
 
 #: spyder/widgets/github/backend.py:172
 msgid "Failed to create issue on Github. Status %d: %s"
-msgstr ""
+msgstr "No fue posible crear el reporte de error en GitHub. Estado %d: %s"
 
 #: spyder/widgets/github/backend.py:189
 msgid "Issue created on Github"
@@ -7739,7 +7751,7 @@ msgstr "Spyder ha encontrado un problema interno!"
 
 #: spyder/widgets/reporterror.py:158
 msgid "<h4>{title}</h4>Before reporting this problem, <i>please</i> consult our comprehensive <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> which should help solve most issues, and search for <b><a href=\"{project_url}\">known bugs</a></b> matching your error message or problem description for a quicker solution."
-msgstr ""
+msgstr "<h4>{title}</h4>Antes de reportar este problema, <i>por favor</i> consulte nuestra comprehensiva <b><a href=\"{trouble_url}\">Guía de solución de problemas</a></b>, la cual debería ayudarle a resolver la mayoría de errores, y busque por <b><a href=\"{project_url}\">problemas anteriores</a></b> que sean similares a su mensaje de error o descripción del problema, para una solución más rápida."
 
 #: spyder/widgets/reporterror.py:174 spyder/widgets/reporterror.py:213
 msgid "{} more characters to go..."
