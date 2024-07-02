@@ -7,6 +7,7 @@
 """Kernel handler."""
 
 # Standard library imports
+import json
 import os
 import os.path as osp
 from subprocess import PIPE
@@ -27,13 +28,7 @@ from spyder.plugins.ipythonconsole import (
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
-from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.utils.programs import check_version_range
-
-if os.name == "nt":
-    ssh_tunnel = zmqtunnel.paramiko_tunnel
-else:
-    ssh_tunnel = openssh_tunnel
 
 
 PERMISSION_ERROR_MSG = _(
@@ -156,6 +151,7 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
+        ssh_conn=None,
     ):
         super().__init__()
         # Connection Informations
@@ -166,6 +162,7 @@ class KernelHandler(QObject):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
+        self.ssh_conn = ssh_conn
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
 
@@ -195,6 +192,11 @@ class KernelHandler(QObject):
         # It only works for spyder-kernels, but this is the majority of cases.
         # For ipykernels, this does nothing.
         self.kernel_comm.open_comm(self.kernel_client)
+
+    @property
+    def connection_info(self):
+        """Get connection info."""
+        return self.kernel_client.get_connection_info()
 
     def connect_(self):
         """Connect to shellwidget."""
@@ -363,41 +365,6 @@ class KernelHandler(QObject):
             cf = cf if not os.path.exists(cf) else ""
         return cf
 
-    @staticmethod
-    def tunnel_to_kernel(
-        connection_info, hostname, sshkey=None, password=None, timeout=10
-    ):
-        """
-        Tunnel connections to a kernel via ssh.
-
-        Remote ports are specified in the connection info ci.
-        """
-        lports = zmqtunnel.select_random_ports(5)
-        rports = (
-            connection_info["shell_port"],
-            connection_info["iopub_port"],
-            connection_info["stdin_port"],
-            connection_info["hb_port"],
-            connection_info["control_port"],
-        )
-        remote_ip = connection_info["ip"]
-
-        for lp, rp in zip(lports, rports):
-            try:
-                ssh_tunnel(
-                    lp, rp, hostname, remote_ip, sshkey, password, timeout
-                )
-            except Exception:
-                raise RuntimeError(
-                    _(
-                        "It was not possible to open an SSH tunnel for the "
-                        "remote kernel. Please check your credentials and the "
-                        "server connection status."
-                    )
-                )
-
-        return tuple(lports)
-
     @classmethod
     def new_from_spec(cls, kernel_spec):
         """
@@ -441,13 +408,38 @@ class KernelHandler(QObject):
         )
 
     @classmethod
+    def from_connection_info(
+        cls,
+        connection_info,
+        hostname=None,
+        sshkey=None,
+        password=None,
+        ssh_conn=None,
+    ):
+        """Create kernel for given connection info."""
+        new_connection_file = cls.new_connection_file()
+        with open(connection_info, "w") as f:
+            json.dump(connection_info, f)
+
+        return cls(
+            new_connection_file,
+            kernel_client=cls.init_kernel_client(
+                new_connection_file,
+                hostname,
+                sshkey,
+                password,
+                ssh_conn,
+            ),
+        )
+
+    @classmethod
     def from_connection_file(
         cls,
         connection_file,
         hostname=None,
         sshkey=None,
         password=None,
-        kernel_ports=None,
+        ssh_conn=None,
     ):
         """Create kernel for given connection file."""
         return cls(
@@ -460,13 +452,13 @@ class KernelHandler(QObject):
                 hostname,
                 sshkey,
                 password,
-                kernel_ports=kernel_ports
-            )
+                ssh_conn,
+            ),
         )
 
-    @classmethod
+    @staticmethod
     def init_kernel_client(
-        cls, connection_file, hostname, sshkey, password, kernel_ports=None
+        connection_file, hostname, sshkey, password, ssh_conn,
     ):
         """Create kernel client."""
         kernel_client = SpyderKernelClient(
@@ -486,28 +478,12 @@ class KernelHandler(QObject):
                 + str(e)
             )
 
-        if hostname is not None:
-            connection_info = dict(
-                ip=kernel_client.ip,
-                shell_port=kernel_client.shell_port,
-                iopub_port=kernel_client.iopub_port,
-                stdin_port=kernel_client.stdin_port,
-                hb_port=kernel_client.hb_port,
-                control_port=kernel_client.control_port,
-            )
-
-            (
-                kernel_client.shell_port,
-                kernel_client.iopub_port,
-                kernel_client.stdin_port,
-                kernel_client.hb_port,
-                kernel_client.control_port,
-            ) = (
-                kernel_ports
-                if kernel_ports is not None
-                else cls.tunnel_to_kernel(
-                    connection_info, hostname, sshkey, password
-                )
+        if hostname is not None or ssh_conn is not None:
+            kernel_client.tunnel_to_kernel(
+                hostname=hostname,
+                sshkey=sshkey,
+                password=password,
+                ssh_conn=ssh_conn,
             )
 
         return kernel_client
@@ -583,6 +559,7 @@ class KernelHandler(QObject):
             self.hostname,
             self.sshkey,
             self.password,
+            self.ssh_conn,
         )
 
         return self.__class__(
@@ -592,6 +569,7 @@ class KernelHandler(QObject):
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
+            ssh_conn=self.ssh_conn,
             kernel_client=kernel_client,
         )
 
