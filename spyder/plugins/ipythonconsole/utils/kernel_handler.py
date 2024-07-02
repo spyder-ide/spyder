@@ -418,7 +418,7 @@ class KernelHandler(QObject):
     ):
         """Create kernel for given connection info."""
         new_connection_file = cls.new_connection_file()
-        with open(connection_info, "w") as f:
+        with open(new_connection_file, "w") as f:
             json.dump(connection_info, f)
 
         return cls(
