@@ -73,11 +73,15 @@ To release a new version of Spyder you need to follow these steps:
 
 * Don't forget to remove your local checkout of `translate/<branch-name>` because that's going to be outdated for next time.
 
-* Update the `master` branch with
+* Update the `master` and `<branch-name>` branches as necessary. For example, if translations were done for the stable branch `6.x`, you could do the update with
 
-      git checkout master
+      git checkout 6.x
       git fetch upstream
-      git merge upstream/master
+      git merge upstream/6.x
+      git checkout master
+      git merge 6.x
+      Merge from 6.x: PR #xxxxx
+      git push upstream master
 
 ### Update core dependencies
 
@@ -130,7 +134,10 @@ To release a new version of Spyder you need to follow these steps:
 
       git add .
       git commit -m "Release X.X.XrcX [ci skip]"
-      git push upstream master
+
+* Push changes to the corresponding branch (e.g `6.x` - stable branch  or `master` - new major version)
+
+      git push upstream <branch-name>
 
 * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
     - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
@@ -139,18 +146,18 @@ To release a new version of Spyder you need to follow these steps:
 
 * If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
-## To do the release
+## To do the PyPI release and version tag
 
 * Close the current milestone on Github
 
-* git pull or git fetch/merge
+* git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - new major version)
 
-* Update `changelogs/Spyder-6.md` with `loghub spyder-ide/spyder -m vX.X.X`
+* Update `changelogs/Spyder-X.md` (`changelogs/Spyder-6.md` for Spyder 6 for example) with `loghub spyder-ide/spyder -m vX.X.X`
 
-    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-7.md` to the tree.
-    - After that, add `changelogs/Spyder-7.md` to `MANIFEST.in`, remove `changelogs/Spyder-6.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
+    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-X+1.md` to the tree (`changelogs/Spyder-7.md` for Spyder 7 for example).
+    - After that, add `changelogs/Spyder-X+1.md` to `MANIFEST.in`, remove `changelogs/Spyder-X.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
-* Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-6.md`. For this take a look at closed issues and PRs for the current milestone.
+* Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-X.md`. For this take a look at closed issues and PRs for the current milestone.
 
 * `git add .` and `git commit -m "Update Changelog"`
 
@@ -190,16 +197,17 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Back to work [ci skip]"`
 
-* `git push upstream master`
+* Push changes and new tag to the corresponding branches. When doing a stable release from `6.x`, for example, you could push changes with
 
-* `git push upstream --tags`
+      git checkout master
+      git merge 6.x
+      git commit -m "Release X.X.X [ci skip]"
+      git push upstream master
+      git push upstream 6.x
+      git push upstream --tags
 
 
-## After the release
-
-* Publish release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases):
-  - Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
-  - Edit the previous release description to only have the changelog line.
+## After the PyPI release
 
 * Merge PR on Conda-forge for Spyder. For that you can go to the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock) and merge the corresponding PR for the new release (usually an automatic PR will appear that can be either merged as it is or be use as boilerplate).
 
@@ -210,5 +218,10 @@ To release a new version of Spyder you need to follow these steps:
 * Update Binder related elements when the new Spyder version is available in Conda-forge:
   - Update the Spyder version on the environment file ([`binder/environment.yml`](https://github.com/spyder-ide/binder-environments/blob/spyder-stable/binder/environment.yml)) of the ([`spyder-stable` branch](https://github.com/spyder-ide/binder-environments/tree/spyder-stable)) in the `binder-environments` repo.
   - Update `environment.yml` files of the [`master`](https://github.com/spyder-ide/binder-environments/blob/master/binder/environment.yml) branch of `binder-environments` with the contents of the `binder/environment.yml` file present on this repo.
+  - Update `environment.yml` files of the [`6.x`](https://github.com/spyder-ide/binder-environments/blob/6.x/binder/environment.yml) branches of `binder-environments` with the contents of the `binder/environment.yml` file present on this repo.
+
+* Publish release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases):
+  - Copy the contents of the previous release description (updating the relevant information and links to point to the new Spyder version and changelog entry).
+  - Edit the previous release description to only have the changelog line.
 
 * Publish release announcement to our [list](https://groups.google.com/group/spyderlib) (following [Announcements.md](Announcements.md)) after the installers have been built.
