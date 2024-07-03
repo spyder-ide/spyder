@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-03 06:10\n"
+"PO-Revision-Date: 2024-07-03 07:29\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4858,7 +4858,7 @@ msgstr "没有要显示的绘图"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:191
 msgid "Run plot-generating code in the Editor or IPython console to see your figures appear here. This pane only supports static images, so it can't display interactive plots like Bokeh, Plotly or Altair."
-msgstr ""
+msgstr "在编辑器或 IPython 控制台中运行生成绘图的代码并在此查看你绘制的图形。 此窗格只支持静态图像，所以它不能如 Bokeh、Plotly 或Altair 那样显示交互式的绘图。"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:617
 msgid "The image is broken, please try to generate it again"
@@ -4886,7 +4886,7 @@ msgstr "使绘图适应窗格"
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "使绘图适应窗格的大小"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -4918,7 +4918,7 @@ msgstr "下一幅图"
 
 #: spyder/plugins/preferences/plugin.py:298
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
-msgstr ""
+msgstr "Spyder 将重启并重置为默认设置：<br><br>你确定要继续吗？"
 
 #: spyder/plugins/preferences/plugin.py:312 spyder/plugins/preferences/widgets/configdialog.py:30 spyder/plugins/preferences/widgets/container.py:120
 msgid "Preferences"
@@ -4926,7 +4926,7 @@ msgstr "偏好"
 
 #: spyder/plugins/preferences/plugin.py:316
 msgid "Manage Spyder's preferences."
-msgstr ""
+msgstr "管理 Spyder 的首选项。"
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset Spyder to factory defaults"
@@ -4947,7 +4947,7 @@ msgstr "性能分析"
 
 #: spyder/plugins/profiler/plugin.py:65
 msgid "Profile Python files to find execution bottlenecks."
-msgstr ""
+msgstr "配置 Python 文件以发现执行瓶颈。"
 
 #: spyder/plugins/profiler/plugin.py:115 spyder/plugins/profiler/plugin.py:116 spyder/plugins/profiler/widgets/main_widget.py:212 spyder/plugins/profiler/widgets/main_widget.py:213
 msgid "Run profiler"
@@ -4955,11 +4955,11 @@ msgstr "运行性能分析工具"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:180
 msgid "Code not profiled yet"
-msgstr ""
+msgstr "代码尚未配置"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:181
 msgid "Profile your code to explore which functions and methods took the longest to run and were called the most, and find out where to optimize it."
-msgstr ""
+msgstr "分析你的代码以探索哪些函数和方法运行耗时最长及调用次数最多，并找出可优化的地方。"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:220 spyder/plugins/profiler/widgets/main_widget.py:473 spyder/plugins/pylint/main_widget.py:517 spyder/plugins/pylint/main_widget.py:518 spyder/plugins/pylint/main_widget.py:876
 msgid "Select Python file"
@@ -5099,7 +5099,7 @@ msgstr "递归"
 
 #: spyder/plugins/profiler/widgets/run_conf.py:34
 msgid "File settings"
-msgstr ""
+msgstr "文件设置"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5115,11 +5115,11 @@ msgstr "创建 Spyder 项目并管理其文件。"
 
 #: spyder/plugins/projects/widgets/main_widget.py:188
 msgid "No project opened"
-msgstr ""
+msgstr "没有打开项目"
 
 #: spyder/plugins/projects/widgets/main_widget.py:189
 msgid "Create one using the menu entry Projects > New project."
-msgstr ""
+msgstr "使用菜单栏的 项目 > 新项目 来执行新建操作。"
 
 #: spyder/plugins/projects/widgets/main_widget.py:231
 msgid "New Project..."
@@ -5159,7 +5159,7 @@ msgstr "<b>%s</b>不是一个Spyder项目！"
 
 #: spyder/plugins/projects/widgets/main_widget.py:466
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr ""
+msgstr "你确定要删除 <b>{filename}</b> 项目吗？<br><br><b>注意：</b> 此操作只会删除项目。 其中的文件仍将保留在磁盘上。"
 
 #: spyder/plugins/projects/widgets/main_widget.py:482
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
@@ -5283,11 +5283,11 @@ msgstr "结果对应于 "
 
 #: spyder/plugins/pylint/main_widget.py:322
 msgid "Code not analyzed yet"
-msgstr ""
+msgstr "代码尚未分析"
 
 #: spyder/plugins/pylint/main_widget.py:323
 msgid "Run an analysis using Pylint to get feedback on style issues, bad practices, potential bugs, and suggested improvements in your code."
-msgstr ""
+msgstr "使用Run an analysis using Pylint 运行分析以获取针对代码风格问题、不良实践、潜在错误以及建议改进的反馈。"
 
 #: spyder/plugins/pylint/main_widget.py:495 spyder/plugins/pylint/plugin.py:68 spyder/plugins/tours/tours.py:196
 msgid "Code Analysis"
@@ -5335,7 +5335,7 @@ msgstr "代码分析输出"
 
 #: spyder/plugins/pylint/plugin.py:72
 msgid "Analyze code and view the results from both static and real-time analysis."
-msgstr ""
+msgstr "分析代码并同时查看静态和实时分析的结果。"
 
 #: spyder/plugins/pythonpath/container.py:69 spyder/plugins/pythonpath/plugin.py:61 spyder/plugins/pythonpath/widgets/pathmanager.py:107
 msgid "PYTHONPATH manager"
@@ -5343,11 +5343,11 @@ msgstr "PYTHONPATH 管理器"
 
 #: spyder/plugins/pythonpath/plugin.py:65
 msgid "Manage additional locations to search for Python modules."
-msgstr ""
+msgstr "管理用于搜索 Python 模块的额外位置。"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:114
 msgid "The paths listed below will be passed to the IPython console and to the Editor as additional locations to search for Python modules."
-msgstr ""
+msgstr "下面列出的路径将作为搜索 Python 模块的额外位置被传给 IPython 控制台和编辑器。"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:160
 msgid "Move path to the top"
@@ -5411,15 +5411,15 @@ msgstr "您真的要移除选定的路径吗？"
 
 #: spyder/plugins/remoteclient/api/client.py:183
 msgid "We're closing the connection. Please be patient"
-msgstr ""
+msgstr "我们正在关闭连接。 请耐心等待"
 
 #: spyder/plugins/remoteclient/api/client.py:319 spyder/plugins/remoteclient/api/client.py:334 spyder/plugins/remoteclient/api/client.py:379
 msgid "The connection was established successfully"
-msgstr ""
+msgstr "连接已成功建立"
 
 #: spyder/plugins/remoteclient/api/client.py:329 spyder/plugins/remoteclient/api/client.py:389
 msgid "It was not possible to forward the local port"
-msgstr ""
+msgstr "无法转发本地端口"
 
 #: spyder/plugins/remoteclient/api/client.py:352
 msgid "Error starting the remote server"
@@ -5783,7 +5783,7 @@ msgstr "在以下目标运行此文件:"
 
 #: spyder/plugins/run/widgets.py:584
 msgid "This is the plugin that will be used for execution when you click on the Run button"
-msgstr ""
+msgstr "这是当你点击运行按钮时将被用于执行的插件"
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
@@ -5807,7 +5807,7 @@ msgstr "设置此配置的名称"
 
 #: spyder/plugins/run/widgets.py:636
 msgid "You can set as many configurations as you want by providing different names. Each one will be saved after clicking the Ok button below"
-msgstr ""
+msgstr "你可以通过提供不同的名称设置任意数量的配置。 每个配置都将在点击下面的“确定”按钮后被保存"
 
 #: spyder/plugins/run/widgets.py:694
 msgid "Custom configuration"
@@ -5863,7 +5863,7 @@ msgstr "Spyder快捷键"
 
 #: spyder/plugins/shortcuts/widgets/table.py:179
 msgid "Press the new shortcut and select <b>Ok</b> to confirm, click <b>Cancel</b> to revert to the previous state, or use <b>Clear</b> to unbind the command from a shortcut."
-msgstr ""
+msgstr "点击新的快捷键并选择 <b>确定</b> 来确认设置，点击 <b>取消</b> 可恢复到之前的状态，或是使用 <b>清除</b> 来撤销快捷键绑定的命令。"
 
 #: spyder/plugins/shortcuts/widgets/table.py:190
 msgid "Current shortcut:"
