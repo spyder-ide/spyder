@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-03 02:22\n"
+"PO-Revision-Date: 2024-07-03 03:30\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4302,7 +4302,7 @@ msgstr "重启 IPython 内核？"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2171 spyder/plugins/ipythonconsole/widgets/main_widget.py:2254
 msgid "The console is not running a Spyder-kernel, so it can't execute <b>{}</b>.<br><br>Please use a Spyder-kernel for this."
-msgstr ""
+msgstr "控制台未运行 Spyder-kernel，因此无法执行 <b>{}</b>。<br><br>为些请使用一个 Spyder-kernel。"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2188
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
@@ -4338,19 +4338,19 @@ msgstr "<br><i>%s.</i><br><br><br><b>注意</b>: 请不要在 Github 上报告�
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
-msgstr ""
+msgstr "重启内核"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:46
 msgid "Keep existing kernels"
-msgstr ""
+msgstr "保留现有内核"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:47
 msgid "Restart current kernel"
-msgstr ""
+msgstr "重启当前内核"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:48
 msgid "Restart all kernels"
-msgstr ""
+msgstr "重启所有内核"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:59
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
@@ -4358,7 +4358,7 @@ msgstr "默认情况下，某些 IPython 控制台首选项将仅应用于新建
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:70
 msgid "Don't apply changes to existing consoles"
-msgstr ""
+msgstr "不对现有控制台应用更改"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:73
 msgid "Apply to current console and restart kernel"
@@ -4394,7 +4394,7 @@ msgstr "<br><br>内核似乎已死，所以它不能被中断。 请打开一个
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:498
 msgid "<br><br>It is not possible to interrupt a non-Spyder kernel I did not start.<br>"
-msgstr ""
+msgstr "<br><br>无法中断一个不是自己启动的非 Spyder 内核。<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:837
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -4414,15 +4414,15 @@ msgstr "重要"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1364
 msgid "The kernel died, restarting..."
-msgstr ""
+msgstr "内核已死亡，正在重启..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1365
 msgid "Restarting kernel..."
-msgstr ""
+msgstr "正在重启内核..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1375
 msgid "Its crash file is located at:"
-msgstr ""
+msgstr "其崩溃文档位于："
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1440
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
@@ -4430,7 +4430,7 @@ msgstr "看来你正在尝试使用某个未包括在我们的安装包中的模
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:38
 msgid "Click to toggle between inline and interactive Matplotlib plotting"
-msgstr ""
+msgstr "点击以在内联和交互式 Matplotlib 绘图之间进行切换"
 
 #: spyder/plugins/layout/container.py:79
 msgid "Close current pane"
@@ -4552,7 +4552,7 @@ msgstr "显示和调整布局"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the Python interpreter used for default Spyder consoles and code completion"
-msgstr ""
+msgstr "选择用于默认 Spyder 控制台和代码补全的 Python 解释器"
 
 #: spyder/plugins/maininterpreter/confpage.py:73
 msgid "Default (i.e. the same as Spyder's)"
@@ -4622,7 +4622,7 @@ msgstr "请注意，这些变化将只适用于新的 IPython 控制台"
 
 #: spyder/plugins/maininterpreter/plugin.py:49
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
-msgstr ""
+msgstr "管理 Spyder 中用于运行、分析和配置你的代码的默认 Python 解释器。"
 
 #: spyder/plugins/mainmenu/plugin.py:48
 msgid "Main menus"
@@ -4678,7 +4678,7 @@ msgstr "在线帮助"
 
 #: spyder/plugins/onlinehelp/plugin.py:51
 msgid "Browse and search documentation for installed Python modules interactively."
-msgstr ""
+msgstr "交互式地浏览和搜索已安装 Python 模块的文档。"
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:827
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
@@ -4742,7 +4742,7 @@ msgstr "大纲浏览器"
 
 #: spyder/plugins/outlineexplorer/plugin.py:39
 msgid "Explore functions, classes and methods in open files. Note that if you disable the 'Completion and linting' plugin, this one won't work."
-msgstr ""
+msgstr "在打开的文件中探索函数、 类和方法。 请注意如果你禁用了 ‘Completion and linting’ 插件，此功能将无法工作。"
 
 #: spyder/plugins/outlineexplorer/widgets.py:39 spyder/widgets/dependencies.py:34
 msgid "Module"
@@ -4850,11 +4850,11 @@ msgstr "绘图"
 
 #: spyder/plugins/plots/plugin.py:38
 msgid "View, browse and save generated figures."
-msgstr ""
+msgstr "查看、浏览和保存生成的图形。"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "No plots to show"
-msgstr ""
+msgstr "没有要显示的绘图"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:191
 msgid "Run plot-generating code in the Editor or IPython console to see your figures appear here. This pane only supports static images, so it can't display interactive plots like Bokeh, Plotly or Altair."
@@ -5447,7 +5447,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/plugin.py:79
 msgid "Remote client"
-msgstr ""
+msgstr "远程客户端"
 
 #: spyder/plugins/remoteclient/plugin.py:83
 msgid "Connect to remote machines to run code on them."
@@ -5475,19 +5475,19 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:256
 msgid "Password"
-msgstr ""
+msgstr "密码"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:257
 msgid "Key file"
-msgstr ""
+msgstr "密钥文件"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:258
 msgid "Configuration file"
-msgstr ""
+msgstr "配置文件"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:309 spyder/plugins/remoteclient/widgets/connectiondialog.py:484
 msgid "Name *"
-msgstr ""
+msgstr "名称 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:311 spyder/plugins/remoteclient/widgets/connectiondialog.py:486
 msgid "Introduce a name to identify your connection"
@@ -5499,7 +5499,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:317
 msgid "Remote address *"
-msgstr ""
+msgstr "远程地址 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:319
 msgid "This is the IP address or domain name of your remote machine"
@@ -5511,15 +5511,15 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:327
 msgid "Port"
-msgstr ""
+msgstr "端口"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:336
 msgid "Username *"
-msgstr ""
+msgstr "用户名 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:382
 msgid "Password *"
-msgstr ""
+msgstr "密码 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:385
 msgid "Your password will be saved securely by Spyder"
@@ -5531,11 +5531,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:431
 msgid "Key file *"
-msgstr ""
+msgstr "密钥文件 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:438
 msgid "Passpharse"
-msgstr ""
+msgstr "密码"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:441
 msgid "Your passphrase will be saved securely by Spyder"
@@ -5543,39 +5543,39 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:443
 msgid "Your passphrase is saved securely by Spyder"
-msgstr ""
+msgstr "您的密码已由 Spyder 安全保存"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:491
 msgid "Configuration file *"
-msgstr ""
+msgstr "配置文件 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:574
 msgid "New connection"
-msgstr ""
+msgstr "新建连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:633
 msgid "Connection status"
-msgstr ""
+msgstr "连接状态"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:634
 msgid "Connection info"
-msgstr ""
+msgstr "连接信息"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:743
 msgid "Save connection"
-msgstr ""
+msgstr "保存连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:751 spyder/plugins/remoteclient/widgets/connectiondialog.py:869
 msgid "Remove connection"
-msgstr ""
+msgstr "移除连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:759
 msgid "Clear settings"
-msgstr ""
+msgstr "清空设置"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:765
 msgid "Connect"
-msgstr ""
+msgstr "连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:769 spyder/widgets/browser.py:200
 msgid "Stop"
@@ -5583,55 +5583,55 @@ msgstr "停止"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:870
 msgid "Do you want to remove the connection called <b>{}</b>?"
-msgstr ""
+msgstr "您想要移除名为 <b>{}</b> 的连接吗？"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:28
 msgid "Inactive"
-msgstr ""
+msgstr "未激活"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:29
 msgid "Connecting..."
-msgstr ""
+msgstr "正在连接…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:30
 msgid "Active"
-msgstr ""
+msgstr "激活"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:31
 msgid "Stopping..."
-msgstr ""
+msgstr "正在停止..."
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:80
 msgid "Username: {}"
-msgstr ""
+msgstr "用户名: {}"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:159
 msgid "The connection hasn't been used"
-msgstr ""
+msgstr "该连接未被使用"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:167
 msgid "Connection to: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "连接到: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:173
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "状态: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:131
 msgid "Manage remote connections..."
-msgstr ""
+msgstr "管理远程连接..."
 
 #: spyder/plugins/remoteclient/widgets/container.py:138
 msgid "New console in remote server"
-msgstr ""
+msgstr "新建远程服务器中的控制台"
 
 #: spyder/plugins/remoteclient/widgets/container.py:215
 msgid "There was an error connecting to the server <b>{}</b>"
-msgstr ""
+msgstr "连接到服务器 <b>{}</b> 时发生错误"
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
-msgstr ""
+msgstr "%s (复制)"
 
 #: spyder/plugins/run/confpage.py:210
 msgid "The following are the global configuration settings of the different plugins that can execute files in Spyder."
@@ -5639,31 +5639,31 @@ msgstr ""
 
 #: spyder/plugins/run/confpage.py:219
 msgid "Available parameters:"
-msgstr ""
+msgstr "可用参数："
 
 #: spyder/plugins/run/confpage.py:228
 msgid "Executor:"
-msgstr ""
+msgstr "执行者："
 
 #: spyder/plugins/run/confpage.py:245
 msgid "New parameters"
-msgstr ""
+msgstr "新建参数"
 
 #: spyder/plugins/run/confpage.py:250
 msgid "Edit selected"
-msgstr ""
+msgstr "编辑选定项"
 
 #: spyder/plugins/run/confpage.py:255
 msgid "Clone selected"
-msgstr ""
+msgstr "克隆选定项"
 
 #: spyder/plugins/run/confpage.py:260
 msgid "Delete selected"
-msgstr ""
+msgstr "删除选定项"
 
 #: spyder/plugins/run/confpage.py:265
 msgid "Reset current changes"
-msgstr ""
+msgstr "重置当前更改"
 
 #: spyder/plugins/run/confpage.py:303
 msgid "Save all files before running script"
@@ -5675,11 +5675,11 @@ msgstr "运行代码单元格时，将完整的单元格代码复制到控制台
 
 #: spyder/plugins/run/confpage.py:315
 msgid "Global configurations"
-msgstr ""
+msgstr "全局配置"
 
 #: spyder/plugins/run/confpage.py:316
 msgid "Editor interactions"
-msgstr ""
+msgstr "编辑器交互方式"
 
 #: spyder/plugins/run/container.py:67
 msgid "Run file"
@@ -5687,7 +5687,7 @@ msgstr "运行文件"
 
 #: spyder/plugins/run/container.py:79
 msgid "&Configuration per file"
-msgstr ""
+msgstr "&C单文件配置"
 
 #: spyder/plugins/run/container.py:81
 msgid "Run settings"
@@ -5695,11 +5695,11 @@ msgstr "运行设置"
 
 #: spyder/plugins/run/container.py:95
 msgid "&Global configurations"
-msgstr ""
+msgstr "&全局配置"
 
 #: spyder/plugins/run/container.py:101
 msgid "Re-run &last file"
-msgstr ""
+msgstr "&l重新运行上一文件"
 
 #: spyder/plugins/run/container.py:103
 msgid "Run again last file"
@@ -5711,7 +5711,7 @@ msgstr "默认"
 
 #: spyder/plugins/run/models.py:467
 msgid "File extension"
-msgstr ""
+msgstr "文件扩展名"
 
 #: spyder/plugins/run/models.py:469 spyder/plugins/shortcuts/widgets/table.py:577
 msgid "Context"
@@ -5719,11 +5719,11 @@ msgstr "语境"
 
 #: spyder/plugins/run/models.py:471
 msgid "Parameters name"
-msgstr ""
+msgstr "参数名称"
 
 #: spyder/plugins/run/plugin.py:73
 msgid "Manage run configuration for executing files."
-msgstr ""
+msgstr "管理执行文件的运行配置。"
 
 #: spyder/plugins/run/widgets.py:61
 msgid "The directory of the file being executed"
@@ -5739,11 +5739,11 @@ msgstr "指定目录："
 
 #: spyder/plugins/run/widgets.py:64
 msgid "Provide a name for this configuration"
-msgstr ""
+msgstr "为此配置提供名称"
 
 #: spyder/plugins/run/widgets.py:65
 msgid "Select a different name for this configuration"
-msgstr ""
+msgstr "为此配置选择不同的名称"
 
 #: spyder/plugins/run/widgets.py:66
 msgid "You are trying to save a configuration that is exactly the same as the current one"
@@ -5751,23 +5751,23 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
-msgstr ""
+msgstr "重置"
 
 #: spyder/plugins/run/widgets.py:212
 msgid "Save configuration as:"
-msgstr ""
+msgstr "配置另存为："
 
 #: spyder/plugins/run/widgets.py:214
 msgid "Configuration name:"
-msgstr ""
+msgstr "配置名称："
 
 #: spyder/plugins/run/widgets.py:245
 msgid "File extension:"
-msgstr ""
+msgstr "文件扩展名："
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
-msgstr ""
+msgstr "运行上下文："
 
 #: spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:667
 msgid "Working directory settings"
@@ -5787,23 +5787,23 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
-msgstr ""
+msgstr "预设配置："
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Select between global or local (i.e. for this file) execution parameters. You can set the latter below"
-msgstr ""
+msgstr "在全局或局部 (即此文件) 执行参数之间进行选择。 你可以在下方设置"
 
 #: spyder/plugins/run/widgets.py:621
 msgid "Configuration properties"
-msgstr ""
+msgstr "配置属性"
 
 #: spyder/plugins/run/widgets.py:630
 msgid "Name:"
-msgstr ""
+msgstr "名称："
 
 #: spyder/plugins/run/widgets.py:633
 msgid "Set a name for this configuration"
-msgstr ""
+msgstr "设置此配置的名称"
 
 #: spyder/plugins/run/widgets.py:636
 msgid "You can set as many configurations as you want by providing different names. Each one will be saved after clicking the Ok button below"
@@ -5811,7 +5811,7 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:694
 msgid "Custom configuration"
-msgstr ""
+msgstr "自定义配置"
 
 #: spyder/plugins/run/widgets.py:753
 msgid "Run configuration per file"
@@ -5819,11 +5819,11 @@ msgstr "单文件运行配置"
 
 #: spyder/plugins/run/widgets.py:894
 msgid "Do you want to delete the current configuration?"
-msgstr ""
+msgstr "您想要删除当前配置吗？"
 
 #: spyder/plugins/run/widgets.py:1135
 msgid "custom"
-msgstr ""
+msgstr "自定义"
 
 #: spyder/plugins/shortcuts/confpage.py:27
 msgid "Search: "
@@ -5851,7 +5851,7 @@ msgstr "键盘快捷键"
 
 #: spyder/plugins/shortcuts/plugin.py:67
 msgid "Manage application, pane and actions shortcuts."
-msgstr ""
+msgstr "管理应用程序、 窗格和动作快捷方式。"
 
 #: spyder/plugins/shortcuts/plugin.py:78
 msgid "Shortcuts Summary"
@@ -5959,7 +5959,7 @@ msgstr "状态栏"
 
 #: spyder/plugins/statusbar/plugin.py:62
 msgid "Display the main window status bar."
-msgstr ""
+msgstr "显示主窗口状态栏。"
 
 #: spyder/plugins/statusbar/widgets/status.py:30
 msgid "Global memory usage"
