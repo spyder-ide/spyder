@@ -196,7 +196,9 @@ class KernelHandler(QObject):
     @property
     def connection_info(self):
         """Get connection info."""
-        return self.kernel_client.get_connection_info()
+        connection_info = self.kernel_client.get_connection_info()
+        connection_info["key"] = connection_info["key"].decode()
+        return connection_info
 
     def connect_(self):
         """Connect to shellwidget."""
