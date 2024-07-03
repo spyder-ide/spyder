@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-06-28 06:12\n"
+"PO-Revision-Date: 2024-07-03 02:22\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3906,7 +3906,7 @@ msgstr "贪心补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't.<br><br>"
-msgstr ""
+msgstr "在列表元素、函数调用结果等条目上启用 <tt>Tab</tt> 补全，而 <i>无需</i> 将其分配给变量，如 <tt>li[0].&lt;Tab&gt;</tt> 或 <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>警告：</b> 由于存在代码错误，IPython 的贪婪型补全对于某些补全需要加一个打头的 <tt>&lt;Space&gt;</tt>；例如  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> 可以而 <tt>np.sin(np.&lt;Tab&gt; </tt> 不行。<br><br>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:298
 msgid "Use greedy completion in the IPython console"
@@ -4018,7 +4018,7 @@ msgstr "IPython控制台"
 
 #: spyder/plugins/ipythonconsole/plugin.py:219
 msgid "Run Python files, cells, code and commands interactively."
-msgstr ""
+msgstr "交互式地运行 Python 文件、单元格、代码和命令。"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:39
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4026,15 +4026,15 @@ msgstr "目录{}不可写，如果您需要创建IPython控制台，请让它可
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:44
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
-msgstr ""
+msgstr "解释器位于<pre>    <tt>{0}</tt></pre>的 Python 环境或安装版没有安装正确版本的 <tt>spyder-kernels</tt> ({1} 而不是 >= {2} 且 < {3})。 没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以通过在系统终端中激活你的环境 (如有必要) 然后运行命令来安装它：<pre>    <tt>{4}</tt></pre>或<pre>    <tt>{5}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:64
 msgid "This Python environment doesn't have the right version of <tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "该 Python 环境没有安装正确版本的 <tt>spyder-kernels</tt> (>= {0} 且 < {1})。 没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以通过在系统终端中激活你的环境 (如有必要) 然后运行命令来安装它：<pre>    <tt>{2}</tt></pre>或<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:381
 msgid "It was not possible to open an SSH tunnel for the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "无法为该远程内核打开 SSH 隧道。 请检查你的凭据和服务器连接状态。"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:470
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
@@ -4042,7 +4042,7 @@ msgstr "加载内核连接文件时出错。错误信息为：\n\n"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:39
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "解释器位于<pre>    <tt>{0}</tt></pre>的 Python 环境或安装版没有安装正确版本的 <tt>spyder-kernels</tt> <tt>{1}</tt>。 没有特定版本的该模块则 Spyder 无法为你创建控制台。<br><br>你可以通过在系统终端中激活你的环境 (如有必要) 然后运行命令来安装它：<pre>    <tt>{2}</tt></pre>或<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:67
 msgid "The authenticity of host <b>%s</b> can't be established. Are you sure you want to continue connecting?"
@@ -4074,11 +4074,11 @@ msgstr "错误：<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:486
 msgid "An error occurred while starting the kernel"
-msgstr ""
+msgstr "在启动内核时发生了错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:680
 msgid "It was not possible to restart the kernel"
-msgstr ""
+msgstr "无法重新启动内核"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4090,7 +4090,7 @@ msgstr "连接到现有 IPython 内核"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:38
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>请选择现有内核的 JSON 连接文件 (<i>例如</i> <tt>kernel-1234.json</tt>)，如果是连接到远程机器则输入 SSH 信息。 要了解有关启动外部内核并连接它们的更多信息，请参阅 <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">我们的文档</a>。</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:51
 msgid "Connection file:"
@@ -4154,7 +4154,7 @@ msgstr "按 <b>Q</b> 退出分页器"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:375
 msgid "New console in environment"
-msgstr ""
+msgstr "环境中的新控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:388
 msgid "New console (default settings)"
@@ -4190,7 +4190,7 @@ msgstr "显示 sys.path 内容"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:473
 msgid "Copy (raw text)"
-msgstr ""
+msgstr "复制 (原始文本)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:487 spyder/widgets/browser.py:147
 msgid "Select all"
@@ -4206,11 +4206,11 @@ msgstr "输入内联数组"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:517
 msgid "Save as html..."
-msgstr ""
+msgstr "另存为 html..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:524
 msgid "Print..."
-msgstr ""
+msgstr "打印..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:531
 msgid "Clear line or block"
@@ -4226,19 +4226,19 @@ msgstr "复制图像"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:553
 msgid "Save image as..."
-msgstr ""
+msgstr "图片另存为…"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:559
 msgid "Copy SVG"
-msgstr ""
+msgstr "复制 SVG"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:565
 msgid "Save SVG as..."
-msgstr ""
+msgstr "SVG 另存为..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:577
 msgid "New special console"
-msgstr ""
+msgstr "新建特殊控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:602
 msgid "New Pylab console (data plotting)"
@@ -4254,7 +4254,7 @@ msgstr "新建 Cython 控制台（启用 C 语言扩展的 Python）"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:632
 msgid "Remove all variables from namespace"
-msgstr ""
+msgstr "从命名空间移除所有变量"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:684
 msgid "IPython documentation"
