@@ -30,6 +30,7 @@ from functools import partial
 import json
 from logging import getLogger
 import os
+from packaging.version import parse
 from pathlib import Path
 import platform
 import re
@@ -156,13 +157,13 @@ for spec in args.extra_specs:
     k, *v = re.split('([<>=]+)[ ]*', spec)
     specs[k] = "".join(v).strip()
 
-PY_VER = re.split('([<>=]+)[ ]*', specs['python'])[-1]
-SPYVER = re.split('([<>=]+)[ ]*', specs['spyder'])[-1]
+PY_VER = parse(re.split('([<>=]+)[ ]*', specs['python'])[-1])
+SPYVER = parse(re.split('([<>=]+)[ ]*', specs['spyder'])[-1])
 
 LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
 TMP_LOCK_FILE = BUILD / f"conda-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
-INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
+INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.major}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
 HEADER_IMG_WIN = BUILD / "header_img_win.png"
@@ -209,10 +210,14 @@ def _create_conda_lock():
 
 def _patch_conda_lock():
     # Replace local channel url with conda-forge and remove checksum
+    dev_channel = ""
+    if SPYVER.is_prerelease:
+        dev_channel = "/label/spyder_dev"
+
     tmp_text = TMP_LOCK_FILE.read_text()
     text = re.sub(
         f"^{_get_conda_bld_path_url()}(.*)#.*$",
-        r"https://conda.anaconda.org/conda-forge\1",
+        fr"https://conda.anaconda.org/conda-forge{dev_channel}\1",
         tmp_text, flags=re.MULTILINE
     )
     LOCK_FILE.write_text(text)
@@ -291,7 +296,7 @@ def _definitions():
         "name": APP,
         "company": "Spyder-IDE",
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
-        "version": SPYVER,
+        "version": str(SPYVER),
         "channels": [
             "conda-forge/label/spyder_dev",
             "conda-forge/label/spyder_kernels_rc",
@@ -352,7 +357,7 @@ def _definitions():
             (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
         welcome_file = BUILD / "osx_pkg_welcome.rtf"
         welcome_file.write_text(
-            welcome_text_tmpl.replace("__VERSION__", SPYVER))
+            welcome_text_tmpl.replace("__VERSION__", str(SPYVER)))
 
         definitions.update(
             {
