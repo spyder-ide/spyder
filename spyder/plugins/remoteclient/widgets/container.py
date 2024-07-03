@@ -196,11 +196,9 @@ class RemoteClientContainer(PluginMainContainer):
         # It's only at this point that we can allow users to close the client.
         ipyclient.can_close = True
 
-        # Get authentication method
-        auth_method = self.get_conf(f"{config_id}/auth_method")
-
         # Handle failures to launch a kernel
         if not kernel_info:
+            auth_method = self.get_conf(f"{config_id}/auth_method")
             name = self.get_conf(f"{config_id}/{auth_method}/name")
             ipyclient.show_kernel_error(
                 _(
@@ -272,19 +270,21 @@ class RemoteClientContainer(PluginMainContainer):
     def _connect_to_kernel(self, ipyclient, connection_info, restart=False, clear=True):
         """Finish connecting an IPython console client to a remote kernel."""
         # Create KernelHandler
-
-        kernel_handler = KernelHandler.from_connection_info(
-            connection_info,
-            ssh_conn=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
-        )
-
-        # Connect client to the kernel
-        if not restart:
-            ipyclient.connect_kernel(kernel_handler)
-        else:
-            ipyclient.replace_kernel(
-                kernel_handler, shutdown_kernel=False, clear=clear,
+        try:
+            kernel_handler = KernelHandler.from_connection_info(
+                connection_info,
+                ssh_conn=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
             )
+        except Exception as err:
+            ipyclient.show_kernel_error(err)
+        else:
+            # Connect client to the kernel
+            if not restart:
+                ipyclient.connect_kernel(kernel_handler)
+            else:
+                ipyclient.replace_kernel(
+                    kernel_handler, shutdown_kernel=False, clear=clear,
+                )
 
     def _request_kernel_restart(self, ipyclient):
         """
