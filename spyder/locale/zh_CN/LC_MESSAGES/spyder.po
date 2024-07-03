@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-03 03:30\n"
+"PO-Revision-Date: 2024-07-03 06:10\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4882,7 +4882,7 @@ msgstr "显示绘图大纲。"
 
 #: spyder/plugins/plots/widgets/main_widget.py:115
 msgid "Fit plots to pane"
-msgstr ""
+msgstr "使绘图适应窗格"
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
@@ -5423,27 +5423,27 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/api/client.py:352
 msgid "Error starting the remote server"
-msgstr ""
+msgstr "启动远程服务器时出错"
 
 #: spyder/plugins/remoteclient/api/client.py:365
 msgid "Error getting server info"
-msgstr ""
+msgstr "获取服务器信息时出错"
 
 #: spyder/plugins/remoteclient/api/client.py:515
 msgid "We're establishing the connection. Please be patient"
-msgstr ""
+msgstr "我们正在建立连接。请耐心等待"
 
 #: spyder/plugins/remoteclient/api/client.py:533
 msgid "It was not possible to open a connection to this machine"
-msgstr ""
+msgstr "无法打开与该机器的连接"
 
 #: spyder/plugins/remoteclient/api/client.py:643
 msgid "The connection was closed successfully"
-msgstr ""
+msgstr "连接已成功关闭"
 
 #: spyder/plugins/remoteclient/api/ssh.py:61
 msgid "The connection was lost"
-msgstr ""
+msgstr "连接已丢失"
 
 #: spyder/plugins/remoteclient/plugin.py:79
 msgid "Remote client"
@@ -5451,27 +5451,27 @@ msgstr "远程客户端"
 
 #: spyder/plugins/remoteclient/plugin.py:83
 msgid "Connect to remote machines to run code on them."
-msgstr ""
+msgstr "连接到远程机器并在其中运行代码"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:104
 msgid "The name you selected is already used by another connection."
-msgstr ""
+msgstr "你选择的名称已被另一个连接所使用。"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:114
 msgid "The address you provided is not a valid IP or domain name."
-msgstr ""
+msgstr "你提供的地址不是一个有效的 IP 或域名。"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:124
 msgid "There are missing fields on this page."
-msgstr ""
+msgstr "此页面上有缺失的字段。"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:225
 msgid "Configure SSH settings for connecting to remote hosts"
-msgstr ""
+msgstr "配置用于连接远程主机的 SSH 设置"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:227
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely, such as on a cloud instance, office workstation or high-performance cluster."
-msgstr ""
+msgstr "Spyder 将使用此连接在 IPython 控制台中启动远程内核。 这允许你在本地使用 Spyder 的同时远程运行代码，例如在云端实例、办公室工作站或高性能集群上。"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:256
 msgid "Password"
@@ -5491,11 +5491,11 @@ msgstr "名称 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:311 spyder/plugins/remoteclient/widgets/connectiondialog.py:486
 msgid "Introduce a name to identify your connection"
-msgstr ""
+msgstr "引入一个名称来标识你的连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:313
 msgid "This connection name is already taken"
-msgstr ""
+msgstr "此连接名称已被占用"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:317
 msgid "Remote address *"
@@ -5503,11 +5503,11 @@ msgstr "远程地址 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:319
 msgid "This is the IP address or domain name of your remote machine"
-msgstr ""
+msgstr "这是你的远程机器的 IP 地址或域名"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:323
 msgid "The address is not a valid IP or domain name"
-msgstr ""
+msgstr "该地址不是一个有效的 IP 或域名"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:327
 msgid "Port"
@@ -5523,11 +5523,11 @@ msgstr "密码 *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:385
 msgid "Your password will be saved securely by Spyder"
-msgstr ""
+msgstr "你的密码将由 Spyder 安全地保存"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:387
 msgid "Your password is saved securely by Spyder"
-msgstr ""
+msgstr "你的密码已由 Spyder 安全地保存"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:431
 msgid "Key file *"
@@ -5539,7 +5539,7 @@ msgstr "密码"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:441
 msgid "Your passphrase will be saved securely by Spyder"
-msgstr ""
+msgstr "你的密码将由 Spyder 安全地保存"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:443
 msgid "Your passphrase is saved securely by Spyder"
@@ -5635,7 +5635,7 @@ msgstr "%s (复制)"
 
 #: spyder/plugins/run/confpage.py:210
 msgid "The following are the global configuration settings of the different plugins that can execute files in Spyder."
-msgstr ""
+msgstr "以下是可以在 Spyder 中执行文件的不同插件的全局配置设置。"
 
 #: spyder/plugins/run/confpage.py:219
 msgid "Available parameters:"
@@ -5747,7 +5747,7 @@ msgstr "为此配置选择不同的名称"
 
 #: spyder/plugins/run/widgets.py:66
 msgid "You are trying to save a configuration that is exactly the same as the current one"
-msgstr ""
+msgstr "您正在尝试保存一个与当前配置完全相同的配置"
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
@@ -5775,11 +5775,11 @@ msgstr "工作文件夹设置"
 
 #: spyder/plugins/run/widgets.py:322
 msgid "New run configuration for: {}"
-msgstr ""
+msgstr "用于以下目标的新运行配置: {}"
 
 #: spyder/plugins/run/widgets.py:580
 msgid "Run this file in:"
-msgstr ""
+msgstr "在以下目标运行此文件:"
 
 #: spyder/plugins/run/widgets.py:584
 msgid "This is the plugin that will be used for execution when you click on the Run button"
