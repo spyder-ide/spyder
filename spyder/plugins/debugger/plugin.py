@@ -146,6 +146,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             },
         ]
 
+    def on_mainwindow_visible(self):
+        self.get_widget().update_splitter_widths(self.get_widget().width())
+
     @on_plugin_available(plugin=Plugins.Run)
     def on_run_available(self):
         run = self.get_plugin(Plugins.Run)
