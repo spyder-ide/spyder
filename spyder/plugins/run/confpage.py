@@ -16,11 +16,11 @@ from uuid import uuid4
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QAbstractItemView,
+    QGroupBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
     QVBoxLayout,
-    QWidget,
 )
 
 # Local imports
@@ -208,15 +208,15 @@ class RunConfigPage(PluginConfigPage):
 
         about_label = QLabel(
             _(
-                "The following are the global configuration settings of the "
-                "different plugins that can execute files in Spyder."
+                "The following are the global configuration presets of the "
+                "different runners that can execute files in Spyder."
             )
         )
         about_label.setWordWrap(True)
 
         # The paremeters table needs to be created before the executor_combo
         # below, although is displayed after it.
-        params_label = QLabel(_('Available parameters:'))
+        params_label = QLabel(_('Configuration presets:'))
         self.params_table = RunParametersTableView(self, self.table_model)
         self.params_table.setMaximumHeight(180)
 
@@ -225,7 +225,7 @@ class RunConfigPage(PluginConfigPage):
         params_table_layout.addWidget(self.params_table)
         params_table_layout.addSpacing(2 * AppStyle.MarginSize)
 
-        executor_label = QLabel(_("Executor:"))
+        executor_label = QLabel(_("Runner:"))
         self.executor_combo = SpyderComboBox(self)
         self.executor_combo.setMinimumWidth(250)
         self.executor_combo.currentIndexChanged.connect(
@@ -285,18 +285,18 @@ class RunConfigPage(PluginConfigPage):
         buttons_layout.addStretch()
 
         # Final layout
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(about_label)
-        vlayout.addSpacing(3 * AppStyle.MarginSize)
-        vlayout.addLayout(executor_layout)
-        vlayout.addSpacing(3 * AppStyle.MarginSize)
-        vlayout.addWidget(params_label)
-        vlayout.addLayout(params_table_layout)
-        vlayout.addSpacing(AppStyle.MarginSize)
-        vlayout.addLayout(buttons_layout)
-        vlayout.addStretch()
-        executor_widget = QWidget(self)
-        executor_widget.setLayout(vlayout)
+        presets_group = QGroupBox(_("Global presets"))
+        presets_layout = QVBoxLayout()
+        presets_group.setLayout(presets_layout)
+
+        presets_layout.addWidget(about_label)
+        presets_layout.addSpacing(3 * AppStyle.MarginSize)
+        presets_layout.addLayout(executor_layout)
+        presets_layout.addSpacing(3 * AppStyle.MarginSize)
+        presets_layout.addWidget(params_label)
+        presets_layout.addLayout(params_table_layout)
+        presets_layout.addSpacing(AppStyle.MarginSize)
+        presets_layout.addLayout(buttons_layout)
 
         # --- Editor interactions tab ---
         newcb = self.create_checkbox
@@ -305,15 +305,19 @@ class RunConfigPage(PluginConfigPage):
         run_cell_box = newcb(_("Copy full cell contents to the console when "
                                "running code cells"), 'run_cell_copy')
 
+        run_group = QGroupBox(_("Editor interactions"))
         run_layout = QVBoxLayout()
+        run_group.setLayout(run_layout)
+
         run_layout.addWidget(saveall_box)
         run_layout.addWidget(run_cell_box)
-        run_widget = QWidget(self)
-        run_widget.setLayout(run_layout)
 
-        # --- Tabs ---
-        self.create_tab(_("Global configurations"), executor_widget)
-        self.create_tab(_("Editor interactions"), run_widget)
+        # --- Page layout ----
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(presets_group)
+        vlayout.addWidget(run_group)
+        vlayout.addStretch()
+        self.setLayout(vlayout)
 
     def executor_index_changed(self, index: int):
         # Save previous executor configuration

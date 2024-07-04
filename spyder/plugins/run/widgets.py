@@ -582,7 +582,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.executor_combo.setMinimumWidth(250)
         executor_tip = TipWidget(
             _(
-                "This is the plugin that will be used for execution when you "
+                "This is the runner that will be used for execution when you "
                 "click on the Run button"
             ),
             icon=ima.icon('question_tip'),
@@ -597,7 +597,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         parameters_tip = TipWidget(
             _(
                 "Select between global or local (i.e. for this file) "
-                "execution parameters. You can set the latter below"
+                "configuration presets. You can set the latter below"
             ),
             icon=ima.icon('question_tip'),
             hover_icon=ima.icon('question_tip_hover'),
@@ -634,9 +634,9 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         )
         name_params_tip = TipWidget(
             _(
-                "You can set as many configurations as you want by providing "
-                "different names. Each one will be saved after clicking the "
-                "Ok button below"
+                "You can set as many configuration presets as you want by "
+                "providing different names. Each one will be saved after "
+                "clicking the Ok button below"
             ),
             icon=ima.icon('question_tip'),
             hover_icon=ima.icon('question_tip_hover'),
