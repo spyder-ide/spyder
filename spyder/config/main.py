@@ -401,7 +401,7 @@ DEFAULTS = [
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
               '_/switch to historylog': "Ctrl+Shift+L",
-              '_/switch to onlinehelp': "Ctrl+Shift+D",
+              '_/switch to onlinehelp': "",
               '_/switch to project_explorer': "Ctrl+Shift+P",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
@@ -410,7 +410,7 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
-              '_/switch to breakpoints': "Ctrl+Shift+B",
+              '_/switch to debugger': "Ctrl+Shift+D",
               # -- Find/replace --
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "Ctrl+G" if MAC else "F3",
