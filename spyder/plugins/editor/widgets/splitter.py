@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 class EditorSplitter(QSplitter, SpyderWidgetMixin):
     """QSplitter for editor windows."""
 
+    CONF_SECTION = "editor"
+
     def __init__(self, parent, main_widget, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None,
                  use_switcher=True):
