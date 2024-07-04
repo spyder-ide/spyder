@@ -220,6 +220,7 @@ jobs:
           env | sort
 
       - name: Build ${{ matrix.target-platform }} spyder Conda Package
+        if: env.IS_RELEASE == 'false'
         run: |
           # Copy built packages to new build location because spyder cannot be
           # built in workspace

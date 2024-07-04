@@ -21,10 +21,7 @@ from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (_, is_stable_version, is_conda_based_app,
-                                running_in_ci)
-from spyder.config.utils import is_anaconda
-from spyder.utils.conda import get_spyder_conda_channel
+from spyder.config.base import _, is_stable_version, running_in_ci
 from spyder.utils.programs import check_version
 
 # Logger setup
@@ -147,31 +144,11 @@ class WorkerUpdate(BaseWorker):
         self.latest_release = None
         self.update_available = False
         error_msg = None
-        pypi_url = "https://pypi.org/pypi/spyder/json"
-        github_url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
-
-        if is_conda_based_app():
-            url = github_url
-        elif is_anaconda():
-            self.channel, channel_url = get_spyder_conda_channel()
-
-            if self.channel is None or channel_url is None:
-                logger.debug(
-                    f"channel = {self.channel}; channel_url = {channel_url}. "
-                )
-
-                # Spyder installed in development mode, use GitHub
-                url = github_url
-            elif self.channel == "pypi":
-                url = pypi_url
-            else:
-                url = channel_url + '/channeldata.json'
-        else:
-            url = pypi_url
+        url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
-        if running_in_ci() and url == github_url and token:
+        if running_in_ci() and token:
             headers.update(Authorization=f"Bearer {token}")
 
         logger.info(f"Checking for updates from {url}")
@@ -182,17 +159,9 @@ class WorkerUpdate(BaseWorker):
 
             data = page.json()
             if self.releases is None:
-                if url == github_url:
-                    self.releases = [
-                        item['tag_name'].replace('v', '') for item in data
-                    ]
-                elif url == pypi_url:
-                    self.releases = [data['info']['version']]
-                else:
-                    # Conda type url
-                    spyder_data = data['packages'].get('spyder')
-                    if spyder_data:
-                        self.releases = [spyder_data["version"]]
+                self.releases = [
+                    item['tag_name'].replace('v', '') for item in data
+                ]
             self.releases.sort(key=parse)
 
             self._check_update_available()

@@ -207,24 +207,7 @@ def _create_conda_lock():
     if logger.getEffectiveLevel() <= 20:
         print(TMP_LOCK_FILE.read_text(), flush=True)
 
-
-def _patch_conda_lock():
-    # Replace local channel url with conda-forge and remove checksum
-    dev_channel = ""
-    if SPYVER.is_prerelease:
-        dev_channel = "/label/spyder_dev"
-
-    tmp_text = TMP_LOCK_FILE.read_text()
-    text = re.sub(
-        f"^{_get_conda_bld_path_url()}(.*)#.*$",
-        fr"https://conda.anaconda.org/conda-forge{dev_channel}\1",
-        tmp_text, flags=re.MULTILINE
-    )
-    LOCK_FILE.write_text(text)
-
-    logger.info(f"Contents of {LOCK_FILE}:")
-    if logger.getEffectiveLevel() <= 20:
-        print(LOCK_FILE.read_text(), flush=True)
+    LOCK_FILE.write_text(TMP_LOCK_FILE.read_text())
 
 
 def _generate_background_images(installer_type):
@@ -504,8 +487,6 @@ def main():
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
 
-    _patch_conda_lock()
-
 
 if __name__ == "__main__":
     if args.arch:
@@ -525,7 +506,6 @@ if __name__ == "__main__":
         sys.exit()
     if args.conda_lock:
         _create_conda_lock()
-        _patch_conda_lock()
         sys.exit()
 
     main()
