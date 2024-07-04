@@ -201,11 +201,9 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
 
             try:
                 if isinstance(qobject, QAction):
-                    # Avoid adding more than one shortcut per action
-                    if qobject.shortcuts() == []:
-                        qobject.setShortcut(keyseq)
-                        if add_shortcut_to_tip:
-                            add_shortcut_to_tooltip(qobject, context, name)
+                    qobject.setShortcut(keyseq)
+                    if add_shortcut_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
             except RuntimeError:
