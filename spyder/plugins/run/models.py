@@ -468,7 +468,7 @@ class ExecutorRunParametersTableModel(QAbstractTableModel):
                 elif section == self.CONTEXT:
                     return _('Context')
                 elif section == self.NAME:
-                    return _('Parameters name')
+                    return _('Name')
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.params_index)
