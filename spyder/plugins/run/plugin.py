@@ -89,7 +89,7 @@ class Run(SpyderPluginV2):
 
         container = self.get_container()
         container.sig_run_action_created.connect(
-            self.register_action_shortcuts
+            self._register_action_shortcuts
         )
         container.sig_open_preferences_requested.connect(
             self._open_run_preferences
@@ -99,8 +99,9 @@ class Run(SpyderPluginV2):
     def on_working_directory_available(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.connect(
-            self.switch_working_dir)
-        self.switch_working_dir(working_dir.get_workdir())
+            self._switch_working_dir
+        )
+        self._switch_working_dir(working_dir.get_workdir())
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -151,14 +152,14 @@ class Run(SpyderPluginV2):
         while self.pending_shortcut_actions != []:
             args = self.pending_shortcut_actions.pop(0)
             shortcuts.register_shortcut(*args)
-        shortcuts.apply_shortcuts()
 
     @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
     def on_working_directory_teardown(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.disconnect(
-            self.switch_working_dir)
-        self.switch_working_dir(None)
+            self._switch_working_dir
+        )
+        self._switch_working_dir(None)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -209,7 +210,6 @@ class Run(SpyderPluginV2):
                 shortcuts.unregister_shortcut(
                     action, shortcut_context, action_id
                 )
-        shortcuts.apply_shortcuts()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -796,16 +796,25 @@ class Run(SpyderPluginV2):
         return self.get_container().get_executor_configuration_parameters(
             executor_name, extension, context_id)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
     def switch_focused_run_configuration(self, uuid: str):
+        """
+        Switch to the last selected run configuration.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+        """
         self.get_container().switch_focused_run_configuration(uuid)
 
-    def switch_working_dir(self, path: str):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _switch_working_dir(self, path: str):
         self.get_container().set_current_working_dir(path)
 
-    def register_action_shortcuts(
-        self, action_name: str,
+    def _register_action_shortcuts(
+        self,
+        action_name: str,
         register_shortcut: bool,
         shortcut_context: str
     ):
@@ -815,7 +824,6 @@ class Run(SpyderPluginV2):
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
-                shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))

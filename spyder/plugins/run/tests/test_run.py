@@ -80,7 +80,8 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
 
     def on_run_available(self, run: Run):
         self.sig_uuid_focus_requested.connect(
-            run.switch_focused_run_configuration)
+            run.switch_focused_run_configuration
+        )
 
         run.register_run_configuration_provider(
             self.provider_name, self.supported_extensions)
@@ -355,7 +356,7 @@ def run_mock(qtbot, tmpdir):
     mock_main_window = MockedMainWindow()
     run = Run(mock_main_window, None)
     run.on_initialize()
-    run.switch_working_dir(temp_dir)
+    run._switch_working_dir(temp_dir)
     return run, mock_main_window, temp_dir
 
 
