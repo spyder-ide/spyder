@@ -150,7 +150,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Close the current milestone on Github
 
-* git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - new major version)
+* git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - alphas or betas of a new major version).
 
 * Update `changelogs/Spyder-X.md` (`changelogs/Spyder-6.md` for Spyder 6 for example) with `loghub spyder-ide/spyder -m vX.X.X`
 
