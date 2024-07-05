@@ -145,6 +145,7 @@ Spyder 6.0 comes with the following interesting new features and fixes:
     * Show Matplotlib backend state in status bar.
     * Make kernel restarts be much faster for the current interpreter.
     * Turn `runfile`, `debugfile`, `runcell` and related commands into IPython magics.
+    * Add a new way to manage and establish connections with remote servers/kernels
 
 - Important fixes
     * Environment variables declared in `~/.bashrc` or `~/.zhrc` are detected and
