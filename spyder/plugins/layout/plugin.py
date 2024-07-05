@@ -200,7 +200,11 @@ class Layout(SpyderPluginV2):
     def before_mainwindow_visible(self):
         # Update layout menu
         self.update_layout_menu_actions()
-        # Setup layout
+
+        # The layout needs to be applied twice: before and after the main
+        # window is visible (see below). This call avoids weird issues when the
+        # window was not maximized in the last session. See:
+        # https://github.com/spyder-ide/spyder/pull/22232#issuecomment-2224142496
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
@@ -208,6 +212,12 @@ class Layout(SpyderPluginV2):
         # This **MUST** be done before restoring the last visible plugins, so
         # that works as expected.
         self.create_plugins_menu()
+
+        # Setup layout when the window is visible.
+        # This **MUST** be done after creating the plugins menu to correctly
+        # restore the layout from the previous session.
+        # Fixes spyder-ide/spyder#17945 and spyder-ide/spyder#21596
+        self.setup_layout(default=False)
 
         # Restore last visible plugins.
         # This **MUST** be done before running on_mainwindow_visible for the
