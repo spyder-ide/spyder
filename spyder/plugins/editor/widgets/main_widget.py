@@ -1720,8 +1720,12 @@ class EditorMainWidget(PluginMainWidget):
             outline_plugin=self.outline_plugin
         )
 
-        window.resize(self.size())
+        # Give a default size to new windows so they're shown with a nice size
+        # regardless of the current one of this widget (we were using self.size
+        # here before).
+        window.resize(800, 800)
         window.show()
+
         window.editorwidget.editorsplitter.editorstack.new_window = True
         self.register_editorwindow(window)
         window.destroyed.connect(lambda: self.unregister_editorwindow(window))
