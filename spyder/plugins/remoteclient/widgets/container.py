@@ -273,7 +273,7 @@ class RemoteClientContainer(PluginMainContainer):
         try:
             kernel_handler = KernelHandler.from_connection_info(
                 connection_info,
-                ssh_conn=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
+                ssh_connection=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
             )
         except Exception as err:
             ipyclient.show_kernel_error(err)

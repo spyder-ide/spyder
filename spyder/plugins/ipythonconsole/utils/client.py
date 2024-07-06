@@ -37,10 +37,10 @@ class SpyderKernelClient(QtKernelClient):
                          hostname=None,
                          sshkey=None,
                          password=None,
-                         ssh_conn=None):
+                         ssh_connection=None):
         """Tunnel to remote kernel."""
-        if ssh_conn is not None:
-            self.__tunnel_handler = ClientKernelTunneler.from_connection(ssh_conn)
+        if ssh_connection is not None:
+            self.__tunnel_handler = ClientKernelTunneler.from_connection(ssh_connection)
         elif sshkey is not None:
             self.__tunnel_handler = ClientKernelTunneler.new_connection(
                 tunnel=hostname,
@@ -73,8 +73,8 @@ class SpyderKernelClient(QtKernelClient):
 class ClientKernelTunneler:
     """Class to handle SSH tunneling for a kernel connection."""
 
-    def __init__(self, conn, *, _close_conn_on_exit=False):
-        self.conn = conn
+    def __init__(self, ssh_connection, *, _close_conn_on_exit=False):
+        self.ssh_connection = ssh_connection
         self._port_forwarded = {}
         self._close_conn_on_exit = _close_conn_on_exit
 
@@ -84,7 +84,7 @@ class ClientKernelTunneler:
             forwarder.close()
 
         if self._close_conn_on_exit:
-            self.conn.close()
+            self.ssh_connection.close()
 
         super().__del__()
 
@@ -97,16 +97,16 @@ class ClientKernelTunneler:
                    _close_conn_on_exit=True)
 
     @classmethod
-    def from_connection(cls, conn):
+    def from_connection(cls, ssh_connection):
         """Create a new KernelTunnelHandler from an existing connection."""
-        return cls(conn)
+        return cls(ssh_connection)
 
     @AsyncDispatcher.dispatch(loop='asyncssh', early_return=False)
     async def forward_port(self, remote_host, remote_port):
         """Forward a port through the SSH connection."""
         local = self._get_free_port()
         try:
-            self._port_forwarded[(remote_host, remote_port)] = await self.conn.forward_local_port("", local, remote_host, remote_port)
+            self._port_forwarded[(remote_host, remote_port)] = await self.ssh_connection.forward_local_port("", local, remote_host, remote_port)
         except asyncssh.Error as err:
             raise RuntimeError(
                 _(

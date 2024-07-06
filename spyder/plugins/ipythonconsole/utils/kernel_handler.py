@@ -151,7 +151,7 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
-        ssh_conn=None,
+        ssh_connection=None,
     ):
         super().__init__()
         # Connection Informations
@@ -162,7 +162,7 @@ class KernelHandler(QObject):
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
-        self.ssh_conn = ssh_conn
+        self.ssh_connection = ssh_connection
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
 
@@ -416,7 +416,7 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
-        ssh_conn=None,
+        ssh_connection=None,
     ):
         """Create kernel for given connection info."""
         new_connection_file = cls.new_connection_file()
@@ -430,7 +430,7 @@ class KernelHandler(QObject):
                 hostname,
                 sshkey,
                 password,
-                ssh_conn,
+                ssh_connection,
             ),
         )
 
@@ -441,7 +441,7 @@ class KernelHandler(QObject):
         hostname=None,
         sshkey=None,
         password=None,
-        ssh_conn=None,
+        ssh_connection=None,
     ):
         """Create kernel for given connection file."""
         return cls(
@@ -454,13 +454,13 @@ class KernelHandler(QObject):
                 hostname,
                 sshkey,
                 password,
-                ssh_conn,
+                ssh_connection,
             ),
         )
 
     @staticmethod
     def init_kernel_client(
-        connection_file, hostname, sshkey, password, ssh_conn,
+        connection_file, hostname, sshkey, password, ssh_connection,
     ):
         """Create kernel client."""
         kernel_client = SpyderKernelClient(
@@ -480,12 +480,12 @@ class KernelHandler(QObject):
                 + str(e)
             )
 
-        if hostname is not None or ssh_conn is not None:
+        if hostname is not None or ssh_connection is not None:
             kernel_client.tunnel_to_kernel(
                 hostname=hostname,
                 sshkey=sshkey,
                 password=password,
-                ssh_conn=ssh_conn,
+                ssh_connection=ssh_connection,
             )
 
         return kernel_client
@@ -561,7 +561,7 @@ class KernelHandler(QObject):
             self.hostname,
             self.sshkey,
             self.password,
-            self.ssh_conn,
+            self.ssh_connection,
         )
 
         return self.__class__(
@@ -571,7 +571,7 @@ class KernelHandler(QObject):
             hostname=self.hostname,
             sshkey=self.sshkey,
             password=self.password,
-            ssh_conn=self.ssh_conn,
+            ssh_connection=self.ssh_connection,
             kernel_client=kernel_client,
         )
 
