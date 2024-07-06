@@ -7,6 +7,7 @@
 """Status bar widgets."""
 
 # Standard library imports
+import functools
 import sys
 import textwrap
 
@@ -100,9 +101,11 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
         shellwidget.sig_config_spyder_kernel.connect(
-            lambda sw=shellwidget: self.config_spyder_kernel(sw)
+            functools.partial(self.config_spyder_kernel, shellwidget)
         )
         shellwidget.kernel_handler.sig_kernel_is_ready.connect(
+            # We can't use functools.partial here because it gives memory leaks
+            # in Python versions older than 3.10
             lambda sw=shellwidget: self.on_kernel_start(sw)
         )
 
@@ -117,8 +120,9 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def config_spyder_kernel(self, shellwidget):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
-            lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid)
+            functools.partial(
+                self.update_matplotlib_gui, shellwidget_id=id(shellwidget)
+            )
         )
         shellwidget.set_kernel_configuration("update_gui", True)
 
