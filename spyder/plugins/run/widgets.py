@@ -35,11 +35,11 @@ from qtpy.QtWidgets import (
 import qstylizer.style
 
 # Local imports
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
-from spyder.config.base import running_under_pytest
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
+from spyder.config.base import running_under_pytest
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
     RunExecutorConfigurationGroup,

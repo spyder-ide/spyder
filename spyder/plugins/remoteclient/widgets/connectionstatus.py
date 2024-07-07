@@ -9,8 +9,8 @@
 import qstylizer.style
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.plugins.remoteclient.api.protocol import (

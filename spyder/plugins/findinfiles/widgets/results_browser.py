@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)

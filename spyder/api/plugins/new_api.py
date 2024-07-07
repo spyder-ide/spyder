@@ -26,9 +26,9 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin

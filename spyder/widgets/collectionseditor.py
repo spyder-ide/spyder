@@ -45,7 +45,7 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import (is_binary_string, to_text_string,

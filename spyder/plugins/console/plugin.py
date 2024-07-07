@@ -16,7 +16,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QIcon
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)

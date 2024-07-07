@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (
 from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette

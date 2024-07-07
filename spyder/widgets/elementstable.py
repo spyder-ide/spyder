@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 from superqt.utils import qdebounced
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
