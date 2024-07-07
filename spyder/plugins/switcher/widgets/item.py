@@ -184,18 +184,21 @@ class SwitcherItem(SwitcherBaseItem):
     <td valign="middle">
       <span style="color:{title_color};font-size:{title_font_size}pt">
         {title}
-      </span>&nbsp;
-      <small
-       style="color:{description_color};font-size:{description_font_size}pt">
-        <span>{description}</span>
-      </small>
+      </span>
+      &nbsp;&nbsp;
+      <em>
+        <span
+         style="color:{description_color};font-size:{description_font_size}pt">
+          <span>{description}</span>
+        </span>
+      </em>
     </td>
     <td valign="middle" align="right" float="right">
       <span style="color:{shortcut_color};font-size:{shortcut_font_size}pt">
-         <small><code><i>{shortcut}</i></code></small>
+         <code><i>{shortcut}</i></code>
       </span>&nbsp;
       <span style="color:{section_color};font-size:{section_font_size}pt">
-         <small>{section}</small>
+         {section}
       </span>
     </td>
   </tr>
@@ -273,24 +276,6 @@ class SwitcherItem(SwitcherBaseItem):
         for attr in self._STYLE_ATTRIBUTES:
             if attr not in self._styles:
                 self._styles[attr] = self._STYLES[attr]
-
-        rich_font = self._styles['title_font_size']
-
-        if sys.platform == 'darwin':
-            title_font_size = rich_font
-            description_font_size = title_font_size + 2
-        elif os.name == 'nt':
-            title_font_size = rich_font
-            description_font_size = title_font_size + 1
-        elif is_ubuntu():
-            title_font_size = rich_font - 2
-            description_font_size = title_font_size + 1
-        else:
-            title_font_size = rich_font - 2
-            description_font_size = title_font_size + 1
-
-        self._styles['description_font_size'] = description_font_size
-        self._styles['section_font_size'] = description_font_size
 
     def _get_height(self):
         """
