@@ -161,8 +161,6 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
-        self.setWindowOpacity(0.95)
-        # self.setMinimumHeight(self._MIN_HEIGHT)
         self.setMaximumHeight(self._MAX_HEIGHT)
 
         self.edit.installEventFilter(self.filter)
