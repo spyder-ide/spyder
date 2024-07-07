@@ -11,6 +11,9 @@ import functools
 import sys
 import textwrap
 
+# Third-party imports
+from spyder_kernels.comms.frontendcomm import CommError
+
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.translations import _
@@ -137,7 +140,12 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         if running_in_ci() and not sys.platform.startswith("linux"):
             mpl_backend = "inline"
         else:
-            mpl_backend = shellwidget.get_matplotlib_backend()
+            # Needed when the comm is not connected.
+            # Fixes spyder-ide/spyder#22194
+            try:
+                mpl_backend = shellwidget.get_matplotlib_backend()
+            except CommError:
+                mpl_backend = None
 
         # Hide widget if Matplotlib is not available or failed to import
         if mpl_backend is None:
