@@ -133,11 +133,3 @@ class IPythonConsoleWidgetCornerWidgets:
     ResetButton = "reset_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
-
-
-class EnvironmentConsolesMenuSections:
-    Default = "default_section"
-    Conda = "conda_section"
-    Pyenv = "pyenv_section"
-    Custom = "custom_section"
-    Other = "other_section"

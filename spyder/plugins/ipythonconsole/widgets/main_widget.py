@@ -37,7 +37,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
-    EnvironmentConsolesMenuSections,
     IPythonConsoleWidgetActions,
     IPythonConsoleWidgetMenus,
     IPythonConsoleWidgetCornerWidgets,
@@ -71,13 +70,28 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-# =============================================================================
 # ---- Constants
-# =============================================================================
+# -----------------------------------------------------------------------------
 MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
-# --- Widgets
+# Leaving these enums here because they don't need to be part of the public API
+class EnvironmentConsolesSubmenus:
+    CondaMenu = 'conda_environments_menu'
+    PyenvMenu = 'pyenv_environment_menu'
+    CustomMenu = 'custom_environment_menu'
+
+
+class EnvironmentConsolesMenuSections:
+    Default = "default_section"
+    Conda = "conda_section"
+    Pyenv = "pyenv_section"
+    Custom = "custom_section"
+    Other = "other_section"
+    Submenus = "submenus_section"
+
+
+# ---- Widgets
 # ----------------------------------------------------------------------------
 class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     """
@@ -367,7 +381,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
-        # --- Main menu
+        # --- Console environments menu
         self.console_environment_menu = self.create_menu(
             IPythonConsoleWidgetMenus.EnvironmentConsoles,
             _('New console in environment')
@@ -381,7 +395,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self._update_environment_menu
         )
 
-        # --- Options menu actions
+        # Submenus
+        self.conda_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.CondaMenu,
+            "Conda",
+        )
+        self.pyenv_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.PyenvMenu,
+            "Pyenv",
+        )
+        self.custom_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.CustomMenu,
+            _("Custom"),
+        )
+
+        # --- Main and options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
@@ -1132,7 +1160,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def _update_environment_menu(self):
         """Update submenu with entries for available interpreters."""
+        # Clear menu and submenus before rebuilding them
         self.console_environment_menu.clear_actions()
+        self.conda_envs_menu.clear_actions()
+        self.pyenv_envs_menu.clear_actions()
+        self.custom_envs_menu.clear_actions()
 
         internal_action = None
         conda_actions = []
@@ -1200,37 +1232,94 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 section=EnvironmentConsolesMenuSections.Default
             )
 
-        # Add other envs to their respective sections but only if there are two
-        # or more per category. Otherwise we group them in a single section
-        # called "Other". We do that because having many menu sections with a
-        # single entry makes the UI look odd.
-        for action in conda_actions:
-            self.add_item_to_menu(
-                action,
-                menu=self.console_environment_menu,
-                section=EnvironmentConsolesMenuSections.Conda
+        # Add other envs to their respective submenus or sections
+        max_actions_in_menu = 20
+        n_categories = len(
+            [
+                actions
+                for actions in [conda_actions, pyenv_actions, custom_actions]
+                if len(actions) > 0
+            ]
+        )
+        actions = conda_actions + pyenv_actions + custom_actions
+
+        # We use submenus if there are more envs than we'd like to see
+        # displayed in the consoles menu, and there are at least two non-empty
+        # categories.
+        if len(actions) > max_actions_in_menu and n_categories > 1:
+            conda_menu = self.conda_envs_menu
+            if conda_actions:
+                self.add_item_to_menu(
+                    conda_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            pyenv_menu = self.pyenv_envs_menu
+            if pyenv_actions:
+                self.add_item_to_menu(
+                    pyenv_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            custom_menu = self.custom_envs_menu
+            if custom_actions:
+                self.add_item_to_menu(
+                    custom_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            # Submenus don't have sections
+            conda_section = pyenv_section = custom_section = None
+        else:
+            # If there are few envs, we add their actions to the consoles menu.
+            # But we use sections only if there are two or more envs per
+            # category. Otherwise we group them in a single section called
+            # "Other". We do that because having many menu sections with a
+            # single entry makes the UI look odd.
+            conda_menu = (
+                pyenv_menu
+            ) = custom_menu = self.console_environment_menu
+
+            conda_section = (
+                EnvironmentConsolesMenuSections.Conda
                 if len(conda_actions) > 1
-                else EnvironmentConsolesMenuSections.Other,
+                else EnvironmentConsolesMenuSections.Other
             )
 
-        for action in pyenv_actions:
-            self.add_item_to_menu(
-                action,
-                menu=self.console_environment_menu,
-                section=EnvironmentConsolesMenuSections.Pyenv
+            pyenv_section = (
+                EnvironmentConsolesMenuSections.Pyenv
                 if len(pyenv_actions) > 1
-                else EnvironmentConsolesMenuSections.Other,
+                else EnvironmentConsolesMenuSections.Other
             )
 
-        for action in custom_actions:
+            custom_section = (
+                EnvironmentConsolesMenuSections.Custom
+                if len(custom_actions) > 1
+                else EnvironmentConsolesMenuSections.Other
+            )
+
+        # Add actions to menu or submenus
+        for action in actions:
+            if action in conda_actions:
+                menu = conda_menu
+                section = conda_section
+            elif action in pyenv_actions:
+                menu = pyenv_menu
+                section = pyenv_section
+            else:
+                menu = custom_menu
+                section = custom_section
+
             self.add_item_to_menu(
                 action,
-                menu=self.console_environment_menu,
-                section=EnvironmentConsolesMenuSections.Custom
-                if len(custom_actions) > 1
-                else EnvironmentConsolesMenuSections.Other,
+                menu=menu,
+                section=section,
             )
 
+        # Render consoles menu and submenus
         self.console_environment_menu.render()
 
     def find_connection_file(self, connection_file):
