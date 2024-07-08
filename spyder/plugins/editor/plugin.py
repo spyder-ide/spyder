@@ -11,13 +11,13 @@ import sys
 
 from qtpy.QtCore import Signal
 
-from spyder.api.translations import _
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
 )
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction

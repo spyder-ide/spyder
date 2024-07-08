@@ -15,8 +15,8 @@ import sys
 from typing import Dict, List, Tuple, Optional, Union
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import _

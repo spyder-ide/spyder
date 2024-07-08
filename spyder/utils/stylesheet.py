@@ -18,7 +18,7 @@ import qstylizer.style
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import SpyderPalette

@@ -51,7 +51,7 @@ from qtpy.QtWidgets import (
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect

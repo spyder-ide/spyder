@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _

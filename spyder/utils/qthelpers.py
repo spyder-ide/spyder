@@ -54,8 +54,8 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string

@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.translations import _
 from spyder.utils.palette import SpyderPalette

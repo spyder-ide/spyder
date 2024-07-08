@@ -24,7 +24,7 @@ import tokenize
 import warnings
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, DEV
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_text_string

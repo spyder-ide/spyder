@@ -60,7 +60,7 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
