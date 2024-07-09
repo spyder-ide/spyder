@@ -40,7 +40,7 @@ class Breakpoints(SpyderDockablePlugin):
     NAME = 'breakpoints'
     REQUIRES = [Plugins.Editor]
     OPTIONAL = [Plugins.MainMenu]
-    TABIFY = [Plugins.Help]
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = BreakpointWidget
     CONF_SECTION = NAME
     CONF_FILE = False
