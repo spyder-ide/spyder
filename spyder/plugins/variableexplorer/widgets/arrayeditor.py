@@ -847,7 +847,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             _('<u>Warning</u>: Changes are applied separately')
         )
         self.masked_label.setToolTip(
-            _("For performance reasons, changes applied to masked arrays won't"
+            _("For performance reasons, changes applied to masked arrays won't "
               "be reflected in array's data (and vice-versa).")
           )
         self.btn_layout.addWidget(self.masked_label)
