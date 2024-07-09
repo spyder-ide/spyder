@@ -27,7 +27,7 @@ class OnlineHelp(SpyderDockablePlugin):
     """
 
     NAME = 'onlinehelp'
-    TABIFY = Plugins.Help
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     CONF_SECTION = NAME
     CONF_FILE = False
     WIDGET_CLASS = PydocBrowser

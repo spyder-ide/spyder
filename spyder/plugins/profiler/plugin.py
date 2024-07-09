@@ -40,7 +40,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     NAME = 'profiler'
     REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = []
-    TABIFY = [Plugins.Help]
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = ProfilerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ProfilerConfigPage
