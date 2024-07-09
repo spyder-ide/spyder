@@ -353,31 +353,65 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
 
 def test_sort_numpy_numeric_collectionsmodel():
     if parse(numpy.__version__) >= parse("2.0.0"):
-        numpy.set_printoptions(legacy="1.25")
+        np20 = True
+    else:
+        np20 = False
 
     var_list = [
-        numpy.float64(1e16), numpy.float64(10), numpy.float64(1),
-        numpy.float64(0.1), numpy.float64(1e-6),
-        numpy.float64(0), numpy.float64(-1e-6), numpy.float64(-1),
-        numpy.float64(-10), numpy.float64(-1e16)
-        ]
+        numpy.float64(1e16),
+        numpy.float64(10),
+        numpy.float64(1),
+        numpy.float64(0.1),
+        numpy.float64(1e-6),
+        numpy.float64(0),
+        numpy.float64(-1e-6),
+        numpy.float64(-1),
+        numpy.float64(-10),
+        numpy.float64(-1e16),
+    ]
     cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
     assert cm.columnCount() == 4
-    cm.sort(0)  # sort by index
-    assert data_table(cm, 10, 4) == [list(range(0, 10)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['1e+16', '10.0', '1.0', '0.1',
-                                      '1e-06', '0.0', '-1e-06',
-                                      '-1.0', '-10.0', '-1e+16']]
-    cm.sort(3)  # sort by value
-    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['-1e+16', '-10.0', '-1.0',
-                                      '-1e-06', '0.0', '1e-06',
-                                      '0.1', '1.0', '10.0', '1e+16']]
+
+    # Sort by index
+    cm.sort(0)
+    assert data_table(cm, 10, 4) == [
+        list(range(0, 10)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "np.float64(1e+16)" if np20 else "1e+16",
+            "np.float64(10.0)" if np20 else "10.0",
+            "np.float64(1.0)" if np20 else "1.0",
+            "np.float64(0.1)" if np20 else "0.1",
+            "np.float64(1e-06)" if np20 else "1e-06",
+            "np.float64(0.0)" if np20 else "0.0",
+            "np.float64(-1e-06)" if np20 else "-1e-06",
+            "np.float64(-1.0)" if np20 else "-1.0",
+            "np.float64(-10.0)" if np20 else "-10.0",
+            "np.float64(-1e+16)" if np20 else "-1e+16",
+        ],
+    ]
+
+    # Sort by value
+    cm.sort(3)
+    assert data_table(cm, 10, 4) == [
+        list(range(9, -1, -1)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "np.float64(-1e+16)" if np20 else "-1e+16",
+            "np.float64(-10.0)" if np20 else "-10.0",
+            "np.float64(-1.0)" if np20 else "-1.0",
+            "np.float64(-1e-06)" if np20 else "-1e-06",
+            "np.float64(0.0)" if np20 else "0.0",
+            "np.float64(1e-06)" if np20 else "1e-06",
+            "np.float64(0.1)" if np20 else "0.1",
+            "np.float64(1.0)" if np20 else "1.0",
+            "np.float64(10.0)" if np20 else "10.0",
+            "np.float64(1e+16)" if np20 else "1e+16",
+        ],
+    ]
 
 
 def test_sort_float_collectionsmodel():
