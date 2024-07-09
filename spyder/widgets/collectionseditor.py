@@ -1879,7 +1879,7 @@ def get_test_data():
             'ddataframe': test_df,
             'None': None,
             'unsupported1': np.arccos,
-            'unsupported2': np.cast,
+            'unsupported2': np.asarray,
             # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),
