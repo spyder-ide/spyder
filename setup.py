@@ -210,6 +210,9 @@ install_requires = [
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
+    # While this is only required for python <3.10, it is safe enough to
+    # install in all cases and helps the tests to pass.
+    'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
     'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
@@ -246,7 +249,7 @@ install_requires = [
     'spyder-kernels>=2.5.2,<2.6.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3'
+    'watchdog>=0.10.3',
 ]
 
 # Loosen constraints to ensure dev versions still work

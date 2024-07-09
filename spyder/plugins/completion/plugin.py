@@ -12,6 +12,7 @@ introspection providers.
 """
 
 # Standard library imports
+import sys
 import functools
 import inspect
 import logging
@@ -21,7 +22,6 @@ import weakref
 
 # Third-party imports
 from packaging.version import parse
-from pkg_resources import iter_entry_points
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
@@ -36,6 +36,13 @@ from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            COMPLETION_ENTRYPOINT)
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
+
+# See compatibility note on `group` keyword:
+# https://docs.python.org/3/library/importlib.metadata.html#entry-points
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
 
 
 logger = logging.getLogger(__name__)
@@ -234,7 +241,7 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Find and instantiate all completion providers registered via
         # entrypoints
-        for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
+        for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
             try:
                 # This absolutely ensures that the Kite provider won't be
                 # loaded. For instance, it can happen when you have an older
@@ -243,7 +250,7 @@ class CompletionPlugin(SpyderPluginV2):
                 if 'kite' in entry_point.name:
                     continue
                 logger.debug(f'Loading entry point: {entry_point}')
-                Provider = entry_point.resolve()
+                Provider = entry_point.load()
                 self._instantiate_and_register_provider(Provider)
             except Exception as e:
                 logger.warning('Failed to load completion provider from entry '

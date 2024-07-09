@@ -40,6 +40,7 @@ CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
+IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 # None for pynsist install for now
 # (check way to add dist.info/egg.info from packages without wheels available)
 INTERVALTREE_REQVER = None if is_pynsist() else '>=3.0.2'
@@ -121,6 +122,10 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
+    {'modname': 'importlib_metadata',
+     'package_name': 'importlib-metadata',
+     'features': _('Access the metadata for a Python package'),
+     'required_version': IMPORTLIB_METADATA_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
