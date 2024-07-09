@@ -201,8 +201,14 @@ class KernelHandler(QObject):
         self._shellwidget_connected = True
         # Emit signal in case the connection is already made
         if self.connection_state in [
-                KernelConnectionState.IpykernelReady,
-                KernelConnectionState.SpyderKernelReady]:
+            KernelConnectionState.IpykernelReady,
+            KernelConnectionState.SpyderKernelReady
+        ]:
+            # This is necessary for systems in which the kernel takes too much
+            # time to start because in that case its heartbeat is not detected
+            # as beating at this point.
+            # Fixes spyder-ide/spyder#22179
+            self.kernel_client.hb_channel._beating = True
             self.sig_kernel_is_ready.emit()
         elif self.connection_state == KernelConnectionState.Error:
             self.sig_kernel_connection_error.emit()
@@ -274,6 +280,11 @@ class KernelHandler(QObject):
             KernelConnectionState.SpyderKernelWaitComm,
             KernelConnectionState.Crashed
         ]:
+            # This is necessary for systems in which the kernel takes too much
+            # time to start because in that case its heartbeat is not detected
+            # as beating at this point.
+            # Fixes spyder-ide/spyder#22179
+            self.kernel_client.hb_channel._beating = True
             self.connection_state = KernelConnectionState.SpyderKernelReady
             self.sig_kernel_is_ready.emit()
 

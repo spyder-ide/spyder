@@ -1923,7 +1923,6 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
@@ -1936,7 +1935,8 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
 
     # This is necessary to test no spurious messages are printed to the console
     shell.clear_console()
-    qtbot.waitUntil(lambda: '\nIn [2]: ' == shell._control.toPlainText())
+    empty_console_text = '\n\nIn [2]: ' if os.name == "nt" else '\nIn [2]: '
+    qtbot.waitUntil(lambda: empty_console_text == shell._control.toPlainText())
 
     # Switch to the tk backend
     ipyconsole.set_conf('pylab/backend', 'tk')
@@ -1967,7 +1967,7 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
     # Check we no spurious messages are shown before the restart below
-    assert "\nIn [2]: " == shell._control.toPlainText()
+    assert empty_console_text == shell._control.toPlainText()
 
     # Restart kernel to check if the new interactive backend is set
     ipyconsole.restart_kernel()

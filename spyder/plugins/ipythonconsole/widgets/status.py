@@ -7,8 +7,12 @@
 """Status bar widgets."""
 
 # Standard library imports
+import functools
 import sys
 import textwrap
+
+# Third-party imports
+from spyder_kernels.comms.frontendcomm import CommError
 
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
@@ -100,9 +104,11 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def add_shellwidget(self, shellwidget):
         """Add shellwidget."""
         shellwidget.sig_config_spyder_kernel.connect(
-            lambda sw=shellwidget: self.config_spyder_kernel(sw)
+            functools.partial(self.config_spyder_kernel, shellwidget)
         )
         shellwidget.kernel_handler.sig_kernel_is_ready.connect(
+            # We can't use functools.partial here because it gives memory leaks
+            # in Python versions older than 3.10
             lambda sw=shellwidget: self.on_kernel_start(sw)
         )
 
@@ -117,8 +123,9 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
     def config_spyder_kernel(self, shellwidget):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
-            lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid)
+            functools.partial(
+                self.update_matplotlib_gui, shellwidget_id=id(shellwidget)
+            )
         )
         shellwidget.set_kernel_configuration("update_gui", True)
 
@@ -133,7 +140,12 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         if running_in_ci() and not sys.platform.startswith("linux"):
             mpl_backend = "inline"
         else:
-            mpl_backend = shellwidget.get_matplotlib_backend()
+            # Needed when the comm is not connected.
+            # Fixes spyder-ide/spyder#22194
+            try:
+                mpl_backend = shellwidget.get_matplotlib_backend()
+            except CommError:
+                mpl_backend = None
 
         # Hide widget if Matplotlib is not available or failed to import
         if mpl_backend is None:
