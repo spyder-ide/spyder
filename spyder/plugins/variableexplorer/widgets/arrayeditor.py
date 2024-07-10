@@ -849,7 +849,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.masked_label.setToolTip(
             _("For performance reasons, changes applied to masked arrays "
               "won't be reflected in array's data (and vice-versa).")
-          )
+        )
         self.btn_layout.addWidget(self.masked_label)
 
         self.btn_layout.addStretch()
