@@ -125,19 +125,22 @@ class RemoteClientContainer(PluginMainContainer):
         # Widgets
         self.create_action(
             RemoteClientActions.ManageConnections,
-            _('Manage remote connections...'),
+            _("Manage remote connections..."),
             icon=self._plugin.get_icon(),
             triggered=self._show_connection_dialog,
         )
 
         self._remote_consoles_menu = self.create_menu(
-            RemoteClientMenus.RemoteConsoles,
-            _("New console in remote server")
+            RemoteClientMenus.RemoteConsoles, _("New console in remote server")
         )
 
         # Signals
-        self.sig_connection_status_changed.connect(self._on_connection_status_changed)
-        self._sig_kernel_restarted[object, bool].connect(self._on_kernel_restarted)
+        self.sig_connection_status_changed.connect(
+            self._on_connection_status_changed
+        )
+        self._sig_kernel_restarted[object, bool].connect(
+            self._on_kernel_restarted
+        )
 
     def update_actions(self):
         pass
@@ -151,7 +154,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.add_item_to_menu(
             self.get_action(RemoteClientActions.ManageConnections),
             menu=self._remote_consoles_menu,
-            section=RemoteConsolesMenuSections.ManagerSection
+            section=RemoteConsolesMenuSections.ManagerSection,
         )
 
         servers = self.get_conf("servers", default={})
@@ -162,17 +165,18 @@ class RemoteClientContainer(PluginMainContainer):
             action = self.create_action(
                 name=config_id,
                 text=f"New console in {name} server",
-                icon=self.create_icon('ipython_console'),
+                icon=self.create_icon("ipython_console"),
                 triggered=(
-                    lambda checked, config_id=config_id:
-                    self.sig_create_ipyclient_requested.emit(config_id)
+                    lambda checked, config_id=config_id: self.sig_create_ipyclient_requested.emit(
+                        config_id
+                    )
                 ),
-                overwrite=True
+                overwrite=True,
             )
             self.add_item_to_menu(
                 action,
                 menu=self._remote_consoles_menu,
-                section=RemoteConsolesMenuSections.ConsolesSection
+                section=RemoteConsolesMenuSections.ConsolesSection,
             )
 
         # This is necessary to reposition the menu correctly when rebuilt
@@ -231,9 +235,7 @@ class RemoteClientContainer(PluginMainContainer):
         connection_dialog.sig_connections_changed.connect(
             self.setup_remote_consoles_submenu
         )
-        connection_dialog.sig_server_renamed.connect(
-            self.sig_server_renamed
-        )
+        connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
 
         self.sig_connection_status_changed.connect(
             connection_dialog.sig_connection_status_changed

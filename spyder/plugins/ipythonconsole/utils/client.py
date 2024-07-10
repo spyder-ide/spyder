@@ -33,14 +33,14 @@ class SpyderKernelClient(QtKernelClient):
         spyder_kernels_info = rep["content"].get("spyder_kernels_info", None)
         self.sig_spyder_kernel_info.emit(spyder_kernels_info)
 
-    def tunnel_to_kernel(self,
-                         hostname=None,
-                         sshkey=None,
-                         password=None,
-                         ssh_connection=None):
+    def tunnel_to_kernel(
+        self, hostname=None, sshkey=None, password=None, ssh_connection=None
+    ):
         """Tunnel to remote kernel."""
         if ssh_connection is not None:
-            self.__tunnel_handler = ClientKernelTunneler.from_connection(ssh_connection)
+            self.__tunnel_handler = ClientKernelTunneler.from_connection(
+                ssh_connection
+            )
         elif sshkey is not None:
             self.__tunnel_handler = ClientKernelTunneler.new_connection(
                 tunnel=hostname,
@@ -61,11 +61,13 @@ class SpyderKernelClient(QtKernelClient):
             self.control_port,
         ) = (
             self.__tunnel_handler.forward_port(self.ip, port)
-            for port in (self.shell_port,
-                         self.iopub_port,
-                         self.stdin_port,
-                         self.hb_port,
-                         self.control_port)
+            for port in (
+                self.shell_port,
+                self.iopub_port,
+                self.stdin_port,
+                self.hb_port,
+                self.control_port,
+            )
         )
         self.ip = "127.0.0.1"  # Tunneled to localhost
 
@@ -89,24 +91,29 @@ class ClientKernelTunneler:
         super().__del__()
 
     @classmethod
-    @AsyncDispatcher.dispatch(loop='asyncssh', early_return=False)
+    @AsyncDispatcher.dispatch(loop="asyncssh", early_return=False)
     async def new_connection(cls, *args, **kwargs):
         """Create a new SSH connection."""
-        return cls(await asyncssh.connect(*args, **kwargs,
-                                          known_hosts=None),
-                   _close_conn_on_exit=True)
+        return cls(
+            await asyncssh.connect(*args, **kwargs, known_hosts=None),
+            _close_conn_on_exit=True,
+        )
 
     @classmethod
     def from_connection(cls, ssh_connection):
         """Create a new KernelTunnelHandler from an existing connection."""
         return cls(ssh_connection)
 
-    @AsyncDispatcher.dispatch(loop='asyncssh', early_return=False)
+    @AsyncDispatcher.dispatch(loop="asyncssh", early_return=False)
     async def forward_port(self, remote_host, remote_port):
         """Forward a port through the SSH connection."""
         local = self._get_free_port()
         try:
-            self._port_forwarded[(remote_host, remote_port)] = await self.ssh_connection.forward_local_port("", local, remote_host, remote_port)
+            self._port_forwarded[(remote_host, remote_port)] = (
+                await self.ssh_connection.forward_local_port(
+                    "", local, remote_host, remote_port
+                )
+            )
         except asyncssh.Error as err:
             raise RuntimeError(
                 _(

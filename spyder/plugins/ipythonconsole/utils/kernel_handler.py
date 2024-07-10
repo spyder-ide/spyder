@@ -23,8 +23,12 @@ from zmq.ssh import tunnel as zmqtunnel
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_MIN_VERSION, SPYDER_KERNELS_MAX_VERSION,
-    SPYDER_KERNELS_VERSION, SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP)
+    SPYDER_KERNELS_MIN_VERSION,
+    SPYDER_KERNELS_MAX_VERSION,
+    SPYDER_KERNELS_VERSION,
+    SPYDER_KERNELS_CONDA,
+    SPYDER_KERNELS_PIP,
+)
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
@@ -73,17 +77,18 @@ ERROR_SPYDER_KERNEL_VERSION_OLD = _(
 
 
 class KernelConnectionState:
-    SpyderKernelWaitComm = 'spyder_kernel_wait_comm'
-    SpyderKernelReady = 'spyder_kernel_ready'
-    IpykernelReady = 'ipykernel_ready'
-    Connecting = 'connecting'
-    Error = 'error'
-    Closed = 'closed'
-    Crashed = 'crashed'
+    SpyderKernelWaitComm = "spyder_kernel_wait_comm"
+    SpyderKernelReady = "spyder_kernel_ready"
+    IpykernelReady = "ipykernel_ready"
+    Connecting = "connecting"
+    Error = "error"
+    Closed = "closed"
+    Crashed = "crashed"
 
 
 class StdThread(QThread):
     """Poll for changes in std buffers."""
+
     sig_out = Signal(str)
 
     def __init__(self, parent, std_buffer):
@@ -168,8 +173,7 @@ class KernelHandler(QObject):
 
         # Comm
         self.kernel_comm = KernelComm()
-        self.kernel_comm.sig_comm_ready.connect(
-            self.handle_comm_ready)
+        self.kernel_comm.sig_comm_ready.connect(self.handle_comm_ready)
 
         # Internal
         self._shutdown_lock = Lock()
@@ -241,7 +245,7 @@ class KernelHandler(QObject):
                         SPYDER_KERNELS_MIN_VERSION,
                         SPYDER_KERNELS_MAX_VERSION,
                         SPYDER_KERNELS_CONDA,
-                        SPYDER_KERNELS_PIP
+                        SPYDER_KERNELS_PIP,
                     )
                 )
                 self.connection_state = KernelConnectionState.Error
@@ -257,15 +261,13 @@ class KernelHandler(QObject):
         if not check_version_range(version, SPYDER_KERNELS_VERSION):
             # Development versions are acceptable
             if "dev0" not in version:
-                self.kernel_error_message = (
-                    ERROR_SPYDER_KERNEL_VERSION.format(
-                        pyexec,
-                        version,
-                        SPYDER_KERNELS_MIN_VERSION,
-                        SPYDER_KERNELS_MAX_VERSION,
-                        SPYDER_KERNELS_CONDA,
-                        SPYDER_KERNELS_PIP
-                    )
+                self.kernel_error_message = ERROR_SPYDER_KERNEL_VERSION.format(
+                    pyexec,
+                    version,
+                    SPYDER_KERNELS_MIN_VERSION,
+                    SPYDER_KERNELS_MAX_VERSION,
+                    SPYDER_KERNELS_CONDA,
+                    SPYDER_KERNELS_PIP,
                 )
                 self.known_spyder_kernel = False
                 self.connection_state = KernelConnectionState.Error
@@ -282,7 +284,7 @@ class KernelHandler(QObject):
         self._comm_ready_received = True
         if self.connection_state in [
             KernelConnectionState.SpyderKernelWaitComm,
-            KernelConnectionState.Crashed
+            KernelConnectionState.Crashed,
         ]:
             # This is necessary for systems in which the kernel takes too much
             # time to start because in that case its heartbeat is not detected
@@ -460,12 +462,14 @@ class KernelHandler(QObject):
 
     @staticmethod
     def init_kernel_client(
-        connection_file, hostname, sshkey, password, ssh_connection,
+        connection_file,
+        hostname,
+        sshkey,
+        password,
+        ssh_connection,
     ):
         """Create kernel client."""
-        kernel_client = SpyderKernelClient(
-            connection_file=connection_file
-        )
+        kernel_client = SpyderKernelClient(connection_file=connection_file)
 
         # This is needed for issue spyder-ide/spyder#9304.
         try:
