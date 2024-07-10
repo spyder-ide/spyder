@@ -136,15 +136,8 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         # Signals
-        self.sig_connection_status_changed.connect(
-            self._on_connection_status_changed
-        )
-        self._sig_kernel_restarted[object, bool].connect(
-            self._on_kernel_restarted
-        )
-        self._sig_kernel_restarted[object, dict].connect(
-            self._on_kernel_restarted_after_died
-        )
+        self.sig_connection_status_changed.connect(self._on_connection_status_changed)
+        self._sig_kernel_restarted[object, bool].connect(self._on_kernel_restarted)
 
     def update_actions(self):
         pass
@@ -211,7 +204,18 @@ class RemoteClientContainer(PluginMainContainer):
         ipyclient.kernel_id = kernel_info["id"]
         self._connect_ipyclient_signals(ipyclient)
 
-        self._connect_to_kernel(ipyclient, kernel_info["connection_info"])
+        try:
+            kernel_handler = KernelHandler.from_connection_info(
+                kernel_info["connection_info"],
+                ssh_connection=self._plugin.get_remote_server(
+                    ipyclient.server_id
+                )._ssh_connection,
+            )
+        except Exception as err:
+            ipyclient.show_kernel_error(err)
+        else:
+            # Connect client to the kernel
+            ipyclient.connect_kernel(kernel_handler)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -264,27 +268,8 @@ class RemoteClientContainer(PluginMainContainer):
             lambda: self._request_kernel_restart(ipyclient)
         )
         ipyclient.sig_kernel_died.connect(
-            lambda: self._get_kernel_info(ipyclient)
+            lambda: self._request_kernel_restart(ipyclient)
         )
-
-    def _connect_to_kernel(self, ipyclient, connection_info, restart=False, clear=True):
-        """Finish connecting an IPython console client to a remote kernel."""
-        # Create KernelHandler
-        try:
-            kernel_handler = KernelHandler.from_connection_info(
-                connection_info,
-                ssh_connection=self._plugin.get_remote_server(ipyclient.server_id)._ssh_connection,
-            )
-        except Exception as err:
-            ipyclient.show_kernel_error(err)
-        else:
-            # Connect client to the kernel
-            if not restart:
-                ipyclient.connect_kernel(kernel_handler)
-            else:
-                ipyclient.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=clear,
-                )
 
     def _request_kernel_restart(self, ipyclient):
         """
@@ -301,41 +286,28 @@ class RemoteClientContainer(PluginMainContainer):
             )
         )
 
-    def _on_kernel_restarted(self, ipyclient, response, clear=True):
-        """Actions to take when the kernel was restarted by the server."""
-        if response:
-            kernel_handler = ipyclient.kernel_handler
-            self._connect_to_kernel(
-                ipyclient,
-                kernel_handler.connection_info,
-                restart=True,
-                clear=clear,
-            )
-        else:
-            ipyclient.kernel_restarted_failure_message()
-
-    def _get_kernel_info(self, ipyclient):
+    def _on_kernel_restarted(self, ipyclient, restarted):
         """
         Get kernel info corresponding to an IPython console client from the
         server.
 
         If we get a response, it means the kernel is alive.
         """
-        future = self._plugin._get_kernel_info(
-            ipyclient.server_id, ipyclient.kernel_id
-        )
 
-        future.add_done_callback(
-            lambda future: self._sig_kernel_restarted[object, dict].emit(
-                ipyclient, future.result()
-            )
-        )
-
-    def _on_kernel_restarted_after_died(self, ipyclient, response):
-        """
-        Actions to take when the kernel was automatically restarted after it
-        died.
-        """
-        # We don't clear the console in this case because it can contain
-        # important results that users would like to check
-        self._on_kernel_restarted(ipyclient, response, clear=False)
+        if restarted:
+            try:
+                kernel_handler = KernelHandler.from_connection_file(
+                    ipyclient.kernel_handler.connection_file,
+                    ssh_connection=self._plugin.get_remote_server(
+                        ipyclient.server_id
+                    )._ssh_connection,
+                )
+                del ipyclient.kernel_handler
+            except Exception as err:
+                ipyclient.show_kernel_error(err)
+            else:
+                ipyclient.replace_kernel(
+                    kernel_handler, shutdown_kernel=False, clear=True
+                )
+        else:
+            ipyclient.kernel_restarted_failure_message()

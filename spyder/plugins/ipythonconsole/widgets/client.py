@@ -359,7 +359,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def disconnect_kernel(self, shutdown_kernel):
         """Disconnect from current kernel."""
-        kernel_handler = self.kernel_handler
+        kernel_handler = getattr(self, "kernel_handler", None)
         if not kernel_handler:
             return
 
