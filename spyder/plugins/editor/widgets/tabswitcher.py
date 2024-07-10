@@ -12,11 +12,14 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtWidgets import QListWidget, QListWidgetItem
 
 # Local imports
-from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.widgets.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 
 
-class TabSwitcherWidget(QListWidget, SpyderConfigurationAccessor):
+class TabSwitcherWidget(
+    QListWidget, SpyderConfigurationAccessor, SpyderShortcutsMixin
+):
     """Show tabs in mru order and change between them."""
 
     CONF_SECTION = "editor"
@@ -39,17 +42,15 @@ class TabSwitcherWidget(QListWidget, SpyderConfigurationAccessor):
         self.set_dialog_position()
         self.setCurrentRow(0)
 
-        self.config_shortcut(
-            lambda: self.select_row(-1),
-            context='Editor',
+        self.register_shortcut_for_widget(
             name='Go to previous file',
-            parent=self
-        )
-        self.config_shortcut(
-            lambda: self.select_row(1),
+            triggered=lambda: self.select_row(-1),
             context='Editor',
+        )
+        self.register_shortcut_for_widget(
             name='Go to next file',
-            parent=self
+            triggered=lambda: self.select_row(1),
+            context='Editor',
         )
 
     def load_data(self):
@@ -101,7 +102,7 @@ class TabSwitcherWidget(QListWidget, SpyderConfigurationAccessor):
         When ctrl is released and tab_switcher is visible, tab will be changed.
         """
         if self.isVisible():
-            qsc = self.get_shortcut(context='Editor', name='Go to next file')
+            qsc = self.get_shortcut(name='go to next file', context='editor')
 
             for key in qsc.split('+'):
                 key = key.lower()

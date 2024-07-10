@@ -12,7 +12,7 @@ Profiler Plugin.
 from typing import List
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -120,7 +120,8 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 add_to_menu={
                     "menu": ApplicationMenus.Run,
                     "section": RunMenuSections.RunInExecutors
-                }
+                },
+                shortcut_widget_context=Qt.ApplicationShortcut,
             )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

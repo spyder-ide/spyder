@@ -401,7 +401,7 @@ DEFAULTS = [
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
               '_/switch to historylog': "Ctrl+Shift+L",
-              '_/switch to onlinehelp': "Ctrl+Shift+D",
+              '_/switch to onlinehelp': "",
               '_/switch to project_explorer': "Ctrl+Shift+P",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
@@ -410,7 +410,7 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
-              '_/switch to breakpoints': "Ctrl+Shift+B",
+              '_/switch to debugger': "Ctrl+Shift+D",
               # -- Find/replace --
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "Ctrl+G" if MAC else "F3",
@@ -488,7 +488,7 @@ DEFAULTS = [
               'editor/run cell and advance': 'Shift+Return',
               'editor/run selection and advance': "F9",
               'editor/run selection up to line': 'Shift+F9',
-              'editor/run selection from line': CTRL + '+F9',
+              'editor/run selection from line': 'Alt+F9',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run cell': 'Alt+Return',
@@ -500,10 +500,14 @@ DEFAULTS = [
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
+              'editor/enter array inline': "Ctrl+Alt+M",
+              'editor/enter array table': "Ctrl+M",
+              'editor/run cell in debugger': 'Alt+Shift+Return',
+              'editor/run selection in debugger': CTRL + '+F9',
               # -- Internal console --
-              'console/inspect current object': "Ctrl+I",
-              'console/clear shell': "Ctrl+L",
-              'console/clear line': "Shift+Escape",
+              'internal_console/inspect current object': "Ctrl+I",
+              'internal_console/clear shell': "Ctrl+L",
+              'internal_console/clear line': "Shift+Escape",
               # -- Pylint --
               'pylint/run file in pylint': "F8",
               # -- Profiler --
@@ -520,9 +524,6 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              # -- Array buider --
-              'array_builder/enter array inline': "Ctrl+Alt+M",
-              'array_builder/enter array table': "Ctrl+M",
               # -- Variable explorer --
               'variable_explorer/copy': 'Ctrl+C',
               'variable_explorer/search': 'Ctrl+F',
@@ -531,8 +532,6 @@ DEFAULTS = [
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
               'debugger/run file in debugger': "Ctrl+F5",
-              'debugger/run cell in debugger': 'Alt+Shift+Return',
-              'debugger/run selection in debugger': '',
               'debugger/next': "Ctrl+F10",
               'debugger/continue': "Ctrl+F12",
               'debugger/step': "Ctrl+F11",
@@ -671,4 +670,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '83.0.0'
+CONF_VERSION = '84.0.0'

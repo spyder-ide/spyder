@@ -705,20 +705,6 @@ class ConfigurationManager(object):
         config = self._get_shortcut_config(context, plugin_name)
         config.set('shortcuts', context + '/' + name, keystr)
 
-    def config_shortcut(self, action, context, name, parent):
-        """
-        Create a Shortcut namedtuple for a widget.
-
-        The data contained in this tuple will be registered in our shortcuts
-        preferences page.
-        """
-        # We only import on demand to avoid loading Qt modules
-        from spyder.config.gui import _config_shortcut
-
-        keystr = self.get_shortcut(context, name)
-        sc = _config_shortcut(action, context, name, keystr, parent)
-        return sc
-
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
         for context_name, keystr in self._user_config.items('shortcuts'):

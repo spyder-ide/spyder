@@ -660,7 +660,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
-        self.config_shortcut(self.copy, 'copy', self)
+        self.register_shortcut_for_widget(name='copy', triggered=self.copy)
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)

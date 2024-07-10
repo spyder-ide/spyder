@@ -475,7 +475,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.bookmarks = []
 
         # Keyboard shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.register_shortcuts()
 
         # Paint event
         self.__visible_blocks = []  # Visible blocks, update with repaint
@@ -593,77 +593,58 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.setTextCursor(cursor)
         return cursor_move_event
 
-    def create_shortcuts(self):
-        """Create the local shortcuts for the CodeEditor."""
-        shortcut_context_name_callbacks = (
-            ('editor', 'code completion', self.do_completion),
-            ('editor', 'duplicate line down', self.duplicate_line_down),
-            ('editor', 'duplicate line up', self.duplicate_line_up),
-            ('editor', 'delete line', self.delete_line),
-            ('editor', 'move line up', self.move_line_up),
-            ('editor', 'move line down', self.move_line_down),
-            ('editor', 'go to new line', self.go_to_new_line),
-            ('editor', 'go to definition', self.go_to_definition_from_cursor),
-            ('editor', 'toggle comment', self.toggle_comment),
-            ('editor', 'blockcomment', self.blockcomment),
-            ('editor', 'create_new_cell', self.create_new_cell),
-            ('editor', 'unblockcomment', self.unblockcomment),
-            ('editor', 'transform to uppercase', self.transform_to_uppercase),
-            ('editor', 'transform to lowercase', self.transform_to_lowercase),
-            ('editor', 'indent', lambda: self.indent(force=True)),
-            ('editor', 'unindent', lambda: self.unindent(force=True)),
-            ('editor', 'start of line',
-             self.create_cursor_callback('StartOfLine')),
-            ('editor', 'end of line',
-             self.create_cursor_callback('EndOfLine')),
-            ('editor', 'previous line', self.create_cursor_callback('Up')),
-            ('editor', 'next line', self.create_cursor_callback('Down')),
-            ('editor', 'previous char', self.create_cursor_callback('Left')),
-            ('editor', 'next char', self.create_cursor_callback('Right')),
-            ('editor', 'previous word',
-             self.create_cursor_callback('PreviousWord')),
-            ('editor', 'next word', self.create_cursor_callback('NextWord')),
-            ('editor', 'kill to line end', self.kill_line_end),
-            ('editor', 'kill to line start', self.kill_line_start),
-            ('editor', 'yank', self._kill_ring.yank),
-            ('editor', 'rotate kill ring', self._kill_ring.rotate),
-            ('editor', 'kill previous word', self.kill_prev_word),
-            ('editor', 'kill next word', self.kill_next_word),
-            ('editor', 'start of document',
-             self.create_cursor_callback('Start')),
-            ('editor', 'end of document',
-             self.create_cursor_callback('End')),
-            ('editor', 'undo', self.undo),
-            ('editor', 'redo', self.redo),
-            ('editor', 'cut', self.cut),
-            ('editor', 'copy', self.copy),
-            ('editor', 'paste', self.paste),
-            ('editor', 'delete', self.delete),
-            ('editor', 'select all', self.selectAll),
-            ('editor', 'docstring',
-             self.writer_docstring.write_docstring_for_shortcut),
-            ('editor', 'autoformatting', self.format_document_or_range),
-            ('array_builder', 'enter array inline', self.enter_array_inline),
-            ('array_builder', 'enter array table', self.enter_array_table),
-            ('editor', 'scroll line down', self.scroll_line_down),
-            ('editor', 'scroll line up', self.scroll_line_up)
-            )
+    def register_shortcuts(self):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ('code completion', self.do_completion),
+            ('duplicate line down', self.duplicate_line_down),
+            ('duplicate line up', self.duplicate_line_up),
+            ('delete line', self.delete_line),
+            ('move line up', self.move_line_up),
+            ('move line down', self.move_line_down),
+            ('go to new line', self.go_to_new_line),
+            ('go to definition', self.go_to_definition_from_cursor),
+            ('toggle comment', self.toggle_comment),
+            ('blockcomment', self.blockcomment),
+            ('create_new_cell', self.create_new_cell),
+            ('unblockcomment', self.unblockcomment),
+            ('transform to uppercase', self.transform_to_uppercase),
+            ('transform to lowercase', self.transform_to_lowercase),
+            ('indent', lambda: self.indent(force=True)),
+            ('unindent', lambda: self.unindent(force=True)),
+            ('start of line', self.create_cursor_callback('StartOfLine')),
+            ('end of line', self.create_cursor_callback('EndOfLine')),
+            ('previous line', self.create_cursor_callback('Up')),
+            ('next line', self.create_cursor_callback('Down')),
+            ('previous char', self.create_cursor_callback('Left')),
+            ('next char', self.create_cursor_callback('Right')),
+            ('previous word', self.create_cursor_callback('PreviousWord')),
+            ('next word', self.create_cursor_callback('NextWord')),
+            ('kill to line end', self.kill_line_end),
+            ('kill to line start', self.kill_line_start),
+            ('yank', self._kill_ring.yank),
+            ('rotate kill ring', self._kill_ring.rotate),
+            ('kill previous word', self.kill_prev_word),
+            ('kill next word', self.kill_next_word),
+            ('start of document', self.create_cursor_callback('Start')),
+            ('end of document', self.create_cursor_callback('End')),
+            ('undo', self.undo),
+            ('redo', self.redo),
+            ('cut', self.cut),
+            ('copy', self.copy),
+            ('paste', self.paste),
+            ('delete', self.delete),
+            ('select all', self.selectAll),
+            ('docstring', self.writer_docstring.write_docstring_for_shortcut),
+            ('autoformatting', self.format_document_or_range),
+            ('scroll line down', self.scroll_line_down),
+            ('scroll line up', self.scroll_line_up),
+            ('enter array inline', self.enter_array_inline),
+            ('enter array table', self.enter_array_table),
+        )
 
-        shortcuts = []
-        for context, name, callback in shortcut_context_name_callbacks:
-            shortcuts.append(
-                self.config_shortcut(
-                    callback, context=context, name=name, parent=self))
-        return shortcuts
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
     def closeEvent(self, event):
         if isinstance(self.highlighter, sh.PygmentsSH):

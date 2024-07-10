@@ -23,10 +23,10 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QLineEdit, QTabBar, QTabWidget, QToolButton, QWidget)
 
 # Local imports
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
@@ -610,7 +610,7 @@ class BaseTabs(QTabWidget):
         self.tabBar().refresh_style()
 
 
-class Tabs(BaseTabs):
+class Tabs(BaseTabs, SpyderShortcutsMixin):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
     # Signals
     move_data = Signal(int, int)
@@ -632,29 +632,7 @@ class Tabs(BaseTabs):
             self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        CONF.config_shortcut(
-            lambda: self.tab_navigate(1),
-            context='editor',
-            name='go to next file',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.tab_navigate(-1),
-            context='editor',
-            name='go to previous file',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.sig_close_tab.emit(self.currentIndex()),
-            context='editor',
-            name='close file 1',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.sig_close_tab.emit(self.currentIndex()),
-            context='editor',
-            name='close file 2',
-            parent=parent)
+        self.register_shortcuts(parent)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):
@@ -683,3 +661,25 @@ class Tabs(BaseTabs):
         # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)
+
+    def register_shortcuts(self, parent):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ("go to next file", lambda: self.tab_navigate(1), "editor"),
+            ("go to previous file", lambda: self.tab_navigate(-1), "editor"),
+            (
+                "close file 1",
+                lambda: self.sig_close_tab.emit(self.currentIndex()),
+                "editor",
+            ),
+            (
+                "close file 2",
+                lambda: self.sig_close_tab.emit(self.currentIndex()),
+                "editor",
+            ),
+        )
+
+        for name, callback, context in shortcuts:
+            self.register_shortcut_for_widget(
+                name=name, triggered=callback, widget=parent, context=context
+            )

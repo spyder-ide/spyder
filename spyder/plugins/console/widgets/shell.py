@@ -28,6 +28,7 @@ from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication
 
 # Local import
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
@@ -641,8 +642,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 # from spyder.utils.debug import log_methods_calls
 # log_methods_calls('log.log', ShellBaseWidget)
 
-class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
-                        GetHelpMixin):
+class PythonShellWidget(
+    TracebackLinksMixin, ShellBaseWidget, GetHelpMixin, SpyderShortcutsMixin
+):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
     INITHISTORY = ['# -*- coding: utf-8 -*-',
@@ -665,56 +667,32 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    def __init__(self, parent, history_filename, profile=False, initial_message=None):
-        ShellBaseWidget.__init__(self, parent, history_filename,
-                                 profile=profile,
-                                 initial_message=initial_message)
+    def __init__(
+        self, parent, history_filename, profile=False, initial_message=None
+    ):
+        ShellBaseWidget.__init__(
+            self,
+            parent,
+            history_filename,
+            profile=profile,
+            initial_message=initial_message
+        )
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 
         # Local shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.register_shortcuts()
 
-    def create_shortcuts(self):
-        array_inline = CONF.config_shortcut(
-            self.enter_array_inline,
-            context='array_builder',
-            name='enter array inline',
-            parent=self)
-        array_table = CONF.config_shortcut(
-            self.enter_array_table,
-            context='array_builder',
-            name='enter array table',
-            parent=self)
-        inspectsc = CONF.config_shortcut(
-            self.inspect_current_object,
-            context='Console',
-            name='Inspect current object',
-            parent=self)
-        clear_line_sc = CONF.config_shortcut(
-            self.clear_line,
-            context='Console',
-            name="Clear line",
-            parent=self,
-        )
-        clear_shell_sc = CONF.config_shortcut(
-            self.clear_terminal,
-            context='Console',
-            name="Clear shell",
-            parent=self,
+    def register_shortcuts(self):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ('Inspect current object', self.inspect_current_object),
+            ("Clear line", self.clear_line),
+            ("Clear shell", self.clear_terminal),
         )
 
-        return [inspectsc, array_inline, array_table, clear_line_sc,
-                clear_shell_sc]
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
     #------ Context menu
     def setup_context_menu(self):
@@ -729,7 +707,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         clear_line_action = create_action(
             self,
             _("Clear line"),
-            QKeySequence(CONF.get_shortcut('console', 'Clear line')),
+            QKeySequence(self.get_shortcut('Clear line')),
             icon=ima.icon('editdelete'),
             tip=_("Clear line"),
             triggered=self.clear_line)
@@ -737,7 +715,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         clear_action = create_action(
             self,
             _("Clear shell"),
-            QKeySequence(CONF.get_shortcut('console', 'Clear shell')),
+            QKeySequence(self.get_shortcut('Clear shell')),
             icon=ima.icon('editclear'),
             tip=_("Clear shell contents ('cls' command)"),
             triggered=self.clear_terminal)

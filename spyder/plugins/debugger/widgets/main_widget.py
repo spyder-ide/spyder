@@ -158,9 +158,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.breakpoints_table = BreakpointTableView(self, {})
         self.breakpoints_table.hide()
 
-        # Attributes
-        self._update_when_shown = True
-
         # Splitter
         self.splitter = QSplitter(self)
         self.splitter.addWidget(self._stack)
@@ -707,21 +704,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         self.set_conf('breakpoints_table_visible', True)
         self.sig_switch_to_plugin_requested.emit()
 
-    # ---- Qt methods
-    # ------------------------------------------------------------------------
-    def showEvent(self, event):
-        """Adjustments when the widget is shown."""
-        if self._update_when_shown:
-            # We only do this the first time the widget is shown to not change
-            # the splitter widths that users can set themselves.
-            self._update_splitter_widths(self.width())
-            self._update_when_shown = False
-
-        super().showEvent(event)
-
-    # ---- Private API
-    # ------------------------------------------------------------------------
-    def _update_splitter_widths(self, base_width):
+    def update_splitter_widths(self, base_width):
         """
         Update the splitter widths to provide the breakpoints table with a
         reasonable initial width.
@@ -739,6 +722,8 @@ class DebuggerWidget(ShellConnectMainWidget):
         if base_width - table_width > 0:
             self.splitter.setSizes([base_width - table_width, table_width])
 
+    # ---- Private API
+    # ------------------------------------------------------------------------
     def _update_stylesheet(self, is_table_shown=False):
         """Update stylesheet when the breakpoints table is shown/hidden."""
         # Remove right border radius for stack when table is shown and restore

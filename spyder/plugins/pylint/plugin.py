@@ -12,7 +12,7 @@ Pylint Code Analysis Plugin.
 from typing import List
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -136,7 +136,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             add_to_menu={
                 "menu": ApplicationMenus.Source,
                 "section": SourceMenuSections.CodeAnalysis
-            }
+            },
+            shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

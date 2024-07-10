@@ -11,11 +11,12 @@ Run Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 from threading import Lock
 from typing import List, Optional
 
 # Third-party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAction
 
@@ -88,7 +89,7 @@ class Run(SpyderPluginV2):
 
         container = self.get_container()
         container.sig_run_action_created.connect(
-            self.register_action_shortcuts
+            self._register_action_shortcuts
         )
         container.sig_open_preferences_requested.connect(
             self._open_run_preferences
@@ -98,8 +99,9 @@ class Run(SpyderPluginV2):
     def on_working_directory_available(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.connect(
-            self.switch_working_dir)
-        self.switch_working_dir(working_dir.get_workdir())
+            self._switch_working_dir
+        )
+        self._switch_working_dir(working_dir.get_workdir())
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -150,14 +152,14 @@ class Run(SpyderPluginV2):
         while self.pending_shortcut_actions != []:
             args = self.pending_shortcut_actions.pop(0)
             shortcuts.register_shortcut(*args)
-        shortcuts.apply_shortcuts()
 
     @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
     def on_working_directory_teardown(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.disconnect(
-            self.switch_working_dir)
-        self.switch_working_dir(None)
+            self._switch_working_dir
+        )
+        self._switch_working_dir(None)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -208,7 +210,6 @@ class Run(SpyderPluginV2):
                 shortcuts.unregister_shortcut(
                     action, shortcut_context, action_id
                 )
-        shortcuts.apply_shortcuts()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -406,8 +407,8 @@ class Run(SpyderPluginV2):
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
         context_modificator: Optional[str] = None,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False,
+        add_to_toolbar: bool | str = False,
+        add_to_menu: bool | dict = False,
         re_run: bool = False
     ) -> QAction:
         """
@@ -435,10 +436,10 @@ class Run(SpyderPluginV2):
         context_modificator: Optional[str]
             The name of the modification to apply to the action, e.g. run
             selection <up to line>.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
             main toolbar. If a string, it must be a toolbar_id
-        add_to_menu: object
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
@@ -613,8 +614,9 @@ class Run(SpyderPluginV2):
         tip: Optional[str] = None,
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False
+        add_to_toolbar: bool | str = False,
+        add_to_menu: bool | dict = False,
+        shortcut_widget_context: Qt.ShortcutContext = Qt.WidgetShortcut,
     ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
@@ -637,13 +639,15 @@ class Run(SpyderPluginV2):
         register_shortcut: bool
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
             main toolbar. If a string, it will be a toolbat id
-        add_to_menu: object
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
+        shortcut_widget_context: Qt.ShortcutContext
+            Qt context for the shorctut set for this button.
 
         Returns
         -------
@@ -676,7 +680,8 @@ class Run(SpyderPluginV2):
             icon=icon,
             tip=tip,
             shortcut_context=shortcut_context,
-            register_shortcut=register_shortcut
+            register_shortcut=register_shortcut,
+            shortcut_widget_context=shortcut_widget_context,
         )
 
         if add_to_toolbar:
@@ -791,16 +796,25 @@ class Run(SpyderPluginV2):
         return self.get_container().get_executor_configuration_parameters(
             executor_name, extension, context_id)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
     def switch_focused_run_configuration(self, uuid: str):
+        """
+        Switch to the last selected run configuration.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+        """
         self.get_container().switch_focused_run_configuration(uuid)
 
-    def switch_working_dir(self, path: str):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _switch_working_dir(self, path: str):
         self.get_container().set_current_working_dir(path)
 
-    def register_action_shortcuts(
-        self, action_name: str,
+    def _register_action_shortcuts(
+        self,
+        action_name: str,
         register_shortcut: bool,
         shortcut_context: str
     ):
@@ -810,7 +824,6 @@ class Run(SpyderPluginV2):
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
-                shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))

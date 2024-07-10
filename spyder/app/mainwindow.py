@@ -75,6 +75,7 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
@@ -125,7 +126,8 @@ qInstallMessageHandler(qt_message_handler)
 class MainWindow(
     QMainWindow,
     SpyderMainWindowMixin,
-    SpyderConfigurationAccessor
+    SpyderConfigurationAccessor,
+    SpyderShortcutsMixin,
 ):
     """Spyder main window"""
     CONF_SECTION = 'main'
