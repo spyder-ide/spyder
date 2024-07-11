@@ -729,7 +729,6 @@ class MainWindow(
 
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
