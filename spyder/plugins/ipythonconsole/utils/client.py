@@ -88,8 +88,6 @@ class ClientKernelTunneler:
         if self._close_conn_on_exit:
             self.ssh_connection.close()
 
-        super().__del__()
-
     @classmethod
     @AsyncDispatcher.dispatch(loop="asyncssh", early_return=False)
     async def new_connection(cls, *args, **kwargs):
