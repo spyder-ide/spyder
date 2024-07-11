@@ -50,7 +50,6 @@ JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
-PARAMIKO_REQVER = '>=2.4.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -163,11 +162,6 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
-    {'modname': "paramiko",
-     'package_name': "paramiko",
-     'features': _("Connect to remote kernels through SSH"),
-     'required_version': PARAMIKO_REQVER,
-     'display': os.name == 'nt'},
     {'modname': "parso",
      'package_name': "parso",
      'features': _("Python parser that supports error recovery and "

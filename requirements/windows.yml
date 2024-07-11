@@ -2,4 +2,8 @@
 channels:
   - conda-forge
 dependencies:
-  - paramiko >=2.4.0
+  # This is a dummy dependency for Windows because it's also declared in
+  # main.yml. But we have it here in case we need to add Windows-only deps
+  # in the future (without this we'd have to remove code from CIs and tests
+  # and restore it again if we were to have Windows-only deps again).
+  - aiohttp >=3.9.3
