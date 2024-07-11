@@ -13,7 +13,6 @@ import logging
 import os
 
 # Third party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QApplication
@@ -219,16 +218,15 @@ class Layout(SpyderPluginV2):
         # Fixes spyder-ide/spyder#17945 and spyder-ide/spyder#21596
         self.setup_layout(default=False)
 
+        # Correctly display dock tabbars.
+        # This **MUST** be done after setting up the layout.
+        self._apply_docktabbar_style()
+
         # Restore last visible plugins.
         # This **MUST** be done before running on_mainwindow_visible for the
         # other plugins so that the user doesn't experience sudden jumps in the
         # interface.
         self.restore_visible_plugins()
-
-        # This is necessary to correctly display dock tabbars when there's a
-        # change in WINDOW_STATE_VERSION or the previous session was a Spyder 5
-        # one.
-        self._reapply_docktabbar_style()
 
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
@@ -263,32 +261,13 @@ class Layout(SpyderPluginV2):
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
 
-    def _reapply_docktabbar_style(self, force=False):
-        """Reapply dock tabbar style."""
-        saved_state_version = self.get_conf(
-            "window_state_version", default=WINDOW_STATE_VERSION
-        )
-
-        # Reapplying style by installing the tab event filter again.
-        if (
-            # Check if the window state version changed. This covers the case
-            # of starting a Spyder 5 session after a Spyder 6 one, but only if
-            # users have 5.5.4 or greater.
-            saved_state_version < WINDOW_STATE_VERSION
-            # The previous session ran a Spyder version older than 6.0.0a5,
-            # which is when this change became necessary (82.2.0 is the conf
-            # version for that release)
-            or parse(self.old_conf_version) < parse("82.2.0")
-            # This is used when switching to a different layout, which also
-            # requires this.
-            or force
-        ):
-            plugins = self.get_dockable_plugins()
-            for plugin in plugins:
-                if plugin.dockwidget.dock_tabbar is not None:
-                    plugin.dockwidget.install_tab_event_filter()
-
-            self.set_conf("window_state_version", WINDOW_STATE_VERSION)
+    def _apply_docktabbar_style(self):
+        """Apply dock tabbar style."""
+        # Apply style by installing the dockwidget tab event filter.
+        plugins = self.get_dockable_plugins()
+        for plugin in plugins:
+            plugin.dockwidget.is_shown = True
+            plugin.dockwidget.install_tab_event_filter()
 
     # ---- Helper methods
     # -------------------------------------------------------------------------
@@ -511,7 +490,7 @@ class Layout(SpyderPluginV2):
 
         # This is necessary to restore the style for dock tabbars after the
         # switch
-        self._reapply_docktabbar_style(force=True)
+        self._apply_docktabbar_style()
 
         return index_or_layout_id
 
