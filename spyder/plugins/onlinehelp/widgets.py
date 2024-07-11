@@ -17,16 +17,20 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt, QThread, QUrl, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
-from spyder.widgets.browser import FrameWebView, WebViewActions
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
+
+# In case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 
 # --- Constants
@@ -139,6 +143,8 @@ class PydocBrowser(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
+        from spyder.widgets.browser import FrameWebView
+
         super().__init__(name, plugin, parent=parent)
 
         self._is_running = False
@@ -194,6 +200,8 @@ class PydocBrowser(PluginMainWidget):
         return self.url_combo
 
     def setup(self):
+        from spyder.widgets.browser import WebViewActions
+
         # Actions
         home_action = self.create_action(
             PydocBrowserActions.Home,
@@ -244,6 +252,8 @@ class PydocBrowser(PluginMainWidget):
         self.sig_toggle_view_changed.connect(self.initialize)
 
     def update_actions(self):
+        from spyder.widgets.browser import WebViewActions
+
         stop_action = self.get_action(WebViewActions.Stop)
         refresh_action = self.get_action(WebViewActions.Refresh)
 
@@ -272,6 +282,8 @@ class PydocBrowser(PluginMainWidget):
 
     def _handle_url_combo_activation(self):
         """Load URL from combo box first item."""
+        from spyder.widgets.browser import WebViewActions
+
         if not self._is_running:
             text = str(self.url_combo.currentText())
             self.go_to(self.text_to_url(text))
