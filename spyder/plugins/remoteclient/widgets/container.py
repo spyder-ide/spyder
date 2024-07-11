@@ -7,6 +7,8 @@
 
 """Remote client container."""
 
+import functools
+
 from qtpy.QtCore import Signal
 
 from spyder.api.translations import _
@@ -18,7 +20,6 @@ from spyder.plugins.remoteclient.api import (
     RemoteConsolesMenuSections,
 )
 from spyder.plugins.remoteclient.api.protocol import ConnectionInfo
-from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectiondialog import (
     ConnectionDialog,
 )
@@ -26,7 +27,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 class RemoteClientContainer(PluginMainContainer):
 
-    _sig_kernel_restarted = Signal((object, bool), (object, dict))
+    _sig_kernel_restarted = Signal(object, bool)
     """
     This private signal is used to inform that a kernel restart took place in
     the server.
@@ -36,11 +37,8 @@ class RemoteClientContainer(PluginMainContainer):
     ipyclient: ClientWidget
         An IPython console client widget (the first parameter in both
         signatures).
-    response: bool or dict
-        Response returned by the server. It can a bool when the kernel is
-        restarted by the user (signature 1) or a dict when it's restarted
-        automatically after it dies while running some code or it's killed (
-        signature 2).
+    response: bool
+        Response returned by the server.
     """
 
     sig_start_server_requested = Signal(str)
@@ -138,9 +136,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
-        self._sig_kernel_restarted[object, bool].connect(
-            self._on_kernel_restarted
-        )
+        self._sig_kernel_restarted.connect(self._on_kernel_restarted)
 
     def update_actions(self):
         pass
@@ -166,10 +162,9 @@ class RemoteClientContainer(PluginMainContainer):
                 name=config_id,
                 text=f"New console in {name} server",
                 icon=self.create_icon("ipython_console"),
-                triggered=(
-                    lambda checked, config_id=config_id: self.sig_create_ipyclient_requested.emit(
-                        config_id
-                    )
+                triggered=functools.partial(
+                    self.sig_create_ipyclient_requested.emit,
+                    config_id,
                 ),
                 overwrite=True,
             )
@@ -283,7 +278,7 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         future.add_done_callback(
-            lambda future: self._sig_kernel_restarted[object, bool].emit(
+            lambda future: self._sig_kernel_restarted.emit(
                 ipyclient, future.result()
             )
         )
