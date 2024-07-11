@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """Kernel Client subclass."""
+
 # Standard library imports
 import socket
 
@@ -21,58 +22,7 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 
 
-class SpyderKernelClient(QtKernelClient):
-    # Enable receiving messages on control channel.
-    # Useful for pdb completion
-    control_channel_class = Type(QtZMQSocketChannel)
-    sig_spyder_kernel_info = Signal(object)
-
-    def _handle_kernel_info_reply(self, rep):
-        """Check spyder-kernels version."""
-        super()._handle_kernel_info_reply(rep)
-        spyder_kernels_info = rep["content"].get("spyder_kernels_info", None)
-        self.sig_spyder_kernel_info.emit(spyder_kernels_info)
-
-    def tunnel_to_kernel(
-        self, hostname=None, sshkey=None, password=None, ssh_connection=None
-    ):
-        """Tunnel to remote kernel."""
-        if ssh_connection is not None:
-            self.__tunnel_handler = ClientKernelTunneler.from_connection(
-                ssh_connection
-            )
-        elif sshkey is not None:
-            self.__tunnel_handler = ClientKernelTunneler.new_connection(
-                tunnel=hostname,
-                password=password,
-                client_keys=[sshkey],
-            )
-        else:
-            self.__tunnel_handler = ClientKernelTunneler.new_connection(
-                tunnel=hostname,
-                password=password,
-            )
-
-        (
-            self.shell_port,
-            self.iopub_port,
-            self.stdin_port,
-            self.hb_port,
-            self.control_port,
-        ) = (
-            self.__tunnel_handler.forward_port(self.ip, port)
-            for port in (
-                self.shell_port,
-                self.iopub_port,
-                self.stdin_port,
-                self.hb_port,
-                self.control_port,
-            )
-        )
-        self.ip = "127.0.0.1"  # Tunneled to localhost
-
-
-class ClientKernelTunneler:
+class KernelClientTunneler:
     """Class to handle SSH tunneling for a kernel connection."""
 
     def __init__(self, ssh_connection, *, _close_conn_on_exit=False):
@@ -128,3 +78,54 @@ class ClientKernelTunneler:
         with socket.socket() as s:
             s.bind(("", 0))
             return s.getsockname()[1]
+
+
+class SpyderKernelClient(QtKernelClient):
+    # Enable receiving messages on control channel.
+    # Useful for pdb completion
+    control_channel_class = Type(QtZMQSocketChannel)
+    sig_spyder_kernel_info = Signal(object)
+
+    def _handle_kernel_info_reply(self, rep):
+        """Check spyder-kernels version."""
+        super()._handle_kernel_info_reply(rep)
+        spyder_kernels_info = rep["content"].get("spyder_kernels_info", None)
+        self.sig_spyder_kernel_info.emit(spyder_kernels_info)
+
+    def tunnel_to_kernel(
+        self, hostname=None, sshkey=None, password=None, ssh_connection=None
+    ):
+        """Tunnel to remote kernel."""
+        if ssh_connection is not None:
+            self.__tunnel_handler = KernelClientTunneler.from_connection(
+                ssh_connection
+            )
+        elif sshkey is not None:
+            self.__tunnel_handler = KernelClientTunneler.new_connection(
+                tunnel=hostname,
+                password=password,
+                client_keys=[sshkey],
+            )
+        else:
+            self.__tunnel_handler = KernelClientTunneler.new_connection(
+                tunnel=hostname,
+                password=password,
+            )
+
+        (
+            self.shell_port,
+            self.iopub_port,
+            self.stdin_port,
+            self.hb_port,
+            self.control_port,
+        ) = (
+            self.__tunnel_handler.forward_port(self.ip, port)
+            for port in (
+                self.shell_port,
+                self.iopub_port,
+                self.stdin_port,
+                self.hb_port,
+                self.control_port,
+            )
+        )
+        self.ip = "127.0.0.1"  # Tunneled to localhost
