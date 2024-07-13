@@ -68,7 +68,7 @@ class SpyderLayout(BaseGridLayoutType):
         self.set_column_stretch(2, 3)
 
     def get_name(self):
-        return _("Spyder Default Layout")
+        return _("Default layout")
 
 
 class HorizontalSplitLayout(BaseGridLayoutType):
