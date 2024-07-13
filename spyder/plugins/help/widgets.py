@@ -14,7 +14,7 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
@@ -156,7 +156,7 @@ class RichText(QWidget, SpyderWidgetMixin):
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)

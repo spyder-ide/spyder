@@ -160,14 +160,14 @@ class ResultsTree(OneColumnTree):
         self.data = None
         self.set_title("")
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event"""
         data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
             self.sig_edit_goto_requested.emit(fname, lineno, "")
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         """Click event."""
         if isinstance(item, CategoryItem):
             if item.isExpanded():
@@ -175,7 +175,7 @@ class ResultsTree(OneColumnTree):
             else:
                 self.expandItem(item)
         else:
-            self.activated(item)
+            self.on_item_activated(item)
 
     def clear_results(self):
         self.clear()

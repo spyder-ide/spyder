@@ -15,7 +15,6 @@ import sys
 
 # Third-party imports
 import qstylizer.style
-from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QSize, Qt, Signal
 from qtpy.QtGui import QColor, QPainter, QFontMetrics
 from qtpy.QtWidgets import (
@@ -256,7 +255,7 @@ class _SpyderComboBoxMixin:
         return css
 
 
-class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
+class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
     """Default combobox widget for Spyder."""
 
     def __init__(self, parent=None, items_elide_mode=None):
@@ -270,11 +269,8 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
         items_elide_mode: Qt.TextElideMode, optional
             Elide mode for the combobox items.
         """
-        if PYQT5 or PYQT6:
-            super().__init__(parent)
-        else:
-            QComboBox.__init__(self, parent)
-            _SpyderComboBoxMixin.__init__(self)
+        QComboBox.__init__(self, parent)
+        _SpyderComboBoxMixin.__init__(self)
 
         self.is_editable = None
         self._is_shown = False
@@ -375,14 +371,11 @@ class SpyderComboBoxWithIcons(SpyderComboBox):
         self.setStyleSheet(self._css.toString())
 
 
-class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
+class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
 
     def __init__(self, parent=None):
-        if PYQT5 or PYQT6:
-            super().__init__(parent)
-        else:
-            QFontComboBox.__init__(self, parent)
-            _SpyderComboBoxMixin.__init__(self)
+        QFontComboBox.__init__(self, parent)
+        _SpyderComboBoxMixin.__init__(self)
 
         # Avoid font name eliding because it confuses users.
         # Fixes spyder-ide/spyder#22683
