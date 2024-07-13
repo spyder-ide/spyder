@@ -19,7 +19,7 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QDir,
@@ -334,7 +334,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QTreeView.__init__(self, parent)

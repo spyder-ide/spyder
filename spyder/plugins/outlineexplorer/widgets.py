@@ -771,7 +771,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             iterator += 1
         return items
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event"""
         editor_root = self.editor_items.get(
             self.editor_ids.get(self.current_editor))
@@ -800,11 +800,11 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     break
             break
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         """Click event"""
         if isinstance(item, FileRootItem):
             self.root_item_selected(item)
-        self.activated(item)
+        self.on_item_activated(item)
 
     def selection_switched(self, current_item, previous_item):
         if current_item is not None:
