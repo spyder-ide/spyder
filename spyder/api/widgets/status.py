@@ -8,6 +8,7 @@
 """Status bar widgets."""
 
 # Third party imports
+import qstylizer.parser
 from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
@@ -93,7 +94,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.custom_widget = None
 
         self.set_layout()
-        self.setStyleSheet(self._stylesheet())
+        self.setStyleSheet(self._stylesheet)
 
     def set_layout(self):
         """Set layout for default widgets."""
@@ -183,14 +184,24 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         """Return the widget tooltip text."""
         return None
 
+    @property
     def _stylesheet(self):
-        stylesheet = ("QToolTip {{background-color: {background_color};"
-                      "color: {color};"
-                      "border: none}}").format(
-                      background_color=SpyderPalette.COLOR_ACCENT_2,
-                      color=SpyderPalette.COLOR_TEXT_1
-                      )
-        return stylesheet
+        """Create the widget's stylesheet."""
+        # Remove opacity that comes from QDarkstyle.
+        # This work around is necessary because qstylizer doesn't have support
+        # for the opacity property.
+        initial_css = "QToolTip {opacity: 255;}"
+        css = qstylizer.parser.parse(initial_css)
+
+        # Make style match the one set for other tooltips in the app
+        css.QToolTip.setValues(
+            color=SpyderPalette.COLOR_TEXT_1,
+            backgroundColor=SpyderPalette.COLOR_ACCENT_2,
+            border="none",
+            padding="1px 2px",
+        )
+
+        return css.toString()
 
 
 class BaseTimerStatus(StatusBarWidget):
