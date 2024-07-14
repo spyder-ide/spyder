@@ -8,20 +8,14 @@
 Language server Status widget.
 """
 
-# Standard library imports
-import logging
-import os
-
 # Third party imports
 from qtpy.QtCore import QPoint, Slot
+from qtpy.QtGui import QFontMetrics
 
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
-from spyder.utils.qthelpers import add_actions, create_action
-
-logger = logging.getLogger(__name__)
 
 
 # Main constants
@@ -71,23 +65,35 @@ class LSPStatusWidget(StatusBarWidget):
         if self.current_language is None:
             return
 
-        menu = self.menu
+        self.menu.clear_actions()
         language = self.current_language.lower()
-        menu.clear()
-        text = _(
-            "Restart {} Language Server").format(language.capitalize())
-        restart_action = create_action(
-            self,
+        text = _("Restart {} Language Server").format(language.capitalize())
+        restart_action = self.create_action(
+            "restart_server",
             text=text,
-            triggered=lambda: self.provider.restart_lsp(language,
-                                                        force=True),
+            triggered=lambda: self.provider.restart_lsp(language, force=True),
+            register_action=False,
         )
-        add_actions(menu, [restart_action])
+        self.add_item_to_menu(restart_action, self.menu)
+
+        x_offset = (
+            # Margin of menu items to left and right
+            2 * SpyderMenu.HORIZONTAL_MARGIN_FOR_ITEMS
+            # Padding of menu items to left and right
+            + 2 * SpyderMenu.HORIZONTAL_PADDING_FOR_ITEMS
+        )
+
+        metrics = QFontMetrics(self.font())
         rect = self.contentsRect()
-        os_height = 7 if os.name == 'nt' else 12
         pos = self.mapToGlobal(
-            rect.topLeft() + QPoint(-40, -rect.height() - os_height))
-        menu.popup(pos)
+            rect.topLeft()
+            + QPoint(
+                -metrics.width(text) // 2 + x_offset,
+                -2 * self.parent().height(),
+            )
+        )
+
+        self.menu.popup(pos)
 
     def set_status(self, lsp_language=None, status=None):
         """Set LSP status."""
@@ -96,8 +102,8 @@ class LSPStatusWidget(StatusBarWidget):
             self.spinner.show()
             self.spinner.start()
         else:
-            self.spinner.hide()
             self.spinner.stop()
+            self.spinner.hide()
 
         # Icon
         if status == ClientStatus.READY:
