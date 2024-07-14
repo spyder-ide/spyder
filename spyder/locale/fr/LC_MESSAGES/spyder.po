@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-14 10:02\n"
+"PO-Revision-Date: 2024-07-14 11:31\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -439,7 +439,7 @@ msgstr ""
 
 #: spyder/dependencies.py:257
 msgid "Determine package versions"
-msgstr ""
+msgstr "Déterminer les versions des paquets"
 
 #: spyder/dependencies.py:261
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -467,7 +467,7 @@ msgstr "Surveillance des modifications de fichiers dans les répertoires du proj
 
 #: spyder/dependencies.py:285
 msgid "URL parsing and changing"
-msgstr ""
+msgstr "Analyse et modification d'URL"
 
 #: spyder/dependencies.py:294
 msgid "Run Cython files in the IPython Console"
@@ -539,7 +539,7 @@ msgstr "Polices"
 
 #: spyder/plugins/appearance/confpage.py:125
 msgid "Monospace"
-msgstr ""
+msgstr "Espacement fixe"
 
 #: spyder/plugins/appearance/confpage.py:131 spyder/plugins/application/confpage.py:258 spyder/plugins/application/confpage.py:263 spyder/plugins/editor/confpage.py:366 spyder/plugins/ipythonconsole/confpage.py:423 spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Interface"
@@ -1758,7 +1758,7 @@ msgstr ""
 
 #: spyder/plugins/debugger/plugin.py:158
 msgid "&Debug file"
-msgstr ""
+msgstr "&Déboguer le script"
 
 #: spyder/plugins/debugger/plugin.py:159
 msgid "Debug file"
@@ -1770,7 +1770,7 @@ msgstr "Cellule de débogage"
 
 #: spyder/plugins/debugger/plugin.py:190 spyder/plugins/debugger/plugin.py:191
 msgid "Debug selection or current line"
-msgstr ""
+msgstr "Déboguer la sélection ou la ligne courante"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:154
 msgid "Breakpoint"
@@ -1806,7 +1806,7 @@ msgstr "Modifier le point d’arrêt sélectionné"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:143
 msgid "Debugging is not active"
-msgstr ""
+msgstr "Le débogage n'est pas actif"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:144
 msgid "Start a debugging session with the ⏯ button, allowing you to step through your code and see the functions here that Python has run."
