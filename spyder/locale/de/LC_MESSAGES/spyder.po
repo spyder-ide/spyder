@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-06-19 16:54-0500\n"
-"PO-Revision-Date: 2024-07-14 13:13\n"
+"PO-Revision-Date: 2024-07-14 14:16\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -35,7 +35,7 @@ msgstr "Keine verbundene Konsole"
 
 #: spyder/api/shellconnect/main_widget.py:154
 msgid "The current console failed to start, so there is no content to show here."
-msgstr ""
+msgstr "Die aktuelle Konsole konnte nicht gestartet werden, daher kann hier kein Inhalt angezeigt werden."
 
 #: spyder/api/widgets/main_widget.py:259
 msgid "Main widget toolbar"
@@ -6668,15 +6668,15 @@ msgstr "ValueError: {} muss aus dem Index entfernt werden."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1583
 msgid "Warning: It was not possible to remove this index!"
-msgstr ""
+msgstr "Warnung: Es war nicht möglich, diesen Index zu entfernen!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1592
 msgid "Warning: Duplicate index!"
-msgstr ""
+msgstr "Warnung: Doppelter Index!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1593
 msgid "Row with name \"{}\" already exists!"
-msgstr ""
+msgstr "Zeile mit dem Namen „{}“ existiert bereits!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1659 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1664 spyder/widgets/collectionseditor.py:224
 msgid "Index"
@@ -6892,7 +6892,7 @@ msgstr "Variablen filtern"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:94
 msgid "No variables to show"
-msgstr ""
+msgstr "Keine anzuzeigenden Variablen"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:95
 msgid "Run code in the Editor or IPython console to see any global variables listed here for exploration and editing."
@@ -7172,7 +7172,7 @@ msgstr "Arbeitsverzeichnis"
 
 #: spyder/plugins/workingdirectory/plugin.py:66
 msgid "Manage the current working directory used in Spyder."
-msgstr ""
+msgstr "Aktuelles Arbeitsverzeichnis, das in Spyder verwendet wird, verwalten."
 
 #: spyder/utils/environ.py:157
 msgid "Module <b>pywin32 was not found</b>.<br>Please restart this Windows <i>session</i> (not the computer) for changes to take effect."
@@ -7292,7 +7292,7 @@ msgstr ""
 
 #: spyder/widgets/arraybuilder.py:249
 msgid "Introduce contents"
-msgstr ""
+msgstr "Inhalt einführen"
 
 #: spyder/widgets/arraybuilder.py:425
 msgid "Array dimensions are not valid"
