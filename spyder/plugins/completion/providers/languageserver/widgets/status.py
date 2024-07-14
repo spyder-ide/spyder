@@ -42,6 +42,7 @@ class ClientStatus:
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
     ID = 'lsp_status'
+    INTERACT_ON_CLICK = True
 
     BASE_TOOLTIP = _(
         "Completions, linting, code\n"
