@@ -27,7 +27,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 class RemoteClientContainer(PluginMainContainer):
 
-    _sig_kernel_restarted = Signal(object, bool)
+    _sig_kernel_restarted = Signal(object, object)
     """
     This private signal is used to inform that a kernel restart took place in
     the server.
@@ -37,8 +37,9 @@ class RemoteClientContainer(PluginMainContainer):
     ipyclient: ClientWidget
         An IPython console client widget (the first parameter in both
         signatures).
-    response: bool
-        Response returned by the server.
+    response: bool or None
+        Response returned by the server. `None` can happen when the connection
+        to the server is lost.
     """
 
     sig_start_server_requested = Signal(str)

@@ -116,7 +116,10 @@ class RemoteClient(SpyderPluginV2):
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
         for client in self._remote_clients.values():
-            AsyncDispatcher(client.close, early_return=False)()
+            try:
+                AsyncDispatcher(client.close, early_return=False)()
+            except Exception:
+                pass
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -313,7 +316,10 @@ class RemoteClient(SpyderPluginV2):
         """Shutdown a running kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            await client.terminate_kernel(kernel_id)
+            try:
+                await client.terminate_kernel(kernel_id)
+            except Exception:
+                pass
 
     @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _start_new_kernel(self, config_id):
@@ -329,7 +335,10 @@ class RemoteClient(SpyderPluginV2):
         """Restart kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            return await client.restart_kernel(kernel_id)
+            try:
+                return await client.restart_kernel(kernel_id)
+            except Exception:
+                pass
 
     @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _interrupt_kernel(self, config_id, kernel_id):
