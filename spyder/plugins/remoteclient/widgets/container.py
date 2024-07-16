@@ -7,7 +7,7 @@
 
 """Remote client container."""
 
-import json
+import functools
 
 from qtpy.QtCore import Signal
 
@@ -20,16 +20,14 @@ from spyder.plugins.remoteclient.api import (
     RemoteConsolesMenuSections,
 )
 from spyder.plugins.remoteclient.api.protocol import ConnectionInfo
-from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectiondialog import (
     ConnectionDialog,
 )
-from spyder.utils.workers import WorkerManager
 
 
 class RemoteClientContainer(PluginMainContainer):
 
-    _sig_kernel_restarted = Signal((object, bool), (object, dict))
+    _sig_kernel_restarted = Signal(object, object)
     """
     This private signal is used to inform that a kernel restart took place in
     the server.
@@ -39,11 +37,9 @@ class RemoteClientContainer(PluginMainContainer):
     ipyclient: ClientWidget
         An IPython console client widget (the first parameter in both
         signatures).
-    response: bool or dict
-        Response returned by the server. It can a bool when the kernel is
-        restarted by the user (signature 1) or a dict when it's restarted
-        automatically after it dies while running some code or it's killed (
-        signature 2).
+    response: bool or None
+        Response returned by the server. `None` can happen when the connection
+        to the server is lost.
     """
 
     sig_start_server_requested = Signal(str)
@@ -128,35 +124,23 @@ class RemoteClientContainer(PluginMainContainer):
         # Widgets
         self.create_action(
             RemoteClientActions.ManageConnections,
-            _('Manage remote connections...'),
+            _("Manage remote connections..."),
             icon=self._plugin.get_icon(),
             triggered=self._show_connection_dialog,
         )
 
         self._remote_consoles_menu = self.create_menu(
-            RemoteClientMenus.RemoteConsoles,
-            _("New console in remote server")
+            RemoteClientMenus.RemoteConsoles, _("New console in remote server")
         )
 
         # Signals
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
-        self._sig_kernel_restarted[object, bool].connect(
-            self._on_kernel_restarted
-        )
-        self._sig_kernel_restarted[object, dict].connect(
-            self._on_kernel_restarted_after_died
-        )
-
-        # Worker manager to open ssh tunnels in threads
-        self._worker_manager = WorkerManager(max_threads=5)
+        self._sig_kernel_restarted.connect(self._on_kernel_restarted)
 
     def update_actions(self):
         pass
-
-    def on_close(self):
-        self._worker_manager.terminate_all()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -167,7 +151,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.add_item_to_menu(
             self.get_action(RemoteClientActions.ManageConnections),
             menu=self._remote_consoles_menu,
-            section=RemoteConsolesMenuSections.ManagerSection
+            section=RemoteConsolesMenuSections.ManagerSection,
         )
 
         servers = self.get_conf("servers", default={})
@@ -178,17 +162,17 @@ class RemoteClientContainer(PluginMainContainer):
             action = self.create_action(
                 name=config_id,
                 text=f"New console in {name} server",
-                icon=self.create_icon('ipython_console'),
-                triggered=(
-                    lambda checked, config_id=config_id:
-                    self.sig_create_ipyclient_requested.emit(config_id)
+                icon=self.create_icon("ipython_console"),
+                triggered=functools.partial(
+                    self.sig_create_ipyclient_requested.emit,
+                    config_id,
                 ),
-                overwrite=True
+                overwrite=True,
             )
             self.add_item_to_menu(
                 action,
                 menu=self._remote_consoles_menu,
-                section=RemoteConsolesMenuSections.ConsolesSection
+                section=RemoteConsolesMenuSections.ConsolesSection,
             )
 
         # This is necessary to reposition the menu correctly when rebuilt
@@ -205,11 +189,9 @@ class RemoteClientContainer(PluginMainContainer):
         # It's only at this point that we can allow users to close the client.
         ipyclient.can_close = True
 
-        # Get authentication method
-        auth_method = self.get_conf(f"{config_id}/auth_method")
-
         # Handle failures to launch a kernel
         if not kernel_info:
+            auth_method = self.get_conf(f"{config_id}/auth_method")
             name = self.get_conf(f"{config_id}/{auth_method}/name")
             ipyclient.show_kernel_error(
                 _(
@@ -222,37 +204,18 @@ class RemoteClientContainer(PluginMainContainer):
         ipyclient.kernel_id = kernel_info["id"]
         self._connect_ipyclient_signals(ipyclient)
 
-        # Set hostname in the format expected by KernelHandler
-        address = self.get_conf(f"{config_id}/{auth_method}/address")
-        username = self.get_conf(f"{config_id}/{auth_method}/username")
-        port = self.get_conf(f"{config_id}/{auth_method}/port")
-        hostname = f"{username}@{address}:{port}"
-
-        # Get password or keyfile/passphrase
-        if auth_method == AuthenticationMethod.Password:
-            password = self.get_conf(f"{config_id}/password", secure=True)
-            sshkey = None
-        elif auth_method == AuthenticationMethod.KeyFile:
-            sshkey = self.get_conf(f"{config_id}/{auth_method}/keyfile")
-            passpharse = self.get_conf(f"{config_id}/passpharse", secure=True)
-            if passpharse:
-                password = passpharse
-            else:
-                password = None
+        try:
+            kernel_handler = KernelHandler.from_connection_info(
+                kernel_info["connection_info"],
+                ssh_connection=self._plugin.get_remote_server(
+                    ipyclient.server_id
+                )._ssh_connection,
+            )
+        except Exception as err:
+            ipyclient.show_kernel_error(err)
         else:
-            # TODO: Handle the ConfigFile method here
-            pass
-
-        # Generate local connection file from kernel info
-        connection_file = KernelHandler.new_connection_file()
-        with open(connection_file, "w") as f:
-            json.dump(kernel_info["connection_info"], f)
-
-        # Open tunnel to the kernel. Connecting the ipyclient to the kernel
-        # will be finished after that takes place.
-        self._open_tunnel_to_kernel(
-            ipyclient, connection_file, hostname, sshkey, password
-        )
+            # Connect client to the kernel
+            ipyclient.connect_kernel(kernel_handler)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -268,9 +231,7 @@ class RemoteClientContainer(PluginMainContainer):
         connection_dialog.sig_connections_changed.connect(
             self.setup_remote_consoles_submenu
         )
-        connection_dialog.sig_server_renamed.connect(
-            self.sig_server_renamed
-        )
+        connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
 
         self.sig_connection_status_changed.connect(
             connection_dialog.sig_connection_status_changed
@@ -305,73 +266,8 @@ class RemoteClientContainer(PluginMainContainer):
             lambda: self._request_kernel_restart(ipyclient)
         )
         ipyclient.sig_kernel_died.connect(
-            lambda: self._get_kernel_info(ipyclient)
+            lambda: self._request_kernel_restart(ipyclient)
         )
-
-    def _open_tunnel_to_kernel(
-        self,
-        ipyclient,
-        connection_file,
-        hostname,
-        sshkey,
-        password,
-        restart=False,
-        clear=True,
-    ):
-        """
-        Open an SSH tunnel to a remote kernel.
-
-        Notes
-        -----
-        * We do this in a worker to avoid blocking the UI.
-        """
-        with open(connection_file, "r") as f:
-            connection_info = json.load(f)
-
-        worker = self._worker_manager.create_python_worker(
-            KernelHandler.tunnel_to_kernel,
-            connection_info,
-            hostname,
-            sshkey,
-            password,
-        )
-
-        # Save variables necessary to make the connection in the worker
-        worker.ipyclient = ipyclient
-        worker.connection_file = connection_file
-        worker.hostname = hostname
-        worker.sshkey = sshkey
-        worker.password = password
-        worker.restart = restart
-        worker.clear = clear
-
-        # Start worker
-        worker.sig_finished.connect(self._finish_kernel_connection)
-        worker.start()
-
-    def _finish_kernel_connection(self, worker, output, error):
-        """Finish connecting an IPython console client to a remote kernel."""
-        # Handle errors
-        if error:
-            worker.ipyclient.show_kernel_error(str(error))
-            return
-
-        # Create KernelHandler
-        kernel_handler = KernelHandler.from_connection_file(
-            worker.connection_file,
-            worker.hostname,
-            worker.sshkey,
-            worker.password,
-            kernel_ports=output,
-        )
-
-        # Connect client to the kernel
-        if not worker.restart:
-            worker.ipyclient.connect_kernel(kernel_handler)
-        else:
-            worker.ipyclient.replace_kernel(
-                kernel_handler, shutdown_kernel=False, clear=worker.clear
-            )
 
     def _request_kernel_restart(self, ipyclient):
         """
@@ -383,49 +279,33 @@ class RemoteClientContainer(PluginMainContainer):
         )
 
         future.add_done_callback(
-            lambda future: self._sig_kernel_restarted[object, bool].emit(
+            lambda future: self._sig_kernel_restarted.emit(
                 ipyclient, future.result()
             )
         )
 
-    def _on_kernel_restarted(self, ipyclient, response, clear=True):
-        """Actions to take when the kernel was restarted by the server."""
-        if response:
-            kernel_handler = ipyclient.kernel_handler
-            self._open_tunnel_to_kernel(
-                ipyclient,
-                kernel_handler.connection_file,
-                kernel_handler.hostname,
-                kernel_handler.sshkey,
-                kernel_handler.password,
-                restart=True,
-                clear=clear,
-            )
-        else:
-            ipyclient.kernel_restarted_failure_message()
-
-    def _get_kernel_info(self, ipyclient):
+    def _on_kernel_restarted(self, ipyclient, restarted):
         """
         Get kernel info corresponding to an IPython console client from the
         server.
 
         If we get a response, it means the kernel is alive.
         """
-        future = self._plugin._get_kernel_info(
-            ipyclient.server_id, ipyclient.kernel_id
-        )
 
-        future.add_done_callback(
-            lambda future: self._sig_kernel_restarted[object, dict].emit(
-                ipyclient, future.result()
-            )
-        )
-
-    def _on_kernel_restarted_after_died(self, ipyclient, response):
-        """
-        Actions to take when the kernel was automatically restarted after it
-        died.
-        """
-        # We don't clear the console in this case because it can contain
-        # important results that users would like to check
-        self._on_kernel_restarted(ipyclient, response, clear=False)
+        if restarted:
+            try:
+                kernel_handler = KernelHandler.from_connection_file(
+                    ipyclient.kernel_handler.connection_file,
+                    ssh_connection=self._plugin.get_remote_server(
+                        ipyclient.server_id
+                    )._ssh_connection,
+                )
+                del ipyclient.kernel_handler
+            except Exception as err:
+                ipyclient.show_kernel_error(err)
+            else:
+                ipyclient.replace_kernel(
+                    kernel_handler, shutdown_kernel=False, clear=True
+                )
+        else:
+            ipyclient.kernel_restarted_failure_message()

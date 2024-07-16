@@ -116,7 +116,10 @@ class RemoteClient(SpyderPluginV2):
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
         for client in self._remote_clients.values():
-            AsyncDispatcher(client.close, early_return=False)()
+            try:
+                AsyncDispatcher(client.close, early_return=False)()
+            except Exception:
+                pass
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -167,14 +170,14 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             return self._remote_clients[config_id]
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _install_remote_server(self, config_id):
         """Install remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             await client.connect_and_install_remote_server()
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def start_remote_server(self, config_id):
         """Start remote server."""
         if config_id not in self._remote_clients:
@@ -183,14 +186,14 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
         await client.connect_and_ensure_server()
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def stop_remote_server(self, config_id):
         """Stop remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             await client.close()
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def ensure_remote_server(self, config_id):
         """Ensure remote server is running and installed."""
         if config_id in self._remote_clients:
@@ -292,7 +295,7 @@ class RemoteClient(SpyderPluginV2):
     # -------------------------------------------------------------------------
     # --- Remote Server Kernel Methods
     @Slot(str)
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def get_kernels(self, config_id):
         """Get opened kernels."""
         if config_id in self._remote_clients:
@@ -300,7 +303,7 @@ class RemoteClient(SpyderPluginV2):
             kernels_list = await client.list_kernels()
             return kernels_list
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _get_kernel_info(self, config_id, kernel_id):
         """Get kernel info."""
         if config_id in self._remote_clients:
@@ -308,14 +311,17 @@ class RemoteClient(SpyderPluginV2):
             kernel_info = await client.get_kernel_info(kernel_id)
             return kernel_info
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _shutdown_kernel(self, config_id, kernel_id):
         """Shutdown a running kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            await client.terminate_kernel(kernel_id)
+            try:
+                await client.terminate_kernel(kernel_id)
+            except Exception:
+                pass
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _start_new_kernel(self, config_id):
         """Start new kernel."""
         if config_id not in self._remote_clients:
@@ -324,14 +330,17 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
         return await client.start_new_kernel_ensure_server()
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _restart_kernel(self, config_id, kernel_id):
         """Restart kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            return await client.restart_kernel(kernel_id)
+            try:
+                return await client.restart_kernel(kernel_id)
+            except Exception:
+                pass
 
-    @AsyncDispatcher.dispatch()
+    @AsyncDispatcher.dispatch(loop='asyncssh')
     async def _interrupt_kernel(self, config_id, kernel_id):
         """Interrupt kernel."""
         if config_id in self._remote_clients:
