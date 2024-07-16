@@ -22,6 +22,8 @@ from requests.exceptions import ConnectionError, HTTPError, SSLError
 # Local imports
 from spyder import __version__
 from spyder.config.base import _, is_stable_version, running_in_ci
+from spyder.config.utils import is_anaconda
+from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
 
 # Logger setup
@@ -117,7 +119,6 @@ class WorkerUpdate(BaseWorker):
         self.releases = None
         self.update_available = False
         self.error = None
-        self.channel = None
 
     def _check_update_available(self):
         """Checks if there is an update available from releases."""
@@ -146,6 +147,14 @@ class WorkerUpdate(BaseWorker):
         error_msg = None
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
+        # If Spyder is installed from defaults channel (pkgs/main), then use
+        # that channel to get updates. The defaults channel can be far behind
+        # our latest release
+        if is_anaconda():
+            channel, channel_url = get_spyder_conda_channel()
+            if channel == "pkgs/main":
+                url = channel_url + '/channeldata.json'
+
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
         if running_in_ci() and token:
@@ -158,10 +167,16 @@ class WorkerUpdate(BaseWorker):
             page.raise_for_status()
 
             data = page.json()
-            if self.releases is None:
+            if url.endswith('releases'):
+                # Github url
                 self.releases = [
                     item['tag_name'].replace('v', '') for item in data
                 ]
+            else:
+                # Conda url
+                spyder_data = data['packages'].get('spyder')
+                if spyder_data:
+                    self.releases = [spyder_data["version"]]
             self.releases.sort(key=parse)
 
             self._check_update_available()

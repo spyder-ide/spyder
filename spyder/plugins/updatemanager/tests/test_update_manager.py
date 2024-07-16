@@ -31,10 +31,16 @@ def worker():
 # ---- Test WorkerUpdate
 
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-def test_updates(qtbot, mocker, version, caplog):
+@pytest.mark.parametrize(
+    "channel", [
+        ("pkgs/main", "https://repo.anaconda.com/pkgs/main"),
+        ("conda-forge", "https://conda.anaconda.org/conda-forge"),
+    ]
+)
+def test_updates(qtbot, mocker, caplog, version, channel):
     """
-    Test whether or not we offer updates for our installers according to the
-    current Spyder version.
+    Test whether or not we offer updates according to the current Spyder
+    version and package installation channel.
 
     Uses UpdateManagerWidget in order to also test QThread.
     """
@@ -44,6 +50,9 @@ def test_updates(qtbot, mocker, version, caplog):
         UpdateManagerWidget, "start_update", new=lambda x: None
     )
     mocker.patch.object(workers, "__version__", new=version)
+    mocker.patch.object(
+        workers, "get_spyder_conda_channel", return_value=channel
+    )
 
     with caplog.at_level(logging.DEBUG, logger='spyder.plugins.updatemanager'):
         # Capture >=DEBUG logging messages for spyder.plugins.updatemanager
@@ -68,7 +77,7 @@ def test_updates(qtbot, mocker, version, caplog):
         assert update_available
     else:
         assert not update_available
-    assert len(um.update_worker.releases) > 1
+    assert len(um.update_worker.releases) >= 1
 
 
 @pytest.mark.parametrize("release", ["4.0.1", "4.0.1a1"])
