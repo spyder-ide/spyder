@@ -16,8 +16,8 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import Qt, Signal, Slot, QRegExp
-from qtpy.QtGui import QColor, QRegExpValidator, QTextOption
+from qtpy.QtCore import Qt, Signal, Slot, QRegularExpression
+from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
                             QFileDialog, QFontComboBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
@@ -494,7 +494,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         if tip:
             edit.setToolTip(tip)
         if regex:
-            edit.setValidator(QRegExpValidator(QRegExp(regex)))
+            edit.setValidator(
+                QRegularExpressionValidator(QRegularExpression(regex)))
         if placeholder:
             edit.setPlaceholderText(placeholder)
         self.lineedits[edit] = (section, option, default)

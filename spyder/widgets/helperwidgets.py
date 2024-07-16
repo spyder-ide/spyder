@@ -14,9 +14,10 @@ import re
 # Third party imports
 import qstylizer.style
 from qtpy import PYQT5
-from qtpy.QtCore import QPoint, QRegExp, QSize, QSortFilterProxyModel, Qt
+from qtpy.QtCore import (QPoint, QRegularExpression, QSize,
+                         QSortFilterProxyModel, Qt)
 from qtpy.QtGui import (QAbstractTextDocumentLayout, QColor, QFontMetrics,
-                        QPainter, QRegExpValidator, QTextDocument, )
+                        QPainter, QRegularExpressionValidator, QTextDocument)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QSpacerItem, QStyle, QStyledItemDelegate,
                             QStyleOptionFrame, QStyleOptionViewItem,
@@ -345,8 +346,8 @@ class FinderLineEdit(QLineEdit):
         self.main = main
 
         # Widget setup
-        regex = QRegExp(regex_base + "{100}")
-        self.setValidator(QRegExpValidator(regex))
+        regex = QRegularExpression(regex_base + "{100}")
+        self.setValidator(QRegularExpressionValidator(regex))
 
         # Signals
         if callback:
