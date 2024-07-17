@@ -628,9 +628,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if not can_close and not close_immediately:
             return False
 
-        # Dock undocked plugins
-        self.dock_all_undocked_plugins(save_undocked=True)
-
         # Delete Spyder 4 external plugins
         for plugin_name in set(self.external_plugins):
             if plugin_name not in excluding:

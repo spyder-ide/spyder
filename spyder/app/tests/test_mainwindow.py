@@ -6069,8 +6069,9 @@ def test_visible_plugins(main_window, qtbot):
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
 
-    # Load default layout
+    # Load default layout and wait for a bit because it's applied immediately
     main_window.layouts.quick_layout_switch(DefaultLayouts.SpyderLayout)
+    qtbot.wait(200)
 
     # Make some non-default plugins visible
     selected = [Plugins.Plots, Plugins.History]

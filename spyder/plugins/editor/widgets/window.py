@@ -176,12 +176,12 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # ---- Splitter
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
-        self.splitter.addWidget(editor_widgets)
         if self.outlineexplorer is not None:
             self.splitter.addWidget(self.outlineexplorer)
+        self.splitter.addWidget(editor_widgets)
 
-        self.splitter.setStretchFactor(0, 3)
-        self.splitter.setStretchFactor(1, 1)
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 4)
 
         # This sets the same UX as the one users encounter when the editor is
         # maximized.
@@ -301,7 +301,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             self.splitter.setChildrenCollapsible(True)
 
             # Collapse Outline
-            self.splitter.moveSplitter(self.size().width(), 0)
+            self.splitter.moveSplitter(0, 1)
 
             # Hide and disable splitter handle
             self._splitter_css['QSplitter::handle'].setValues(

@@ -381,8 +381,8 @@ class MainWindow(
 
         # Center message
         screen_geometry = self.screen().geometry()
-        x = (screen_geometry.width() - messageBox.width()) / 2
-        y = (screen_geometry.height() - messageBox.height()) / 2
+        x = (screen_geometry.width() - messageBox.width()) // 2
+        y = (screen_geometry.height() - messageBox.height()) // 2
         messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
@@ -855,15 +855,6 @@ class MainWindow(
         if self.layouts is not None:
             self.layouts.register_custom_layouts()
 
-        # Needed to ensure dockwidgets/panes layout size distribution
-        # when a layout state is already present.
-        # See spyder-ide/spyder#17945
-        if (
-            self.layouts is not None
-            and self.get_conf('window/state', default=None)
-        ):
-            self.layouts.before_mainwindow_visible()
-
         # Tabify new plugins which were installed or created after Spyder ran
         # for the first time.
         # NOTE: **DO NOT** make layout changes after this point or new plugins
@@ -1150,16 +1141,13 @@ class MainWindow(
                     ]
                 )
 
-        can_close = self.plugin_registry.delete_all_plugins(
-            excluding={Plugins.Layout},
-            close_immediately=close_immediately)
-
-        if not can_close and not close_immediately:
-            return False
-
-        # Save window settings *after* closing all plugin windows, in order
-        # to show them in their previous locations in the next session.
+        # Dock undocked plugins before saving the layout.
         # Fixes spyder-ide/spyder#12139
+        self.plugin_registry.dock_all_undocked_plugins(save_undocked=True)
+
+        # Save layout before closing all plugins. This ensures its restored
+        # correctly in the next session when there are many IPython consoles
+        # open in the current one.
         prefix = 'window' + '/'
         if self.layouts is not None:
             self.layouts.save_current_window_settings(prefix)
@@ -1173,6 +1161,14 @@ class MainWindow(
                     Plugins.Layout, teardown=False)
             except RuntimeError:
                 pass
+
+        # Close all plugins
+        can_close = self.plugin_registry.delete_all_plugins(
+            excluding={Plugins.Layout}, close_immediately=close_immediately
+        )
+
+        if not can_close and not close_immediately:
+            return False
 
         self.already_closed = True
 

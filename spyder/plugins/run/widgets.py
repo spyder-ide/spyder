@@ -39,7 +39,7 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import running_under_pytest
+from spyder.config.base import running_in_ci, running_under_pytest
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
     RunExecutorConfigurationGroup,
@@ -937,8 +937,14 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         # on a successive try
         self.name_params_text.status_action.setVisible(False)
 
-        # Detect if the current params are global
+        # Get index of current params
         current_index = self.parameters_combo.currentIndex()
+        if running_in_ci() and current_index == -1:
+            # This error seems to happen only on CIs
+            self.status = RunDialogStatus.Close
+            return
+
+        # Detect if the current params are global
         params = self.parameter_model.get_parameters(current_index)
         global_params = params["file_uuid"] is None
 

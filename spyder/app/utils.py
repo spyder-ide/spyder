@@ -196,6 +196,8 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         "QFont::setPixelSize: Pixel size <= 0 (-3)",
         "QPainter::setFont: Painter not active",
         "QPainter::restore: Unbalanced save/restore",
+        # This warning is shown at startup when using PyQt6
+        "<use> element image0 in wrong context!",
     ]
     if msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip

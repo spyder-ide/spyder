@@ -251,7 +251,7 @@ class SpyderDockWidget(QDockWidget):
 
         # Attributes
         self.title = title
-        self._is_shown = False
+        self.is_shown = False
 
         # Set features
         self.setFeatures(self.FEATURES)
@@ -287,20 +287,15 @@ class SpyderDockWidget(QDockWidget):
         """Send a signal on close so that the "Panes" menu can be updated."""
         self.sig_plugin_closed.emit()
 
-    def showEvent(self, event):
-        """Adjustments when the widget is shown."""
-        if not self._is_shown:
-            # This installs the tab filter at startup
-            self.install_tab_event_filter()
-            self._is_shown = True
-
-        super().showEvent(event)
-
     def install_tab_event_filter(self):
         """
         Install an event filter to capture mouse events in the tabs of a
         QTabBar holding tabified dockwidgets.
         """
+        # Avoid to run this before the dockwidget is visible
+        if not self.is_shown:
+            return
+
         dock_tabbar = None
 
         # This is necessary to catch an error when closing the app on macOS

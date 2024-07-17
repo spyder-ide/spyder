@@ -52,8 +52,7 @@ symbol (example: `python bootstrap.py -- --hide-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_argument('--gui', default=None,
-                    help="GUI toolkit: pyqt5 (for PyQt5) or pyside2 "
-                    "(for PySide2)")
+                    help="GUI toolkit: pyqt5, pyside2, pyqt6 or pyside6")
 parser.add_argument('--hide-console', action='store_true', default=False,
                     help="Hide parent console window (Windows only)")
 parser.add_argument('--safe-mode', dest="safe_mode",
@@ -71,8 +70,9 @@ parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
 
-assert args.gui in (None, 'pyqt5', 'pyside2'), \
-       "Invalid GUI toolkit option '%s'" % args.gui
+assert args.gui in (None, "pyqt5", "pyside2", "pyqt6", "pyside6"), (
+    "Invalid GUI toolkit option '%s'" % args.gui
+)
 
 
 # =============================================================================
