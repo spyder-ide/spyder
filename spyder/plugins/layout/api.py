@@ -509,6 +509,10 @@ class BaseGridLayoutType:
             for plugin in base_plugins_to_hide:
                 plugin.toggle_view(False)
 
+        # We need to wait for a little bit before hiding the not visible base
+        # plugins to correctly set the proportions declared in the layout for
+        # rows and columns. Otherwise the calls to resizeDocks above won't have
+        # the expected effect.
         QTimer.singleShot(50, hide_not_visible_base_plugins)
 
         # Restore displayed external plugins

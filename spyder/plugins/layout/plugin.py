@@ -517,13 +517,17 @@ class Layout(SpyderPluginV2):
 
         pos = get_func(prefix + 'position', section=section)
 
+        # We use `virtualGeometry` instead of `geometry` below because it gives
+        # the shape of all connected screens, which is what we need here (
+        # `geometry` only works for the current one).
+        screen_shape = self.main.screen().virtualGeometry()
+        current_width = screen_shape.width()
+        current_height = screen_shape.height()
+
         # It's necessary to verify if the window/position value is valid
         # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
-        screen_shape = self.main.screen().virtualGeometry()
-        current_width = screen_shape.width()
-        current_height = screen_shape.height()
         if current_width < width or current_height < height:
             pos = self.get_conf_default(prefix + 'position', section)
 

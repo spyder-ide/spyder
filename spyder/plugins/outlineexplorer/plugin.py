@@ -159,6 +159,8 @@ class OutlineExplorer(SpyderDockablePlugin):
             editor = self.get_plugin(Plugins.Editor)
             self.main.resizeDocks(
                 [editor.dockwidget, self.dockwidget],
+                # We set main_window.width() // 7 as the min width for the
+                # Outline because it's not too wide for small screens.
                 [self.main.width(), min(self.main.width() // 7, max_width)],
                 Qt.Horizontal
             )
