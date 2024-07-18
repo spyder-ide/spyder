@@ -66,6 +66,7 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci,
     running_in_ci_with_conda)
 from spyder.config.manager import CONF
+from spyder.config.utils import is_anaconda
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
 from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
@@ -84,6 +85,7 @@ from spyder.plugins.run.api import (
     WorkingDirSource, RunContext)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
+from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
@@ -3338,13 +3340,16 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 @pytest.mark.order(1)
 @flaky(max_runs=3)
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT,
+    )
 
     # Check original pyls configuration
     lsp = main_window.completions.get_provider('lsp')
@@ -3353,21 +3358,26 @@ def test_preferences_change_interpreter(qtbot, main_window):
     assert jedi['environment'] is sys.executable
     assert jedi['extra_paths'] == []
 
+    # Get conda env to use
+    conda_env = get_list_conda_envs()['Conda: jedi-test-env'][0]
+
     # Change main interpreter on preferences
-    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
-                                                 'main_interpreter')
+    dlg, index, page = preferences_dialog_helper(
+        qtbot, main_window, 'main_interpreter'
+    )
     page.cus_exec_radio.radiobutton.setChecked(True)
-    page.cus_exec_combo.combobox.setCurrentText(sys.executable)
+    page.cus_exec_combo.combobox.setCurrentText(conda_env)
 
     mi_container = main_window.main_interpreter.get_container()
-    with qtbot.waitSignal(mi_container.sig_interpreter_changed,
-                          timeout=5000, raising=True):
+    with qtbot.waitSignal(
+        mi_container.sig_interpreter_changed, timeout=5000, raising=True
+    ):
         dlg.ok_btn.animateClick()
 
     # Check updated pyls configuration
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
-    assert jedi['environment'] == sys.executable
+    assert jedi['environment'] == conda_env
     assert jedi['extra_paths'] == []
 
 

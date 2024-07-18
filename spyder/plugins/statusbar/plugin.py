@@ -43,10 +43,18 @@ class StatusBar(SpyderPluginV2):
     EXTERNAL_LEFT_WIDGETS = {}
     INTERNAL_WIDGETS = {}
     INTERNAL_WIDGETS_IDS = {
-        'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
-        'eol_status', 'encoding_status', 'cursor_position_status',
-        'vcs_status', 'lsp_status', 'completion_status',
-        'interpreter_status', 'update_manager_status'}
+        "clock_status",
+        "cpu_status",
+        "memory_status",
+        "read_write_status",
+        "eol_status",
+        "encoding_status",
+        "cursor_position_status",
+        "vcs_status",
+        "lsp_status",
+        "interpreter_status",
+        "update_manager_status",
+    }
 
     # ---- SpyderPluginV2 API
     @staticmethod
@@ -213,10 +221,18 @@ class StatusBar(SpyderPluginV2):
         """
         # Desired organization
         internal_layout = [
-            'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
-            'eol_status', 'encoding_status', 'cursor_position_status',
-            'vcs_status', 'lsp_status', 'completion_status',
-            'interpreter_status', 'update_manager_status']
+            "clock_status",
+            "cpu_status",
+            "memory_status",
+            "read_write_status",
+            "eol_status",
+            "encoding_status",
+            "cursor_position_status",
+            "vcs_status",
+            "lsp_status",
+            "interpreter_status",
+            "update_manager_status",
+        ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
         # Remove all widgets from the statusbar, except the external right

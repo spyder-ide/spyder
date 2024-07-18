@@ -1032,7 +1032,7 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    py_exe = get_list_conda_envs()['conda: jedi-test-env'][0]
+    py_exe = get_list_conda_envs()['Conda: jedi-test-env'][0]
     assert os.path.isfile(py_exe)
 
     # Check that we can't code complete Flask in the default interpreter

@@ -18,7 +18,6 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import is_conda_based_app
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
@@ -31,6 +30,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
         self.apply_callback = self.perform_adjustments
+        self.plugin_container = plugin.get_container()
 
         self.cus_exec_radio = None
         self.pyexec_edit = None
@@ -55,8 +55,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
         elif not self.get_option('custom_interpreter'):
             self.set_option('custom_interpreter', ' ')
 
-        plugin._add_to_custom_interpreters(executable)
-        self.validate_custom_interpreters_list()
+        self.plugin_container.add_to_custom_interpreters(executable)
+        self.plugin_container.validate_custom_interpreters_list()
 
     def initialize(self):
         super().initialize()
@@ -67,15 +67,19 @@ class MainInterpreterConfigPage(PluginConfigPage):
         # Python executable Group
         pyexec_group = QGroupBox(_("Python interpreter"))
         pyexec_bg = QButtonGroup(pyexec_group)
-        pyexec_label = QLabel(_("Select the Python interpreter used for "
-                                "default Spyder consoles and code completion"))
+        pyexec_label = QLabel(
+            _(
+                "Select the default Python interpreter to create new IPython "
+                "consoles and to provide code completion in the Editor"
+            )
+        )
         self.def_exec_radio = self.create_radiobutton(
-            _("Default (i.e. the same as Spyder's)"),
+            _("Internal (i.e. the same used by Spyder)"),
             'default',
             button_group=pyexec_bg,
         )
         self.cus_exec_radio = self.create_radiobutton(
-            _("Use the following Python interpreter:"),
+            _("Use the following interpreter:"),
             'custom',
             button_group=pyexec_bg,
         )
@@ -89,7 +93,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(self.def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
-        self.validate_custom_interpreters_list()
+        self.plugin_container.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
             _('Recent custom interpreters'),
             self.get_option('custom_interpreters_list'),
@@ -99,6 +103,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
             adjust_to_contents=True,
             validate_callback=programs.is_python_interpreter,
         )
+        self.cus_exec_combo.setStyleSheet("margin-left: 3px")
+
         self.def_exec_radio.radiobutton.toggled.connect(
             self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.radiobutton.toggled.connect(
@@ -230,16 +236,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 fixed_namelist = []
 
             self.set_option('umr/namelist', fixed_namelist)
-
-    def validate_custom_interpreters_list(self):
-        """Check that the used custom interpreters are still valid."""
-        custom_list = self.get_option('custom_interpreters_list')
-        valid_custom_list = []
-        for value in custom_list:
-            if osp.isfile(value) and not is_conda_based_app(value):
-                valid_custom_list.append(value)
-
-        self.set_option('custom_interpreters_list', valid_custom_list)
 
     def perform_adjustments(self):
         """Perform some adjustments to the page after applying preferences."""

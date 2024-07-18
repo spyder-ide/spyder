@@ -2317,7 +2317,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    pyexec = get_list_conda_envs()['conda: base'][0]
+    pyexec = get_list_conda_envs()['Conda: base'][0]
     ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel

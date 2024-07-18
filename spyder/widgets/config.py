@@ -970,17 +970,24 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         msg = _('Invalid file path')
         self.validate_data[edit] = (
             validate_callback if validate_callback else osp.isfile,
-            msg)
-        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+            msg
+        )
+
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         options = QFileDialog.DontResolveSymlinks
         browse_btn.clicked.connect(
-            lambda: self.select_file(edit, filters, options=options))
+            lambda: self.select_file(edit, filters, options=options)
+        )
+        browse_btn.setIconSize(
+           QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
 
-        layout = QGridLayout()
-        layout.addWidget(combobox, 0, 0, 0, 9)
-        layout.addWidget(browse_btn, 0, 10)
+        layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(combobox)
+        layout.addWidget(browse_btn)
+        layout.addStretch()
 
         widget = QWidget(self)
         widget.combobox = combobox

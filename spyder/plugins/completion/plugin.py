@@ -15,7 +15,6 @@ introspection providers.
 import functools
 import inspect
 import logging
-import os
 from typing import List, Union
 import weakref
 
@@ -25,11 +24,10 @@ from pkg_resources import iter_entry_points
 from qtpy.QtCore import QRecursiveMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
@@ -71,8 +69,13 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
-    OPTIONAL = [Plugins.MainMenu, Plugins.PythonpathManager, Plugins.StatusBar]
+    REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [
+        Plugins.MainMenu,
+        Plugins.PythonpathManager,
+        Plugins.StatusBar,
+        Plugins.MainInterpreter,
+    ]
 
     CONF_FILE = False
 
@@ -255,7 +258,6 @@ class CompletionPlugin(SpyderPluginV2):
         return cls.create_icon('completions')
 
     def on_initialize(self):
-        self.sig_interpreter_changed.connect(self.update_completion_status)
         self.start_all_providers()
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -268,10 +270,6 @@ class CompletionPlugin(SpyderPluginV2):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
         mi_container = maininterpreter.get_container()
 
-        # connect signals
-        self.completion_status.sig_open_preferences_requested.connect(
-            mi_container.sig_open_preferences_requested)
-
         mi_container.sig_interpreter_changed.connect(
             self.sig_interpreter_changed)
 
@@ -281,7 +279,6 @@ class CompletionPlugin(SpyderPluginV2):
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         for sb in container.all_statusbar_widgets():
             self.statusbar.add_status_widget(sb)
-        self.statusbar.add_status_widget(self.completion_status)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -481,34 +478,6 @@ class CompletionPlugin(SpyderPluginV2):
             if id_ in container.statusbar_widgets:
                 self.get_container().remove_statusbar_widget(id_)
                 self.statusbar.remove_status_widget(id_)
-
-    @property
-    def completion_status(self):
-        return self.get_container().completion_status
-
-    @Slot()
-    def update_completion_status(self):
-        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_status = maininterpreter.get_container().interpreter_status
-
-        value = mi_status.value
-        tool_tip = mi_status._interpreter
-
-        if '(' in value:
-            value = value.split('(')[0]
-
-        if ':' in value:
-            kind, name = value.split(':')
-        else:
-            kind, name = value, ''
-        kind = kind.strip()
-        name = name.strip()
-
-        new_value = f'Completions: {kind}'
-        if name:
-            new_value += f'({name})'
-
-        self.completion_status.update_status(new_value, tool_tip)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):

@@ -166,7 +166,7 @@ def get_list_conda_envs():
 
         name = ('base' if name.lower().startswith('anaconda') or
                 name.lower().startswith('miniconda') else name)
-        name = 'conda: {}'.format(name)
+        name = 'Conda: {}'.format(name)
         env_list[name] = (path, version.strip())
 
     CONDA_ENV_LIST_CACHE = env_list
