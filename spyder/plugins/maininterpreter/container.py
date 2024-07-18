@@ -265,7 +265,7 @@ class MainInterpreterContainer(PluginMainContainer):
 
                 version = get_interpreter_info(path)
                 self.path_to_env[path] = name
-                self.envs[name] = (path, version)
+                self.envs[name] = (original_path, version)
 
             __, version = self.envs[name]
             return f'{name} ({version})'
@@ -299,7 +299,17 @@ class MainInterpreterContainer(PluginMainContainer):
     def _get_env_dir(self, interpreter, only_dir=False):
         """Get env directory from interpreter executable."""
         path = Path(interpreter)
-        env_dir = path.parent if os.name == 'nt' else path.parents[1]
+
+        if os.name == 'nt':
+            # This is enough for Conda envs
+            env_dir = path.parent
+
+            # This is necessary for envs created with `python -m venv`
+            if env_dir.parts[-1].lower() == "scripts":
+                env_dir = path.parents[1]
+        else:
+            env_dir = path.parents[1]
+
         return env_dir.parts[-1] if only_dir else str(env_dir)
 
     def _on_interpreter_removed(self):
