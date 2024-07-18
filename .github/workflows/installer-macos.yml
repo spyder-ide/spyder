@@ -103,7 +103,8 @@ jobs:
       - name: Install Micromamba
         working-directory: ${{ github.workspace }}/spyder
         run: |
-          curl -Ls https://micro.mamba.pm/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
+          [[ "${RUNNER_ARCH}" == "ARM64" ]] && um_arch=osx-arm64 || um_arch=osx-64
+          curl -Ls https://micro.mamba.pm/api/micromamba/${um_arch}/latest | tar -xvj bin/micromamba
           install_name_tool -change @rpath/libc++.1.dylib /usr/lib/libc++.1.dylib bin/micromamba
       - name: Build Application Bundle
         run: |
