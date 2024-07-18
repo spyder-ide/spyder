@@ -54,6 +54,45 @@
 
 ----
 
+## Version 6.0beta3 (2024-07-18)
+
+### Issues Closed
+
+* [Issue 22262](https://github.com/spyder-ide/spyder/issues/22262) - Spyder 6.0 beta3 release
+* [Issue 22201](https://github.com/spyder-ide/spyder/issues/22201) - Build string in conda package url for Spyder in the conda-lock file release asset does not match conda-forge ([PR 22204](https://github.com/spyder-ide/spyder/pull/22204) by [@mrclary](https://github.com/mrclary))
+* [Issue 22194](https://github.com/spyder-ide/spyder/issues/22194) - CommError upon opening existing console ([PR 22231](https://github.com/spyder-ide/spyder/pull/22231) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22179](https://github.com/spyder-ide/spyder/issues/22179) - Kernel is dead message when starting Spyder ([PR 22231](https://github.com/spyder-ide/spyder/pull/22231) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22178](https://github.com/spyder-ide/spyder/issues/22178) - Traceback related to run parameters over CI ([PR 22232](https://github.com/spyder-ide/spyder/pull/22232) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21596](https://github.com/spyder-ide/spyder/issues/21596) - Left pane size changes when starting Spyder ([PR 22232](https://github.com/spyder-ide/spyder/pull/22232) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21590](https://github.com/spyder-ide/spyder/issues/21590) - Profiler pane not showing results ([PR 21713](https://github.com/spyder-ide/spyder/pull/21713) by [@rear1019](https://github.com/rear1019))
+* [Issue 21129](https://github.com/spyder-ide/spyder/issues/21129) - Spyder 6.0.0a1 - New line (ctrl-enter) in console runs cell instead ([PR 22230](https://github.com/spyder-ide/spyder/pull/22230) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 8 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22269](https://github.com/spyder-ide/spyder/pull/22269) - PR: Temporarily suspend notarizing the macOS installer, by [@mrclary](https://github.com/mrclary)
+* [PR 22253](https://github.com/spyder-ide/spyder/pull/22253) - PR: Update conda-lock for change in release workflow, by [@mrclary](https://github.com/mrclary)
+* [PR 22243](https://github.com/spyder-ide/spyder/pull/22243) - PR: Add missing space over masked label text (Variable Explorer - `ArrayEditor`), by [@dalthviz](https://github.com/dalthviz)
+* [PR 22234](https://github.com/spyder-ide/spyder/pull/22234) - PR: Improve Switcher UI, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22232](https://github.com/spyder-ide/spyder/pull/22232) - PR: Tabify Outline next to Projects in default layout and other layout improvements and fixes, by [@ccordoba12](https://github.com/ccordoba12) ([22178](https://github.com/spyder-ide/spyder/issues/22178), [21596](https://github.com/spyder-ide/spyder/issues/21596))
+* [PR 22231](https://github.com/spyder-ide/spyder/pull/22231) - PR: Fix errors when getting Matplotlib backend in the kernel (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([22194](https://github.com/spyder-ide/spyder/issues/22194), [22179](https://github.com/spyder-ide/spyder/issues/22179))
+* [PR 22230](https://github.com/spyder-ide/spyder/pull/22230) - PR: Fix shortcuts for several Run and Debugger actions, by [@ccordoba12](https://github.com/ccordoba12) ([21129](https://github.com/spyder-ide/spyder/issues/21129))
+* [PR 22228](https://github.com/spyder-ide/spyder/pull/22228) - PR: Minor UI improvements to the Run entry in Preferences, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22223](https://github.com/spyder-ide/spyder/pull/22223) - PR: Fix Windows tunneling error when connecting to kernels (Remote client), by [@hlouzada](https://github.com/hlouzada)
+* [PR 22204](https://github.com/spyder-ide/spyder/pull/22204) - PR: Fix issues with installers discovered after 6.0.0b2 was released, by [@mrclary](https://github.com/mrclary) ([22201](https://github.com/spyder-ide/spyder/issues/22201))
+* [PR 22202](https://github.com/spyder-ide/spyder/pull/22202) - PR: Fix issue where macOS installer update fails to launch Spyder, by [@mrclary](https://github.com/mrclary)
+* [PR 22200](https://github.com/spyder-ide/spyder/pull/22200) - PR: Improve implementation and UI of console envs menu (IPython console/Main interpreter) , by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22197](https://github.com/spyder-ide/spyder/pull/22197) - PR: Address small PySide2 compatibility issues, by [@hmaarrfk](https://github.com/hmaarrfk)
+* [PR 22196](https://github.com/spyder-ide/spyder/pull/22196) - PR: Make QtWebEngine optional, by [@hmaarrfk](https://github.com/hmaarrfk)
+* [PR 22185](https://github.com/spyder-ide/spyder/pull/22185) - PR: Update translations for 6.0.0 , by [@dalthviz](https://github.com/dalthviz)
+* [PR 22183](https://github.com/spyder-ide/spyder/pull/22183) - PR: Update `README`, `RELEASE` and `Announcements` files, by [@dalthviz](https://github.com/dalthviz)
+* [PR 21713](https://github.com/spyder-ide/spyder/pull/21713) - PR: Fix profiling results being hidden (Profiler), by [@rear1019](https://github.com/rear1019) ([21590](https://github.com/spyder-ide/spyder/issues/21590))
+
+In this release 17 pull requests were closed.
+
+----
+
 ## Version 6.0beta2 (2024-06-19)
 
 ### Issues Closed
