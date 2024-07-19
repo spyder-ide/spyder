@@ -164,7 +164,7 @@ def get_edit_extensions():
     supported by the Editor
     """
     edit_filetypes = get_edit_filetypes()
-    return _get_extensions(edit_filetypes)+['']
+    return _get_extensions(edit_filetypes)
 
 
 #==============================================================================
