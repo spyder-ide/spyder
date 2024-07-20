@@ -38,6 +38,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         # Signals
         self.sig_clicked.connect(self.toggle_matplotlib)
 
+    # ---- StatusBarWidget API
+    # -------------------------------------------------------------------------
     def get_tooltip(self):
         """Return localized tool tip for widget."""
         msg = _(
@@ -47,6 +49,11 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         msg = '\n'.join(textwrap.wrap(msg, width=40))
         return msg
 
+    def get_icon(self):
+        return self.create_icon('plot')
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def toggle_matplotlib(self):
         """Toggle matplotlib interactive backend."""
         if self._current_id is None or self._gui == 'failed':
@@ -102,25 +109,6 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
         self.set_value(text)
 
-    def add_shellwidget(self, shellwidget):
-        """Add shellwidget."""
-        shellwidget.sig_config_spyder_kernel.connect(
-            functools.partial(self.config_spyder_kernel, shellwidget)
-        )
-        shellwidget.kernel_handler.sig_kernel_is_ready.connect(
-            # We can't use functools.partial here because it gives memory leaks
-            # in Python versions older than 3.10
-            lambda sw=shellwidget: self.on_kernel_start(sw)
-        )
-
-        backend = self.get_conf('pylab/backend')
-        swid = id(shellwidget)
-        self._shellwidget_dict[swid] = {
-            "gui": backend,
-            "widget": shellwidget,
-        }
-        self.set_shellwidget(shellwidget)
-
     def config_spyder_kernel(self, shellwidget):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
@@ -159,6 +147,8 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
         # Ask the kernel to update the current backend, in case it has changed
         shellwidget.set_kernel_configuration("update_gui", True)
 
+    # ---- ShellConnectMixin API
+    # -------------------------------------------------------------------------
     def set_shellwidget(self, shellwidget):
         """Set current shellwidget."""
         self._current_id = None
@@ -174,6 +164,25 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
                 self.show()
                 self.update_status(gui)
                 self._current_id = shellwidget_id
+
+    def add_shellwidget(self, shellwidget):
+        """Add shellwidget."""
+        shellwidget.sig_config_spyder_kernel.connect(
+            functools.partial(self.config_spyder_kernel, shellwidget)
+        )
+        shellwidget.kernel_handler.sig_kernel_is_ready.connect(
+            # We can't use functools.partial here because it gives memory leaks
+            # in Python versions older than 3.10
+            lambda sw=shellwidget: self.on_kernel_start(sw)
+        )
+
+        backend = self.get_conf('pylab/backend')
+        swid = id(shellwidget)
+        self._shellwidget_dict[swid] = {
+            "gui": backend,
+            "widget": shellwidget,
+        }
+        self.set_shellwidget(shellwidget)
 
     def remove_shellwidget(self, shellwidget):
         """Remove shellwidget."""
@@ -192,6 +201,3 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
             "widget": shellwidget,
         }
         self.set_shellwidget(shellwidget)
-
-    def get_icon(self):
-        return self.create_icon('plot')
