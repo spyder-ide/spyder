@@ -19,6 +19,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.stylesheet import MAC
 
 
 class StatusBarWidget(QWidget, SpyderWidgetMixin):
@@ -98,6 +99,9 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.label_value = None
         self.spinner = None
         self.custom_widget = None
+
+        # In case the widget has an associated menu
+        self.menu = None
 
         self._set_layout()
         self._css = self._generate_stylesheet()
@@ -227,7 +231,11 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         if self.INTERACT_ON_CLICK:
             self._css.QWidget.setValues(
-                backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+                # Mac doesn't correctly restore the background color after
+                # clicking on a widget that shows a menu
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+                if MAC and self.menu
+                else SpyderPalette.COLOR_BACKGROUND_5
             )
             self.setStyleSheet(self._css.toString())
 

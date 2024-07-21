@@ -16,6 +16,7 @@ from qtpy.QtGui import QFontMetrics
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
+from spyder.utils.stylesheet import MAC, WIN
 
 
 # Main constants
@@ -82,6 +83,7 @@ class LSPStatusWidget(StatusBarWidget):
             # Padding of menu items to left and right
             + 2 * SpyderMenu.HORIZONTAL_PADDING_FOR_ITEMS
         )
+        y_offset = 4 if MAC else (3 if WIN else 2)
 
         metrics = QFontMetrics(self.font())
         rect = self.contentsRect()
@@ -89,7 +91,7 @@ class LSPStatusWidget(StatusBarWidget):
             rect.topLeft()
             + QPoint(
                 -metrics.width(text) // 2 + x_offset,
-                -2 * self.parent().height(),
+                -2 * self.parent().height() + y_offset,
             )
         )
 
