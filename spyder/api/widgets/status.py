@@ -99,11 +99,13 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.spinner = None
         self.custom_widget = None
 
-        self.set_layout()
+        self._set_layout()
         self._css = self._generate_stylesheet()
         self.setStyleSheet(self._css.toString())
 
-    def set_layout(self):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _set_layout(self):
         """Set layout for default widgets."""
         # Icon
         if self.show_icon:
@@ -151,8 +153,30 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         # Setup
         self.update_tooltip()
 
-    # ---- Status bar widget API
+    def _generate_stylesheet(self):
+        """Generate the widget's stylesheet."""
+        # Remove opacity that comes from QDarkstyle.
+        # This work around is necessary because qstylizer doesn't have support
+        # for the opacity property.
+        initial_css = "QToolTip {opacity: 255;}"
+        css = qstylizer.parser.parse(initial_css)
+
+        # Make style match the one set for other tooltips in the app
+        css.QToolTip.setValues(
+            color=SpyderPalette.COLOR_TEXT_1,
+            backgroundColor=SpyderPalette.COLOR_ACCENT_2,
+            border="none",
+            padding="1px 2px",
+        )
+
+        return css
+
+    # ---- Public API
     # -------------------------------------------------------------------------
+    def get_icon(self):
+        """Get the widget's icon."""
+        return None
+
     def set_icon(self):
         """Set the icon for the status bar widget."""
         if self.label_icon:
@@ -167,6 +191,10 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         if self.label_value:
             self.value = value
             self.label_value.setText(value)
+
+    def get_tooltip(self):
+        """Get the widget's tooltip text."""
+        return ''
 
     def update_tooltip(self):
         """Update tooltip for widget."""
@@ -227,34 +255,6 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         super().leaveEvent(event)
 
-    # ---- Public API to be defined
-    # -------------------------------------------------------------------------
-    def get_tooltip(self):
-        """Return the widget tooltip text."""
-        return ''
-
-    def get_icon(self):
-        """Return the widget tooltip text."""
-        return None
-
-    def _generate_stylesheet(self):
-        """Generate the widget's stylesheet."""
-        # Remove opacity that comes from QDarkstyle.
-        # This work around is necessary because qstylizer doesn't have support
-        # for the opacity property.
-        initial_css = "QToolTip {opacity: 255;}"
-        css = qstylizer.parser.parse(initial_css)
-
-        # Make style match the one set for other tooltips in the app
-        css.QToolTip.setValues(
-            color=SpyderPalette.COLOR_TEXT_1,
-            backgroundColor=SpyderPalette.COLOR_ACCENT_2,
-            border="none",
-            padding="1px 2px",
-        )
-
-        return css
-
 
 class BaseTimerStatus(StatusBarWidget):
     """
@@ -276,11 +276,12 @@ class BaseTimerStatus(StatusBarWidget):
         self.timer.timeout.connect(self.update_status)
         self.timer.start(self._interval)
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def closeEvent(self, event):
         self.timer.stop()
         super().closeEvent(event)
 
-    # ---- Qt API
     def setVisible(self, value):
         """Override Qt method to stops timers if widget is not visible."""
         if self.timer is not None:
@@ -290,7 +291,8 @@ class BaseTimerStatus(StatusBarWidget):
                 self.timer.stop()
         super(BaseTimerStatus, self).setVisible(value)
 
-    # ---- BaseTimerStatus widget API
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():
@@ -302,7 +304,6 @@ class BaseTimerStatus(StatusBarWidget):
         if self.timer is not None:
             self.timer.setInterval(interval)
 
-    # ---- API to be defined by user
     def get_value(self):
         """Return formatted text value."""
         raise NotImplementedError
