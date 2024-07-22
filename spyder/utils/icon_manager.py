@@ -350,7 +350,7 @@ class IconManager():
             'symbol_find':             [('mdi.at',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_right':     [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_down':      [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR}],
-            'lspserver.down':          [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.down':          [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'lspserver.ready':         [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
             'dependency_ok':           [('mdi.check',), {'color': SpyderPalette.COLOR_SUCCESS_2}],
             'dependency_warning':      [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],

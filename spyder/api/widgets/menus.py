@@ -69,6 +69,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     """
     MENUS = []
     APP_MENU = False
+    HORIZONTAL_MARGIN_FOR_ITEMS = 2 * AppStyle.MarginSize
+    HORIZONTAL_PADDING_FOR_ITEMS = 3 * AppStyle.MarginSize
 
     def __init__(
         self,
@@ -417,12 +419,12 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         delta_bottom = 0 if MAC else (2 if WIN else 1)
         css["QMenu::item"].setValues(
             height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
-            marginLeft=f'{2 * AppStyle.MarginSize}px',
-            marginRight=f'{2 * AppStyle.MarginSize}px',
+            marginLeft=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
+            marginRight=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
             paddingTop=f'{AppStyle.MarginSize + delta_top}px',
             paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
-            paddingLeft=f'{3 * AppStyle.MarginSize}px',
-            paddingRight=f'{3 * AppStyle.MarginSize}px',
+            paddingLeft=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
+            paddingRight=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
             fontFamily=font.family(),
             fontSize=f'{font.pointSize()}pt',
             backgroundColor='transparent'

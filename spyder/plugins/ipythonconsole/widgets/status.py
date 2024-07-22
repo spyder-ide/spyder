@@ -26,6 +26,7 @@ class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
 
     ID = "matplotlib_status"
     CONF_SECTION = 'ipython_console'
+    INTERACT_ON_CLICK = True
 
     def __init__(self, parent):
         super().__init__(parent)
