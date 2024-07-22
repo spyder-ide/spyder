@@ -99,7 +99,16 @@ def _get_pygments_extensions():
             lexer_exts = [le for le in lexer_exts if not le.endswith('_*')]
             extensions = extensions + list(lexer_exts) + list(other_exts)
 
-    return sorted(list(set(extensions)))
+    extensions = list(set(extensions))
+
+    # A non-ascii file extension causes issues for macOS
+    # See spyder-ide/spyder#22248
+    try:
+        extensions.remove('.' + chr(128293))
+    except ValueError:
+        pass
+
+    return sorted(extensions)
 
 
 #==============================================================================
@@ -155,7 +164,7 @@ def get_edit_extensions():
     supported by the Editor
     """
     edit_filetypes = get_edit_filetypes()
-    return _get_extensions(edit_filetypes)+['']
+    return _get_extensions(edit_filetypes)
 
 
 #==============================================================================
