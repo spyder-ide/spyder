@@ -17,6 +17,7 @@ dependencies:
 - diff-match-patch >=20181111
 - fcitx-qt5 >=1.2.7
 - fzf >=0.42.0
+- importlib-metadata >=4.6.0
 - intervaltree >=3.0.2
 - ipython >=8.13.0,<9.0.0,!=8.17.1
 - jedi >=0.17.2,<0.20.0

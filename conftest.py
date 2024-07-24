@@ -114,13 +114,18 @@ def reset_conf_before_test():
     from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
     from spyder.plugins.completion.plugin import CompletionPlugin
 
+    # See compatibility note on `group` keyword:
+    # https://docs.python.org/3/library/importlib.metadata.html#entry-points
+    if sys.version_info < (3, 10):  # pragma: no cover
+        from importlib_metadata import entry_points
+    else:  # pragma: no cover
+        from importlib.metadata import entry_points
+
     # Restore completion clients default settings, since they
     # don't have default values on the configuration.
-    from pkg_resources import iter_entry_points
-
     provider_configurations = {}
-    for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
-        Provider = entry_point.resolve()
+    for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
+        Provider = entry_point.load()
         provider_name = Provider.COMPLETION_PROVIDER_NAME
 
         (provider_conf_version,
