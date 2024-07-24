@@ -285,7 +285,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         bbox.accepted.connect(self.accept)
 
         # -- Style
-        size = (600, 460) if MAC else ((580, 450) if WIN else (610, 455))
+        size = (600, 460) if MAC else ((585, 450) if WIN else (610, 455))
         self.setFixedSize(*size)
         self.setStyleSheet(self._main_stylesheet)
 
