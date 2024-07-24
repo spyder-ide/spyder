@@ -15,7 +15,7 @@ from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 from subprocess import check_output
 
-from importlib_metadata import PackageNotFoundError, distribution
+from importlib.metadata import PackageNotFoundError, distribution
 from packaging.requirements import Requirement
 
 # Remove current/script directory from sys.path[0] if added by the Python invocation,

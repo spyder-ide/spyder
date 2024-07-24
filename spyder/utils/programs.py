@@ -8,10 +8,10 @@
 
 # Standard library imports
 from ast import literal_eval
-from getpass import getuser
-from textwrap import dedent
 import glob
+from getpass import getuser
 import importlib
+from importlib.metadata import PackageNotFoundError, version as package_version
 import itertools
 import os
 import os.path as osp
@@ -19,12 +19,12 @@ import re
 import subprocess
 import sys
 import tempfile
+from textwrap import dedent
 import threading
 import time
 
 # Third party imports
 from packaging.version import parse
-import pkg_resources
 import psutil
 
 # Local imports
@@ -845,13 +845,9 @@ def get_module_version(module_name):
 
 def get_package_version(package_name):
     """Return package version or None if version can't be retrieved."""
-
-    # When support for Python 3.7 and below is dropped, this can be replaced
-    # with the built-in importlib.metadata.version
     try:
-        ver = pkg_resources.get_distribution(package_name).version
-        return ver
-    except pkg_resources.DistributionNotFound:
+        return package_version(package_name)
+    except PackageNotFoundError:
         return None
 
 

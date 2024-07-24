@@ -20,10 +20,6 @@ keyring:
     ModuleNotFoundError: No module named 'keyring.backends.chainer'
     ModuleNotFoundError: No module named 'keyring.backends.libsecret'
     ModuleNotFoundError: No module named 'keyring.backends.macOS'
-pkg_resources:
-    ImportError: The 'more_itertools' package is required; normally this is
-    bundled with this package so if you get this warning, consult the
-    packager of your distribution.
 pygments:
     ModuleNotFoundError: No module named 'pygments.formatters.latex'
 pylint_venv:
@@ -45,7 +41,6 @@ spyder_kernels :
 PACKAGES = [
     'blackd',
     'keyring',
-    'pkg_resources',
     'pygments',
     'pylint_venv',
     'pyls_spyder',
