@@ -675,11 +675,41 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
 
-    def kernel_restarted_failure_message(self):
+    def kernel_restarted_failure_message(self, error=None, shutdown=False):
         """Show message when the kernel failed to be restarted."""
+
         msg = _("It was not possible to restart the kernel")
-        self.shellwidget._append_html(f"<br>{msg}<br>", before_prompt=False)
+
+        if error is None:
+            error_html = f"<br>{msg}<br>"
+        else:
+            if isinstance(error, SpyderKernelError):
+                error = error.args[0]
+            elif isinstance(error, Exception):
+                error = _("The error is:<br><br>"
+                        "<tt>{}</tt>").format(traceback.format_exc())
+
+            # Replace end of line chars with <br>
+            eol = sourcecode.get_eol_chars(error)
+            if eol:
+                error = error.replace(eol, '<br>')
+
+            # Don't break lines in hyphens
+            # From https://stackoverflow.com/q/7691569/438386
+            error = error.replace('-', '&#8209')
+
+            # Create error page
+            kernel_error_template = Template(KERNEL_ERROR)
+            error_html = kernel_error_template.substitute(
+                css_path=self.css_path,
+                message=msg,
+                error=error)
+
+        self.shellwidget._append_html(error_html, before_prompt=False)
         self.shellwidget.insert_horizontal_ruler()
+
+        if shutdown:
+            self.shutdown(is_last_client=False, close_console=False)
 
     def print_fault(self, fault):
         """Print fault text."""
