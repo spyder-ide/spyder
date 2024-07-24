@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-11-01 15:18\n"
+"PO-Revision-Date: 2024-04-04 20:57\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -99,11 +99,11 @@ msgstr "Beim Erstellen eines von Spyder benötigten Sockets ist ein Fehler aufge
 
 #: spyder/app/mainwindow.py:399
 msgid "Plugin compatibility check"
-msgstr ""
+msgstr "Plugin-Kompatibilitätsprüfung"
 
 #: spyder/app/mainwindow.py:401
 msgid "It was not possible to load the {} plugin. The problem was:<br><br>{}"
-msgstr ""
+msgstr "Das Plugin {} konnte nicht geladen werden. Das Problem war:<br><br>{}"
 
 #: spyder/app/mainwindow.py:423
 msgid "Loading {}..."
@@ -814,39 +814,39 @@ msgstr "<h3>Spyder {} ist verfügbar!</h3><br>"
 
 #: spyder/plugins/application/container.py:306
 msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
-msgstr ""
+msgstr "Möchten Sie es automatisch herunterladen und mit dem Installationsprogramm von Spyder installieren?<br><br>Wir <a href='{}'>empfehlen unser eigenes Installationsprogramm</a>, weil es stabiler ist und die Aktualisierung erleichtert. Ihre bestehende Spyder-Installation bleibt dabei unberührt."
 
 #: spyder/plugins/application/container.py:317
 msgid "Would you like to automatically download and install it?"
-msgstr ""
+msgstr "Möchten Sie es automatisch herunterladen und installieren?"
 
 #: spyder/plugins/application/container.py:348
 msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
-msgstr ""
+msgstr "Führen Sie den folgenden Befehl oder die folgenden Befehle in der Anaconda-Eingabeaufforderung aus, um manuell zu aktualisieren:<br><br>"
 
 #: spyder/plugins/application/container.py:352
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
-msgstr ""
+msgstr "Führen Sie den folgenden Befehl in einer Eingabeaufforderung aus, um manuell zu aktualisieren:<br><br>"
 
 #: spyder/plugins/application/container.py:356
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
-msgstr ""
+msgstr "Führen Sie den folgenden Befehl oder die folgenden Befehle in einem Terminal aus, um manuell zu aktualisieren:<br><br>"
 
 #: spyder/plugins/application/container.py:359
 msgid "Run the following command in a terminal to update manually:<br><br>"
-msgstr ""
+msgstr "Führen Sie den folgenden Befehl in einem Terminal aus, um manuell zu aktualisieren:<br><br>"
 
 #: spyder/plugins/application/container.py:379
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
-msgstr ""
+msgstr "<b>Wichtiger Hinweis:</b> Sie haben Spyder mit pip in einer Conda-Umgebung installiert, was keine gute Idee ist. Siehe <a href=\"{}\">unser Video</a> für weitere Details dazu."
 
 #: spyder/plugins/application/container.py:397
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
-msgstr ""
+msgstr "<b>Wichtiger Hinweis:</b> Da Sie Spyder mit Anaconda installiert haben, verwenden Sie bitte nicht pip, um es zu aktualisieren, da dies Ihre Installation zerstören würde."
 
 #: spyder/plugins/application/container.py:406
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "<br><br>Weitere Informationen finden Sie in unserer <a href=\"{}\">Installationsanleitung</a>."
 
 #: spyder/plugins/application/container.py:414
 msgid "Spyder is up to date."
@@ -2151,7 +2151,7 @@ msgstr "Docstring-Typ"
 
 #: spyder/plugins/editor/confpage.py:258
 msgid "Here you can select the type of docstrings ({}, {} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function, method or class declaration."
-msgstr ""
+msgstr "Hier können Sie die Art der docstrings ({}, {} oder {}) auswählen, die der Editor automatisch einfügen soll, wenn Sie <tt>{}</tt> nach einer Funktion, Methode oder Klassendeklaration drücken."
 
 #: spyder/plugins/editor/confpage.py:267
 msgid "Numpy"
@@ -2941,11 +2941,11 @@ msgstr "Die Datei <b>%s</b> ist nicht verfügbar.<br><br>Sie wurde möglicherwei
 
 #: spyder/plugins/editor/widgets/editor.py:2413
 msgid "The file <b>{}</b> has been modified outside Spyder.<br><br>Do you want to reload it and lose all your changes?"
-msgstr ""
+msgstr "Die Datei <b>{}</b> wurde außerhalb von Spyder geändert.<br><br>Möchten Sie sie neu laden und alle Ihre Änderungen verlieren?"
 
 #: spyder/plugins/editor/widgets/editor.py:2433
 msgid "The file <b>{}</b> has been modified outside Spyder but it was not possible to reload it.<br><br>Therefore, it will be closed."
-msgstr ""
+msgstr "Die Datei <b>{}</b> wurde außerhalb von Spyder geändert, aber es war nicht möglich, sie neu zu laden.<br><br>Daher wird sie geschlossen."
 
 #: spyder/plugins/editor/widgets/editor.py:2552
 msgid "All changes to file <b>%s</b> will be lost.<br>Do you want to revert it from disk?"
@@ -4215,7 +4215,7 @@ msgstr "<br>Kernel wird neu gestartet...<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:840
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed ({1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment first (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "Die Python-Umgebung oder -Installation, deren Interpreter sich unter<pre>    <tt>{0}</tt></pre>befindet, hat das Modul <tt>spyder-kernels</tt> oder die richtige Version davon nicht installiert ({1}). Ohne dieses Modul ist es für Spyder nicht möglich, eine Konsole für Sie zu erstellen.<br><br>Sie können es installieren, indem Sie zunächst Ihre Umgebung aktivieren (falls erforderlich) und dann in einem Systemterminal ausführen:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:67
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -6505,11 +6505,11 @@ msgstr "Beim Starten ist das Arbeitsverzeichnis:"
 
 #: spyder/plugins/workingdirectory/confpage.py:41 spyder/plugins/workingdirectory/confpage.py:80
 msgid "The project (if open) or user home directory"
-msgstr ""
+msgstr "Das Projekt- (falls geöffnet) oder das Benutzerverzeichnis"
 
 #: spyder/plugins/workingdirectory/confpage.py:43
 msgid "The startup working dir will be root of the current project if one is open, otherwise the user home directory"
-msgstr ""
+msgstr "Das Arbeitsverzeichnis beim Start ist das Stammverzeichnis des aktuellen Projekts, falls eines geöffnet ist, andernfalls das Benutzerverzeichnis"
 
 #: spyder/plugins/workingdirectory/confpage.py:51
 msgid "At startup, the current working directory will be the specified path"
@@ -6525,7 +6525,7 @@ msgstr "Das Arbeitsverzeichnis für neue IPython-Konsolen ist:"
 
 #: spyder/plugins/workingdirectory/confpage.py:82
 msgid "The working dir for new consoles will be root of the project if one is open, otherwise the user home directory"
-msgstr ""
+msgstr "Das Arbeitsverzeichnis für neue Konsolen ist das Stammverzeichnis des Projekts, falls eines geöffnet ist, andernfalls das Benutzerverzeichnis"
 
 #: spyder/plugins/workingdirectory/confpage.py:87
 msgid "The working directory of the current console"
@@ -7195,21 +7195,21 @@ msgstr "Aktuelle Registerkarte schließen"
 
 #: spyder/workers/updates.py:30
 msgid "Unable to connect to the Spyder update service.<br><br>Make sure your connection is working properly."
-msgstr ""
+msgstr "Es kann keine Verbindung zum Spyder-Aktualisierungsdienst hergestellt werden.<br><br>Stellen Sie sicher, dass Ihre Verbindung ordnungsgemäß funktioniert."
 
 #: spyder/workers/updates.py:35
 msgid "HTTP error {status_code} when checking for updates.<br><br>Make sure your connection is working properly,and try again later."
-msgstr ""
+msgstr "HTTP-Fehler {status_code} bei der Prüfung auf Aktualisierungen.<br><br>Stellen Sie sicher, dass Ihre Verbindung ordnungsgemäß funktioniert, und versuchen Sie es später erneut."
 
 #: spyder/workers/updates.py:41
 msgid "SSL certificate verification failed while checking for Spyder updates.<br><br>Please contact your network administrator for assistance."
-msgstr ""
+msgstr "Die Verifizierung des SSL-Zertifikats ist bei der Prüfung auf Aktualisierungen für Spyder fehlgeschlagen.<br><br>Bitte wenden Sie sich an Ihren Netzwerkadministrator, um Hilfe zu erhalten."
 
 #: spyder/workers/updates.py:163
 msgid "It was not possible to check for Spyder updates due to the following error:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Aufgrund des folgenden Fehlers war es nicht möglich, auf Aktualisierungen für Spyder zu prüfen:<br><br><tt>{}</tt>"
 
 #: spyder/workers/updates.py:301
 msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Das Herunterladen des Installationsprogramms war aufgrund des folgenden Fehlers nicht möglich:<br><br><tt>{}</tt>"
 
