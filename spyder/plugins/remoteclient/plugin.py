@@ -130,7 +130,7 @@ class RemoteClient(SpyderPluginV2):
             action,
             menu_id=ApplicationMenus.Tools,
             section=ToolsMenuSections.External,
-            before_section=ToolsMenuSections.Extras
+            before_section=ToolsMenuSections.Extras,
         )
 
         if (
@@ -145,13 +145,13 @@ class RemoteClient(SpyderPluginV2):
 
         mainmenu.remove_item_from_application_menu(
             RemoteClientActions.ManageConnections,
-            menu_id=ApplicationMenus.Tools
+            menu_id=ApplicationMenus.Tools,
         )
 
         if self._is_consoles_menu_added:
             mainmenu.remove_item_from_application_menu(
                 RemoteClientMenus.RemoteConsoles,
-                menu_id=ApplicationMenus.Consoles
+                menu_id=ApplicationMenus.Consoles,
             )
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
@@ -170,14 +170,14 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             return self._remote_clients[config_id]
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _install_remote_server(self, config_id):
         """Install remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             await client.connect_and_install_remote_server()
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def start_remote_server(self, config_id):
         """Start remote server."""
         if config_id not in self._remote_clients:
@@ -186,14 +186,14 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
         await client.connect_and_ensure_server()
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def stop_remote_server(self, config_id):
         """Stop remote server."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
             await client.close()
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def ensure_remote_server(self, config_id):
         """Ensure remote server is running and installed."""
         if config_id in self._remote_clients:
@@ -218,8 +218,8 @@ class RemoteClient(SpyderPluginV2):
 
     def load_conf(self, config_id):
         """Load remote server configuration."""
-        options = SSHClientOptions(
-            **self.get_conf(self.CONF_SECTION_SERVERS, {}).get(config_id, {})
+        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
+            config_id, {}
         )
 
         # We couldn't find saved options for config_id
@@ -228,6 +228,8 @@ class RemoteClient(SpyderPluginV2):
 
         if options["client_keys"]:
             passpharse = self.get_conf(f"{config_id}/passpharse", secure=True)
+
+            options["client_keys"] = [options["client_keys"]]
 
             # Passphrase is optional
             if passpharse:
@@ -243,7 +245,7 @@ class RemoteClient(SpyderPluginV2):
         # Default for now
         options["platform"] = "linux"
 
-        return options
+        return SSHClientOptions(**options)
 
     def get_loaded_servers(self):
         """Get configured remote servers."""
@@ -295,7 +297,7 @@ class RemoteClient(SpyderPluginV2):
     # -------------------------------------------------------------------------
     # --- Remote Server Kernel Methods
     @Slot(str)
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def get_kernels(self, config_id):
         """Get opened kernels."""
         if config_id in self._remote_clients:
@@ -303,15 +305,15 @@ class RemoteClient(SpyderPluginV2):
             kernels_list = await client.list_kernels()
             return kernels_list
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _get_kernel_info(self, config_id, kernel_id):
         """Get kernel info."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernel_info = await client.get_kernel_info(kernel_id)
+            kernel_info = await client.get_kernel_info_ensure_server(kernel_id)
             return kernel_info
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _shutdown_kernel(self, config_id, kernel_id):
         """Shutdown a running kernel."""
         if config_id in self._remote_clients:
@@ -321,7 +323,7 @@ class RemoteClient(SpyderPluginV2):
             except Exception:
                 pass
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _start_new_kernel(self, config_id):
         """Start new kernel."""
         if config_id not in self._remote_clients:
@@ -330,7 +332,7 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
         return await client.start_new_kernel_ensure_server()
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _restart_kernel(self, config_id, kernel_id):
         """Restart kernel."""
         if config_id in self._remote_clients:
@@ -340,7 +342,7 @@ class RemoteClient(SpyderPluginV2):
             except Exception:
                 pass
 
-    @AsyncDispatcher.dispatch(loop='asyncssh')
+    @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _interrupt_kernel(self, config_id, kernel_id):
         """Interrupt kernel."""
         if config_id in self._remote_clients:
@@ -364,7 +366,7 @@ class RemoteClient(SpyderPluginV2):
             menu,
             menu_id=ApplicationMenus.Consoles,
             section=ConsolesMenuSections.New,
-            before=IPythonConsoleWidgetActions.ConnectToKernel
+            before=IPythonConsoleWidgetActions.ConnectToKernel,
         )
 
         self._is_consoles_menu_added = True
