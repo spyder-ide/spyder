@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QRadioButton,
@@ -27,6 +28,8 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
+from spyder.utils.icon_manager import ima
+from spyder.widgets.helperwidgets import TipWidget
 
 
 FORMAT_SPEC_URL = (
@@ -70,54 +73,70 @@ class PreferencesDialog(QDialog):
             _('<a href="{url}">Format specification</a> for floats:')
             .format(url=FORMAT_SPEC_URL)
         )
-        self.format_input = QLineEdit(self)
-        self.format_input.setToolTip(_(
+
+        format_label_layout = QHBoxLayout()
+        format_label_layout.setSpacing(0)
+        format_label_layout.addWidget(format_label)
+        format_tip_text = _(
             'Use same syntax as for built-in <tt>format()</tt> function. '
             'Default is <tt>.6g</tt>.'
-        ))
-        formatting_layout.addWidget(format_label)
+        )
+        self.add_help_info_label(format_label_layout, format_tip_text)
+
+        # Stylesheet aligns `format_label` and `format_input` to the left
+        self.format_input = QLineEdit(self)
+        self.format_input.setStyleSheet('margin-left: 5px')
+
+        formatting_layout.addLayout(format_label_layout)
         formatting_layout.addWidget(self.format_input)
         main_layout.addWidget(formatting_group)
 
         background_group = QGroupBox(_('Background color'))
         background_layout = QVBoxLayout(background_group)
-        self.default_background_button = QRadioButton(
+
+        self.default_background_button = self.create_radio_button(
             _('Use default background color'),
-            background_group
+            _('Use same background color for all cells'),
+            background_group,
+            background_layout
         )
-        self.default_background_button.setToolTip(_(
-            'Use same background color for all cells'
-        ))
-        self.varying_background_button = QRadioButton(
+
+        self.varying_background_button = self.create_radio_button(
             _('Vary background color according to value'),
-            background_group
+            _(
+                'Use red for largest number, blue for smallest number, '
+                'and intermediate colors for the other numbers.'
+            ),
+            background_group,
+            background_layout
         )
-        self.varying_background_button.setToolTip(_(
-            'Use red for largest number, blue for smallest number, '
-            'and intermediate colors for the other numbers.'
-        ))
-        background_layout.addWidget(self.default_background_button)
-        background_layout.addWidget(self.varying_background_button)
+
         main_layout.addWidget(background_group)
 
         if type_string == 'dataframe':
             comparator_group = QGroupBox(_('Coloring algorithm'))
             comparator_layout = QVBoxLayout(comparator_group)
-            self.global_button = QRadioButton(_('Global'), comparator_group)
-            self.global_button.setToolTip(_(
-                'Compare each cell against the largest and smallest numbers '
-                'in the entire dataframe'
-            ))
-            self.by_column_button = QRadioButton(
-                _('Column by column'),
-                comparator_group
+
+            self.global_button = self.create_radio_button(
+                _('Global'),
+                _(
+                    'Compare each cell against the largest and smallest '
+                    'numbers in the entire dataframe'
+                ),
+                comparator_group,
+                comparator_layout
             )
-            self.by_column_button.setToolTip(_(
-                'Compare each cell against the largest and smallest numbers '
-                'in the same column'
-            ))
-            comparator_layout.addWidget(self.global_button)
-            comparator_layout.addWidget(self.by_column_button)
+
+            self.by_column_button = self.create_radio_button(
+                _('Column by column'),
+                _(
+                    'Compare each cell against the largest and smallest '
+                    'numbers in the same column'
+                ),
+                comparator_group,
+                comparator_layout
+            )
+
             main_layout.addWidget(comparator_group)
 
         self.buttons = SpyderDialogButtonBox(
@@ -187,3 +206,21 @@ class PreferencesDialog(QDialog):
                 self.global_button.setChecked(True)
             else:
                 self.by_column_button.setChecked(True)
+
+    def add_help_info_label(self, layout, tip_text):
+        help_label = TipWidget(
+            tip_text=tip_text,
+            icon=ima.icon('question_tip'),
+            hover_icon=ima.icon('question_tip_hover')
+        )
+        layout.addWidget(help_label)
+        layout.addStretch(100)
+
+    def create_radio_button(self, text, tip_text, button_group, layout):
+        hor_layout = QHBoxLayout()
+        hor_layout.setContentsMargins(0, 0, 0, 0)
+        radio_button = QRadioButton(text, button_group)
+        hor_layout.addWidget(radio_button)
+        self.add_help_info_label(hor_layout, tip_text)
+        layout.addLayout(hor_layout)
+        return radio_button
