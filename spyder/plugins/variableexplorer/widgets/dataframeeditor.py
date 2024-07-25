@@ -57,7 +57,8 @@ from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
-    PreferencesDialog)
+    PreferencesDialog
+)
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima

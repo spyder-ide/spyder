@@ -14,11 +14,19 @@ from typing import Optional
 
 # Third party imports
 from qtpy.QtWidgets import (
-    QDialog, QDialogButtonBox, QGroupBox, QLabel, QLineEdit, QRadioButton,
-    QVBoxLayout, QWidget)
+    QDialog,
+    QDialogButtonBox,
+    QGroupBox,
+    QLabel,
+    QLineEdit,
+    QRadioButton,
+    QVBoxLayout,
+    QWidget
+)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 
 
 FORMAT_SPEC_URL = (
@@ -112,8 +120,9 @@ class PreferencesDialog(QDialog):
             comparator_layout.addWidget(self.by_column_button)
             main_layout.addWidget(comparator_group)
 
-        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok |
-                                        QDialogButtonBox.Cancel)
+        self.buttons = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         main_layout.addWidget(self.buttons)
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)

@@ -11,7 +11,8 @@ Tests for the preferences dialog.
 """
 
 from spyder.plugins.variableexplorer.widgets.preferences import (
-    PreferencesDialog)
+    PreferencesDialog
+)
 
 
 def test_preferences_float_format(qtbot):

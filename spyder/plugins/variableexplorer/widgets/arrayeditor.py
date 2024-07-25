@@ -40,7 +40,8 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
-    PreferencesDialog)
+    PreferencesDialog
+)
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
@@ -155,6 +156,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
     _format_spec : str
         Format specification for floats
     """
+
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
