@@ -3,7 +3,6 @@
 
 import os
 from io import StringIO
-from test.test_utils import CALL_TIMEOUT_IN_SECONDS, ClientServerPair
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,6 +14,7 @@ from pylsp import uris
 from pylsp.config.config import Config
 from pylsp.python_lsp import PythonLSPServer
 from pylsp.workspace import Document, Workspace
+from test.test_utils import CALL_TIMEOUT_IN_SECONDS, ClientServerPair
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys

@@ -1,12 +1,12 @@
 # Copyright 2021- Python Language Server Contributors.
 
-from test.test_notebook_document import wait_for_condition
-from test.test_utils import send_initialize_request
 from unittest.mock import patch
 
 import pytest
 
 from pylsp import IS_WIN
+from test.test_notebook_document import wait_for_condition
+from test.test_utils import send_initialize_request
 
 INITIALIZATION_OPTIONS = {
     "pylsp": {

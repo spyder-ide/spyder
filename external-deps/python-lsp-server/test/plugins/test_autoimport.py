@@ -1,7 +1,5 @@
 # Copyright 2022- Python Language Server Contributors.
 
-from test.test_notebook_document import wait_for_condition
-from test.test_utils import send_initialize_request, send_notebook_did_open
 from typing import Any, Dict, List
 from unittest.mock import Mock, patch
 
@@ -22,6 +20,8 @@ from pylsp.plugins.rope_autoimport import (
     pylsp_completions as pylsp_autoimport_completions,
 )
 from pylsp.workspace import Workspace
+from test.test_notebook_document import wait_for_condition
+from test.test_utils import send_initialize_request, send_notebook_did_open
 
 DOC_URI = uris.from_fs_path(__file__)
 

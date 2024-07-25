@@ -130,6 +130,7 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
     assert new_dlg.pn.text() == str(pytest.pn)
     assert new_dlg.kf.text() == pytest.kf
     if not running_in_ci():
+        # !!! This fails on latest master...
         assert new_dlg.kfp.text() == pytest.kfp
 
 
@@ -182,6 +183,7 @@ def test_connection_dialog_remembers_input_with_password(
     assert new_dlg.un.text() == pytest.un
     assert new_dlg.pn.text() == str(pytest.pn)
     if not running_in_ci():
+        # !!! This fails on latest master...
         assert new_dlg.pw.text() == pytest.pw
 
 
