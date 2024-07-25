@@ -18,7 +18,6 @@ from qtpy.QtWidgets import QGridLayout, QPlainTextEdit, QWidget
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import _
 
 
 class BaseGridLayoutType:
@@ -194,15 +193,17 @@ class BaseGridLayoutType:
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def add_area(self,
-                 plugin_ids,
-                 row,
-                 column,
-                 row_span=1,
-                 col_span=1,
-                 default=False,
-                 visible=True,
-                 hidden_plugin_ids=[]):
+    def add_area(
+        self,
+        plugin_ids,
+        row,
+        column,
+        row_span=1,
+        col_span=1,
+        default=False,
+        visible=True,
+        hidden_plugin_ids=[],
+    ):
         """
         Add a new area and `plugin_ids` that will populate it to the layout.
 
@@ -381,8 +382,15 @@ class BaseGridLayoutType:
         docks = {}
         for area in patched_areas:
             current_area = area
-            plugin_id = current_area["plugin_ids"][0]
-            plugin = main_window.get_plugin(plugin_id, error=False)
+
+            # Iterate over plugins in current_area until we find one that is
+            # available
+            plugin = None
+            for plugin_id in current_area["plugin_ids"]:
+                plugin = main_window.get_plugin(plugin_id, error=False)
+                if plugin is not None:
+                    break
+
             if plugin:
                 dock = plugin.dockwidget
                 docks[(current_area["row"], current_area["column"])] = dock
@@ -443,10 +451,18 @@ class BaseGridLayoutType:
         plugins_to_tabify = []
         for area in patched_areas:
             area_visible = area["visible"]
-            base_plugin = main_window.get_plugin(
-                area["plugin_ids"][0], error=False)
+
+            # Iterate over plugins in area until we find one that is available
+            base_plugin = None
+            for i, plugin_id in enumerate(area["plugin_ids"]):
+                base_plugin = main_window.get_plugin(
+                    area["plugin_ids"][i], error=False
+                )
+                if base_plugin is not None:
+                    break
+
             if base_plugin:
-                plugin_ids = area["plugin_ids"][1:]
+                plugin_ids = area["plugin_ids"][i + 1 :]
                 hidden_plugin_ids = area["hidden_plugin_ids"]
                 for plugin_id in plugin_ids:
                     current_plugin = main_window.get_plugin(
@@ -474,7 +490,8 @@ class BaseGridLayoutType:
         for plugin, base_plugin in plugins_to_tabify:
             if not self.plugin.tabify_plugin(plugin):
                 self.plugin.tabify_plugins(base_plugin, plugin)
-            current_plugin.toggle_view(False)
+            if current_plugin:
+                current_plugin.toggle_view(False)
 
         column_docks = []
         column_stretches = []
