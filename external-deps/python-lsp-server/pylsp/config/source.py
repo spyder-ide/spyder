@@ -53,16 +53,16 @@ class ConfigSource:
             if not config.has_option(key, opt_key):
                 continue
 
-            if opt_type == bool:
+            if opt_type is bool:
                 return config.getboolean(key, opt_key)
 
-            if opt_type == int:
+            if opt_type is int:
                 return config.getint(key, opt_key)
 
-            if opt_type == str:
+            if opt_type is str:
                 return config.get(key, opt_key)
 
-            if opt_type == list:
+            if opt_type is list:
                 return cls._parse_list_opt(config.get(key, opt_key))
 
             raise ValueError("Unknown option type: %s" % opt_type)

@@ -41,6 +41,7 @@ class Workspace:
     M_INITIALIZE_PROGRESS = "window/workDoneProgress/create"
     M_APPLY_EDIT = "workspace/applyEdit"
     M_SHOW_MESSAGE = "window/showMessage"
+    M_LOG_MESSAGE = "window/logMessage"
 
     def __init__(self, root_uri, endpoint, config=None):
         self._config = config
@@ -176,10 +177,18 @@ class Workspace:
     def apply_edit(self, edit):
         return self._endpoint.request(self.M_APPLY_EDIT, {"edit": edit})
 
-    def publish_diagnostics(self, doc_uri, diagnostics):
+    def publish_diagnostics(self, doc_uri, diagnostics, doc_version=None):
+        params = {
+            "uri": doc_uri,
+            "diagnostics": diagnostics,
+        }
+
+        if doc_version:
+            params["version"] = doc_version
+
         self._endpoint.notify(
             self.M_PUBLISH_DIAGNOSTICS,
-            params={"uri": doc_uri, "diagnostics": diagnostics},
+            params=params,
         )
 
     @contextmanager
@@ -314,6 +323,11 @@ class Workspace:
                 "token": token,
                 "value": value,
             },
+        )
+
+    def log_message(self, message, msg_type=lsp.MessageType.Info):
+        self._endpoint.notify(
+            self.M_LOG_MESSAGE, params={"type": msg_type, "message": message}
         )
 
     def show_message(self, message, msg_type=lsp.MessageType.Info):
@@ -507,6 +521,7 @@ class Document:
         extra_paths = []
         environment_path = None
         env_vars = None
+        prioritize_extra_paths = False
 
         if self._config:
             jedi_settings = self._config.plugin_settings(
@@ -523,19 +538,19 @@ class Document:
 
             extra_paths = jedi_settings.get("extra_paths") or []
             env_vars = jedi_settings.get("env_vars")
+            prioritize_extra_paths = jedi_settings.get("prioritize_extra_paths")
 
-        # Drop PYTHONPATH from env_vars before creating the environment because that makes
-        # Jedi throw an error.
+        # Drop PYTHONPATH from env_vars before creating the environment to
+        # ensure that Jedi can startup properly without module name collision.
         if env_vars is None:
             env_vars = os.environ.copy()
         env_vars.pop("PYTHONPATH", None)
 
-        environment = (
-            self.get_enviroment(environment_path, env_vars=env_vars)
-            if environment_path
-            else None
+        environment = self.get_enviroment(environment_path, env_vars=env_vars)
+        sys_path = self.sys_path(
+            environment_path, env_vars, prioritize_extra_paths, extra_paths
         )
-        sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
+
         project_path = self._workspace.root_path
 
         # Extend sys_path with document's path if requested
@@ -545,7 +560,7 @@ class Document:
         kwargs = {
             "code": self.source,
             "path": self.path,
-            "environment": environment,
+            "environment": environment if environment_path else None,
             "project": jedi.Project(path=project_path, sys_path=sys_path),
         }
 
@@ -570,14 +585,24 @@ class Document:
 
         return environment
 
-    def sys_path(self, environment_path=None, env_vars=None):
+    def sys_path(
+        self,
+        environment_path=None,
+        env_vars=None,
+        prioritize_extra_paths=False,
+        extra_paths=[],
+    ):
         # Copy our extra sys path
-        # TODO: when safe to break API, use env_vars explicitly to pass to create_environment
         path = list(self._extra_sys_path)
         environment = self.get_enviroment(
             environment_path=environment_path, env_vars=env_vars
         )
         path.extend(environment.get_sys_path())
+        if prioritize_extra_paths:
+            path += extra_paths + path
+        else:
+            path += path + extra_paths
+
         return path
 
 
