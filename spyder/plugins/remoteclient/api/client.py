@@ -34,7 +34,7 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         super().__init__(*args, **kwargs)
 
     def emit(self, record):
-        self._client._plugin.sig_server_log.emit(
+        self._client._plugin.sig_client_message_logged.emit(
             RemoteClientLog(
                 id=self._client.config_id,
                 message=self.format(record),

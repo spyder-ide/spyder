@@ -42,10 +42,10 @@ class RemoteClientContainer(PluginMainContainer):
         to the server is lost.
     """
 
-    _sig_kernel_info = Signal(object, dict)
+    _sig_kernel_info_replied = Signal(object, dict)
     """
-    This private signal is used to inform that a kernel info request took place
-    in the server.
+    This private signal is used to inform that a kernel info request to the
+    server was replied.
 
     Parameters
     ----------
@@ -153,7 +153,7 @@ class RemoteClientContainer(PluginMainContainer):
             self._on_connection_status_changed
         )
         self._sig_kernel_restarted.connect(self._on_kernel_restarted)
-        self._sig_kernel_info.connect(self._on_kernel_info_reply)
+        self._sig_kernel_info_replied.connect(self._on_kernel_info_reply)
 
         self.__requested_restart = False
         self.__requested_info = False
@@ -328,7 +328,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.__requested_info = True
 
         future.add_done_callback(
-            lambda future: self._sig_kernel_info.emit(
+            lambda future: self._sig_kernel_info_replied.emit(
                 ipyclient, future.result()
             )
         )
