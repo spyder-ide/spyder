@@ -1000,8 +1000,12 @@ class Layout(SpyderPluginV2):
 
         # This should only be necessary the first time this method is run
         if not visible_plugins:
-            visible_plugins = [Plugins.IPythonConsole, Plugins.Help,
-                               Plugins.Editor]
+            visible_plugins = [
+                Plugins.IPythonConsole,
+                Plugins.Help,
+                Plugins.VariableExplorer,  # In case Help is not available
+                Plugins.Editor,
+            ]
 
         # Restore visible plugins
         for plugin in visible_plugins:
@@ -1158,10 +1162,9 @@ class Layout(SpyderPluginV2):
                 if plugin:
                     self.tabify_plugin(plugin, Plugins.Console)
 
-        # Tabify new external plugins
+        # Tabify any new plugin that was not available in the previous session.
+        # This can include internal plugins that were automatically disabled
+        # in the first session (e.g. due to the lack of WebEngine).
         for plugin in self.get_dockable_plugins():
-            if (
-                plugin.NAME in PLUGIN_REGISTRY.external_plugins
-                and plugin.get_conf('first_time', True)
-            ):
+            if plugin.get_conf('first_time', True):
                 self.tabify_plugin(plugin, Plugins.Console)
