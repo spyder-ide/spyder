@@ -134,9 +134,15 @@ yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-specs = {
-    "python": "=" + PY_VER,
-    "spyder": "=" + SPYVER,
+base_specs = {
+    "python": f"={PY_VER}",
+    "conda": "=24.5.0",
+    "menuinst": "=2.1.1",
+    "mamba": "",
+}
+rt_specs = {
+    "python": f"={PY_VER}",
+    "spyder": f"={SPYVER}",
     "cython": "",
     "matplotlib": "",
     "numpy": "",
@@ -148,20 +154,20 @@ specs = {
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
-    _specs = yaml.load(SPECS.read_text())
-    specs.update(_specs)
+    _rt_specs = yaml.load(SPECS.read_text())
+    rt_specs.update(_rt_specs)
 else:
     logger.info(f"Did not read specs from {SPECS}")
 
 for spec in args.extra_specs:
     k, *v = re.split('([<>=]+)[ ]*', spec)
-    specs[k] = "".join(v).strip()
+    rt_specs[k] = "".join(v).strip()
 
-PY_VER = parse(re.split('([<>=]+)[ ]*', specs['python'])[-1])
-SPYVER = parse(re.split('([<>=]+)[ ]*', specs['spyder'])[-1])
+PY_VER = parse(re.split('([<>=]+)[ ]*', rt_specs['python'])[-1])
+SPYVER = parse(re.split('([<>=]+)[ ]*', rt_specs['spyder'])[-1])
 
-LOCK_FILE = DIST / f"conda-{TARGET_PLATFORM}.lock"
-TMP_LOCK_FILE = BUILD / f"conda-{TARGET_PLATFORM}.lock"
+BASE_LOCK_FILE = BUILD / f"conda-base-{TARGET_PLATFORM}.lock"
+RT_LOCK_FILE = BUILD / f"conda-runtime-{TARGET_PLATFORM}.lock"
 OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
 INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.major}"
 
@@ -171,7 +177,13 @@ WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
 CONSTRUCTOR_FILE = BUILD / "construct.yaml"
 
 
-def _create_conda_lock():
+def _create_conda_lock(env_type='base'):
+    specs = base_specs
+    lock_file = BASE_LOCK_FILE
+    if env_type == "runtime":
+        specs = rt_specs
+        lock_file = RT_LOCK_FILE
+
     definitions = {
         "channels": [
             CONDA_BLD_PATH,
@@ -183,11 +195,14 @@ def _create_conda_lock():
         "platforms": [TARGET_PLATFORM]
     }
 
-    logger.info("Conda lock configuration:")
+    if args.no_local:
+        definitions['channels'].remove(CONDA_BLD_PATH)
+
+    logger.info(f"Conda lock configuration ({env_type}):")
     if logger.getEffectiveLevel() <= 20:
         yaml.dump(definitions, sys.stdout)
 
-    env_file = BUILD / "runtime_env.yml"
+    env_file = BUILD / f"{env_type}_env.yml"
     yaml.dump(definitions, env_file)
 
     env = os.environ.copy()
@@ -197,17 +212,18 @@ def _create_conda_lock():
         "conda-lock", "lock",
         "--kind", "explicit",
         "--file", str(env_file),
-        "--filename-template", str(BUILD / "conda-{platform}.lock")
+        "--filename-template", str(BUILD / f"conda-{env_type}-{{platform}}.lock")
         # Note conda-lock doesn't provide output file option, only template
     ]
 
     run(cmd_args, check=True, env=env)
 
-    logger.info(f"Contents of {TMP_LOCK_FILE}:")
+    logger.info(f"Contents of {lock_file}:")
     if logger.getEffectiveLevel() <= 20:
-        print(TMP_LOCK_FILE.read_text(), flush=True)
+        print(lock_file.read_text(), flush=True)
 
-    LOCK_FILE.write_text(TMP_LOCK_FILE.read_text())
+    # Write to dist directory also
+    (DIST / lock_file.name).write_text(lock_file.read_text())
 
 
 def _generate_background_images(installer_type):
@@ -280,18 +296,7 @@ def _definitions():
         "company": "Spyder-IDE",
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": str(SPYVER),
-        "channels": [
-            "conda-forge/label/spyder_dev",
-            "conda-forge/label/spyder_kernels_rc",
-            "conda-forge",
-        ],
-        "conda_default_channels": ["conda-forge"],
-        "specs": [
-            f"python={PY_VER}",
-            "conda >=23.11.0",
-            "menuinst >=2.0.2",
-            "mamba",
-        ],
+        "environment_file": str(BASE_LOCK_FILE),
         "exclude": ["pip"],
         "installer_filename": OUTPUT_FILE.name,
         "installer_type": args.install_type,
@@ -301,7 +306,7 @@ def _definitions():
         "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
-                "environment_file": str(TMP_LOCK_FILE),
+                "environment_file": str(RT_LOCK_FILE),
             }
         },
         "channels_remap": [
@@ -311,9 +316,6 @@ def _definitions():
             }
         ]
     }
-
-    if not args.no_local:
-        definitions["channels"].insert(0, "local")
 
     definitions["license_file"] = str(RESOURCES / "bundle_license.rtf")
     if args.install_type == "sh":
@@ -371,7 +373,6 @@ def _definitions():
             definitions["notarization_identity_name"] = args.cert_id
 
     if WINDOWS:
-        definitions["conda_default_channels"].append("defaults")
         definitions.update(
             {
                 "welcome_image": str(WELCOME_IMG_WIN),
@@ -472,8 +473,10 @@ def main():
     t0 = time()
     try:
         DIST.mkdir(exist_ok=True)
-        _create_conda_lock()
-        assert TMP_LOCK_FILE.exists()
+        _create_conda_lock(env_type='base')
+        assert BASE_LOCK_FILE.exists()
+        _create_conda_lock(env_type='runtime')
+        assert RT_LOCK_FILE.exists()
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
@@ -505,7 +508,8 @@ if __name__ == "__main__":
         _generate_background_images()
         sys.exit()
     if args.conda_lock:
-        _create_conda_lock()
+        _create_conda_lock(env_type='base')
+        _create_conda_lock(env_type='runtime')
         sys.exit()
 
     main()
