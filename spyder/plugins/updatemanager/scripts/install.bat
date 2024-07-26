@@ -38,6 +38,34 @@ IF not "%install_file%"=="" (
 :exit
 exit %ERRORLEVEL%
 
+:wait_for_spyder_quit
+    echo Waiting for Spyder to quit...
+    :loop
+    tasklist /v /fi "ImageName eq pythonw.exe" /fo csv 2>NUL | find "Spyder">NUL
+    IF "%ERRORLEVEL%"=="0" (
+        timeout /t 1 /nobreak > nul
+        goto loop
+    )
+    echo Spyder is quit.
+    goto :EOF
+
+:update_subroutine
+    echo Updating Spyder
+
+    %conda% update -p %prefix% -y --file %install_file%
+    set /P =Press return to exit...
+    goto :EOF
+
+:launch_spyder
+    for %%C in ("%conda%") do set scripts=%%~dpC
+    set pythonexe=%scripts%..\python.exe
+    set menuinst=%scripts%menuinst_cli.py
+    if exist "%prefix%\.nonadmin" (set mode=user) else set mode=system
+    for /f "delims=" %%s in ('%pythonexe% %menuinst% shortcut --mode=%mode%') do set "shortcut_path=%%~s"
+
+    start "" /B "%shortcut_path%"
+    goto :EOF
+
 :install_subroutine
     echo Installing Spyder from: %install_file%
 
@@ -63,32 +91,4 @@ exit %ERRORLEVEL%
     echo Uninstall complete.
 
     start %install_file%
-    goto :EOF
-
-:update_subroutine
-    echo Updating Spyder
-
-    %conda% update -p %prefix% -y --file %install_file%
-    set /P =Press return to exit...
-    goto :EOF
-
-:wait_for_spyder_quit
-    echo Waiting for Spyder to quit...
-    :loop
-    tasklist /v /fi "ImageName eq pythonw.exe" /fo csv 2>NUL | find "Spyder">NUL
-    IF "%ERRORLEVEL%"=="0" (
-        timeout /t 1 /nobreak > nul
-        goto loop
-    )
-    echo Spyder is quit.
-    goto :EOF
-
-:launch_spyder
-    for %%C in ("%conda%") do set scripts=%%~dpC
-    set pythonexe=%scripts%..\python.exe
-    set menuinst=%scripts%menuinst_cli.py
-    if exist "%prefix%\.nonadmin" (set mode=user) else set mode=system
-    for /f "delims=" %%s in ('%pythonexe% %menuinst% shortcut --mode=%mode%') do set "shortcut_path=%%~s"
-
-    start "" /B "%shortcut_path%"
     goto :EOF
