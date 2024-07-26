@@ -408,6 +408,19 @@ class TabBar(QTabBar):
         # Set close button
         self.setTabButton(index, self.close_btn_side, close_button)
 
+    def tabRemoved(self, index):
+        """Actions to take when a tab is removed."""
+        # A tab removal makes the following ones to change their `index` (`-1`)
+        # Following that, there is a need to update the `index` attribute that
+        # the custom close button instances have. Otherwise, for example on the
+        # Editor, an `IndexError` can be raised.
+        # See spyder-ide/spyder#22033
+        for i in range(index, self.count()):
+            close_btn: CloseTabButton = self.tabButton(i, self.close_btn_side)
+
+            if close_btn:
+                close_btn.index = i
+
 
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
