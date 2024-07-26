@@ -357,29 +357,34 @@ class Layout(SpyderPluginV2):
             self._first_spyder_run = True
             self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
-            # Now that the initial setup is done, copy the window settings,
-            # except for the hexstate in the quick layouts sections for the
-            # default layouts.
-            # Order and name of the default layouts is found in config.py
-            section = 'quick_layouts'
-            get_func = self.get_conf_default if default else self.get_conf
-            order = get_func('order', section=section)
-
-            # Restore the original defaults if reset layouts is called
+            # Restore the original defaults. This is necessary, for instance,
+            # when bumping WINDOW_STATE_VERSION because layouts saved with a
+            # previous version can't be applied with the new one
             if default:
-                self.set_conf('active', order, section)
-                self.set_conf('order', order, section)
-                self.set_conf('names', order, section)
-                self.set_conf('ui_names', order, section)
+                order = list(self.get_container().spyder_layouts.keys())
+                self.set_conf('order', order)
+                self.set_conf('active', order)
+                self.set_conf('names', order)
 
+                ui_names = [
+                    l.get_name()
+                    for l in self.get_container().spyder_layouts.values()
+                ]
+                self.set_conf('ui_names', ui_names)
+
+                # This will remove custom layouts from the UI
+                self.get_container().update_layout_menu_actions()
+
+            section = 'quick_layouts'
+            order = self.get_conf('order')
             for index, _name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
-                self.save_current_window_settings(prefix, section,
-                                                  none_state=True)
+                self.save_current_window_settings(
+                    prefix, section, none_state=True
+                )
 
             # Store the initial layout as the default in spyder
             prefix = 'layout_default/'
-            section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
             self._current_quick_layout = DefaultLayouts.SpyderLayout
 
