@@ -230,6 +230,7 @@ jobs:
 
       - name: Create Local Conda Channel
         run: |
+          mkdir -p $CONDA_BLD_PATH
           conda config --set bld_path $CONDA_BLD_PATH
           conda index $CONDA_BLD_PATH
           mamba search -c local --override-channels || true
