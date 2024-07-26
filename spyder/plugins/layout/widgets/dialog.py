@@ -194,13 +194,13 @@ class LayoutSettingsDialog(QDialog):
         self.read_only = read_only
 
         # widgets
-        self.button_move_up = QPushButton(_('Move Up'))
-        self.button_move_down = QPushButton(_('Move Down'))
-        self.button_delete = QPushButton(_('Delete Layout'))
+        self.button_move_up = QPushButton(_('Move up'))
+        self.button_move_down = QPushButton(_('Move down'))
+        self.button_delete = QPushButton(_('Delete layout'))
         self.button_box = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
         )
-        self.group_box = QGroupBox(_("Layout Display and Order"))
+        self.group_box = QGroupBox(_("Layout display and order"))
         self.table = QTableView(self)
         self.ok_button = self.button_box.button(QDialogButtonBox.Ok)
         self.cancel_button = self.button_box.button(QDialogButtonBox.Cancel)
