@@ -397,15 +397,16 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         if self.cancelled:
             return
 
-        if self.download_worker:
-            if self.download_worker.error:
-                # If download error, do not proceed with install
+        if self.download_worker and self.download_worker.error:
+            # If download error, do not proceed with install
+            if self.progress_dialog is not None:
                 self.progress_dialog.reject()
-                self.set_status(PENDING)
-                error_messagebox(self, self.download_worker.error)
-                return
-            else:
-                self.set_status(DOWNLOAD_FINISHED)
+            self.set_status(PENDING)
+            error_messagebox(self, self.download_worker.error)
+            return
+
+        if self.download_worker:
+            self.set_status(DOWNLOAD_FINISHED)
 
         msg = _("Would you like to install it?")
         box = confirm_messagebox(
