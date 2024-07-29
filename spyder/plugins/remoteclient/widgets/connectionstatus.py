@@ -20,6 +20,7 @@ from spyder.plugins.remoteclient.api.protocol import (
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 # ---- Constants
@@ -80,13 +81,15 @@ class ConnectionStatusWidget(
         self._user_label = QLabel(_("Username: {}").format(username), self)
         self._message_label = QLabel(self)
         self._message_label.setWordWrap(True)
-
-        # Image
         self._image_label = QLabel(self)
+        self._log_label = QLabel(_("Connection messages"))
+        self._log_widget = SimpleCodeEditor(self)
 
-        # Initial text and style
+        # Initial settings
         self._set_initial_text_in_labels()
         self._set_stylesheet()
+        self._log_widget.setReadOnly(True)
+        self._log_widget.setPlaceholderText(_("No logs to show"))
 
         # Info layout
         info_layout = QVBoxLayout()
@@ -105,13 +108,26 @@ class ConnectionStatusWidget(
         image_layout.setContentsMargins(0, 2 * AppStyle.MarginSize, 0, 0)
         image_layout.addWidget(self._image_label)
 
+        # Top layout
+        top_layout = QHBoxLayout()
+        top_layout.addLayout(info_layout)
+        top_layout.setStretchFactor(info_layout, 2)
+        top_layout.addStretch()
+        top_layout.addLayout(image_layout)
+
+        # Bottom layout
+        bottom_layout = QVBoxLayout()
+        bottom_layout.setSpacing(0)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.addWidget(self._log_label)
+        bottom_layout.addWidget(self._log_widget)
+
         # Final layout
-        layout = QHBoxLayout()
-        layout.addLayout(info_layout)
-        layout.setStretchFactor(info_layout, 2)
-        layout.addSpacing(4 * AppStyle.MarginSize)
-        layout.addLayout(image_layout)
-        layout.setStretchFactor(image_layout, 1)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addLayout(top_layout)
+        layout.addSpacing(6 * AppStyle.MarginSize)
+        layout.addLayout(bottom_layout)
         self.setLayout(layout)
 
     # ---- Public API
@@ -128,22 +144,63 @@ class ConnectionStatusWidget(
     # -------------------------------------------------------------------------
     def _set_stylesheet(self):
         """Set stylesheet for elements in this widget."""
-        # Increase font size of connection label
+        # -- Style of important labels
         font_size = self.get_font(SpyderFontType.Interface).pointSize()
         important_labels_css = qstylizer.style.StyleSheet()
         important_labels_css.QLabel.setValues(
             fontSize=f"{font_size + 1}pt",
         )
+
+        # Remove automatic indent added by Qt
+        important_labels_css.setValues(**{'qproperty-indent': '0'})
+
         for label in [self._connection_label, self._message_label]:
             label.setStyleSheet(important_labels_css.toString())
 
-        # Indent status and user labels inside the connection one
-        other_labels_css = qstylizer.style.StyleSheet()
-        other_labels_css.setValues(
+        # -- Style of other info labels
+        other_info_labels_css = qstylizer.style.StyleSheet()
+        other_info_labels_css.setValues(
             marginLeft=f"{9 * AppStyle.MarginSize}px"
         )
         for label in [self._status_label, self._user_label]:
-            label.setStyleSheet(other_labels_css.toString())
+            label.setStyleSheet(other_info_labels_css.toString())
+
+        # -- Style of log widgets
+        log_label_css = qstylizer.style.StyleSheet()
+        log_label_css.QLabel.setValues(
+            # Increase padding (the default one is too small).
+            padding=f"{2 * AppStyle.MarginSize}px",
+            # Make it a bit different from a default QPushButton to not drag
+            # the same amount of attention to it.
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
+            # Remove bottom rounded borders
+            borderBottomLeftRadius='0px',
+            borderBottomRightRadius='0px',
+            # This is necessary to align the label to the text above it
+            marginLeft="2px",
+        )
+        self._log_label.setStyleSheet(log_label_css.toString())
+
+        self._log_widget.css.QPlainTextEdit.setValues(
+            # Remove these borders to make it appear attached to the top label
+            borderTop="0px",
+            borderTopLeftRadius='0px',
+            borderTopRightRadius='0px',
+            # Match border color with the top label one and avoid to change
+            # that color when the widget is given focus
+            borderLeft=f"1px solid {SpyderPalette.COLOR_BACKGROUND_3}",
+            borderRight=f"1px solid {SpyderPalette.COLOR_BACKGROUND_3}",
+            borderBottom=f"1px solid {SpyderPalette.COLOR_BACKGROUND_3}",
+            # This is necessary to align the widget to the top label
+            marginLeft="2px",
+            # Increase padding a bit to make text look better
+            paddingLeft="6px",
+            paddingRight="6px",
+            paddingTop="6px",
+            # No need to have this due to the scrollbar
+            paddingBottom="0px",
+        )
+        self._log_widget.setStyleSheet(self._log_widget.css.toString())
 
     def _set_initial_text_in_labels(self):
         status = self.get_conf(
