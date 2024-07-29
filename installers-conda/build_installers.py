@@ -25,7 +25,6 @@ CONSTRUCTOR_SIGNING_CERTIFICATE:
 # Standard library imports
 from argparse import ArgumentParser
 from datetime import timedelta
-from distutils.spawn import find_executable
 from functools import partial
 import json
 from logging import getLogger
@@ -34,6 +33,7 @@ from packaging.version import parse
 from pathlib import Path
 import platform
 import re
+import shutil
 from subprocess import run
 import sys
 from textwrap import dedent, indent
@@ -416,7 +416,7 @@ def _constructor():
     Create a temporary `construct.yaml` input file and
     run `constructor`.
     """
-    constructor = find_executable("constructor")
+    constructor = shutil.which("constructor")
     if not constructor:
         raise RuntimeError("Constructor must be installed and in PATH.")
 
