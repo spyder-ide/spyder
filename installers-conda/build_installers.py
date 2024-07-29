@@ -297,7 +297,6 @@ def _definitions():
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
         "version": str(SPYVER),
         "environment_file": str(BASE_LOCK_FILE),
-        "exclude": ["pip"],
         "installer_filename": OUTPUT_FILE.name,
         "installer_type": args.install_type,
         "initialize_by_default": False,
