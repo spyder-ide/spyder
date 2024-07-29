@@ -265,9 +265,7 @@ jobs:
           python build_installers.py ${args[@]}
 
           PKG_NAME=$(ls $DISTDIR | grep Spyder-)
-          LCK_NAME=$(ls $DISTDIR | grep conda-)
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "LCK_NAME=$LCK_NAME" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
           echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
 
