@@ -43,7 +43,10 @@ class TTYOutStream(OutStream):
                     print(f"Flush failed: {e}", file=sys.__stderr__)
 
         for parent, data in self._flush_buffers():
+            # Messages that will not be printed to the console. This allows us
+            # to deal with issues such as spyder-ide/spyder#22181
             filter_messages = ["Parent poll failed."]
+
             if data and not any([message in data for message in filter_messages]):
                 # FIXME: this disables Session's fork-safe check,
                 # since pub_thread is itself fork-safe.
