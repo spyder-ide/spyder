@@ -14,7 +14,7 @@ import os
 
 # Third party imports
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QKeySequence
 from qtpy.QtWidgets import QApplication
 
 # Local imports
@@ -24,6 +24,7 @@ from spyder.api.plugins import (
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
@@ -67,7 +68,7 @@ DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 WINDOW_STATE_VERSION = 4
 
 
-class Layout(SpyderPluginV2):
+class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     """
     Layout manager plugin.
     """
@@ -268,6 +269,38 @@ class Layout(SpyderPluginV2):
         for plugin in plugins:
             plugin.dockwidget.is_shown = True
             plugin.dockwidget.install_tab_event_filter()
+
+    def _update_shortcuts_in_plugins_menu(self, show=True):
+        """
+        Show/hide shortcuts for actions in the plugins menu.
+
+        Notes
+        -----
+        Shortcuts in that menu need to disabled when not visible to prevent
+        plugins to be hidden with them.
+        """
+        for plugin in self.get_dockable_plugins():
+            try:
+                # New API
+                action = plugin.toggle_view_action
+            except AttributeError:
+                # Old API
+                action = plugin._toggle_view_action
+
+            if show:
+                section = plugin.CONF_SECTION
+                try:
+                    context = '_'
+                    name = 'switch to {}'.format(section)
+                    shortcut = self.get_shortcut(
+                        name, context, plugin_name=section
+                    )
+                except (cp.NoSectionError, cp.NoOptionError):
+                    shortcut = QKeySequence()
+            else:
+                shortcut = QKeySequence()
+
+            action.setShortcut(shortcut)
 
     # ---- Helper methods
     # -------------------------------------------------------------------------
@@ -923,11 +956,27 @@ class Layout(SpyderPluginV2):
         """
         Populate panes menu with the toggle view action of each base plugin.
         """
-        order = ['editor', 'ipython_console', 'variable_explorer',
-                 'debugger', 'help', 'plots', None, 'explorer',
-                 'outline_explorer', 'project_explorer', 'find_in_files', None,
-                 'historylog', 'profiler', 'pylint', None,
-                 'onlinehelp', 'internal_console', None]
+        order = [
+            "editor",
+            "ipython_console",
+            "variable_explorer",
+            "debugger",
+            "help",
+            "plots",
+            None,
+            "explorer",
+            "outline_explorer",
+            "project_explorer",
+            "find_in_files",
+            None,
+            "historylog",
+            "profiler",
+            "pylint",
+            None,
+            "onlinehelp",
+            "internal_console",
+            None,
+        ]
 
         for plugin in self.get_dockable_plugins():
             try:
@@ -961,7 +1010,18 @@ class Layout(SpyderPluginV2):
         actions = order[:]
         for action in actions:
             if type(action) is not str:
-                self.get_container()._plugins_menu.add_action(action)
+                self.plugins_menu.add_action(action)
+
+        # Enable shortcuts when the menu is visible so users can see they are
+        # available. And disable those shortcuts when the menu is hidden
+        # because they allow to hide plugins when pressed twice. See:
+        # https://github.com/spyder-ide/spyder/issues/22189#issuecomment-2248644546
+        self.plugins_menu.aboutToShow.connect(
+            lambda: self._update_shortcuts_in_plugins_menu(show=True)
+        )
+        self.plugins_menu.aboutToHide.connect(
+            lambda: self._update_shortcuts_in_plugins_menu(show=False)
+        )
 
     @property
     def lock_interface_action(self):

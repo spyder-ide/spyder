@@ -611,46 +611,6 @@ class MainWindow(
         if console:
             console.handle_exception(error_data)
 
-    # ---- Window setup
-    # -------------------------------------------------------------------------
-    def _update_shortcuts_in_panes_menu(self, show=True):
-        """
-        Display the shortcut for the "Switch to plugin..." on the toggle view
-        action of the plugins displayed in the Help/Panes menu.
-
-        Notes
-        -----
-        SpyderDockablePlugins provide two actions that function as a single
-        action. The `Switch to Plugin...` action has an assignable shortcut
-        via the shortcut preferences. The `Plugin toggle View` in the `View`
-        application menu, uses a custom `Toggle view action` that displays the
-        shortcut assigned to the `Switch to Plugin...` action, but is not
-        triggered by that shortcut.
-        """
-        for plugin_name in PLUGIN_REGISTRY:
-            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if isinstance(plugin, SpyderDockablePlugin):
-                try:
-                    # New API
-                    action = plugin.toggle_view_action
-                except AttributeError:
-                    # Old API
-                    action = plugin._toggle_view_action
-
-                if show:
-                    section = plugin.CONF_SECTION
-                    try:
-                        context = '_'
-                        name = 'switch to {}'.format(section)
-                        shortcut = self.get_shortcut(
-                            name, context, plugin_name=section)
-                    except (cp.NoSectionError, cp.NoOptionError):
-                        shortcut = QKeySequence()
-                else:
-                    shortcut = QKeySequence()
-
-                action.setShortcut(shortcut)
-
     def _prevent_freeze_when_moving_dockwidgets(self):
         """
         This is necessary to prevent an ugly freeze when moving dockwidgets to
@@ -916,9 +876,6 @@ class MainWindow(
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
-
-        # Update plugins toggle actions to show the "Switch to" plugin shortcut
-        self._update_shortcuts_in_panes_menu()
 
         # Reopen last session if no project is active
         # NOTE: This needs to be after the calls to on_mainwindow_visible
