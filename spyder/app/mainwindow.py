@@ -458,17 +458,16 @@ class MainWindow(
                 else:
                     self.shortcut_queue.append((action, context, action_name))
 
+        # Register shortcut to switch to plugin
         if isinstance(plugin, SpyderDockablePlugin):
-            try:
-                context = '_'
-                name = 'switch to {}'.format(plugin.CONF_SECTION)
-            except (cp.NoSectionError, cp.NoOptionError):
-                pass
+            context = '_'
+            name = 'switch to {}'.format(plugin.CONF_SECTION)
 
-            sc = QShortcut(QKeySequence(), self,
-                           lambda: self.switch_to_plugin(plugin))
+            sc = QShortcut(
+                QKeySequence(), self, lambda: self.switch_to_plugin(plugin)
+            )
             sc.setContext(Qt.ApplicationShortcut)
-            plugin._shortcut = sc
+            plugin._switch_to_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
                 self.register_shortcut(sc, context, name)
@@ -520,7 +519,7 @@ class MainWindow(
 
         if shortcut is not None:
             self.shortcuts.unregister_shortcut(
-                plugin._shortcut,
+                plugin._switch_to_shortcut,
                 context,
                 "Switch to {}".format(plugin.CONF_SECTION),
             )
