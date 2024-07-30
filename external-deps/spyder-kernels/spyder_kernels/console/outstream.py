@@ -47,7 +47,9 @@ class TTYOutStream(OutStream):
             # to deal with issues such as spyder-ide/spyder#22181
             filter_messages = ["Parent poll failed."]
 
-            if data and not any([message in data for message in filter_messages]):
+            if data and not any(
+                [message in data for message in filter_messages]
+            ):
                 # FIXME: this disables Session's fork-safe check,
                 # since pub_thread is itself fork-safe.
                 # There should be a better way to do this.
