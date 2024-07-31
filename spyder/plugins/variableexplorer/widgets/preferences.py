@@ -211,7 +211,8 @@ class PreferencesDialog(QDialog):
         help_label = TipWidget(
             tip_text=tip_text,
             icon=ima.icon('question_tip'),
-            hover_icon=ima.icon('question_tip_hover')
+            hover_icon=ima.icon('question_tip_hover'),
+            wrap_text=True,
         )
         layout.addWidget(help_label)
         layout.addStretch(100)
