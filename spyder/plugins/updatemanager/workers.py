@@ -254,8 +254,7 @@ class WorkerDownloadInstaller(BaseWorker):
             'https://github.com/spyder-ide/spyder/releases/download/'
             f'v{self.latest_release}/{osp.basename(self.installer_path)}'
         )
-        logger.info(f"Downloading installer from {url} "
-                    f"to {self.installer_path}")
+        logger.info(f"Downloading {url} to {self.installer_path}")
 
         dirname = osp.dirname(self.installer_path)
         os.makedirs(dirname, exist_ok=True)
@@ -285,7 +284,7 @@ class WorkerDownloadInstaller(BaseWorker):
                 f"{size_read} out of {size} bytes."
             )
 
-    def _clean_installer_path(self):
+    def _clean_installer_dir(self):
         """Remove downloaded file"""
         installer_dir = osp.dirname(self.installer_path)
         if osp.exists(installer_dir):
@@ -301,7 +300,7 @@ class WorkerDownloadInstaller(BaseWorker):
             self._download_installer()
         except UpdateDownloadCancelledException:
             logger.info("Download cancelled")
-            self._clean_installer_path()
+            self._clean_installer_dir()
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
@@ -322,7 +321,7 @@ class WorkerDownloadInstaller(BaseWorker):
                 '<tt>{}</tt>'
             ).format(formatted_error)
             logger.warning(err, exc_info=err)
-            self._clean_installer_path()
+            self._clean_installer_dir()
         finally:
             self.error = error_msg
 

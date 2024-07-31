@@ -12,8 +12,19 @@ done
 shift $(($OPTIND - 1))
 
 update_spyder(){
-    $conda update -p $prefix -y --file $install_file
-    read -p "Press return to exit..."
+    # Unzip installer file
+    pushd $(dirname $install_file)
+    unzip -o $install_file
+
+    # Determine OS type
+    [[ "$OSTYPE" = "darwin"* ]] && os=osx || os=linux
+    [[ "$(arch)" = "arm64" ]] && os=${os}-arm64 || os=${os}-64
+
+    echo "Updating Spyder base environment..."
+    $conda update -n base -y --file "conda-base-${os}.lock"
+
+    echo "Updating Spyder runtime environment..."
+    $conda update -p $prefix -y --file "conda-runtime-${os}.lock"
 }
 
 launch_spyder(){
@@ -65,6 +76,7 @@ echo "Spyder quit."
 
 if [[ -e "$conda" && -d "$prefix" ]]; then
     update_spyder
+    read -p "Press return to exit and launch Spyder..."
     launch_spyder
 else
     install_spyder

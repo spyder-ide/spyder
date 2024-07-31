@@ -24,13 +24,14 @@ echo.
 
 call :wait_for_spyder_quit
 
-IF not "%conda%"=="" IF not "%prefix%"=="" (
+IF exist "%conda%" IF exist "%prefix%" (
     call :update_subroutine
+    set /P =Press return to exit and launch Spyder...
     call :launch_spyder
     goto exit
 )
 
-IF not "%install_file%"=="" (
+IF exist "%install_file%" (
     call :install_subroutine
     goto exit
 )
@@ -50,10 +51,14 @@ exit %ERRORLEVEL%
     goto :EOF
 
 :update_subroutine
-    echo Updating Spyder
+    for %%C in ("%install_file%") do set installer_dir=%%~dpC
+    pushd %installer_dir%
+    tar -xf %install_file%
 
-    %conda% update -p %prefix% -y --file %install_file%
-    set /P =Press return to exit...
+    echo Updating Spyder base environment...
+    %conda% update -n base -y --file conda-base-win-64.lock
+    echo Updating Spyder runtime environment...
+    %conda% update -p %prefix% -y --file conda-runtime-win-64.lock
     goto :EOF
 
 :launch_spyder

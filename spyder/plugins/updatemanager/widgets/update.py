@@ -244,14 +244,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 plat, ext = 'Linux', 'sh'
             fname = f'Spyder-{plat}-{mach}.{ext}'
         else:
-            if os.name == 'nt':
-                plat = 'win'
-            if sys.platform == 'darwin':
-                plat = 'osx'
-            if sys.platform.startswith('linux'):
-                plat = 'linux'
-            mach = mach.replace('x86_64', '64')
-            fname = f'conda-{plat}-{mach}.lock'
+            fname = 'spyder-conda-lock.zip'
 
         dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
         self.installer_path = osp.join(dirname, fname)
@@ -332,7 +325,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.set_status(DOWNLOADING_INSTALLER)
 
         # Only show progress bar for installers
-        if not self.installer_path.endswith('lock'):
+        if not self.installer_path.endswith('zip'):
             self.progress_dialog = ProgressDialog(
                 self, _("Downloading Spyder {} ...").format(self.latest_release)
             )
@@ -435,7 +428,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Sub command
         sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.installer_path.endswith('.lock'):
+        if self.installer_path.endswith('.zip'):
             # Update with conda
             sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
 
