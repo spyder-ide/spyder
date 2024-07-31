@@ -137,7 +137,7 @@ indent4 = partial(indent, prefix="    ")
 base_specs = {
     "python": f"={PY_VER}",
     "conda": "=24.5.0",
-    "menuinst": "=2.1.1",
+    "menuinst": "=2.1.0",
     "mamba": "",
 }
 rt_specs = {

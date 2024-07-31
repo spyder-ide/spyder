@@ -9,6 +9,6 @@ dependencies:
   - constructor =3.8.1
   - gitpython
   - mamba
-  - menuinst =2.1.1
+  - menuinst =2.1.0
   - ruamel.yaml.jinja2
   - setuptools_scm
