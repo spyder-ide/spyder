@@ -717,7 +717,6 @@ class ConnectionDialog(SidebarDialog):
     """
 
     TITLE = _("Remote connections")
-    ICON = ima.icon('remote_server')
     MIN_WIDTH = 850
     MIN_HEIGHT = 600
     PAGE_CLASSES = [NewConnectionPage]
@@ -729,6 +728,7 @@ class ConnectionDialog(SidebarDialog):
     sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
+        self.ICON = ima.icon('remote_server')
         super().__init__(parent)
 
         self._add_saved_connection_pages()
