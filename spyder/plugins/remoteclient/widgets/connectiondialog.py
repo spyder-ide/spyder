@@ -44,7 +44,7 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import AppStyle, WIN
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
@@ -717,8 +717,8 @@ class ConnectionDialog(SidebarDialog):
     """
 
     TITLE = _("Remote connections")
-    MIN_WIDTH = 850 if WIN else 860
-    MIN_HEIGHT = 600 if WIN else 650
+    MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
+    MIN_HEIGHT = 700 if MAC else (600 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
