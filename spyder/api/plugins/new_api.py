@@ -1021,8 +1021,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self.CONTAINER_CLASS = self.WIDGET_CLASS
         super().__init__(parent, configuration=configuration)
 
-        # Defined on mainwindow.py
-        self._shortcut = None
+        # Shortcut to switch to the plugin. It's defined on the main window
+        self._switch_to_shortcut = None
 
         # Widget setup
         # --------------------------------------------------------------------
