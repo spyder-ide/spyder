@@ -12,6 +12,7 @@ import os.path as osp
 import shutil
 from time import sleep
 import traceback
+from zipfile import ZipFile
 
 # Third party imports
 from packaging.version import parse
@@ -278,6 +279,10 @@ class WorkerDownloadInstaller(BaseWorker):
             logger.info('Download successfully completed.')
             with open(self.installer_size_path, "w") as f:
                 f.write(str(size))
+
+            if self.installer_path.endswith('.zip'):
+                with ZipFile(self.installer_path, 'r') as f:
+                    f.extractall(dirname)
         else:
             raise UpdateDownloadIncompleteError(
                 "Download incomplete: retrieved only "

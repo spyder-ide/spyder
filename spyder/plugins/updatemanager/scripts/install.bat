@@ -53,7 +53,6 @@ exit %ERRORLEVEL%
 :update_subroutine
     for %%C in ("%install_file%") do set installer_dir=%%~dpC
     pushd %installer_dir%
-    tar -xf %install_file%
 
     echo Updating Spyder base environment...
     %conda% update -n base -y --file conda-base-win-64.lock

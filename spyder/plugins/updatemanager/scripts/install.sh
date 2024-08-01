@@ -14,7 +14,6 @@ shift $(($OPTIND - 1))
 update_spyder(){
     # Unzip installer file
     pushd $(dirname $install_file)
-    unzip -o $install_file
 
     # Determine OS type
     [[ "$OSTYPE" = "darwin"* ]] && os=osx || os=linux
