@@ -23,7 +23,12 @@ update_spyder(){
     $conda update -n base -y --file "conda-base-${os}.lock"
 
     echo "Updating Spyder runtime environment..."
-    $conda update -p $prefix -y --file "conda-runtime-${os}.lock"
+    # Unnecessary dependencies are not removed when updating with lock file,
+    # so the environment must be removed and re-created.
+    $conda remove -p $prefix --all -y
+    mkdir -p $prefix/Menu
+    touch $prefix/Menu/conda-based-app
+    $conda create -p $prefix -y --file "conda-runtime-${os}.lock"
 
     echo "Cleaning packages and temporary files..."
     $conda clean --yes --packages --tempfiles $prefix

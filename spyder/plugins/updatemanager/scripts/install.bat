@@ -59,7 +59,12 @@ exit %ERRORLEVEL%
     %conda% update -n base -y --file conda-base-win-64.lock
 
     echo Updating Spyder runtime environment...
-    %conda% update -p %prefix% -y --file conda-runtime-win-64.lock
+    rem Unnecessary dependencies are not removed when updating with lock file,
+    rem so the environment must be removed and re-created.
+    %conda% remove -p %prefix% --all -y
+    mkdir %prefix%\Menu
+    echo. > "%prefix%\Menu\conda-based-app"
+    %conda% create -p %prefix% -y --file conda-runtime-win-64.lock
 
     echo Cleaning packages and temporary files...
     %conda% clean --yes --packages --tempfiles %prefix%
