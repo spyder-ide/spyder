@@ -153,6 +153,9 @@ class RemoteClientContainer(PluginMainContainer):
         self._sig_kernel_restarted.connect(self._on_kernel_restarted)
         self._sig_kernel_info.connect(self._on_kernel_info_reply)
 
+        self.__requested_restart = False
+        self.__requested_info = False
+
     def update_actions(self):
         pass
 
@@ -290,9 +293,14 @@ class RemoteClientContainer(PluginMainContainer):
         Request a kernel restart to the server for an IPython console client
         and handle its response.
         """
+        if self.__requested_restart:
+            return
+
         future = self._plugin._restart_kernel(
             ipyclient.server_id, ipyclient.kernel_id
         )
+
+        self.__requested_restart = True
 
         future.add_done_callback(
             lambda future: self._sig_kernel_restarted.emit(
@@ -305,9 +313,14 @@ class RemoteClientContainer(PluginMainContainer):
         Request a kernel reconnect to the server for an IPython console client
         and handle its response.
         """
+        if self.__requested_info:
+            return
+
         future = self._plugin._get_kernel_info(
             ipyclient.server_id, ipyclient.kernel_id
         )
+
+        self.__requested_info = True
 
         future.add_done_callback(
             lambda future: self._sig_kernel_info.emit(
@@ -322,6 +335,7 @@ class RemoteClientContainer(PluginMainContainer):
 
         If we get a response, it means the kernel is alive.
         """
+        self.__requested_restart = False
         if restarted:
             try:
                 kernel_handler = KernelHandler.from_connection_file(
@@ -343,6 +357,7 @@ class RemoteClientContainer(PluginMainContainer):
 
     def _on_kernel_info_reply(self, ipyclient, kernel_info):
         """Check spyder-kernels version."""
+        self.__requested_info = False
         if kernel_info:
             try:
                 kernel_handler = KernelHandler.from_connection_info(
