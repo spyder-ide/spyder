@@ -11,6 +11,7 @@ Remote Client Plugin.
 
 # Standard library imports
 import logging
+import contextlib
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot
@@ -298,30 +299,28 @@ class RemoteClient(SpyderPluginV2):
     # --- Remote Server Kernel Methods
     @Slot(str)
     @AsyncDispatcher.dispatch(loop="asyncssh")
-    async def get_kernels(self, config_id):
+    async def get_kernels(self, config_id) -> list:
         """Get opened kernels."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernels_list = await client.list_kernels()
-            return kernels_list
+            return await client.list_kernels()
+        return []
 
     @AsyncDispatcher.dispatch(loop="asyncssh")
-    async def _get_kernel_info(self, config_id, kernel_id):
+    async def _get_kernel_info(self, config_id, kernel_id) -> dict:
         """Get kernel info."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            kernel_info = await client.get_kernel_info_ensure_server(kernel_id)
-            return kernel_info
+            return await client.get_kernel_info_ensure_server(kernel_id)
+        return {}
 
     @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _shutdown_kernel(self, config_id, kernel_id):
         """Shutdown a running kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            try:
+            with contextlib.suppress(Exception):
                 await client.terminate_kernel(kernel_id)
-            except Exception:
-                pass
 
     @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _start_new_kernel(self, config_id):
@@ -333,14 +332,14 @@ class RemoteClient(SpyderPluginV2):
         return await client.start_new_kernel_ensure_server()
 
     @AsyncDispatcher.dispatch(loop="asyncssh")
-    async def _restart_kernel(self, config_id, kernel_id):
+    async def _restart_kernel(self, config_id, kernel_id) -> bool:
         """Restart kernel."""
         if config_id in self._remote_clients:
             client = self._remote_clients[config_id]
-            try:
+            with contextlib.suppress(Exception):
                 return await client.restart_kernel(kernel_id)
-            except Exception:
-                pass
+
+        return False
 
     @AsyncDispatcher.dispatch(loop="asyncssh")
     async def _interrupt_kernel(self, config_id, kernel_id):
