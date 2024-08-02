@@ -374,6 +374,7 @@ def _definitions():
     if WINDOWS:
         definitions.update(
             {
+                "uninstall_name": f"Spyder {SPYVER.major}",
                 "welcome_image": str(WELCOME_IMG_WIN),
                 "header_image": str(HEADER_IMG_WIN),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
