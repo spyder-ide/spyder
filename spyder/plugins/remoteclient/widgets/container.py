@@ -278,10 +278,6 @@ class RemoteClientContainer(PluginMainContainer):
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
 
-        self.sig_connection_status_changed.connect(
-            connection_dialog.sig_connection_status_changed
-        )
-
         connection_dialog.show()
 
     def _on_connection_status_changed(self, info: ConnectionInfo):

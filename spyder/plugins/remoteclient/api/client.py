@@ -34,6 +34,12 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         self._client = client
         super().__init__(*args, **kwargs)
 
+        log_format = "%(message)s &#8212; %(asctime)s"
+        formatter = logging.Formatter(
+            log_format, datefmt="%H:%M:%S %d/%m/%Y"
+        )
+        self.setFormatter(formatter)
+
     def emit(self, record):
         self._client._plugin.sig_client_message_logged.emit(
             RemoteClientLog(

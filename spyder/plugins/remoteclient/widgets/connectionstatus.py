@@ -6,16 +6,21 @@
 
 """Connection status widget."""
 
+import logging
+
 import qstylizer.style
+from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SvgToScaledPixmap
+from spyder.plugins.remoteclient.api import MAX_CLIENT_MESSAGES
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    RemoteClientLog,
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.utils.palette import SpyderPalette
@@ -47,6 +52,25 @@ STATUS_TO_ICON = {
     ConnectionStatus.Active: "connection_connected",
     ConnectionStatus.Stopping: "connection_waiting",
     ConnectionStatus.Error: "connection_error",
+}
+
+LOG_LEVEL_TO_FMT_STRING = {
+    # It could be confusing to users to see a "Debug" message, so we prefer to
+    # show it as "Info".
+    logging.DEBUG: "<b>Info:</b>",
+    logging.INFO: "<b>Info:</b>",
+    logging.WARNING: (
+        f'<span style="color:{STATUS_TO_COLOR[ConnectionStatus.Connecting]};">'
+        f'<b>Warning:</b></span>'
+    ),
+    logging.ERROR: (
+        f'<span style="color:{STATUS_TO_COLOR[ConnectionStatus.Error]};">'
+        f'<b>Error:</b></span>'
+    ),
+    logging.CRITICAL: (
+        f'<span style="color:{STATUS_TO_COLOR[ConnectionStatus.Error]};">'
+        f'<b>Critical:</b></span>'
+    ),
 }
 
 
@@ -88,6 +112,7 @@ class ConnectionStatusWidget(
         # Initial settings
         self._set_initial_text_in_labels()
         self._set_stylesheet()
+        self._log_widget.setMaximumBlockCount(MAX_CLIENT_MESSAGES)
         self._log_widget.setReadOnly(True)
         self._log_widget.setPlaceholderText(_("No logs to show"))
 
@@ -139,6 +164,16 @@ class ConnectionStatusWidget(
         self._set_icon(status)
         self._set_text_in_labels(status)
         self._message_label.setText(message)
+
+    def add_log(self, log: RemoteClientLog):
+        formatted_log = (
+            LOG_LEVEL_TO_FMT_STRING[log["level"]] + " " + log["message"]
+        )
+
+        # Move cursor so that new logs are always shown at the end
+        self._log_widget.moveCursor(QTextCursor.End)
+        self._log_widget.appendHtml(formatted_log)
+        self._log_widget.moveCursor(QTextCursor.End)
 
     # ---- Private API
     # -------------------------------------------------------------------------

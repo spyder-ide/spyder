@@ -36,6 +36,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    RemoteClientLog,
     SSHClientOptions,
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
@@ -695,6 +696,10 @@ class ConnectionPage(BaseConnectionPage):
             self.status = info["status"]
             self.status_widget.update_status(info)
 
+    def add_log(self, log: RemoteClientLog):
+        if log["id"] == self.host_id:
+            self.status_widget.add_log(log)
+
     def has_new_name(self):
         """Check if users changed the connection name."""
         current_auth_method = self.auth_method(from_gui=True)
@@ -724,14 +729,14 @@ class ConnectionDialog(SidebarDialog):
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
-    sig_connection_status_changed = Signal(dict)
     sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._container = parent
 
         self._add_saved_connection_pages()
-        self.sig_connection_status_changed.connect(
+        self._container.sig_connection_status_changed.connect(
             self._update_connection_buttons_state
         )
 
@@ -929,7 +934,10 @@ class ConnectionDialog(SidebarDialog):
         )
 
         # This updates the info shown in the "Connection info" tab of pages
-        self.sig_connection_status_changed.connect(page.update_status)
+        self._container.sig_connection_status_changed.connect(
+            page.update_status
+        )
+        self._container.sig_client_message_logged.connect(page.add_log)
 
         if new:
             page.save_server_info()
