@@ -180,8 +180,8 @@ class SpyderRemoteClient:
             _("We're closing the connection. Please be patient"),
         )
 
-        await self.close_port_forwarder()
         await self.stop_remote_server()
+        await self.close_port_forwarder()
         await self.close_ssh_connection()
 
     def _handle_connection_lost(self, exc: Exception | None = None):
@@ -612,19 +612,17 @@ class SpyderRemoteClient:
             self._logger.error("SSH connection is not open")
             return False
 
-        pid = self._server_info["pid"]
-
         # bug in jupyterhub, need to send SIGINT twice
         self._logger.debug(
-            f"Stopping remote server for {self.peer_host} with pid {pid}"
+            f"Stopping remote server for {self.peer_host} with pid {self._server_info['pid']}"
         )
         try:
-            await self._ssh_connection.run(f"kill -INT {pid}", check=True)
-        except asyncssh.ProcessError as err:
-            self._logger.error(f"Error stopping remote server: {err.stderr}")
-        else:
-            await asyncio.sleep(1)
-            await self._ssh_connection.run(f"kill -INT {pid}", check=False)
+            async with JupyterAPI(
+                self.server_url, api_token=self.api_token
+            ) as jupyter:
+                await jupyter.shutdown_server()
+        except Exception as err:
+            self._logger.exception(f"Error stopping remote server", exc_info=err)
 
         if (
             self._remote_server_process

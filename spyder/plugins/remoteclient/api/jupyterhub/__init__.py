@@ -381,6 +381,16 @@ class JupyterAPI:
             else:
                 return False
 
+    async def shutdown_server(self):
+        async with self.session.post(
+            self.api_url / "shutdown"
+        ) as response:
+            if response.status == 200:
+                logger.info(f"Server for jupyter has been shutdown")
+                return True
+            else:
+                return False
+
 
 class JupyterKernelAPI:
     def __init__(self, kernel_url, api_token, verify_ssl=True):
