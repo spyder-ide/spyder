@@ -1,7 +1,7 @@
-:: This script updates or installs a new version of Spyder
+rem This script updates or installs a new version of Spyder
 @echo off
 
-:: Create variables from arguments
+rem Create variables from arguments
 :parse
 IF "%~1"=="" GOTO endparse
 IF "%~1"=="-i" set install_file=%~2& SHIFT
@@ -11,7 +11,7 @@ SHIFT
 GOTO parse
 :endparse
 
-:: Enforce encoding
+rem Enforce encoding
 chcp 65001>nul
 
 echo =========================================================
@@ -77,13 +77,13 @@ exit %ERRORLEVEL%
 :install_subroutine
     echo Installing Spyder from: %install_file%
 
-    :: Uninstall Spyder
+    rem Uninstall Spyder
     for %%I in ("%prefix%\..\..") do set "conda_root=%%~fI"
 
     echo Install will proceed after the current Spyder version is uninstalled.
     start %conda_root%\Uninstall-Spyder.exe
 
-    :: Must wait for uninstaller to appear on tasklist
+    rem Must wait for uninstaller to appear on tasklist
     :wait_for_uninstall_start
     tasklist /fi "ImageName eq Un_A.exe" /fo csv 2>NUL | find /i "Un_A.exe">NUL
     IF "%ERRORLEVEL%"=="1" (
