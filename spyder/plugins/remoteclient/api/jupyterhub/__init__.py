@@ -18,6 +18,9 @@ from spyder.plugins.remoteclient.api.jupyterhub import auth
 logger = logging.getLogger(__name__)
 
 
+REQUEST_TIMEOUT = 5  # seconds
+
+
 class JupyterHubAPI:
     def __init__(self, hub_url, auth_type="token", verify_ssl=True, **kwargs):
         self.hub_url = yarl.URL(hub_url)
@@ -280,6 +283,7 @@ class JupyterAPI:
             connector=aiohttp.TCPConnector(
                 ssl=None if self.verify_ssl else False
             ),
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         )
         return self
 
