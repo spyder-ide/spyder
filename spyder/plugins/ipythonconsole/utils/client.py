@@ -59,7 +59,7 @@ class KernelClientTunneler:
         try:
             self._port_forwarded[(remote_host, remote_port)] = (
                 await self.ssh_connection.forward_local_port(
-                    "", local, remote_host, remote_port
+                    '127.0.0.1', local, remote_host, remote_port
                 )
             )
         except asyncssh.Error as err:
