@@ -675,6 +675,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
 
+    def handle_kernel_restarted(self, clear=True):
+        """Restart the kernel"""
+        # Reset shellwidget and print restart message
+        self.shellwidget.reset(clear=clear)
+
+    def show_restarting_message(self, died=False):
+        self.shellwidget._kernel_restarted_message(died=died)
+
     def kernel_restarted_failure_message(self, error=None, shutdown=False):
         """Show message when the kernel failed to be restarted."""
 

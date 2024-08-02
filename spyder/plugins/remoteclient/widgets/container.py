@@ -337,21 +337,8 @@ class RemoteClientContainer(PluginMainContainer):
         """
         self.__requested_restart = False
         if restarted:
-            try:
-                kernel_handler = KernelHandler.from_connection_file(
-                    ipyclient.kernel_handler.connection_file,
-                    ssh_connection=self._plugin.get_remote_server(
-                        ipyclient.server_id
-                    )._ssh_connection,
-                )
-                if hasattr(ipyclient, "kernel_handler"):
-                    del ipyclient.kernel_handler
-            except Exception as err:
-                ipyclient.kernel_restarted_failure_message(err, shutdown=True)
-            else:
-                ipyclient.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=False
-                )
+            ipyclient.kernel_handler.reconnect_kernel()
+            ipyclient.handle_kernel_restarted()
         else:
             ipyclient.kernel_restarted_failure_message(shutdown=True)
 

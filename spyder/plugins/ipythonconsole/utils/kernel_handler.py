@@ -614,3 +614,9 @@ class KernelHandler(QObject):
         self.kernel_comm.remove()
         self.connection_state = KernelConnectionState.Crashed
         self.kernel_comm.open_comm(self.kernel_client)
+
+    def reconnect_kernel(self):
+        """Kernel restarted successfully"""
+        self.reopen_comm()
+        self.disconnect_std_pipes()
+        self.connect_std_pipes()
