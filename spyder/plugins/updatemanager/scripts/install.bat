@@ -56,8 +56,12 @@ exit %ERRORLEVEL%
 
     echo Updating Spyder base environment...
     %conda% update -n base -y --file conda-base-win-64.lock
+
     echo Updating Spyder runtime environment...
     %conda% update -p %prefix% -y --file conda-runtime-win-64.lock
+
+    echo Cleaning packages and temporary files...
+    %conda% clean --yes --packages --tempfiles %prefix%
     goto :EOF
 
 :launch_spyder

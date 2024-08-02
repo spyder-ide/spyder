@@ -24,6 +24,9 @@ update_spyder(){
 
     echo "Updating Spyder runtime environment..."
     $conda update -p $prefix -y --file "conda-runtime-${os}.lock"
+
+    echo "Cleaning packages and temporary files..."
+    $conda clean --yes --packages --tempfiles $prefix
 }
 
 launch_spyder(){
