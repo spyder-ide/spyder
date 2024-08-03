@@ -1,5 +1,5 @@
-rem This script updates or installs a new version of Spyder
 @echo off
+rem This script updates or installs a new version of Spyder
 
 rem Create variables from arguments
 :parse
@@ -14,6 +14,7 @@ GOTO parse
 rem Enforce encoding
 chcp 65001>nul
 
+echo.
 echo =========================================================
 echo Updating Spyder
 echo ---------------
