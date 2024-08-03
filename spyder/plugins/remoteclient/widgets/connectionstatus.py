@@ -6,6 +6,7 @@
 
 """Connection status widget."""
 
+from collections.abc import Iterable
 import logging
 
 import qstylizer.style
@@ -174,6 +175,10 @@ class ConnectionStatusWidget(
         self._log_widget.moveCursor(QTextCursor.End)
         self._log_widget.appendHtml(formatted_log)
         self._log_widget.moveCursor(QTextCursor.End)
+
+    def add_logs(self, logs: Iterable):
+        for log in logs:
+            self.add_log(log)
 
     # ---- Private API
     # -------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import annotations
+from collections.abc import Iterable
 import re
 from typing import TypedDict
 import uuid
@@ -700,6 +701,9 @@ class ConnectionPage(BaseConnectionPage):
         if log["id"] == self.host_id:
             self.status_widget.add_log(log)
 
+    def add_logs(self, logs: Iterable):
+        self.status_widget.add_logs(logs)
+
     def has_new_name(self):
         """Check if users changed the connection name."""
         current_auth_method = self.auth_method(from_gui=True)
@@ -933,16 +937,19 @@ class ConnectionDialog(SidebarDialog):
             self._update_button_save_connection_state
         )
 
+        if new:
+            page.save_server_info()
+
+        self.add_page(page)
+
+        # Add saved logs to the page
+        page.add_logs(self._container.client_logs.get(host_id, []))
+
         # This updates the info shown in the "Connection info" tab of pages
         self._container.sig_connection_status_changed.connect(
             page.update_status
         )
         self._container.sig_client_message_logged.connect(page.add_log)
-
-        if new:
-            page.save_server_info()
-
-        self.add_page(page)
 
     def _add_saved_connection_pages(self):
         """Add a connection page for each server saved in our config system."""
