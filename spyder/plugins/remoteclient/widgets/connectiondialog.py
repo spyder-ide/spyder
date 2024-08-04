@@ -189,7 +189,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             if not widget.textbox.text():
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
-                widget.status_action.setToolTip("")
+                widget.status_action.setToolTip(_("This field is empty"))
                 reasons["missing_info"] = True
             elif widget == self._name_widgets[auth_method]:
                 # Validate the server name is different from the ones already

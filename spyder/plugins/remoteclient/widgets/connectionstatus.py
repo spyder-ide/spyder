@@ -11,7 +11,14 @@ import logging
 
 import qstylizer.style
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qtpy.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
@@ -25,7 +32,7 @@ from spyder.plugins.remoteclient.api.protocol import (
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
@@ -109,13 +116,19 @@ class ConnectionStatusWidget(
         self._image_label = QLabel(self)
         self._log_label = QLabel(_("Connection messages"))
         self._log_widget = SimpleCodeEditor(self)
+        self._copy_logs_button = QPushButton(_("Copy messages"))
 
         # Initial settings
         self._set_initial_text_in_labels()
         self._set_stylesheet()
+
         self._log_widget.setMaximumBlockCount(MAX_CLIENT_MESSAGES)
         self._log_widget.setReadOnly(True)
+        self._log_widget.setMinimumHeight(210 if MAC else 230)
         self._log_widget.setPlaceholderText(_("No logs to show"))
+
+        self._copy_logs_button.setEnabled(False)
+        self._copy_logs_button.clicked.connect(self._copy_logs)
 
         # Info layout
         info_layout = QVBoxLayout()
@@ -148,6 +161,12 @@ class ConnectionStatusWidget(
         bottom_layout.addWidget(self._log_label)
         bottom_layout.addWidget(self._log_widget)
 
+        copy_layout = QHBoxLayout()
+        copy_layout.addStretch()
+        copy_layout.addWidget(self._copy_logs_button)
+        bottom_layout.addSpacing(6)
+        bottom_layout.addLayout(copy_layout)
+
         # Final layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -159,6 +178,7 @@ class ConnectionStatusWidget(
     # ---- Public API
     # -------------------------------------------------------------------------
     def update_status(self, info: ConnectionInfo):
+        """Update graphical elements related to the connection status."""
         status = info["status"]
         message = info["message"]
 
@@ -167,6 +187,10 @@ class ConnectionStatusWidget(
         self._message_label.setText(message)
 
     def add_log(self, log: RemoteClientLog):
+        """Add a new log message to the log widget."""
+        if not self._copy_logs_button.isEnabled():
+            self._copy_logs_button.setEnabled(True)
+
         formatted_log = (
             LOG_LEVEL_TO_FMT_STRING[log["level"]] + " " + log["message"]
         )
@@ -177,6 +201,7 @@ class ConnectionStatusWidget(
         self._log_widget.moveCursor(QTextCursor.End)
 
     def add_logs(self, logs: Iterable):
+        """Add saved log messages to the log widget."""
         for log in logs:
             self.add_log(log)
 
@@ -281,3 +306,8 @@ class ConnectionStatusWidget(
     def _auth_method(self):
         """Get authentication method."""
         return self.get_conf(f"{self.host_id}/auth_method")
+
+    def _copy_logs(self, clicked):
+        """Copy log messages to clipboard."""
+        text = self._log_widget.toPlainText()
+        QApplication.clipboard().setText(text)
