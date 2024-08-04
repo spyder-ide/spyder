@@ -47,6 +47,9 @@ class AppStyle(SpyderFontsMixin):
     # Icon size in config pages
     ConfigPageIconSize = 20
 
+    # Padding for QPushButton's
+    QPushButtonPadding = f'{MarginSize + 1}px {4 * MarginSize}px'
+
     @classproperty
     def _fs(cls):
         """Interface font size in points."""
@@ -207,15 +210,20 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             image="none"
         )
 
-        # Increase padding for QPushButton's
-        css.QPushButton.setValues(
-            padding='3px',
-        )
+        # Increase padding and fix disabled color for QPushButton's
+        css.QPushButton.setValues(padding=AppStyle.QPushButtonPadding)
 
         for state in ['disabled', 'checked', 'checked:disabled']:
             css[f'QPushButton:{state}'].setValues(
-                padding='3px',
+                padding=AppStyle.QPushButtonPadding,
             )
+
+            # This is especially necessary in the light theme because the
+            # contrast between the background and text colors is too small
+            if state in ['disabled', 'checked:disabled']:
+                css[f"QPushButton:{state}"].setValues(
+                    color=SpyderPalette.COLOR_TEXT_3,
+                )
 
         # Adjust QToolButton style to our needs.
         # This affects not only the pane toolbars but also the
@@ -237,14 +245,26 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
         # Adjust padding of QPushButton's in QDialog's
         for widget in ["QPushButton", "QPushButton:disabled"]:
-            css[f"QDialog {widget}"].setValues(
+            css[f"QDialogButtonBox {widget}"].setValues(
                 padding=(
+                    AppStyle.QPushButtonPadding
+                    if (MAC or WIN)
+                    else
                     f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
                 ),
+                # This width comes from QDarkstyle but it's too big on Mac
+                minWidth="50px" if WIN else ("60px" if MAC else "80px"),
             )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding=f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px",
+            padding=(
+                AppStyle.QPushButtonPadding
+                if (MAC or WIN)
+                else
+                f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
+            ),
+            # This width comes from QDarkstyle but it's too big on Mac
+            minWidth="50px" if WIN else ("60px" if MAC else "80px"),
         )
 
         # Remove icons in QMessageBoxes
@@ -863,7 +883,6 @@ class DialogStyle(SpyderFontsMixin):
     """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    ButtonsPadding = '6px' if MAC else '4px 6px'
     BackgroundColor = SpyderPalette.COLOR_BACKGROUND_2
     BorderColor = SpyderPalette.COLOR_BACKGROUND_5
 
@@ -897,3 +916,12 @@ class DialogStyle(SpyderFontsMixin):
             return f"{cls._fs + 2}pt"
         else:
             return f"{cls._fs + 3}pt"
+
+    @classproperty
+    def ButtonsPadding(cls):
+        if WIN:
+            return f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+        elif MAC:
+            return f"{2 * AppStyle.MarginSize}px {4 * AppStyle.MarginSize}px"
+        else:
+            return f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
