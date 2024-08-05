@@ -694,8 +694,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             if isinstance(error, SpyderKernelError):
                 error = error.args[0]
             elif isinstance(error, Exception):
-                error = _("The error is:<br><br>"
-                        "<tt>{}</tt>").format(traceback.format_exc())
+                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
 
             # Replace end of line chars with <br>
             eol = sourcecode.get_eol_chars(error)

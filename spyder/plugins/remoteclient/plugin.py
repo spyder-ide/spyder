@@ -117,7 +117,9 @@ class RemoteClient(SpyderPluginV2):
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
         for client in self._remote_clients.values():
-            AsyncDispatcher(client.close, loop="asyncssh", early_return=False)()
+            AsyncDispatcher(
+                client.close, loop="asyncssh", early_return=False
+            )()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -226,7 +228,6 @@ class RemoteClient(SpyderPluginV2):
 
         if options["client_keys"]:
             passpharse = self.get_conf(f"{config_id}/passpharse", secure=True)
-
             options["client_keys"] = [options["client_keys"]]
 
             # Passphrase is optional

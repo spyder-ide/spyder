@@ -26,6 +26,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 
 class RemoteClientContainer(PluginMainContainer):
+
     _sig_kernel_restarted = Signal(object, bool)
     """
     This private signal is used to inform that a kernel restart took place in
@@ -40,6 +41,7 @@ class RemoteClientContainer(PluginMainContainer):
         Response returned by the server. `None` can happen when the connection
         to the server is lost.
     """
+
     _sig_kernel_info = Signal(object, dict)
     """
     This private signal is used to inform that a kernel info request took place

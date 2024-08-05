@@ -614,7 +614,8 @@ class SpyderRemoteClient:
 
         # bug in jupyterhub, need to send SIGINT twice
         self._logger.debug(
-            f"Stopping remote server for {self.peer_host} with pid {self._server_info['pid']}"
+            f"Stopping remote server for {self.peer_host} with pid "
+            f"{self._server_info['pid']}"
         )
         try:
             async with JupyterAPI(
@@ -622,7 +623,9 @@ class SpyderRemoteClient:
             ) as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
-            self._logger.exception(f"Error stopping remote server", exc_info=err)
+            self._logger.exception(
+                "Error stopping remote server", exc_info=err
+            )
 
         if (
             self._remote_server_process
