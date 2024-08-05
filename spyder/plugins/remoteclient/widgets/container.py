@@ -228,8 +228,10 @@ class RemoteClientContainer(PluginMainContainer):
                     ipyclient.server_id
                 )._ssh_connection,
             )
-            # Need to be smaller than the time it takes for the kernel to restart
-            kernel_handler.kernel_client.hb_channel.time_to_dead = 1
+
+            # Need to be smaller than the usual time it takes for the kernel to
+            # restart
+            kernel_handler.set_time_to_dead(1.0)
         except Exception as err:
             ipyclient.show_kernel_error(err)
         else:
@@ -353,7 +355,7 @@ class RemoteClientContainer(PluginMainContainer):
                         ipyclient.server_id
                     )._ssh_connection,
                 )
-                kernel_handler.kernel_client.hb_channel.time_to_dead = 1
+                kernel_handler.set_time_to_dead(1.0)
             except Exception as err:
                 ipyclient.kernel_restarted_failure_message(err, shutdown=True)
             else:
