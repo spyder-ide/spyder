@@ -214,7 +214,8 @@ class RemoteClientContainer(PluginMainContainer):
             name = self.get_conf(f"{config_id}/{auth_method}/name")
             ipyclient.show_kernel_error(
                 _(
-                    "There was an error connecting to the server <b>{}</b>"
+                    "There was an error connecting to the server <b>{}</b>. "
+                    "Please check your connection is working."
                 ).format(name)
             )
             return
@@ -366,3 +367,9 @@ class RemoteClientContainer(PluginMainContainer):
                 )
         else:
             ipyclient.kernel_restarted_failure_message(shutdown=True)
+
+            # This will show an error message in the plugins connected to the
+            # IPython console and disable kernel related actions in its Options
+            # menu.
+            sw = ipyclient.shellwidget
+            sw.sig_shellwidget_errored.emit(sw)
