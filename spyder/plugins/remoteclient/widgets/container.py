@@ -7,14 +7,20 @@
 
 """Remote client container."""
 
+# Standard library imports
+from __future__ import annotations
+from collections import deque
 import functools
 
+# Third-party imports
 from qtpy.QtCore import Signal
 
+# Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.remoteclient.api import (
+    MAX_CLIENT_MESSAGES,
     RemoteClientActions,
     RemoteClientMenus,
     RemoteConsolesMenuSections,
@@ -42,10 +48,10 @@ class RemoteClientContainer(PluginMainContainer):
         to the server is lost.
     """
 
-    _sig_kernel_info = Signal(object, dict)
+    _sig_kernel_info_replied = Signal(object, dict)
     """
-    This private signal is used to inform that a kernel info request took place
-    in the server.
+    This private signal is used to inform that a kernel info request to the
+    server was replied.
 
     Parameters
     ----------
@@ -133,9 +139,23 @@ class RemoteClientContainer(PluginMainContainer):
         Id of the kernel which will be shutdown in the server.
     """
 
+    sig_client_message_logged = Signal(dict)
+    """
+    This signal is used to inform that a client has logged a connection
+    message.
+
+    Parameters
+    ----------
+    log: RemoteClientLog
+        Dictionary that contains the log message and its metadata.
+    """
+
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
+        # Attributes
+        self.client_logs: dict[str, deque] = {}
+
         # Widgets
         self.create_action(
             RemoteClientActions.ManageConnections,
@@ -152,8 +172,9 @@ class RemoteClientContainer(PluginMainContainer):
         self.sig_connection_status_changed.connect(
             self._on_connection_status_changed
         )
+        self.sig_client_message_logged.connect(self._on_client_message_logged)
         self._sig_kernel_restarted.connect(self._on_kernel_restarted)
-        self._sig_kernel_info.connect(self._on_kernel_info_reply)
+        self._sig_kernel_info_replied.connect(self._on_kernel_info_reply)
 
         self.__requested_restart = False
         self.__requested_info = False
@@ -257,10 +278,6 @@ class RemoteClientContainer(PluginMainContainer):
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
 
-        self.sig_connection_status_changed.connect(
-            connection_dialog.sig_connection_status_changed
-        )
-
         connection_dialog.show()
 
     def _on_connection_status_changed(self, info: ConnectionInfo):
@@ -328,7 +345,7 @@ class RemoteClientContainer(PluginMainContainer):
         self.__requested_info = True
 
         future.add_done_callback(
-            lambda future: self._sig_kernel_info.emit(
+            lambda future: self._sig_kernel_info_replied.emit(
                 ipyclient, future.result()
             )
         )
@@ -373,3 +390,14 @@ class RemoteClientContainer(PluginMainContainer):
             # menu.
             sw = ipyclient.shellwidget
             sw.sig_shellwidget_errored.emit(sw)
+
+    def _on_client_message_logged(self, message: dict):
+        """Actions to take when a client message is logged."""
+        msg_id = message["id"]
+
+        # Create deque if not available
+        if not self.client_logs.get(msg_id):
+            self.client_logs[msg_id] = deque([], MAX_CLIENT_MESSAGES)
+
+        # Add message to deque
+        self.client_logs[msg_id].append(message)

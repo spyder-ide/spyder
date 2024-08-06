@@ -11,9 +11,13 @@ Spyder appearance configuration
 import os
 import sys
 
+from qdarkstyle.dark.palette import DarkPalette
+from qdarkstyle.light.palette import LightPalette
+
 from spyder.config.base import running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
+
 
 WIN = os.name == 'nt'
 LINUX = sys.platform.startswith('linux')
@@ -74,7 +78,7 @@ APPEARANCE = {
     # ---- IDLE ----
     'idle/name':         "IDLE",
     #      Name            Color     Bold  Italic
-    'idle/background':   "#ffffff",
+    'idle/background':   LightPalette.COLOR_BACKGROUND_1,
     'idle/currentline':  "#f2e6f3",
     'idle/currentcell':  "#feefff",
     'idle/occurrence':   "#C2E3FA",
@@ -82,7 +86,7 @@ APPEARANCE = {
     'idle/sideareas':    "#efefef",
     'idle/matched_p':    "#99ff99",
     'idle/unmatched_p':  "#ff9999",
-    'idle/normal':      ('#000000', False, False),
+    'idle/normal':      (LightPalette.COLOR_TEXT_1, False, False),
     'idle/keyword':     ('#ff7700', True, False),
     'idle/magic':       ('#ff7700', True, False),
     'idle/builtin':     ('#900090', False, False),
@@ -114,7 +118,7 @@ APPEARANCE = {
     # ---- Pydev ----
     'pydev/name':        "Pydev",
     #      Name            Color     Bold  Italic
-    'pydev/background':  "#ffffff",
+    'pydev/background':  LightPalette.COLOR_BACKGROUND_1,
     'pydev/currentline': "#e8f2fe",
     'pydev/currentcell': "#eff8fe",
     'pydev/occurrence':  "#C2E3FA",
@@ -122,7 +126,7 @@ APPEARANCE = {
     'pydev/sideareas':   "#efefef",
     'pydev/matched_p':   "#99ff99",
     'pydev/unmatched_p': "#ff99992",
-    'pydev/normal':     ('#000000', False, False),
+    'pydev/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'pydev/keyword':    ('#0000ff', False, False),
     'pydev/magic':      ('#0000ff', False, False),
     'pydev/builtin':    ('#900090', False, False),
@@ -134,7 +138,7 @@ APPEARANCE = {
     # ---- Scintilla ----
     'scintilla/name':        "Scintilla",
     #         Name             Color     Bold  Italic
-    'scintilla/background':  "#ffffff",
+    'scintilla/background':  LightPalette.COLOR_BACKGROUND_1,
     'scintilla/currentline': "#e1f0d1",
     'scintilla/currentcell': "#edfcdc",
     'scintilla/occurrence':  "#C2E3FA",
@@ -142,7 +146,7 @@ APPEARANCE = {
     'scintilla/sideareas':   "#efefef",
     'scintilla/matched_p':   "#99ff99",
     'scintilla/unmatched_p': "#ff9999",
-    'scintilla/normal':     ('#000000', False, False),
+    'scintilla/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'scintilla/keyword':    ('#00007f', True, False),
     'scintilla/magic':      ('#00007f', True, False),
     'scintilla/builtin':    ('#000000', False, False),
@@ -154,7 +158,7 @@ APPEARANCE = {
     # ---- Spyder ----
     'spyder/name':        "Spyder",
     #       Name            Color     Bold  Italic
-    'spyder/background':  "#ffffff",
+    'spyder/background':  LightPalette.COLOR_BACKGROUND_1,
     'spyder/currentline': "#f7ecf8",
     'spyder/currentcell': "#fdfdde",
     'spyder/occurrence':  "#C2E3FA",
@@ -162,7 +166,7 @@ APPEARANCE = {
     'spyder/sideareas':   "#efefef",
     'spyder/matched_p':   "#99ff99",
     'spyder/unmatched_p': "#ff9999",
-    'spyder/normal':     ('#000000', False, False),
+    'spyder/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'spyder/keyword':    ('#0000ff', False, False),
     'spyder/magic':      ('#0000ff', False, False),
     'spyder/builtin':    ('#900090', False, False),
@@ -182,7 +186,7 @@ APPEARANCE = {
     'spyder/dark/sideareas':   "#222b35",
     'spyder/dark/matched_p':   "#0bbe0b",
     'spyder/dark/unmatched_p': "#ff4340",
-    'spyder/dark/normal':     ('#ffffff', False, False),
+    'spyder/dark/normal':     (DarkPalette.COLOR_TEXT_1, False, False),
     'spyder/dark/keyword':    ('#c670e0', False, False),
     'spyder/dark/magic':      ('#c670e0', False, False),
     'spyder/dark/builtin':    ('#fab16c', False, False),
@@ -274,7 +278,7 @@ APPEARANCE = {
     # ---- minimal (Eclipse color theme) ----
     'minimal/name':        "Minimal",
     #      Name              Color     Bold  Italic
-    'minimal/background':  "#ffffff",
+    'minimal/background':  LightPalette.COLOR_BACKGROUND_1,
     'minimal/currentline': "#aaccff",
     'minimal/currentcell': "#E7F1FF",
     'minimal/occurrence':  "#C2E3FA",
@@ -282,7 +286,7 @@ APPEARANCE = {
     'minimal/sideareas':   "#aaccff",
     'minimal/matched_p':   "#000000",
     'minimal/unmatched_p': "#efefff",
-    'minimal/normal':     ('#000000', False, False),
+    'minimal/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'minimal/keyword':    ('#5c8198', False, False),
     'minimal/magic':      ('#5c8198', False, False),
     'minimal/builtin':    ('#000066', False, False),
@@ -314,7 +318,7 @@ APPEARANCE = {
     # ---- Notepad++ (Eclipse color theme) ----
     'notepad++/name':        "Notepad++",
     #      Name                     Color     Bold  Italic
-    'notepad++/background':  "#ffffff",
+    'notepad++/background':  LightPalette.COLOR_BACKGROUND_1,
     'notepad++/currentline': "#eeeeee",
     'notepad++/currentcell': "#D9D9D9",
     'notepad++/occurrence':  "#C2E3FA",

@@ -492,6 +492,16 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
             padding="-2px -3px",
         )
 
+        # This is necessary to correctly show disabled buttons in this kind of
+        # dialogs (oddly QDarkstyle doesn't set this color as expected).
+        css["QPushButton:disabled"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+        )
+
+        css["QPushButton:checked:disabled"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_6,
+        )
+
         return css.toString()
 
     def _generate_contents_stylesheet(self):

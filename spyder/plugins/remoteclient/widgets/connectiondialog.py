@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import annotations
+from collections.abc import Iterable
 import re
 from typing import TypedDict
 import uuid
@@ -36,6 +37,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    RemoteClientLog,
     SSHClientOptions,
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
@@ -187,7 +189,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             if not widget.textbox.text():
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
-                widget.status_action.setToolTip("")
+                widget.status_action.setToolTip(_("This field is empty"))
                 reasons["missing_info"] = True
             elif widget == self._name_widgets[auth_method]:
                 # Validate the server name is different from the ones already
@@ -695,6 +697,13 @@ class ConnectionPage(BaseConnectionPage):
             self.status = info["status"]
             self.status_widget.update_status(info)
 
+    def add_log(self, log: RemoteClientLog):
+        if log["id"] == self.host_id:
+            self.status_widget.add_log(log)
+
+    def add_logs(self, logs: Iterable):
+        self.status_widget.add_logs(logs)
+
     def has_new_name(self):
         """Check if users changed the connection name."""
         current_auth_method = self.auth_method(from_gui=True)
@@ -724,16 +733,27 @@ class ConnectionDialog(SidebarDialog):
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
-    sig_connection_status_changed = Signal(dict)
     sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._container = parent
 
+        # -- Setup
         self._add_saved_connection_pages()
-        self.sig_connection_status_changed.connect(
-            self._update_connection_buttons_state
-        )
+
+        # If there's more than one page, give focus to the first server because
+        # users will probably want to interact with servers here rather than
+        # create new connections.
+        if self.number_of_pages() > 1:
+            # Index 1 is the separator added after the new connection page
+            self.set_current_index(2)
+
+        # -- Signals
+        if self._container is not None:
+            self._container.sig_connection_status_changed.connect(
+                self._update_connection_buttons_state
+            )
 
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
@@ -928,13 +948,20 @@ class ConnectionDialog(SidebarDialog):
             self._update_button_save_connection_state
         )
 
-        # This updates the info shown in the "Connection info" tab of pages
-        self.sig_connection_status_changed.connect(page.update_status)
-
         if new:
             page.save_server_info()
 
         self.add_page(page)
+
+        # Add saved logs to the page
+        if self._container is not None:
+            page.add_logs(self._container.client_logs.get(host_id, []))
+
+            # This updates the info shown in the "Connection info" tab of pages
+            self._container.sig_connection_status_changed.connect(
+                page.update_status
+            )
+            self._container.sig_client_message_logged.connect(page.add_log)
 
     def _add_saved_connection_pages(self):
         """Add a connection page for each server saved in our config system."""

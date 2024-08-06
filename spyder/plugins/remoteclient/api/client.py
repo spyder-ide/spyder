@@ -13,6 +13,7 @@ import socket
 import asyncssh
 
 from spyder.api.translations import _
+from spyder.config.base import get_debug_level
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
@@ -33,8 +34,14 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         self._client = client
         super().__init__(*args, **kwargs)
 
+        log_format = "%(message)s &#8212; %(asctime)s"
+        formatter = logging.Formatter(
+            log_format, datefmt="%H:%M:%S %d/%m/%Y"
+        )
+        self.setFormatter(formatter)
+
     def emit(self, record):
-        self._client._plugin.sig_server_log.emit(
+        self._client._plugin.sig_client_message_logged.emit(
             RemoteClientLog(
                 id=self._client.config_id,
                 message=self.format(record),
@@ -72,9 +79,14 @@ class SpyderRemoteClient:
         self._port_forwarder: asyncssh.SSHListener = None
         self._server_info = {}
 
+        # For logging
         self._logger = logging.getLogger(
             f"{__name__}.{self.__class__.__name__}({self.config_id})"
         )
+
+        if not get_debug_level():
+            self._logger.setLevel(logging.DEBUG)
+
         if self._plugin is not None:
             self._logger.addHandler(SpyderRemoteClientLoggerHandler(self))
 
