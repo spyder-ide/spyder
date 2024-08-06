@@ -12,6 +12,7 @@ import os.path as osp
 import shutil
 from time import sleep
 import traceback
+from zipfile import ZipFile
 
 # Third party imports
 from packaging.version import parse
@@ -254,8 +255,7 @@ class WorkerDownloadInstaller(BaseWorker):
             'https://github.com/spyder-ide/spyder/releases/download/'
             f'v{self.latest_release}/{osp.basename(self.installer_path)}'
         )
-        logger.info(f"Downloading installer from {url} "
-                    f"to {self.installer_path}")
+        logger.info(f"Downloading {url} to {self.installer_path}")
 
         dirname = osp.dirname(self.installer_path)
         os.makedirs(dirname, exist_ok=True)
@@ -279,13 +279,17 @@ class WorkerDownloadInstaller(BaseWorker):
             logger.info('Download successfully completed.')
             with open(self.installer_size_path, "w") as f:
                 f.write(str(size))
+
+            if self.installer_path.endswith('.zip'):
+                with ZipFile(self.installer_path, 'r') as f:
+                    f.extractall(dirname)
         else:
             raise UpdateDownloadIncompleteError(
                 "Download incomplete: retrieved only "
                 f"{size_read} out of {size} bytes."
             )
 
-    def _clean_installer_path(self):
+    def _clean_installer_dir(self):
         """Remove downloaded file"""
         installer_dir = osp.dirname(self.installer_path)
         if osp.exists(installer_dir):
@@ -301,7 +305,7 @@ class WorkerDownloadInstaller(BaseWorker):
             self._download_installer()
         except UpdateDownloadCancelledException:
             logger.info("Download cancelled")
-            self._clean_installer_path()
+            self._clean_installer_dir()
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
@@ -322,7 +326,7 @@ class WorkerDownloadInstaller(BaseWorker):
                 '<tt>{}</tt>'
             ).format(formatted_error)
             logger.warning(err, exc_info=err)
-            self._clean_installer_path()
+            self._clean_installer_dir()
         finally:
             self.error = error_msg
 

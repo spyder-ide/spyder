@@ -9,7 +9,7 @@ dependencies:
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/main.yml, and copy it here.
 - aiohttp >=3.9.3
-- asyncssh >=2.0.0,<3.0.0
+- asyncssh >=2.14.0,<3.0.0
 - atomicwrites >=1.2.0
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
