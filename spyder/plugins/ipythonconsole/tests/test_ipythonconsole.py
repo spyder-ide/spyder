@@ -2306,8 +2306,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
-@pytest.mark.skipif(
-    not is_anaconda(), reason="Only works with Anaconda")
+@pytest.mark.skipif(not is_anaconda(), reason="Only works with Anaconda")
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up
@@ -2337,8 +2336,9 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     # To check the kernel error visually
     qtbot.wait(500)
 
-    # Check kernel related actions are disabled
+    # Check kernel related actions are disabled when accessing Options menu
     main_widget = ipyconsole.get_widget()
+    main_widget._options_menu.aboutToShow.emit()
     assert not main_widget.restart_action.isEnabled()
     assert not main_widget.reset_action.isEnabled()
     assert not main_widget.env_action.isEnabled()

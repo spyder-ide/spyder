@@ -27,7 +27,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 class RemoteClientContainer(PluginMainContainer):
 
-    _sig_kernel_restarted = Signal(object, object)
+    _sig_kernel_restarted = Signal(object, bool)
     """
     This private signal is used to inform that a kernel restart took place in
     the server.
@@ -38,6 +38,21 @@ class RemoteClientContainer(PluginMainContainer):
         An IPython console client widget (the first parameter in both
         signatures).
     response: bool or None
+        Response returned by the server. `None` can happen when the connection
+        to the server is lost.
+    """
+
+    _sig_kernel_info = Signal(object, dict)
+    """
+    This private signal is used to inform that a kernel info request took place
+    in the server.
+
+    Parameters
+    ----------
+    ipyclient: ClientWidget
+        An IPython console client widget (the first parameter in both
+        signatures).
+    response: dict or None
         Response returned by the server. `None` can happen when the connection
         to the server is lost.
     """
@@ -138,6 +153,10 @@ class RemoteClientContainer(PluginMainContainer):
             self._on_connection_status_changed
         )
         self._sig_kernel_restarted.connect(self._on_kernel_restarted)
+        self._sig_kernel_info.connect(self._on_kernel_info_reply)
+
+        self.__requested_restart = False
+        self.__requested_info = False
 
     def update_actions(self):
         pass
@@ -195,7 +214,8 @@ class RemoteClientContainer(PluginMainContainer):
             name = self.get_conf(f"{config_id}/{auth_method}/name")
             ipyclient.show_kernel_error(
                 _(
-                    "There was an error connecting to the server <b>{}</b>"
+                    "There was an error connecting to the server <b>{}</b>. "
+                    "Please check your connection is working."
                 ).format(name)
             )
             return
@@ -211,6 +231,10 @@ class RemoteClientContainer(PluginMainContainer):
                     ipyclient.server_id
                 )._ssh_connection,
             )
+
+            # Need to be smaller than the usual time it takes for the kernel to
+            # restart
+            kernel_handler.set_time_to_dead(1.0)
         except Exception as err:
             ipyclient.show_kernel_error(err)
         else:
@@ -266,7 +290,7 @@ class RemoteClientContainer(PluginMainContainer):
             lambda: self._request_kernel_restart(ipyclient)
         )
         ipyclient.sig_kernel_died.connect(
-            lambda: self._request_kernel_restart(ipyclient)
+            lambda: self._request_kernel_info(ipyclient)
         )
 
     def _request_kernel_restart(self, ipyclient):
@@ -274,9 +298,14 @@ class RemoteClientContainer(PluginMainContainer):
         Request a kernel restart to the server for an IPython console client
         and handle its response.
         """
+        if self.__requested_restart:
+            return
+
         future = self._plugin._restart_kernel(
             ipyclient.server_id, ipyclient.kernel_id
         )
+
+        self.__requested_restart = True
 
         future.add_done_callback(
             lambda future: self._sig_kernel_restarted.emit(
@@ -284,28 +313,63 @@ class RemoteClientContainer(PluginMainContainer):
             )
         )
 
-    def _on_kernel_restarted(self, ipyclient, restarted):
+    def _request_kernel_info(self, ipyclient):
+        """
+        Request a kernel reconnect to the server for an IPython console client
+        and handle its response.
+        """
+        if self.__requested_info:
+            return
+
+        future = self._plugin._get_kernel_info(
+            ipyclient.server_id, ipyclient.kernel_id
+        )
+
+        self.__requested_info = True
+
+        future.add_done_callback(
+            lambda future: self._sig_kernel_info.emit(
+                ipyclient, future.result()
+            )
+        )
+
+    def _on_kernel_restarted(self, ipyclient, restarted: bool):
         """
         Get kernel info corresponding to an IPython console client from the
         server.
 
         If we get a response, it means the kernel is alive.
         """
-
+        self.__requested_restart = False
         if restarted:
+            ipyclient.kernel_handler.reconnect_kernel()
+            ipyclient.handle_kernel_restarted()
+        else:
+            ipyclient.kernel_restarted_failure_message(shutdown=True)
+
+    def _on_kernel_info_reply(self, ipyclient, kernel_info):
+        """Check spyder-kernels version."""
+        self.__requested_info = False
+        if kernel_info:
             try:
-                kernel_handler = KernelHandler.from_connection_file(
-                    ipyclient.kernel_handler.connection_file,
+                kernel_handler = KernelHandler.from_connection_info(
+                    kernel_info["connection_info"],
                     ssh_connection=self._plugin.get_remote_server(
                         ipyclient.server_id
                     )._ssh_connection,
                 )
-                del ipyclient.kernel_handler
+                kernel_handler.set_time_to_dead(1.0)
             except Exception as err:
-                ipyclient.show_kernel_error(err)
+                ipyclient.kernel_restarted_failure_message(err, shutdown=True)
             else:
                 ipyclient.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=True
+                    kernel_handler, shutdown_kernel=False, clear=False
                 )
         else:
-            ipyclient.kernel_restarted_failure_message()
+            ipyclient.kernel_restarted_failure_message(shutdown=True)
+
+            # This will show an error message in the plugins connected to the
+            # IPython console and disable kernel related actions in its Options
+            # menu.
+            sw = ipyclient.shellwidget
+            sw.sig_shellwidget_errored.emit(sw)

@@ -82,23 +82,21 @@ class SpyderRemoteClient:
         if self._plugin is not None:
             self._plugin.sig_connection_status_changed.emit(
                 ConnectionInfo(
-                    id=self.config_id,
-                    status=status,
-                    message=message
+                    id=self.config_id, status=status, message=message
                 )
             )
 
     @property
     def _api_token(self):
-        return self._server_info.get('token')
+        return self._server_info.get("token")
 
     @property
     def server_port(self):
-        return self._server_info.get('port')
+        return self._server_info.get("port")
 
     @property
     def server_pid(self):
-        return self._server_info.get('pid')
+        return self._server_info.get("pid")
 
     @property
     def server_started(self):
@@ -107,8 +105,10 @@ class SpyderRemoteClient:
     @property
     def ssh_is_connected(self):
         """Check if SSH connection is open."""
-        return (self.__connection_established.is_set() and
-                not self.__creating_connection)
+        return (
+            self.__connection_established.is_set()
+            and not self.__creating_connection
+        )
 
     @property
     def port_is_forwarded(self):
@@ -171,9 +171,6 @@ class SpyderRemoteClient:
     @property
     def client_factory(self):
         """Return the client factory."""
-        if self._plugin is None:
-            return lambda: asyncssh.SSHClient()
-
         return lambda: SpyderSSHClient(self)
 
     async def close(self):
@@ -183,9 +180,23 @@ class SpyderRemoteClient:
             _("We're closing the connection. Please be patient"),
         )
 
-        await self.close_port_forwarder()
         await self.stop_remote_server()
+        await self.close_port_forwarder()
         await self.close_ssh_connection()
+
+    def _handle_connection_lost(self, exc: Exception | None = None):
+        self.__connection_established.clear()
+        self.__server_started.clear()
+        self._port_forwarder = None
+        if exc:
+            self._logger.error(
+                f"Connection to {self.peer_host} was lost",
+                exc_info=exc,
+            )
+            self.__emit_connection_status(
+                status=ConnectionStatus.Error,
+                message=_("The connection was lost"),
+            )
 
     async def get_server_info(self):
         """Check if the remote server is running."""
@@ -271,9 +282,7 @@ class SpyderRemoteClient:
         if self.server_started:
             return True
 
-        if (
-            check_installed and not await self.ensure_server_installed()
-        ):
+        if check_installed and not await self.ensure_server_installed():
             return False
 
         return await self.start_remote_server()
@@ -301,7 +310,7 @@ class SpyderRemoteClient:
             self._logger.error("SSH connection is not open")
             return False
 
-        if (info := await self.get_server_info()):
+        if info := await self.get_server_info():
             self._logger.warning(
                 f"Remote server is already running for {self.peer_host}"
             )
@@ -316,7 +325,7 @@ class SpyderRemoteClient:
                 if await self.forward_local_port():
                     self.__emit_connection_status(
                         ConnectionStatus.Active,
-                        _("The connection was established successfully")
+                        _("The connection was established successfully"),
                     )
                     return True
 
@@ -326,12 +335,12 @@ class SpyderRemoteClient:
                 )
                 self.__emit_connection_status(
                     ConnectionStatus.Error,
-                    _("It was not possible to forward the local port")
+                    _("It was not possible to forward the local port"),
                 )
 
             self.__emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully")
+                _("The connection was established successfully"),
             )
 
             return True
@@ -348,8 +357,7 @@ class SpyderRemoteClient:
             self._logger.error(f"Error starting remote server: {e}")
             self._remote_server_process = None
             self.__emit_connection_status(
-                ConnectionStatus.Error,
-                _("Error starting the remote server")
+                ConnectionStatus.Error, _("Error starting the remote server")
             )
             return False
 
@@ -361,8 +369,7 @@ class SpyderRemoteClient:
         if info is None:
             self._logger.error("Faield to get server info")
             self.__emit_connection_status(
-                ConnectionStatus.Error,
-                _("Error getting server info")
+                ConnectionStatus.Error, _("Error getting server info")
             )
             return False
 
@@ -376,17 +383,15 @@ class SpyderRemoteClient:
         if await self.forward_local_port():
             self.__emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully")
+                _("The connection was established successfully"),
             )
             return True
 
-        self._logger.error(
-            "Error forwarding local port."
-        )
+        self._logger.error("Error forwarding local port.")
 
         self.__emit_connection_status(
             ConnectionStatus.Error,
-            _("It was not possible to forward the local port")
+            _("It was not possible to forward the local port"),
         )
         return False
 
@@ -512,7 +517,7 @@ class SpyderRemoteClient:
 
         self.__emit_connection_status(
             ConnectionStatus.Connecting,
-            _("We're establishing the connection. Please be patient")
+            _("We're establishing the connection. Please be patient"),
         )
 
         conect_kwargs = {
@@ -530,7 +535,7 @@ class SpyderRemoteClient:
 
             self.__emit_connection_status(
                 ConnectionStatus.Error,
-                _("It was not possible to open a connection to this machine")
+                _("It was not possible to open a connection to this machine"),
             )
             return False
 
@@ -562,7 +567,7 @@ class SpyderRemoteClient:
 
         local_port = self.get_free_port()
 
-        server_host = self._server_info['hostname']
+        server_host = self._server_info["hostname"]
 
         self._port_forwarder = await self._ssh_connection.forward_local_port(
             "",
@@ -603,19 +608,24 @@ class SpyderRemoteClient:
             )
             return False
 
-        pid = self._server_info['pid']
+        if not self.ssh_is_connected:
+            self._logger.error("SSH connection is not open")
+            return False
 
         # bug in jupyterhub, need to send SIGINT twice
         self._logger.debug(
-            f"Stopping remote server for {self.peer_host} with pid {pid}"
+            f"Stopping remote server for {self.peer_host} with pid "
+            f"{self._server_info['pid']}"
         )
         try:
-            await self._ssh_connection.run(f"kill -INT {pid}", check=True)
-        except asyncssh.ProcessError as err:
-            self._logger.error(f"Error stopping remote server: {err.stderr}")
-        else:
-            await asyncio.sleep(1)
-            await self._ssh_connection.run(f"kill -INT {pid}", check=False)
+            async with JupyterAPI(
+                self.server_url, api_token=self.api_token
+            ) as jupyter:
+                await jupyter.shutdown_server()
+        except Exception as err:
+            self._logger.exception(
+                "Error stopping remote server", exc_info=err
+            )
 
         if (
             self._remote_server_process
@@ -631,17 +641,20 @@ class SpyderRemoteClient:
 
     async def close_ssh_connection(self):
         """Close SSH connection."""
-        if self.ssh_is_connected:
-            self._logger.debug(f"Closing SSH connection for {self.peer_host}")
-            self._ssh_connection.close()
-            await self._ssh_connection.wait_closed()
-            self._ssh_connection = None
-            self._logger.info("SSH connection closed")
-            self.__connection_established.clear()
-            self.__emit_connection_status(
-                ConnectionStatus.Inactive,
-                _("The connection was closed successfully")
-            )
+        if not self.ssh_is_connected:
+            self._logger.debug("SSH connection is not open")
+            return
+
+        self._logger.debug(f"Closing SSH connection for {self.peer_host}")
+        self._ssh_connection.close()
+        await self._ssh_connection.wait_closed()
+        self._ssh_connection = None
+        self._logger.info("SSH connection closed")
+        self.__connection_established.clear()
+        self.__emit_connection_status(
+            ConnectionStatus.Inactive,
+            _("The connection was closed successfully"),
+        )
 
     # --- Kernel Management
     async def start_new_kernel_ensure_server(
@@ -681,6 +694,44 @@ class SpyderRemoteClient:
             retries += 1
 
         return kernel_id
+
+    async def get_kernel_info_ensure_server(
+        self, kernel_id, _retries=5
+    ) -> KernelConnectionInfo:
+        """Launch a new kernel ensuring the remote server is running.
+
+        Parameters
+        ----------
+        options : SSHClientOptions
+            The options to use for the SSH connection.
+
+        Returns
+        -------
+        KernelConnectionInfo
+            The kernel connection information.
+        """
+        if not await self.ensure_connection_and_server():
+            self._logger.error(
+                "Cannot launch kernel, remote server is not running"
+            )
+            return {}
+
+        # This is necessary to avoid an error when the server has not started
+        # before
+        await asyncio.sleep(1)
+        kernel_info = await self.get_kernel_info(kernel_id)
+
+        retries = 0
+        while not kernel_info and retries < _retries:
+            await asyncio.sleep(1)
+            kernel_info = await self.get_kernel_info(kernel_id)
+            self._logger.debug(
+                f"Server might not be ready yet, retrying kernel launch "
+                f"({retries + 1}/{_retries})"
+            )
+            retries += 1
+
+        return kernel_info
 
     async def start_new_kernel(self, kernel_spec=None) -> KernelInfo:
         """Start new kernel."""

@@ -35,9 +35,10 @@ class SpyderSSHClient(SSHClient):
         :type conn: :class:`SSHClientConnection`
 
         """
-        self.client._plugin.sig_connection_established.emit(
-            self.client.config_id
-        )
+        if self.client._plugin:
+            self.client._plugin.sig_connection_established.emit(
+                self.client.config_id
+            )
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed
@@ -53,14 +54,9 @@ class SpyderSSHClient(SSHClient):
         :type exc: :class:`Exception`
 
         """
-        self.client._plugin.sig_connection_lost.emit(self.client.config_id)
-        self.client._plugin.sig_connection_status_changed.emit(
-            ConnectionInfo(
-                id=self.client.config_id,
-                status=ConnectionStatus.Error,
-                message=_("The connection was lost")
-            )
-        )
+        if self.client._plugin:
+            self.client._plugin.sig_connection_lost.emit(self.client.config_id)
+        self.client._handle_connection_lost(exc)
 
     def debug_msg_received(
         self, msg: str, lang: str, always_display: bool
