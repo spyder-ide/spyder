@@ -9,6 +9,7 @@ IPython Console main widget based on QtConsole.
 """
 
 # Standard library imports
+from __future__ import annotations
 import logging
 import os
 import os.path as osp
@@ -47,8 +48,14 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
-    ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
+    ClientWidget,
+    ConsoleRestartDialog,
+    COMPLETION_WIDGET_TYPE,
+    KernelConnectionDialog,
+    MatplotlibStatus,
+    PageControlWidget,
+    ShellWidget,
+)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.conda import is_conda_env, find_conda
@@ -1678,20 +1685,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return options
 
     # ---- For client widgets
-    def get_focus_client(self):
+    def get_focus_client(self) -> ClientWidget | None:
         """Return current client with focus, if any"""
         widget = QApplication.focusWidget()
         for client in self.clients:
             if widget is client or widget is client.get_control():
                 return client
 
-    def get_current_client(self):
+    def get_current_client(self) -> ClientWidget | None:
         """Return the currently selected client"""
         client = self.tabwidget.currentWidget()
         if client is not None:
             return client
 
-    def get_current_shellwidget(self):
+    def get_current_shellwidget(self) -> ShellWidget | None:
         """Return the shellwidget of the current client"""
         client = self.get_current_client()
         if client is not None:
