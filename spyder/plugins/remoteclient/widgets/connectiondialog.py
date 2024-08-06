@@ -739,7 +739,17 @@ class ConnectionDialog(SidebarDialog):
         super().__init__(parent)
         self._container = parent
 
+        # -- Setup
         self._add_saved_connection_pages()
+
+        # If there's more than one page, give focus to the first server because
+        # users will probably want to interact with servers here rather than
+        # create new connections.
+        if self.number_of_pages() > 1:
+            # Index 1 is the separator added after the new connection page
+            self.set_current_index(2)
+
+        # -- Signals
         self._container.sig_connection_status_changed.connect(
             self._update_connection_buttons_state
         )
