@@ -748,7 +748,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.infowidget is not None
                 and client.info_page is not None
             ):
-                error_or_loading = client.info_page != client.blank_page
+                error_or_loading = not client.is_kernel_active()
                 self.restart_action.setEnabled(not error_or_loading)
                 self.reset_action.setEnabled(not error_or_loading)
                 self.env_action.setEnabled(not error_or_loading)

@@ -180,7 +180,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-    # ----- Private methods ---------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _when_kernel_is_ready(self):
         """
         Configuration after the prompt is shown.
@@ -331,7 +332,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if osp.isdir(cwd_path):
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
-    # ----- Public API --------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     @property
     def connection_file(self):
         if self.kernel_handler is None:
@@ -674,6 +676,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
+
+    def is_kernel_active(self):
+        """Check if the kernel is active."""
+        return (
+            self.kernel_handler is not None
+            and self.kernel_handler.connection_state
+            in [
+                KernelConnectionState.SpyderKernelReady,
+                KernelConnectionState.IpykernelReady,
+            ]
+        )
 
     def handle_kernel_restarted(self, clear=True):
         """Restart the kernel"""
