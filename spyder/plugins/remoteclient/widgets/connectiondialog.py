@@ -750,9 +750,10 @@ class ConnectionDialog(SidebarDialog):
             self.set_current_index(2)
 
         # -- Signals
-        self._container.sig_connection_status_changed.connect(
-            self._update_connection_buttons_state
-        )
+        if self._container is not None:
+            self._container.sig_connection_status_changed.connect(
+                self._update_connection_buttons_state
+            )
 
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
@@ -953,13 +954,14 @@ class ConnectionDialog(SidebarDialog):
         self.add_page(page)
 
         # Add saved logs to the page
-        page.add_logs(self._container.client_logs.get(host_id, []))
+        if self._container is not None:
+            page.add_logs(self._container.client_logs.get(host_id, []))
 
-        # This updates the info shown in the "Connection info" tab of pages
-        self._container.sig_connection_status_changed.connect(
-            page.update_status
-        )
-        self._container.sig_client_message_logged.connect(page.add_log)
+            # This updates the info shown in the "Connection info" tab of pages
+            self._container.sig_connection_status_changed.connect(
+                page.update_status
+            )
+            self._container.sig_client_message_logged.connect(page.add_log)
 
     def _add_saved_connection_pages(self):
         """Add a connection page for each server saved in our config system."""
