@@ -2400,7 +2400,8 @@ class EditorStack(QWidget):
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
-            if str(lastm.toString()) != str(finfo.lastmodified.toString()):
+            dt = finfo.lastmodified.msecsTo(lastm)
+            if dt > 1000:
                 # Catch any error when trying to reload a file and close it if
                 # that's the case to prevent users from destroying external
                 # changes in Spyder.
