@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.0.0b8 (2024-08-08)
+
+### Pull Requests Merged
+
+* [PR 496](https://github.com/spyder-ide/spyder-kernels/pull/496) - PR: Add filtering logic for stream data and constraint `setuptools` version, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.0.0b7 (2024-06-18)
 
 ### Issues Closed
