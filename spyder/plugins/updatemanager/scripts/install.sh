@@ -2,11 +2,12 @@
 
 unset HISTFILE  # Do not write to history with interactive shell
 
-while getopts "i:c:p:" option; do
+while getopts "i:c:p:r" option; do
     case "$option" in
         (i) install_file=$OPTARG ;;
         (c) conda=$OPTARG ;;
         (p) prefix=$OPTARG ;;
+        (r) rebuild=true ;;
     esac
 done
 shift $(($OPTIND - 1))
@@ -20,15 +21,19 @@ update_spyder(){
     [[ "$(arch)" = "arm64" ]] && os=${os}-arm64 || os=${os}-64
 
     echo "Updating Spyder base environment..."
-    $conda update -n base -y --file "conda-base-${os}.lock"
+    $conda update --name base --yes --file "conda-base-${os}.lock"
 
-    echo "Updating Spyder runtime environment..."
-    # Unnecessary dependencies are not removed when updating with lock file,
-    # so the environment must be removed and re-created.
-    $conda remove -p $prefix --all -y
-    mkdir -p $prefix/Menu
-    touch $prefix/Menu/conda-based-app
-    $conda create -p $prefix -y --file "conda-runtime-${os}.lock"
+    if [[ -n "$rebuild" ]]; then
+        echo "Rebuilding Spyder runtime environment..."
+        $conda remove --prefix $prefix --all --yes
+        mkdir -p $prefix/Menu
+        touch $prefix/Menu/conda-based-app
+        conda_cmd=create
+    else
+        echo "Updating Spyder runtime environment..."
+        conda_cmd=update
+    fi
+    $conda $conda_cmd --prefix $prefix --yes --file "conda-runtime-${os}.lock"
 
     echo "Cleaning packages and temporary files..."
     $conda clean --yes --packages --tempfiles $prefix

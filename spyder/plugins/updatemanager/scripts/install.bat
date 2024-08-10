@@ -7,6 +7,7 @@ IF "%~1"=="" GOTO endparse
 IF "%~1"=="-i" set install_file=%~2& SHIFT
 IF "%~1"=="-c" set conda=%~2& SHIFT
 IF "%~1"=="-p" set prefix=%~2& SHIFT
+If "%~1"=="-r" set rebuild=true
 SHIFT
 GOTO parse
 :endparse
@@ -56,15 +57,19 @@ exit %ERRORLEVEL%
     pushd %installer_dir%
 
     echo Updating Spyder base environment...
-    %conda% update -n base -y --file conda-base-win-64.lock
+    %conda% update --name base --yes --file conda-base-win-64.lock
 
-    echo Updating Spyder runtime environment...
-    rem Unnecessary dependencies are not removed when updating with lock file,
-    rem so the environment must be removed and re-created.
-    %conda% remove -p %prefix% --all -y
-    mkdir %prefix%\Menu
-    echo. > "%prefix%\Menu\conda-based-app"
-    %conda% create -p %prefix% -y --file conda-runtime-win-64.lock
+    if "%rebuild%"=="true" (
+        echo Rebuilding Spyder runtime environment...
+        %conda% remove --prefix %prefix% --all --yes
+        mkdir %prefix%\Menu
+        echo. > "%prefix%\Menu\conda-based-app"
+        set conda_cmd=create
+    ) else (
+        echo Updating Spyder runtime environment...
+        set conda_cmd=update
+    )
+    %conda% %conda_cmd% --prefix %prefix% --yes --file conda-runtime-win-64.lock
 
     echo Cleaning packages and temporary files...
     %conda% clean --yes --packages --tempfiles %prefix%

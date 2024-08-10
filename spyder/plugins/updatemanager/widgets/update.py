@@ -133,6 +133,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.installer_path = None
         self.installer_size_path = None
 
+        self.update_type = None
+
     # ---- General
 
     def set_status(self, status=NO_STATUS):
@@ -230,12 +232,16 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        major_update = (
-            parse(__version__).major < parse(self.latest_release).major
-        )
+        if parse(__version__).major < parse(self.latest_release).major:
+            self.update_type = 'major'
+        elif parse(__version__).minor < parse(self.latest_release).minor:
+            self.update_type = 'minor'
+        else:
+            self.update_type = 'micro'
+
         mach = platform.machine().lower().replace("amd64", "x86_64")
 
-        if major_update or not is_conda_based_app():
+        if self.update_type == 'major' or not is_conda_based_app():
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
             if sys.platform == 'darwin':
@@ -428,9 +434,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Sub command
         sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.installer_path.endswith('.zip'):
+        if self.update_type != 'major':
             # Update with conda
             sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
+
+        if self.update_type == 'minor':
+            # Rebuild runtime environment
+            sub_cmd.append('-r')
 
         # Final command assembly
         if os.name == 'nt':
