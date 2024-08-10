@@ -313,6 +313,7 @@ jobs:
 
   upload-assets:
     name: Upload Assets
+    if: ${{ ! failure() && ! cancelled() }}
     runs-on: ubuntu-latest
     needs:
       - build-installers
