@@ -136,7 +136,6 @@ class ValidationLabel(QLabel):
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MAX_WIDTH = 450
     MIN_HEIGHT = 450
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
@@ -727,7 +726,7 @@ class ConnectionDialog(SidebarDialog):
 
     TITLE = _("Remote connections")
     MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
-    MIN_HEIGHT = 700 if MAC else (600 if WIN else 650)
+    MIN_HEIGHT = 700 if MAC else (615 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
