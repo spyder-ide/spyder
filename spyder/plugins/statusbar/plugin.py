@@ -52,7 +52,8 @@ class StatusBar(SpyderPluginV2):
         "cursor_position_status",
         "vcs_status",
         "lsp_status",
-        "interpreter_status",
+        "pythonenv_status",
+        "matplotlib_status",
         "update_manager_status",
     }
 
@@ -230,7 +231,8 @@ class StatusBar(SpyderPluginV2):
             "cursor_position_status",
             "vcs_status",
             "lsp_status",
-            "interpreter_status",
+            "pythonenv_status",
+            "matplotlib_status",
             "update_manager_status",
         ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
