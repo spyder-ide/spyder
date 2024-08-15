@@ -335,16 +335,26 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
-        # Add status widget
+        # Add status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+
+        pythonenv_status = self.get_widget().pythonenv_status
+        statusbar.add_status_widget(pythonenv_status)
+        pythonenv_status.register_ipythonconsole(self)
+
         matplotlib_status = self.get_widget().matplotlib_status
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
-        # Add status widget
+        # Remove status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+
+        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status.unregister_ipythonconsole(self)
+        statusbar.remove_status_widget(pythonenv_status.ID)
+
         matplotlib_status = self.get_widget().matplotlib_status
         matplotlib_status.unregister_ipythonconsole(self)
         statusbar.remove_status_widget(matplotlib_status.ID)

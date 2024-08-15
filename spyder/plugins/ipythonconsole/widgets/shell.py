@@ -1044,6 +1044,12 @@ the sympy module (e.g. plot)
         """
         self._control.insert_horizontal_ruler()
 
+    def get_pythonenv_info(self):
+        """Call kernel to get the current Python environment info."""
+        return self.call_kernel(
+            interrupt=True, blocking=True
+        ).get_pythonenv_info()
+
     # ---- Public methods (overrode by us)
     def paste(self, mode=QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.

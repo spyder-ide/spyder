@@ -13,6 +13,7 @@ import textwrap
 
 # Third-party imports
 from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 
 # Local imports
 from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
@@ -157,3 +158,76 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
             "update_matplotlib_gui"
         )
         super().remove_shellwidget(shellwidget)
+
+
+class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
+    """
+    Status bar widget for displaying the Python environment used by the current
+    console.
+    """
+
+    ID = 'pythonenv_status'
+    CONF_SECTION = 'ipython_console'
+
+    def __init__(self, parent):
+        self._current_env_info: PythonEnvInfo | None = None
+        super().__init__(parent)
+
+    # ---- StatusBarWidget API
+    # -------------------------------------------------------------------------
+    def get_tooltip(self):
+        return self._current_env_info["path"] if self._current_env_info else ""
+
+    # ---- ShellConnectStatusBarWidget API
+    # -------------------------------------------------------------------------
+    def update_status(self, env_info: dict):
+        """Update env info."""
+        self._current_env_info = env_info
+
+        if env_info["env_type"] == PythonEnvType.Conda:
+            env_type = "Conda"
+        elif env_info["env_type"] == PythonEnvType.PyEnv:
+            env_type = "Pyenv"
+        else:
+            env_type = _("Custom")
+
+        # The format to display is:
+        # env_type: env_name (Python py_version)
+        text = (
+            env_type
+            + ": "
+            + env_info["name"]
+            + " (Python "
+            + env_info["py_version"]
+            + ")"
+        )
+        self.set_value(text)
+
+    def on_kernel_start(self, shellwidget):
+        """Actions to take when the kernel starts."""
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
+            env_info = PythonEnvInfo(
+                path=sys.executable,
+                env_type=PythonEnvType.Conda,
+                name="foo",
+                py_version='.'.join([str(n) for n in sys.version_info[:3]])
+            )
+        else:
+            # Handle any possible error.
+            try:
+                env_info = shellwidget.get_pythonenv_info()
+            except Exception:
+                env_info = None
+
+        # Associate env info to shellwidget
+        self.shellwidget_to_status[shellwidget] = env_info
+
+        # Update status
+        if env_info is None:
+            self.hide()
+        else:
+            self.set_shellwidget(shellwidget)
+            self.show()
