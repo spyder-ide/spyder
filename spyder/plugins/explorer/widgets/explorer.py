@@ -406,7 +406,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         new_package_action = self.create_action(
             DirViewActions.NewPackage,
-            text=_("Python Package..."),
+            text=_("Python package..."),
             icon=self.create_icon('package_new'),
             triggered=self.new_package,
         )
@@ -473,14 +473,14 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         self.copy_absolute_path_action = self.create_action(
             DirViewActions.CopyAbsolutePath,
-            text=_("Copy Absolute Path"),
+            text=_("Copy absolute path"),
             triggered=self.copy_absolute_path,
             register_shortcut=True,
         )
 
         self.copy_relative_path_action = self.create_action(
             DirViewActions.CopyRelativePath,
-            text=_("Copy Relative Path"),
+            text=_("Copy relative path"),
             triggered=self.copy_relative_path,
             register_shortcut=True
         )
@@ -489,7 +489,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if sys.platform == 'darwin':
             show_in_finder_text = _("Show in Finder")
         else:
-            show_in_finder_text = _("Show in Folder")
+            show_in_finder_text = _("Show in folder")
 
         show_in_system_explorer_action = self.create_action(
             DirViewActions.ShowInSystemExplorer,
@@ -500,13 +500,16 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Version control actions
         self.vcs_commit_action = self.create_action(
             DirViewActions.VersionControlCommit,
-            text=_("Commit"),
+            # Don't translate this text because it makes little sense in
+            # languages other than English.
+            # Fixes spyder-ide/spyder#21959
+            text="Git commit",
             icon=self.create_icon('vcs_commit'),
             triggered=lambda: self.vcs_command('commit'),
         )
         self.vcs_log_action = self.create_action(
             DirViewActions.VersionControlBrowse,
-            text=_("Browse repository"),
+            text=_("Browse Git repository"),
             icon=self.create_icon('vcs_browse'),
             triggered=lambda: self.vcs_command('browse'),
         )

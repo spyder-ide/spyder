@@ -265,9 +265,7 @@ jobs:
           python build_installers.py ${args[@]}
 
           PKG_NAME=$(ls $DISTDIR | grep Spyder-)
-          LCK_NAME=$(ls $DISTDIR | grep conda-)
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "LCK_NAME=$LCK_NAME" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
           echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
 
@@ -308,11 +306,35 @@ jobs:
           fi
 
       - name: Upload Artifact
-        if: env.IS_RELEASE == 'false'
         uses: actions/upload-artifact@v4
         with:
           path: ${{ env.DISTDIR }}
           name: ${{ env.ARTIFACT_NAME }}
+
+  upload-assets:
+    name: Upload Assets
+    if: ${{ ! failure() && ! cancelled() }}
+    runs-on: ubuntu-latest
+    needs:
+      - build-installers
+    defaults:
+      run:
+        shell: bash -le {0}
+
+    steps:
+      - name: Download Assets
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: 'true'
+
+      - name: Zip Lock Files
+        run: zip -mT spyder-conda-lock *.lock
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: spyder-conda-lock.zip
+          name: spyder-conda-lock
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'
@@ -328,4 +350,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.DISTDIR }}/*.*
+          asset_path: ${{ github.workspace }}/*.*

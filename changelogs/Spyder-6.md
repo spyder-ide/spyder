@@ -54,6 +54,44 @@
 
 ----
 
+## Version 6.0rc1 (2024-08-08)
+
+### Issues Closed
+
+* [Issue 22317](https://github.com/spyder-ide/spyder/issues/22317) - Spyder 6.0 rc1 release ([PR 22336](https://github.com/spyder-ide/spyder/pull/22336) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22181](https://github.com/spyder-ide/spyder/issues/22181) - Warning message on the first console that is open ([PR 22302](https://github.com/spyder-ide/spyder/pull/22302) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22180](https://github.com/spyder-ide/spyder/issues/22180) - Text being cut in the `About` dialog ([PR 22286](https://github.com/spyder-ide/spyder/pull/22286) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22112](https://github.com/spyder-ide/spyder/issues/22112) - `ModuleNotFoundError: No module named 'win32gui'` on the Windows installer
+* [Issue 22033](https://github.com/spyder-ide/spyder/issues/22033) - Closing last unfocused document tab causes IndexError ([PR 22292](https://github.com/spyder-ide/spyder/pull/22292) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 21959](https://github.com/spyder-ide/spyder/issues/21959) - Do not translate `Commit` in context menu of Files/Projects ([PR 22320](https://github.com/spyder-ide/spyder/pull/22320) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21824](https://github.com/spyder-ide/spyder/issues/21824) - It's not clear what some actions in the new Options menus of Variable Explorer editors do ([PR 22061](https://github.com/spyder-ide/spyder/pull/22061) by [@jitseniesen](https://github.com/jitseniesen))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22336](https://github.com/spyder-ide/spyder/pull/22336) - PR: Update core dependencies for 6.0.0 rc1, by [@dalthviz](https://github.com/dalthviz) ([22317](https://github.com/spyder-ide/spyder/issues/22317))
+* [PR 22333](https://github.com/spyder-ide/spyder/pull/22333) - PR: Update translations for 6.0.0 (extra strings), by [@dalthviz](https://github.com/dalthviz)
+* [PR 22328](https://github.com/spyder-ide/spyder/pull/22328) - PR: Add a widget to show connection logs to `ConnectionDialog` (Remote client), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22327](https://github.com/spyder-ide/spyder/pull/22327) - PR: Fix typo in shebang line in `user-env.sh`, by [@mrclary](https://github.com/mrclary)
+* [PR 22320](https://github.com/spyder-ide/spyder/pull/22320) - PR: Improve text of several strings for translation (Files/Projects), by [@ccordoba12](https://github.com/ccordoba12) ([21959](https://github.com/spyder-ide/spyder/issues/21959))
+* [PR 22308](https://github.com/spyder-ide/spyder/pull/22308) - PR: Enable showing calltip widget even with signatures without parameters (Editor/Completion), by [@dalthviz](https://github.com/dalthviz)
+* [PR 22304](https://github.com/spyder-ide/spyder/pull/22304) - PR: Disable shortcuts for actions in the `View > Panes` menu when not visible (Layout), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22302](https://github.com/spyder-ide/spyder/pull/22302) - PR: Filter unnecessary stream messages in the kernel (IPython console), by [@dalthviz](https://github.com/dalthviz) ([22181](https://github.com/spyder-ide/spyder/issues/22181))
+* [PR 22300](https://github.com/spyder-ide/spyder/pull/22300) - PR: Update Spyder installer base environment with conda-lock file, by [@mrclary](https://github.com/mrclary)
+* [PR 22293](https://github.com/spyder-ide/spyder/pull/22293) - PR: Fix resetting layout options (Layout), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22292](https://github.com/spyder-ide/spyder/pull/22292) - PR: Update custom button tab index when removing intermediate tabs without changing current selected tab (Widgets), by [@dalthviz](https://github.com/dalthviz) ([22033](https://github.com/spyder-ide/spyder/issues/22033))
+* [PR 22291](https://github.com/spyder-ide/spyder/pull/22291) - PR: Revert PR 22269 (Disable signing Mac app), by [@mrclary](https://github.com/mrclary)
+* [PR 22290](https://github.com/spyder-ide/spyder/pull/22290) - PR: Always create the local conda channel on CI, even for releases, by [@mrclary](https://github.com/mrclary)
+* [PR 22286](https://github.com/spyder-ide/spyder/pull/22286) - PR: Increase about dialog width to prevent cutting text on Windows (Application), by [@dalthviz](https://github.com/dalthviz) ([22180](https://github.com/spyder-ide/spyder/issues/22180))
+* [PR 22285](https://github.com/spyder-ide/spyder/pull/22285) - PR: Handle remote connection lost (Remote client), by [@hlouzada](https://github.com/hlouzada)
+* [PR 22276](https://github.com/spyder-ide/spyder/pull/22276) - PR: Improve UI of status bar widgets (API/Completions), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22061](https://github.com/spyder-ide/spyder/pull/22061) - PR: New menu item for view options in array and dataframe editors, by [@jitseniesen](https://github.com/jitseniesen) ([21824](https://github.com/spyder-ide/spyder/issues/21824))
+
+In this release 17 pull requests were closed.
+
+----
+
 ## Version 6.0beta3 (2024-07-18)
 
 ### Issues Closed

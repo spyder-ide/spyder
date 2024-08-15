@@ -51,7 +51,7 @@ def _get_user_env_script():
     if Path(shell).name in ('bash', 'zsh'):
         script_text = dedent(
             f"""\
-            !{shell} -i
+            #!{shell} -i
             unset HISTFILE
             {shell} -l -c "'{sys.executable}' -c 'import os; print(dict(os.environ))'"
             """

@@ -17,7 +17,6 @@ import uuid
 # Third-party imports
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.QtCore import QObject, QThread, Signal, Slot
-from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
 from spyder.api.translations import _
@@ -614,3 +613,14 @@ class KernelHandler(QObject):
         self.kernel_comm.remove()
         self.connection_state = KernelConnectionState.Crashed
         self.kernel_comm.open_comm(self.kernel_client)
+
+    def reconnect_kernel(self):
+        """Kernel restarted successfully, so reconnect to it."""
+        self.reopen_comm()
+        self.disconnect_std_pipes()
+        self.connect_std_pipes()
+
+    def set_time_to_dead(self, time_to_dead):
+        """Set time to detect if the kernel is dead in seconds."""
+        if self.kernel_client is not None:
+            self.kernel_client.hb_channel.time_to_dead = time_to_dead

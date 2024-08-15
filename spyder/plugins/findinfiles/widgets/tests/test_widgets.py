@@ -28,7 +28,7 @@ from spyder.plugins.findinfiles.widgets.combobox import (
     SearchInComboBoxItems
 )
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
-from spyder.utils.palette import SpyderPalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 

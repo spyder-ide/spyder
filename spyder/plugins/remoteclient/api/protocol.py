@@ -39,7 +39,7 @@ class SSHClientOptions(typing.TypedDict):
     port: int | None
     username: str
     password: str | None
-    client_keys: str | typing.Sequence[str] | None
+    client_keys: typing.Sequence[str] | None
     passphrase: str | None
     known_hosts: str | typing.Sequence[str] | None
     config: typing.Sequence[str] | None
