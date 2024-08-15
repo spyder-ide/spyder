@@ -8,6 +8,7 @@ IF "%~1"=="-i" set install_file=%~2& SHIFT
 IF "%~1"=="-c" set conda=%~2& SHIFT
 IF "%~1"=="-p" set prefix=%~2& SHIFT
 If "%~1"=="-r" set rebuild=true
+
 SHIFT
 GOTO parse
 :endparse

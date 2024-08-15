@@ -133,6 +133,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.installer_path = None
         self.installer_size_path = None
 
+        # Type of Spyder update. It can be "major", "minor" or "micro"
         self.update_type = None
 
     # ---- General
@@ -267,12 +268,14 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         ):
             with open(self.installer_size_path, "r") as f:
                 size = int(f.read().strip())
-            downloaded = size == osp.getsize(self.installer_path)
-        else:
-            downloaded = False
-        logger.debug(f"Update already downloaded: {downloaded}")
 
-        return downloaded
+            update_downloaded = size == osp.getsize(self.installer_path)
+        else:
+            update_downloaded = False
+
+        logger.debug(f"Update already downloaded: {update_downloaded}")
+
+        return update_downloaded
 
     def start_update(self):
         """
@@ -470,6 +473,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 if is_program_installed(program['cmd']):
                     cmd = [program['cmd'], program['exe-opt']] + sub_cmd
                     break
+
         logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
         subprocess.Popen(' '.join(cmd), shell=True)
