@@ -133,6 +133,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.installer_path = None
         self.installer_size_path = None
 
+        # Type of Spyder update. It can be "major", "minor" or "micro"
+        self.update_type = None
+
     # ---- General
 
     def set_status(self, status=NO_STATUS):
@@ -230,12 +233,16 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        major_update = (
-            parse(__version__).major < parse(self.latest_release).major
-        )
+        if parse(__version__).major < parse(self.latest_release).major:
+            self.update_type = 'major'
+        elif parse(__version__).minor < parse(self.latest_release).minor:
+            self.update_type = 'minor'
+        else:
+            self.update_type = 'micro'
+
         mach = platform.machine().lower().replace("amd64", "x86_64")
 
-        if major_update or not is_conda_based_app():
+        if self.update_type == 'major' or not is_conda_based_app():
             if os.name == 'nt':
                 plat, ext = 'Windows', 'exe'
             if sys.platform == 'darwin':
@@ -250,6 +257,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.installer_path = osp.join(dirname, fname)
         self.installer_size_path = osp.join(dirname, "size")
 
+        logger.info(f"Update type: {self.update_type}")
+
     # ---- Download Update
 
     def _verify_installer_path(self):
@@ -259,9 +268,14 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         ):
             with open(self.installer_size_path, "r") as f:
                 size = int(f.read().strip())
-            return size == osp.getsize(self.installer_path)
+
+            update_downloaded = size == osp.getsize(self.installer_path)
         else:
-            return False
+            update_downloaded = False
+
+        logger.debug(f"Update already downloaded: {update_downloaded}")
+
+        return update_downloaded
 
     def start_update(self):
         """
@@ -428,9 +442,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Sub command
         sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.installer_path.endswith('.zip'):
+        if self.update_type != 'major':
             # Update with conda
             sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
+
+        if self.update_type == 'minor':
+            # Rebuild runtime environment
+            sub_cmd.append('-r')
 
         # Final command assembly
         if os.name == 'nt':
@@ -455,6 +473,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 if is_program_installed(program['cmd']):
                     cmd = [program['cmd'], program['exe-opt']] + sub_cmd
                     break
+
+        logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
         subprocess.Popen(' '.join(cmd), shell=True)
 

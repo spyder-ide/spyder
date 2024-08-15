@@ -135,10 +135,10 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
 base_specs = {
-    "python": f"={PY_VER}",
+    "python": "=3.11.9",
     "conda": "=24.5.0",
     "menuinst": "=2.1.0",
-    "mamba": "",
+    "mamba": "=1.5.8",
 }
 rt_specs = {
     "python": f"={PY_VER}",
