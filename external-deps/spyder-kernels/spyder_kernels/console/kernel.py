@@ -35,6 +35,13 @@ from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
     register_comm_handlers, comm_handler)
+from spyder_kernels.utils.pythonenv import (
+    get_env_dir,
+    is_conda_env,
+    is_pyenv_env,
+    PythonEnvInfo,
+    PythonEnvType,
+)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import automatic_backend, MPL_BACKENDS_TO_SPYDER
 from spyder_kernels.utils.nsview import (
@@ -80,6 +87,9 @@ class SpyderKernel(IPythonKernel):
 
         # To track the interactive backend
         self.interactive_backend = None
+
+        # To save the python env info
+        self.pythonenv_info: PythonEnvInfo = {}
 
     @property
     def kernel_info(self):
@@ -755,6 +765,29 @@ class SpyderKernel(IPythonKernel):
             os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
         else:
             os.environ.pop('PYTHONPATH', None)
+
+    @comm_handler
+    def get_pythonenv_info(self):
+        """Get the Python env info in which this kernel is installed."""
+        # We only need to compute this once
+        if not self.pythonenv_info:
+            path = sys.executable.replace("pythonw.exe", "python.exe")
+
+            if is_conda_env(pyexec=path):
+                env_type = PythonEnvType.Conda
+            elif is_pyenv_env(path):
+                env_type = PythonEnvType.PyEnv
+            else:
+                env_type = PythonEnvType.Custom
+
+            self.pythonenv_info = PythonEnvInfo(
+                path=path,
+                env_type=env_type,
+                name=get_env_dir(path, only_dir=True),
+                py_version='.'.join([str(n) for n in sys.version_info[:3]]),
+            )
+
+        return self.pythonenv_info
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
