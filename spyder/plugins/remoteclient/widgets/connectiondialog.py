@@ -46,7 +46,7 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
@@ -136,6 +136,7 @@ class ValidationLabel(QLabel):
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
+    MIN_HEIGHT = 450
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -566,7 +567,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
-    MIN_HEIGHT = 500
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
@@ -616,8 +616,6 @@ class NewConnectionPage(BaseConnectionPage):
 
 class ConnectionPage(BaseConnectionPage):
     """Page to display connection status and info for a remote machine."""
-
-    MIN_HEIGHT = 620
 
     def __init__(self, parent, host_id):
         super().__init__(parent, host_id)
@@ -726,8 +724,9 @@ class ConnectionDialog(SidebarDialog):
     machines.
     """
 
-    MIN_WIDTH = 620
-    MIN_HEIGHT = 640
+    TITLE = _("Remote connections")
+    MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
+    MIN_HEIGHT = 700 if MAC else (635 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
@@ -736,6 +735,7 @@ class ConnectionDialog(SidebarDialog):
     sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
+        self.ICON = ima.icon('remote_server')
         super().__init__(parent)
         self._container = parent
 
