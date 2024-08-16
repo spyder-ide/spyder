@@ -25,6 +25,7 @@ import cloudpickle
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
 from ipykernel import get_connection_info
+from IPython.core import release as ipython_release
 from traitlets.config.loader import Config, LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -784,7 +785,13 @@ class SpyderKernel(IPythonKernel):
                 path=path,
                 env_type=env_type,
                 name=get_env_dir(path, only_dir=True),
-                py_version='.'.join([str(n) for n in sys.version_info[:3]]),
+                python_version=".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                ),
+                # These keys are necessary to build the console banner in
+                # Spyder
+                ipython_version=ipython_release.version,
+                sys_version=sys.version,
             )
 
         return self.pythonenv_info

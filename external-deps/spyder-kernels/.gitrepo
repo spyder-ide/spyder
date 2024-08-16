@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = add-envinfo-handler
-	commit = 972f19642a3b12ac6902d61787de352d6ef1136c
-	parent = 7db3f41e850aaede040b2d54b3fc99fb51d50ae0
+	commit = 4189fbf5b474c4e6697cc068b2cbb69901dd2053
+	parent = b05db76609bd53588f772a41b6b654abf7e692a0
 	method = merge
 	cmdver = 0.4.3

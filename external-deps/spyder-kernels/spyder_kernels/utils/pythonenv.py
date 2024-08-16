@@ -29,7 +29,11 @@ class PythonEnvInfo(TypedDict):
     path: str
     env_type: PythonEnvType
     name: str
-    py_version: str
+    python_version: str
+
+    # These keys are necessary to build the console banner in Spyder
+    ipython_version: str
+    sys_version: str
 
 
 def add_quotes(path):

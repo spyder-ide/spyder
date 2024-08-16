@@ -24,11 +24,12 @@ import uuid
 from collections import namedtuple
 
 # Test imports
-import pytest
 from flaky import flaky
+from IPython.core import release as ipython_release
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
 import numpy as np
+import pytest
 
 # Local imports
 from spyder_kernels.comms.commbase import CommBase
@@ -1426,8 +1427,10 @@ def test_get_pythonenv_info(kernel):
             PythonEnvType.Conda,
         ]
 
-    # Check this key is present. Otherwise we'll break Spyder.
-    assert output["py_version"]
+    # Check these keys are present. Otherwise we'll break Spyder.
+    assert output["python_version"] == sys.version.split()[0]
+    assert output["ipython_version"] == ipython_release.version
+    assert output["sys_version"] == sys.version
 
 
 if __name__ == "__main__":
