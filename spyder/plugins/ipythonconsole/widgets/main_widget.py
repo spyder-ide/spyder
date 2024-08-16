@@ -28,8 +28,9 @@ from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
-from traitlets.config.loader import Config, load_pyconfig_files
+from spyder_kernels.utils.pythonenv import is_conda_env
 from superqt.utils import qdebounced
+from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -59,7 +60,7 @@ from spyder.plugins.ipythonconsole.widgets import (
 )
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.conda import is_conda_env, find_conda
+from spyder.utils.conda import find_conda
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle

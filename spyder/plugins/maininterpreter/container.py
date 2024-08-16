@@ -10,11 +10,11 @@
 # Standard library imports
 import os
 import os.path as osp
-from pathlib import Path
 import sys
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Signal
+from spyder_kernels.utils.pythonenv import get_env_dir
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -238,7 +238,7 @@ class MainInterpreterContainer(PluginMainContainer):
             try:
                 name = self.path_to_env[path]
             except KeyError:
-                env_name = self._get_env_dir(original_path, only_dir=True)
+                env_name = get_env_dir(original_path, only_dir=True)
 
                 if 'conda' in path:
                     name = 'Conda: ' + env_name
@@ -259,7 +259,7 @@ class MainInterpreterContainer(PluginMainContainer):
         Switch to default interpreter if current env was removed or update
         Python version of current one.
         """
-        env_dir = self._get_env_dir(self._interpreter)
+        env_dir = get_env_dir(self._interpreter)
 
         if not osp.isdir(env_dir):
             # Env was removed on Mac or Linux
@@ -279,22 +279,6 @@ class MainInterpreterContainer(PluginMainContainer):
             # env
             if self._interpreter in self.path_to_env:
                 self._update_interpreter()
-
-    def _get_env_dir(self, interpreter, only_dir=False):
-        """Get env directory from interpreter executable."""
-        path = Path(interpreter)
-
-        if os.name == 'nt':
-            # This is enough for Conda envs
-            env_dir = path.parent
-
-            # This is necessary for envs created with `python -m venv`
-            if env_dir.parts[-1].lower() == "scripts":
-                env_dir = path.parents[1]
-        else:
-            env_dir = path.parents[1]
-
-        return env_dir.parts[-1] if only_dir else str(env_dir)
 
     def _on_interpreter_removed(self):
         """
