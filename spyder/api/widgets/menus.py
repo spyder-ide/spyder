@@ -459,8 +459,9 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    def showEvent(self, event):
+    def show(self):
         """Adjustments when the menu is shown."""
+        super().show()
         if not self._is_shown:
             # Reposition submenus vertically due to padding and border
             if self._reposition and self._is_submenu:
@@ -486,8 +487,6 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 delta_x = -1
 
         self.move(self.pos().x() + delta_x, self.pos().y())
-
-        super().showEvent(event)
 
 
 class PluginMainWidgetOptionsMenu(SpyderMenu):
