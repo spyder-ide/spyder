@@ -18,6 +18,7 @@ from textwrap import dedent
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
+from spyder_kernels.comms.frontendcomm import CommError
 from traitlets import observe
 
 # Local imports
@@ -144,8 +145,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         `SpyderKernel.get_state` method of Spyder-kernels.
     """
 
-    def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, special_kernel=None, **kw):
+    def __init__(
+        self,
+        ipyclient,
+        additional_options,
+        handlers,
+        *args,
+        special_kernel=None,
+        **kw,
+    ):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -154,7 +162,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
-        self.interpreter_versions = interpreter_versions
         self.special_kernel = special_kernel
 
         # Keyboard shortcuts
@@ -186,8 +193,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         })
         self.kernel_comm_handlers = handlers
 
+        # To keep an execution queue
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
+
+        # To show the console banner on first prompt
+        self.sig_prompt_ready.connect(self._show_banner)
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
@@ -761,23 +772,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def long_banner(self):
         """Banner for clients with additional content."""
         # Default banner
-        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
+        try:
+            env_info = self.get_pythonenv_info()
+            sys_version = env_info['sys_version'].replace('\n', '')
+            ipython_version = env_info["ipython_version"]
 
-        banner_parts = [
-            'Python %s\n' % py_ver,
-            'Type "copyright", "credits" or "license" for more information.',
-            '\n\n',
-        ]
+            banner_parts = [
+                f"Python {sys_version}\n",
+                'Type "copyright", "credits" or "license" for more '
+                "information.",
+                "\n\n",
+            ]
 
-        if ipy_ver:
             banner_parts.append(
-                'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+                f'IPython {ipython_version} -- An enhanced Interactive '
+                f'Python.\n'
             )
-        else:
-            banner_parts.append('IPython -- An enhanced Interactive Python.\n')
 
-        banner = ''.join(banner_parts)
+            banner = ''.join(banner_parts)
+        except CommError:
+            banner = ""
 
         # Pylab additions
         pylab_o = self.additional_options['pylab']
@@ -800,9 +814,9 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
-enabled at the same time. Some pylab functions are going to be overrided by
-the sympy module (e.g. plot)
+Warning: Pylab (i.e. Numpy and Matplotlib) and symbolic math (Sympy) are both
+enabled at the same time. Hence, some Matplotlib functions are going to be
+overrided by the Sympy module (e.g. plot)
 """
             banner = banner + lines
 
@@ -810,9 +824,14 @@ the sympy module (e.g. plot)
 
     def short_banner(self):
         """Short banner with Python and IPython versions only."""
-        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
-        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
+        try:
+            env_info = self.get_pythonenv_info()
+            py_ver = env_info['python_version']
+            ipy_ver = env_info['ipython_version']
+            banner = f'Python {py_ver} -- IPython {ipy_ver}'
+        except CommError:
+            banner = ""
+
         return banner
 
     # --- To define additional shortcuts
@@ -1151,6 +1170,27 @@ the sympy module (e.g. plot)
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
 
+    def _show_banner(self):
+        """Show banner before first prompt."""
+        # Don't show banner for external kernels
+        if self.is_external_kernel:
+            return ""
+
+        # Detect what kind of banner we want to show
+        show_banner_o = self.additional_options['show_banner']
+        if show_banner_o:
+            banner = self.long_banner()
+        else:
+            banner = self.short_banner()
+
+        # Move cursor to first position and insert banner
+        cursor = self._control.textCursor()
+        cursor.setPosition(0)
+        self._insert_plain_text(cursor, banner)
+
+        # Only do this once
+        self.sig_prompt_ready.disconnect(self._show_banner)
+
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
         """Filter events to send to qtconsole code."""
@@ -1300,18 +1340,8 @@ the sympy module (e.g. plot)
         return context_menu
 
     def _banner_default(self):
-        """
-        Reimplement banner creation to let the user decide if he wants a
-        banner or not
-        """
-        # Don't change banner for external kernels
-        if self.is_external_kernel:
-            return ''
-        show_banner_o = self.additional_options['show_banner']
-        if show_banner_o:
-            return self.long_banner()
-        else:
-            return self.short_banner()
+        """Override banner creation to handle it in Spyder."""
+        return ""
 
     def _handle_kernel_died(self, since_last_heartbeat):
         """Handle the kernel's death (if we do not own the kernel)."""

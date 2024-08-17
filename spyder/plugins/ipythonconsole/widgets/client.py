@@ -101,7 +101,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         id_,
         config_options,
         additional_options,
-        interpreter_versions,
         menu_actions=None,
         given_name=None,
         give_focus=True,
@@ -150,7 +149,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             config=config_options,
             ipyclient=self,
             additional_options=additional_options,
-            interpreter_versions=interpreter_versions,
             handlers=handlers,
             local_kernel=True,
             special_kernel=special_kernel

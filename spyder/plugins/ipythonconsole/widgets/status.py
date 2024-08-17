@@ -12,6 +12,7 @@ import sys
 import textwrap
 
 # Third-party imports
+from IPython.core import release as ipython_release
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 
@@ -192,13 +193,13 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
             env_type = _("Custom")
 
         # The format to display is:
-        # env_type: env_name (Python py_version)
+        # env_type: env_name (Python python_version)
         text = (
             env_type
             + ": "
             + env_info["name"]
             + " (Python "
-            + env_info["py_version"]
+            + env_info["python_version"]
             + ")"
         )
         self.set_value(text)
@@ -213,7 +214,11 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
                 path=sys.executable,
                 env_type=PythonEnvType.Conda,
                 name="foo",
-                py_version='.'.join([str(n) for n in sys.version_info[:3]])
+                python_version=".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                ),
+                ipython_version=ipython_release.version,
+                sys_version=sys.version,
             )
         else:
             # Handle any possible error.
