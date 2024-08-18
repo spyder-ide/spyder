@@ -73,6 +73,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 "consoles and to provide code completion in the Editor"
             )
         )
+        pyexec_label.setWordWrap(True)
         self.def_exec_radio = self.create_radiobutton(
             _("Internal (i.e. the same used by Spyder)"),
             'default',

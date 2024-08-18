@@ -786,8 +786,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
 @flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform == 'darwin', reason='Hangs sometimes on Mac')
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Hangs sometimes on Mac')
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
 
@@ -834,20 +833,23 @@ def test_dedicated_consoles(main_window, qtbot):
     control = shell._control
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT,
+    )
     nsb = main_window.variableexplorer.current_widget()
 
     assert len(main_window.ipyconsole.get_clients()) == 2
     assert main_window.ipyconsole.get_widget().filenames == ['', test_file]
-    assert main_window.ipyconsole.get_widget().tabwidget.tabText(1) == 'script.py/A'
+    assert (
+        main_window.ipyconsole.get_widget().tabwidget.tabText(1)
+        == "script.py/A"
+    )
 
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
     assert nsb.editor.source_model.rowCount() == 4
 
-    # --- Assert only runfile text is present and there's no banner text ---
-    # See spyder-ide/spyder#5301.
+    # --- Assert runfile text is present and we show the banner ---
     text = control.toPlainText()
-    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
+    assert ('runfile' in text) and ('Python' in text and 'IPython' in text)
 
     # --- Check namespace retention after re-execution ---
     with qtbot.waitSignal(shell.executed):
@@ -857,8 +859,10 @@ def test_dedicated_consoles(main_window, qtbot):
     qtbot.waitUntil(lambda: shell.is_defined('zz'))
     assert shell.is_defined('zz')
 
-    # --- Assert runfile text is present after reruns ---
-    assert 'runfile' in control.toPlainText()
+    # --- Assert runfile text is present after reruns and there's no banner
+    qtbot.wait(500)
+    text = control.toPlainText()
+    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
     # --- Clean namespace after re-execution with clear_namespace ---
     ipy_conf['clear_namespace'] = True
