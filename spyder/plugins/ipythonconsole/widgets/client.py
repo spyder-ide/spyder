@@ -151,7 +151,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             additional_options=additional_options,
             handlers=handlers,
             local_kernel=True,
-            special_kernel=special_kernel
+            special_kernel=special_kernel,
+            server_id=server_id,
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
@@ -349,7 +350,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
 
-        if self.server_id:
+        if self.is_remote():
             self._hide_loading_page()
         else:
             self._show_loading_page()
@@ -639,11 +640,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager.close_all()
         shutdown_kernel = (
             is_last_client
-            and (not self.shellwidget.is_external_kernel or self.server_id)
+            and (not self.shellwidget.is_external_kernel or self.is_remote())
             and not self.error_text
         )
 
-        if self.server_id and shutdown_kernel and not close_console:
+        if self.is_remote() and shutdown_kernel and not close_console:
             # This signal allows to shutdown a remote kernel when a client is
             # closed. And we don't emit it when the console is being closed
             # because it's not necessary in that case.
@@ -780,6 +781,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     # ---- For remote clients
     # -------------------------------------------------------------------------
+    def is_remote(self):
+        """Check if this client is connected to a remote server."""
+        return self.server_id is not None
+
     def handle_remote_kernel_restarted(self, clear=True):
         """Handle restarts for remote kernels."""
         # Reset shellwidget and print restart message
