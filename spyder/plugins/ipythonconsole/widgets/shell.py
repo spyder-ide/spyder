@@ -787,8 +787,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             ]
 
             banner_parts.append(
-                f'IPython {ipython_version} -- An enhanced Interactive '
-                f'Python.\n'
+                f"IPython {ipython_version} -- An enhanced Interactive "
+                f"Python. Type '?' for help.\n"
             )
 
             banner = ''.join(banner_parts)
@@ -1179,7 +1179,7 @@ overrided by the Sympy module (e.g. plot)
     def _show_banner(self):
         """Show banner before first prompt."""
         # Don't show banner for external kernels
-        if self.is_external_kernel:
+        if self.is_external_kernel and not self.is_remote():
             return ""
 
         # Detect what kind of banner we want to show
