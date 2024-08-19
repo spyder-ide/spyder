@@ -10,18 +10,17 @@
 # Standard library imports
 import os
 import os.path as osp
-from pathlib import Path
 import sys
 
 # Third-party imports
 from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Signal
+from spyder_kernels.utils.pythonenv import get_env_dir
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import is_conda_based_app
-from spyder.plugins.maininterpreter.widgets.status import InterpreterStatus
 from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import get_interpreter_info
@@ -29,11 +28,6 @@ from spyder.utils.workers import WorkerManager
 
 
 class MainInterpreterContainer(PluginMainContainer):
-
-    sig_open_preferences_requested = Signal()
-    """
-    Signal to open the main interpreter preferences.
-    """
 
     sig_interpreter_changed = Signal()
     """
@@ -91,9 +85,7 @@ class MainInterpreterContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-        self.interpreter_status = InterpreterStatus(parent=self)
-        self.interpreter_status.sig_open_preferences_requested.connect(
-            self.sig_open_preferences_requested)
+        pass
 
     def update_actions(self):
         pass
@@ -123,7 +115,7 @@ class MainInterpreterContainer(PluginMainContainer):
     @on_conf_change(option=['executable'])
     def on_executable_changed(self, value):
         # announce update
-        self._update_status()
+        self._update_interpreter(self.get_main_interpreter())
         self.sig_interpreter_changed.emit()
 
     def on_close(self):
@@ -156,10 +148,6 @@ class MainInterpreterContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _update_status(self):
-        """Update status widget."""
-        self._update_interpreter(self.get_main_interpreter())
-
     def _get_envs(self):
         """
         Get the list of environments in a thread to keep them up to date.
@@ -232,9 +220,6 @@ class MainInterpreterContainer(PluginMainContainer):
             )
             worker.start()
             worker.sig_finished.connect(self._finish_updating_interpreter)
-        else:
-            value = self._get_env_info(self._interpreter)
-            self.interpreter_status.set_value(value)
 
     def _finish_updating_interpreter(self, worker, output, error):
         if output is None or error:
@@ -243,7 +228,6 @@ class MainInterpreterContainer(PluginMainContainer):
         # We need to inform about envs being updated in case a custom env was
         # added in Preferences, which will update its info.
         self.sig_environments_updated.emit(self.envs)
-        self.interpreter_status.set_value(output)
 
     def _get_env_info(self, path):
         """Get environment information."""
@@ -254,7 +238,7 @@ class MainInterpreterContainer(PluginMainContainer):
             try:
                 name = self.path_to_env[path]
             except KeyError:
-                env_name = self._get_env_dir(original_path, only_dir=True)
+                env_name = get_env_dir(original_path, only_dir=True)
 
                 if 'conda' in path:
                     name = 'Conda: ' + env_name
@@ -275,7 +259,7 @@ class MainInterpreterContainer(PluginMainContainer):
         Switch to default interpreter if current env was removed or update
         Python version of current one.
         """
-        env_dir = self._get_env_dir(self._interpreter)
+        env_dir = get_env_dir(self._interpreter)
 
         if not osp.isdir(env_dir):
             # Env was removed on Mac or Linux
@@ -295,22 +279,6 @@ class MainInterpreterContainer(PluginMainContainer):
             # env
             if self._interpreter in self.path_to_env:
                 self._update_interpreter()
-
-    def _get_env_dir(self, interpreter, only_dir=False):
-        """Get env directory from interpreter executable."""
-        path = Path(interpreter)
-
-        if os.name == 'nt':
-            # This is enough for Conda envs
-            env_dir = path.parent
-
-            # This is necessary for envs created with `python -m venv`
-            if env_dir.parts[-1].lower() == "scripts":
-                env_dir = path.parents[1]
-        else:
-            env_dir = path.parents[1]
-
-        return env_dir.parts[-1] if only_dir else str(env_dir)
 
     def _on_interpreter_removed(self):
         """

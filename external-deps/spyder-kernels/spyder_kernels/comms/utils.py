@@ -59,7 +59,10 @@ class WriteWrapper(object):
             "Warning: Cannot change to a different GUI toolkit",
             "%pylab is deprecated",
             "Populating the interactive namespace",
-            "\n"
+            "\n",
+            # Fixes spyder-ide/spyder#21652
+            "WARNING",
+            "Active device does not have an attribute",
         ]
 
         return any([msg in message for msg in benign_messages])

@@ -360,9 +360,9 @@ class RemoteClientContainer(PluginMainContainer):
         self.__requested_restart = False
         if restarted:
             ipyclient.kernel_handler.reconnect_kernel()
-            ipyclient.handle_kernel_restarted()
+            ipyclient.handle_remote_kernel_restarted()
         else:
-            ipyclient.kernel_restarted_failure_message(shutdown=True)
+            ipyclient.remote_kernel_restarted_failure_message(shutdown=True)
 
     def _on_kernel_info_reply(self, ipyclient, kernel_info):
         """Check spyder-kernels version."""
@@ -377,13 +377,15 @@ class RemoteClientContainer(PluginMainContainer):
                 )
                 kernel_handler.set_time_to_dead(1.0)
             except Exception as err:
-                ipyclient.kernel_restarted_failure_message(err, shutdown=True)
+                ipyclient.remote_kernel_restarted_failure_message(
+                    err, shutdown=True
+                )
             else:
                 ipyclient.replace_kernel(
                     kernel_handler, shutdown_kernel=False, clear=False
                 )
         else:
-            ipyclient.kernel_restarted_failure_message(shutdown=True)
+            ipyclient.remote_kernel_restarted_failure_message(shutdown=True)
 
             # This will show an error message in the plugins connected to the
             # IPython console and disable kernel related actions in its Options
