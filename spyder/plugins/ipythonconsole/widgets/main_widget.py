@@ -14,7 +14,6 @@ import logging
 import os
 import os.path as osp
 import shlex
-import subprocess
 import sys
 import time
 
@@ -28,8 +27,8 @@ from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
-from traitlets.config.loader import Config, load_pyconfig_files
 from superqt.utils import qdebounced
+from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -54,11 +53,11 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog,
     MatplotlibStatus,
     PageControlWidget,
+    PythonEnvironmentStatus,
     ShellWidget,
 )
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
-from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.conda import is_conda_env, find_conda
+from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
@@ -371,8 +370,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
-        # Create MatplotlibStatus
+        # Create status widgets
         self.matplotlib_status = MatplotlibStatus(self)
+        self.pythonenv_status = PythonEnvironmentStatus(self)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
@@ -1614,55 +1614,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def interpreter_versions(self, path_to_custom_interpreter=None):
-        """Python and IPython versions used by clients"""
-        if (
-            self.get_conf('default', section='main_interpreter')
-            and not path_to_custom_interpreter
-        ):
-            from IPython.core import release
-            versions = dict(
-                python_version=sys.version,
-                ipython_version=release.version
-            )
-        else:
-            versions = {}
-            pyexec = self.get_conf('executable', section='main_interpreter')
-            py_cmd = '"%s" -c "import sys; print(sys.version)"' % pyexec
-            if path_to_custom_interpreter:
-                pyexec = path_to_custom_interpreter
-
-            # If this is a conda env, it needs to be activated to get the
-            # IPython version below.
-            if is_conda_env(pyexec=pyexec):
-                conda = find_conda()
-                if conda:
-                    # If we're unable to find conda, the command below will
-                    # fail in any case.
-                    pyexec = f'"{conda}" run "{pyexec}"'
-
-            ipy_cmd = (
-                '%s -c "import IPython.core.release as r; print(r.version)"'
-                % pyexec
-            )
-
-            for cmd in [py_cmd, ipy_cmd]:
-                try:
-                    # Use clean environment
-                    proc = programs.run_shell_command(cmd, env={})
-                    output, _err = proc.communicate()
-                except subprocess.CalledProcessError:
-                    output = ''
-
-                output = output.decode().split('\n')[0].strip()
-
-                if 'IPython' in cmd:
-                    versions['ipython_version'] = output
-                else:
-                    versions['python_version'] = output
-
-        return versions
-
     def additional_options(self, special=None):
         """
         Additional options for shell widgets that are not defined
@@ -1730,8 +1681,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             id_=client_id,
             config_options=self.config_options(),
             additional_options=self.additional_options(special),
-            interpreter_versions=self.interpreter_versions(
-                path_to_custom_interpreter),
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
@@ -1804,7 +1753,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             given_name=given_name,
             config_options=self.config_options(),
             additional_options=self.additional_options(),
-            interpreter_versions=self.interpreter_versions(),
             handlers=self.registered_spyder_kernel_handlers,
             server_id=server_id,
             can_close=can_close,
@@ -2236,7 +2184,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         km = client.kernel_handler.kernel_manager
-        if km is None and client.server_id is None:
+        if km is None and not client.is_remote():
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -2260,7 +2208,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         # For remote kernels we need to request the server for a restart
-        if client.server_id:
+        if client.is_remote():
             client.sig_restart_kernel_requested.emit()
             return
 

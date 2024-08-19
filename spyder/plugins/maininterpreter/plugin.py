@@ -32,7 +32,6 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = MainInterpreterContainer
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
@@ -74,9 +73,6 @@ class MainInterpreter(SpyderPluginV2):
         container = self.get_container()
 
         # Connect container signals
-        container.sig_open_preferences_requested.connect(
-            self._open_interpreter_preferences
-        )
         container.sig_environments_updated.connect(
             self.sig_environments_updated
         )
@@ -96,30 +92,14 @@ class MainInterpreter(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.StatusBar)
-    def on_statusbar_available(self):
-        # Add status widget
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        statusbar.add_status_widget(self.interpreter_status)
-
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Deregister conf page
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
-    @on_plugin_teardown(plugin=Plugins.StatusBar)
-    def on_statusbar_teardown(self):
-        # Add status widget
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        statusbar.remove_status_widget(self.interpreter_status.ID)
-
     # ---- Public API
     # -------------------------------------------------------------------------
-    @property
-    def interpreter_status(self):
-        return self.get_container().interpreter_status
-
     def set_custom_interpreter(self, interpreter):
         """Set given interpreter as the current selected one."""
         self.get_container().add_to_custom_interpreters(interpreter)
@@ -127,15 +107,3 @@ class MainInterpreter(SpyderPluginV2):
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
-
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the main interpreter section."""
-        self._main.show_preferences()
-        preferences = self.get_plugin(Plugins.Preferences)
-        if preferences:
-            container = preferences.get_container()
-            dlg = container.dialog
-            index = dlg.get_index_by_name("main_interpreter")
-            dlg.set_current_index(index)

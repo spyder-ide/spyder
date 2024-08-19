@@ -27,6 +27,7 @@ import logging
 # Third party imports
 from packaging.version import parse
 import psutil
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import _, running_under_pytest, get_home_dir
@@ -1083,9 +1084,6 @@ def is_python_interpreter_valid_name(filename):
 
 def is_python_interpreter(filename):
     """Evaluate whether a file is a python interpreter or not."""
-    # Must be imported here to avoid circular import
-    from spyder.utils.conda import is_conda_env
-
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
 
     if (not osp.isfile(real_filename) or

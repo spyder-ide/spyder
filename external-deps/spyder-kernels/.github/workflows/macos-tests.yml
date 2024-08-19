@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   macos:
-    name: Py${{ matrix.PYTHON_VERSION }}
+    name: macOS - Py${{ matrix.PYTHON_VERSION }}
     runs-on: macos-latest
     env:
       CI: True
@@ -55,6 +55,9 @@ jobs:
         run: |
           conda info
           conda list
+      # - name: Setup Remote SSH Connection
+      #   uses: mxschmitt/action-tmate@v3
+      #   timeout-minutes: 60
       - name: Run tests
         shell: bash -l {0}
         run: |

@@ -62,8 +62,8 @@ def get_versions(reporev=True):
 
     import qtpy
     import qtpy.QtCore
+    from spyder_kernels.utils.pythonenv import is_conda_env
 
-    from spyder.utils.conda import is_conda_env
     from spyder.config.base import is_conda_based_app
 
     revision = branch = None

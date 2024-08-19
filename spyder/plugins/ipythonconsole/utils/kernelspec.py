@@ -15,6 +15,7 @@ import os.path as osp
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
+from spyder_kernels.utils.pythonenv import get_conda_env_path, is_conda_env
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -24,7 +25,7 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import get_conda_env_path, is_conda_env, find_conda
+from spyder.utils.conda import find_conda
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (

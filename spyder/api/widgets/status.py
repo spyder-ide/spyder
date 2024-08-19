@@ -251,6 +251,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
             self.setCursor(Qt.PointingHandCursor)
 
+        self.update_tooltip()
         super().enterEvent(event)
 
     def leaveEvent(self, event):
