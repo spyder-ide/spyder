@@ -16,17 +16,31 @@ from math import ceil
 import sys
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
                          Signal)
 from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
-from qtpy.QtWidgets import (QAction, QApplication, QDialog,
-                            QGraphicsOpacityEffect, QHBoxLayout, QLabel,
-                            QLayout, QMainWindow, QMessageBox,
-                            QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QGraphicsOpacityEffect,
+    QHBoxLayout,
+    QLabel,
+    QLayout,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSpacerItem,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
@@ -36,7 +50,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.utils.stylesheet import DialogStyle
+from spyder.utils.stylesheet import AppStyle, DialogStyle
 
 
 MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor(SpyderPalette.COLOR_BACKGROUND_1)
@@ -1084,70 +1098,29 @@ class OpenTourDialog(QDialog):
 
         # Label
         tour_label_title = QLabel(_("Welcome to Spyder!"))
-        tour_label_title.setStyleSheet(f"font-size: {DialogStyle.TitleFontSize}")
+        tour_label_title.setObjectName("title")
         tour_label_title.setWordWrap(True)
         tour_label = QLabel(
             _("Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
-        tour_label.setStyleSheet(f"font-size: {DialogStyle.ContentFontSize}")
+        tour_label.setObjectName("content")
         tour_label.setWordWrap(True)
         tour_label.setFixedWidth(340)
 
         # Buttons
-        buttons_layout = QHBoxLayout()
-        start_tour_color = SpyderPalette.COLOR_ACCENT_2
-        start_tour_hover = SpyderPalette.COLOR_ACCENT_3
-        start_tour_pressed = SpyderPalette.COLOR_ACCENT_4
-        dismiss_tour_color = SpyderPalette.COLOR_BACKGROUND_4
-        dismiss_tour_hover = SpyderPalette.COLOR_BACKGROUND_5
-        dismiss_tour_pressed = SpyderPalette.COLOR_BACKGROUND_6
-        font_color = SpyderPalette.COLOR_TEXT_1
         self.launch_tour_button = QPushButton(_('Start tour'))
-        self.launch_tour_button.setStyleSheet((
-          "QPushButton {{ "
-          "background-color: {background_color};"
-          "border-color: {border_color};"
-          "font-size: {font_size};"
-          "color: {font_color};"
-          "padding: {padding}}}"
-          "QPushButton:hover:!pressed {{ "
-          "background-color: {color_hover}}}"
-          "QPushButton:pressed {{ "
-          "background-color: {color_pressed}}}"
-        ).format(background_color=start_tour_color,
-                 border_color=start_tour_color,
-                 font_size=DialogStyle.ButtonsFontSize,
-                 font_color=font_color,
-                 padding=DialogStyle.ButtonsPadding,
-                 color_hover=start_tour_hover,
-                 color_pressed=start_tour_pressed))
+        self.launch_tour_button.setObjectName("launch-button")
         self.launch_tour_button.setAutoDefault(False)
+
         self.dismiss_button = QPushButton(_('Dismiss'))
-        self.dismiss_button.setStyleSheet((
-          "QPushButton {{ "
-          "background-color: {background_color};"
-          "border-color: {border_color};"
-          "font-size: {font_size};"
-          "color: {font_color};"
-          "padding: {padding}}}"
-          "QPushButton:hover:!pressed {{ "
-          "background-color: {color_hover}}}"
-          "QPushButton:pressed {{ "
-          "background-color: {color_pressed}}}"
-        ).format(background_color=dismiss_tour_color,
-                 border_color=dismiss_tour_color,
-                 font_size=DialogStyle.ButtonsFontSize,
-                 font_color=font_color,
-                 padding=DialogStyle.ButtonsPadding,
-                 color_hover=dismiss_tour_hover,
-                 color_pressed=dismiss_tour_pressed))
+        self.dismiss_button.setObjectName("dismiss-button")
         self.dismiss_button.setAutoDefault(False)
 
-        buttons_layout.addStretch()
-        buttons_layout.addWidget(self.launch_tour_button)
-        if not MAC:
-            buttons_layout.addSpacing(10)
-        buttons_layout.addWidget(self.dismiss_button)
+        bbox = SpyderDialogButtonBox()
+        bbox.addButton(self.launch_tour_button, QDialogButtonBox.ActionRole)
+        bbox.addButton(self.dismiss_button, QDialogButtonBox.RejectRole)
+        bbox.layout().setSpacing(3 * AppStyle.MarginSize)
+        bbox.setStyleSheet(self._buttons_stylesheet)
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
@@ -1166,11 +1139,11 @@ class OpenTourDialog(QDialog):
             vertical_layout.addStretch()
             vertical_layout.addLayout(label_layout)
             vertical_layout.addSpacing(20)
-            vertical_layout.addLayout(buttons_layout)
+            vertical_layout.addWidget(bbox)
             vertical_layout.addStretch()
         else:
             vertical_layout.addLayout(label_layout)
-            vertical_layout.addLayout(buttons_layout)
+            vertical_layout.addWidget(bbox)
 
         general_layout = QHBoxLayout()
         if not MAC:
@@ -1184,18 +1157,81 @@ class OpenTourDialog(QDialog):
             general_layout.addLayout(vertical_layout)
 
         self.setLayout(general_layout)
+        self.setStyleSheet(self._main_stylesheet)
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
-        self.setStyleSheet(f"background-color:{DialogStyle.BackgroundColor}")
         self.setContentsMargins(18, 40, 18, 40)
-        if not MAC:
+        if MAC:
+            general_layout.setSizeConstraint(QLayout.SetFixedSize)
+        else:
             self.setFixedSize(640, 280)
 
     def _start_tour(self):
         self.close()
         self.tour_function()
 
+    @property
+    def _main_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Set background color
+        for widget in ["QDialog", "QLabel"]:
+            css[widget].setValues(
+                backgroundColor=DialogStyle.BackgroundColor
+            )
+
+        # Set font size for QLabels
+        css["QLabel#title"].setValues(
+            fontSize=DialogStyle.TitleFontSize
+        )
+
+        css["QLabel#content"].setValues(
+            fontSize=DialogStyle.ContentFontSize
+        )
+
+        return css.toString()
+
+    @property
+    def _buttons_stylesheet(self):
+        css = qstylizer.style.StyleSheet()
+
+        # Set base style for buttons
+        css.QPushButton.setValues(
+            color=SpyderPalette.COLOR_TEXT_1,
+            fontSize=DialogStyle.ButtonsFontSize,
+            padding=DialogStyle.ButtonsPadding,
+        )
+
+        # Set style for launch button
+        css["QPushButton#launch-button"].setValues(
+            backgroundColor=SpyderPalette.COLOR_ACCENT_2,
+            borderColor=SpyderPalette.COLOR_ACCENT_2,
+        )
+
+        css["QPushButton#launch-button:hover:!pressed"].setValues(
+            backgroundColor=SpyderPalette.COLOR_ACCENT_3,
+        )
+
+        css["QPushButton#launch-button:pressed"].setValues(
+            backgroundColor=SpyderPalette.COLOR_ACCENT_4,
+        )
+
+        # Set style for dismiss button
+        css["QPushButton#dismiss-button"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+            borderColor=SpyderPalette.COLOR_BACKGROUND_4,
+        )
+
+        css["QPushButton#dismiss-button:hover:!pressed"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5,
+        )
+
+        css["QPushButton#dismiss-button:pressed"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_6,
+        )
+
+        return css.toString()
 
 # ----------------------------------------------------------------------------
 # Used for testing the functionality
