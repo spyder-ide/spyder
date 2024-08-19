@@ -42,6 +42,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.menus import SpyderMenu
+from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
@@ -1063,7 +1064,7 @@ class AnimatedTour(QWidget):
         return f
 
 
-class OpenTourDialog(QDialog):
+class OpenTourDialog(QDialog, SvgToScaledPixmap):
     """Initial widget with tour."""
 
     def __init__(self, parent, tour_function):
@@ -1074,20 +1075,18 @@ class OpenTourDialog(QDialog):
         else:
             flags = self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         self.setWindowFlags(flags)
+        self.setWindowTitle(_("Spyder tour"))
         self.tour_function = tour_function
 
         # Image
-        images_layout = QHBoxLayout()
-        icon_filename = 'tour-spyder-logo'
-        image_path = get_image_path(icon_filename)
-        image = QPixmap(image_path)
-        image_label = QLabel()
-        image_height = int(image.height() * DialogStyle.IconScaleFactor)
-        image_width = int(image.width() * DialogStyle.IconScaleFactor)
-        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
-        image_label.setPixmap(image)
+        image_label = QLabel(self)
+        image_label.setPixmap(
+            self.svg_to_scaled_pixmap(
+                "tour-spyder-logo", rescale=DialogStyle.IconScaleFactor
+            )
+        )
 
+        images_layout = QHBoxLayout()
         images_layout.addStretch()
         images_layout.addWidget(image_label)
         images_layout.addStretch()
