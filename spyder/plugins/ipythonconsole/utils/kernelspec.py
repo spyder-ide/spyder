@@ -117,27 +117,35 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
+        kernel_cmd = []
+
+        if is_conda_env(pyexec=pyexec):
+            # If executable is a conda environment and different from Spyder's
+            # runtime environment, use conda's "run" subcommand in order to
+            # activate the environment and run spyder-kernels.
+            conda_exe = find_conda()
+
+            kernel_cmd.extend([
+                conda_exe,
+                'run',
+                '--prefix',
+                get_conda_env_path(pyexec)
+            ])
+
+            if conda_exe.endswith('micromamba'):
+                kernel_cmd.extend(['--attach', '""'])
+            else:
+                kernel_cmd.append('--live-stream')
+
         # Command used to start kernels
-        kernel_cmd = [
+        kernel_cmd.extend([
             pyexec,
             # This is necessary to avoid a spurious message on Windows.
             # Fixes spyder-ide/spyder#20800.
             '-Xfrozen_modules=off',
             '-m', 'spyder_kernels.console',
             '-f', '{connection_file}'
-        ]
-
-        if is_conda_env(pyexec=pyexec):
-            # If executable is a conda environment and different from Spyder's
-            # runtime environment, we need to activate the environment to run
-            # spyder-kernels
-            kernel_cmd[:0] = [
-                find_conda(),
-                'run',
-                '--no-capture-output',
-                '--prefix',
-                get_conda_env_path(pyexec),
-            ]
+        ])
 
         logger.info('Kernel command: {}'.format(kernel_cmd))
 
