@@ -117,12 +117,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
+        # Command used to start kernels
         kernel_cmd = []
 
         if is_conda_env(pyexec=pyexec):
-            # If executable is a conda environment and different from Spyder's
-            # runtime environment, use conda's "run" subcommand in order to
-            # activate the environment and run spyder-kernels.
+            # If executable is a conda environment, use "run" subcommand to
+            # activate it and run spyder-kernels.
             conda_exe = find_conda()
 
             kernel_cmd.extend([
@@ -137,7 +137,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             else:
                 kernel_cmd.append('--live-stream')
 
-        # Command used to start kernels
         kernel_cmd.extend([
             pyexec,
             # This is necessary to avoid a spurious message on Windows.
