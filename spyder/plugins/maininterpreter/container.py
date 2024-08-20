@@ -29,9 +29,14 @@ from spyder.utils.workers import WorkerManager
 
 class MainInterpreterContainer(PluginMainContainer):
 
-    sig_interpreter_changed = Signal()
+    sig_interpreter_changed = Signal(str)
     """
-    Signal to report that the interpreter has changed.
+    Signal to report that the main interpreter has changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
     """
 
     sig_environments_updated = Signal(dict)
@@ -115,8 +120,9 @@ class MainInterpreterContainer(PluginMainContainer):
     @on_conf_change(option=['executable'])
     def on_executable_changed(self, value):
         # announce update
-        self._update_interpreter(self.get_main_interpreter())
-        self.sig_interpreter_changed.emit()
+        interpreter = self.get_main_interpreter()
+        self._update_interpreter(interpreter)
+        self.sig_interpreter_changed.emit(interpreter)
 
     def on_close(self):
         self._get_envs_timer.stop()

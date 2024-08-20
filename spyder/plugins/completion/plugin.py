@@ -135,9 +135,15 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_interpreter_changed = Signal()
+    sig_interpreter_changed = Signal(str)
     """
-    This signal is used to report changes on the main Python interpreter.
+    This signal is used to handle changes in the Python interpreter done by
+    other plugins.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
     """
 
     sig_language_completions_available = Signal(dict, str)
@@ -275,10 +281,9 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_available(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
-
-        mi_container.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed)
+        maininterpreter.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed
+        )
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -313,10 +318,9 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_teardown(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
-
-        mi_container.sig_interpreter_changed.disconnect(
-            self.sig_interpreter_changed)
+        maininterpreter.sig_interpreter_changed.disconnect(
+            self.sig_interpreter_changed
+        )
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -780,7 +784,8 @@ class CompletionPlugin(SpyderPluginV2):
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
         self.sig_interpreter_changed.connect(
-            provider_instance.main_interpreter_changed)
+            provider_instance.interpreter_changed
+        )
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):

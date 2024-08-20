@@ -52,6 +52,16 @@ class MainInterpreter(SpyderPluginV2):
         :py:meth:`spyder.utils.envs.get_list_envs`.
     """
 
+    sig_interpreter_changed = Signal(str)
+    """
+    Signal to report that the main interpreter has changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -76,6 +86,7 @@ class MainInterpreter(SpyderPluginV2):
         container.sig_environments_updated.connect(
             self.sig_environments_updated
         )
+        container.sig_interpreter_changed.connect(self.sig_interpreter_changed)
 
         # Validate that the custom interpreter from the previous session
         # still exists

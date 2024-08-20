@@ -3359,7 +3359,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
-    assert jedi['environment'] is sys.executable
+    assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
     # Get conda env to use
@@ -3372,9 +3372,9 @@ def test_preferences_change_interpreter(qtbot, main_window):
     page.cus_exec_radio.radiobutton.setChecked(True)
     page.cus_exec_combo.combobox.setCurrentText(conda_env)
 
-    mi_container = main_window.main_interpreter.get_container()
+    main_interpreter = main_window.main_interpreter
     with qtbot.waitSignal(
-        mi_container.sig_interpreter_changed, timeout=5000, raising=True
+        main_interpreter.sig_interpreter_changed, timeout=5000, raising=True
     ):
         dlg.ok_btn.animateClick()
 

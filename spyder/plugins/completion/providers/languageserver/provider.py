@@ -126,6 +126,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)
 
+        # To keep track of the current interpreter used for completions
+        self._interpreter = sys.executable
+
         self.clients = {}
         self.clients_restart_count = {}
         self.clients_restart_timers = {}
@@ -549,8 +552,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
             logger.debug("Update server's sys.path")
             self.update_lsp_configuration(python_only=True)
 
-    @Slot()
-    def main_interpreter_changed(self):
+    @Slot(str)
+    def interpreter_changed(self, interpreter):
+        self._interpreter = interpreter
         self.update_lsp_configuration(python_only=True)
 
     def file_opened_closed_or_updated(self, filename: str, language: str):
@@ -576,11 +580,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # This is only useful to run some self-contained tests
         if running_under_pytest():
             self.update_lsp_configuration(python_only=True)
-
-    @on_conf_change(section='main_interpreter',
-                    option=['default', 'custom_interpreter'])
-    def on_main_interpreter_change(self, option, value):
-        self.update_lsp_configuration()
 
     def update_lsp_configuration(self, python_only=False):
         """
@@ -794,16 +793,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Jedi configuration
         env_vars = os.environ.copy()  # Ensure env is indepependent of PyLSP's
         env_vars.pop('PYTHONPATH', None)
-        if self.get_conf('default', section='main_interpreter'):
-            # If not explicitly set, jedi uses PyLSP's sys.path instead of
-            # sys.executable's sys.path. This may be a bug in jedi.
-            environment = sys.executable
-        else:
-            environment = self.get_conf('executable',
-                                        section='main_interpreter')
 
         jedi = {
-            'environment': environment,
+            'environment': self._interpreter,
             'extra_paths': self.get_conf('spyder_pythonpath',
                                          section='pythonpath_manager',
                                          default=[]),
