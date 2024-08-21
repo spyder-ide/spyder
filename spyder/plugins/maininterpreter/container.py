@@ -8,6 +8,7 @@
 """Main interpreter container."""
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import sys
@@ -25,6 +26,9 @@ from spyder.utils.envs import get_list_envs
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import get_interpreter_info
 from spyder.utils.workers import WorkerManager
+
+
+logger = logging.getLogger(__name__)
 
 
 class MainInterpreterContainer(PluginMainContainer):
@@ -217,6 +221,7 @@ class MainInterpreterContainer(PluginMainContainer):
     def _update_interpreter(self, interpreter=None):
         """Set main interpreter and update information."""
         if interpreter:
+            logger.debug(f"Main interpreter changed to {interpreter}")
             self._interpreter = interpreter
 
         if self._interpreter not in self.path_to_env:
