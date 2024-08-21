@@ -1,5 +1,21 @@
 #!/bin/bash -ex
 
+# Auxiliary functions
+install_spyder_kernels() {
+    echo "Installing subrepo version of spyder-kernels in "$1"..."
+
+    pushd external-deps/spyder-kernels
+
+    if [ "$OS" = "win" ]; then
+        # `conda run` fails on Windows without a clear reason
+        /c/Miniconda/envs/"$1"/python -m pip install -q .
+    else
+        conda run -n "$1" python -m pip install -q .
+    fi
+
+    popd
+}
+
 # Install gdb
 if [ "$USE_GDB" = "true" ]; then
     micromamba install gdb -c conda-forge -q -y
@@ -65,23 +81,12 @@ fi
 
 # Create environment for Jedi environment tests
 conda create -n jedi-test-env -q -y python=3.9 flask
+install_spyder_kernels jedi-test-env
 conda list -n jedi-test-env
 
 # Create environment to test conda env activation before launching a kernel
 conda create -n spytest-ž -q -y -c conda-forge python=3.9
-
-# Install subrepo version of Spyder-kernels in that env
-pushd external-deps/spyder-kernels
-
-if [ "$OS" = "win" ]; then
-    # `conda run` fails on Windows without a clear reason
-    /c/Miniconda/envs/spytest-ž/python -m pip install .
-else
-    conda run -n spytest-ž python -m pip install .
-fi
-
-popd
-
+install_spyder_kernels spytest-ž
 conda list -n spytest-ž
 
 # Install pyenv on Linux systems

@@ -3344,10 +3344,18 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 
 @pytest.mark.order(1)
 @flaky(max_runs=3)
+@pytest.mark.order(before="test_PYTHONPATH_in_consoles")
 @pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
-def test_preferences_change_interpreter(qtbot, main_window):
-    """Test that on main interpreter change signal is emitted."""
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="Only works on Linux on CIs but passes locally"
+)
+def test_change_lsp_interpreter(qtbot, main_window):
+    """
+    Test that the LSP Python interpreter changes when switching consoles for
+    different envs.
+    """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -3355,33 +3363,31 @@ def test_preferences_change_interpreter(qtbot, main_window):
         timeout=SHELL_TIMEOUT,
     )
 
-    # Check original pyls configuration
+    # Check original pylsp configuration
     lsp = main_window.completions.get_provider('lsp')
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
     assert jedi['extra_paths'] == []
 
-    # Get conda env to use
-    conda_env = get_list_conda_envs()['Conda: jedi-test-env'][0]
+    # Get new interpreter to use
+    new_interpreter = get_list_conda_envs()['Conda: jedi-test-env'][0]
 
-    # Change main interpreter on preferences
-    dlg, index, page = preferences_dialog_helper(
-        qtbot, main_window, 'main_interpreter'
-    )
-    page.cus_exec_radio.radiobutton.setChecked(True)
-    page.cus_exec_combo.combobox.setCurrentText(conda_env)
-
-    main_interpreter = main_window.main_interpreter
+    # Create console for new interpreter
+    ipyconsole = main_window.ipyconsole
     with qtbot.waitSignal(
-        main_interpreter.sig_interpreter_changed, timeout=5000, raising=True
+        ipyconsole.sig_interpreter_changed, timeout=SHELL_TIMEOUT, raising=True
     ):
-        dlg.ok_btn.animateClick()
+        ipyconsole.get_widget().create_environment_client(
+            "jedi-test-env",
+            new_interpreter
+        )
 
-    # Check updated pyls configuration
+    # Check updated pylsp configuration
+    qtbot.wait(1000)  # Account for debounced timeout when setting interpreter
     config = lsp.generate_python_config()
     jedi = config['configurations']['pylsp']['plugins']['jedi']
-    assert jedi['environment'] == conda_env
+    assert jedi['environment'] == new_interpreter
     assert jedi['extra_paths'] == []
 
 
