@@ -1210,7 +1210,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                         path_to_interpreter
                     )
                 ),
-                overwrite=True
+                overwrite=True,
+                register_action=False,
             )
 
             # Add default env as the first entry in the menu
