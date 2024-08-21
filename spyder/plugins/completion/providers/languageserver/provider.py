@@ -20,6 +20,7 @@ import sys
 from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 from qtpy import PYSIDE2, PYSIDE6
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -552,10 +553,23 @@ class LanguageServerProvider(SpyderCompletionProvider):
             logger.debug("Update server's sys.path")
             self.update_lsp_configuration(python_only=True)
 
-    @Slot(str)
-    def interpreter_changed(self, interpreter):
-        self._interpreter = interpreter
-        self.update_lsp_configuration(python_only=True)
+    @qdebounced(timeout=600)
+    def interpreter_changed(self, interpreter: str):
+        """
+        Handle Python interperter changes from other plugins.
+
+        Notes
+        -----
+        - This method is debounced to prevent sending too many requests to the
+          server when switching IPython consoles for different envs in quick
+          succession.
+        - The timeout corresponds more or less to the time it takes to switch
+          back and forth between two consoles.
+        """
+        if interpreter != self._interpreter:
+            logger.debug(f"LSP interpreter changed to {interpreter}")
+            self._interpreter = interpreter
+            self.update_lsp_configuration(python_only=True)
 
     def file_opened_closed_or_updated(self, filename: str, language: str):
         self.sig_call_statusbar.emit(

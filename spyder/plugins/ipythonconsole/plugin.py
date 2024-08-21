@@ -53,12 +53,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         Plugins.History,
         Plugins.MainInterpreter,
         Plugins.MainMenu,
-        Plugins.Run,
         Plugins.Projects,
         Plugins.PythonpathManager,
         Plugins.RemoteClient,
-        Plugins.WorkingDirectory,
+        Plugins.Run,
         Plugins.StatusBar,
+        Plugins.WorkingDirectory,
     ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
@@ -209,6 +209,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         The new working directory path.
     """
 
+    sig_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active shell widget has
+    changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -227,6 +238,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def on_initialize(self):
         widget = self.get_widget()
+
+        # Main widget signals
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
@@ -244,6 +257,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
+        widget.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed
+        )
 
         # Run configurations
         self.cython_editor_run_configuration = {

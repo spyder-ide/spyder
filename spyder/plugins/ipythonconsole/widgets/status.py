@@ -8,11 +8,13 @@
 
 # Standard library imports
 import functools
+import logging
 import sys
 import textwrap
 
 # Third-party imports
 from IPython.core import release as ipython_release
+from qtpy.QtCore import Signal
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 
@@ -20,6 +22,9 @@ from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 from spyder.api.translations import _
 from spyder.config.base import running_in_ci
+
+
+logger = logging.getLogger(__name__)
 
 
 class MatplotlibStatus(ShellConnectStatusBarWidget):
@@ -170,6 +175,8 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
     ID = 'pythonenv_status'
     CONF_SECTION = 'ipython_console'
 
+    sig_interpreter_changed = Signal(str)
+
     def __init__(self, parent):
         self._current_env_info: PythonEnvInfo | None = None
         super().__init__(parent)
@@ -183,6 +190,16 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
     # -------------------------------------------------------------------------
     def update_status(self, env_info: dict):
         """Update env info."""
+        if (
+            # There's no need to emit this signal for remote consoles because
+            # other plugins can only react to local interpreter changes.
+            not self.current_shellwidget.is_remote()
+            and env_info != self._current_env_info
+        ):
+            new_interpreter = env_info["path"]
+            logger.debug(f"Console interpreter changed to {new_interpreter}")
+            self.sig_interpreter_changed.emit(new_interpreter)
+
         self._current_env_info = env_info
 
         if env_info["env_type"] == PythonEnvType.Conda:
