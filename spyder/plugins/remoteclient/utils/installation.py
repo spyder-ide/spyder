@@ -8,7 +8,7 @@ import base64
 
 
 ENVIROMENT_NAME = "spyder-remote"
-PACKAGE_NAME = "spyder-remote-server"
+PACKAGE_NAME = "spyder-remote-services"
 MICROMAMBA_VERSION = "latest"
 
 MICROMAMBA_INSTALLER_SH = f"""
@@ -62,17 +62,28 @@ chmod +x "${{BIN_FOLDER}}/micromamba"
 # Activate micromamba shell hook
 eval "$("${{BIN_FOLDER}}/micromamba" shell hook --shell bash)"
 
-git clone https://github.com/spyder-ide/spyder-remote-server
-cd spyder-remote-server
+ENVIROMENT_FILE_URL="https://raw.githubusercontent.com/spyder-ide/{PACKAGE_NAME}/main/environment.yml"
+
+ENV_FILE="${{HOME}}/spyder_remote_environment.yml"
+
+# Create the environment
+if hash curl >/dev/null 2>&1; then
+  curl "${{ENVIROMENT_FILE_URL}}" -o "${{ENV_FILE}}" -fsSL --compressed ${{CURL_OPTS:-}}
+elif hash wget >/dev/null 2>&1; then
+  wget ${{WGET_OPTS:-}} -qO "${{ENV_FILE}}" "${{ENVIROMENT_FILE_URL}}"
+else
+  echo "Neither curl nor wget was found" >&2
+  exit 1
+fi
 
 micromamba create -y -n {ENVIROMENT_NAME} -f environment.yml
+rm -f "${{ENV_FILE}}"
 
 # Activate the environment
 micromamba activate {ENVIROMENT_NAME}
 
 # Install the spyder-remote-server package
-#pip install {PACKAGE_NAME}
-poetry install
+pip install {PACKAGE_NAME}
 
 """
 

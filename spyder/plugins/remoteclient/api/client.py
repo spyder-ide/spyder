@@ -58,9 +58,9 @@ class SpyderRemoteClient:
 
     _extra_options = ["platform", "id"]
 
-    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --jupyter-server"
-    CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server -h"
-    GET_SERVER_INFO_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-remote-server --get-running-info"
+    START_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-server --jupyter-server"
+    CHECK_SERVER_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-server -h"
+    GET_SERVER_INFO_COMMAND = "/${HOME}/.local/bin/micromamba run -n spyder-remote spyder-server --get-running-info"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -230,7 +230,7 @@ class SpyderRemoteClient:
             )
             return None
         except asyncssh.ProcessError as err:
-            self._logger.debug(f"Error getting server infp: {err.stderr}")
+            self._logger.debug(f"Error getting server info: {err.stderr}")
             return None
 
         try:
