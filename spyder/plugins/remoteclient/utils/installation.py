@@ -76,7 +76,7 @@ else
   exit 1
 fi
 
-micromamba create -y -n {ENVIROMENT_NAME} -f environment.yml
+micromamba create -y -n {ENVIROMENT_NAME} -f ${{ENV_FILE}}
 rm -f "${{ENV_FILE}}"
 
 # Activate the environment
