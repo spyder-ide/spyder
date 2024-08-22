@@ -250,6 +250,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         The new working directory path.
     """
 
+    sig_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active shell widget has
+    changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -373,6 +384,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Create status widgets
         self.matplotlib_status = MatplotlibStatus(self)
         self.pythonenv_status = PythonEnvironmentStatus(self)
+        self.pythonenv_status.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed
+        )
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
@@ -1210,7 +1224,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                         path_to_interpreter
                     )
                 ),
-                overwrite=True
+                overwrite=True,
+                register_action=False,
             )
 
             # Add default env as the first entry in the menu

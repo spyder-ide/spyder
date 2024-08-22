@@ -1073,9 +1073,9 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         pass
 
-    @Slot()
-    def main_interpreter_changed(self):
-        """Handle changes on the main Python interpreter of Spyder."""
+    @Slot(str)
+    def interpreter_changed(self, interpreter):
+        """Handle changes to the Python interpreter used for completions."""
         pass
 
     def file_opened_closed_or_updated(self, filename: str, language: str):

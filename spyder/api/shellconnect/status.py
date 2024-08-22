@@ -62,8 +62,8 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
                 self.hide()
             else:
                 self.show()
-                self.update_status(status)
                 self.current_shellwidget = shellwidget
+                self.update_status(status)
 
     def add_shellwidget(self, shellwidget):
         """Actions to take when adding a shellwidget."""

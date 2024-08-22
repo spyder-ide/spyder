@@ -78,10 +78,11 @@ class CompletionPlugin(SpyderPluginV2):
     CONF_SECTION = 'completions'
     REQUIRES = [Plugins.Preferences]
     OPTIONAL = [
+        Plugins.MainInterpreter,
         Plugins.MainMenu,
+        Plugins.IPythonConsole,
         Plugins.PythonpathManager,
         Plugins.StatusBar,
-        Plugins.MainInterpreter,
     ]
 
     CONF_FILE = False
@@ -135,9 +136,15 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_interpreter_changed = Signal()
+    _sig_interpreter_changed = Signal(str)
     """
-    This signal is used to report changes on the main Python interpreter.
+    This private signal is used to handle changes in the Python interpreter
+    done by other plugins.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
     """
 
     sig_language_completions_available = Signal(dict, str)
@@ -275,10 +282,13 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_available(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
 
-        mi_container.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed)
+        # This will allow people to change the interpreter used for completions
+        # if they disable the IPython console.
+        if not self.is_plugin_enabled(Plugins.IPythonConsole):
+            maininterpreter.sig_interpreter_changed.connect(
+                self._sig_interpreter_changed
+            )
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -305,6 +315,13 @@ class CompletionPlugin(SpyderPluginV2):
         pythonpath_manager.sig_pythonpath_changed.connect(
             self.sig_pythonpath_changed)
 
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_interpreter_changed.connect(
+            self._sig_interpreter_changed
+        )
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -313,10 +330,12 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_teardown(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
 
-        mi_container.sig_interpreter_changed.disconnect(
-            self.sig_interpreter_changed)
+        # We only connect to this signal if the IPython console is not enabled
+        if not self.is_plugin_enabled(Plugins.IPythonConsole):
+            maininterpreter.sig_interpreter_changed.disconnect(
+                self._sig_interpreter_changed
+            )
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -354,6 +373,13 @@ class CompletionPlugin(SpyderPluginV2):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.disconnect(
             self.sig_pythonpath_changed)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardowm(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_interpreter_changed.disconnect(
+            self._sig_interpreter_changed
+        )
 
     # ---- Public API
     def stop_all_providers(self):
@@ -779,8 +805,9 @@ class CompletionPlugin(SpyderPluginV2):
 
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
-        self.sig_interpreter_changed.connect(
-            provider_instance.main_interpreter_changed)
+        self._sig_interpreter_changed.connect(
+            provider_instance.interpreter_changed
+        )
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):
