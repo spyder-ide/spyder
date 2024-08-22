@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.0.0b9 (2024-08-21)
+
+### Pull Requests Merged
+
+* [PR 495](https://github.com/spyder-ide/spyder-kernels/pull/495) - PR: Add comm handler to get information about the Python environment associated to the kernel, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.0.0b8 (2024-08-08)
 
 ### Pull Requests Merged
