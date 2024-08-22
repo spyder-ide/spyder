@@ -116,7 +116,7 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.0 rc1 is released!
+**Subject**: [ANN] Spyder 6.0 rc2 is released!
 
 
 Hi all,
@@ -125,9 +125,9 @@ On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide
 I'm pleased to announce the second beta of our next major version: Spyder **6.0**.
 
 We've been working on this version for more than one year now and it's working
-relatively well. There are still several bugs to squash but we encourage all
-people who like the bleeding edge to give it a try. This release candidate version includes
-more than 102 commits over our latest beta release (6.0.0b3).
+relatively well. We encourage all people who like the bleeding edge to give it a try.
+This release candidate version includes more than 74 commits over our latest release
+candidate (6.0.0rc1).
 
 Spyder 6.0 comes with the following interesting new features and fixes:
 
@@ -171,7 +171,7 @@ For a more complete list of changes, please see our
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0rc1
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.0.0rc2
 
 Or you can use pip with this command:
 
