@@ -135,7 +135,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             if conda_exe.endswith('micromamba'):
                 kernel_cmd.extend(['--attach', '""'])
             else:
-                kernel_cmd.append('--live-stream')
+                # Note: We use --no-capture-output instead of --live-stream
+                # here because it works for very old Conda versions.
+                kernel_cmd.append('--no-capture-output')
 
         kernel_cmd.extend([
             pyexec,
