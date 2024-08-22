@@ -54,6 +54,40 @@
 
 ----
 
+## Version 6.0rc2 (2024-08-22)
+
+### Issues Closed
+
+* [Issue 22363](https://github.com/spyder-ide/spyder/issues/22363) - Unable to connect via new remote development feature: poetry: command not found ([PR 22368](https://github.com/spyder-ide/spyder/pull/22368) by [@hlouzada](https://github.com/hlouzada))
+* [Issue 22353](https://github.com/spyder-ide/spyder/issues/22353) - Splash screen when running from installer shows partially (at least on Windows) ([PR 22370](https://github.com/spyder-ide/spyder/pull/22370) by [@mrclary](https://github.com/mrclary))
+* [Issue 22352](https://github.com/spyder-ide/spyder/issues/22352) - Spyder 6.0 rc2 release
+* [Issue 22309](https://github.com/spyder-ide/spyder/issues/22309) - Status bar does not show Python version ([PR 22350](https://github.com/spyder-ide/spyder/pull/22350) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22266](https://github.com/spyder-ide/spyder/issues/22266) - Panes options menus not rendering correctly on first trigger  ([PR 22355](https://github.com/spyder-ide/spyder/pull/22355) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22240](https://github.com/spyder-ide/spyder/issues/22240) - Spyder 6.0.0b2 consoles fail to start with micromamba ([PR 22360](https://github.com/spyder-ide/spyder/pull/22360) by [@mrclary](https://github.com/mrclary))
+* [Issue 21652](https://github.com/spyder-ide/spyder/issues/21652) - Warnings in the console with the Brain2 library ([PR 22350](https://github.com/spyder-ide/spyder/pull/22350) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22371](https://github.com/spyder-ide/spyder/pull/22371) - PR: Fix starting kernels for old Conda versions (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22370](https://github.com/spyder-ide/spyder/pull/22370) - PR: Limit sphinx version to `<7.4.0` to prevent bug with splash screen on Windows, by [@mrclary](https://github.com/mrclary) ([22353](https://github.com/spyder-ide/spyder/issues/22353))
+* [PR 22368](https://github.com/spyder-ide/spyder/pull/22368) - PR: Update `spyder-remote-services` installation script (Remote client), by [@hlouzada](https://github.com/hlouzada) ([22363](https://github.com/spyder-ide/spyder/issues/22363))
+* [PR 22367](https://github.com/spyder-ide/spyder/pull/22367) - PR: Update core dependencies for 6.0.0rc2, by [@dalthviz](https://github.com/dalthviz)
+* [PR 22364](https://github.com/spyder-ide/spyder/pull/22364) - PR: Sync the IPython console current env with the one used in the Editor for completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22362](https://github.com/spyder-ide/spyder/pull/22362) - PR: Update menuinst version for file-type association (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 22361](https://github.com/spyder-ide/spyder/pull/22361) - PR: Fix buttons style of the start tour dialog (Tours), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22360](https://github.com/spyder-ide/spyder/pull/22360) - PR: Fix redirection flag for micromamba (IPython console), by [@mrclary](https://github.com/mrclary) ([22240](https://github.com/spyder-ide/spyder/issues/22240))
+* [PR 22355](https://github.com/spyder-ide/spyder/pull/22355) - PR: Prevent first time render glitch by calling position logic via a timer in `showEvent` (Menus), by [@dalthviz](https://github.com/dalthviz) ([22266](https://github.com/spyder-ide/spyder/issues/22266))
+* [PR 22350](https://github.com/spyder-ide/spyder/pull/22350) - PR: Add statusbar widget to display the env info associated to the current console (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([22309](https://github.com/spyder-ide/spyder/issues/22309), [21652](https://github.com/spyder-ide/spyder/issues/21652))
+* [PR 22339](https://github.com/spyder-ide/spyder/pull/22339) - PR: Recreate Spyder runtime environment on minor updates (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 22338](https://github.com/spyder-ide/spyder/pull/22338) - PR: Ensure "Update Assets" job runs when "Build Subrepos" is skipped, by [@mrclary](https://github.com/mrclary)
+* [PR 22303](https://github.com/spyder-ide/spyder/pull/22303) - PR: Update connections dialog size constants, title and icon (Remote Client), by [@dalthviz](https://github.com/dalthviz)
+
+In this release 13 pull requests were closed.
+
+----
+
 ## Version 6.0rc1 (2024-08-08)
 
 ### Issues Closed
