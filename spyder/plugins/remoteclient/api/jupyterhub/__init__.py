@@ -291,17 +291,19 @@ class JupyterAPI:
         await self.session.close()
 
     async def create_kernel(self, kernel_spec=None):
-        data = {"kernel_spec": kernel_spec} if kernel_spec else None
+        data = {"name": kernel_spec} if kernel_spec else None
 
         async with self.session.post(
             self.api_url / "kernels", json=data
         ) as response:
-            data = await response.json()
-            logger.info(
-                f'created kernel_spec={kernel_spec} '
-                f'kernel={data["id"]} for jupyter'
-            )
-            return data
+            if response.status != 201:
+                logger.error(
+                    f"failed to create kernel_spec={kernel_spec}"
+                )
+                raise ValueError(
+                    await response.text()
+                )
+            return await response.json()
 
     async def list_kernel_specs(self):
         async with self.session.get(self.api_url / "kernelspecs") as response:
