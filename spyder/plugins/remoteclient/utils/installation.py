@@ -19,4 +19,4 @@ def get_installer_command(platform: str) -> str:
     if platform == "win":
         raise NotImplementedError("Windows is not supported yet")
 
-    return f'"${{SHELL}}" <(curl -L {SCRIPT_URL}/installer.sh) {PACKAGE_VERSION} {SPYDER_KERNELS_REQVER}'
+    return f'"${{SHELL}}" <(curl -L {SCRIPT_URL}/installer.sh) "{PACKAGE_VERSION}" "{SPYDER_KERNELS_REQVER}"'
