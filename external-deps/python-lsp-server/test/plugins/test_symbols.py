@@ -73,13 +73,13 @@ def test_symbols(config, workspace):
     assert sym("main")["location"]["range"]["end"] == {"line": 12, "character": 0}
 
 
-def test_symbols_all_scopes(config, workspace):
+def test_symbols_all_scopes(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     symbols = pylsp_document_symbols(config, doc)
     helper_check_symbols_all_scope(symbols)
 
 
-def test_symbols_non_existing_file(config, workspace, tmpdir):
+def test_symbols_non_existing_file(config, workspace, tmpdir) -> None:
     path = tmpdir.join("foo.py")
     # Check pre-condition: file must not exist
     assert not path.check(exists=1)
@@ -92,7 +92,7 @@ def test_symbols_non_existing_file(config, workspace, tmpdir):
 @pytest.mark.skipif(
     PY2 or not LINUX or not CI, reason="tested on linux and python 3 only"
 )
-def test_symbols_all_scopes_with_jedi_environment(workspace):
+def test_symbols_all_scopes_with_jedi_environment(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
 
     # Update config extra environment

@@ -38,11 +38,11 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
 
     delegate = None
 
-    def setup(self):
+    def setup(self) -> None:
         super().setup()
         self.delegate = self.DELEGATE_CLASS(self.rfile, self.wfile)
 
-    def handle(self):
+    def handle(self) -> None:
         try:
             self.delegate.start()
         except OSError as e:
@@ -55,7 +55,7 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
         self.SHUTDOWN_CALL()
 
 
-def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
+def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class) -> None:
     if not issubclass(handler_class, PythonLSPServer):
         raise ValueError("Handler class must be an instance of PythonLSPServer")
 
@@ -93,7 +93,7 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
         server.server_close()
 
 
-def start_io_lang_server(rfile, wfile, check_parent_process, handler_class):
+def start_io_lang_server(rfile, wfile, check_parent_process, handler_class) -> None:
     if not issubclass(handler_class, PythonLSPServer):
         raise ValueError("Handler class must be an instance of PythonLSPServer")
     log.info("Starting %s IO language server", handler_class.__name__)
@@ -101,7 +101,7 @@ def start_io_lang_server(rfile, wfile, check_parent_process, handler_class):
     server.start()
 
 
-def start_ws_lang_server(port, check_parent_process, handler_class):
+def start_ws_lang_server(port, check_parent_process, handler_class) -> None:
     if not issubclass(handler_class, PythonLSPServer):
         raise ValueError("Handler class must be an instance of PythonLSPServer")
 
@@ -165,7 +165,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def __init__(
         self, rx, tx, check_parent_process=False, consumer=None, *, endpoint_cls=None
-    ):
+    ) -> None:
         self.workspace = None
         self.config = None
         self.root_uri = None
@@ -198,11 +198,11 @@ class PythonLSPServer(MethodDispatcher):
         self._dispatchers = []
         self._shutdown = False
 
-    def start(self):
+    def start(self) -> None:
         """Entry point for the server."""
         self._jsonrpc_stream_reader.listen(self._endpoint.consume)
 
-    def consume(self, message):
+    def consume(self, message) -> None:
         """Entry point for consumer based server. Alternative to stream listeners."""
         # assuming message will be JSON
         self._endpoint.consume(message)
@@ -226,7 +226,7 @@ class PythonLSPServer(MethodDispatcher):
 
         raise KeyError()
 
-    def m_shutdown(self, **_kwargs):
+    def m_shutdown(self, **_kwargs) -> None:
         for workspace in self.workspaces.values():
             workspace.close()
         self._shutdown = True
@@ -239,7 +239,7 @@ class PythonLSPServer(MethodDispatcher):
             }
         }
 
-    def m_exit(self, **_kwargs):
+    def m_exit(self, **_kwargs) -> None:
         self._endpoint.shutdown()
         if self._jsonrpc_stream_reader is not None:
             self._jsonrpc_stream_reader.close()
@@ -379,7 +379,7 @@ class PythonLSPServer(MethodDispatcher):
             },
         }
 
-    def m_initialized(self, **_kwargs):
+    def m_initialized(self, **_kwargs) -> None:
         self._hook("pylsp_initialized")
 
     def code_actions(self, doc_uri: str, range: Dict, context: Dict):
@@ -437,21 +437,27 @@ class PythonLSPServer(MethodDispatcher):
         return self._hook("pylsp_hover", doc_uri, position=position) or {"contents": ""}
 
     @_utils.debounce(LINT_DEBOUNCE_S, keyed_by="doc_uri")
-    def lint(self, doc_uri, is_saved):
+    def lint(self, doc_uri, is_saved) -> None:
         # Since we're debounced, the document may no longer be open
         workspace = self._match_uri_to_workspace(doc_uri)
         document_object = workspace.documents.get(doc_uri, None)
         if isinstance(document_object, Document):
-            self._lint_text_document(doc_uri, workspace, is_saved=is_saved)
+            self._lint_text_document(
+                doc_uri, workspace, is_saved, document_object.version
+            )
         elif isinstance(document_object, Notebook):
             self._lint_notebook_document(document_object, workspace)
 
-    def _lint_text_document(self, doc_uri, workspace, is_saved):
+    def _lint_text_document(
+        self, doc_uri, workspace, is_saved, doc_version=None
+    ) -> None:
         workspace.publish_diagnostics(
-            doc_uri, flatten(self._hook("pylsp_lint", doc_uri, is_saved=is_saved))
+            doc_uri,
+            flatten(self._hook("pylsp_lint", doc_uri, is_saved=is_saved)),
+            doc_version,
         )
 
-    def _lint_notebook_document(self, notebook_document, workspace):
+    def _lint_notebook_document(self, notebook_document, workspace) -> None:
         """
         Lint a notebook document.
 
@@ -541,7 +547,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_notebook_document__did_open(
         self, notebookDocument=None, cellTextDocuments=None, **_kwargs
-    ):
+    ) -> None:
         workspace = self._match_uri_to_workspace(notebookDocument["uri"])
         workspace.put_notebook_document(
             notebookDocument["uri"],
@@ -562,7 +568,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_notebook_document__did_close(
         self, notebookDocument=None, cellTextDocuments=None, **_kwargs
-    ):
+    ) -> None:
         workspace = self._match_uri_to_workspace(notebookDocument["uri"])
         for cell in cellTextDocuments or []:
             workspace.publish_diagnostics(cell["uri"], [])
@@ -571,7 +577,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_notebook_document__did_change(
         self, notebookDocument=None, change=None, **_kwargs
-    ):
+    ) -> None:
         """
         Changes to the notebook document.
 
@@ -645,12 +651,12 @@ class PythonLSPServer(MethodDispatcher):
                     workspace.update_document(cell_uri, cell["changes"][0])
         self.lint(notebookDocument["uri"], is_saved=True)
 
-    def m_text_document__did_close(self, textDocument=None, **_kwargs):
+    def m_text_document__did_close(self, textDocument=None, **_kwargs) -> None:
         workspace = self._match_uri_to_workspace(textDocument["uri"])
         workspace.publish_diagnostics(textDocument["uri"], [])
         workspace.rm_document(textDocument["uri"])
 
-    def m_text_document__did_open(self, textDocument=None, **_kwargs):
+    def m_text_document__did_open(self, textDocument=None, **_kwargs) -> None:
         workspace = self._match_uri_to_workspace(textDocument["uri"])
         workspace.put_document(
             textDocument["uri"],
@@ -662,7 +668,7 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_text_document__did_change(
         self, contentChanges=None, textDocument=None, **_kwargs
-    ):
+    ) -> None:
         workspace = self._match_uri_to_workspace(textDocument["uri"])
         for change in contentChanges:
             workspace.update_document(
@@ -670,7 +676,7 @@ class PythonLSPServer(MethodDispatcher):
             )
         self.lint(textDocument["uri"], is_saved=False)
 
-    def m_text_document__did_save(self, textDocument=None, **_kwargs):
+    def m_text_document__did_save(self, textDocument=None, **_kwargs) -> None:
         self.lint(textDocument["uri"], is_saved=True)
         self.document_did_save(textDocument["uri"])
 
@@ -794,7 +800,7 @@ class PythonLSPServer(MethodDispatcher):
     ):
         return self.signature_help(textDocument["uri"], position)
 
-    def m_workspace__did_change_configuration(self, settings=None):
+    def m_workspace__did_change_configuration(self, settings=None) -> None:
         if self.config is not None:
             self.config.update((settings or {}).get("pylsp", {}))
         for workspace in self.workspaces.values():

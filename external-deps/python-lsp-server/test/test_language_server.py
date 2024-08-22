@@ -4,11 +4,12 @@
 import os
 import sys
 import time
-from test.test_utils import ClientServerPair, send_initialize_request
 
 import pytest
 from flaky import flaky
 from pylsp_jsonrpc.exceptions import JsonRpcMethodNotFound
+
+from test.test_utils import ClientServerPair, send_initialize_request
 
 RUNNING_IN_CI = bool(os.environ.get("CI"))
 
@@ -16,7 +17,7 @@ CALL_TIMEOUT_IN_SECONDS = 10
 
 
 @pytest.fixture
-def client_exited_server():
+def client_exited_server() -> None:
     """A fixture that sets up a client/server pair that support checking parent process aliveness
     and assert the server has already exited
     """
@@ -29,7 +30,7 @@ def client_exited_server():
 
 @flaky(max_runs=10, min_passes=1)
 @pytest.mark.skipif(sys.platform == "darwin", reason="Too flaky on Mac")
-def test_initialize(client_server_pair):
+def test_initialize(client_server_pair) -> None:
     client, _ = client_server_pair
     response = client._endpoint.request(
         "initialize",
@@ -44,7 +45,7 @@ def test_initialize(client_server_pair):
 )
 def test_exit_with_parent_process_died(
     client_exited_server,
-):
+) -> None:
     # language server should have already exited before responding
     lsp_server, mock_process = (
         client_exited_server.client,
@@ -69,7 +70,7 @@ def test_exit_with_parent_process_died(
 @pytest.mark.skipif(sys.platform.startswith("linux"), reason="Fails on linux")
 def test_not_exit_without_check_parent_process_flag(
     client_server_pair,
-):
+) -> None:
     client, _ = client_server_pair
     response = send_initialize_request(client)
     assert "capabilities" in response
@@ -77,7 +78,7 @@ def test_not_exit_without_check_parent_process_flag(
 
 @flaky(max_runs=10, min_passes=1)
 @pytest.mark.skipif(RUNNING_IN_CI, reason="This test is hanging on CI")
-def test_missing_message(client_server_pair):
+def test_missing_message(client_server_pair) -> None:
     client, _ = client_server_pair
     with pytest.raises(JsonRpcMethodNotFound):
         client._endpoint.request("unknown_method").result(

@@ -12,18 +12,18 @@ log = logging.getLogger(__name__)
 class ConfigSource:
     """Base class for implementing a config source."""
 
-    def __init__(self, root_path):
+    def __init__(self, root_path) -> None:
         self.root_path = root_path
         self.is_windows = sys.platform == "win32"
         self.xdg_home = os.environ.get(
             "XDG_CONFIG_HOME", os.path.expanduser("~/.config")
         )
 
-    def user_config(self):
+    def user_config(self) -> None:
         """Return user-level (i.e. home directory) configuration."""
         raise NotImplementedError()
 
-    def project_config(self, document_path):
+    def project_config(self, document_path) -> None:
         """Return project-level (i.e. workspace directory) configuration."""
         raise NotImplementedError()
 
@@ -53,16 +53,16 @@ class ConfigSource:
             if not config.has_option(key, opt_key):
                 continue
 
-            if opt_type == bool:
+            if opt_type is bool:
                 return config.getboolean(key, opt_key)
 
-            if opt_type == int:
+            if opt_type is int:
                 return config.getint(key, opt_key)
 
-            if opt_type == str:
+            if opt_type is str:
                 return config.get(key, opt_key)
 
-            if opt_type == list:
+            if opt_type is list:
                 return cls._parse_list_opt(config.get(key, opt_key))
 
             raise ValueError("Unknown option type: %s" % opt_type)

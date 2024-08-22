@@ -1,11 +1,10 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-from test import unix_only, windows_only
-
 import pytest
 
 from pylsp import uris
+from test import unix_only, windows_only
 
 
 @unix_only
@@ -17,7 +16,7 @@ from pylsp import uris
         ("file:/foo/space%20%3Fbar#frag", "/foo/space ?bar"),
     ],
 )
-def test_to_fs_path(uri, path):
+def test_to_fs_path(uri, path) -> None:
     assert uris.to_fs_path(uri) == path
 
 
@@ -30,7 +29,7 @@ def test_to_fs_path(uri, path):
         ("file:///C:/far/space%20%3Fboo", "c:\\far\\space ?boo"),
     ],
 )
-def test_win_to_fs_path(uri, path):
+def test_win_to_fs_path(uri, path) -> None:
     assert uris.to_fs_path(uri) == path
 
 
@@ -42,7 +41,7 @@ def test_win_to_fs_path(uri, path):
         ("/foo/space ?bar", "file:///foo/space%20%3Fbar"),
     ],
 )
-def test_from_fs_path(path, uri):
+def test_from_fs_path(path, uri) -> None:
     assert uris.from_fs_path(path) == uri
 
 
@@ -54,7 +53,7 @@ def test_from_fs_path(path, uri):
         ("C:\\far\\space ?boo", "file:///c:/far/space%20%3Fboo"),
     ],
 )
-def test_win_from_fs_path(path, uri):
+def test_win_from_fs_path(path, uri) -> None:
     assert uris.from_fs_path(path) == uri
 
 
@@ -69,5 +68,5 @@ def test_win_from_fs_path(path, uri):
         ),
     ],
 )
-def test_uri_with(uri, kwargs, new_uri):
+def test_uri_with(uri, kwargs, new_uri) -> None:
     assert uris.uri_with(uri, **kwargs) == new_uri

@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build:
     name: Mac Py${{ matrix.PYTHON_VERSION }}
-    runs-on: macos-latest
+    runs-on: macos-13
     env:
       CI: 'true'
       OS: 'macos'
@@ -27,13 +27,13 @@ jobs:
         PYTHON_VERSION: ['3.10', '3.9', '3.8']
     timeout-minutes: 10
     steps:
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
           architecture: 'x64'

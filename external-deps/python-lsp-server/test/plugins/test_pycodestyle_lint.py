@@ -24,7 +24,7 @@ import json
 """
 
 
-def test_pycodestyle(workspace):
+def test_pycodestyle(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     diags = pycodestyle_lint.pylsp_lint(workspace, doc)
 
@@ -64,7 +64,7 @@ def test_pycodestyle(workspace):
     assert mod_import["range"]["end"] == {"line": 5, "character": 10}
 
 
-def test_pycodestyle_config(workspace):
+def test_pycodestyle_config(workspace) -> None:
     """Test that we load config files properly.
 
     Config files are loaded in the following order:
@@ -118,7 +118,7 @@ def test_pycodestyle_config(workspace):
 
 
 @pytest.mark.parametrize("newline", ["\r\n", "\r"])
-def test_line_endings(workspace, newline):
+def test_line_endings(workspace, newline) -> None:
     """
     Check that Pycodestyle doesn't generate false positives with line endings
     other than LF.

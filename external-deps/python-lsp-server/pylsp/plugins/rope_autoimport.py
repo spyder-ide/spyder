@@ -29,7 +29,7 @@ MAX_RESULTS_CODE_ACTIONS = 5
 class AutoimportCache:
     """Handles the cache creation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.thread = None
 
     def reload_cache(
@@ -66,7 +66,7 @@ class AutoimportCache:
         workspace: Workspace,
         autoimport: AutoImport,
         resources: Optional[List[Resource]] = None,
-    ):
+    ) -> None:
         task_handle = PylspTaskHandle(workspace)
         autoimport.generate_cache(task_handle=task_handle, resources=resources)
         autoimport.generate_modules_cache(task_handle=task_handle)
@@ -365,7 +365,7 @@ def pylsp_code_actions(
 
 
 @hookimpl
-def pylsp_initialize(config: Config, workspace: Workspace):
+def pylsp_initialize(config: Config, workspace: Workspace) -> None:
     """Initialize AutoImport.
 
     Generates the cache for local and global items.
@@ -374,7 +374,7 @@ def pylsp_initialize(config: Config, workspace: Workspace):
 
 
 @hookimpl
-def pylsp_document_did_open(config: Config, workspace: Workspace):
+def pylsp_document_did_open(config: Config, workspace: Workspace) -> None:
     """Initialize AutoImport.
 
     Generates the cache for local and global items.
@@ -383,13 +383,15 @@ def pylsp_document_did_open(config: Config, workspace: Workspace):
 
 
 @hookimpl
-def pylsp_document_did_save(config: Config, workspace: Workspace, document: Document):
+def pylsp_document_did_save(
+    config: Config, workspace: Workspace, document: Document
+) -> None:
     """Update the names associated with this document."""
     cache.reload_cache(config, workspace, [document])
 
 
 @hookimpl
-def pylsp_workspace_configuration_changed(config: Config, workspace: Workspace):
+def pylsp_workspace_configuration_changed(config: Config, workspace: Workspace) -> None:
     """
     Initialize autoimport if it has been enabled through a
     workspace/didChangeConfiguration message from the frontend.

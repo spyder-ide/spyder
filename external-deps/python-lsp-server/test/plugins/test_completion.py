@@ -51,7 +51,7 @@ def documented_hello():
 """
 
 
-def test_rope_import_completion(config, workspace):
+def test_rope_import_completion(config, workspace) -> None:
     com_position = {"line": 0, "character": 7}
     doc = Document(DOC_URI, workspace, DOC)
     items = pylsp_rope_completions(config, workspace, doc, com_position)
@@ -131,7 +131,7 @@ def test_jedi_completion_type(case, config, workspace):
     assert items[case.label]["kind"] == case.expected
 
 
-def test_jedi_completion(config, workspace):
+def test_jedi_completion(config, workspace) -> None:
     # Over 'i' in os.path.isabs(...)
     com_position = {"line": 1, "character": 15}
     doc = Document(DOC_URI, workspace, DOC)
@@ -145,7 +145,7 @@ def test_jedi_completion(config, workspace):
     pylsp_jedi_completions(config, doc, {"line": 1, "character": 1000})
 
 
-def test_jedi_completion_item_resolve(config, workspace):
+def test_jedi_completion_item_resolve(config, workspace) -> None:
     # Over the blank line
     com_position = {"line": 8, "character": 0}
     doc = Document(DOC_URI, workspace, DOC)
@@ -169,7 +169,7 @@ def test_jedi_completion_item_resolve(config, workspace):
     assert resolved_documented_hello["documentation"] == expected_doc
 
 
-def test_jedi_completion_with_fuzzy_enabled(config, workspace):
+def test_jedi_completion_with_fuzzy_enabled(config, workspace) -> None:
     # Over 'i' in os.path.isabs(...)
     config.update({"plugins": {"jedi_completion": {"fuzzy": True}}})
     com_position = {"line": 1, "character": 15}
@@ -188,7 +188,7 @@ def test_jedi_completion_with_fuzzy_enabled(config, workspace):
     pylsp_jedi_completions(config, doc, {"line": 1, "character": 1000})
 
 
-def test_jedi_completion_resolve_at_most(config, workspace):
+def test_jedi_completion_resolve_at_most(config, workspace) -> None:
     # Over 'i' in os.path.isabs(...)
     com_position = {"line": 1, "character": 15}
     doc = Document(DOC_URI, workspace, DOC)
@@ -206,7 +206,7 @@ def test_jedi_completion_resolve_at_most(config, workspace):
     assert "isfile(path)" in labels
 
 
-def test_rope_completion(config, workspace):
+def test_rope_completion(config, workspace) -> None:
     # Over 'i' in os.path.isabs(...)
     com_position = {"line": 1, "character": 15}
     workspace.put_document(DOC_URI, source=DOC)
@@ -217,7 +217,7 @@ def test_rope_completion(config, workspace):
     assert items[0]["label"] == "isabs"
 
 
-def test_jedi_completion_ordering(config, workspace):
+def test_jedi_completion_ordering(config, workspace) -> None:
     # Over the blank line
     com_position = {"line": 8, "character": 0}
     doc = Document(DOC_URI, workspace, DOC)
@@ -230,7 +230,7 @@ def test_jedi_completion_ordering(config, workspace):
     assert items["hello()"] < items["_a_hello()"]
 
 
-def test_jedi_property_completion(config, workspace):
+def test_jedi_property_completion(config, workspace) -> None:
     # Over the 'w' in 'print Hello().world'
     com_position = {"line": 18, "character": 15}
     doc = Document(DOC_URI, workspace, DOC)
@@ -242,7 +242,7 @@ def test_jedi_property_completion(config, workspace):
     assert "world" in list(items.keys())[0]
 
 
-def test_jedi_method_completion(config, workspace):
+def test_jedi_method_completion(config, workspace) -> None:
     # Over the 'y' in 'print Hello().every'
     com_position = {"line": 20, "character": 19}
     doc = Document(DOC_URI, workspace, DOC)
@@ -281,7 +281,7 @@ def test_jedi_method_completion(config, workspace):
     PY2 or (sys.platform.startswith("linux") and os.environ.get("CI") is not None),
     reason="Test in Python 3 and not on CIs on Linux because wheels don't work on them.",
 )
-def test_pyqt_completion(config, workspace):
+def test_pyqt_completion(config, workspace) -> None:
     # Over 'QA' in 'from PyQt5.QtWidgets import QApplication'
     doc_pyqt = "from PyQt5.QtWidgets import QA"
     com_position = {"line": 0, "character": len(doc_pyqt)}
@@ -291,7 +291,7 @@ def test_pyqt_completion(config, workspace):
     assert completions is not None
 
 
-def test_numpy_completions(config, workspace):
+def test_numpy_completions(config, workspace) -> None:
     doc_numpy = "import numpy as np; np."
     com_position = {"line": 0, "character": len(doc_numpy)}
     doc = Document(DOC_URI, workspace, doc_numpy)
@@ -301,7 +301,7 @@ def test_numpy_completions(config, workspace):
     assert any("array" in i["label"] for i in items)
 
 
-def test_pandas_completions(config, workspace):
+def test_pandas_completions(config, workspace) -> None:
     doc_pandas = "import pandas as pd; pd."
     com_position = {"line": 0, "character": len(doc_pandas)}
     doc = Document(DOC_URI, workspace, doc_pandas)
@@ -311,7 +311,7 @@ def test_pandas_completions(config, workspace):
     assert any("DataFrame" in i["label"] for i in items)
 
 
-def test_matplotlib_completions(config, workspace):
+def test_matplotlib_completions(config, workspace) -> None:
     doc_mpl = "import matplotlib.pyplot as plt; plt."
     com_position = {"line": 0, "character": len(doc_mpl)}
     doc = Document(DOC_URI, workspace, doc_mpl)
@@ -321,7 +321,7 @@ def test_matplotlib_completions(config, workspace):
     assert any("plot" in i["label"] for i in items)
 
 
-def test_snippets_completion(config, workspace):
+def test_snippets_completion(config, workspace) -> None:
     doc_snippets = "from collections import defaultdict \na=defaultdict"
     com_position = {"line": 0, "character": 35}
     doc = Document(DOC_URI, workspace, doc_snippets)
@@ -338,7 +338,7 @@ def test_snippets_completion(config, workspace):
     assert completions[0]["insertTextFormat"] == lsp.InsertTextFormat.Snippet
 
 
-def test_snippets_completion_at_most(config, workspace):
+def test_snippets_completion_at_most(config, workspace) -> None:
     doc_snippets = "from collections import defaultdict \na=defaultdict"
     doc = Document(DOC_URI, workspace, doc_snippets)
     config.capabilities["textDocument"] = {
@@ -353,7 +353,7 @@ def test_snippets_completion_at_most(config, workspace):
     assert not completions[0].get("insertTextFormat", None)
 
 
-def test_completion_with_class_objects(config, workspace):
+def test_completion_with_class_objects(config, workspace) -> None:
     doc_text = "class FOOBAR(Object): pass\nFOOB"
     com_position = {"line": 1, "character": 4}
     doc = Document(DOC_URI, workspace, doc_text)
@@ -380,7 +380,7 @@ def test_completion_with_class_objects(config, workspace):
     assert completions[1]["kind"] == lsp.CompletionItemKind.TypeParameter
 
 
-def test_completion_with_function_objects(config, workspace):
+def test_completion_with_function_objects(config, workspace) -> None:
     doc_text = "def foobar(): pass\nfoob"
     com_position = {"line": 1, "character": 4}
     doc = Document(DOC_URI, workspace, doc_text)
@@ -407,7 +407,7 @@ def test_completion_with_function_objects(config, workspace):
     assert completions[1]["kind"] == lsp.CompletionItemKind.TypeParameter
 
 
-def test_snippet_parsing(config, workspace):
+def test_snippet_parsing(config, workspace) -> None:
     doc = "divmod"
     completion_position = {"line": 0, "character": 6}
     doc = Document(DOC_URI, workspace, doc)
@@ -423,7 +423,7 @@ def test_snippet_parsing(config, workspace):
     assert completions[0]["insertText"] == out
 
 
-def test_multiline_import_snippets(config, workspace):
+def test_multiline_import_snippets(config, workspace) -> None:
     document = "from datetime import(\n date,\n datetime)\na=date"
     doc = Document(DOC_URI, workspace, document)
     config.capabilities["textDocument"] = {
@@ -440,7 +440,7 @@ def test_multiline_import_snippets(config, workspace):
     assert completions[0]["insertText"] == "datetime"
 
 
-def test_multiline_snippets(config, workspace):
+def test_multiline_snippets(config, workspace) -> None:
     document = "from datetime import\\\n date,\\\n datetime \na=date"
     doc = Document(DOC_URI, workspace, document)
     config.capabilities["textDocument"] = {
@@ -457,7 +457,7 @@ def test_multiline_snippets(config, workspace):
     assert completions[0]["insertText"] == "datetime"
 
 
-def test_multistatement_snippet(config, workspace):
+def test_multistatement_snippet(config, workspace) -> None:
     config.capabilities["textDocument"] = {
         "completion": {"completionItem": {"snippetSupport": True}}
     }
@@ -476,7 +476,7 @@ def test_multistatement_snippet(config, workspace):
     assert completions[0]["insertText"] == "fmod(${1:x}, ${2:y})$0"
 
 
-def test_jedi_completion_extra_paths(tmpdir, workspace):
+def test_jedi_completion_extra_paths(tmpdir, workspace) -> None:
     # Create a tempfile with some content and pass to extra_paths
     temp_doc_content = """
 def spam():
@@ -510,7 +510,7 @@ foo.s"""
 @pytest.mark.skipif(
     PY2 or not LINUX or not CI, reason="tested on linux and python 3 only"
 )
-def test_jedi_completion_environment(workspace):
+def test_jedi_completion_environment(workspace) -> None:
     # Content of doc to test completion
     doc_content = """import logh
 """
@@ -539,7 +539,7 @@ def test_jedi_completion_environment(workspace):
     assert "changelog generator" in resolved["documentation"]["value"].lower()
 
 
-def test_document_path_completions(tmpdir, workspace_other_root_path):
+def test_document_path_completions(tmpdir, workspace_other_root_path) -> None:
     # Create a dummy module out of the workspace's root_path and try to get
     # completions for it in another file placed next to it.
     module_content = """
@@ -562,7 +562,7 @@ mymodule.f"""
     assert completions[0]["label"] == "foo()"
 
 
-def test_file_completions(workspace, tmpdir):
+def test_file_completions(workspace, tmpdir) -> None:
     # Create directory and a file to get completions for them.
     # Note: `tmpdir`` is the root dir of the `workspace` fixture. That's why we use
     # it here.

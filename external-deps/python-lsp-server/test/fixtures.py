@@ -3,7 +3,6 @@
 
 import os
 from io import StringIO
-from test.test_utils import CALL_TIMEOUT_IN_SECONDS, ClientServerPair
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,6 +14,7 @@ from pylsp import uris
 from pylsp.config.config import Config
 from pylsp.python_lsp import PythonLSPServer
 from pylsp.workspace import Document, Workspace
+from test.test_utils import CALL_TIMEOUT_IN_SECONDS, ClientServerPair
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """import sys
@@ -112,7 +112,7 @@ def endpoint(consumer):
 
 
 @pytest.fixture
-def workspace(tmpdir, endpoint):
+def workspace(tmpdir, endpoint) -> None:
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), endpoint)
     ws._config = Config(ws.root_uri, {}, 0, {})
@@ -166,7 +166,7 @@ def temp_workspace_factory(workspace):
 
 
 @pytest.fixture
-def client_server_pair():
+def client_server_pair() -> None:
     """A fixture that sets up a client/server pair and shuts down the server"""
     client_server_pair_obj = ClientServerPair()
 
