@@ -46,7 +46,7 @@ dependencies:
   - qtpy >=2.4.0
   - rtree >=0.9.7
   - setuptools >=49.6.0
-  - sphinx >=0.6.6
+  - sphinx >=0.6.6,<7.4.0
   - spyder-kernels >=3.0.0b9,<3.0.0b10
   - superqt >=0.6.2,<1.0.0
   - textdistance >=4.2.0

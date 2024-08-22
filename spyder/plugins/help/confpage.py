@@ -43,6 +43,7 @@ class HelpConfigPage(PluginConfigPage):
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
+        # ??? Do we want to increase minimum sphinx requirement for Spyder?
         req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
         math_box.setEnabled(req_sphinx)
         if not req_sphinx:
@@ -70,4 +71,3 @@ class HelpConfigPage(PluginConfigPage):
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-
