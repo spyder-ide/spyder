@@ -144,7 +144,7 @@ rt_specs = {
     "python": f"={PY_VER}",
     "spyder": f"={SPYVER}",
     "cython": "",
-    "matplotlib": "",
+    "matplotlib-base": "",
     "numpy": "",
     "openpyxl": "",
     "pandas": "",
