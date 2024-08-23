@@ -33,7 +33,7 @@ def tmp_workspace(temp_workspace_factory):
     )
 
 
-def test_jedi_rename(tmp_workspace, config):
+def test_jedi_rename(tmp_workspace, config) -> None:
     # rename the `Test1` class
     position = {"line": 0, "character": 6}
     DOC_URI = uris.from_fs_path(os.path.join(tmp_workspace.root_path, DOC_NAME))

@@ -65,7 +65,7 @@ def pylsp_lint(workspace, document):
 
 
 class PyCodeStyleDiagnosticReport(pycodestyle.BaseReport):
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         self.diagnostics = []
         super().__init__(options=options)
 

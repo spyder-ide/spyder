@@ -28,7 +28,7 @@ import sys
 """
 
 
-def test_pyflakes(workspace):
+def test_pyflakes(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     diags = pyflakes_lint.pylsp_lint(workspace, doc)
 
@@ -40,7 +40,7 @@ def test_pyflakes(workspace):
     assert unused_import["severity"] == lsp.DiagnosticSeverity.Warning
 
 
-def test_syntax_error_pyflakes(workspace):
+def test_syntax_error_pyflakes(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC_SYNTAX_ERR)
     diag = pyflakes_lint.pylsp_lint(workspace, doc)[0]
 
@@ -52,7 +52,7 @@ def test_syntax_error_pyflakes(workspace):
     assert diag["severity"] == lsp.DiagnosticSeverity.Error
 
 
-def test_undefined_name_pyflakes(workspace):
+def test_undefined_name_pyflakes(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC_UNDEFINED_NAME_ERR)
     diag = pyflakes_lint.pylsp_lint(workspace, doc)[0]
 
@@ -61,7 +61,7 @@ def test_undefined_name_pyflakes(workspace):
     assert diag["severity"] == lsp.DiagnosticSeverity.Error
 
 
-def test_unicode_encoding(workspace):
+def test_unicode_encoding(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC_ENCODING)
     diags = pyflakes_lint.pylsp_lint(workspace, doc)
 

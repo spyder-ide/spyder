@@ -27,14 +27,14 @@ FOUR_SPACE_DOC = """def hello():
 """
 
 
-def test_format(workspace):
+def test_format(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     res = pylsp_format_document(workspace, doc, None)
 
     assert apply_text_edits(doc, res) == "A = ['h', 'w', 'a']\n\nB = ['h', 'w']\n"
 
 
-def test_range_format(workspace):
+def test_range_format(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
 
     def_range = {
@@ -47,12 +47,12 @@ def test_range_format(workspace):
     assert apply_text_edits(doc, res) == "A = ['h', 'w', 'a']\n\nB = ['h',\n\n\n'w']\n"
 
 
-def test_no_change(workspace):
+def test_no_change(workspace) -> None:
     doc = Document(DOC_URI, workspace, GOOD_DOC)
     assert not pylsp_format_document(workspace, doc, options=None)
 
 
-def test_config_file(tmpdir, workspace):
+def test_config_file(tmpdir, workspace) -> None:
     # a config file in the same directory as the source file will be used
     conf = tmpdir.join(".style.yapf")
     conf.write("[style]\ncolumn_limit = 14")
@@ -69,7 +69,7 @@ def test_config_file(tmpdir, workspace):
 
 
 @pytest.mark.parametrize("newline", ["\r\n"])
-def test_line_endings(workspace, newline):
+def test_line_endings(workspace, newline) -> None:
     doc = Document(DOC_URI, workspace, f"import os;import sys{2 * newline}dict(a=1)")
     res = pylsp_format_document(workspace, doc, options=None)
 
@@ -79,28 +79,28 @@ def test_line_endings(workspace, newline):
     )
 
 
-def test_format_with_tab_size_option(workspace):
+def test_format_with_tab_size_option(workspace) -> None:
     doc = Document(DOC_URI, workspace, FOUR_SPACE_DOC)
     res = pylsp_format_document(workspace, doc, {"tabSize": "8"})
 
     assert apply_text_edits(doc, res) == FOUR_SPACE_DOC.replace("    ", "        ")
 
 
-def test_format_with_insert_spaces_option(workspace):
+def test_format_with_insert_spaces_option(workspace) -> None:
     doc = Document(DOC_URI, workspace, FOUR_SPACE_DOC)
     res = pylsp_format_document(workspace, doc, {"insertSpaces": False})
 
     assert apply_text_edits(doc, res) == FOUR_SPACE_DOC.replace("    ", "\t")
 
 
-def test_format_with_yapf_specific_option(workspace):
+def test_format_with_yapf_specific_option(workspace) -> None:
     doc = Document(DOC_URI, workspace, FOUR_SPACE_DOC)
     res = pylsp_format_document(workspace, doc, {"USE_TABS": True})
 
     assert apply_text_edits(doc, res) == FOUR_SPACE_DOC.replace("    ", "\t")
 
 
-def test_format_returns_text_edit_per_line(workspace):
+def test_format_returns_text_edit_per_line(workspace) -> None:
     single_space_indent = """def wow():
  log("x")
  log("hi")"""

@@ -7,7 +7,7 @@ from pylsp.text_edit import OverLappingTextEditException, apply_text_edits
 DOC_URI = uris.from_fs_path(__file__)
 
 
-def test_apply_text_edits_insert(pylsp):
+def test_apply_text_edits_insert(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "012345678901234567890123456789")
     test_doc = pylsp.workspace.get_document(DOC_URI)
 
@@ -108,7 +108,7 @@ def test_apply_text_edits_insert(pylsp):
     )
 
 
-def test_apply_text_edits_replace(pylsp):
+def test_apply_text_edits_replace(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "012345678901234567890123456789")
     test_doc = pylsp.workspace.get_document(DOC_URI)
 
@@ -217,7 +217,7 @@ def test_apply_text_edits_replace(pylsp):
     )
 
 
-def test_apply_text_edits_overlap(pylsp):
+def test_apply_text_edits_overlap(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "012345678901234567890123456789")
     test_doc = pylsp.workspace.get_document(DOC_URI)
 
@@ -275,7 +275,7 @@ def test_apply_text_edits_overlap(pylsp):
     assert did_throw
 
 
-def test_apply_text_edits_multiline(pylsp):
+def test_apply_text_edits_multiline(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "0\n1\n2\n3\n4")
     test_doc = pylsp.workspace.get_document(DOC_URI)
 

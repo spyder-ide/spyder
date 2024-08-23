@@ -14,7 +14,7 @@ DOC_SYNTAX_ERR = """def hello()
 \tpass"""
 
 
-def test_mccabe(config, workspace):
+def test_mccabe(config, workspace) -> None:
     old_settings = config.settings
     try:
         config.update({"plugins": {"mccabe": {"threshold": 1}}})
@@ -34,6 +34,6 @@ def test_mccabe(config, workspace):
         config._settings = old_settings
 
 
-def test_mccabe_syntax_error(config, workspace):
+def test_mccabe_syntax_error(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC_SYNTAX_ERR)
     assert mccabe_lint.pylsp_lint(config, workspace, doc) is None

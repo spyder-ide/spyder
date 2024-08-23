@@ -115,7 +115,7 @@ def _parse_diagnostic(document, error):
 
 
 @contextlib.contextmanager
-def _patch_sys_argv(arguments):
+def _patch_sys_argv(arguments) -> None:
     old_args = sys.argv
 
     # Preserve argv[0] since it's the executable

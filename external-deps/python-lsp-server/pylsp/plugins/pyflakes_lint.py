@@ -32,11 +32,11 @@ def pylsp_lint(workspace, document):
 
 
 class PyflakesDiagnosticReport:
-    def __init__(self, lines):
+    def __init__(self, lines) -> None:
         self.lines = lines
         self.diagnostics = []
 
-    def unexpectedError(self, _filename, msg):  # pragma: no cover
+    def unexpectedError(self, _filename, msg) -> None:  # pragma: no cover
         err_range = {
             "start": {"line": 0, "character": 0},
             "end": {"line": 0, "character": 0},
@@ -50,7 +50,7 @@ class PyflakesDiagnosticReport:
             }
         )
 
-    def syntaxError(self, _filename, msg, lineno, offset, text):
+    def syntaxError(self, _filename, msg, lineno, offset, text) -> None:
         # We've seen that lineno and offset can sometimes be None
         lineno = lineno or 1
         offset = offset or 0
@@ -71,7 +71,7 @@ class PyflakesDiagnosticReport:
             }
         )
 
-    def flake(self, message):
+    def flake(self, message) -> None:
         """Get message like <filename>:<lineno>: <msg>"""
         err_range = {
             "start": {"line": message.lineno - 1, "character": message.col},

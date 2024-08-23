@@ -25,7 +25,7 @@ LOG_FORMAT = "%(asctime)s {0} - %(levelname)s - %(name)s - %(message)s".format(
 )
 
 
-def add_arguments(parser):
+def add_arguments(parser) -> None:
     parser.description = "Python Language Server"
 
     parser.add_argument(
@@ -67,7 +67,7 @@ def add_arguments(parser):
     )
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     add_arguments(parser)
     args = parser.parse_args()
@@ -94,7 +94,7 @@ def _binary_stdio():
     return stdin, stdout
 
 
-def _configure_logger(verbose=0, log_config=None, log_file=None):
+def _configure_logger(verbose=0, log_config=None, log_file=None) -> None:
     root_logger = logging.root
 
     if log_config:

@@ -19,7 +19,7 @@ from pylsp.python_lsp import PythonLSPServer, start_io_lang_server
 CALL_TIMEOUT_IN_SECONDS = 30
 
 
-def send_notebook_did_open(client, cells: List[str]):
+def send_notebook_did_open(client, cells: List[str]) -> None:
     """
     Sends a notebookDocument/didOpen notification with the given python cells.
 
@@ -72,7 +72,7 @@ def send_initialize_request(client, initialization_options: Dict[str, Any] = Non
     ).result(timeout=CALL_TIMEOUT_IN_SECONDS)
 
 
-def start(obj):
+def start(obj) -> None:
     obj.start()
 
 
@@ -85,7 +85,9 @@ class ClientServerPair:
         check_parent_process: if True, the server_process will check if the parent process is alive.
     """
 
-    def __init__(self, start_server_in_process=False, check_parent_process=False):
+    def __init__(
+        self, start_server_in_process=False, check_parent_process=False
+    ) -> None:
         # Client to Server pipe
         csr, csw = os.pipe()
         # Server to client pipe
@@ -123,7 +125,7 @@ class ClientServerPair:
 
 
 @flaky(max_runs=6, min_passes=1)
-def test_debounce():
+def test_debounce() -> None:
     interval = 0.1
     obj = mock.Mock()
 
@@ -147,7 +149,7 @@ def test_debounce():
 
 
 @flaky(max_runs=6, min_passes=1)
-def test_debounce_keyed_by():
+def test_debounce_keyed_by() -> None:
     interval = 0.1
     obj = mock.Mock()
 
@@ -180,12 +182,12 @@ def test_debounce_keyed_by():
     assert len(obj.mock_calls) == 4
 
 
-def test_list_to_string():
+def test_list_to_string() -> None:
     assert _utils.list_to_string("string") == "string"
     assert _utils.list_to_string(["a", "r", "r", "a", "y"]) == "a,r,r,a,y"
 
 
-def test_find_parents(tmpdir):
+def test_find_parents(tmpdir) -> None:
     subsubdir = tmpdir.ensure_dir("subdir", "subsubdir")
     path = subsubdir.ensure("path.py")
     test_cfg = tmpdir.ensure("test.cfg")
@@ -195,14 +197,14 @@ def test_find_parents(tmpdir):
     ]
 
 
-def test_merge_dicts():
+def test_merge_dicts() -> None:
     assert _utils.merge_dicts(
         {"a": True, "b": {"x": 123, "y": {"hello": "world"}}},
         {"a": False, "b": {"y": [], "z": 987}},
     ) == {"a": False, "b": {"x": 123, "y": [], "z": 987}}
 
 
-def test_clip_column():
+def test_clip_column() -> None:
     assert _utils.clip_column(0, [], 0) == 0
     assert _utils.clip_column(2, ["123"], 0) == 2
     assert _utils.clip_column(3, ["123"], 0) == 3
@@ -215,7 +217,7 @@ def test_clip_column():
 
 
 @mock.patch("docstring_to_markdown.convert")
-def test_format_docstring_valid_rst_signature(mock_convert):
+def test_format_docstring_valid_rst_signature(mock_convert) -> None:
     """Test that a valid RST docstring includes the function signature."""
     docstring = """A function docstring.
 
@@ -244,7 +246,7 @@ def test_format_docstring_valid_rst_signature(mock_convert):
 
 
 @mock.patch("docstring_to_markdown.convert", side_effect=UnknownFormatError)
-def test_format_docstring_invalid_rst_signature(_):
+def test_format_docstring_invalid_rst_signature(_) -> None:
     """Test that an invalid RST docstring includes the function signature."""
     docstring = """A function docstring.
 

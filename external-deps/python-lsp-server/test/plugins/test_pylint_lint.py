@@ -26,7 +26,7 @@ DOC_SYNTAX_ERR = """def hello()
 
 
 @contextlib.contextmanager
-def temp_document(doc_text, workspace):
+def temp_document(doc_text, workspace) -> None:
     try:
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
             name = temp_file.name
@@ -36,12 +36,12 @@ def temp_document(doc_text, workspace):
         os.remove(name)
 
 
-def write_temp_doc(document, contents):
+def write_temp_doc(document, contents) -> None:
     with open(document.path, "w", encoding="utf-8") as temp_file:
         temp_file.write(contents)
 
 
-def test_pylint(config, workspace):
+def test_pylint(config, workspace) -> None:
     with temp_document(DOC, workspace) as doc:
         diags = pylint_lint.pylsp_lint(config, workspace, doc, True)
 
@@ -66,7 +66,7 @@ def test_pylint(config, workspace):
         assert unused_import["severity"] == lsp.DiagnosticSeverity.Warning
 
 
-def test_syntax_error_pylint(config, workspace):
+def test_syntax_error_pylint(config, workspace) -> None:
     with temp_document(DOC_SYNTAX_ERR, workspace) as doc:
         diag = pylint_lint.pylsp_lint(config, workspace, doc, True)[0]
 
@@ -91,7 +91,7 @@ def test_syntax_error_pylint(config, workspace):
         assert diag["severity"] == lsp.DiagnosticSeverity.Error
 
 
-def test_lint_free_pylint(config, workspace):
+def test_lint_free_pylint(config, workspace) -> None:
     # Can't use temp_document because it might give us a file that doesn't
     # match pylint's naming requirements. We should be keeping this file clean
     # though, so it works for a test of an empty lint.
@@ -101,7 +101,7 @@ def test_lint_free_pylint(config, workspace):
     )
 
 
-def test_lint_caching(workspace):
+def test_lint_caching(workspace) -> None:
     # Pylint can only operate on files, not in-memory contents. We cache the
     # diagnostics after a run so we can continue displaying them until the file
     # is saved again.
@@ -129,7 +129,7 @@ def test_lint_caching(workspace):
         assert not pylint_lint.PylintLinter.lint(doc, False, flags)
 
 
-def test_per_file_caching(config, workspace):
+def test_per_file_caching(config, workspace) -> None:
     # Ensure that diagnostics are cached per-file.
     with temp_document(DOC, workspace) as doc:
         assert pylint_lint.pylsp_lint(config, workspace, doc, True)

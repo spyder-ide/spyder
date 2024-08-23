@@ -42,7 +42,7 @@ main(
 """
 
 
-def test_no_signature(workspace):
+def test_no_signature(workspace) -> None:
     # Over blank line
     sig_position = {"line": 9, "character": 0}
     doc = Document(DOC_URI, workspace, DOC)
@@ -51,7 +51,7 @@ def test_no_signature(workspace):
     assert not sigs
 
 
-def test_signature(workspace):
+def test_signature(workspace) -> None:
     # Over '( ' in main(
     sig_position = {"line": 10, "character": 5}
     doc = Document(DOC_URI, workspace, DOC)
@@ -70,7 +70,7 @@ def test_signature(workspace):
     assert sig_info["activeParameter"] == 0
 
 
-def test_multi_line_signature(workspace):
+def test_multi_line_signature(workspace) -> None:
     # Over '( ' in main(
     sig_position = {"line": 17, "character": 5}
     doc = Document(DOC_URI, workspace, MULTI_LINE_DOC)
@@ -100,7 +100,7 @@ def test_multi_line_signature(workspace):
         (signature.GOOGLE, "    test (str): parameter docstring"),
     ],
 )
-def test_docstring_params(regex, doc):
+def test_docstring_params(regex, doc) -> None:
     m = regex.match(doc)
     assert m.group("param") == "test"
     assert m.group("doc") == "parameter docstring"

@@ -19,7 +19,7 @@ class PylspJobSet(BaseJobSet):
     _report_iter: ContextManager
     job_name: str = ""
 
-    def __init__(self, count: Optional[int], report_iter: ContextManager):
+    def __init__(self, count: Optional[int], report_iter: ContextManager) -> None:
         if count is not None:
             self.count = count
         self._reporter = report_iter.__enter__()
@@ -57,7 +57,7 @@ class PylspJobSet(BaseJobSet):
         self._report()
 
     @throttle(0.5)
-    def _report(self):
+    def _report(self) -> None:
         percent = int(self.get_percent_done())
         message = f"{self.job_name} {self.done}/{self.count}"
         log.debug(f"Reporting {message} {percent}%")
@@ -72,7 +72,7 @@ class PylspTaskHandle(BaseTaskHandle):
     workspace: Workspace
     _report: Callable[[str, str], None]
 
-    def __init__(self, workspace: Workspace):
+    def __init__(self, workspace: Workspace) -> None:
         self.workspace = workspace
         self.job_sets = []
         self.observers = []
