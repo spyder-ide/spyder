@@ -39,12 +39,14 @@
 * Add a new button to the Variable Explorer to indicate when variables are being
   filtered.
 
-### New API features
+### New API and plugin features
 
 * `SpyderPluginV2.get_description` must be a static method now and
   `SpyderPluginV2.get_icon` a class or static method. This is necessary to
   display the list of available plugins in Preferences in a more user-friendly
   way (see PR spyder-ide/spyder#21101).
+* `SpyderPlugin` and `SpyderPluginWidget` are no longer exposed in the public
+  API. They will be removed in Spyder 6.1.
 * Generalize the Run plugin to support generic inputs and executors. This allows
   plugins to declare what kind of inputs (i.e. file, cell or selection) they
   can execute and how they will display the result.
