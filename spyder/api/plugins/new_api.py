@@ -43,7 +43,7 @@ from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Package imports
 from .enum import Plugins
-from .old_api import SpyderPluginWidget
+from ._old_api import SpyderPluginWidget
 
 
 # Logging

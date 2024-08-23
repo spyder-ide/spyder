@@ -7,9 +7,9 @@
 """
 Old API for plugins.
 
-These plugins were supported until Spyder 4, but they will be deprecated in
-the future. Please don't rely on them for new plugins and use instead the
-classes present in new_api.py
+These plugins were supported until Spyder 5, but that's no longer the case.
+Please don't rely on them for new plugins and use instead the classes present
+in new_api.py
 """
 
 # Third-party imports

@@ -94,9 +94,8 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import (
-    Plugins, SpyderPlugin, SpyderPluginV2, SpyderDockablePlugin,
-    SpyderPluginWidget)
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 
 #==============================================================================
 # Windows only local imports

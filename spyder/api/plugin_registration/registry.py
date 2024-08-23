@@ -20,9 +20,8 @@ from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import (
-    Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
-    SpyderPlugin)
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 from spyder.utils.icon_manager import ima
 
 
