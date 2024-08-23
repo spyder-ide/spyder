@@ -14,32 +14,32 @@ def path_as_uri(path):
     return pathlib.Path(os.path.abspath(path)).as_uri()
 
 
-def test_local(pylsp):
+def test_local(pylsp) -> None:
     """Since the workspace points to the test directory"""
     assert pylsp.workspace.is_local()
 
 
-def test_put_document(pylsp):
+def test_put_document(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "content")
     assert DOC_URI in pylsp.workspace._docs
 
 
-def test_put_notebook_document(pylsp):
+def test_put_notebook_document(pylsp) -> None:
     pylsp.workspace.put_notebook_document(DOC_URI, "jupyter-notebook", [])
     assert DOC_URI in pylsp.workspace._docs
 
 
-def test_put_cell_document(pylsp):
+def test_put_cell_document(pylsp) -> None:
     pylsp.workspace.put_cell_document(DOC_URI, NOTEBOOK_URI, "python", "content")
     assert DOC_URI in pylsp.workspace._docs
 
 
-def test_get_document(pylsp):
+def test_get_document(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "TEXT")
     assert pylsp.workspace.get_document(DOC_URI).source == "TEXT"
 
 
-def test_get_missing_document(tmpdir, pylsp):
+def test_get_missing_document(tmpdir, pylsp) -> None:
     source = "TEXT"
     doc_path = tmpdir.join("test_document.py")
     doc_path.write(source)
@@ -47,7 +47,7 @@ def test_get_missing_document(tmpdir, pylsp):
     assert pylsp.workspace.get_document(doc_uri).source == "TEXT"
 
 
-def test_rm_document(pylsp):
+def test_rm_document(pylsp) -> None:
     pylsp.workspace.put_document(DOC_URI, "TEXT")
     assert pylsp.workspace.get_document(DOC_URI).source == "TEXT"
     pylsp.workspace.rm_document(DOC_URI)
@@ -57,7 +57,7 @@ def test_rm_document(pylsp):
 @pytest.mark.parametrize(
     "metafiles", [("setup.py",), ("pyproject.toml",), ("setup.py", "pyproject.toml")]
 )
-def test_non_root_project(pylsp, metafiles):
+def test_non_root_project(pylsp, metafiles) -> None:
     repo_root = os.path.join(pylsp.workspace.root_path, "repo-root")
     os.mkdir(repo_root)
     project_root = os.path.join(repo_root, "project-root")
@@ -73,7 +73,7 @@ def test_non_root_project(pylsp, metafiles):
     assert project_root in test_doc.sys_path()
 
 
-def test_root_project_with_no_setup_py(pylsp):
+def test_root_project_with_no_setup_py(pylsp) -> None:
     """Default to workspace root."""
     workspace_root = pylsp.workspace.root_path
     test_uri = uris.from_fs_path(os.path.join(workspace_root, "hello/test.py"))
@@ -82,7 +82,7 @@ def test_root_project_with_no_setup_py(pylsp):
     assert workspace_root in test_doc.sys_path()
 
 
-def test_multiple_workspaces_from_initialize(pylsp_w_workspace_folders):
+def test_multiple_workspaces_from_initialize(pylsp_w_workspace_folders) -> None:
     pylsp, workspace_folders = pylsp_w_workspace_folders
 
     assert len(pylsp.workspaces) == 2
@@ -113,7 +113,7 @@ def test_multiple_workspaces_from_initialize(pylsp_w_workspace_folders):
     assert msg2["uri"] in pylsp.workspaces[folders_uris[1]]._docs
 
 
-def test_multiple_workspaces(tmpdir, pylsp):
+def test_multiple_workspaces(tmpdir, pylsp) -> None:
     workspace1_dir = tmpdir.mkdir("workspace1")
     workspace2_dir = tmpdir.mkdir("workspace2")
     file1 = workspace1_dir.join("file1.py")
@@ -150,14 +150,14 @@ def test_multiple_workspaces(tmpdir, pylsp):
     assert workspace1_uri not in pylsp.workspaces
 
 
-def test_multiple_workspaces_wrong_removed_uri(pylsp, tmpdir):
+def test_multiple_workspaces_wrong_removed_uri(pylsp, tmpdir) -> None:
     workspace = {"uri": str(tmpdir.mkdir("Test123"))}
     event = {"added": [], "removed": [workspace]}
     pylsp.m_workspace__did_change_workspace_folders(event)
     assert workspace["uri"] not in pylsp.workspaces
 
 
-def test_root_workspace_changed(pylsp, tmpdir):
+def test_root_workspace_changed(pylsp, tmpdir) -> None:
     test_uri = str(tmpdir.mkdir("Test123"))
     pylsp.root_uri = test_uri
     pylsp.workspace._root_uri = test_uri
@@ -172,7 +172,7 @@ def test_root_workspace_changed(pylsp, tmpdir):
     assert workspace2["uri"] == pylsp.root_uri
 
 
-def test_root_workspace_not_changed(pylsp, tmpdir):
+def test_root_workspace_not_changed(pylsp, tmpdir) -> None:
     # removed uri != root_uri
     test_uri_1 = str(tmpdir.mkdir("Test12"))
     pylsp.root_uri = test_uri_1
@@ -206,7 +206,7 @@ def test_root_workspace_not_changed(pylsp, tmpdir):
     assert new_root_uri == pylsp.root_uri
 
 
-def test_root_workspace_removed(tmpdir, pylsp):
+def test_root_workspace_removed(tmpdir, pylsp) -> None:
     workspace1_dir = tmpdir.mkdir("workspace1")
     workspace2_dir = tmpdir.mkdir("workspace2")
     root_uri = pylsp.root_uri
@@ -230,7 +230,7 @@ def test_root_workspace_removed(tmpdir, pylsp):
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Fails on Windows")
-def test_workspace_loads_pycodestyle_config(pylsp, tmpdir):
+def test_workspace_loads_pycodestyle_config(pylsp, tmpdir) -> None:
     workspace1_dir = tmpdir.mkdir("Test123")
     pylsp.root_uri = str(workspace1_dir)
     pylsp.workspace._root_uri = str(workspace1_dir)
@@ -268,7 +268,7 @@ def test_workspace_loads_pycodestyle_config(pylsp, tmpdir):
     assert seetings["plugins"]["pycodestyle"]["maxLineLength"] == 20
 
 
-def test_settings_of_added_workspace(pylsp, tmpdir):
+def test_settings_of_added_workspace(pylsp, tmpdir) -> None:
     test_uri = str(tmpdir.mkdir("Test123"))
     pylsp.root_uri = test_uri
     pylsp.workspace._root_uri = test_uri
@@ -290,7 +290,7 @@ def test_settings_of_added_workspace(pylsp, tmpdir):
     assert workspace1_jedi_settings == server_settings["pylsp"]["plugins"]["jedi"]
 
 
-def test_no_progress_without_capability(workspace, consumer):
+def test_no_progress_without_capability(workspace, consumer) -> None:
     workspace._config.capabilities["window"] = {"workDoneProgress": False}
 
     with workspace.report_progress("some_title"):
@@ -299,7 +299,7 @@ def test_no_progress_without_capability(workspace, consumer):
     assert len(consumer.call_args_list) == 0
 
 
-def test_progress_simple(workspace, consumer):
+def test_progress_simple(workspace, consumer) -> None:
     workspace._config.capabilities["window"] = {"workDoneProgress": True}
 
     with workspace.report_progress("some_title"):
@@ -332,7 +332,7 @@ def test_progress_simple(workspace, consumer):
 @pytest.mark.parametrize("exc", [Exception("something"), TimeoutError()])
 def test_progress_initialization_fails_but_is_skipped(
     workspace, consumer, endpoint, exc
-):
+) -> None:
     def failing_token_initialization(self, *_args, **_kwargs):
         raise exc
 
@@ -355,7 +355,7 @@ def test_progress_initialization_fails_but_is_skipped(
     ]
 
 
-def test_progress_with_percent(workspace, consumer):
+def test_progress_with_percent(workspace, consumer) -> None:
     workspace._config.capabilities["window"] = {"workDoneProgress": True}
 
     with workspace.report_progress(
@@ -395,7 +395,7 @@ def test_progress_with_percent(workspace, consumer):
     ]
 
 
-def test_progress_with_exception(workspace, consumer):
+def test_progress_with_exception(workspace, consumer) -> None:
     workspace._config.capabilities["window"] = {"workDoneProgress": True}
 
     class DummyError(Exception):

@@ -53,6 +53,14 @@
       },
       "description": "List of errors and warnings to append to ignore list."
     },
+    "pylsp.plugins.flake8.extendSelect": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "description": "List of errors and warnings to append to select list."
+    },
     "pylsp.plugins.flake8.executable": {
       "type": "string",
       "default": "flake8",
@@ -142,6 +150,11 @@
         "type": "string"
       },
       "description": "Define extra paths for jedi.Script."
+    },
+    "pylsp.plugins.jedi.prioritize_extra_paths": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to place extra_paths at the beginning (true) or end (false) of `sys.path`"
     },
     "pylsp.plugins.jedi.env_vars": {
       "type": [

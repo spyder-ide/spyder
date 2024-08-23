@@ -22,13 +22,13 @@ jobs:
       OS: 'linux'
     timeout-minutes: 2
     steps:
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: static-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: static-pip-
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           # TODO: check with Python 3, but need to fix the
           # errors first

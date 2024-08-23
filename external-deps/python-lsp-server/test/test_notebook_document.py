@@ -1,11 +1,6 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import time
-from test.test_utils import (
-    CALL_TIMEOUT_IN_SECONDS,
-    send_initialize_request,
-    send_notebook_did_open,
-)
 from unittest.mock import call, patch
 
 import pytest
@@ -13,9 +8,14 @@ import pytest
 from pylsp import IS_WIN
 from pylsp.lsp import NotebookCellKind
 from pylsp.workspace import Notebook
+from test.test_utils import (
+    CALL_TIMEOUT_IN_SECONDS,
+    send_initialize_request,
+    send_notebook_did_open,
+)
 
 
-def wait_for_condition(condition, timeout=CALL_TIMEOUT_IN_SECONDS):
+def wait_for_condition(condition, timeout=CALL_TIMEOUT_IN_SECONDS) -> None:
     """Wait for a condition to be true, or timeout."""
     start_time = time.time()
     while not condition():
@@ -25,7 +25,7 @@ def wait_for_condition(condition, timeout=CALL_TIMEOUT_IN_SECONDS):
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_initialize(client_server_pair):
+def test_initialize(client_server_pair) -> None:
     client, server = client_server_pair
     response = send_initialize_request(client)
     assert server.workspace is not None
@@ -34,7 +34,7 @@ def test_initialize(client_server_pair):
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_workspace_did_change_configuration(client_server_pair):
+def test_workspace_did_change_configuration(client_server_pair) -> None:
     """Test that we can update a workspace config w/o error when a notebook is open."""
     client, server = client_server_pair
     send_initialize_request(client)
@@ -83,7 +83,7 @@ def test_workspace_did_change_configuration(client_server_pair):
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
 def test_notebook_document__did_open(
     client_server_pair,
-):
+) -> None:
     client, server = client_server_pair
     send_initialize_request(client)
 
@@ -185,7 +185,7 @@ def test_notebook_document__did_open(
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
 def test_notebook_document__did_change(
     client_server_pair,
-):
+) -> None:
     client, server = client_server_pair
     send_initialize_request(client)
 
@@ -420,7 +420,7 @@ def test_notebook_document__did_change(
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
 def test_notebook__did_close(
     client_server_pair,
-):
+) -> None:
     client, server = client_server_pair
     send_initialize_request(client)
 
@@ -455,7 +455,7 @@ def test_notebook__did_close(
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_notebook_definition(client_server_pair):
+def test_notebook_definition(client_server_pair) -> None:
     client, server = client_server_pair
     send_initialize_request(client)
 
@@ -490,7 +490,7 @@ def test_notebook_definition(client_server_pair):
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_notebook_completion(client_server_pair):
+def test_notebook_completion(client_server_pair) -> None:
     """
     Tests that completions work across cell boundaries for notebook document support
     """

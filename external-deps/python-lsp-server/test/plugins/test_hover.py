@@ -23,7 +23,7 @@ np.sin
 """
 
 
-def test_numpy_hover(workspace):
+def test_numpy_hover(workspace) -> None:
     # Over the blank line
     no_hov_position = {"line": 1, "character": 0}
     # Over 'numpy' in import numpy as np
@@ -71,7 +71,7 @@ def test_numpy_hover(workspace):
         )
 
 
-def test_hover(workspace):
+def test_hover(workspace) -> None:
     # Over 'main' in def main():
     hov_position = {"line": 2, "character": 6}
     # Over the blank second line
@@ -86,7 +86,7 @@ def test_hover(workspace):
     assert {"contents": ""} == pylsp_hover(doc._config, doc, no_hov_position)
 
 
-def test_document_path_hover(workspace_other_root_path, tmpdir):
+def test_document_path_hover(workspace_other_root_path, tmpdir) -> None:
     # Create a dummy module out of the workspace's root_path and try to get
     # a definition on it in another file placed next to it.
     module_content = '''

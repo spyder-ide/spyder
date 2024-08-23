@@ -39,7 +39,7 @@ bar = {'foo': foo
 """
 
 
-def test_format(config, workspace):
+def test_format(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     res = pylsp_format_document(config, workspace, doc, options=None)
 
@@ -47,7 +47,7 @@ def test_format(config, workspace):
     assert res[0]["newText"] == "a = 123\n\n\ndef func():\n    pass\n"
 
 
-def test_range_format(config, workspace):
+def test_range_format(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
 
     def_range = {
@@ -62,12 +62,12 @@ def test_range_format(config, workspace):
     assert res[0]["newText"] == "a = 123\n\n\n\n\ndef func():\n    pass\n"
 
 
-def test_no_change(config, workspace):
+def test_no_change(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, GOOD_DOC)
     assert not pylsp_format_document(config, workspace, doc, options=None)
 
 
-def test_hanging_indentation(config, workspace):
+def test_hanging_indentation(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, INDENTED_DOC)
     res = pylsp_format_document(config, workspace, doc, options=None)
 
@@ -76,7 +76,7 @@ def test_hanging_indentation(config, workspace):
 
 
 @pytest.mark.parametrize("newline", ["\r\n", "\r"])
-def test_line_endings(config, workspace, newline):
+def test_line_endings(config, workspace, newline) -> None:
     doc = Document(DOC_URI, workspace, f"import os;import sys{2 * newline}dict(a=1)")
     res = pylsp_format_document(config, workspace, doc, options=None)
 

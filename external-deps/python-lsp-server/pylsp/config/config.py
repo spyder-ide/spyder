@@ -43,7 +43,7 @@ class PluginManager(pluggy.PluginManager):
 
 
 class Config:
-    def __init__(self, root_uri, init_opts, process_id, capabilities):
+    def __init__(self, root_uri, init_opts, process_id, capabilities) -> None:
         self._root_path = uris.to_fs_path(root_uri)
         self._root_uri = root_uri
         self._init_opts = init_opts
@@ -185,14 +185,14 @@ class Config:
             .get(plugin, {})
         )
 
-    def update(self, settings):
+    def update(self, settings) -> None:
         """Recursively merge the given settings into the current settings."""
         self.settings.cache_clear()
         self._settings = settings
         log.info("Updated settings to %s", self._settings)
         self._update_disabled_plugins()
 
-    def _update_disabled_plugins(self):
+    def _update_disabled_plugins(self) -> None:
         # All plugins default to enabled
         self._disabled_plugins = [
             plugin

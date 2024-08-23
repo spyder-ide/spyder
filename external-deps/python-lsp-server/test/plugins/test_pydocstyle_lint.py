@@ -19,7 +19,7 @@ import json
 """
 
 
-def test_pydocstyle(config, workspace):
+def test_pydocstyle(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
 
@@ -38,21 +38,21 @@ def test_pydocstyle(config, workspace):
     }
 
 
-def test_pydocstyle_test_document(config, workspace):
+def test_pydocstyle_test_document(config, workspace) -> None:
     # The default --match argument excludes test_* documents.
     doc = Document(TEST_DOC_URI, workspace, "")
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
     assert not diags
 
 
-def test_pydocstyle_empty_source(config, workspace):
+def test_pydocstyle_empty_source(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, "")
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
     assert diags[0]["message"] == "D100: Missing docstring in public module"
     assert len(diags) == 1
 
 
-def test_pydocstyle_invalid_source(config, workspace):
+def test_pydocstyle_invalid_source(config, workspace) -> None:
     doc = Document(DOC_URI, workspace, "bad syntax")
     diags = pydocstyle_lint.pylsp_lint(config, workspace, doc)
     # We're unable to parse the file, so can't get any pydocstyle diagnostics
