@@ -2,13 +2,14 @@
 import unittest
 
 # Local imports
-from qtconsole.ansi_code_processor import AnsiCodeProcessor
+from qtconsole.ansi_code_processor import AnsiCodeProcessor, QtAnsiCodeProcessor
 
 
 class TestAnsiCodeProcessor(unittest.TestCase):
 
     def setUp(self):
         self.processor = AnsiCodeProcessor()
+        self.qt_processor = QtAnsiCodeProcessor()
 
     def test_clear(self):
         """ Do control sequences for clearing the console work?
@@ -37,7 +38,7 @@ class TestAnsiCodeProcessor(unittest.TestCase):
     def test_colors(self):
         """ Do basic controls sequences for colors work?
         """
-        string = 'first\x1b[34mblue\x1b[0mlast'
+        string = 'first\x1b[34mblue\x1b[0mlast\033[33mYellow'
         i = -1
         for i, substring in enumerate(self.processor.split_string(string)):
             if i == 0:
@@ -49,9 +50,14 @@ class TestAnsiCodeProcessor(unittest.TestCase):
             elif i == 2:
                 self.assertEqual(substring, 'last')
                 self.assertEqual(self.processor.foreground_color, None)
+            elif i == 3:
+                foreground_color = self.processor.foreground_color
+                self.assertEqual(substring, 'Yellow')
+                self.assertEqual(foreground_color, 3)
+                self.assertEqual(self.qt_processor.get_color(foreground_color).name(), '#ffd700')
             else:
                 self.fail('Too many substrings.')
-        self.assertEqual(i, 2, 'Too few substrings.')
+        self.assertEqual(i, 3, 'Too few substrings.')
 
     def test_colors_xterm(self):
         """ Do xterm-specific control sequences for colors work?

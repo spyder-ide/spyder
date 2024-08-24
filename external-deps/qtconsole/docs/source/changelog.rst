@@ -8,6 +8,16 @@ Changes in Jupyter Qt console
 5.5
 ~~~
 
+5.5.2
+-----
+
+`5.5.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.5.2>`__
+
+* Check if kernel manager is available in case the console is connected to an
+  externally launched kernel.
+* Use string representation for a QKeySequence construction to avoid an error
+  in PySide6.
+
 5.5.1
 -----
 
