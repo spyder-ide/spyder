@@ -61,7 +61,7 @@ class AnsiCodeProcessor(object):
 
     # Whether to increase intensity or set boldness for SGR code 1.
     # (Different terminals handle this in different ways.)
-    bold_text_enabled = False
+    bold_text_enabled = True
 
     # We provide an empty default color map because subclasses will likely want
     # to use a custom color format.
@@ -292,6 +292,31 @@ class AnsiCodeProcessor(object):
             self.actions.append(ScrollAction('scroll', 'down', 'page', 1))
         return ''
 
+    def _parse_ansi_color(self, color, intensity):
+        """
+        Map an ANSI color code to color name or a RGB tuple.
+        Based on: https://gist.github.com/MightyPork/1d9bd3a3fd4eb1a661011560f6921b5b
+        """
+        parsed_color = None
+        if color < 16:
+            # Adjust for intensity, if possible.
+            if intensity > 0 and color < 8:
+                color += 8
+            parsed_color = self.color_map.get(color, None)
+        elif (color > 231):
+                s = int((color - 232) * 10 + 8)
+                parsed_color = (s, s, s)
+        else:
+            n = color - 16
+            b = n % 6
+            g = (n - b) / 6 % 6
+            r = (n - b - g * 6) / 36 % 6
+            r = int(r * 40 + 55) if r else 0
+            g = int(g * 40 + 55) if g else 0
+            b = int(b * 40 + 55) if b else 0
+            parsed_color = (r, g, b)
+        return parsed_color
+
 
 class QtAnsiCodeProcessor(AnsiCodeProcessor):
     """ Translates ANSI escape codes into QTextCharFormats.
@@ -302,7 +327,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         0  : 'black',       # black
         1  : 'darkred',     # red
         2  : 'darkgreen',   # green
-        3  : 'brown',       # yellow
+        3  : 'gold',       # yellow
         4  : 'darkblue',    # blue
         5  : 'darkviolet',  # magenta
         6  : 'steelblue',   # cyan
@@ -323,12 +348,8 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         """ Returns a QColor for a given color code or rgb list, or None if one
             cannot be constructed.
         """
-
         if isinstance(color, int):
-            # Adjust for intensity, if possible.
-            if color < 8 and intensity > 0:
-                color += 8
-            constructor = self.color_map.get(color, None)
+            constructor = self._parse_ansi_color(color, intensity)
         elif isinstance(color, (tuple, list)):
             constructor = color
         else:
