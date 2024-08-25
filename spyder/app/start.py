@@ -24,6 +24,7 @@ import os.path as osp
 import random
 import socket
 import time
+import warnings
 
 # Prevent showing internal logging errors
 # Fixes spyder-ide/spyder#15768
@@ -79,6 +80,11 @@ if CLI_OPTIONS.safe_mode:
 
 if CLI_OPTIONS.conf_dir:
     os.environ['SPYDER_CONFDIR'] = CLI_OPTIONS.conf_dir
+
+# -- Ignore useless warnings
+# From the cryptography module
+warnings.filterwarnings("ignore", message="ARC4 has been moved")
+warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 
 def send_args_to_spyder(args):
