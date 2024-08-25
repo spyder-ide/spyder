@@ -11,7 +11,6 @@
 # Spyder consoles sitecustomize
 #
 
-import logging
 import os
 import pdb
 import sys
@@ -239,7 +238,7 @@ except Exception:
 
 
 # =============================================================================
-# os adjustments
+# OS adjustments
 # =============================================================================
 # This is necessary to have better support for Rich and Colorama.
 def _patched_get_terminal_size(fd=None):
@@ -252,6 +251,17 @@ os.get_terminal_size = _patched_get_terminal_size
 # Pdb adjustments
 # =============================================================================
 pdb.Pdb = SpyderPdb
+
+
+# =============================================================================
+# Remove TMPDIR env var in case it was set by Spyder
+# =============================================================================
+# See spyder-ide/spyder#22382 for the details.
+try:
+    os.environ.pop("TMPDIR")
+except KeyError:
+    pass
+
 
 # =============================================================================
 # PYTHONPATH and sys.path Adjustments
