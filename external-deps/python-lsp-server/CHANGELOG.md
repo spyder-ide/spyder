@@ -1,5 +1,34 @@
 # History of changes
 
+## Version 1.12.0 (2024/08/25)
+
+### New features
+
+* Add support for `window/logMessage`.
+* Add version support to `workspace/publishDiagnostics`.
+* Add `extendSelect` option to flake8 plugin.
+* Allow Jedi's `extra_paths` to be placed in front of `sys.path`.
+* Bump flake8 to 7.1
+
+### Pull Requests Merged
+
+* [PR 586](https://github.com/python-lsp/python-lsp-server/pull/586) - Update versions of Github actions used on CI, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 585](https://github.com/python-lsp/python-lsp-server/pull/585) - Fix linting issues reported by the latest version of Ruff, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 584](https://github.com/python-lsp/python-lsp-server/pull/584) - Use `%r` to have a better log, by [@tebeka](https://github.com/tebeka)
+* [PR 581](https://github.com/python-lsp/python-lsp-server/pull/581) - Set return type to `None` for functions without returns, by [@agserrano3](https://github.com/agserrano3)
+* [PR 576](https://github.com/python-lsp/python-lsp-server/pull/576) - Bump flake8 to 7.1, by [@bnavigator](https://github.com/bnavigator)
+* [PR 573](https://github.com/python-lsp/python-lsp-server/pull/573) - Add `window/logMessage` support, by [@Dylmay](https://github.com/Dylmay)
+* [PR 570](https://github.com/python-lsp/python-lsp-server/pull/570) - Fix Fedora instructions, by [@penguinpee](https://github.com/penguinpee)
+* [PR 565](https://github.com/python-lsp/python-lsp-server/pull/565) - Add version support to `workspace/publishDiagnostics`, by [@Dylmay](https://github.com/Dylmay)
+* [PR 560](https://github.com/python-lsp/python-lsp-server/pull/560) - Use macOS 13 to run our tests on CI, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 559](https://github.com/python-lsp/python-lsp-server/pull/559) - Add `extendSelect` option to flake8 plugin, by [@Susensio](https://github.com/Susensio)
+* [PR 547](https://github.com/python-lsp/python-lsp-server/pull/547) - Infer end position for Pylint diagnostics, by [@Wuestengecko](https://github.com/Wuestengecko)
+* [PR 527](https://github.com/python-lsp/python-lsp-server/pull/527) - Allow `extra_paths` to be placed in front of `sys.path`, by [@mrclary](https://github.com/mrclary)
+
+In this release 12 pull requests were closed.
+
+----
+
 ## Version 1.11.0 (2024/03/29)
 
 ### New features
