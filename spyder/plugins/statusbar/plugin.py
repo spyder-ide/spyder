@@ -55,6 +55,7 @@ class StatusBar(SpyderPluginV2):
         "pythonenv_status",
         "matplotlib_status",
         "update_manager_status",
+        "inapp_appeal_status",
     }
 
     # ---- SpyderPluginV2 API
@@ -234,6 +235,7 @@ class StatusBar(SpyderPluginV2):
             "pythonenv_status",
             "matplotlib_status",
             "update_manager_status",
+            "inapp_appeal_status",
         ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
@@ -249,13 +251,15 @@ class StatusBar(SpyderPluginV2):
             # This is needed in the case kite is installed but not enabled
             if id_ in self.INTERNAL_WIDGETS:
                 self._statusbar.insertPermanentWidget(
-                    StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_])
+                    StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_]
+                )
                 self.INTERNAL_WIDGETS[id_].setVisible(True)
 
         # Add the external left widgets
         for id_ in external_left:
             self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_])
+                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_]
+            )
             self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(True)
 
     def before_mainwindow_visible(self):
