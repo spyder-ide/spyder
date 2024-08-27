@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-21 00:01\n"
+"PO-Revision-Date: 2024-08-20 19:49\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2945,7 +2945,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editor.py:2552
 msgid "All changes to file <b>%s</b> will be lost.<br>Do you want to revert it from disk?"
-msgstr ""
+msgstr "Все изменения для <b>%s</b> были потеряны.<br>Хотите перегрузить файл с диска?"
 
 #: spyder/plugins/editor/widgets/editor.py:2572
 msgid "File <b>%s</b> is not saved on disk, so it can't be reverted."
@@ -3001,27 +3001,27 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/printer.py:102
 msgid "Next page"
-msgstr ""
+msgstr "Следующая страница"
 
 #: spyder/plugins/editor/widgets/printer.py:103
 msgid "Last page"
-msgstr ""
+msgstr "Последняя страница"
 
 #: spyder/plugins/editor/widgets/printer.py:104
 msgid "Show single page"
-msgstr ""
+msgstr "Показать одну страницу"
 
 #: spyder/plugins/editor/widgets/printer.py:105
 msgid "Show overview of all pages"
-msgstr ""
+msgstr "Показать обзор всех страниц"
 
 #: spyder/plugins/editor/widgets/printer.py:106
 msgid "Page setup"
-msgstr ""
+msgstr "Настройки страницы"
 
 #: spyder/plugins/editor/widgets/printer.py:107
 msgid "Print"
-msgstr ""
+msgstr "Печать"
 
 #: spyder/plugins/editor/widgets/recover.py:49
 msgid "Recover from autosave"

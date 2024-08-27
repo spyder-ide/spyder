@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-21 00:00\n"
+"PO-Revision-Date: 2023-11-18 22:28\n"
 "Last-Translator: \n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -99,11 +99,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:399
 msgid "Plugin compatibility check"
-msgstr ""
+msgstr "Bővítmény kompatibilitásának ellenőrzése"
 
 #: spyder/app/mainwindow.py:401
 msgid "It was not possible to load the {} plugin. The problem was:<br><br>{}"
-msgstr ""
+msgstr "A(z) {} bővítmény betöltése nem lehetséges. A hiba a következő:<br><br>{}"
 
 #: spyder/app/mainwindow.py:423
 msgid "Loading {}..."
@@ -175,7 +175,7 @@ msgstr "Hiba"
 
 #: spyder/app/mainwindow.py:1575
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "Kérjük, használja a <code>spyder -p \"{fname}\"</code> kódot a(z) <code>{fpath}</code> projektként való megnyitásához a Spyderben."
 
 #: spyder/app/mainwindow.py:1801
 msgid "Initializing..."
@@ -355,7 +355,7 @@ msgstr "Kezelje a kernel és a frontend közötti kommunikációt"
 
 #: spyder/dependencies.py:118
 msgid "Create projects from cookiecutter templates"
-msgstr ""
+msgstr "Projekt készítése a cookiecutter sablonokkal"
 
 #: spyder/dependencies.py:122
 msgid "Compute text file diff changes during edition"
@@ -367,7 +367,7 @@ msgstr ""
 
 #: spyder/dependencies.py:130
 msgid "IPython interactive python environment"
-msgstr ""
+msgstr "IPython interaktív python környezet"
 
 #: spyder/dependencies.py:134
 msgid "Main backend for the Python Language Server"
@@ -531,7 +531,7 @@ msgstr "Világos"
 
 #: spyder/plugins/appearance/confpage.py:49
 msgid "Dark"
-msgstr ""
+msgstr "Sötét"
 
 #: spyder/plugins/appearance/confpage.py:52
 msgid "Interface theme"
@@ -3693,7 +3693,7 @@ msgstr ""
 
 #: spyder/plugins/help/widgets.py:421 spyder/plugins/onlinehelp/widgets.py:202 spyder/plugins/onlinehelp/widgets.py:203 spyder/widgets/browser.py:424
 msgid "Home"
-msgstr "Otthoni"
+msgstr "Kezdőlap"
 
 #: spyder/plugins/help/widgets.py:500
 msgid "Unlock"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-21 00:01\n"
+"PO-Revision-Date: 2024-08-20 20:45\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -99,11 +99,11 @@ msgstr "Um erro aconteceu enquanto era criado um socket requerido pelo Spyder. P
 
 #: spyder/app/mainwindow.py:399
 msgid "Plugin compatibility check"
-msgstr ""
+msgstr "Verificação de compatibilidade de plugin"
 
 #: spyder/app/mainwindow.py:401
 msgid "It was not possible to load the {} plugin. The problem was:<br><br>{}"
-msgstr ""
+msgstr "Não foi possível carregar a plugin {}. O problema foi:<br><br>{}"
 
 #: spyder/app/mainwindow.py:423
 msgid "Loading {}..."
@@ -809,43 +809,43 @@ msgstr "Verificar se há atualizações na inicialização"
 
 #: spyder/plugins/application/container.py:285
 msgid "<h3>Spyder {} is available!</h3><br>"
-msgstr ""
+msgstr "<h3>Spyder {} está disponível!</h3><br>"
 
 #: spyder/plugins/application/container.py:306
 msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
-msgstr ""
+msgstr "Gostaria de baixar e instalar automaticamente usando o instalador do Spyder?<br><br>Recomendamos <a href='{}'>nosso próprio instalador </a> porque é mais estável e facilita a atualização. Isso deixará a instalação existente do Spyder intacta."
 
 #: spyder/plugins/application/container.py:317
 msgid "Would you like to automatically download and install it?"
-msgstr ""
+msgstr "Você gostaria de baixar e instalar automaticamente?"
 
 #: spyder/plugins/application/container.py:348
 msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
-msgstr ""
+msgstr "Execute o seguinte comando ou comandos no prompt Anaconda para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/application/container.py:352
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
-msgstr ""
+msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/application/container.py:356
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
-msgstr ""
+msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/application/container.py:359
 msgid "Run the following command in a terminal to update manually:<br><br>"
-msgstr ""
+msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/application/container.py:379
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
-msgstr ""
+msgstr "<b>Nota importante:</b> Você instalou o Spyder com pip em um ambiente Conda, o que não é uma boa ideia. Consulte <a href=\"{}\">nosso vídeo</a> para obter mais detalhes."
 
 #: spyder/plugins/application/container.py:397
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
-msgstr ""
+msgstr "<b>Nota importante:</b> Como você instalou o Spyder com Anaconda, por favor, não use pip para atualizá-lo, pois isso irá quebrar sua instalação."
 
 #: spyder/plugins/application/container.py:406
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
-msgstr ""
+msgstr "<br><br>Para mais informações, visite nosso <a href=\"{}\">guia de instalação</a>."
 
 #: spyder/plugins/application/container.py:414
 msgid "Spyder is up to date."
@@ -2148,7 +2148,7 @@ msgstr "Tipo de Docstring"
 
 #: spyder/plugins/editor/confpage.py:258
 msgid "Here you can select the type of docstrings ({}, {} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function, method or class declaration."
-msgstr ""
+msgstr "Aqui você pode selecionar o tipo de docstrings ({}, {} ou {}) que deseja que o editor apresente automaticamente ao pressionar <tt>{}</tt> após uma declaração de função, método ou classe."
 
 #: spyder/plugins/editor/confpage.py:267
 msgid "Numpy"
@@ -2938,11 +2938,11 @@ msgstr "O arquivo <b>%s</b> está indisponível.<br><br>O arquivo pode ter sido 
 
 #: spyder/plugins/editor/widgets/editor.py:2413
 msgid "The file <b>{}</b> has been modified outside Spyder.<br><br>Do you want to reload it and lose all your changes?"
-msgstr ""
+msgstr "O arquivo <b>{}</b> foi modificado fora do Spyder.<br><br>Você deseja recarregá-lo e perder todas as suas alterações?"
 
 #: spyder/plugins/editor/widgets/editor.py:2433
 msgid "The file <b>{}</b> has been modified outside Spyder but it was not possible to reload it.<br><br>Therefore, it will be closed."
-msgstr ""
+msgstr "O arquivo <b>{}</b> foi modificado fora do Spyder mas não foi possível recarregá-lo.<br><br>Portanto, ele será fechado."
 
 #: spyder/plugins/editor/widgets/editor.py:2552
 msgid "All changes to file <b>%s</b> will be lost.<br>Do you want to revert it from disk?"
@@ -7190,21 +7190,21 @@ msgstr "Fechar aba atual"
 
 #: spyder/workers/updates.py:30
 msgid "Unable to connect to the Spyder update service.<br><br>Make sure your connection is working properly."
-msgstr ""
+msgstr "Não foi possível conectar ao serviço de atualização do Spyder.<br><br>Certifique-se de que sua conexão está funcionando corretamente."
 
 #: spyder/workers/updates.py:35
 msgid "HTTP error {status_code} when checking for updates.<br><br>Make sure your connection is working properly,and try again later."
-msgstr ""
+msgstr "Erro HTTP {status_code} ao verificar atualizações.<br><br>Certifique-se de que sua conexão está funcionando corretamente e tente novamente mais tarde."
 
 #: spyder/workers/updates.py:41
 msgid "SSL certificate verification failed while checking for Spyder updates.<br><br>Please contact your network administrator for assistance."
-msgstr ""
+msgstr "Verificação de certificado SSL falhou ao procurar por atualizações do Spyder.<br><br>Por favor, contate seu administrador de rede para obter assistência."
 
 #: spyder/workers/updates.py:163
 msgid "It was not possible to check for Spyder updates due to the following error:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Não foi possível baixar o instalador devido ao seguinte erro:<br><br><tt>{}</tt>"
 
 #: spyder/workers/updates.py:301
 msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Não foi possível baixar o instalador devido ao seguinte erro:<br><br><tt>{}</tt>"
 
