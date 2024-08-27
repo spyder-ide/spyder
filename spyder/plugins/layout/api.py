@@ -357,11 +357,9 @@ class BaseGridLayoutType:
             all_plugin_ids.append(plugin.NAME)
 
             # Save currently displayed external plugins
-            if (
-                plugin.NAME in PLUGIN_REGISTRY.external_plugins
-                and plugin.dockwidget.isVisible()
-            ):
-                external_plugins_to_show.append(plugin.NAME)
+            if (plugin.NAME in PLUGIN_REGISTRY.external_plugins):
+                for plugin in dockable_plugins:
+                    external_plugins_to_show.append(plugin.dockwidget.isVisible())
 
             plugin.toggle_view(False)
 
