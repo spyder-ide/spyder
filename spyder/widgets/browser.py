@@ -296,20 +296,23 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
         return number_matches
 
-    def set_font(self, font, fixed_font=None):
+    def set_font(self, font, fixed_font=None, size_delta=0):
         font = QFontInfo(font)
         settings = self.page().settings()
+
         for fontfamily in (QWebEngineSettings.FontFamily.StandardFont,
                            QWebEngineSettings.FontFamily.SerifFont,
                            QWebEngineSettings.FontFamily.SansSerifFont,
                            QWebEngineSettings.FontFamily.CursiveFont,
                            QWebEngineSettings.FontFamily.FantasyFont):
             settings.setFontFamily(fontfamily, font.family())
+
         if fixed_font is not None:
             settings.setFontFamily(
                 QWebEngineSettings.FontFamily.FixedFont, fixed_font.family()
             )
-        size = font.pixelSize()
+
+        size = font.pixelSize() + size_delta
         settings.setFontSize(QWebEngineSettings.FontSize.DefaultFontSize, size)
         settings.setFontSize(
             QWebEngineSettings.FontSize.DefaultFixedFontSize, size
