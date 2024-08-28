@@ -7,11 +7,74 @@
 """Status bar widgets."""
 
 # Standard library imports
+import os.path as osp
 import datetime
 
+# Third-party imports
+from qtpy.QtCore import Qt, QUrl
+from qtpy.QtWidgets import QDialog, QVBoxLayout
+
 # Local imports
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.status import BaseTimerStatus
 from spyder.api.translations import _
+from spyder.config.base import get_module_source_path
+from spyder.config.gui import is_dark_interface
+from spyder.utils.icon_manager import ima
+from spyder.utils.qthelpers import start_file
+from spyder.utils.stylesheet import WIN
+from spyder.widgets.browser import WebView
+
+
+class InAppAppealDialog(QDialog, SpyderFontsMixin):
+
+    CONF_SECTION = "main"
+    WIDTH = 530
+    HEIGHT = 620 if WIN else 665
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Attributes
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        )
+        self.setFixedWidth(self.WIDTH)
+        self.setFixedHeight(self.HEIGHT)
+        self.setWindowTitle(_("Help Spyder"))
+        self.setWindowIcon(ima.icon("inapp_appeal"))
+
+        # Path to the appeal page
+        appeal_page_path = osp.join(
+            get_module_source_path("spyder.plugins.application.widgets"),
+            "appeal_page",
+            "dark" if is_dark_interface() else "light",
+            "index.html",
+        )
+
+        # Create webview to render the appeal message
+        webview = WebView(self, handle_links=True)
+
+        # Set font used in the view
+        app_font = self.get_font(SpyderFontType.Interface)
+        webview.set_font(app_font, size_delta=2)
+
+        # Load page
+        webview.load(QUrl.fromLocalFile(appeal_page_path))
+
+        # Open links in external browser
+        webview.page().linkClicked.connect(self._handle_link_clicks)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(webview)
+        self.setLayout(layout)
+
+    def _handle_link_clicks(self, url):
+        url = str(url.toString())
+        if url.startswith('http'):
+            start_file(url)
 
 
 class InAppAppealStatus(BaseTimerStatus):
@@ -27,12 +90,28 @@ class InAppAppealStatus(BaseTimerStatus):
         super().__init__(parent)
 
         self._is_shown = False
+        self._appeal_dialog = None
 
         # We don't need to show a label for this widget
         self.label_value.setVisible(False)
 
         # Update status every hour
         self.set_interval(60 * 60 * 1000)
+
+        # Show appeal on click
+        self.sig_clicked.connect(self._on_click)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _on_click(self):
+        """Handle widget clicks."""
+        if self._appeal_dialog is None:
+            self._appeal_dialog = InAppAppealDialog(self)
+
+        if self._appeal_dialog.isVisible():
+            self._appeal_dialog.hide()
+        else:
+            self._appeal_dialog.show()
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
