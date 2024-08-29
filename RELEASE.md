@@ -152,6 +152,14 @@ To release a new version of Spyder you need to follow these steps:
 
 * git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - alphas or betas of a new major version).
 
+* For a new major release (e.g. version 6.0.0 after 5.5.6):
+
+    - `git checkout -b 6.x`
+    - `git checkout master`
+    - Update major version in `__init__.py` to `7`.
+    - `git add .` and `git commit -m "Bump version to 7.0"`
+    - `git checkout 6.x`
+
 * Update `changelogs/Spyder-X.md` (`changelogs/Spyder-6.md` for Spyder 6 for example) with `loghub spyder-ide/spyder -m vX.X.X`
 
     - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-X+1.md` to the tree (`changelogs/Spyder-7.md` for Spyder 7 for example).
