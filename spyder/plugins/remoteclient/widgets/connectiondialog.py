@@ -255,10 +255,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             intro_layout.addWidget(intro_tip)
 
         # Authentication methods
+        # TODO: The config file method is not implemented yet, so we need to
+        # disable it for now.
         methods = (
             (_('Password'), AuthenticationMethod.Password),
             (_('Key file'), AuthenticationMethod.KeyFile),
-            (_('Configuration file'), AuthenticationMethod.ConfigFile),
+            # (_('Configuration file'), AuthenticationMethod.ConfigFile),
         )
 
         self._auth_methods = self.create_combobox(

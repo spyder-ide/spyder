@@ -113,6 +113,13 @@ class InAppAppealStatus(BaseTimerStatus):
         else:
             self._appeal_dialog.show()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def show_appeal(self):
+        if self._appeal_dialog is None:
+            self._appeal_dialog = InAppAppealDialog(self)
+            self._appeal_dialog.show()
+
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
     def get_icon(self):
