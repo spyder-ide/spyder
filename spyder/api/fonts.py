@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Helper utilities to get the fonts used in Spyder from our config system.
+Helper classes to get and set the fonts used in Spyder.
 """
 
 # Standard library imports
