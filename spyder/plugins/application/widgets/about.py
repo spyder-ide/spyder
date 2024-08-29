@@ -48,6 +48,8 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
+        self.setWindowTitle(_("About Spyder"))
+        self.setWindowIcon(ima.icon("MessageBoxInformation"))
         versions = get_versions()
 
         # -- Show Git revision for development version

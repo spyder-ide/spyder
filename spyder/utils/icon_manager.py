@@ -291,6 +291,7 @@ class IconManager():
             'undock':                  [('mdi.open-in-new',), {'color': self.MAIN_FG_COLOR}],
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'inapp_appeal':            [('mdi6.heart',), {'color': SpyderPalette.COLOR_HEART}],
             # --- Autocompletion/document symbol type icons --------------
             'completions':             [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
             'keyword':                 [('mdi.alpha-k-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
