@@ -2346,5 +2346,26 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     assert not main_widget.show_time_action.isEnabled()
 
 
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
+def test_restore_tmpdir(ipyconsole, qtbot, tmp_path):
+    """
+    Check the TMPDIR env var is available in the kernel if it is in the system.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Save the system TMPDIR
+    system_tmpdir = os.environ["TMPDIR"]
+
+    # Check it's the same in the kernel
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; tmpdir = os.environ.get('TMPDIR')")
+
+    assert shell.get_value('tmpdir') == system_tmpdir
+
+
 if __name__ == "__main__":
     pytest.main()
