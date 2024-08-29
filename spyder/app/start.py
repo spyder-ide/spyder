@@ -24,6 +24,7 @@ import os.path as osp
 import random
 import socket
 import time
+import warnings
 
 # Prevent showing internal logging errors
 # Fixes spyder-ide/spyder#15768
@@ -56,6 +57,13 @@ from spyder.utils.conda import get_conda_root_prefix
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
 
+
+# On macOS conda installations, sys.executable may be a symlink in the
+# application bundle, and therefore should be resolved to the executable in the
+# environment.
+if sys.platform == "darwin" and sys.executable.endswith("MacOS/python"):
+    sys.executable = os.readlink(sys.executable)
+
 # Enforce correct CONDA_EXE environment variable
 # Do not rely on CONDA_PYTHON_EXE or CONDA_PREFIX in case Spyder is started
 # from the commandline
@@ -79,6 +87,11 @@ if CLI_OPTIONS.safe_mode:
 
 if CLI_OPTIONS.conf_dir:
     os.environ['SPYDER_CONFDIR'] = CLI_OPTIONS.conf_dir
+
+# -- Ignore useless warnings
+# From the cryptography module
+warnings.filterwarnings("ignore", message="ARC4 has been moved")
+warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 
 def send_args_to_spyder(args):

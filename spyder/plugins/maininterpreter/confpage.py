@@ -105,6 +105,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             validate_callback=programs.is_python_interpreter,
         )
         self.cus_exec_combo.setStyleSheet("margin-left: 3px")
+        self.cus_exec_combo.combobox.setMinimumWidth(400)
 
         self.def_exec_radio.radiobutton.toggled.connect(
             self.cus_exec_combo.setDisabled)

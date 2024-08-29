@@ -124,8 +124,12 @@ def get_list_conda_envs():
         path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
             env, 'bin', 'python')
 
-        # In case the environment doesn't have Python
-        if not osp.isfile(path):
+        if (
+            # In case the environment doesn't have Python
+            not osp.isfile(path)
+            # Don't list the installers base env
+            or (is_conda_based_app(pyexec=path) and name != "spyder-runtime")
+        ):
             continue
 
         try:

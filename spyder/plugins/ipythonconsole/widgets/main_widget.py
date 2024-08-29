@@ -10,6 +10,7 @@ IPython Console main widget based on QtConsole.
 
 # Standard library imports
 from __future__ import annotations
+import functools
 import logging
 import os
 import os.path as osp
@@ -1217,9 +1218,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 text=text,
                 icon=self.create_icon('ipython_console'),
                 triggered=(
-                    lambda checked, env_name=env_name,
-                    path_to_interpreter=path_to_interpreter:
-                    self.create_environment_client(
+                    self.create_new_client
+                    if path_to_interpreter == default_interpreter
+                    else functools.partial(
+                        self.create_environment_client,
                         env_name,
                         path_to_interpreter
                     )

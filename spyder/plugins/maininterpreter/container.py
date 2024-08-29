@@ -205,7 +205,27 @@ class MainInterpreterContainer(PluginMainContainer):
         # proper output.
         # Fixes spyder-ide/spyder#20539
         if output is not None:
-            self.envs.update(**output)
+            # Update envs with autodetected info
+            for new_name, new_info in output.items():
+                if new_name in self.envs:
+                    # The env is already listed, so we don't need to do
+                    # anything else.
+                    continue
+                elif (
+                    new_name not in self.envs
+                    and new_info in self.envs.values()
+                ):
+                    # Replace name of envs that are detected as Conda/Pyenv
+                    # envs after running _update_envs, but were listed in
+                    # self.envs differently.
+                    for name, info in self.envs.copy().items():
+                        if info == new_info:
+                            self.envs.pop(name)
+                            self.envs[new_name] = info
+                            break
+                else:
+                    # Add new env to the current ones
+                    self.envs[new_name] = new_info
 
         if self._current_envs != self.envs:
             for env in list(self.envs.keys()):
@@ -251,7 +271,16 @@ class MainInterpreterContainer(PluginMainContainer):
             except KeyError:
                 env_name = get_env_dir(original_path, only_dir=True)
 
-                if 'conda' in path:
+                if (
+                    # For Anaconda/Miniconda distros
+                    "conda" in path.lower()
+                    # For Mambaforge
+                    or "mamba" in path.lower()
+                    # For Miniforge
+                    or "miniforge" in path.lower()
+                    # For our installers
+                    or (is_conda_based_app() and "spyder-runtime" in path)
+                ):
                     name = 'Conda: ' + env_name
                 elif 'pyenv' in path:
                     name = 'Pyenv: ' + env_name
