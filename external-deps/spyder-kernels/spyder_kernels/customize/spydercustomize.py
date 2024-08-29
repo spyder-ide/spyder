@@ -256,12 +256,25 @@ pdb.Pdb = SpyderPdb
 # =============================================================================
 # Remove TMPDIR env var in case it was set by Spyder
 # =============================================================================
-# See spyder-ide/spyder#22382 for the details.
-try:
-    os.environ.pop("TMPDIR")
-except KeyError:
-    pass
+# See spyder-ide/spyder#22382 and spyder-ide/spyder#22394 for the details.
+def restore_tmpdir():
+    # This check is necessary for external/remote kernels because SPY_TMPDIR
+    # is not available for them.
+    if os.environ.get("SPY_TMPDIR") is not None:
+        spy_tmpdir = os.environ.get("SPY_TMPDIR")
 
+        if spy_tmpdir != "":
+            # This means TMPDIR was available in the system when the kernel
+            # started, so we need to restore it.
+            os.environ.update({"TMPDIR": spy_tmpdir})
+        else:
+            # Otherwise, we simply need to remove it
+            try:
+                os.environ.pop("TMPDIR")
+            except KeyError:
+                pass
+
+restore_tmpdir()
 
 # =============================================================================
 # PYTHONPATH and sys.path Adjustments
