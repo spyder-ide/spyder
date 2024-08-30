@@ -2,9 +2,9 @@ To release a new version of spyder-kernels on PyPI:
 
 * Close the respective milestone on Github
 
-* git checkout 2.x
+* git checkout 3.x
 
-* git fetch upstream && get merge upstream/2.x
+* git fetch upstream && get merge upstream/3.x
 
 * git clean -xfdi
 
@@ -18,7 +18,7 @@ To release a new version of spyder-kernels on PyPI:
 
 * python setup.py bdist_wheel
 
-* twine check dist/*
+* twine check --strict dist/*
 
 * twine upload dist/*
 
@@ -30,10 +30,10 @@ To release a new version of spyder-kernels on PyPI:
 
 * git checkout master
 
-* git merge 2.x
+* git merge 3.x
 
 * git push upstream master
 
-* git push upstream 2.x
+* git push upstream 3.x
 
 * git push upstream --tags
