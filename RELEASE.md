@@ -159,6 +159,8 @@ To release a new version of Spyder you need to follow these steps:
     - Update version in `__init__.py` to reflect next major version as dev version (i.e `7.0.0.dev0`).
     - `git add .` and `git commit -m "Bump version to 7.0"`
     - `git checkout 6.x`
+    - In `CHANGELOG.md`, move entry for current version to the `Older versions` section and add one for the new version.
+    - `git add .` and `git commit -m "Add link to changelog of new major version"`
 
 * Update `changelogs/Spyder-X.md` (`changelogs/Spyder-6.md` for Spyder 6 for example) with `loghub spyder-ide/spyder -m vX.X.X`
 
