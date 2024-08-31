@@ -1,5 +1,29 @@
 # History of changes
 
+## Version 3.0.0 (2024-08-29)
+
+### New features
+
+* Speed up debugger execution.
+* Notify Spyder when Matplotlib backend changes.
+* Use control channel for comms instead of a special one.
+* Update variable explorer from the kernel.
+* Simplify kernel configuration from Spyder.
+* Add a `comm_handler` decorator.
+* Transform `runfile`, `debugfile` and `runcell` commands to IPython magics.
+* Add comm handlers to interrupt executions and enter the debugger after that.
+* Publish Pdb stack frames to Spyder.
+* Drop support for Python 2 and support Python 3.8+
+
+### Pull Requests Merged
+
+* [PR 500](https://github.com/spyder-ide/spyder-kernels/pull/500) - PR: Restore `TMPDIR` env var if it was available on the Spyder side, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 498](https://github.com/spyder-ide/spyder-kernels/pull/498) - PR: Remove `TMPDIR` env var after initialization, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.0.0b9 (2024-08-21)
 
 ### Pull Requests Merged
