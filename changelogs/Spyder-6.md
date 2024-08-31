@@ -5,19 +5,18 @@
 ### New features
 
 * New installers for Windows, Linux and macOS based on Conda and Conda-forge.
-  They come up with a more robust update process and were updated to use
-  Python 3.11.
+  They come up with a more robust update process and are based on Python 3.11.
 * Add a Debugger pane to explore the stack frame of the current debugging
   session.
 * Add a button to the Debugger pane to pause the current code execution and
   enter the debugger afterwards.
-* Add initial support to connect to remote servers through SSH and run code in
-  them. This functionality can be find in the menu
-  `Consoles > New console in remote server`.
 * Add submenu to the `Consoles` menu to start a new console for a specific
   Conda or Pyenv environment.
 * Add ability to refresh the open Variable Explorer viewers to reflect the current
-  variable state.
+  variable value.
+* Add initial support to automatically connect to remote servers through SSH
+  and run code in them. This functionality can be found in the menu
+  `Consoles > New console in remote server`.
 * Show plots generated in the Variable Explorer or its viewers in the Plots pane.
 * Show Matplotlib backend and Python environment information in the status bar.
 * Make kernel restarts be much faster for the current interpreter.
@@ -30,13 +29,13 @@
 * Environment variables declared in `~/.bashrc` or `~/.zhrc` are detected and
   passed to the IPython console.
 * Support all real number dtypes in the dataframe viewer.
-* Respect Matplotliob user settings established outside Spyder.
+* Respect Matplotlib user settings configured outside Spyder.
 * Increase DPI of Matplotlib plots so they look better in high resolution screens.
-* Allow to copy the absolute and relative path of the current file to the tabs
+* Allow to copy the absolute and relative paths of the current file to the tabs'
   context menu of the Editor.
 * Restore ability to load Hdf5 and Dicom files through the Variable Explorer
   (this was working in Spyder 4 and before).
-* Add ability to disable external plugins in Preferences.
+* Add ability to disable external plugins in `Preferences > Plugins`.
 * Use a simpler filesystem watcher in Projects to improve performance.
 
 ### UX/UI improvements
@@ -44,7 +43,7 @@
 * Make Spyder accept Chinese, Korean or Japanese input on Linux by adding
   `fcitx-qt5` as a new dependency (in conda environments only).
 * The file switcher can browse and open files present in the current project (
-  only if the `fzf` package is installed).
+  in conda environments or if the `fzf` package is installed).
 * Improve how options are displayed and handled in several Variable Explorer
   viewers.
 * The interface font used by the entire application can be configured in
@@ -53,12 +52,10 @@
   Directory toolbar.
 * Add a new button to the Variable Explorer to indicate when variables are being
   filtered.
-* Show clarifying message for panes that don't have display at startup.
+* Show intro message for panes that don't display content at startup.
 
 ### New, updated and removed plugins
 
-* The Breakpoints plugin was removed and its functionality moved to the Debugger
-  one.
 * Add a Switcher plugin for the files and symbols switcher.
 * Add a Debugger plugin to centralize all functionality related to debugging.
 * Add an External Terminal plugin to execute Python and Bash/Batch/PS1 files on
@@ -69,13 +66,16 @@
 * Declare a proper API for the Projects plugin.
 * The Editor now uses the API introduced in Spyder 5. That was the last built-in
   plugin that needed to be migrated to it.
+* The Breakpoints plugin was removed and its functionality moved to the Debugger
+  one.
 
-### New API and plugin features
+### New API features
 
-* `SpyderPluginV2.get_description` must be a static method now and
+* `SpyderPluginV2.get_description` must be a static method and
   `SpyderPluginV2.get_icon` a class or static method. This is necessary to
   display the list of available plugins in Preferences in a more user-friendly
-  way (see PR spyder-ide/spyder#21101).
+  way (see PR [PR 21101](https://github.com/spyder-ide/spyder/pull/21101) for
+  the details).
 * `SpyderPlugin` and `SpyderPluginWidget` are no longer exposed in the public
   API. They will be removed in Spyder 6.1.
 * All comboboxes must inherit from `SpyderComboBox` or related subclasses in
@@ -89,7 +89,8 @@
 * Helper classes were added to `spyder.api.shortcuts` to get and set keyboard
   shortcuts.
 * `AsyncDispatcher` was added to `spyder.api.asyncdispatcher` to run asyncio
-  code in Spyder.
+  code in Spyder. Only Qt signals can be attached to asyncio
+  `future.add_done_callback` calls to avoid segfaults.
 * `ShellConnectStatusBarWidget` was added to `spyder.api.shellconnect.status`
   to create status bar widgets connected to the current console.
 
