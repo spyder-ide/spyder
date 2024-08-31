@@ -53,7 +53,7 @@ except:
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, reset_config_files,
                                 running_under_pytest, is_conda_based_app)
-from spyder.utils.conda import get_conda_root_prefix
+from spyder.utils.conda import get_conda_root_prefix, is_conda_env
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
 
@@ -73,6 +73,14 @@ if is_conda_based_app():
         os.environ['CONDA_EXE'] = conda_root + r'\Scripts\conda.exe'
     else:
         os.environ['CONDA_EXE'] = conda_root + '/bin/conda'
+
+# Qt needs to find libraries in Library\bin to render splash screen properly.
+# If running in a conda environment that is not activated, then we need to add
+# this path to PATH. See spyder-ide/spyder#22374
+if os.name == 'nt' and is_conda_env(pyexec=sys.executable):
+    bin_path = osp.join(sys.prefix, r'Library\bin')
+    if bin_path not in os.getenv('PATH'):
+        os.environ['PATH'] = bin_path + osp.pathsep + os.getenv('PATH')
 
 # Get argv
 if running_under_pytest():
