@@ -49,11 +49,14 @@ try:
 except:
     pass
 
+# Third-party imports
+from spyder_kernels.utils.pythonenv import is_conda_env
+
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, reset_config_files,
                                 running_under_pytest, is_conda_based_app)
-from spyder.utils.conda import get_conda_root_prefix, is_conda_env
+from spyder.utils.conda import get_conda_root_prefix
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
 
