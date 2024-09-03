@@ -80,7 +80,8 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
     def create_editor_switcher(self):
         """Populate switcher with open files."""
         self._switcher.set_placeholder_text(
-            _('Start typing the name of an open file'))
+            _('Search files by name (add @ for symbols)')
+        )
 
         editorstack = self._editorstack()
         editor_list = editorstack.data.copy()

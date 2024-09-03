@@ -62,7 +62,7 @@ sudo apt-get install python3-pylsp
 or Fedora Linux
 
 ```
-sudo dnf install python-lsp-server
+sudo dnf install python3-lsp-server
 ```
 
 or Arch Linux

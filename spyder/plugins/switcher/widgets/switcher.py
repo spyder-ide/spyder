@@ -16,33 +16,15 @@ from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
 from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
 from spyder.plugins.switcher.widgets.item import (
     SwitcherItem, SwitcherSeparatorItem)
 from spyder.py3compat import to_text_string
-from spyder.utils.icon_manager import ima
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.utils.stringmatching import get_search_scores
 from spyder.plugins.switcher.utils import clean_string
-
-
-# Style dict constants
-FONT_SIZE = 10
-ITEM_STYLES = {
-    'title_color': ima.MAIN_FG_COLOR,
-    'description_color': 'rgb(153, 153, 153)',
-    'section_color': 'rgb(70, 179, 239)',
-    'shortcut_color': 'rgb(153, 153, 153)',
-    'title_font_size': FONT_SIZE,
-    'description_font_size': FONT_SIZE,
-    'section_font_size': FONT_SIZE,
-    'shortcut_font_size': FONT_SIZE,
-}
-
-ITEM_SEPARATOR_STYLES = {
-    'color': ima.MAIN_FG_COLOR,
-    'font_size': FONT_SIZE,
-}
 
 
 class KeyPressFilter(QObject):
@@ -81,7 +63,7 @@ class SwitcherDelegate(HTMLDelegate):
         super().paint(painter, option, index)
 
 
-class Switcher(QDialog):
+class Switcher(QDialog, SpyderFontsMixin):
     """
     A multi purpose switcher.
 
@@ -146,16 +128,29 @@ class Switcher(QDialog):
     _MAX_HEIGHT = 390
     _ITEM_WIDTH = _MIN_WIDTH - 20
 
-    def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
-                 item_separator_styles=ITEM_SEPARATOR_STYLES):
+    def __init__(self, parent, help_text=None):
         """Multi purpose switcher."""
         super().__init__(parent)
 
         # Attributes
         self._modes = {}
         self._mode_on = ''
-        self._item_styles = item_styles
-        self._item_separator_styles = item_separator_styles
+
+        font_size = self.get_font(SpyderFontType.Interface).pointSize()
+        self._item_styles = {
+            'title_color': SpyderPalette.COLOR_TEXT_1,
+            'description_color': SpyderPalette.COLOR_TEXT_1,
+            'section_color': SpyderPalette.TIP_TITLE_COLOR,
+            'shortcut_color': SpyderPalette.COLOR_TEXT_1,
+            'title_font_size': font_size,
+            'description_font_size': font_size,
+            'section_font_size': font_size,
+            'shortcut_font_size': font_size,
+        }
+        self._item_separator_styles = {
+            'color': SpyderPalette.COLOR_TEXT_1,
+            'font_size': font_size,
+        }
 
         # Widgets
         self.edit = QLineEdit(self)
@@ -166,8 +161,6 @@ class Switcher(QDialog):
 
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
-        self.setWindowOpacity(0.95)
-        # self.setMinimumHeight(self._MIN_HEIGHT)
         self.setMaximumHeight(self._MAX_HEIGHT)
 
         self.edit.installEventFilter(self.filter)

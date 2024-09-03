@@ -31,7 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 from packaging.version import parse
 
-version_info = (6, 0, "0b2", "dev0")
+version_info = (7, 0, 0, "dev0")
 
 __version__ = str(parse('.'.join(map(str, version_info))))
 __installer_version__ = __version__
@@ -62,8 +62,8 @@ def get_versions(reporev=True):
 
     import qtpy
     import qtpy.QtCore
+    from spyder_kernels.utils.pythonenv import is_conda_env
 
-    from spyder.utils.conda import is_conda_env
     from spyder.config.base import is_conda_based_app
 
     revision = branch = None

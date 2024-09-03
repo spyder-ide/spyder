@@ -20,6 +20,7 @@ import sys
 from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 from qtpy import PYSIDE2, PYSIDE6
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -125,6 +126,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     def __init__(self, parent, config):
         SpyderCompletionProvider.__init__(self, parent, config)
+
+        # To keep track of the current interpreter used for completions
+        self._interpreter = sys.executable
 
         self.clients = {}
         self.clients_restart_count = {}
@@ -549,9 +553,23 @@ class LanguageServerProvider(SpyderCompletionProvider):
             logger.debug("Update server's sys.path")
             self.update_lsp_configuration(python_only=True)
 
-    @Slot()
-    def main_interpreter_changed(self):
-        self.update_lsp_configuration(python_only=True)
+    @qdebounced(timeout=600)
+    def interpreter_changed(self, interpreter: str):
+        """
+        Handle Python interperter changes from other plugins.
+
+        Notes
+        -----
+        - This method is debounced to prevent sending too many requests to the
+          server when switching IPython consoles for different envs in quick
+          succession.
+        - The timeout corresponds more or less to the time it takes to switch
+          back and forth between two consoles.
+        """
+        if interpreter != self._interpreter:
+            logger.debug(f"LSP interpreter changed to {interpreter}")
+            self._interpreter = interpreter
+            self.update_lsp_configuration(python_only=True)
 
     def file_opened_closed_or_updated(self, filename: str, language: str):
         self.sig_call_statusbar.emit(
@@ -576,11 +594,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # This is only useful to run some self-contained tests
         if running_under_pytest():
             self.update_lsp_configuration(python_only=True)
-
-    @on_conf_change(section='main_interpreter',
-                    option=['default', 'custom_interpreter'])
-    def on_main_interpreter_change(self, option, value):
-        self.update_lsp_configuration()
 
     def update_lsp_configuration(self, python_only=False):
         """
@@ -794,16 +807,9 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Jedi configuration
         env_vars = os.environ.copy()  # Ensure env is indepependent of PyLSP's
         env_vars.pop('PYTHONPATH', None)
-        if self.get_conf('default', section='main_interpreter'):
-            # If not explicitly set, jedi uses PyLSP's sys.path instead of
-            # sys.executable's sys.path. This may be a bug in jedi.
-            environment = sys.executable
-        else:
-            environment = self.get_conf('executable',
-                                        section='main_interpreter')
 
         jedi = {
-            'environment': environment,
+            'environment': self._interpreter,
             'extra_paths': self.get_conf('spyder_pythonpath',
                                          section='pythonpath_manager',
                                          default=[]),

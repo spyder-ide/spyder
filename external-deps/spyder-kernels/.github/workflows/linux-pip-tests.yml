@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   linux:
-    name: Py${{ matrix.PYTHON_VERSION }}
+    name: Linux (pip) - Py${{ matrix.PYTHON_VERSION }}
     runs-on: ubuntu-latest
     env:
       CI: True
@@ -34,7 +34,7 @@ jobs:
       - name: Install System Packages
         run: | 
           sudo apt-get update
-          sudo apt-get install libegl1-mesa
+          sudo apt-get install libegl1-mesa libopengl0
       - name: Install Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -51,6 +51,9 @@ jobs:
         run: |
           conda info
           conda list
+      # - name: Setup Remote SSH Connection
+      #   uses: mxschmitt/action-tmate@v3
+      #   timeout-minutes: 60
       - name: Run tests
         shell: bash -l {0}
         run: |

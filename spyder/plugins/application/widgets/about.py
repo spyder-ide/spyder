@@ -48,6 +48,8 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
+        self.setWindowTitle(_("About Spyder"))
+        self.setWindowIcon(ima.icon("MessageBoxInformation"))
         versions = get_versions()
 
         # -- Show Git revision for development version
@@ -285,7 +287,7 @@ class AboutDialog(QDialog, SvgToScaledPixmap):
         bbox.accepted.connect(self.accept)
 
         # -- Style
-        size = (600, 460) if MAC else ((580, 450) if WIN else (610, 455))
+        size = (600, 460) if MAC else ((585, 450) if WIN else (610, 455))
         self.setFixedSize(*size)
         self.setStyleSheet(self._main_stylesheet)
 

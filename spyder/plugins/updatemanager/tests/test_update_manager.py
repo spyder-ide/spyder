@@ -11,7 +11,7 @@ import pytest
 
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
-from spyder.plugins.updatemanager.workers import WorkerUpdate
+from spyder.plugins.updatemanager.workers import WorkerUpdate, HTTP_ERROR_MSG
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 
@@ -31,10 +31,16 @@ def worker():
 # ---- Test WorkerUpdate
 
 @pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-def test_updates_appenv(qtbot, mocker, version, caplog):
+@pytest.mark.parametrize(
+    "channel", [
+        ("pkgs/main", "https://repo.anaconda.com/pkgs/main"),
+        ("conda-forge", "https://conda.anaconda.org/conda-forge"),
+    ]
+)
+def test_updates(qtbot, mocker, caplog, version, channel):
     """
-    Test whether or not we offer updates for our installers according to the
-    current Spyder version.
+    Test whether or not we offer updates according to the current Spyder
+    version and package installation channel.
 
     Uses UpdateManagerWidget in order to also test QThread.
     """
@@ -44,11 +50,8 @@ def test_updates_appenv(qtbot, mocker, version, caplog):
         UpdateManagerWidget, "start_update", new=lambda x: None
     )
     mocker.patch.object(workers, "__version__", new=version)
-    mocker.patch.object(workers, "is_anaconda", return_value=True)
-    mocker.patch.object(workers, "is_conda_based_app", return_value=True)
     mocker.patch.object(
-        workers, "get_spyder_conda_channel",
-        return_value=("conda-forge", "https://conda.anaconda.org/conda-forge")
+        workers, "get_spyder_conda_channel", return_value=channel
     )
 
     with caplog.at_level(logging.DEBUG, logger='spyder.plugins.updatemanager'):
@@ -59,65 +62,22 @@ def test_updates_appenv(qtbot, mocker, version, caplog):
         um.start_check_update()
         qtbot.waitUntil(um.update_thread.isFinished)
 
+    if um.update_worker.error:
+        # Possible 403 error - rate limit error, was encountered while doing
+        # the tests
+        # Check error message corresponds to the status code and exit early to
+        # prevent failing the test
+        assert um.update_worker.error == HTTP_ERROR_MSG.format(status_code="403")
+        return
+
+    assert not um.update_worker.error
+
     update_available = um.update_worker.update_available
     if version.split('.')[0] == '1':
         assert update_available
     else:
         assert not update_available
-    assert len(um.update_worker.releases) > 1
-
-
-@pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-@pytest.mark.parametrize(
-    "channel", [
-        ("pkgs/main", "https://repo.anaconda.com/pkgs/main"),
-        ("conda-forge", "https://conda.anaconda.org/conda-forge"),
-        ("pypi", "https://conda.anaconda.org/pypi")
-    ]
-)
-def test_updates_condaenv(qtbot, worker, mocker, version, channel):
-    """
-    Test whether or not we offer updates for conda installed Spyder according
-    to the current version.
-    """
-    mocker.patch.object(workers, "__version__", new=version)
-    mocker.patch.object(workers, "is_anaconda", return_value=True)
-    mocker.patch.object(workers, "is_conda_based_app", return_value=False)
-    mocker.patch.object(
-        workers, "get_spyder_conda_channel", return_value=channel
-    )
-
-    with qtbot.waitSignal(worker.sig_ready, timeout=5000):
-        worker.start()
-
-    update_available = worker.update_available
-    if version.split('.')[0] == '1':
-        assert update_available
-    else:
-        assert not update_available
-    assert len(worker.releases) == 1
-
-
-@pytest.mark.parametrize("version", ["1.0.0", "1000.0.0"])
-def test_updates_pipenv(qtbot, worker, mocker, version):
-    """Test updates for pip installed Spyder."""
-    mocker.patch.object(workers, "__version__", new=version)
-    mocker.patch.object(workers, "is_anaconda", return_value=False)
-    mocker.patch.object(workers, "is_conda_based_app", return_value=False)
-    mocker.patch.object(
-        workers, "get_spyder_conda_channel",
-        return_value=("pypi", "https://conda.anaconda.org/pypi")
-    )
-
-    with qtbot.waitSignal(worker.sig_ready, timeout=5000):
-        worker.start()
-
-    update_available = worker.update_available
-    if version.split('.')[0] == '1':
-        assert update_available
-    else:
-        assert not update_available
-    assert len(worker.releases) == 1
+    assert len(um.update_worker.releases) >= 1
 
 
 @pytest.mark.parametrize("release", ["4.0.1", "4.0.1a1"])

@@ -13,7 +13,6 @@ import sys
 # Third party imports
 from qtpy.QtCore import (QSize, Qt)
 from qtpy.QtGui import QStandardItem, QTextDocument
-from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.utils import is_ubuntu
@@ -25,10 +24,9 @@ class SwitcherBaseItem(QStandardItem):
 
     _PADDING = 5
     _WIDTH = 400
-    _STYLES = None
     _TEMPLATE = None
 
-    def __init__(self, parent=None, styles=_STYLES, use_score=True):
+    def __init__(self, parent=None, styles=None, use_score=True):
         """Create basic List Item."""
         super().__init__()
 
@@ -96,7 +94,7 @@ class SwitcherBaseItem(QStandardItem):
     # ---- Qt overrides
     def refresh(self):
         """Override Qt."""
-        super(SwitcherBaseItem, self).refresh()
+        super().refresh()
         self._set_styles()
         self._set_rendered_text()
 
@@ -112,17 +110,13 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
 
     _SEPARATOR = '_'
     _STYLE_ATTRIBUTES = ['color', 'font_size']
-    _STYLES = {
-        'color': QApplication.palette().text().color().name(),
-        'font_size': 10,
-    }
     _TEMPLATE = \
         u'''<table cellpadding="{padding}" cellspacing="0" width="{width}"
                   height="{height}" border="0">
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
 
-    def __init__(self, parent=None, styles=_STYLES):
+    def __init__(self, parent=None, styles=None):
         """Separator Item represented as <hr>."""
         super().__init__(parent=parent, styles=styles)
         self.setFlags(Qt.NoItemFlags)
@@ -183,16 +177,6 @@ class SwitcherItem(SwitcherBaseItem):
                          'shortcut_color', 'title_font_size',
                          'description_font_size', 'section_font_size',
                          'shortcut_font_size']
-    _STYLES = {
-        'title_color': QApplication.palette().text().color().name(),
-        'description_color': 'rgb(153, 153, 153)',
-        'section_color': 'rgb(70, 179, 239)',
-        'shortcut_color': 'rgb(153, 153, 153)',
-        'title_font_size': _FONT_SIZE,
-        'description_font_size': _FONT_SIZE,
-        'section_font_size': _FONT_SIZE,
-        'shortcut_font_size': _FONT_SIZE,
-    }
     _TEMPLATE = u'''
 <table width="{width}" max_width="{width}" height="{height}"
                           cellpadding="{padding}">
@@ -200,18 +184,21 @@ class SwitcherItem(SwitcherBaseItem):
     <td valign="middle">
       <span style="color:{title_color};font-size:{title_font_size}pt">
         {title}
-      </span>&nbsp;
-      <small
-       style="color:{description_color};font-size:{description_font_size}pt">
-        <span>{description}</span>
-      </small>
+      </span>
+      &nbsp;&nbsp;
+      <em>
+        <span
+         style="color:{description_color};font-size:{description_font_size}pt">
+          <span>{description}</span>
+        </span>
+      </em>
     </td>
     <td valign="middle" align="right" float="right">
       <span style="color:{shortcut_color};font-size:{shortcut_font_size}pt">
-         <small><code><i>{shortcut}</i></code></small>
+         <code><i>{shortcut}</i></code>
       </span>&nbsp;
       <span style="color:{section_color};font-size:{section_font_size}pt">
-         <small>{section}</small>
+         {section}
       </span>
     </td>
   </tr>
@@ -219,7 +206,7 @@ class SwitcherItem(SwitcherBaseItem):
 
     def __init__(self, parent=None, icon=None, title=None, description=None,
                  shortcut=None, section=None, data=None, tool_tip=None,
-                 action_item=False, styles=_STYLES, score=-1, use_score=True):
+                 action_item=False, styles=None, score=-1, use_score=True):
         """Switcher item with title, description, shortcut and section."""
         super().__init__(parent=parent, styles=styles, use_score=use_score)
 
@@ -290,24 +277,6 @@ class SwitcherItem(SwitcherBaseItem):
             if attr not in self._styles:
                 self._styles[attr] = self._STYLES[attr]
 
-        rich_font = self._styles['title_font_size']
-
-        if sys.platform == 'darwin':
-            title_font_size = rich_font
-            description_font_size = title_font_size + 2
-        elif os.name == 'nt':
-            title_font_size = rich_font
-            description_font_size = title_font_size + 1
-        elif is_ubuntu():
-            title_font_size = rich_font - 2
-            description_font_size = title_font_size + 1
-        else:
-            title_font_size = rich_font - 2
-            description_font_size = title_font_size + 1
-
-        self._styles['description_font_size'] = description_font_size
-        self._styles['section_font_size'] = description_font_size
-
     def _get_height(self):
         """
         Return the expected height of this item's text, including
@@ -370,7 +339,7 @@ class SwitcherItem(SwitcherBaseItem):
 
     def set_tooltip(self, value):
         """Set the tooltip text for the item."""
-        super(SwitcherItem, self).setTooltip(value)
+        super().setTooltip(value)
 
     def set_data(self, value):
         """Set the additional data associated to the item."""

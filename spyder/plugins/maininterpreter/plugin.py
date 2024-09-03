@@ -12,8 +12,8 @@ Main interpreter Plugin.
 # Standard library imports
 import os.path as osp
 
-# Third-party imports
-from qtpy.QtCore import Slot
+# Third-party import
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
@@ -32,14 +32,38 @@ class MainInterpreter(SpyderPluginV2):
 
     NAME = "main_interpreter"
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = MainInterpreterContainer
     CONF_WIDGET_CLASS = MainInterpreterConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False
     CAN_BE_DISABLED = False
 
+    # ---- Signals
+    # -------------------------------------------------------------------------
+    sig_environments_updated = Signal(dict)
+    """
+    This signal is emitted when the conda, pyenv or custom environments tracked
+    by this plugin were updated.
+
+    Parameters
+    ----------
+    envs: dict
+        Environments dictionary in the format given by
+        :py:meth:`spyder.utils.envs.get_list_envs`.
+    """
+
+    sig_interpreter_changed = Signal(str)
+    """
+    Signal to report that the main interpreter has changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Python interpreter")
@@ -58,15 +82,11 @@ class MainInterpreter(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
 
-        # Connect signal to open preferences
-        container.sig_open_preferences_requested.connect(
-            self._open_interpreter_preferences
+        # Connect container signals
+        container.sig_environments_updated.connect(
+            self.sig_environments_updated
         )
-
-        # Add custom interpreter to list of saved ones
-        container.sig_add_to_custom_interpreters_requested.connect(
-            self._add_to_custom_interpreters
-        )
+        container.sig_interpreter_changed.connect(self.sig_interpreter_changed)
 
         # Validate that the custom interpreter from the previous session
         # still exists
@@ -83,51 +103,18 @@ class MainInterpreter(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
-    @on_plugin_available(plugin=Plugins.StatusBar)
-    def on_statusbar_available(self):
-        # Add status widget
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        statusbar.add_status_widget(self.interpreter_status)
-
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Deregister conf page
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
-    @on_plugin_teardown(plugin=Plugins.StatusBar)
-    def on_statusbar_teardown(self):
-        # Add status widget
-        statusbar = self.get_plugin(Plugins.StatusBar)
-        statusbar.remove_status_widget(self.interpreter_status.ID)
-
-    @property
-    def interpreter_status(self):
-        return self.get_container().interpreter_status
-
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def set_custom_interpreter(self, interpreter):
         """Set given interpreter as the current selected one."""
-        self._add_to_custom_interpreters(interpreter)
+        self.get_container().add_to_custom_interpreters(interpreter)
         self.set_conf("default", False)
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
-
-    # ---- Private API
-    def _open_interpreter_preferences(self):
-        """Open the Preferences dialog in the main interpreter section."""
-        self._main.show_preferences()
-        preferences = self.get_plugin(Plugins.Preferences)
-        if preferences:
-            container = preferences.get_container()
-            dlg = container.dialog
-            index = dlg.get_index_by_name("main_interpreter")
-            dlg.set_current_index(index)
-
-    @Slot(str)
-    def _add_to_custom_interpreters(self, interpreter):
-        """Add a new interpreter to the list of saved ones."""
-        custom_list = self.get_conf('custom_interpreters_list')
-        if interpreter not in custom_list:
-            custom_list.append(interpreter)
-            self.set_conf('custom_interpreters_list', custom_list)

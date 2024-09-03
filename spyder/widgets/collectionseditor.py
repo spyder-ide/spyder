@@ -45,7 +45,7 @@ from spyder_kernels.utils.nsview import (
 )
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import (is_binary_string, to_text_string,
@@ -2192,7 +2192,7 @@ def get_test_data():
             'ddataframe': test_df,
             'None': None,
             'unsupported1': np.arccos,
-            'unsupported2': np.cast,
+            'unsupported2': np.asarray,
             # Test for spyder-ide/spyder#3518.
             'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
                                                       ('param1', 'f8', 5000)]),

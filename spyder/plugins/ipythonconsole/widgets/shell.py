@@ -18,6 +18,7 @@ from textwrap import dedent
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
+from spyder_kernels.comms.frontendcomm import CommError
 from traitlets import observe
 
 # Local imports
@@ -144,22 +145,30 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         `SpyderKernel.get_state` method of Spyder-kernels.
     """
 
-    def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, special_kernel=None, **kw):
+    def __init__(
+        self,
+        ipyclient,
+        additional_options,
+        handlers,
+        *args,
+        special_kernel=None,
+        server_id=None,
+        **kw,
+    ):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
 
-        super(ShellWidget, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
         self.ipyclient = ipyclient
         self.additional_options = additional_options
-        self.interpreter_versions = interpreter_versions
         self.special_kernel = special_kernel
+        self.server_id = server_id
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
-        self.shortcuts = self.create_shortcuts()
+        self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -186,8 +195,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         })
         self.kernel_comm_handlers = handlers
 
+        # To keep an execution queue
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
+
+        # To show the console banner on first prompt
+        self.sig_prompt_ready.connect(self._show_banner)
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
@@ -482,10 +495,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Fixes spyder-ide/spyder#20212
             if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
-            elif self.ipyclient.server_id:
+            elif self.is_remote():
                 # Request an interrupt to the server for remote kernels
                 self.ipyclient.sig_interrupt_kernel_requested.emit(
-                    self.ipyclient.server_id, self.ipyclient.kernel_id
+                    self.server_id, self.ipyclient.kernel_id
                 )
             else:
                 self._append_html(
@@ -640,7 +653,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if option is None or pylab_autoload_n in option:
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
 
-        if matplotlib_conf:
+        if matplotlib_conf and pylab_o:
             self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
@@ -761,23 +774,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def long_banner(self):
         """Banner for clients with additional content."""
         # Default banner
-        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
+        try:
+            env_info = self.get_pythonenv_info()
+            sys_version = env_info['sys_version'].replace('\n', '')
+            ipython_version = env_info["ipython_version"]
 
-        banner_parts = [
-            'Python %s\n' % py_ver,
-            'Type "copyright", "credits" or "license" for more information.',
-            '\n\n',
-        ]
+            banner_parts = [
+                f"Python {sys_version}\n",
+                'Type "copyright", "credits" or "license" for more '
+                "information.",
+                "\n\n",
+            ]
 
-        if ipy_ver:
             banner_parts.append(
-                'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+                f"IPython {ipython_version} -- An enhanced Interactive "
+                f"Python. Type '?' for help.\n"
             )
-        else:
-            banner_parts.append('IPython -- An enhanced Interactive Python.\n')
 
-        banner = ''.join(banner_parts)
+            banner = ''.join(banner_parts)
+        except CommError:
+            banner = ""
 
         # Pylab additions
         pylab_o = self.additional_options['pylab']
@@ -800,9 +816,9 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
-enabled at the same time. Some pylab functions are going to be overrided by
-the sympy module (e.g. plot)
+Warning: Pylab (i.e. Numpy and Matplotlib) and symbolic math (Sympy) are both
+enabled at the same time. Hence, some Matplotlib functions are going to be
+overrided by the Sympy module (e.g. plot)
 """
             banner = banner + lines
 
@@ -810,9 +826,14 @@ the sympy module (e.g. plot)
 
     def short_banner(self):
         """Short banner with Python and IPython versions only."""
-        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
-        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
+        try:
+            env_info = self.get_pythonenv_info()
+            py_ver = env_info['python_version']
+            ipy_ver = env_info['ipython_version']
+            banner = f'Python {py_ver} -- IPython {ipy_ver}'
+        except CommError:
+            banner = ""
+
         return banner
 
     # --- To define additional shortcuts
@@ -925,58 +946,22 @@ the sympy module (e.g. plot)
         )
         self.ipyclient.reset_warning = not message_box.is_checked()
 
-    def create_shortcuts(self):
-        """Create shortcuts for ipyconsole."""
-        inspect = self.config_shortcut(
-            self._control.inspect_current_object,
-            context='ipython_console',
-            name='Inspect current object',
-            parent=self)
+    def regiter_shortcuts(self):
+        """Register shortcuts for this widget."""
 
-        clear_console = self.config_shortcut(
-            self.clear_console,
-            context='ipython_console',
-            name='Clear shell',
-            parent=self)
+        shortcuts = (
+            ('Inspect current object', self._control.inspect_current_object),
+            ('Clear shell', self.clear_console),
+            ('Restart kernel', self.sig_restart_kernel),
+            ('new tab', self.sig_new_client),
+            ('reset namespace', self._reset_namespace),
+            ('enter array inline', self._control.enter_array_inline),
+            ('enter array table', self._control.enter_array_table),
+            ('clear line', self.ipyclient.clear_line),
+        )
 
-        restart_kernel = self.config_shortcut(
-            self.sig_restart_kernel,
-            context='ipython_console',
-            name='Restart kernel',
-            parent=self)
-
-        new_tab = self.config_shortcut(
-            self.sig_new_client,
-            context='ipython_console',
-            name='new tab',
-            parent=self)
-
-        reset_namespace = self.config_shortcut(
-            self._reset_namespace,
-            context='ipython_console',
-            name='reset namespace',
-            parent=self)
-
-        array_inline = self.config_shortcut(
-            self._control.enter_array_inline,
-            context='ipython_console',
-            name='enter array inline',
-            parent=self)
-
-        array_table = self.config_shortcut(
-            self._control.enter_array_table,
-            context='ipython_console',
-            name='enter array table',
-            parent=self)
-
-        clear_line = self.config_shortcut(
-            self.ipyclient.clear_line,
-            context='ipython_console',
-            name='clear line',
-            parent=self)
-
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -1080,6 +1065,16 @@ the sympy module (e.g. plot)
         """
         self._control.insert_horizontal_ruler()
 
+    def get_pythonenv_info(self):
+        """Call kernel to get the current Python environment info."""
+        return self.call_kernel(
+            interrupt=True, blocking=True
+        ).get_pythonenv_info()
+
+    def is_remote(self):
+        """Check if this shell is connected to a remote server."""
+        return self.server_id is not None
+
     # ---- Public methods (overrode by us)
     def paste(self, mode=QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -1180,6 +1175,27 @@ the sympy module (e.g. plot)
         Must be called right after copying.
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
+
+    def _show_banner(self):
+        """Show banner before first prompt."""
+        # Don't show banner for external kernels
+        if self.is_external_kernel and not self.is_remote():
+            return ""
+
+        # Detect what kind of banner we want to show
+        show_banner_o = self.additional_options['show_banner']
+        if show_banner_o:
+            banner = self.long_banner()
+        else:
+            banner = self.short_banner()
+
+        # Move cursor to first position and insert banner
+        cursor = self._control.textCursor()
+        cursor.setPosition(0)
+        self._insert_plain_text(cursor, banner)
+
+        # Only do this once
+        self.sig_prompt_ready.disconnect(self._show_banner)
 
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
@@ -1330,18 +1346,8 @@ the sympy module (e.g. plot)
         return context_menu
 
     def _banner_default(self):
-        """
-        Reimplement banner creation to let the user decide if he wants a
-        banner or not
-        """
-        # Don't change banner for external kernels
-        if self.is_external_kernel:
-            return ''
-        show_banner_o = self.additional_options['show_banner']
-        if show_banner_o:
-            return self.long_banner()
-        else:
-            return self.short_banner()
+        """Override banner creation to handle it in Spyder."""
+        return ""
 
     def _handle_kernel_died(self, since_last_heartbeat):
         """Handle the kernel's death (if we do not own the kernel)."""
@@ -1351,7 +1357,7 @@ the sympy module (e.g. plot)
         )
         stop_button.setEnabled(False)
 
-        if self.ipyclient.server_id:
+        if self.is_remote():
             # Inform that the kernel died to the Remote client plugin so that
             # it can try to reconnect to it.
             self._kernel_restarted_message(died=True)
@@ -1368,7 +1374,7 @@ the sympy module (e.g. plot)
         if (
             died
             and self.kernel_manager is None
-            and self.ipyclient.server_id is None
+            and not self.is_remote()
         ):
             # The kernel might never restart, show position of fault file
             msg += (

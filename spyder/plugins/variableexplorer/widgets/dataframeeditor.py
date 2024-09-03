@@ -51,11 +51,14 @@ from qtpy.QtWidgets import (
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.preferences import (
+    PreferencesDialog
+)
 from spyder.py3compat import (is_text_string, is_type_text_string,
                               to_text_string)
 from spyder.utils.icon_manager import ima
@@ -80,18 +83,16 @@ class DataframeEditorActions:
     Edit = 'edit_action'
     EditHeader = 'edit_header_action'
     EditIndex = 'edit_index_action'
-    Format = 'format_action'
     InsertAbove = 'insert_above_action'
     InsertAfter = 'insert_after_action'
     InsertBefore = 'insert_before_action'
     InsertBelow = 'insert_below_action'
+    Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     RemoveColumn = 'remove_column_action'
     RemoveRow = 'remove_row_action'
     ResizeColumns = 'resize_columns_action'
     ResizeRows = 'resize_rows_action'
-    ToggleBackgroundColor = 'toggle_background_color_action'
-    ToggleBackgroundColorGlobal = 'toggle_background_color_global_action'
 
 
 class DataframeEditorMenus:
@@ -180,6 +181,7 @@ def global_max(col_vals, index):
     max_col, min_col = zip(*col_vals_without_None)
     return max(max_col), min(min_col)
 
+
 # =============================================================================
 # ---- Main classes
 # =============================================================================
@@ -193,6 +195,17 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
 
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
+
+    Attributes
+    ----------
+    bgcolor_enabled : bool
+        If True, vary backgrond color depending on cell value
+    colum_avg_enabled : bool
+        If True, select background color by comparing cell value against
+        column maximum and minimum. Otherwise, use maximum and minimum of
+        the entire dataframe.
+    _format_spec : str
+        Format specification for floats
     """
 
     def __init__(self, dataFrame, format_spec=DEFAULT_FORMAT, parent=None):
@@ -214,11 +227,11 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             self.max_min_col_update()
             self.colum_avg_enabled = True
             self.bgcolor_enabled = True
-            self.colum_avg(1)
+            self.colum_avg(True)
         else:
             self.colum_avg_enabled = False
             self.bgcolor_enabled = False
-            self.colum_avg(0)
+            self.colum_avg(False)
 
         # Use paging when the total size, number of rows or number of
         # columns is too large
@@ -348,24 +361,35 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
                 max_min = None
             self.max_min_col.append(max_min)
 
-    def get_format_spec(self):
-        """Return current format+spec"""
+    def get_format_spec(self) -> str:
+        """
+        Return current format specification for floats.
+        """
         # Avoid accessing the private attribute _format_spec from outside
         return self._format_spec
 
-    def set_format_spec(self, format_spec):
-        """Change display format"""
+    def set_format_spec(self, format_spec: str) -> None:
+        """
+        Set format specification for floats.
+        """
         self._format_spec = format_spec
         self.reset()
 
-    def bgcolor(self, state):
-        """Toggle backgroundcolor"""
-        self.bgcolor_enabled = state > 0
+    def bgcolor(self, value: bool):
+        """
+        Set whether background color varies depending on cell value.
+        """
+        self.bgcolor_enabled = value
         self.reset()
 
-    def colum_avg(self, state):
-        """Toggle backgroundcolor"""
-        self.colum_avg_enabled = state > 0
+    def colum_avg(self, value: bool):
+        """
+        Set what to compute cell value with to choose background color.
+
+        If `value` is True, then compare against column maximum and minimum,
+        otherwise compare against maximum and minimum over all columns.
+        """
+        self.colum_avg_enabled = value
         if self.colum_avg_enabled:
             self.return_max = lambda col_vals, index: col_vals[index]
         else:
@@ -660,7 +684,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
-        self.config_shortcut(self.copy, 'copy', self)
+        self.register_shortcut_for_widget(name='copy', triggered=self.copy)
 
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -1714,22 +1738,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             register_action=False
         )
         self.refresh_action.setEnabled(self.data_function is not None)
-        self.format_action = self.create_action(
-            name=DataframeEditorActions.Format,
-            text=_('Format'),
-            icon=self.create_icon('format_float'),
-            tip=_('Set format of floating-point numbers'),
-            triggered=self.change_format
-        )
-        self.bgcolor_action = self.create_action(
-            name=DataframeEditorActions.ToggleBackgroundColor,
-            text=_('Background color'),
-            toggled=self.change_bgcolor_enable
-        )
-        self.bgcolor_global_action = self.create_action(
-            name=DataframeEditorActions.ToggleBackgroundColorGlobal,
-            text=_('Column min/max'),
-            toggled=self.toggle_bgcolor_global
+        self.preferences_action = self.create_action(
+            name=DataframeEditorActions.Preferences,
+            icon=self.create_icon('configure'),
+            text=_('Display options ...'),
+            triggered=self.show_preferences_dialog,
+            register_action=False
         )
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1880,14 +1894,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        self.bgcolor_action.setChecked(self.dataModel.bgcolor_enabled)
-        self.bgcolor_action.setEnabled(self.dataModel.bgcolor_enabled)
-
-        self.bgcolor_global_action.setChecked(self.dataModel.colum_avg_enabled)
-        self.bgcolor_global_action.setEnabled(
-            not self.is_series and self.dataModel.bgcolor_enabled
-        )
-
         self.btn_save_and_close.setDisabled(True)
         self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
@@ -1902,9 +1908,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             DataframeEditorMenus.Options,
             register=False
         )
-        for action in [self.bgcolor_action, self.bgcolor_global_action,
-                       self.format_action]:
-            self.add_item_to_menu(action, options_menu)
+        self.add_item_to_menu(self.preferences_action, options_menu)
 
         options_button = self.create_toolbutton(
             name=DataframeEditorWidgets.OptionsToolButton,
@@ -2258,19 +2262,34 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                                       self.table_index, self._max_autosize_ms)
         self._update_layout()
 
-    def change_bgcolor_enable(self, state):
+    def show_preferences_dialog(self) -> None:
         """
-        This is implementet so column min/max is only active when bgcolor is
+        Show dialog for setting view options and process user choices.
         """
-        self.dataModel.bgcolor(state)
-        self.bgcolor_global_action.setEnabled(not self.is_series and state > 0)
+        # Create dialog using current options
+        dialog = PreferencesDialog('dataframe', parent=self)
+        dialog.float_format = self.dataModel.get_format_spec()
+        dialog.varying_background = self.dataModel.bgcolor_enabled
+        dialog.global_algo = not self.dataModel.colum_avg_enabled
 
-    def toggle_bgcolor_global(self, state: bool) -> None:
-        """
-        Toggle "Column min/max" setting
-        """
-        if self.dataModel:
-            self.dataModel.colum_avg(state)
+        # Show dialog and allow user to interact
+        result = dialog.exec_()
+
+        # If user clicked 'OK' then set new options accordingly
+        if result == QDialog.Accepted:
+            float_format = dialog.float_format
+            try:
+                format(1.1, float_format)
+            except:
+                msg = _("Format ({}) is incorrect").format(float_format)
+                QMessageBox.critical(self, _("Error"), msg)
+            else:
+                self.dataModel.set_format_spec(float_format)
+                self.set_conf('dataframe_format', float_format)
+
+            self.dataModel.bgcolor(dialog.varying_background)
+            if dialog.varying_background:
+                self.dataModel.colum_avg(not dialog.global_algo)
 
     def refresh_editor(self) -> None:
         """
@@ -2315,25 +2334,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Dataframe editor"), message)
         self.reject()
-
-    @Slot()
-    def change_format(self):
-        """
-        Ask user for display format for floats and use it.
-        """
-        format_spec, valid = QInputDialog.getText(
-            self, _('Format'), _("Float formatting"), QLineEdit.Normal,
-            self.dataModel.get_format_spec())
-        if valid:
-            format_spec = str(format_spec)
-            try:
-                format(1.1, format_spec)
-            except:
-                msg = _("Format ({}) is incorrect").format(format_spec)
-                QMessageBox.critical(self, _("Error"), msg)
-                return
-            self.dataModel.set_format_spec(format_spec)
-            self.set_conf('dataframe_format', format_spec)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""

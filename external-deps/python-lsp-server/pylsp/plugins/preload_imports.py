@@ -67,7 +67,7 @@ def pylsp_settings():
 
 
 @hookimpl
-def pylsp_initialize(config):
+def pylsp_initialize(config) -> None:
     for mod_name in config.plugin_settings("preload").get("modules", []):
         try:
             __import__(mod_name)

@@ -2,18 +2,41 @@
 
 unset HISTFILE  # Do not write to history with interactive shell
 
-while getopts "i:c:p:" option; do
+while getopts "i:c:p:r" option; do
     case "$option" in
         (i) install_file=$OPTARG ;;
         (c) conda=$OPTARG ;;
         (p) prefix=$OPTARG ;;
+        (r) rebuild=true ;;
     esac
 done
 shift $(($OPTIND - 1))
 
 update_spyder(){
-    $conda update -p $prefix -y --file $install_file
-    read -p "Press return to exit..."
+    # Unzip installer file
+    pushd $(dirname $install_file)
+
+    # Determine OS type
+    [[ "$OSTYPE" = "darwin"* ]] && os=osx || os=linux
+    [[ "$(arch)" = "arm64" ]] && os=${os}-arm64 || os=${os}-64
+
+    echo "Updating Spyder base environment..."
+    $conda update --name base --yes --file "conda-base-${os}.lock"
+
+    if [[ -n "$rebuild" ]]; then
+        echo "Rebuilding Spyder runtime environment..."
+        $conda remove --prefix $prefix --all --yes
+        mkdir -p $prefix/Menu
+        touch $prefix/Menu/conda-based-app
+        conda_cmd=create
+    else
+        echo "Updating Spyder runtime environment..."
+        conda_cmd=update
+    fi
+    $conda $conda_cmd --prefix $prefix --yes --file "conda-runtime-${os}.lock"
+
+    echo "Cleaning packages and temporary files..."
+    $conda clean --yes --packages --tempfiles $prefix
 }
 
 launch_spyder(){
@@ -24,7 +47,7 @@ launch_spyder(){
     shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
 
     if [[ "$OSTYPE" = "darwin"* ]]; then
-        open -a $shortcut
+        open -a "$shortcut_path"
     elif [[ -n "$(which gtk-launch)" ]]; then
         gtk-launch $(basename ${shortcut_path%.*})
     else
@@ -65,6 +88,7 @@ echo "Spyder quit."
 
 if [[ -e "$conda" && -d "$prefix" ]]; then
     update_spyder
+    read -p "Press return to exit and launch Spyder..."
     launch_spyder
 else
     install_spyder

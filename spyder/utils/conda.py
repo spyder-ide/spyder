@@ -13,6 +13,14 @@ import os
 import os.path as osp
 import sys
 
+# Third-party imports
+from spyder_kernels.utils.pythonenv import (
+    add_quotes,
+    get_conda_env_path,
+    is_conda_env,
+)
+
+# Local imports
 from spyder.utils.programs import find_program, run_program, run_shell_command
 from spyder.config.base import is_conda_based_app
 
@@ -38,26 +46,6 @@ def _env_for_conda():
     return env
 
 
-def add_quotes(path):
-    """Return quotes if needed for spaces on path."""
-    quotes = '"' if ' ' in path and '"' not in path else ''
-    return '{quotes}{path}{quotes}'.format(quotes=quotes, path=path)
-
-
-def is_conda_env(prefix=None, pyexec=None):
-    """Check if prefix or python executable are in a conda environment."""
-    if pyexec is not None:
-        pyexec = pyexec.replace('\\', '/')
-
-    if (prefix is None and pyexec is None) or (prefix and pyexec):
-        raise ValueError('Only `prefix` or `pyexec` should be provided!')
-
-    if pyexec and prefix is None:
-        prefix = get_conda_env_path(pyexec).replace('\\', '/')
-
-    return os.path.exists(os.path.join(prefix, 'conda-meta'))
-
-
 def get_conda_root_prefix(pyexec=None, quote=False):
     """
     Return conda prefix from pyexec path
@@ -81,24 +69,6 @@ def get_conda_root_prefix(pyexec=None, quote=False):
         root_prefix = add_quotes(root_prefix)
 
     return root_prefix
-
-
-def get_conda_env_path(pyexec, quote=False):
-    """
-    Return the full path to the conda environment from give python executable.
-
-    If `quote` is True, then quotes are added if spaces are found in the path.
-    """
-    pyexec = pyexec.replace('\\', '/')
-    if os.name == 'nt':
-        conda_env = os.path.dirname(pyexec)
-    else:
-        conda_env = os.path.dirname(os.path.dirname(pyexec))
-
-    if quote:
-        conda_env = add_quotes(conda_env)
-
-    return conda_env
 
 
 def find_conda(pyexec=None):
@@ -154,8 +124,12 @@ def get_list_conda_envs():
         path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
             env, 'bin', 'python')
 
-        # In case the environment doesn't have Python
-        if not osp.isfile(path):
+        if (
+            # In case the environment doesn't have Python
+            not osp.isfile(path)
+            # Don't list the installers base env
+            or (is_conda_based_app(pyexec=path) and name != "spyder-runtime")
+        ):
             continue
 
         try:
@@ -166,7 +140,7 @@ def get_list_conda_envs():
 
         name = ('base' if name.lower().startswith('anaconda') or
                 name.lower().startswith('miniconda') else name)
-        name = 'conda: {}'.format(name)
+        name = 'Conda: {}'.format(name)
         env_list[name] = (path, version.strip())
 
     CONDA_ENV_LIST_CACHE = env_list
@@ -208,6 +182,11 @@ def get_spyder_conda_channel():
     # Avoids iterating over non-dict objects
     if 'error' in out:
         return None, None
+
+    # These variables can be unassigned after the next for, so we need to give
+    # them a default value at this point.
+    # Fixes spyder-ide/spyder#22054
+    channel, channel_url = None, None
 
     for package_info in out:
         if package_info["name"] == 'spyder':

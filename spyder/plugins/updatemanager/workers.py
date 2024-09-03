@@ -12,6 +12,7 @@ import os.path as osp
 import shutil
 from time import sleep
 import traceback
+from zipfile import ZipFile
 
 # Third party imports
 from packaging.version import parse
@@ -21,8 +22,7 @@ from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (_, is_stable_version, is_conda_based_app,
-                                running_in_ci)
+from spyder.config.base import _, is_stable_version, running_in_ci
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
@@ -120,7 +120,6 @@ class WorkerUpdate(BaseWorker):
         self.releases = None
         self.update_available = False
         self.error = None
-        self.channel = None
 
     def _check_update_available(self):
         """Checks if there is an update available from releases."""
@@ -147,31 +146,19 @@ class WorkerUpdate(BaseWorker):
         self.latest_release = None
         self.update_available = False
         error_msg = None
-        pypi_url = "https://pypi.org/pypi/spyder/json"
-        github_url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+        url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
-        if is_conda_based_app():
-            url = github_url
-        elif is_anaconda():
-            self.channel, channel_url = get_spyder_conda_channel()
-
-            if self.channel is None or channel_url is None:
-                logger.debug(
-                    f"channel = {self.channel}; channel_url = {channel_url}. "
-                )
-
-                # Spyder installed in development mode, use GitHub
-                url = github_url
-            elif self.channel == "pypi":
-                url = pypi_url
-            else:
+        # If Spyder is installed from defaults channel (pkgs/main), then use
+        # that channel to get updates. The defaults channel can be far behind
+        # our latest release
+        if is_anaconda():
+            channel, channel_url = get_spyder_conda_channel()
+            if channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
-        else:
-            url = pypi_url
 
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
-        if running_in_ci() and url == github_url and token:
+        if running_in_ci() and token:
             headers.update(Authorization=f"Bearer {token}")
 
         logger.info(f"Checking for updates from {url}")
@@ -181,18 +168,16 @@ class WorkerUpdate(BaseWorker):
             page.raise_for_status()
 
             data = page.json()
-            if self.releases is None:
-                if url == github_url:
-                    self.releases = [
-                        item['tag_name'].replace('v', '') for item in data
-                    ]
-                elif url == pypi_url:
-                    self.releases = [data['info']['version']]
-                else:
-                    # Conda type url
-                    spyder_data = data['packages'].get('spyder')
-                    if spyder_data:
-                        self.releases = [spyder_data["version"]]
+            if url.endswith('releases'):
+                # Github url
+                self.releases = [
+                    item['tag_name'].replace('v', '') for item in data
+                ]
+            else:
+                # Conda url
+                spyder_data = data['packages'].get('spyder')
+                if spyder_data:
+                    self.releases = [spyder_data["version"]]
             self.releases.sort(key=parse)
 
             self._check_update_available()
@@ -270,8 +255,7 @@ class WorkerDownloadInstaller(BaseWorker):
             'https://github.com/spyder-ide/spyder/releases/download/'
             f'v{self.latest_release}/{osp.basename(self.installer_path)}'
         )
-        logger.info(f"Downloading installer from {url} "
-                    f"to {self.installer_path}")
+        logger.info(f"Downloading {url} to {self.installer_path}")
 
         dirname = osp.dirname(self.installer_path)
         os.makedirs(dirname, exist_ok=True)
@@ -295,13 +279,17 @@ class WorkerDownloadInstaller(BaseWorker):
             logger.info('Download successfully completed.')
             with open(self.installer_size_path, "w") as f:
                 f.write(str(size))
+
+            if self.installer_path.endswith('.zip'):
+                with ZipFile(self.installer_path, 'r') as f:
+                    f.extractall(dirname)
         else:
             raise UpdateDownloadIncompleteError(
                 "Download incomplete: retrieved only "
                 f"{size_read} out of {size} bytes."
             )
 
-    def _clean_installer_path(self):
+    def _clean_installer_dir(self):
         """Remove downloaded file"""
         installer_dir = osp.dirname(self.installer_path)
         if osp.exists(installer_dir):
@@ -317,7 +305,7 @@ class WorkerDownloadInstaller(BaseWorker):
             self._download_installer()
         except UpdateDownloadCancelledException:
             logger.info("Download cancelled")
-            self._clean_installer_path()
+            self._clean_installer_dir()
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
@@ -338,7 +326,7 @@ class WorkerDownloadInstaller(BaseWorker):
                 '<tt>{}</tt>'
             ).format(formatted_error)
             logger.warning(err, exc_info=err)
-            self._clean_installer_path()
+            self._clean_installer_dir()
         finally:
             self.error = error_msg
 

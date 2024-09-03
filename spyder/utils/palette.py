@@ -84,6 +84,9 @@ class SpyderPaletteDark(DarkPalette):
     SPECIAL_TABS_SEPARATOR = Gray.B70
     SPECIAL_TABS_SELECTED = DarkPalette.COLOR_ACCENT_2
 
+    # For the heart used to ask for donations
+    COLOR_HEART = Blue.B80
+
     # For editor tooltips
     TIP_TITLE_COLOR = Green.B80
     TIP_CHAR_HIGHLIGHT_COLOR = Orange.B90
@@ -151,6 +154,9 @@ class SpyderPaletteLight(LightPalette):
     # For special tabs
     SPECIAL_TABS_SEPARATOR = Gray.B70
     SPECIAL_TABS_SELECTED = LightPalette.COLOR_ACCENT_5
+
+    # For the heart used to ask for donations
+    COLOR_HEART = Red.B70
 
     # For editor tooltips
     TIP_TITLE_COLOR = Green.B20

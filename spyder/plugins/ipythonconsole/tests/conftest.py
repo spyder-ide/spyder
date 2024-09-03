@@ -9,7 +9,6 @@
 import os
 import os.path as osp
 import sys
-import tempfile
 import threading
 import traceback
 from unittest.mock import Mock
@@ -35,7 +34,6 @@ from spyder.utils.conda import get_list_conda_envs
 # ---- Constants
 # =============================================================================
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
-TEMP_DIRECTORY = tempfile.gettempdir()
 NEW_DIR = 'new_workingdir'
 PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
@@ -75,7 +73,7 @@ def get_conda_test_env():
     its executable.
     """
     # Get conda env to use
-    test_env_executable = get_list_conda_envs()['conda: spytest-ž'][0]
+    test_env_executable = get_list_conda_envs()['Conda: spytest-ž'][0]
 
     # Get the env prefix
     if os.name == 'nt':
@@ -248,8 +246,7 @@ def ipyconsole(qtbot, request, tmpdir):
                 timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
-        print(console.get_current_shellwidget(
-            )._control.toPlainText())
+        print(console.get_current_shellwidget()._control.toPlainText())
         client = console.get_current_client()
         if client.info_page != client.blank_page:
             print('info_page')
@@ -275,8 +272,7 @@ def ipyconsole(qtbot, request, tmpdir):
     if request.node.rep_setup.passed:
         if request.node.rep_call.failed:
             # Print content of shellwidget and close window
-            print(console.get_current_shellwidget(
-                )._control.toPlainText())
+            print(console.get_current_shellwidget()._control.toPlainText())
             client = console.get_current_client()
             if client.info_page != client.blank_page:
                 print('info_page')
@@ -342,3 +338,23 @@ def ipyconsole(qtbot, request, tmpdir):
         files = [repr(f) for f in proc.open_files()]
         show_diff(init_files, files, "files")
         raise
+
+
+@pytest.fixture
+def mpl_rc_file(tmp_path):
+    """Create matplotlibrc file"""
+    file_contents = """
+figure.dpi: 99
+figure.figsize: 9, 9
+figure.subplot.bottom: 0.9
+font.size: 9
+"""
+    rc_file = str(tmp_path / 'matplotlibrc')
+    with open(rc_file, 'w') as f:
+        f.write(file_contents)
+    os.environ['MATPLOTLIBRC'] = rc_file
+
+    yield
+
+    os.environ.pop('MATPLOTLIBRC')
+    os.remove(rc_file)

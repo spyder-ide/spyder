@@ -15,27 +15,32 @@ introspection providers.
 import functools
 import inspect
 import logging
-import os
+import sys
 from typing import List, Union
 import weakref
 
 # Third-party imports
 from packaging.version import parse
-from pkg_resources import iter_entry_points
 from qtpy.QtCore import QRecursiveMutex, QMutexLocker, QTimer, Slot, Signal
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (CompletionRequestTypes,
                                            SpyderCompletionProvider,
                                            COMPLETION_ENTRYPOINT)
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
+
+# See compatibility note on `group` keyword:
+# https://docs.python.org/3/library/importlib.metadata.html#entry-points
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
 
 
 logger = logging.getLogger(__name__)
@@ -71,8 +76,14 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences, Plugins.MainInterpreter]
-    OPTIONAL = [Plugins.MainMenu, Plugins.PythonpathManager, Plugins.StatusBar]
+    REQUIRES = [Plugins.Preferences]
+    OPTIONAL = [
+        Plugins.MainInterpreter,
+        Plugins.MainMenu,
+        Plugins.IPythonConsole,
+        Plugins.PythonpathManager,
+        Plugins.StatusBar,
+    ]
 
     CONF_FILE = False
 
@@ -125,9 +136,15 @@ class CompletionPlugin(SpyderPluginV2):
         New PythonPath settings.
     """
 
-    sig_interpreter_changed = Signal()
+    _sig_interpreter_changed = Signal(str)
     """
-    This signal is used to report changes on the main Python interpreter.
+    This private signal is used to handle changes in the Python interpreter
+    done by other plugins.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
     """
 
     sig_language_completions_available = Signal(dict, str)
@@ -220,10 +237,10 @@ class CompletionPlugin(SpyderPluginV2):
 
         # Find and instantiate all completion providers registered via
         # entrypoints
-        for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
+        for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
             try:
                 logger.debug(f'Loading entry point: {entry_point}')
-                Provider = entry_point.resolve()
+                Provider = entry_point.load()
                 self._instantiate_and_register_provider(Provider)
             except Exception as e:
                 logger.warning('Failed to load completion provider from entry '
@@ -255,7 +272,6 @@ class CompletionPlugin(SpyderPluginV2):
         return cls.create_icon('completions')
 
     def on_initialize(self):
-        self.sig_interpreter_changed.connect(self.update_completion_status)
         self.start_all_providers()
 
     @on_plugin_available(plugin=Plugins.Preferences)
@@ -266,14 +282,13 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_available(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
 
-        # connect signals
-        self.completion_status.sig_open_preferences_requested.connect(
-            mi_container.sig_open_preferences_requested)
-
-        mi_container.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed)
+        # This will allow people to change the interpreter used for completions
+        # if they disable the IPython console.
+        if not self.is_plugin_enabled(Plugins.IPythonConsole):
+            maininterpreter.sig_interpreter_changed.connect(
+                self._sig_interpreter_changed
+            )
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
@@ -281,7 +296,6 @@ class CompletionPlugin(SpyderPluginV2):
         self.statusbar = self.get_plugin(Plugins.StatusBar)
         for sb in container.all_statusbar_widgets():
             self.statusbar.add_status_widget(sb)
-        self.statusbar.add_status_widget(self.completion_status)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -301,6 +315,13 @@ class CompletionPlugin(SpyderPluginV2):
         pythonpath_manager.sig_pythonpath_changed.connect(
             self.sig_pythonpath_changed)
 
+    @on_plugin_available(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_available(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_interpreter_changed.connect(
+            self._sig_interpreter_changed
+        )
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -309,10 +330,12 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_maininterpreter_teardown(self):
         maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_container = maininterpreter.get_container()
 
-        mi_container.sig_interpreter_changed.disconnect(
-            self.sig_interpreter_changed)
+        # We only connect to this signal if the IPython console is not enabled
+        if not self.is_plugin_enabled(Plugins.IPythonConsole):
+            maininterpreter.sig_interpreter_changed.disconnect(
+                self._sig_interpreter_changed
+            )
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
@@ -350,6 +373,13 @@ class CompletionPlugin(SpyderPluginV2):
         pythonpath_manager = self.get_plugin(Plugins.PythonpathManager)
         pythonpath_manager.sig_pythonpath_changed.disconnect(
             self.sig_pythonpath_changed)
+
+    @on_plugin_teardown(plugin=Plugins.IPythonConsole)
+    def on_ipython_console_teardowm(self):
+        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        ipyconsole.sig_interpreter_changed.disconnect(
+            self._sig_interpreter_changed
+        )
 
     # ---- Public API
     def stop_all_providers(self):
@@ -481,34 +511,6 @@ class CompletionPlugin(SpyderPluginV2):
             if id_ in container.statusbar_widgets:
                 self.get_container().remove_statusbar_widget(id_)
                 self.statusbar.remove_status_widget(id_)
-
-    @property
-    def completion_status(self):
-        return self.get_container().completion_status
-
-    @Slot()
-    def update_completion_status(self):
-        maininterpreter = self.get_plugin(Plugins.MainInterpreter)
-        mi_status = maininterpreter.get_container().interpreter_status
-
-        value = mi_status.value
-        tool_tip = mi_status._interpreter
-
-        if '(' in value:
-            value = value.split('(')[0]
-
-        if ':' in value:
-            kind, name = value.split(':')
-        else:
-            kind, name = value, ''
-        kind = kind.strip()
-        name = name.strip()
-
-        new_value = f'Completions: {kind}'
-        if name:
-            new_value += f'({name})'
-
-        self.completion_status.update_status(new_value, tool_tip)
 
     # -------- Completion provider initialization redefinition wrappers -------
     def gather_providers_and_configtabs(self):
@@ -803,8 +805,9 @@ class CompletionPlugin(SpyderPluginV2):
 
         self.sig_pythonpath_changed.connect(
             provider_instance.python_path_update)
-        self.sig_interpreter_changed.connect(
-            provider_instance.main_interpreter_changed)
+        self._sig_interpreter_changed.connect(
+            provider_instance.interpreter_changed
+        )
 
     def _instantiate_and_register_provider(
             self, Provider: SpyderCompletionProvider):

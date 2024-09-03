@@ -245,8 +245,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # --- Advanced tab ---
         # -- Templates
         templates_group = QGroupBox(_('Templates'))
-        template_btn = self.create_button(_("Edit template for new files"),
-                                          self.plugin.edit_template)
+        template_btn = self.create_button(
+            text=_("Edit template for new files"),
+            callback=self.plugin.edit_template,
+            set_modified_on_click=True
+        )
 
         templates_layout = QVBoxLayout()
         templates_layout.addSpacing(3)

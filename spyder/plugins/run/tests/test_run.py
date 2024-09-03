@@ -25,10 +25,10 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.plugins.run.api import (
     RunExecutor, RunConfigurationProvider, RunConfigurationMetadata, Context,
-    RunConfiguration, SupportedExtensionContexts,
+    RunConfiguration, SupportedExtensionContexts, RunExecutionParameters,
     RunExecutorConfigurationGroup, ExtendedRunExecutionParameters,
     PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute,
-    WorkingDirSource)
+    WorkingDirOpts, WorkingDirSource, StoredRunExecutorParameters)
 from spyder.plugins.run.plugin import Run
 
 
@@ -80,7 +80,8 @@ class ExampleConfigurationProvider(RunConfigurationProvider):
 
     def on_run_available(self, run: Run):
         self.sig_uuid_focus_requested.connect(
-            run.switch_focused_run_configuration)
+            run.switch_focused_run_configuration
+        )
 
         run.register_run_configuration_provider(
             self.provider_name, self.supported_extensions)
@@ -355,7 +356,7 @@ def run_mock(qtbot, tmpdir):
     mock_main_window = MockedMainWindow()
     run = Run(mock_main_window, None)
     run.on_initialize()
-    run.switch_working_dir(temp_dir)
+    run._switch_working_dir(temp_dir)
     return run, mock_main_window, temp_dir
 
 
@@ -597,9 +598,9 @@ def test_run_plugin(qtbot, run_mock):
     assert test_executor_name == executor_name
     assert handler == 'both'
 
-    # Ensure that the executor run configuration is transient
-    assert exec_conf['uuid'] is None
-    assert exec_conf['name'] is None
+    # Ensure that the executor run configuration was saved
+    assert exec_conf['uuid'] is not None
+    assert exec_conf['name'] == "Default (custom)"
 
     # Check that the configuration parameters are the ones defined by the
     # dialog
@@ -612,24 +613,37 @@ def test_run_plugin(qtbot, run_mock):
     # Assert that the run_exec dispatcher works for the specific combination
     assert handler_name == f'{ext}_{context["identifier"]}'
 
-    # Assert that the run configuration gets registered without executor params
+    # Assert that the run configuration gets registered
     stored_run_params = run.get_last_used_executor_parameters(run_conf_uuid)
+    current_exec_uuid = exec_conf['uuid']
     assert stored_run_params['executor'] == test_executor_name
-    assert stored_run_params['selected'] is None
-    assert not stored_run_params['display_dialog']
+    assert stored_run_params['selected'] == current_exec_uuid
 
-    # The configuration gets run again
-    with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
-        run_act.trigger()
+    # Spawn the configuration dialog
+    run_act = run.get_action(RunActions.Run)
+    run_act.trigger()
 
-    # Assert that the transient run executor parameters reverted to the
-    # default ones
+    dialog = container.dialog
+    with qtbot.waitSignal(dialog.finished, timeout=200000):
+        # Select the first configuration again
+        conf_combo.setCurrentIndex(0)
+
+        # Change some options
+        conf_widget = dialog.current_widget
+        conf_widget.widgets['opt1'].setChecked(False)
+
+        # Execute the configuration
+        buttons = dialog.bbox.buttons()
+        run_btn = buttons[2]
+        with qtbot.waitSignal(executor_1.sig_run_invocation) as sig:
+            qtbot.mouseClick(run_btn, Qt.LeftButton)
+
+    # Assert that changes took effect and that the run executor parameters were
+    # saved in the Custom config
     _, _, _, exec_conf = sig.args[0]
     params = exec_conf['params']
-    working_dir = params['working_dir']
-    assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
-    assert working_dir['path'] == ''
-    assert params['executor_params'] == default_conf
+    assert params['executor_params']['opt1'] is False
+    assert exec_conf['uuid'] == current_exec_uuid
 
     # Focus into another configuration
     exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
@@ -729,6 +743,7 @@ def test_run_plugin(qtbot, run_mock):
     # Switch to other run configuration and register a set of custom run
     # executor parameters
     exec_provider_2.switch_focus('ext3', 'AnotherSuperContext')
+    dialog.exec_()
 
     # Spawn the configuration dialog
     run_act = run.get_action(RunActions.Run)
@@ -738,8 +753,7 @@ def test_run_plugin(qtbot, run_mock):
     with qtbot.waitSignal(dialog.finished, timeout=200000):
         conf_combo = dialog.configuration_combo
         exec_combo = dialog.executor_combo
-        store_params_cb = dialog.store_params_cb
-        store_params_text = dialog.store_params_text
+        name_params_text = dialog.name_params_text
 
         # Modify some options
         conf_widget = dialog.current_widget
@@ -747,8 +761,7 @@ def test_run_plugin(qtbot, run_mock):
         conf_widget.widgets['name_2'].setChecked(False)
 
         # Make sure that the custom configuration is stored
-        store_params_cb.setChecked(True)
-        store_params_text.setText('CustomParams')
+        name_params_text.setText('CustomParams')
 
         # Execute the configuration
         buttons = dialog.bbox.buttons()
@@ -762,7 +775,7 @@ def test_run_plugin(qtbot, run_mock):
     saved_params = run.get_executor_configuration_parameters(
         executor_name, 'ext3', RunContext.AnotherSuperContext)
     executor_params = saved_params['params']
-    assert len(executor_params) == 1
+    assert len(executor_params) == 2
 
     # Check that the configuration passed to the executor is the same that was
     # saved.
@@ -778,7 +791,60 @@ def test_run_plugin(qtbot, run_mock):
     stored_run_params = run.get_last_used_executor_parameters(run_conf_uuid)
     assert stored_run_params['executor'] == executor_name
     assert stored_run_params['selected'] == exec_conf_uuid
-    assert not stored_run_params['display_dialog']
+
+    # Check deleting a parameters config
+    current_exec_params = container.get_conf('parameters')[executor_name]
+    current_ext_ctx_params = (
+        current_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
+    )
+    assert current_ext_ctx_params != {}  # Check params to delete are present
+
+    container.delete_executor_configuration_parameters(
+        executor_name, 'ext3', RunContext.AnotherSuperContext, exec_conf_uuid
+    )
+
+    new_exec_params = container.get_conf('parameters')[executor_name]
+    new_ext_ctx_params = (
+        new_exec_params[('ext3', RunContext.AnotherSuperContext)]['params']
+    )
+    assert len(new_ext_ctx_params) == 1
+
+    # Check that adding new parameters preserves the previous ones
+    current_exec_params = container.get_conf('parameters')[executor_name]
+    assert (
+        len(
+            current_exec_params[("ext1", RunContext.RegisteredContext)][
+                "params"
+            ]
+        )
+        == 2
+    )  # Check that we have one config in this context
+
+    new_exec_conf_uuid = str(uuid4())
+    new_params = StoredRunExecutorParameters(
+        params={
+            new_exec_conf_uuid: ExtendedRunExecutionParameters(
+                uuid=new_exec_conf_uuid,
+                name='Foo',
+                params=RunExecutionParameters(
+                    WorkingDirOpts(source=WorkingDirSource.CurrentDirectory)
+                ),
+                file_uuid=None
+            )
+        }
+    )
+
+    container.set_executor_configuration_parameters(
+        executor_name, 'ext1', RunContext.RegisteredContext, new_params
+    )
+
+    new_exec_params = container.get_conf('parameters')[executor_name]
+
+    assert (
+        len(
+            new_exec_params[('ext1', RunContext.RegisteredContext)]['params']
+        ) == 3
+    )  # Now we should have two configs in the same context
 
     # Test teardown functions
     executor_1.on_run_teardown(run)

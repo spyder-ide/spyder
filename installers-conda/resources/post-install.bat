@@ -1,17 +1,17 @@
-:: This script launches Spyder after install
+rem This script launches Spyder after install
 @echo off
 
 set mode=system
 if exist "%PREFIX%\.nonadmin" set mode=user
 
-:: Get shortcut path
+rem Get shortcut path
 for /F "tokens=*" %%i in (
     '%PREFIX%\python %PREFIX%\Scripts\menuinst_cli.py shortcut --mode=%mode%'
 ) do (
     set shortcut=%%~fi
 )
 
-:: Launch Spyder
+rem Launch Spyder
 set tmpdir=%TMP%\spyder
 set launch_script=%tmpdir%\launch_script.bat
 

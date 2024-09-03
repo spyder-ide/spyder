@@ -14,6 +14,11 @@ Remote Client Plugin API.
 
 # ---- Constants
 # -----------------------------------------------------------------------------
+
+# Max number of logged messages from the client that will be saved.
+MAX_CLIENT_MESSAGES = 1000
+
+
 class RemoteClientActions:
     ManageConnections = "manage connections"
 

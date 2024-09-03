@@ -13,9 +13,8 @@ import logging
 import os
 
 # Third party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QByteArray, QSize, QPoint, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QKeySequence
 from qtpy.QtWidgets import QApplication
 
 # Local imports
@@ -25,6 +24,7 @@ from spyder.api.plugins import (
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
@@ -68,7 +68,7 @@ DEFAULT_LAYOUTS = get_class_values(DefaultLayouts)
 WINDOW_STATE_VERSION = 4
 
 
-class Layout(SpyderPluginV2):
+class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     """
     Layout manager plugin.
     """
@@ -200,7 +200,11 @@ class Layout(SpyderPluginV2):
     def before_mainwindow_visible(self):
         # Update layout menu
         self.update_layout_menu_actions()
-        # Setup layout
+
+        # The layout needs to be applied twice: before and after the main
+        # window is visible (see below). This call avoids weird issues when the
+        # window was not maximized in the last session. See:
+        # https://github.com/spyder-ide/spyder/pull/22232#issuecomment-2224142496
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
@@ -209,16 +213,21 @@ class Layout(SpyderPluginV2):
         # that works as expected.
         self.create_plugins_menu()
 
+        # Setup layout when the window is visible.
+        # This **MUST** be done after creating the plugins menu to correctly
+        # restore the layout from the previous session.
+        # Fixes spyder-ide/spyder#17945 and spyder-ide/spyder#21596
+        self.setup_layout(default=False)
+
+        # Correctly display dock tabbars.
+        # This **MUST** be done after setting up the layout.
+        self._apply_docktabbar_style()
+
         # Restore last visible plugins.
         # This **MUST** be done before running on_mainwindow_visible for the
         # other plugins so that the user doesn't experience sudden jumps in the
         # interface.
         self.restore_visible_plugins()
-
-        # This is necessary to correctly display dock tabbars when there's a
-        # change in WINDOW_STATE_VERSION or the previous session was a Spyder 5
-        # one.
-        self._reapply_docktabbar_style()
 
         # Update panes and toolbars lock status
         self.toggle_lock(self._interface_locked)
@@ -253,32 +262,45 @@ class Layout(SpyderPluginV2):
         self.lock_interface_action.setIcon(icon)
         self.lock_interface_action.setText(text)
 
-    def _reapply_docktabbar_style(self, force=False):
-        """Reapply dock tabbar style."""
-        saved_state_version = self.get_conf(
-            "window_state_version", default=WINDOW_STATE_VERSION
-        )
+    def _apply_docktabbar_style(self):
+        """Apply dock tabbar style."""
+        # Apply style by installing the dockwidget tab event filter.
+        plugins = self.get_dockable_plugins()
+        for plugin in plugins:
+            plugin.dockwidget.is_shown = True
+            plugin.dockwidget.install_tab_event_filter()
 
-        # Reapplying style by installing the tab event filter again.
-        if (
-            # Check if the window state version changed. This covers the case
-            # of starting a Spyder 5 session after a Spyder 6 one, but only if
-            # users have 5.5.4 or greater.
-            saved_state_version < WINDOW_STATE_VERSION
-            # The previous session ran a Spyder version older than 6.0.0a5,
-            # which is when this change became necessary (82.2.0 is the conf
-            # version for that release)
-            or parse(self.old_conf_version) < parse("82.2.0")
-            # This is used when switching to a different layout, which also
-            # requires this.
-            or force
-        ):
-            plugins = self.get_dockable_plugins()
-            for plugin in plugins:
-                if plugin.dockwidget.dock_tabbar is not None:
-                    plugin.dockwidget.install_tab_event_filter()
+    def _update_shortcuts_in_plugins_menu(self, show=True):
+        """
+        Show/hide shortcuts for actions in the plugins menu.
 
-            self.set_conf("window_state_version", WINDOW_STATE_VERSION)
+        Notes
+        -----
+        Shortcuts in that menu need to disabled when not visible to prevent
+        plugins to be hidden with them.
+        """
+        for plugin in self.get_dockable_plugins():
+            try:
+                # New API
+                action = plugin.toggle_view_action
+            except AttributeError:
+                # Old API
+                action = plugin._toggle_view_action
+
+            if show:
+                section = plugin.CONF_SECTION
+                try:
+                    context = '_'
+                    name = 'switch to {}'.format(section)
+                    shortcut = self.get_shortcut(
+                        name, context, plugin_name=section
+                    )
+                except (cp.NoSectionError, cp.NoOptionError):
+                    shortcut = QKeySequence()
+            else:
+                shortcut = QKeySequence()
+
+            action.setShortcut(shortcut)
 
     # ---- Helper methods
     # -------------------------------------------------------------------------
@@ -368,29 +390,34 @@ class Layout(SpyderPluginV2):
             self._first_spyder_run = True
             self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
-            # Now that the initial setup is done, copy the window settings,
-            # except for the hexstate in the quick layouts sections for the
-            # default layouts.
-            # Order and name of the default layouts is found in config.py
-            section = 'quick_layouts'
-            get_func = self.get_conf_default if default else self.get_conf
-            order = get_func('order', section=section)
-
-            # Restore the original defaults if reset layouts is called
+            # Restore the original defaults. This is necessary, for instance,
+            # when bumping WINDOW_STATE_VERSION because layouts saved with a
+            # previous version can't be applied with the new one
             if default:
-                self.set_conf('active', order, section)
-                self.set_conf('order', order, section)
-                self.set_conf('names', order, section)
-                self.set_conf('ui_names', order, section)
+                order = list(self.get_container().spyder_layouts.keys())
+                self.set_conf('order', order)
+                self.set_conf('active', order)
+                self.set_conf('names', order)
 
+                ui_names = [
+                    l.get_name()
+                    for l in self.get_container().spyder_layouts.values()
+                ]
+                self.set_conf('ui_names', ui_names)
+
+                # This will remove custom layouts from the UI
+                self.get_container().update_layout_menu_actions()
+
+            section = 'quick_layouts'
+            order = self.get_conf('order')
             for index, _name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
-                self.save_current_window_settings(prefix, section,
-                                                  none_state=True)
+                self.save_current_window_settings(
+                    prefix, section, none_state=True
+                )
 
             # Store the initial layout as the default in spyder
             prefix = 'layout_default/'
-            section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
             self._current_quick_layout = DefaultLayouts.SpyderLayout
 
@@ -501,7 +528,7 @@ class Layout(SpyderPluginV2):
 
         # This is necessary to restore the style for dock tabbars after the
         # switch
-        self._reapply_docktabbar_style(force=True)
+        self._apply_docktabbar_style()
 
         return index_or_layout_id
 
@@ -528,13 +555,17 @@ class Layout(SpyderPluginV2):
 
         pos = get_func(prefix + 'position', section=section)
 
+        # We use `virtualGeometry` instead of `geometry` below because it gives
+        # the shape of all connected screens, which is what we need here (
+        # `geometry` only works for the current one).
+        screen_shape = self.main.screen().virtualGeometry()
+        current_width = screen_shape.width()
+        current_height = screen_shape.height()
+
         # It's necessary to verify if the window/position value is valid
         # with the current screen. See spyder-ide/spyder#3748.
         width = pos[0]
         height = pos[1]
-        screen_shape = self.main.screen().geometry()
-        current_width = screen_shape.width()
-        current_height = screen_shape.height()
         if current_width < width or current_height < height:
             pos = self.get_conf_default(prefix + 'position', section)
 
@@ -925,11 +956,27 @@ class Layout(SpyderPluginV2):
         """
         Populate panes menu with the toggle view action of each base plugin.
         """
-        order = ['editor', 'ipython_console', 'variable_explorer',
-                 'debugger', 'help', 'plots', None, 'explorer',
-                 'outline_explorer', 'project_explorer', 'find_in_files', None,
-                 'historylog', 'profiler', 'pylint', None,
-                 'onlinehelp', 'internal_console', None]
+        order = [
+            "editor",
+            "ipython_console",
+            "variable_explorer",
+            "debugger",
+            "help",
+            "plots",
+            None,
+            "explorer",
+            "outline_explorer",
+            "project_explorer",
+            "find_in_files",
+            None,
+            "historylog",
+            "profiler",
+            "pylint",
+            None,
+            "onlinehelp",
+            "internal_console",
+            None,
+        ]
 
         for plugin in self.get_dockable_plugins():
             try:
@@ -963,7 +1010,18 @@ class Layout(SpyderPluginV2):
         actions = order[:]
         for action in actions:
             if type(action) is not str:
-                self.get_container()._plugins_menu.add_action(action)
+                self.plugins_menu.add_action(action)
+
+        # Enable shortcuts when the menu is visible so users can see they are
+        # available. And disable those shortcuts when the menu is hidden
+        # because they allow to hide plugins when pressed twice. See:
+        # https://github.com/spyder-ide/spyder/issues/22189#issuecomment-2248644546
+        self.plugins_menu.aboutToShow.connect(
+            lambda: self._update_shortcuts_in_plugins_menu(show=True)
+        )
+        self.plugins_menu.aboutToHide.connect(
+            lambda: self._update_shortcuts_in_plugins_menu(show=False)
+        )
 
     @property
     def lock_interface_action(self):
@@ -1007,8 +1065,12 @@ class Layout(SpyderPluginV2):
 
         # This should only be necessary the first time this method is run
         if not visible_plugins:
-            visible_plugins = [Plugins.IPythonConsole, Plugins.Help,
-                               Plugins.Editor]
+            visible_plugins = [
+                Plugins.IPythonConsole,
+                Plugins.Help,
+                Plugins.VariableExplorer,  # In case Help is not available
+                Plugins.Editor,
+            ]
 
         # Restore visible plugins
         for plugin in visible_plugins:
@@ -1165,10 +1227,9 @@ class Layout(SpyderPluginV2):
                 if plugin:
                     self.tabify_plugin(plugin, Plugins.Console)
 
-        # Tabify new external plugins
+        # Tabify any new plugin that was not available in the previous session.
+        # This can include internal plugins that were automatically disabled
+        # in the first session (e.g. due to the lack of WebEngine).
         for plugin in self.get_dockable_plugins():
-            if (
-                plugin.NAME in PLUGIN_REGISTRY.external_plugins
-                and plugin.get_conf('first_time', True)
-            ):
+            if plugin.get_conf('first_time', True):
                 self.tabify_plugin(plugin, Plugins.Console)

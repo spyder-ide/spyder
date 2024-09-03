@@ -36,12 +36,13 @@ PLUGIN = 'spyder plugins'
 # Hard dependencies
 AIOHTTP_REQVER = '>=3.9.3'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
-ASYNCSSH_REQVER = '>=2.0.0,<3.0.0'
+ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
+IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0,!=8.17.1"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
@@ -50,7 +51,6 @@ JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
-PARAMIKO_REQVER = '>=2.4.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -59,7 +59,7 @@ PYGITHUB_REQVER = '>=2.3.0'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
-PYLSP_REQVER = '>=1.11.0,<1.12.0'
+PYLSP_REQVER = '>=1.12.0,<1.13.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
@@ -68,13 +68,13 @@ PYZMQ_REQVER = '>=24.0.0'
 QDARKSTYLE_REQVER = '>=3.2.0,<3.3.0'
 QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.3.1,<1.4.0'
-QTCONSOLE_REQVER = '>=5.5.1,<5.6.0'
+QTCONSOLE_REQVER = '>=5.6.0,<5.7.0'
 QTPY_REQVER = '>=2.4.0'
 RTREE_REQVER = '>=0.9.7'
 SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=3.0.0b6,<3.0.0b7'
-SUPERQT_REQVER = '>=0.6.1,<1.0.0'
+SPYDER_KERNELS_REQVER = '>=3.0.0,<3.1.0'
+SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = '>=0.10.3'
@@ -130,6 +130,10 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
+    {'modname': 'importlib_metadata',
+     'package_name': 'importlib-metadata',
+     'features': _('Access the metadata for a Python package'),
+     'required_version': IMPORTLIB_METADATA_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
@@ -163,11 +167,6 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
-    {'modname': "paramiko",
-     'package_name': "paramiko",
-     'features': _("Connect to remote kernels through SSH"),
-     'required_version': PARAMIKO_REQVER,
-     'display': os.name == 'nt'},
     {'modname': "parso",
      'package_name': "parso",
      'features': _("Python parser that supports error recovery and "

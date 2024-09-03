@@ -30,7 +30,7 @@ def temp_document(doc_text, workspace):
     return name, doc
 
 
-def test_flake8_unsaved(workspace):
+def test_flake8_unsaved(workspace) -> None:
     doc = Document("", workspace, DOC)
     diags = flake8_lint.pylsp_lint(workspace, doc)
     msg = "F841 local variable 'a' is assigned to but never used"
@@ -44,7 +44,7 @@ def test_flake8_unsaved(workspace):
     assert unused_var["tags"] == [lsp.DiagnosticTag.Unnecessary]
 
 
-def test_flake8_lint(workspace):
+def test_flake8_lint(workspace) -> None:
     name, doc = temp_document(DOC, workspace)
     try:
         diags = flake8_lint.pylsp_lint(workspace, doc)
@@ -60,7 +60,7 @@ def test_flake8_lint(workspace):
         os.remove(name)
 
 
-def test_flake8_respecting_configuration(workspace):
+def test_flake8_respecting_configuration(workspace) -> None:
     docs = [
         ("src/__init__.py", ""),
         ("src/a.py", DOC),
@@ -122,7 +122,7 @@ def test_flake8_respecting_configuration(workspace):
     ]
 
 
-def test_flake8_config_param(workspace):
+def test_flake8_config_param(workspace) -> None:
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
@@ -135,7 +135,7 @@ def test_flake8_config_param(workspace):
         assert "--config={}".format(flake8_conf) in call_args
 
 
-def test_flake8_executable_param(workspace):
+def test_flake8_executable_param(workspace) -> None:
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
@@ -168,7 +168,7 @@ def get_flake8_cfg_settings(workspace, config_str):
     return workspace._config.plugin_settings("flake8")
 
 
-def test_flake8_multiline(workspace):
+def test_flake8_multiline(workspace) -> None:
     config_str = r"""[flake8]
 exclude =
     blah/,
@@ -206,7 +206,7 @@ exclude =
     os.unlink(os.path.join(workspace.root_path, "setup.cfg"))
 
 
-def test_flake8_per_file_ignores(workspace):
+def test_flake8_per_file_ignores(workspace) -> None:
     config_str = r"""[flake8]
 ignores = F403
 per-file-ignores =
@@ -236,7 +236,7 @@ exclude =
     os.unlink(os.path.join(workspace.root_path, "setup.cfg"))
 
 
-def test_per_file_ignores_alternative_syntax(workspace):
+def test_per_file_ignores_alternative_syntax(workspace) -> None:
     config_str = r"""[flake8]
 per-file-ignores = **/__init__.py:F401,E402
     """

@@ -1,5 +1,68 @@
 # History of changes
 
+## Version 3.0.0 (2024-08-29)
+
+### New features
+
+* Speed up debugger execution.
+* Notify Spyder when Matplotlib backend changes.
+* Use control channel for comms instead of a special one.
+* Update variable explorer from the kernel.
+* Simplify kernel configuration from Spyder.
+* Add a `comm_handler` decorator.
+* Transform `runfile`, `debugfile` and `runcell` commands to IPython magics.
+* Add comm handlers to interrupt executions and enter the debugger after that.
+* Publish Pdb stack frames to Spyder.
+* Drop support for Python 2 and support Python 3.8+
+
+### Pull Requests Merged
+
+* [PR 500](https://github.com/spyder-ide/spyder-kernels/pull/500) - PR: Restore `TMPDIR` env var if it was available on the Spyder side, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 498](https://github.com/spyder-ide/spyder-kernels/pull/498) - PR: Remove `TMPDIR` env var after initialization, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 3.0.0b9 (2024-08-21)
+
+### Pull Requests Merged
+
+* [PR 495](https://github.com/spyder-ide/spyder-kernels/pull/495) - PR: Add comm handler to get information about the Python environment associated to the kernel, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.0.0b8 (2024-08-08)
+
+### Pull Requests Merged
+
+* [PR 496](https://github.com/spyder-ide/spyder-kernels/pull/496) - PR: Add filtering logic for stream data and constraint `setuptools` version, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.0.0b7 (2024-06-18)
+
+### Issues Closed
+
+* [Issue 491](https://github.com/spyder-ide/spyder-kernels/issues/491) - Debugger misses breakpoint when a file can have several canonic paths ([PR 490](https://github.com/spyder-ide/spyder-kernels/pull/490) by [@impact27](https://github.com/impact27))
+* [Issue 468](https://github.com/spyder-ide/spyder-kernels/issues/468) - Debugger not working for environments with different Python versions ([PR 492](https://github.com/spyder-ide/spyder-kernels/pull/492) by [@impact27](https://github.com/impact27))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 492](https://github.com/spyder-ide/spyder-kernels/pull/492) - PR: Enable comms to work across different Python versions, by [@impact27](https://github.com/impact27) ([468](https://github.com/spyder-ide/spyder-kernels/issues/468))
+* [PR 490](https://github.com/spyder-ide/spyder-kernels/pull/490) - PR: Use inodes for single canonic file path (Debugger), by [@impact27](https://github.com/impact27) ([491](https://github.com/spyder-ide/spyder-kernels/issues/491))
+* [PR 487](https://github.com/spyder-ide/spyder-kernels/pull/487) - PR: Fix issue where Spyder's inline graphics preferences were not applied, by [@mrclary](https://github.com/mrclary)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 3.0.0b6 (2024-05-15)
 
 ### Issues Closed
@@ -63,9 +126,7 @@ In this release 3 pull requests were closed.
 
 In this release 6 pull requests were closed.
 
-
 ----
-
 
 ## Version 3.0.0b1 (2023-06-14)
 
@@ -108,11 +169,23 @@ In this release 25 pull requests were closed.
 
 ----
 
+## Version 2.5.2 (2024-06-11)
+
+### Pull Requests Merged
+
+* [PR 489](https://github.com/spyder-ide/spyder-kernels/pull/489) - PR: Fix detecting Matplotlib backend for its 3.9.0 version, by [@mrclary](https://github.com/mrclary)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 2.5.1 (2024-02-28)
 
 ### Pull Requests Merged
 
 * [PR 479](https://github.com/spyder-ide/spyder-kernels/pull/479) - PR: Fix hangs with Maplotlib interactive backends, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
 
 ----
 

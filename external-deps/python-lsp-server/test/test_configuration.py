@@ -1,12 +1,12 @@
 # Copyright 2021- Python Language Server Contributors.
 
-from test.test_notebook_document import wait_for_condition
-from test.test_utils import send_initialize_request
 from unittest.mock import patch
 
 import pytest
 
 from pylsp import IS_WIN
+from test.test_notebook_document import wait_for_condition
+from test.test_utils import send_initialize_request
 
 INITIALIZATION_OPTIONS = {
     "pylsp": {
@@ -20,7 +20,7 @@ INITIALIZATION_OPTIONS = {
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_set_flake8_using_init_opts(client_server_pair):
+def test_set_flake8_using_init_opts(client_server_pair) -> None:
     client, server = client_server_pair
     send_initialize_request(client, INITIALIZATION_OPTIONS)
     for key, value in INITIALIZATION_OPTIONS["pylsp"]["plugins"].items():
@@ -30,7 +30,9 @@ def test_set_flake8_using_init_opts(client_server_pair):
 
 
 @pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
-def test_set_flake8_using_workspace_did_change_configuration(client_server_pair):
+def test_set_flake8_using_workspace_did_change_configuration(
+    client_server_pair,
+) -> None:
     client, server = client_server_pair
     send_initialize_request(client, None)
     assert (

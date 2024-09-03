@@ -25,7 +25,8 @@ import cloudpickle
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
 from ipykernel import get_connection_info
-from traitlets.config.loader import LazyConfigValue
+from IPython.core import release as ipython_release
+from traitlets.config.loader import Config, LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
 
@@ -35,6 +36,13 @@ from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import FrontendComm
 from spyder_kernels.comms.decorators import (
     register_comm_handlers, comm_handler)
+from spyder_kernels.utils.pythonenv import (
+    get_env_dir,
+    is_conda_env,
+    is_pyenv_env,
+    PythonEnvInfo,
+    PythonEnvType,
+)
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import automatic_backend, MPL_BACKENDS_TO_SPYDER
 from spyder_kernels.utils.nsview import (
@@ -80,6 +88,9 @@ class SpyderKernel(IPythonKernel):
 
         # To track the interactive backend
         self.interactive_backend = None
+
+        # To save the python env info
+        self.pythonenv_info: PythonEnvInfo = {}
 
     @property
     def kernel_info(self):
@@ -554,67 +565,41 @@ class SpyderKernel(IPythonKernel):
         fontsize_n = 'pylab/inline/fontsize'
         bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
-        inline_backend = 'inline'
-
-        if pylab_autoload_n in conf or pylab_backend_n in conf:
-            self._set_mpl_backend(
-                conf.get(pylab_backend_n, inline_backend),
-                pylab=conf.get(pylab_autoload_n, False)
-            )
 
         if figure_format_n in conf:
-            self._set_config_option(
-                'InlineBackend.figure_format',
-                conf[figure_format_n]
+            self._set_inline_config_option(
+                'figure_formats', conf[figure_format_n]
             )
 
+        inline_rc = {}
         if resolution_n in conf:
-            self._set_mpl_inline_rc_config('figure.dpi', conf[resolution_n])
-
-        if width_n in conf and height_n in conf:
-            self._set_mpl_inline_rc_config(
-                'figure.figsize',
-                (conf[width_n], conf[height_n])
+            inline_rc.update({'figure.dpi': conf[resolution_n]})
+        if width_n in conf or height_n in conf:
+            inline_rc.update(
+                {'figure.figsize': (conf[width_n], conf[height_n])}
             )
-
         if fontsize_n in conf:
-            self._set_mpl_inline_rc_config('font.size', conf[fontsize_n])
-
+            inline_rc.update({'font.size': conf[fontsize_n]})
         if bottom_n in conf:
-            self._set_mpl_inline_rc_config(
-                'figure.subplot.bottom',
-                conf[bottom_n]
-            )
+            inline_rc.update({'figure.subplot.bottom': conf[bottom_n]})
+
+        # Update Inline backend parameters, if available.
+        if inline_rc:
+            self._set_inline_config_option('rc', inline_rc)
 
         if bbox_inches_n in conf:
-            self.set_mpl_inline_bbox_inches(conf[bbox_inches_n])
+            bbox_inches = 'tight' if conf[bbox_inches_n] else None
+            self._set_inline_config_option(
+                'print_figure_kwargs', {'bbox_inches': bbox_inches}
+            )
 
-
-    def set_mpl_inline_bbox_inches(self, bbox_inches):
-        """
-        Set inline print figure bbox inches.
-
-        The change is done by updating the 'print_figure_kwargs' config dict.
-        """
-        config = self.config
-        inline_config = (
-            config['InlineBackend'] if 'InlineBackend' in config else {})
-        print_figure_kwargs = (
-            inline_config['print_figure_kwargs']
-            if 'print_figure_kwargs' in inline_config else {})
-        bbox_inches_dict = {
-            'bbox_inches': 'tight' if bbox_inches else None}
-        print_figure_kwargs.update(bbox_inches_dict)
-
-        # This seems to be necessary for newer versions of Traitlets because
-        # print_figure_kwargs doesn't return a dict.
-        if isinstance(print_figure_kwargs, LazyConfigValue):
-            figure_kwargs_dict = print_figure_kwargs.to_dict().get('update')
-            if figure_kwargs_dict:
-                print_figure_kwargs = figure_kwargs_dict
-
-        self._set_config_option(
-            'InlineBackend.print_figure_kwargs', print_figure_kwargs)
+        # Only update backend if it has changed or if autoloading pylab.
+        pylab_autoload_o = conf.get(pylab_autoload_n, False)
+        current_backend = self.get_matplotlib_backend()
+        pylab_backend_o = conf.get(pylab_backend_n, current_backend)
+        backend_changed = current_backend != pylab_backend_o
+        if pylab_autoload_o or backend_changed:
+            self._set_mpl_backend(pylab_backend_o, pylab_autoload_o)
 
     # -- For completions
     def set_jedi_completer(self, use_jedi):
@@ -782,6 +767,35 @@ class SpyderKernel(IPythonKernel):
         else:
             os.environ.pop('PYTHONPATH', None)
 
+    @comm_handler
+    def get_pythonenv_info(self):
+        """Get the Python env info in which this kernel is installed."""
+        # We only need to compute this once
+        if not self.pythonenv_info:
+            path = sys.executable.replace("pythonw.exe", "python.exe")
+
+            if is_conda_env(pyexec=path):
+                env_type = PythonEnvType.Conda
+            elif is_pyenv_env(path):
+                env_type = PythonEnvType.PyEnv
+            else:
+                env_type = PythonEnvType.Custom
+
+            self.pythonenv_info = PythonEnvInfo(
+                path=path,
+                env_type=env_type,
+                name=get_env_dir(path, only_dir=True),
+                python_version=".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                ),
+                # These keys are necessary to build the console banner in
+                # Spyder
+                ipython_version=ipython_release.version,
+                sys_version=sys.version,
+            )
+
+        return self.pythonenv_info
+
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
     def _get_len(self, var):
@@ -901,9 +915,9 @@ class SpyderKernel(IPythonKernel):
             return
 
         generic_error = (
-            "\n" + "="*73 + "\n"
+            "\n" + "=" * 73 + "\n"
             "NOTE: The following error appeared when setting "
-            "your Matplotlib backend!!\n" + "="*73 + "\n\n"
+            "your Matplotlib backend!!\n" + "=" * 73 + "\n\n"
             "{0}"
         )
 
@@ -925,7 +939,7 @@ class SpyderKernel(IPythonKernel):
             # trying to set a backend. See issue 5541
             if "GUI eventloops" in str(err):
                 previous_backend = matplotlib.get_backend()
-                if not backend in previous_backend.lower():
+                if backend not in previous_backend.lower():
                     # Only inform about an error if the user selected backend
                     # and the one set by Matplotlib are different. Else this
                     # message is very confusing.
@@ -958,7 +972,7 @@ class SpyderKernel(IPythonKernel):
         Set config options using the %config magic.
 
         As parameters:
-            option: config option, for example 'InlineBackend.figure_format'.
+            option: config option, for example 'InlineBackend.figure_formats'.
             value: value of the option, for example 'SVG', 'Retina', etc.
         """
         try:
@@ -972,16 +986,60 @@ class SpyderKernel(IPythonKernel):
         except Exception:
             pass
 
-    def _set_mpl_inline_rc_config(self, option, value):
+    def _set_inline_config_option(self, option, value):
         """
-        Update any of the Matplolib rcParams given an option and value.
+        Update InlineBackend given an option and value.
+
+        Parameters
+        ----------
+        option: str
+            Configuration option. One of 'close_figures', 'figure_formats',
+            'print_figure_kwargs', or 'rc'.
+        value: str | dict
+            Value of the option.
         """
+        if (
+            'InlineBackend' in self.config
+            and option in self.config['InlineBackend']
+            and isinstance(value, dict)
+        ):
+            self.config['InlineBackend'][option].update(value)
+        elif 'InlineBackend' in self.config:
+            self.config['InlineBackend'].update({option: value})
+        else:
+            self.config.update({'InlineBackend': Config({option: value})})
+
+        value = self.config['InlineBackend'][option]
+
+        if isinstance(value, LazyConfigValue):
+            value = value.to_dict().get('update') or value
+
+        self._set_config_option(f'InlineBackend.{option}', value)
+
+        if option == 'rc' and self.get_matplotlib_backend() == 'inline':
+            # Explicitly update rcParams if already in inline mode so that
+            # new settings are effective immediately.
+            try:
+                import matplotlib
+                matplotlib.rcParams.update(value)
+            except Exception:
+                pass
+
+    def restore_rc_file_defaults(self):
+        """Restore inline rcParams to file defaults"""
         try:
-            from matplotlib import rcParams
-            rcParams[option] = value
+            import matplotlib
         except Exception:
-            # Needed in case matplolib isn't installed
-            pass
+            return
+
+        if (
+            'InlineBackend' in self.config
+            and 'rc' in self.config['InlineBackend']
+        ):
+            # Only restore keys that may have been set explicitly by
+            # _set_inline_config_option
+            for k in self.config['InlineBackend']['rc'].keys():
+                matplotlib.rcParams[k] = matplotlib.rcParamsOrig[k]
 
     def set_sympy_forecolor(self, background_color='dark'):
         """Set SymPy forecolor depending on console background."""

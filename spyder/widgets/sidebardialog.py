@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (
 from superqt.utils import qdebounced, signals_blocked
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
@@ -475,6 +475,31 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # Remove border of all scroll areas for pages
         css['QScrollArea#sidebardialog-scrollarea'].setValues(
             border='0px',
+        )
+
+        # Add more spacing between QGroupBoxes than normal.
+        css.QGroupBox.setValues(
+            marginBottom='15px',
+        )
+
+        # Substract extra padding
+        css["QToolTip"].setValues(
+            paddingRight="-2px",
+        )
+
+        # Substract extra padding that comes from QLineEdit
+        css["QLineEdit QToolTip"].setValues(
+            padding="-2px -3px",
+        )
+
+        # This is necessary to correctly show disabled buttons in this kind of
+        # dialogs (oddly QDarkstyle doesn't set this color as expected).
+        css["QPushButton:disabled"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+        )
+
+        css["QPushButton:checked:disabled"].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_6,
         )
 
         return css.toString()

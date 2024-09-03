@@ -146,13 +146,14 @@ class ShellConnectMainWidget(PluginMainWidget):
         if shellwidget_id in self._shellwidgets:
             self._shellwidgets.pop(shellwidget_id)
 
-        remote = shellwidget.ipyclient.server_id
         widget = PaneEmptyWidget(
             self,
-            "console-remote-off" if remote else "console-off",
+            "console-remote-off" if shellwidget.is_remote() else "console-off",
             _("No connected console"),
-            _("The current console failed to start, so there is no "
-              "content to show here.")
+            _(
+                "The current console has no active kernel, so there is no "
+                "content to show here"
+            ),
         )
         self._stack.addWidget(widget)
         self._shellwidgets[shellwidget_id] = widget

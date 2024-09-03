@@ -26,7 +26,7 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, is_conda_based_app
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor

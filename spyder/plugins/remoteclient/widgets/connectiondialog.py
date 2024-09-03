@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import annotations
+from collections.abc import Iterable
 import re
 from typing import TypedDict
 import uuid
@@ -29,13 +30,14 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    RemoteClientLog,
     SSHClientOptions,
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
@@ -44,7 +46,7 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.stylesheet import AppStyle
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
@@ -134,6 +136,7 @@ class ValidationLabel(QLabel):
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
+    MIN_HEIGHT = 450
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -187,7 +190,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             if not widget.textbox.text():
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
-                widget.status_action.setToolTip("")
+                widget.status_action.setToolTip(_("This field is empty"))
                 reasons["missing_info"] = True
             elif widget == self._name_widgets[auth_method]:
                 # Validate the server name is different from the ones already
@@ -252,10 +255,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             intro_layout.addWidget(intro_tip)
 
         # Authentication methods
+        # TODO: The config file method is not implemented yet, so we need to
+        # disable it for now.
         methods = (
             (_('Password'), AuthenticationMethod.Password),
             (_('Key file'), AuthenticationMethod.KeyFile),
-            (_('Configuration file'), AuthenticationMethod.ConfigFile),
+            # (_('Configuration file'), AuthenticationMethod.ConfigFile),
         )
 
         self._auth_methods = self.create_combobox(
@@ -564,7 +569,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
-    MIN_HEIGHT = 500
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
@@ -614,8 +618,6 @@ class NewConnectionPage(BaseConnectionPage):
 
 class ConnectionPage(BaseConnectionPage):
     """Page to display connection status and info for a remote machine."""
-
-    MIN_HEIGHT = 620
 
     def __init__(self, parent, host_id):
         super().__init__(parent, host_id)
@@ -695,6 +697,13 @@ class ConnectionPage(BaseConnectionPage):
             self.status = info["status"]
             self.status_widget.update_status(info)
 
+    def add_log(self, log: RemoteClientLog):
+        if log["id"] == self.host_id:
+            self.status_widget.add_log(log)
+
+    def add_logs(self, logs: Iterable):
+        self.status_widget.add_logs(logs)
+
     def has_new_name(self):
         """Check if users changed the connection name."""
         current_auth_method = self.auth_method(from_gui=True)
@@ -717,23 +726,36 @@ class ConnectionDialog(SidebarDialog):
     machines.
     """
 
-    MIN_WIDTH = 620
-    MIN_HEIGHT = 640
+    TITLE = _("Remote connections")
+    MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
+    MIN_HEIGHT = 700 if MAC else (635 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
-    sig_connection_status_changed = Signal(dict)
     sig_connections_changed = Signal()
 
     def __init__(self, parent=None):
+        self.ICON = ima.icon('remote_server')
         super().__init__(parent)
+        self._container = parent
 
+        # -- Setup
         self._add_saved_connection_pages()
-        self.sig_connection_status_changed.connect(
-            self._update_connection_buttons_state
-        )
+
+        # If there's more than one page, give focus to the first server because
+        # users will probably want to interact with servers here rather than
+        # create new connections.
+        if self.number_of_pages() > 1:
+            # Index 1 is the separator added after the new connection page
+            self.set_current_index(2)
+
+        # -- Signals
+        if self._container is not None:
+            self._container.sig_connection_status_changed.connect(
+                self._update_connection_buttons_state
+            )
 
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
@@ -928,13 +950,20 @@ class ConnectionDialog(SidebarDialog):
             self._update_button_save_connection_state
         )
 
-        # This updates the info shown in the "Connection info" tab of pages
-        self.sig_connection_status_changed.connect(page.update_status)
-
         if new:
             page.save_server_info()
 
         self.add_page(page)
+
+        # Add saved logs to the page
+        if self._container is not None:
+            page.add_logs(self._container.client_logs.get(host_id, []))
+
+            # This updates the info shown in the "Connection info" tab of pages
+            self._container.sig_connection_status_changed.connect(
+                page.update_status
+            )
+            self._container.sig_client_message_logged.connect(page.add_log)
 
     def _add_saved_connection_pages(self):
         """Add a connection page for each server saved in our config system."""

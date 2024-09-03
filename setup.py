@@ -205,12 +205,15 @@ setup_args = dict(
 install_requires = [
     'aiohttp>=3.9.3',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
-    'asyncssh>=2.0.0,<3.0.0',
+    'asyncssh>=2.14.0,<3.0.0',
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
+    # While this is only required for python <3.10, it is safe enough to
+    # install in all cases and helps the tests to pass.
+    'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
     'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
@@ -220,8 +223,6 @@ install_requires = [
     'keyring>=17.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
-    # Required to get SSH connections to remote kernels
-    'paramiko>=2.4.0;platform_system=="Windows"',
     'parso>=0.7.0,<0.9.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
@@ -234,20 +235,20 @@ install_requires = [
     'pyqt5>=5.15,<5.16',
     'pyqtwebengine>=5.15,<5.16',
     'python-lsp-black>=2.0.0,<3.0.0',
-    'python-lsp-server[all]>=1.11.0,<1.12.0',
+    'python-lsp-server[all]>=1.12.0,<1.13.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=24.0.0',
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.3.1,<1.4.0',
-    'qtconsole>=5.5.1,<5.6.0',
+    'qtconsole>=5.6.0,<5.7.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0b6,<3.0.0b7',
-    'superqt>=0.6.1,<1.0.0',
+    'spyder-kernels>=3.0.0,<3.1.0',
+    'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
     'watchdog>=0.10.3',
@@ -259,9 +260,9 @@ if 'dev' in __version__:
     reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.11.0,<1.13.0')
+    install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
-    install_requires.append('spyder-kernels>=3.0.0b6,<3.1.0')
+    install_requires.append('spyder-kernels>=3.0.0,<3.2.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],

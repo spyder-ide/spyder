@@ -89,6 +89,10 @@ class SpyderShell(ZMQInteractiveShell):
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
 
+        # Before activating the backend, restore to file default those
+        # InlineBackend settings that may have been set explicitly.
+        self.kernel.restore_rc_file_defaults()
+
         enabled_gui, backend = super().enable_matplotlib(gui)
 
         # This is necessary for IPython 8.24+, which returns None after

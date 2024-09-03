@@ -18,6 +18,9 @@ from spyder.plugins.remoteclient.api.jupyterhub import auth
 logger = logging.getLogger(__name__)
 
 
+REQUEST_TIMEOUT = 5  # seconds
+
+
 class JupyterHubAPI:
     def __init__(self, hub_url, auth_type="token", verify_ssl=True, **kwargs):
         self.hub_url = yarl.URL(hub_url)
@@ -280,6 +283,7 @@ class JupyterAPI:
             connector=aiohttp.TCPConnector(
                 ssl=None if self.verify_ssl else False
             ),
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         )
         return self
 
@@ -287,17 +291,19 @@ class JupyterAPI:
         await self.session.close()
 
     async def create_kernel(self, kernel_spec=None):
-        data = {"kernel_spec": kernel_spec} if kernel_spec else None
+        data = {"name": kernel_spec} if kernel_spec else None
 
         async with self.session.post(
             self.api_url / "kernels", json=data
         ) as response:
-            data = await response.json()
-            logger.info(
-                f'created kernel_spec={kernel_spec} '
-                f'kernel={data["id"]} for jupyter'
-            )
-            return data
+            if response.status != 201:
+                logger.error(
+                    f"failed to create kernel_spec={kernel_spec}"
+                )
+                raise ValueError(
+                    await response.text()
+                )
+            return await response.json()
 
     async def list_kernel_specs(self):
         async with self.session.get(self.api_url / "kernelspecs") as response:
@@ -373,6 +379,16 @@ class JupyterAPI:
                 )
             elif response.status == 200:
                 logger.info(f"restarted kernel={kernel_id} for jupyter")
+                return True
+            else:
+                return False
+
+    async def shutdown_server(self):
+        async with self.session.post(
+            self.api_url / "shutdown"
+        ) as response:
+            if response.status == 200:
+                logger.info(f"Server for jupyter has been shutdown")
                 return True
             else:
                 return False

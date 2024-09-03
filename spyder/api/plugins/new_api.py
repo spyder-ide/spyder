@@ -10,6 +10,8 @@ New API for plugins.
 All plugins in Spyder 5+ must inherit from the classes present in this file.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 from collections import OrderedDict
 import inspect
@@ -23,12 +25,12 @@ import warnings
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMainWindow
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
@@ -41,7 +43,7 @@ from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Package imports
 from .enum import Plugins
-from .old_api import SpyderPluginWidget
+from ._old_api import SpyderPluginWidget
 
 
 # Logging
@@ -158,6 +160,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     # If False, the plugin is considered "core" and therefore it cannot be
     # disabled. Default: True
     CAN_BE_DISABLED = True
+
+    # Qt Web Widgets may be a heavy dependency for many packagers
+    # (e.g. conda-forge)
+    # We thus ask plugins to declare whether or not they need
+    # web widgets to enhance the distribution of Spyder to users
+    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+    REQUIRE_WEB_WIDGETS = False
 
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -313,7 +322,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self._actions = {}
         self.is_compatible = None
         self.is_registered = None
-        self.main = parent
+        self.main: QMainWindow = parent
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -414,7 +423,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         return self._main
 
-    def get_plugin(self, plugin_name, error=True):
+    def get_plugin(self, plugin_name, error=True) -> SpyderPluginV2:
         """
         Get a plugin instance by providing its name.
 
@@ -1012,8 +1021,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self.CONTAINER_CLASS = self.WIDGET_CLASS
         super().__init__(parent, configuration=configuration)
 
-        # Defined on mainwindow.py
-        self._shortcut = None
+        # Shortcut to switch to the plugin. It's defined on the main window
+        self._switch_to_shortcut = None
 
         # Widget setup
         # --------------------------------------------------------------------

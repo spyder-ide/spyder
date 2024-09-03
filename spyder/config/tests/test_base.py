@@ -11,18 +11,20 @@ Tests for the spyder.config.base module.
 """
 
 # Standard library imports
+from importlib import reload
 import os
 import os.path as osp
-try:
-    from importlib import reload
-except ImportError:  # A builtin on Python 2
-    pass
+from pathlib import Path
+import shutil
+
 
 # Third party imports
 import pytest
 
 # Local imports
 import spyder.config.base
+from spyder.config.utils import is_anaconda
+from spyder.utils.conda import get_list_conda_envs
 
 
 # ============================================================================
@@ -50,6 +52,32 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
     assert osp.isdir(conf_path)
     monkeypatch.undo()
     reload(spyder.config.base)
+
+
+@pytest.mark.skipif(
+    not spyder.config.base.running_in_ci(), reason="Only works on CIs"
+)
+@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+def test_is_conda_based_app():
+    """Test that is_conda_based_app is working as expected."""
+    # Get conda env to use
+    pyexec = get_list_conda_envs()['Conda: jedi-test-env'][0]
+
+    # Get env's root
+    env_root = (
+        Path(pyexec).parents[0] if os.name == "nt" else Path(pyexec).parents[1]
+    )
+
+    # Create dir and file necessary to detect the app
+    menu_dir = env_root / "Menu"
+    menu_dir.mkdir()
+    (menu_dir / "conda-based-app").touch()
+
+    # Check the env is detected as belonging to the app
+    assert spyder.config.base.is_conda_based_app(pyexec=pyexec)
+
+    # Remove added dir
+    shutil.rmtree(menu_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':

@@ -8,10 +8,10 @@
 
 # Standard library imports
 from ast import literal_eval
-from getpass import getuser
-from textwrap import dedent
 import glob
+from getpass import getuser
 import importlib
+from importlib.metadata import PackageNotFoundError, version as package_version
 import itertools
 import os
 import os.path as osp
@@ -19,14 +19,15 @@ import re
 import subprocess
 import sys
 import tempfile
+from textwrap import dedent
 import threading
 import time
 import logging
 
 # Third party imports
 from packaging.version import parse
-import pkg_resources
 import psutil
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import _, running_under_pytest, get_home_dir
@@ -1009,13 +1010,9 @@ def get_module_version(module_name, interpreter=None):
 
 def get_package_version(package_name):
     """Return package version or None if version can't be retrieved."""
-
-    # When support for Python 3.7 and below is dropped, this can be replaced
-    # with the built-in importlib.metadata.version
     try:
-        ver = pkg_resources.get_distribution(package_name).version
-        return ver
-    except pkg_resources.DistributionNotFound:
+        return package_version(package_name)
+    except PackageNotFoundError:
         return None
 
 
@@ -1087,9 +1084,6 @@ def is_python_interpreter_valid_name(filename):
 
 def is_python_interpreter(filename):
     """Evaluate whether a file is a python interpreter or not."""
-    # Must be imported here to avoid circular import
-    from spyder.utils.conda import is_conda_env
-
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
 
     if (not osp.isfile(real_filename) or
@@ -1168,7 +1162,8 @@ def is_spyder_process(pid):
 
         # Valid names for main script
         names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
-                     'bootstrap.py', 'spyder-script.py', 'Spyder.launch.pyw'])
+                     'bootstrap.py', 'spyder-script.py', 'spyder-script.pyw',
+                     'Spyder.launch.pyw'])
         if running_under_pytest():
             names.add('runtests.py')
 

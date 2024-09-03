@@ -2,13 +2,13 @@ name: spy-inst
 channels:
   - conda-forge
 dependencies:
-  - boa <0.17.0  # See https://github.com/conda-forge/boa-feedstock/issues/81
-  - conda >=23.11.0
-  - conda-lock >=2.5.7
-  - conda-standalone >=23.11.0
-  - constructor >=3.6.0
+  - conda =24.7.1
+  - conda-build =24.7.1
+  - conda-lock =2.5.7
+  - conda-standalone =24.7.1
+  - constructor =3.9.2
   - gitpython
   - mamba
-  - menuinst >=2.0.2
+  - menuinst =2.1.2
   - ruamel.yaml.jinja2
   - setuptools_scm

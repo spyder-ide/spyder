@@ -43,10 +43,20 @@ class StatusBar(SpyderPluginV2):
     EXTERNAL_LEFT_WIDGETS = {}
     INTERNAL_WIDGETS = {}
     INTERNAL_WIDGETS_IDS = {
-        'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
-        'eol_status', 'encoding_status', 'cursor_position_status',
-        'vcs_status', 'lsp_status', 'completion_status',
-        'interpreter_status', 'update_manager_status'}
+        "clock_status",
+        "cpu_status",
+        "memory_status",
+        "read_write_status",
+        "eol_status",
+        "encoding_status",
+        "cursor_position_status",
+        "vcs_status",
+        "lsp_status",
+        "pythonenv_status",
+        "matplotlib_status",
+        "update_manager_status",
+        "inapp_appeal_status",
+    }
 
     # ---- SpyderPluginV2 API
     @staticmethod
@@ -213,10 +223,20 @@ class StatusBar(SpyderPluginV2):
         """
         # Desired organization
         internal_layout = [
-            'clock_status', 'cpu_status', 'memory_status', 'read_write_status',
-            'eol_status', 'encoding_status', 'cursor_position_status',
-            'vcs_status', 'lsp_status', 'completion_status',
-            'interpreter_status', 'update_manager_status']
+            "clock_status",
+            "cpu_status",
+            "memory_status",
+            "read_write_status",
+            "eol_status",
+            "encoding_status",
+            "cursor_position_status",
+            "vcs_status",
+            "lsp_status",
+            "pythonenv_status",
+            "matplotlib_status",
+            "update_manager_status",
+            "inapp_appeal_status",
+        ]
         external_left = list(self.EXTERNAL_LEFT_WIDGETS.keys())
 
         # Remove all widgets from the statusbar, except the external right
@@ -231,13 +251,15 @@ class StatusBar(SpyderPluginV2):
             # This is needed in the case kite is installed but not enabled
             if id_ in self.INTERNAL_WIDGETS:
                 self._statusbar.insertPermanentWidget(
-                    StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_])
+                    StatusBarWidgetPosition.Left, self.INTERNAL_WIDGETS[id_]
+                )
                 self.INTERNAL_WIDGETS[id_].setVisible(True)
 
         # Add the external left widgets
         for id_ in external_left:
             self._statusbar.insertPermanentWidget(
-                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_])
+                StatusBarWidgetPosition.Left, self.EXTERNAL_LEFT_WIDGETS[id_]
+            )
             self.EXTERNAL_LEFT_WIDGETS[id_].setVisible(True)
 
     def before_mainwindow_visible(self):

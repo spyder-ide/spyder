@@ -12,7 +12,7 @@ import os.path as osp
 # Third-party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtWidgets import (
-    QRadioButton, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit)
+    QCheckBox, QGroupBox, QHBoxLayout, QLineEdit, QRadioButton, QVBoxLayout)
 
 # Local imports
 from spyder.api.translations import _
@@ -22,19 +22,11 @@ from spyder.utils.misc import getcwd_or_home
 
 
 # Main constants
-RUN_DEFAULT_CONFIG = _("Run file with default configuration")
-RUN_CUSTOM_CONFIG = _("Run file with custom configuration")
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
-SYSTERM_INTERPRETER = _("Execute in an external system terminal")
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console's namespace instead of an empty one")
 POST_MORTEM = _("Directly enter debugging when errors appear")
-INTERACT = _("Interact with the Python console after execution")
-FILE_DIR = _("The directory of the file being executed")
-CW_DIR = _("The current working directory")
-FIXED_DIR = _("The following directory:")
-ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 
 
 class IPythonConfigOptions(RunExecutorConfigurationGroup):
@@ -48,7 +40,6 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-
         interpreter_layout = QVBoxLayout(interpreter_group)
 
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
@@ -58,27 +49,31 @@ class IPythonConfigOptions(RunExecutorConfigurationGroup):
         interpreter_layout.addWidget(self.dedicated_radio)
 
         # --- General settings ----
-        common_group = QGroupBox(_("General settings"))
-
-        common_layout = QGridLayout(common_group)
+        common_group = QGroupBox(_("Advanced settings"))
+        common_layout = QVBoxLayout(common_group)
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
-        common_layout.addWidget(self.clear_var_cb, 0, 0)
+        common_layout.addWidget(self.clear_var_cb)
 
         self.console_ns_cb = QCheckBox(CONSOLE_NAMESPACE)
-        common_layout.addWidget(self.console_ns_cb, 1, 0)
+        common_layout.addWidget(self.console_ns_cb)
 
         self.post_mortem_cb = QCheckBox(POST_MORTEM)
-        common_layout.addWidget(self.post_mortem_cb, 2, 0)
+        common_layout.addWidget(self.post_mortem_cb)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 3, 0)
-        self.clo_edit = QLineEdit()
+        self.clo_edit = QLineEdit(self)
+        self.clo_edit.setMinimumWidth(300)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 3, 1)
+
+        cli_layout = QHBoxLayout()
+        cli_layout.addWidget(self.clo_cb)
+        cli_layout.addWidget(self.clo_edit)
+        common_layout.addLayout(cli_layout)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addStretch(100)

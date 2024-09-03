@@ -20,9 +20,8 @@ from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import (
-    Plugins, SpyderPluginV2, SpyderDockablePlugin, SpyderPluginWidget,
-    SpyderPlugin)
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 from spyder.utils.icon_manager import ima
 
 
@@ -627,9 +626,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         if not can_close and not close_immediately:
             return False
-
-        # Dock undocked plugins
-        self.dock_all_undocked_plugins(save_undocked=True)
 
         # Delete Spyder 4 external plugins
         for plugin_name in set(self.external_plugins):

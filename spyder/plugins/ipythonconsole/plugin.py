@@ -16,7 +16,7 @@ from typing import List
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -26,7 +26,7 @@ from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
-from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
 )
@@ -51,13 +51,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     OPTIONAL = [
         Plugins.Editor,
         Plugins.History,
+        Plugins.MainInterpreter,
         Plugins.MainMenu,
-        Plugins.Run,
         Plugins.Projects,
         Plugins.PythonpathManager,
         Plugins.RemoteClient,
-        Plugins.WorkingDirectory,
+        Plugins.Run,
         Plugins.StatusBar,
+        Plugins.WorkingDirectory,
     ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
@@ -208,6 +209,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         The new working directory path.
     """
 
+    sig_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active shell widget has
+    changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -226,6 +238,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def on_initialize(self):
         widget = self.get_widget()
+
+        # Main widget signals
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
@@ -243,15 +257,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget.sig_help_requested.connect(self.sig_help_requested)
         widget.sig_current_directory_changed.connect(
             self.sig_current_directory_changed)
+        widget.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed
+        )
 
         # Run configurations
         self.cython_editor_run_configuration = {
             'origin': self.NAME,
             'extension': 'pyx',
             'contexts': [
-                {
-                    'name': 'File'
-                }
+                {'name': 'File'}
             ]
         }
 
@@ -259,15 +274,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             'origin': self.NAME,
             'extension': 'py',
             'contexts': [
-                {
-                    'name': 'File'
-                },
-                {
-                    'name': 'Cell'
-                },
-                {
-                    'name': 'Selection'
-                },
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
             ]
         }
 
@@ -275,24 +284,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             'origin': self.NAME,
             'extension': 'ipy',
             'contexts': [
-                {
-                    'name': 'File'
-                },
-                {
-                    'name': 'Cell'
-                },
-                {
-                    'name': 'Selection'
-                },
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
             ]
         }
 
         self.executor_configuration = [
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
@@ -300,9 +301,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
@@ -310,9 +309,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'Cell'
-                },
+                'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -320,9 +317,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'Cell'
-                },
+                'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -330,9 +325,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -340,9 +333,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': True,
@@ -350,9 +341,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'pyx',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': IPythonConfigOptions,
                 'requires_cwd': True,
@@ -362,16 +351,26 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
-        # Add status widget
+        # Add status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+
+        pythonenv_status = self.get_widget().pythonenv_status
+        statusbar.add_status_widget(pythonenv_status)
+        pythonenv_status.register_ipythonconsole(self)
+
         matplotlib_status = self.get_widget().matplotlib_status
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
-        # Add status widget
+        # Remove status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+
+        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status.unregister_ipythonconsole(self)
+        statusbar.remove_status_widget(pythonenv_status.ID)
+
         matplotlib_status = self.get_widget().matplotlib_status
         matplotlib_status.unregister_ipythonconsole(self)
         statusbar.remove_status_widget(matplotlib_status.ID)
@@ -477,6 +476,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         remote_client.sig_server_stopped.connect(self._close_remote_clients)
         remote_client.sig_server_renamed.connect(self._rename_remote_clients)
 
+    @on_plugin_available(plugin=Plugins.MainInterpreter)
+    def on_main_interpreter_available(self):
+        main_interpreter = self.get_plugin(Plugins.MainInterpreter)
+        main_interpreter.sig_environments_updated.connect(self._update_envs)
+
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         # Register conf page
@@ -538,6 +542,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             self._rename_remote_clients
         )
 
+    @on_plugin_teardown(plugin=Plugins.MainInterpreter)
+    def on_main_interpreter_teardown(self):
+        main_interpreter = self.get_plugin(Plugins.MainInterpreter)
+        main_interpreter.sig_environments_updated.disconnect(self._update_envs)
+
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_font(SpyderFontType.Monospace)
@@ -565,6 +574,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _rename_remote_clients(self, server_id):
         self.get_widget().rename_remote_clients(server_id)
+
+    def _update_envs(self, envs):
+        self.get_widget().update_envs(envs)
 
     # ---- Public API
     # -------------------------------------------------------------------------

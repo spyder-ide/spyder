@@ -24,17 +24,19 @@ import uuid
 from collections import namedtuple
 
 # Test imports
-import pytest
 from flaky import flaky
+from IPython.core import release as ipython_release
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
 import numpy as np
+import pytest
 
 # Local imports
-from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.test_utils import get_kernel, get_log_text
-from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.commbase import CommBase
+from spyder_kernels.customize.spyderpdb import SpyderPdb
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.pythonenv import PythonEnvType
+from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 
 # =============================================================================
 # Constants and utility functions
@@ -277,7 +279,7 @@ def test_get_namespace_view(kernel):
     """
     Test the namespace view of the kernel.
     """
-    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('a = 1', True))
 
     nsview = repr(kernel.get_namespace_view())
     assert "'a':" in nsview
@@ -293,7 +295,7 @@ def test_get_namespace_view_filter_on(kernel, filter_on):
     """
     Test the namespace view of the kernel with filters on and off.
     """
-    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('a = 1', True))
     asyncio.run(kernel.do_execute('TestFilterOff = 1', True))
 
     settings = kernel.namespace_view_settings
@@ -985,7 +987,7 @@ def test_namespaces_in_pdb(kernel):
     Test namespaces in pdb
     """
     # Define get_ipython for timeit
-    get_ipython = lambda: kernel.shell
+    get_ipython = lambda: kernel.shell  # noqa
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
@@ -1061,7 +1063,7 @@ def test_functions_with_locals_in_pdb_2(kernel):
 
     This is another regression test for spyder-ide/spyder-kernels#345
     """
-    baba = 1
+    baba = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
@@ -1098,7 +1100,7 @@ def test_locals_globals_in_pdb(kernel):
     """
     Test thal locals and globals work properly in Pdb.
     """
-    a = 1
+    a = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
@@ -1140,10 +1142,8 @@ def test_locals_globals_in_pdb(kernel):
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
-    reason="Doesn't work with pip packages")
-@pytest.mark.skipif(
-    sys.version_info[:2] < (3, 9),
-    reason="Too flaky in Python 3.8 and doesn't work in older versions")
+    reason="Doesn't work with pip packages"
+)
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.
@@ -1157,14 +1157,17 @@ def test_get_interactive_backend(backend):
         # Set backend
         if backend is not None:
             client.execute_interactive(
-                "%matplotlib {}".format(backend), timeout=TIMEOUT)
+                "%matplotlib {}".format(backend), timeout=TIMEOUT
+            )
             client.execute_interactive(
-                "import time; time.sleep(.1)", timeout=TIMEOUT)
+                "import time; time.sleep(.1)", timeout=TIMEOUT
+            )
 
         # Get backend
         code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"
         reply = client.execute_interactive(
-            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT)
+            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT
+        )
 
         # Get value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -1239,7 +1242,7 @@ def test_debug_namespace(tmpdir):
         d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
 
         # Run code file `d`
-        msg_id = client.execute("%runfile {}".format(repr(str(d))))
+        client.execute("%runfile {}".format(repr(str(d))))
 
         # make sure that 'bb' returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)
@@ -1370,8 +1373,7 @@ def test_non_strings_in_locals(kernel):
 
     This is a regression test for issue spyder-ide/spyder#19145
     """
-    execute = asyncio.run(kernel.do_execute('locals().update({1:2})', True))
-
+    asyncio.run(kernel.do_execute('locals().update({1:2})', True))
     nsview = repr(kernel.get_namespace_view())
     assert "1:" in nsview
 
@@ -1382,9 +1384,7 @@ def test_django_settings(kernel):
 
     This is a regression test for issue spyder-ide/spyder#19516
     """
-    execute = asyncio.run(kernel.do_execute(
-        'from django.conf import settings', True))
-
+    asyncio.run(kernel.do_execute('from django.conf import settings', True))
     nsview = repr(kernel.get_namespace_view())
     assert "'settings':" in nsview
 
@@ -1408,6 +1408,29 @@ def test_hard_link_pdb(tmpdir):
     # Make sure canonic returns the same path for a single file
     pdb_obj = SpyderPdb()
     assert pdb_obj.canonic(str(d)) == pdb_obj.canonic(str(hard_link))
+
+
+@pytest.mark.skipif(not os.environ.get('CI'), reason="Only works on CIs")
+def test_get_pythonenv_info(kernel):
+    """Test the output we get from this method."""
+    output = kernel.get_pythonenv_info()
+    assert output["path"] == sys.executable
+
+    if os.environ.get('USE_CONDA'):
+        assert output["name"] == "test"
+        assert output["env_type"] == PythonEnvType.Conda
+    else:
+        assert output["env_type"] in [
+            # This Custom here accounts for Linux packagers that run our tests
+            # in their CIs
+            PythonEnvType.Custom,
+            PythonEnvType.Conda,
+        ]
+
+    # Check these keys are present. Otherwise we'll break Spyder.
+    assert output["python_version"] == sys.version.split()[0]
+    assert output["ipython_version"] == ipython_release.version
+    assert output["sys_version"] == sys.version
 
 
 if __name__ == "__main__":

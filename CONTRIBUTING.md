@@ -71,6 +71,7 @@ To run Spyder from your clone in its development mode, with extra checks and opt
 ```bash
 $ python bootstrap.py
 ```
+
 Note that if you are running on macOS 10.15 or earlier, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
@@ -80,6 +81,24 @@ $ python bootstrap.py --debug
 ```
 
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
+
+To start Spyder with different Qt bindings (e.g. PySide2 or PyQt6), you can run:
+
+```bash
+$ python bootstrap.py --gui pyqt6
+```
+
+To access Spyder command line options from `bootstrap.py`, you need to run:
+
+```bash
+$ python bootstrap.py -- --help
+```
+
+Note that `bootstrap.py` has its own command line options, which can be listed by running:
+
+```bash
+$ python bootstrap.py --help
+```
 
 
 ###  Running tests
@@ -245,7 +264,7 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo pull external-deps/qtconsole -r https://github.com/jupyter/qtconsole.git -b master -u -f
+    $ git subrepo pull external-deps/qtconsole -r https://github.com/jupyter/qtconsole.git -b main -u -f
     ```
 
 

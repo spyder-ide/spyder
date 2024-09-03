@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog

@@ -24,6 +24,7 @@ import os.path as osp
 import random
 import socket
 import time
+import warnings
 
 # Prevent showing internal logging errors
 # Fixes spyder-ide/spyder#15768
@@ -48,6 +49,9 @@ try:
 except:
     pass
 
+# Third-party imports
+from spyder_kernels.utils.pythonenv import is_conda_env
+
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, reset_config_files,
@@ -55,6 +59,13 @@ from spyder.config.base import (get_conf_path, reset_config_files,
 from spyder.utils.conda import get_conda_root_prefix
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_text_string
+
+
+# On macOS conda installations, sys.executable may be a symlink in the
+# application bundle, and therefore should be resolved to the executable in the
+# environment.
+if sys.platform == "darwin" and sys.executable.endswith("MacOS/python"):
+    sys.executable = os.readlink(sys.executable)
 
 # Enforce correct CONDA_EXE environment variable
 # Do not rely on CONDA_PYTHON_EXE or CONDA_PREFIX in case Spyder is started
@@ -65,6 +76,14 @@ if is_conda_based_app():
         os.environ['CONDA_EXE'] = conda_root + r'\Scripts\conda.exe'
     else:
         os.environ['CONDA_EXE'] = conda_root + '/bin/conda'
+
+# Qt needs to find libraries in Library\bin to render splash screen properly.
+# If running in a conda environment that is not activated, then we need to add
+# this path to PATH. See spyder-ide/spyder#22374
+if os.name == 'nt' and is_conda_env(pyexec=sys.executable):
+    bin_path = osp.join(sys.prefix, r'Library\bin')
+    if bin_path not in os.getenv('PATH'):
+        os.environ['PATH'] = bin_path + osp.pathsep + os.getenv('PATH')
 
 # Get argv
 if running_under_pytest():
@@ -79,6 +98,11 @@ if CLI_OPTIONS.safe_mode:
 
 if CLI_OPTIONS.conf_dir:
     os.environ['SPYDER_CONFDIR'] = CLI_OPTIONS.conf_dir
+
+# -- Ignore useless warnings
+# From the cryptography module
+warnings.filterwarnings("ignore", message="ARC4 has been moved")
+warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 
 def send_args_to_spyder(args):

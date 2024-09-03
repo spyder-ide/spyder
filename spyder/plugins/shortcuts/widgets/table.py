@@ -21,6 +21,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QPushButton, QSpacerItem, QVBoxLayout)
 
 # Local imports
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -463,7 +464,7 @@ class ShortcutEditor(QDialog):
         self.accept()
 
 
-class Shortcut(object):
+class Shortcut(SpyderShortcutsMixin):
     """Shortcut convenience class for holding shortcut context, name,
     original ordering index, key sequence for the shortcut and localized text.
     """
@@ -478,10 +479,10 @@ class Shortcut(object):
         return "{0}/{1}: {2}".format(self.context, self.name, self.key)
 
     def load(self):
-        self.key = CONF.get_shortcut(self.context, self.name)
+        self.key = self.get_shortcut(self.name, self.context)
 
     def save(self):
-        CONF.set_shortcut(self.context, self.name, self.key)
+        self.set_shortcut(self.key, self.name, self.context)
 
 
 CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
@@ -633,7 +634,7 @@ class ShortcutsModel(QAbstractTableModel):
 
 class ShortcutsTable(HoverRowsTableView):
     def __init__(self, parent=None):
-        HoverRowsTableView.__init__(self, parent)
+        HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self._parent = parent
         self.finder = None
         self.shortcut_data = None
@@ -658,6 +659,7 @@ class ShortcutsTable(HoverRowsTableView):
 
         self.verticalHeader().hide()
 
+        # To highlight the entire row on hover
         self.sig_hover_index_changed.connect(
             self.itemDelegate().on_hover_index_changed
         )

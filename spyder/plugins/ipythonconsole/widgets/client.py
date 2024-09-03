@@ -101,7 +101,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         id_,
         config_options,
         additional_options,
-        interpreter_versions,
         menu_actions=None,
         given_name=None,
         give_focus=True,
@@ -150,10 +149,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             config=config_options,
             ipyclient=self,
             additional_options=additional_options,
-            interpreter_versions=interpreter_versions,
             handlers=handlers,
             local_kernel=True,
-            special_kernel=special_kernel
+            special_kernel=special_kernel,
+            server_id=server_id,
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
@@ -180,7 +179,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-    # ----- Private methods ---------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _when_kernel_is_ready(self):
         """
         Configuration after the prompt is shown.
@@ -331,7 +331,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if osp.isdir(cwd_path):
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
-    # ----- Public API --------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     @property
     def connection_file(self):
         if self.kernel_handler is None:
@@ -349,7 +350,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
 
-        if self.server_id:
+        if self.is_remote():
             self._hide_loading_page()
         else:
             self._show_loading_page()
@@ -359,7 +360,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def disconnect_kernel(self, shutdown_kernel):
         """Disconnect from current kernel."""
-        kernel_handler = self.kernel_handler
+        kernel_handler = getattr(self, "kernel_handler", None)
         if not kernel_handler:
             return
 
@@ -639,11 +640,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.dialog_manager.close_all()
         shutdown_kernel = (
             is_last_client
-            and (not self.shellwidget.is_external_kernel or self.server_id)
+            and (not self.shellwidget.is_external_kernel or self.is_remote())
             and not self.error_text
         )
 
-        if self.server_id and shutdown_kernel and not close_console:
+        if self.is_remote() and shutdown_kernel and not close_console:
             # This signal allows to shutdown a remote kernel when a client is
             # closed. And we don't emit it when the console is being closed
             # because it's not necessary in that case.
@@ -675,11 +676,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
 
-    def kernel_restarted_failure_message(self):
-        """Show message when the kernel failed to be restarted."""
-        msg = _("It was not possible to restart the kernel")
-        self.shellwidget._append_html(f"<br>{msg}<br>", before_prompt=False)
-        self.shellwidget.insert_horizontal_ruler()
+    def is_kernel_active(self):
+        """Check if the kernel is active."""
+        return (
+            self.kernel_handler is not None
+            and self.kernel_handler.connection_state
+            in [
+                KernelConnectionState.SpyderKernelReady,
+                KernelConnectionState.IpykernelReady,
+            ]
+        )
 
     def print_fault(self, fault):
         """Print fault text."""
@@ -772,3 +778,56 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 QUrl.fromLocalFile(self.css_path)
             )
             self.sig_execution_state_changed.emit()
+
+    # ---- For remote clients
+    # -------------------------------------------------------------------------
+    def is_remote(self):
+        """Check if this client is connected to a remote server."""
+        return self.server_id is not None
+
+    def handle_remote_kernel_restarted(self, clear=True):
+        """Handle restarts for remote kernels."""
+        # Reset shellwidget and print restart message
+        self.shellwidget.reset(clear=clear)
+
+    def show_restarting_message(self, died=False):
+        self.shellwidget._kernel_restarted_message(died=died)
+
+    def remote_kernel_restarted_failure_message(
+        self, error=None, shutdown=False
+    ):
+        """Show message when the kernel failed to be restarted."""
+
+        msg = _("It was not possible to restart the kernel")
+
+        if error is None:
+            error_html = f"<br>{msg}<br>"
+        else:
+            if isinstance(error, SpyderKernelError):
+                error = error.args[0]
+            elif isinstance(error, Exception):
+                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
+
+            # Replace end of line chars with <br>
+            eol = sourcecode.get_eol_chars(error)
+            if eol:
+                error = error.replace(eol, '<br>')
+
+            # Don't break lines in hyphens
+            # From https://stackoverflow.com/q/7691569/438386
+            error = error.replace('-', '&#8209')
+
+            # Create error page
+            kernel_error_template = Template(KERNEL_ERROR)
+            error_html = kernel_error_template.substitute(
+                css_path=self.css_path,
+                message=msg,
+                error=error)
+
+        self.shellwidget._append_html(error_html, before_prompt=False)
+        self.shellwidget.insert_horizontal_ruler()
+
+        if shutdown:
+            self.shutdown(is_last_client=False, close_console=False)

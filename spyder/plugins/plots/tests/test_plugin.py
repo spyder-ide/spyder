@@ -12,6 +12,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.plots.plugin import Plots
 from spyder.plugins.plots.widgets.main_widget import PlotsWidgetActions
@@ -27,8 +28,11 @@ def plots_plugin(qapp, qtbot):
     plots.get_widget().setMinimumSize(700, 500)
     plots.get_widget().add_shellwidget(Mock())
     qtbot.addWidget(plots.get_widget())
-    qapp.setStyleSheet(str(APP_STYLESHEET))
-    plots.get_widget().show()
+    if not running_in_ci():
+        qapp.setStyleSheet(str(APP_STYLESHEET))
+    with qtbot.waitExposed(plots.get_widget()):
+        plots.get_widget().show()
+
     return plots
 
 

@@ -9,11 +9,12 @@ IPython Console main widget based on QtConsole.
 """
 
 # Standard library imports
+from __future__ import annotations
+import functools
 import logging
 import os
 import os.path as osp
 import shlex
-import subprocess
 import sys
 import time
 
@@ -25,11 +26,10 @@ from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
-from qtpy.QtWebEngineWidgets import WEBENGINE
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
-from traitlets.config.loader import Config, load_pyconfig_files
 from superqt.utils import qdebounced
+from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -48,33 +48,57 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (
-    ClientWidget, ConsoleRestartDialog, COMPLETION_WIDGET_TYPE,
-    KernelConnectionDialog, PageControlWidget, MatplotlibStatus)
+    ClientWidget,
+    ConsoleRestartDialog,
+    COMPLETION_WIDGET_TYPE,
+    KernelConnectionDialog,
+    MatplotlibStatus,
+    PageControlWidget,
+    PythonEnvironmentStatus,
+    ShellWidget,
+)
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
-from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.conda import is_conda_env, find_conda
-from spyder.utils.envs import get_list_envs
+from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
-from spyder.utils.workers import WorkerManager
-from spyder.widgets.browser import FrameWebView
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.printer import SpyderPrinter
+
+# In case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 
 # Logging
 logger = logging.getLogger(__name__)
 
 
-# =============================================================================
 # ---- Constants
-# =============================================================================
+# -----------------------------------------------------------------------------
 MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
-# --- Widgets
+# Leaving these enums here because they don't need to be part of the public API
+class EnvironmentConsolesSubmenus:
+    CondaMenu = 'conda_environments_menu'
+    PyenvMenu = 'pyenv_environment_menu'
+    CustomMenu = 'custom_environment_menu'
+
+
+class EnvironmentConsolesMenuSections:
+    Default = "default_section"
+    Conda = "conda_section"
+    Pyenv = "pyenv_section"
+    Custom = "custom_section"
+    Other = "other_section"
+    Submenus = "submenus_section"
+
+
+# ---- Widgets
 # ----------------------------------------------------------------------------
 class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     """
@@ -227,6 +251,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         The new working directory path.
     """
 
+    sig_interpreter_changed = Signal(str)
+    """
+    This signal is emitted when the interpreter of the active shell widget has
+    changed.
+
+    Parameters
+    ----------
+    path: str
+        Path to the new interpreter.
+    """
+
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -241,7 +276,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.interrupt_action = None
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
-        self.default_interpreter = sys.executable
 
         # Attributes needed for the restart dialog
         self._restart_dialog = ConsoleRestartDialog(self)
@@ -252,7 +286,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.enable_infowidget = True
         if plugin:
             cli_options = plugin.get_command_line_options()
-            if cli_options.no_web_widgets:
+            if cli_options.no_web_widgets or not WEBENGINE:
                 self.enable_infowidget = False
 
         # Attrs for testing
@@ -288,6 +322,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Info widget
         if self.enable_infowidget:
+            from spyder.widgets.browser import FrameWebView
+
             self.infowidget = FrameWebView(self)
             if WEBENGINE:
                 self.infowidget.page().setBackgroundColor(
@@ -346,17 +382,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
-        # Create MatplotlibStatus
+        # Create status widgets
         self.matplotlib_status = MatplotlibStatus(self)
+        self.pythonenv_status = PythonEnvironmentStatus(self)
+        self.pythonenv_status.sig_interpreter_changed.connect(
+            self.sig_interpreter_changed
+        )
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
-
-        # Worker to compute envs in a thread
-        self._worker_manager = WorkerManager(max_threads=1)
-
-        # Update the list of envs at startup
-        self.get_envs()
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -369,7 +403,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return client.get_control()
 
     def setup(self):
-        # --- Main menu
+        # --- Console environments menu
         self.console_environment_menu = self.create_menu(
             IPythonConsoleWidgetMenus.EnvironmentConsoles,
             _('New console in environment')
@@ -380,9 +414,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.console_environment_menu.setStyleSheet(css.toString())
 
         self.console_environment_menu.aboutToShow.connect(
-            self.update_environment_menu)
+            self._update_environment_menu
+        )
 
-        # --- Options menu actions
+        # Submenus
+        self.conda_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.CondaMenu,
+            "Conda",
+        )
+        self.pyenv_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.PyenvMenu,
+            "Pyenv",
+        )
+        self.custom_envs_menu = self.create_menu(
+            EnvironmentConsolesSubmenus.CustomMenu,
+            _("Custom"),
+        )
+
+        # --- Main and options menu actions
         self.create_client_action = self.create_action(
             IPythonConsoleWidgetActions.CreateNewClient,
             text=_("New console (default settings)"),
@@ -721,57 +770,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.infowidget is not None
                 and client.info_page is not None
             ):
-                error_or_loading = client.info_page != client.blank_page
+                error_or_loading = not client.is_kernel_active()
                 self.restart_action.setEnabled(not error_or_loading)
                 self.reset_action.setEnabled(not error_or_loading)
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
-
-    def get_envs(self):
-        """
-        Get the list of environments/interpreters in a worker.
-        """
-        self._worker_manager.terminate_all()
-        worker = self._worker_manager.create_python_worker(get_list_envs)
-        worker.sig_finished.connect(self.update_envs)
-        worker.start()
-
-    def update_envs(self, worker, output, error):
-        """Update the list of environments in the system."""
-        if output is not None:
-            self.envs.update(**output)
-
-    def update_environment_menu(self):
-        """
-        Update context menu submenu with entries for available interpreters.
-        """
-        self.get_envs()
-        self.console_environment_menu.clear_actions()
-
-        for env_key, env_info in self.envs.items():
-            env_name = env_key.split()[-1]
-            path_to_interpreter, python_version = env_info
-            action = self.create_action(
-                name=env_key,
-                text=f'{env_key} ({python_version})',
-                icon=self.create_icon('ipython_console'),
-                triggered=(
-                    lambda checked, env_name=env_name,
-                    path_to_interpreter=path_to_interpreter:
-                    self.create_environment_client(
-                        env_name,
-                        path_to_interpreter
-                    )
-                ),
-                overwrite=True
-            )
-            self.add_item_to_menu(
-                action,
-                menu=self.console_environment_menu
-            )
-
-        self.console_environment_menu.render()
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -938,7 +942,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             symbolic_math_n,
             hide_cmd_windows_n,
         ]
-        restart_needed = option in restart_options
+        restart_needed = (
+            option in restart_options
+            # Deactivating graphics support
+            or (option == pylab_n and not value)
+        )
 
         inline_backend = 'inline'
         pylab_restart = False
@@ -1040,31 +1048,36 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 (pylab_restart and clients_backend_require_restart[idx]) or
                 restart_needed
             )
+            _options = options.copy()
 
-            if not (restart and restart_all) or no_restart:
+            if autoload_n in options:
                 # Autoload can't be applied without a restart. This avoids an
                 # incorrect message in the console too.
-                if autoload_n in options:
-                    options.pop(autoload_n)
+                _options.pop(autoload_n)
 
+            if pylab_n in _options and pylab_o:
+                # Activating support requires sending all inline configs
+                _options = None
+
+            if not (restart and restart_all) or no_restart:
                 sw = client.shellwidget
                 if sw.is_debugging() and sw._executing:
                     # Apply conf when the next Pdb prompt is available
-                    def change_client_mpl_conf(o=options, c=client):
+                    def change_client_mpl_conf(o=_options, c=client):
                         self._change_client_mpl_conf(o, c)
                         sw.sig_pdb_prompt_ready.disconnect(
                             change_client_mpl_conf)
 
                     sw.sig_pdb_prompt_ready.connect(change_client_mpl_conf)
                 else:
-                    self._change_client_mpl_conf(options, client)
+                    self._change_client_mpl_conf(_options, client)
             elif restart and restart_all:
                 self.restart_kernel(client, ask_before_restart=False)
 
         if (
             (
                 (pylab_restart and current_client_backend_require_restart)
-                 or restart_needed
+                or restart_needed
             )
             and restart_current
             and current_client
@@ -1167,6 +1180,172 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.create_client_for_kernel(
             connection_file, hostname, sshkey, password)
 
+    def _update_environment_menu(self):
+        """Update submenu with entries for available interpreters."""
+        # Clear menu and submenus before rebuilding them
+        self.console_environment_menu.clear_actions()
+        self.conda_envs_menu.clear_actions()
+        self.pyenv_envs_menu.clear_actions()
+        self.custom_envs_menu.clear_actions()
+
+        internal_action = None
+        conda_actions = []
+        pyenv_actions = []
+        custom_actions = []
+        for env_key, env_info in self.envs.items():
+            env_name = env_key.split()[-1]
+            path_to_interpreter, python_version = env_info
+
+            # Text for actions
+            text = f"{env_key} ({python_version})"
+
+            # Change text in case env is the default or internal (i.e. same as
+            # Spyder) one
+            default_interpreter = self.get_conf(
+                "executable", section="main_interpreter"
+            )
+            if path_to_interpreter == default_interpreter:
+                text = _("Default") + " / " + text
+            elif (
+                path_to_interpreter == sys.executable
+                and default_interpreter != sys.executable
+            ):
+                text = _("Internal") + " / " + text
+
+            # Create action
+            action = self.create_action(
+                name=env_key,
+                text=text,
+                icon=self.create_icon('ipython_console'),
+                triggered=(
+                    self.create_new_client
+                    if path_to_interpreter == default_interpreter
+                    else functools.partial(
+                        self.create_environment_client,
+                        env_name,
+                        path_to_interpreter
+                    )
+                ),
+                overwrite=True,
+                register_action=False,
+            )
+
+            # Add default env as the first entry in the menu
+            if text.startswith(_("Default")):
+                self.add_item_to_menu(
+                    action,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Default
+                )
+
+            # Group other actions to add them later
+            if text.startswith(_("Internal")):
+                internal_action = action
+            elif text.startswith("Conda"):
+                conda_actions.append(action)
+            elif text.startswith("Pyenv"):
+                pyenv_actions.append(action)
+            elif text.startswith(_("Custom")):
+                custom_actions.append(action)
+
+        # Add internal action, if available
+        if internal_action:
+            self.add_item_to_menu(
+                internal_action,
+                menu=self.console_environment_menu,
+                section=EnvironmentConsolesMenuSections.Default
+            )
+
+        # Add other envs to their respective submenus or sections
+        max_actions_in_menu = 20
+        n_categories = len(
+            [
+                actions
+                for actions in [conda_actions, pyenv_actions, custom_actions]
+                if len(actions) > 0
+            ]
+        )
+        actions = conda_actions + pyenv_actions + custom_actions
+
+        # We use submenus if there are more envs than we'd like to see
+        # displayed in the consoles menu, and there are at least two non-empty
+        # categories.
+        if len(actions) > max_actions_in_menu and n_categories > 1:
+            conda_menu = self.conda_envs_menu
+            if conda_actions:
+                self.add_item_to_menu(
+                    conda_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            pyenv_menu = self.pyenv_envs_menu
+            if pyenv_actions:
+                self.add_item_to_menu(
+                    pyenv_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            custom_menu = self.custom_envs_menu
+            if custom_actions:
+                self.add_item_to_menu(
+                    custom_menu,
+                    menu=self.console_environment_menu,
+                    section=EnvironmentConsolesMenuSections.Submenus,
+                )
+
+            # Submenus don't have sections
+            conda_section = pyenv_section = custom_section = None
+        else:
+            # If there are few envs, we add their actions to the consoles menu.
+            # But we use sections only if there are two or more envs per
+            # category. Otherwise we group them in a single section called
+            # "Other". We do that because having many menu sections with a
+            # single entry makes the UI look odd.
+            conda_menu = (
+                pyenv_menu
+            ) = custom_menu = self.console_environment_menu
+
+            conda_section = (
+                EnvironmentConsolesMenuSections.Conda
+                if len(conda_actions) > 1
+                else EnvironmentConsolesMenuSections.Other
+            )
+
+            pyenv_section = (
+                EnvironmentConsolesMenuSections.Pyenv
+                if len(pyenv_actions) > 1
+                else EnvironmentConsolesMenuSections.Other
+            )
+
+            custom_section = (
+                EnvironmentConsolesMenuSections.Custom
+                if len(custom_actions) > 1
+                else EnvironmentConsolesMenuSections.Other
+            )
+
+        # Add actions to menu or submenus
+        for action in actions:
+            if action in conda_actions:
+                menu = conda_menu
+                section = conda_section
+            elif action in pyenv_actions:
+                menu = pyenv_menu
+                section = pyenv_section
+            else:
+                menu = custom_menu
+                section = custom_section
+
+            self.add_item_to_menu(
+                action,
+                menu=menu,
+                section=section,
+            )
+
+        # Render consoles menu and submenus
+        self.console_environment_menu.render()
+
     def find_connection_file(self, connection_file):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
@@ -1195,6 +1374,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         for client in self.clients:
             client.set_font(font)
+
+    def update_envs(self, envs: dict):
+        """Update the detected environments in the system."""
+        self.envs = envs
 
     def refresh_container(self, give_focus=False):
         """
@@ -1448,55 +1631,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def interpreter_versions(self, path_to_custom_interpreter=None):
-        """Python and IPython versions used by clients"""
-        if (
-            self.get_conf('default', section='main_interpreter')
-            and not path_to_custom_interpreter
-        ):
-            from IPython.core import release
-            versions = dict(
-                python_version=sys.version,
-                ipython_version=release.version
-            )
-        else:
-            versions = {}
-            pyexec = self.get_conf('executable', section='main_interpreter')
-            py_cmd = '"%s" -c "import sys; print(sys.version)"' % pyexec
-            if path_to_custom_interpreter:
-                pyexec = path_to_custom_interpreter
-
-            # If this is a conda env, it needs to be activated to get the
-            # IPython version below.
-            if is_conda_env(pyexec=pyexec):
-                conda = find_conda()
-                if conda:
-                    # If we're unable to find conda, the command below will
-                    # fail in any case.
-                    pyexec = f'"{conda}" run "{pyexec}"'
-
-            ipy_cmd = (
-                '%s -c "import IPython.core.release as r; print(r.version)"'
-                % pyexec
-            )
-
-            for cmd in [py_cmd, ipy_cmd]:
-                try:
-                    # Use clean environment
-                    proc = programs.run_shell_command(cmd, env={})
-                    output, _err = proc.communicate()
-                except subprocess.CalledProcessError:
-                    output = ''
-
-                output = output.decode().split('\n')[0].strip()
-
-                if 'IPython' in cmd:
-                    versions['ipython_version'] = output
-                else:
-                    versions['python_version'] = output
-
-        return versions
-
     def additional_options(self, special=None):
         """
         Additional options for shell widgets that are not defined
@@ -1519,20 +1653,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return options
 
     # ---- For client widgets
-    def get_focus_client(self):
+    def get_focus_client(self) -> ClientWidget | None:
         """Return current client with focus, if any"""
         widget = QApplication.focusWidget()
         for client in self.clients:
             if widget is client or widget is client.get_control():
                 return client
 
-    def get_current_client(self):
+    def get_current_client(self) -> ClientWidget | None:
         """Return the currently selected client"""
         client = self.tabwidget.currentWidget()
         if client is not None:
             return client
 
-    def get_current_shellwidget(self):
+    def get_current_shellwidget(self) -> ShellWidget | None:
         """Return the shellwidget of the current client"""
         client = self.get_current_client()
         if client is not None:
@@ -1564,8 +1698,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             id_=client_id,
             config_options=self.config_options(),
             additional_options=self.additional_options(special),
-            interpreter_versions=self.interpreter_versions(
-                path_to_custom_interpreter),
             given_name=given_name,
             give_focus=give_focus,
             handlers=self.registered_spyder_kernel_handlers,
@@ -1638,7 +1770,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             given_name=given_name,
             config_options=self.config_options(),
             additional_options=self.additional_options(),
-            interpreter_versions=self.interpreter_versions(),
             handlers=self.registered_spyder_kernel_handlers,
             server_id=server_id,
             can_close=can_close,
@@ -1984,7 +2115,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # This makes the print dialog have the same style as the rest of
             # the app.
             printer = SpyderPrinter(mode=QPrinter.HighResolution)
-            if(QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
+            if (QPrintDialog(printer, self).exec_() != QPrintDialog.Accepted):
                 return
             client.shellwidget._control.print_(printer)
 
@@ -2070,7 +2201,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         km = client.kernel_handler.kernel_manager
-        if km is None and client.server_id is None:
+        if km is None and not client.is_remote():
             client.shellwidget._append_plain_text(
                 _('Cannot restart a kernel not started by Spyder\n'),
                 before_prompt=True
@@ -2094,7 +2225,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             return
 
         # For remote kernels we need to request the server for a restart
-        if client.server_id:
+        if client.is_remote():
             client.sig_restart_kernel_requested.emit()
             return
 

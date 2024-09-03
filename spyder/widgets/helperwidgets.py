@@ -56,10 +56,11 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QFrame,
+    QItemDelegate,
 )
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
@@ -731,14 +732,7 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
 
 
 class HoverRowsTableView(QTableView):
-    """
-    QTableView subclass that can highlight an entire row when hovered.
-
-    Notes
-    -----
-    * Classes that inherit from this one need to connect a slot to
-      sig_hover_index_changed that handles how the row is painted.
-    """
+    """QTableView subclass that can highlight an entire row when hovered."""
 
     sig_hover_index_changed = Signal(object)
     """
@@ -750,7 +744,7 @@ class HoverRowsTableView(QTableView):
         QModelIndex that has changed on hover.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, custom_delegate=False):
         QTableView.__init__(self, parent)
 
         # For mouseMoveEvent
@@ -760,9 +754,12 @@ class HoverRowsTableView(QTableView):
         # over the widget.
         css = qstylizer.style.StyleSheet()
         css["QTableView::item"].setValues(
-            backgroundColor=f"{SpyderPalette.COLOR_BACKGROUND_1}"
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_1
         )
         self._stylesheet = css.toString()
+
+        if not custom_delegate:
+            self._set_delegate()
 
     # ---- Qt methods
     def mouseMoveEvent(self, event):
@@ -786,6 +783,36 @@ class HoverRowsTableView(QTableView):
         if index.isValid():
             self.sig_hover_index_changed.emit(index)
             self.viewport().update()
+
+    def _set_delegate(self):
+        """
+        Set a custom item delegate that can highlight the current row when
+        hovered.
+        """
+
+        class HoverRowDelegate(QItemDelegate):
+
+            def __init__(self, parent):
+                super().__init__(parent)
+                self._hovered_row = -1
+
+            def on_hover_index_changed(self, index):
+                self._hovered_row = index.row()
+
+            def paint(self, painter, option, index):
+                # This paints the entire row associated to the delegate when
+                # it's hovered.
+                if index.row() == self._hovered_row:
+                    painter.fillRect(
+                        option.rect, QColor(SpyderPalette.COLOR_BACKGROUND_3)
+                    )
+
+                super().paint(painter, option, index)
+
+        self.setItemDelegate(HoverRowDelegate(self))
+        self.sig_hover_index_changed.connect(
+            self.itemDelegate().on_hover_index_changed
+        )
 
 
 class TipWidget(QLabel):

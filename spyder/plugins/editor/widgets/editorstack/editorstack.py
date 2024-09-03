@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import functools
 import logging
 import os
 import os.path as osp
@@ -20,6 +21,7 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
+from qtpy import PYQT5, PYQT6
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
@@ -29,6 +31,7 @@ from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.plugins import Plugins
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
@@ -131,6 +134,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+    sig_trigger_run_action = Signal(str)
+    sig_trigger_debugger_action = Signal(str)
 
     sig_codeeditor_created = Signal(object)
     """
@@ -189,7 +194,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        super().__init__(parent, class_parent=parent)
+        if PYQT5 or PYQT6:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -352,7 +361,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.setAcceptDrops(True)
 
         # Local shortcuts
-        self.shortcuts = self.create_shortcuts()
+        self.register_shortcuts()
 
         # For opening last closed tabs
         self.last_closed_files = []
@@ -419,192 +428,85 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
             QApplication.clipboard().setText(rel_path)
 
-    def create_shortcuts(self):
-        """Create local shortcuts"""
-        # --- Configurable shortcuts
-        inspect = self.config_shortcut(
-            self.inspect_current_object,
-            context='Editor',
-            name='Inspect current object',
-            parent=self)
+    def register_shortcuts(self):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ('Inspect current object', self.inspect_current_object),
+            ('Go to line', self.go_to_line),
+            (
+                "Go to previous file",
+                lambda: self.tab_navigation_mru(forward=False),
+            ),
+            ('Go to next file', self.tab_navigation_mru),
+            ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
+            ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
+            ('New file', self.sig_new_file[()]),
+            ('Open file', self.plugin_load[()]),
+            ('Save file', self.save),
+            ('Save all', self.save_all),
+            ('Save As', self.sig_save_as),
+            ('Close all', self.close_all_files),
+            ("Last edit location", self.sig_prev_edit_pos),
+            ("Previous cursor position", self.sig_prev_cursor),
+            ("Next cursor position", self.sig_next_cursor),
+            ("zoom in 1", self.zoom_in),
+            ("zoom in 2", self.zoom_in),
+            ("zoom out", self.zoom_out),
+            ("zoom reset", self.zoom_reset),
+            ("close file 1", self.close_file),
+            ("close file 2", self.close_file),
+            ("go to next cell", self.advance_cell),
+            ("go to previous cell", lambda: self.advance_cell(reverse=True)),
+            ("Previous warning", self.sig_prev_warning),
+            ("Next warning", self.sig_next_warning),
+            ("split vertically", self.sig_split_vertically),
+            ("split horizontally", self.sig_split_horizontally),
+            ("close split panel", self.close_split),
+            (
+                "show in external file explorer",
+                self.show_in_external_file_explorer,
+            ),
+        )
 
-        gotoline = self.config_shortcut(
-            self.go_to_line,
-            context='Editor',
-            name='Go to line',
-            parent=self)
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
-        tab = self.config_shortcut(
-            lambda: self.tab_navigation_mru(forward=False),
-            context='Editor',
-            name='Go to previous file',
-            parent=self)
+        # Register shortcuts for run actions
+        for action_id in [
+            "run cell",
+            "run cell and advance",
+            "re-run cell",
+            "run selection and advance",
+            "run selection up to line",
+            "run selection from line",
+            "run cell in debugger",
+            "run selection in debugger",
+        ]:
+            self.register_shortcut_for_widget(
+                name=action_id,
+                triggered=functools.partial(
+                    self.sig_trigger_run_action.emit,
+                    action_id,
+                ),
+            )
 
-        tabshift = self.config_shortcut(
-            self.tab_navigation_mru,
-            context='Editor',
-            name='Go to next file',
-            parent=self)
-
-        prevtab = self.config_shortcut(
-            lambda: self.tabs.tab_navigate(-1),
-            context='Editor',
-            name='Cycle to previous file',
-            parent=self)
-
-        nexttab = self.config_shortcut(
-            lambda: self.tabs.tab_navigate(1),
-            context='Editor',
-            name='Cycle to next file',
-            parent=self)
-
-        new_file = self.config_shortcut(
-            self.sig_new_file[()],
-            context='Editor',
-            name='New file',
-            parent=self)
-
-        open_file = self.config_shortcut(
-            self.plugin_load[()],
-            context='Editor',
-            name='Open file',
-            parent=self)
-
-        save_file = self.config_shortcut(
-            self.save,
-            context='Editor',
-            name='Save file',
-            parent=self)
-
-        save_all = self.config_shortcut(
-            self.save_all,
-            context='Editor',
-            name='Save all',
-            parent=self)
-
-        save_as = self.config_shortcut(
-            self.sig_save_as,
-            context='Editor',
-            name='Save As',
-            parent=self)
-
-        close_all = self.config_shortcut(
-            self.close_all_files,
-            context='Editor',
-            name='Close all',
-            parent=self)
-
-        prev_edit_pos = self.config_shortcut(
-            self.sig_prev_edit_pos,
-            context="Editor",
-            name="Last edit location",
-            parent=self)
-
-        prev_cursor = self.config_shortcut(
-            self.sig_prev_cursor,
-            context="Editor",
-            name="Previous cursor position",
-            parent=self)
-
-        next_cursor = self.config_shortcut(
-            self.sig_next_cursor,
-            context="Editor",
-            name="Next cursor position",
-            parent=self)
-
-        zoom_in_1 = self.config_shortcut(
-            self.zoom_in,
-            context="Editor",
-            name="zoom in 1",
-            parent=self)
-
-        zoom_in_2 = self.config_shortcut(
-            self.zoom_in,
-            context="Editor",
-            name="zoom in 2",
-            parent=self)
-
-        zoom_out = self.config_shortcut(
-            self.zoom_out,
-            context="Editor",
-            name="zoom out",
-            parent=self)
-
-        zoom_reset = self.config_shortcut(
-            self.zoom_reset,
-            context="Editor",
-            name="zoom reset",
-            parent=self)
-
-        close_file_1 = self.config_shortcut(
-            self.close_file,
-            context="Editor",
-            name="close file 1",
-            parent=self)
-
-        close_file_2 = self.config_shortcut(
-            self.close_file,
-            context="Editor",
-            name="close file 2",
-            parent=self)
-
-        go_to_next_cell = self.config_shortcut(
-            self.advance_cell,
-            context="Editor",
-            name="go to next cell",
-            parent=self)
-
-        go_to_previous_cell = self.config_shortcut(
-            lambda: self.advance_cell(reverse=True),
-            context="Editor",
-            name="go to previous cell",
-            parent=self)
-
-        prev_warning = self.config_shortcut(
-            self.sig_prev_warning,
-            context="Editor",
-            name="Previous warning",
-            parent=self)
-
-        next_warning = self.config_shortcut(
-            self.sig_next_warning,
-            context="Editor",
-            name="Next warning",
-            parent=self)
-
-        split_vertically = self.config_shortcut(
-            self.sig_split_vertically,
-            context="Editor",
-            name="split vertically",
-            parent=self)
-
-        split_horizontally = self.config_shortcut(
-            self.sig_split_horizontally,
-            context="Editor",
-            name="split horizontally",
-            parent=self)
-
-        close_split = self.config_shortcut(
-            self.close_split,
-            context="Editor",
-            name="close split panel",
-            parent=self)
-
-        external_fileexp = self.config_shortcut(
-            self.show_in_external_file_explorer,
-            context="Editor",
-            name="show in external file explorer",
-            parent=self)
-
-        # Return configurable ones
-        return [inspect, gotoline, tab, tabshift, new_file, open_file,
-                save_file, save_all, save_as, close_all, prev_edit_pos,
-                prev_cursor, next_cursor, zoom_in_1, zoom_in_2,
-                zoom_out, zoom_reset, close_file_1, close_file_2,
-                go_to_next_cell, go_to_previous_cell,
-                prev_warning, next_warning, split_vertically,
-                split_horizontally, close_split,
-                prevtab, nexttab, external_fileexp]
+        # Register shortcuts for debugger actions
+        for action_id in [
+            "next",
+            "continue",
+            "step",
+            "return",
+            "toggle breakpoint",
+            "toggle conditional breakpoint",
+        ]:
+            self.register_shortcut_for_widget(
+                name=action_id,
+                triggered=functools.partial(
+                    self.sig_trigger_debugger_action.emit,
+                    action_id,
+                ),
+                context=Plugins.Debugger,
+            )
 
     def update_switcher_actions(self, switcher_available):
         if self.use_switcher and switcher_available:
@@ -619,15 +521,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         else:
             self.switcher_action = None
             self.symbolfinder_action = None
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
 
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
@@ -832,10 +725,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
-    @on_conf_change(option='connect_to_oi')
+    @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
-        help_option_value = self.get_conf('connect/editor', section='help')
-        self.set_help_enabled(help_option_value)
+        self.set_help_enabled(value)
 
     @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
     def on_color_scheme_change(self, option, value):

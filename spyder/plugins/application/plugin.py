@@ -98,8 +98,13 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         self.get_container().sig_load_log_file.connect(editor.load)
 
-    # -------------------------- PLUGIN TEARDOWN ------------------------------
+    @on_plugin_available(plugin=Plugins.StatusBar)
+    def on_statusbar_available(self):
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        inapp_appeal_status = self.get_container().inapp_appeal_status
+        statusbar.add_status_widget(inapp_appeal_status)
 
+    # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -121,6 +126,12 @@ class Application(SpyderPluginV2):
         self._depopulate_tools_menu()
         self._depopulate_help_menu()
         self.report_action.setVisible(False)
+
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        inapp_appeal_status = self.get_container().inapp_appeal_status
+        statusbar.remove_status_widget(inapp_appeal_status.ID)
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -144,6 +155,14 @@ class Application(SpyderPluginV2):
             container.current_dpi = screen.logicalDotsPerInch()
             screen.logicalDotsPerInchChanged.connect(
                 container.show_dpi_change_message)
+
+        # Show appeal the fifth time Spyder starts
+        spyder_runs = self.get_conf("spyder_runs_for_appeal", default=1)
+        if spyder_runs == 5:
+            container.inapp_appeal_status.show_appeal()
+        else:
+            if spyder_runs < 5:
+                self.set_conf("spyder_runs_for_appeal", spyder_runs + 1)
 
     # ---- Private API
     # ------------------------------------------------------------------------

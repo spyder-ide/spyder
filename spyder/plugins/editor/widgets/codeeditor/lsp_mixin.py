@@ -813,10 +813,7 @@ class LSPMixin:
         try:
             signature_params = params["params"]
 
-            if (
-                signature_params is not None
-                and "activeParameter" in signature_params
-            ):
+            if signature_params is not None:
                 self.sig_signature_invoked.emit(signature_params)
                 signature_data = signature_params["signatures"]
                 documentation = signature_data["documentation"]
@@ -828,12 +825,17 @@ class LSPMixin:
                 # spaces defined as `\xa0`
                 documentation = documentation.replace("\xa0", " ")
 
-                parameter_idx = signature_params["activeParameter"]
-                parameters = signature_data["parameters"]
+                # Enable parsing signature's active parameter if available
+                # while allowing to show calltip for signatures without
+                # parameters.
+                # See spyder-ide/spyder#21660
                 parameter = None
-                if len(parameters) > 0 and parameter_idx < len(parameters):
-                    parameter_data = parameters[parameter_idx]
-                    parameter = parameter_data["label"]
+                if "activeParameter" in signature_params:
+                    parameter_idx = signature_params["activeParameter"]
+                    parameters = signature_data["parameters"]
+                    if len(parameters) > 0 and parameter_idx < len(parameters):
+                        parameter_data = parameters[parameter_idx]
+                        parameter = parameter_data["label"]
 
                 signature = signature_data["label"]
 

@@ -67,7 +67,7 @@ class LayoutContainer(PluginMainContainer):
 
     def setup(self):
         # Basic attributes to handle layouts options and dialogs references
-        self._spyder_layouts = OrderedDict()
+        self.spyder_layouts = OrderedDict()
         self._save_dialog = None
         self._settings_dialog = None
         self._layouts_menu = None
@@ -179,9 +179,9 @@ class LayoutContainer(PluginMainContainer):
         actions = []
         for name in order:
             if name in active:
-                if name in self._spyder_layouts:
+                if name in self.spyder_layouts:
                     index = name
-                    name = self._spyder_layouts[index].get_name()
+                    name = self.spyder_layouts[index].get_name()
                 else:
                     index = names.index(name)
                     name = ui_names[index]
@@ -231,13 +231,13 @@ class LayoutContainer(PluginMainContainer):
                 "A layout must be a subclass is `BaseGridLayoutType`!")
 
         layout_id = layout_type.ID
-        if layout_id in self._spyder_layouts:
+        if layout_id in self.spyder_layouts:
             raise SpyderAPIError(
                 "Layout with id `{}` already registered!".format(layout_id))
 
         layout = layout_type(parent_plugin)
         layout._check_layout_validity()
-        self._spyder_layouts[layout_id] = layout
+        self.spyder_layouts[layout_id] = layout
         names = self.get_conf('names')
         ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
@@ -272,11 +272,12 @@ class LayoutContainer(PluginMainContainer):
         Instance of a spyder.plugins.layout.api.BaseGridLayoutType subclass
             Layout.
         """
-        if layout_id not in self._spyder_layouts:
+        if layout_id not in self.spyder_layouts:
             raise SpyderAPIError(
-                "Layout with id `{}` is not registered!".format(layout_id))
+                "Layout with id `{}` is not registered!".format(layout_id)
+            )
 
-        return self._spyder_layouts[layout_id]
+        return self.spyder_layouts[layout_id]
 
     @Slot()
     def show_save_layout(self):
@@ -285,13 +286,14 @@ class LayoutContainer(PluginMainContainer):
         ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
-        dialog_names = [name for name in names
-                        if name not in self._spyder_layouts.keys()]
+        dialog_names = [
+            name for name in names if name not in self.spyder_layouts.keys()
+        ]
         dlg = self._save_dialog = LayoutSaveDialog(self, dialog_names)
 
         if dlg.exec_():
             name = dlg.combo_box.currentText()
-            if name in self._spyder_layouts:
+            if name in self.spyder_layouts:
                 QMessageBox.critical(
                     self,
                     _("Error"),
@@ -345,7 +347,7 @@ class LayoutContainer(PluginMainContainer):
         ui_names = self.get_conf('ui_names')
         order = self.get_conf('order')
         active = self.get_conf('active')
-        read_only = list(self._spyder_layouts.keys())
+        read_only = list(self.spyder_layouts.keys())
 
         dlg = self._settings_dialog = LayoutSettingsDialog(
             self, names, ui_names, order, active, read_only)
@@ -410,8 +412,7 @@ class LayoutContainer(PluginMainContainer):
 
         new_index = (current_index + dic[direction]) % len(layout_index)
         index_or_layout_id = layout_index[new_index]
-        is_layout_id = (
-            names[index_or_layout_id] in self._spyder_layouts)
+        is_layout_id = names[index_or_layout_id] in self.spyder_layouts
 
         if is_layout_id:
             index_or_layout_id = names[layout_index[new_index]]

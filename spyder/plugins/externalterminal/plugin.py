@@ -62,20 +62,14 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             {
                 'origin': self.NAME,
                 'extension': 'py',
-                'contexts': [
-                    {
-                        'name': 'File'
-                    }
-                ]
+                'contexts': [{'name': 'File'}]
             }
         ]
 
         self.executor_configuration = [
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalPyConfiguration,
                 'requires_cwd': True,
@@ -87,36 +81,27 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             self.editor_configurations.append({
                 'origin': self.NAME,
                 'extension': 'bat',
-                'contexts': [
-                    {
-                        'name': 'File'
-                    },
-                    {
-                        'name': 'Selection'
-                    }
-                ]
+                'contexts': [{'name': 'File'}, {'name': 'Selection'}]
             })
 
             self.executor_configuration.append({
                 'input_extension': 'bat',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    'cmd.exe', '/K'),
+                    'cmd.exe', '/K'
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })
 
             self.executor_configuration.append({
                 'input_extension': 'bat',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    'cmd.exe', '/K'),
+                    'cmd.exe', '/K'
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -124,36 +109,27 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             self.editor_configurations.append({
                 'origin': self.NAME,
                 'extension': 'ps1',
-                'contexts': [
-                    {
-                        'name': 'File'
-                    },
-                    {
-                        'name': 'Selection'
-                    }
-                ]
+                'contexts': [{'name': 'File'}, {'name': 'Selection'}]
             })
 
             self.executor_configuration.append({
                 'input_extension': 'ps1',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    'powershell.exe'),
+                    'powershell.exe'
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })
 
             self.executor_configuration.append({
                 'input_extension': 'ps1',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    'powershell.exe'),
+                    'powershell.exe'
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })
@@ -169,36 +145,27 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             self.editor_configurations.append({
                 'origin': self.NAME,
                 'extension': 'sh',
-                'contexts': [
-                    {
-                        'name': 'File'
-                    },
-                    {
-                        'name': 'Selection'
-                    }
-                ]
+                'contexts': [{'name': 'File'}, {'name': 'Selection'}]
             })
 
             self.executor_configuration.append({
                 'input_extension': 'sh',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    programs.is_program_installed(default_shell)),
+                    programs.is_program_installed(default_shell)
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })
 
             self.executor_configuration.append({
                 'input_extension': 'sh',
-                'context': {
-                    'name': 'Selection'
-                },
+                'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': ExternalTerminalShConfiguration(
-                    programs.is_program_installed(default_shell)),
+                    programs.is_program_installed(default_shell)
+                ),
                 'requires_cwd': True,
                 'priority': 1
             })

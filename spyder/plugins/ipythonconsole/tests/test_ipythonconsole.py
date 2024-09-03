@@ -40,7 +40,7 @@ from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, TEMP_DIRECTORY, PY312_OR_GREATER)
+    NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
 
@@ -104,7 +104,7 @@ def test_banners(ipyconsole, qtbot):
      ("foo",  # Check we display the right tooltip for interactive objects
       ["x", "y"],
       ["My function"])
-    ]
+     ]
 )
 @pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
                     reason="Times out on macOS and fails on Linux")
@@ -390,18 +390,18 @@ def test_console_import_namespace(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_console_disambiguation(ipyconsole, qtbot):
+def test_console_disambiguation(tmp_path, ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
-    # Create directories and file for TEMP_DIRECTORY/a/b/c.py
-    # and TEMP_DIRECTORY/a/d/c.py
-    dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
+    # Create directories and file for tmp_path/a/b/c.py
+    # and tmp_path/a/d/c.py
+    dir_b = osp.join(tmp_path, 'a', 'b')
     filename_b =  osp.join(dir_b, 'c.py')
     if not osp.isdir(dir_b):
         os.makedirs(dir_b)
     if not osp.isfile(filename_b):
         file_c = open(filename_b, 'w+')
         file_c.close()
-    dir_d = osp.join(TEMP_DIRECTORY, 'a', 'd')
+    dir_d = osp.join(tmp_path, 'a', 'd')
     filename_d =  osp.join(dir_d, 'c.py')
     if not osp.isdir(dir_d):
         os.makedirs(dir_d)
@@ -504,7 +504,7 @@ def test_request_env(ipyconsole, qtbot):
 
     # Add a new entry to os.environ
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; os.environ['FOO'] = 'bar'" )
+        shell.execute("import os; os.environ['FOO'] = 'bar'")
 
     # Ask for os.environ contents
     with qtbot.waitSignal(shell.sig_show_env) as blocker:
@@ -749,10 +749,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to True
     ipyconsole.set_conf('pdb_execute_events', True, section='debugger')
-    shell.set_kernel_configuration(
-        "pdb", {
-        'pdb_execute_events': True
-    })
+    shell.set_kernel_configuration("pdb", {'pdb_execute_events': True})
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -764,10 +761,7 @@ def test_execute_events_dbg(ipyconsole, qtbot):
 
     # Set processing events to False
     ipyconsole.set_conf('pdb_execute_events', False, section='debugger')
-    shell.set_kernel_configuration(
-        "pdb", {
-        'pdb_execute_events': False
-    })
+    shell.set_kernel_configuration("pdb", {'pdb_execute_events': False})
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -849,7 +843,6 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
     # Assert that there's a single inline plot in the console
     assert shell._control.toHtml().count('img src') == 1
-
 
 
 @flaky(max_runs=10)
@@ -1513,19 +1506,32 @@ def test_stderr_poll(ipyconsole, qtbot):
             'import sys; print("test_" + "test", file=sys.__stderr__)')
 
     # Wait for the poll
-    qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText())
-    assert "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText()
+    qtbot.waitUntil(
+        lambda: "test_test"
+        in ipyconsole.get_widget().get_focus_widget().toPlainText()
+    )
+    assert (
+        "test_test" in ipyconsole.get_widget().get_focus_widget().toPlainText()
+    )
     # Write a second time, makes sure it is not duplicated
     with qtbot.waitSignal(shell.executed):
         shell.execute(
             'import sys; print("test_" + "test", file=sys.__stderr__)')
     # Wait for the poll
-    qtbot.waitUntil(lambda: ipyconsole.get_widget().get_focus_widget(
-        ).toPlainText().count("test_test") == 2)
-    assert ipyconsole.get_widget().get_focus_widget().toPlainText(
-        ).count("test_test") == 2
+    qtbot.waitUntil(
+        lambda: ipyconsole.get_widget()
+        .get_focus_widget()
+        .toPlainText()
+        .count("test_test")
+        == 2
+    )
+    assert (
+        ipyconsole.get_widget()
+        .get_focus_widget()
+        .toPlainText()
+        .count("test_test")
+        == 2
+    )
 
 
 @flaky(max_runs=3)
@@ -1536,8 +1542,11 @@ def test_stdout_poll(ipyconsole, qtbot):
         shell.execute('import sys; print("test_test", file=sys.__stdout__)')
 
     # Wait for the poll
-    qtbot.waitUntil(lambda: "test_test" in ipyconsole.get_widget(
-        ).get_focus_widget().toPlainText(), timeout=5000)
+    qtbot.waitUntil(
+        lambda: "test_test"
+        in ipyconsole.get_widget().get_focus_widget().toPlainText(),
+        timeout=5000,
+    )
 
 
 @flaky(max_runs=10)
@@ -1893,17 +1902,18 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     assert "test 11" in control.toPlainText()
 
     settings = {
-     'check_all': False,
-     'exclude_callables_and_modules': True,
-     'exclude_capitalized': False,
-     'exclude_private': True,
-     'exclude_unsupported': False,
-     'exclude_uppercase': True,
-     'excluded_names': [],
-     'minmax': False,
-     'show_callable_attributes': True,
-     'show_special_attributes': False,
-     'filter_on': True}
+        'check_all': False,
+        'exclude_callables_and_modules': True,
+        'exclude_capitalized': False,
+        'exclude_private': True,
+        'exclude_unsupported': False,
+        'exclude_uppercase': True,
+        'excluded_names': [],
+        'minmax': False,
+        'show_callable_attributes': True,
+        'show_special_attributes': False,
+        'filter_on': True
+    }
 
     shell.set_kernel_configuration("namespace_view_settings", settings)
     namespace = shell.call_kernel(blocking=True).get_namespace_view()
@@ -1913,7 +1923,6 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on windows")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
@@ -1926,7 +1935,8 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
 
     # This is necessary to test no spurious messages are printed to the console
     shell.clear_console()
-    qtbot.waitUntil(lambda: '\nIn [2]: ' == shell._control.toPlainText())
+    empty_console_text = '\n\nIn [2]: ' if os.name == "nt" else '\nIn [2]: '
+    qtbot.waitUntil(lambda: empty_console_text == shell._control.toPlainText())
 
     # Switch to the tk backend
     ipyconsole.set_conf('pylab/backend', 'tk')
@@ -1957,7 +1967,7 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
     # Check we no spurious messages are shown before the restart below
-    assert "\nIn [2]: " == shell._control.toPlainText()
+    assert empty_console_text == shell._control.toPlainText()
 
     # Restart kernel to check if the new interactive backend is set
     ipyconsole.restart_kernel()
@@ -1983,6 +1993,81 @@ def test_mpl_conf(ipyconsole, qtbot):
     mock.assert_called_once_with({'pylab/inline/bottom': 0.314})
 
 
+def test_matplotlib_rc_params(mpl_rc_file, ipyconsole, qtbot):
+    """
+    Test that Matplotlib rcParams are correctly set/reset when changing
+    backends and setting inline preferences.
+    """
+    rc_file = os.getenv('MATPLOTLIBRC')
+    assert rc_file is not None
+    assert osp.exists(rc_file)
+
+    main_widget = ipyconsole.get_widget()
+    shell = ipyconsole.get_current_shellwidget()
+    assert shell.get_matplotlib_backend().lower() == 'inline'
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            'import matplotlib as mpl;'
+            'rcp = mpl.rcParams;'
+            'rc_file = mpl.matplotlib_fname()'
+        )
+
+    # Test that the rc file is loaded
+    assert rc_file == shell.get_value('rc_file')
+
+    # Test that inline preferences are at defaults
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 144
+    assert rcp['figure.figsize'] == [6, 4]
+    assert rcp['figure.subplot.bottom'] == 0.11
+    assert rcp['font.size'] == 10
+
+    # Test that changing inline preferences are effective immediately
+    def set_conf(option, value):
+        main_widget.set_conf(option, value)
+        # Allow time for the %config magic to run for each config change
+        qtbot.wait(20)
+
+    set_conf('pylab/inline/resolution', 112)
+    set_conf('pylab/inline/width', 12)
+    set_conf('pylab/inline/height', 12)
+    set_conf('pylab/inline/bottom', 0.12)
+    set_conf('pylab/inline/fontsize', 12)
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 112
+    assert rcp['figure.figsize'] == [12, 12]
+    assert rcp['figure.subplot.bottom'] == 0.12
+    assert rcp['font.size'] == 12
+
+    # Test that setting explicitly does not persist on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('mpl.rcParams["font.size"] = 15')
+
+    # Test that file defaults are restored on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%matplotlib qt')
+    assert shell.get_matplotlib_backend().lower() == 'qt'
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 99
+    assert rcp['figure.figsize'] == [9, 9]
+    assert rcp['figure.subplot.bottom'] == 0.9
+    assert rcp['font.size'] == 9
+
+    # Test that setting explicitly does not persist on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('mpl.rcParams["font.size"] = 15')
+
+    # Test that inline preferences are restored on backend change
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%matplotlib inline')
+    rcp = shell.get_value('rcp')
+    assert rcp['figure.dpi'] == 112
+    assert rcp['figure.figsize'] == [12, 12]
+    assert rcp['figure.subplot.bottom'] == 0.12
+    assert rcp['font.size'] == 12
+
+
 @flaky(max_runs=3)
 @pytest.mark.no_web_widgets
 def test_no_infowidget(ipyconsole):
@@ -2000,8 +2085,10 @@ def test_cwd_console_options(ipyconsole, qtbot, tmpdir):
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-            timeout=SHELL_TIMEOUT)
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT
+        )
 
         with qtbot.waitSignal(shell.executed):
             shell.execute('import os; cwd = os.getcwd()')
@@ -2123,7 +2210,6 @@ def test_varexp_magic_dbg_locals(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug f()")
 
-
     # Get to an object that can be plotted
     for _ in range(4):
         with qtbot.waitSignal(shell.executed):
@@ -2220,8 +2306,7 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
-@pytest.mark.skipif(
-    not is_anaconda(), reason="Only works with Anaconda")
+@pytest.mark.skipif(not is_anaconda(), reason="Only works with Anaconda")
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up
@@ -2231,7 +2316,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
 
     # Point to an interpreter without Spyder-kernels
     ipyconsole.set_conf('default', False, section='main_interpreter')
-    pyexec = get_list_conda_envs()['conda: base'][0]
+    pyexec = get_list_conda_envs()['Conda: base'][0]
     ipyconsole.set_conf('executable', pyexec, section='main_interpreter')
 
     # Restart kernel
@@ -2251,13 +2336,35 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     # To check the kernel error visually
     qtbot.wait(500)
 
-    # Check kernel related actions are disabled
+    # Check kernel related actions are disabled when accessing Options menu
     main_widget = ipyconsole.get_widget()
+    main_widget._options_menu.aboutToShow.emit()
     assert not main_widget.restart_action.isEnabled()
     assert not main_widget.reset_action.isEnabled()
     assert not main_widget.env_action.isEnabled()
     assert not main_widget.syspath_action.isEnabled()
     assert not main_widget.show_time_action.isEnabled()
+
+
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
+def test_restore_tmpdir(ipyconsole, qtbot, tmp_path):
+    """
+    Check the TMPDIR env var is available in the kernel if it is in the system.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Save the system TMPDIR
+    system_tmpdir = os.environ["TMPDIR"]
+
+    # Check it's the same in the kernel
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; tmpdir = os.environ.get('TMPDIR')")
+
+    assert shell.get_value('tmpdir') == system_tmpdir
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ import qstylizer.style
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import SpyderPalette
@@ -47,6 +47,9 @@ class AppStyle(SpyderFontsMixin):
     # Icon size in config pages
     ConfigPageIconSize = 20
 
+    # Padding for QPushButton's
+    QPushButtonPadding = f'{MarginSize + 1}px {4 * MarginSize}px'
+
     @classproperty
     def _fs(cls):
         """Interface font size in points."""
@@ -65,6 +68,9 @@ class AppStyle(SpyderFontsMixin):
             min_height = 1.5 if MAC else 1.4
 
         return min_height
+
+    # Padding for content inside an element of higher hierarchy
+    InnerContentPadding = 5 * MarginSize
 
 
 # =============================================================================
@@ -204,15 +210,20 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             image="none"
         )
 
-        # Increase padding for QPushButton's
-        css.QPushButton.setValues(
-            padding='3px',
-        )
+        # Increase padding and fix disabled color for QPushButton's
+        css.QPushButton.setValues(padding=AppStyle.QPushButtonPadding)
 
         for state in ['disabled', 'checked', 'checked:disabled']:
             css[f'QPushButton:{state}'].setValues(
-                padding='3px',
+                padding=AppStyle.QPushButtonPadding,
             )
+
+            # This is especially necessary in the light theme because the
+            # contrast between the background and text colors is too small
+            if state in ['disabled', 'checked:disabled']:
+                css[f"QPushButton:{state}"].setValues(
+                    color=SpyderPalette.COLOR_TEXT_3,
+                )
 
         # Adjust QToolButton style to our needs.
         # This affects not only the pane toolbars but also the
@@ -234,14 +245,26 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
         # Adjust padding of QPushButton's in QDialog's
         for widget in ["QPushButton", "QPushButton:disabled"]:
-            css[f"QDialog {widget}"].setValues(
+            css[f"QDialogButtonBox {widget}"].setValues(
                 padding=(
+                    AppStyle.QPushButtonPadding
+                    if (MAC or WIN)
+                    else
                     f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
                 ),
+                # This width comes from QDarkstyle but it's too big on Mac
+                minWidth="50px" if WIN else ("60px" if MAC else "80px"),
             )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding=f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px",
+            padding=(
+                AppStyle.QPushButtonPadding
+                if (MAC or WIN)
+                else
+                f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
+            ),
+            # This width comes from QDarkstyle but it's too big on Mac
+            minWidth="50px" if WIN else ("60px" if MAC else "80px"),
         )
 
         # Remove icons in QMessageBoxes
@@ -270,14 +293,16 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
-        # Change QGroupBox style to avoid the "boxes within boxes" antipattern
-        # in Preferences
+        # Remove border in QGroupBox to avoid the "boxes within boxes"
+        # antipattern. Also, increase its title font in one point to make it
+        # more relevant.
         css.QGroupBox.setValues(
             border='0px',
-            marginBottom='15px',
             fontSize=f'{font_size + 1}pt',
         )
 
+        # Increase separation between title and content of QGroupBoxes and fix
+        # its alignment.
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
@@ -307,11 +332,6 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Add padding to tooltips
         css.QToolTip.setValues(
             padding="1px 2px",
-        )
-
-        # Substract extra padding that comes from QLineEdit
-        css["QLineEdit QToolTip"].setValues(
-            padding="-2px -3px",
         )
 
         # Add padding to tree widget items to make them look better
@@ -713,7 +733,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='15px',
+            padding=f'{AppStyle.InnerContentPadding}px',
         )
 
 
@@ -863,7 +883,6 @@ class DialogStyle(SpyderFontsMixin):
     """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    ButtonsPadding = '6px' if MAC else '4px 6px'
     BackgroundColor = SpyderPalette.COLOR_BACKGROUND_2
     BorderColor = SpyderPalette.COLOR_BACKGROUND_5
 
@@ -897,3 +916,12 @@ class DialogStyle(SpyderFontsMixin):
             return f"{cls._fs + 2}pt"
         else:
             return f"{cls._fs + 3}pt"
+
+    @classproperty
+    def ButtonsPadding(cls):
+        if WIN:
+            return f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+        elif MAC:
+            return f"{2 * AppStyle.MarginSize}px {4 * AppStyle.MarginSize}px"
+        else:
+            return f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"

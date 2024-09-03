@@ -970,17 +970,24 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         msg = _('Invalid file path')
         self.validate_data[edit] = (
             validate_callback if validate_callback else osp.isfile,
-            msg)
-        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+            msg
+        )
+
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         options = QFileDialog.DontResolveSymlinks
         browse_btn.clicked.connect(
-            lambda: self.select_file(edit, filters, options=options))
+            lambda: self.select_file(edit, filters, options=options)
+        )
+        browse_btn.setIconSize(
+           QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+        )
 
-        layout = QGridLayout()
-        layout.addWidget(combobox, 0, 0, 0, 9)
-        layout.addWidget(browse_btn, 0, 10)
+        layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(combobox)
+        layout.addWidget(browse_btn)
+        layout.addStretch()
 
         widget = QWidget(self)
         widget.combobox = combobox
@@ -1041,12 +1048,33 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
             return widget
 
-    def create_button(self, text, callback):
-        btn = QPushButton(text)
+    def create_button(
+        self,
+        callback,
+        text=None,
+        icon=None,
+        tooltip=None,
+        set_modified_on_click=False,
+    ):
+        if icon is not None:
+            btn = QPushButton(icon, "", parent=self)
+            btn.setIconSize(
+                QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+            )
+        else:
+            btn = QPushButton(text, parent=self)
+
         btn.clicked.connect(callback)
-        btn.clicked.connect(
-            lambda checked=False, opt='': self.has_been_modified(
-                self.CONF_SECTION, opt))
+        if tooltip is not None:
+            btn.setToolTip(tooltip)
+
+        if set_modified_on_click:
+            btn.clicked.connect(
+                lambda checked=False, opt="": self.has_been_modified(
+                    self.CONF_SECTION, opt
+                )
+            )
+
         return btn
 
     def create_tab(self, name, widgets):

@@ -371,6 +371,44 @@ class TestConsoleWidget(unittest.TestCase):
             # clear all the text
             cursor.insertText('')
 
+    def test_print_carriage_return(self):
+        """ Test that overwriting the current line works as intended,
+            before and after the cursor prompt.
+        """
+        w = ConsoleWidget()
+
+        # Show a prompt
+        w._prompt = "prompt>"
+        w._prompt_sep = "\n"
+
+        w._show_prompt()
+        self.assert_text_equal(w._get_cursor(), '\u2029prompt>')
+
+        test_inputs = ['Hello\n', 'World\r',
+                       '*' * 10, '\r',
+                       '0', '1', '2', '3', '4',
+                       '5', '6', '7', '8', '9',
+                       '\r\n']
+
+        for text in test_inputs:
+            w._append_plain_text(text, before_prompt=True)
+            w._flush_pending_stream() # emulate text being flushed
+
+        self.assert_text_equal(w._get_cursor(),
+            "Hello\u20290123456789\u2029\u2029prompt>")
+
+        # Print after prompt
+        w._executing = True
+        test_inputs = ['\nF', 'o', 'o',
+                       '\r', 'Bar', '\n']
+
+        for text in test_inputs:
+            w._append_plain_text(text, before_prompt=False)
+            w._flush_pending_stream() # emulate text being flushed
+
+        self.assert_text_equal(w._get_cursor(),
+            "Hello\u20290123456789\u2029\u2029prompt>\u2029Bar\u2029")
+
     def test_link_handling(self):
         noButton = QtCore.Qt.NoButton
         noButtons = QtCore.Qt.NoButton

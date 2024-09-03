@@ -12,13 +12,12 @@ Layout Plugin API.
 import copy
 
 # Third party imports
-from qtpy.QtCore import QRectF, Qt
+from qtpy.QtCore import QRectF, Qt, QTimer
 from qtpy.QtWidgets import QGridLayout, QPlainTextEdit, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.translations import _
 
 
 class BaseGridLayoutType:
@@ -194,15 +193,17 @@ class BaseGridLayoutType:
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def add_area(self,
-                 plugin_ids,
-                 row,
-                 column,
-                 row_span=1,
-                 col_span=1,
-                 default=False,
-                 visible=True,
-                 hidden_plugin_ids=[]):
+    def add_area(
+        self,
+        plugin_ids,
+        row,
+        column,
+        row_span=1,
+        col_span=1,
+        default=False,
+        visible=True,
+        hidden_plugin_ids=[],
+    ):
         """
         Add a new area and `plugin_ids` that will populate it to the layout.
 
@@ -351,6 +352,10 @@ class BaseGridLayoutType:
         # External dockable plugins to show after the layout is applied
         external_plugins_to_show = []
 
+        # Base plugins (i.e. first ones in the area) to hide after the layout
+        # is applied
+        base_plugins_to_hide = []
+
         # Before applying a new layout all plugins need to be hidden
         for plugin in dockable_plugins:
             all_plugin_ids.append(plugin.NAME)
@@ -377,19 +382,32 @@ class BaseGridLayoutType:
             patched_default_area if area["default"] else area
             for area in self._areas]
 
-        # Define initial dock for each area
+        # Define base plugins for each area
         docks = {}
         for area in patched_areas:
             current_area = area
-            plugin_id = current_area["plugin_ids"][0]
-            plugin = main_window.get_plugin(plugin_id, error=False)
-            if plugin:
-                dock = plugin.dockwidget
+
+            # Iterate over plugins in current_area until we find one that is
+            # available
+            base_plugin = None
+            for base_plugin_id in current_area["plugin_ids"]:
+                base_plugin = main_window.get_plugin(base_plugin_id, error=False)
+                if base_plugin is not None:
+                    break
+
+            if base_plugin:
+                dock = base_plugin.dockwidget
+
                 docks[(current_area["row"], current_area["column"])] = dock
                 dock.area = area["area"]
                 dock.col_span = area["col_span"]
                 dock.row_span = area["row_span"]
-                plugin.toggle_view(area["visible"])
+
+                # These plugins need to be visible at this point so that the
+                # call to resizeDocks works as expected
+                base_plugin.toggle_view(True)
+                if not area["visible"]:
+                    base_plugins_to_hide.append(base_plugin)
 
         # Define base layout (distribution of dockwidgets
         # following defined areas)
@@ -443,10 +461,18 @@ class BaseGridLayoutType:
         plugins_to_tabify = []
         for area in patched_areas:
             area_visible = area["visible"]
-            base_plugin = main_window.get_plugin(
-                area["plugin_ids"][0], error=False)
+
+            # Iterate over plugins in area until we find one that is available
+            base_plugin = None
+            for i, plugin_id in enumerate(area["plugin_ids"]):
+                base_plugin = main_window.get_plugin(
+                    area["plugin_ids"][i], error=False
+                )
+                if base_plugin is not None:
+                    break
+
             if base_plugin:
-                plugin_ids = area["plugin_ids"][1:]
+                plugin_ids = area["plugin_ids"][i + 1 :]
                 hidden_plugin_ids = area["hidden_plugin_ids"]
                 for plugin_id in plugin_ids:
                     current_plugin = main_window.get_plugin(
@@ -474,7 +500,8 @@ class BaseGridLayoutType:
         for plugin, base_plugin in plugins_to_tabify:
             if not self.plugin.tabify_plugin(plugin):
                 self.plugin.tabify_plugins(base_plugin, plugin)
-            current_plugin.toggle_view(False)
+            if current_plugin:
+                current_plugin.toggle_view(False)
 
         column_docks = []
         column_stretches = []
@@ -495,6 +522,17 @@ class BaseGridLayoutType:
         main_window.showMaximized()
         main_window.resizeDocks(column_docks, column_stretches, Qt.Horizontal)
         main_window.resizeDocks(row_docks, row_stretches, Qt.Vertical)
+
+        # Hide base plugins in not visible areas
+        def hide_not_visible_base_plugins():
+            for plugin in base_plugins_to_hide:
+                plugin.toggle_view(False)
+
+        # We need to wait for a little bit before hiding the not visible base
+        # plugins to correctly set the proportions declared in the layout for
+        # rows and columns. Otherwise the calls to resizeDocks above won't have
+        # the expected effect.
+        QTimer.singleShot(50, hide_not_visible_base_plugins)
 
         # Restore displayed external plugins
         for plugin_id in external_plugins_to_show:

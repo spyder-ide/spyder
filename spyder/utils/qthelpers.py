@@ -21,18 +21,41 @@ from urllib.parse import unquote
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
-                         QTranslator, QUrl, Signal, Slot)
+from qtpy.QtCore import (
+    QEvent,
+    QLibraryInfo,
+    QLocale,
+    QObject,
+    QPoint,
+    Qt,
+    QTimer,
+    QTranslator,
+    QUrl,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QKeyEvent, QKeySequence, QPixmap)
-from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QPlainTextEdit,
-                            QPushButton, QStyle, QToolButton, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMenu,
+    QPlainTextEdit,
+    QPushButton,
+    QStyle,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
@@ -762,6 +785,9 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
         self._pending_file_open = []
         self._original_handlers = {}
 
+        # This is filled at startup in spyder.app.utils.create_window
+        self._main_window: QMainWindow = None
+
     def event(self, event):
 
         if sys.platform == 'darwin' and event.type() == QEvent.FileOpen:
@@ -834,6 +860,18 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
                       section='appearance')
         self.set_conf('monospace_app_font/size', monospace_size,
                       section='appearance')
+
+    def get_mainwindow_position(self) -> QPoint:
+        """Get main window position."""
+        return self._main_window.pos()
+
+    def get_mainwindow_width(self) -> int:
+        """Get main window width."""
+        return self._main_window.width()
+
+    def get_mainwindow_height(self) -> int:
+        """Get main window height."""
+        return self._main_window.height()
 
 
 def restore_launchservices():

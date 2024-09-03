@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QAbstractItemView, QCheckBox, QHBoxLayout, QWidget
 from superqt.utils import qdebounced
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
@@ -154,7 +154,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
 class ElementsTable(HoverRowsTableView):
 
     def __init__(self, parent: Optional[QWidget], elements: List[Element]):
-        HoverRowsTableView.__init__(self, parent)
+        HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self.elements = elements
 
         # Check for additional features

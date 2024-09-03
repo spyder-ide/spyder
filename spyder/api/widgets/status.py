@@ -8,6 +8,7 @@
 """Status bar widgets."""
 
 # Third party imports
+import qstylizer.parser
 from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
@@ -18,6 +19,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.stylesheet import MAC
 
 
 class StatusBarWidget(QWidget, SpyderWidgetMixin):
@@ -40,6 +42,12 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     CUSTOM_WIDGET_CLASS = None
     """
     Custom widget class to add to the default layout.
+    """
+
+    INTERACT_ON_CLICK = False
+    """
+    Whether the user can interact with widget when clicked (e.g. to show a
+    menu)
     """
 
     sig_clicked = Signal()
@@ -92,10 +100,16 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.spinner = None
         self.custom_widget = None
 
-        self.set_layout()
-        self.setStyleSheet(self._stylesheet())
+        # In case the widget has an associated menu
+        self.menu = None
 
-    def set_layout(self):
+        self._set_layout()
+        self._css = self._generate_stylesheet()
+        self.setStyleSheet(self._css.toString())
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _set_layout(self):
         """Set layout for default widgets."""
         # Icon
         if self.show_icon:
@@ -143,7 +157,30 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         # Setup
         self.update_tooltip()
 
-    # ---- Status bar widget API
+    def _generate_stylesheet(self):
+        """Generate the widget's stylesheet."""
+        # Remove opacity that comes from QDarkstyle.
+        # This work around is necessary because qstylizer doesn't have support
+        # for the opacity property.
+        initial_css = "QToolTip {opacity: 255;}"
+        css = qstylizer.parser.parse(initial_css)
+
+        # Make style match the one set for other tooltips in the app
+        css.QToolTip.setValues(
+            color=SpyderPalette.COLOR_TEXT_1,
+            backgroundColor=SpyderPalette.COLOR_ACCENT_2,
+            border="none",
+            padding="1px 2px",
+        )
+
+        return css
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def get_icon(self):
+        """Get the widget's icon."""
+        return None
+
     def set_icon(self):
         """Set the icon for the status bar widget."""
         if self.label_icon:
@@ -159,6 +196,10 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             self.value = value
             self.label_value.setText(value)
 
+    def get_tooltip(self):
+        """Get the widget's tooltip text."""
+        return ''
+
     def update_tooltip(self):
         """Update tooltip for widget."""
         tooltip = self.get_tooltip()
@@ -169,28 +210,59 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
                 self.label_icon.setToolTip(tooltip)
             self.setToolTip(tooltip)
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def mousePressEvent(self, event):
+        """Change background color when the widget is clicked."""
+        if self.INTERACT_ON_CLICK:
+            self._css.QWidget.setValues(
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_6
+            )
+            self.setStyleSheet(self._css.toString())
+
+        super().mousePressEvent(event)
+
     def mouseReleaseEvent(self, event):
-        """Override Qt method to allow for click signal."""
-        super(StatusBarWidget, self).mousePressEvent(event)
+        """
+        Change background color and emit signal to inform the widget was
+        clicked.
+        """
+        super().mouseReleaseEvent(event)
+
+        if self.INTERACT_ON_CLICK:
+            self._css.QWidget.setValues(
+                # Mac doesn't correctly restore the background color after
+                # clicking on a widget that shows a menu
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+                if MAC and self.menu
+                else SpyderPalette.COLOR_BACKGROUND_5
+            )
+            self.setStyleSheet(self._css.toString())
+
         self.sig_clicked.emit()
 
-    # ---- API to be defined by user
-    def get_tooltip(self):
-        """Return the widget tooltip text."""
-        return ''
+    def enterEvent(self, event):
+        """Change background color and cursor shape on hover."""
+        if self.INTERACT_ON_CLICK:
+            self._css.QWidget.setValues(
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+            )
+            self.setStyleSheet(self._css.toString())
 
-    def get_icon(self):
-        """Return the widget tooltip text."""
-        return None
+            self.setCursor(Qt.PointingHandCursor)
 
-    def _stylesheet(self):
-        stylesheet = ("QToolTip {{background-color: {background_color};"
-                      "color: {color};"
-                      "border: none}}").format(
-                      background_color=SpyderPalette.COLOR_ACCENT_2,
-                      color=SpyderPalette.COLOR_TEXT_1
-                      )
-        return stylesheet
+        self.update_tooltip()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """Restore background color when not hovering."""
+        if self.INTERACT_ON_CLICK:
+            self._css.QWidget.setValues(
+                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+            )
+            self.setStyleSheet(self._css.toString())
+
+        super().leaveEvent(event)
 
 
 class BaseTimerStatus(StatusBarWidget):
@@ -213,21 +285,23 @@ class BaseTimerStatus(StatusBarWidget):
         self.timer.timeout.connect(self.update_status)
         self.timer.start(self._interval)
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def closeEvent(self, event):
         self.timer.stop()
         super().closeEvent(event)
 
-    # ---- Qt API
     def setVisible(self, value):
-        """Override Qt method to stops timers if widget is not visible."""
+        """Stop timer if widget is not visible."""
         if self.timer is not None:
             if value:
                 self.timer.start(self._interval)
             else:
                 self.timer.stop()
-        super(BaseTimerStatus, self).setVisible(value)
+        super().setVisible(value)
 
-    # ---- BaseTimerStatus widget API
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():
@@ -239,7 +313,6 @@ class BaseTimerStatus(StatusBarWidget):
         if self.timer is not None:
             self.timer.setInterval(interval)
 
-    # ---- API to be defined by user
     def get_value(self):
         """Return formatted text value."""
         raise NotImplementedError

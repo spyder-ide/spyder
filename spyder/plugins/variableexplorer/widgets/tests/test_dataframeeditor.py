@@ -27,7 +27,7 @@ from pandas.testing import assert_frame_equal
 import pytest
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QInputDialog, QMessageBox
+from qtpy.QtWidgets import QDialog, QInputDialog, QMessageBox
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -590,18 +590,22 @@ def test_dataframeeditor_refresh_when_variable_deleted(qtbot):
     mock_critical.assert_called_once()
 
 
-def test_change_format(qtbot, monkeypatch):
-    mockQInputDialog = Mock()
-    mockQInputDialog.getText = lambda parent, title, label, mode, text: (
-        '10.3e',
-        True)
-    monkeypatch.setattr(
-        'spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog',
-        mockQInputDialog)
+def test_change_format(qtbot):
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
-    editor.change_format()
+
+    def fake_exec(self):
+        self.float_format = '10.3e'
+        return QDialog.Accepted
+
+    with patch(
+        'spyder.plugins.variableexplorer.widgets.dataframeeditor'
+        '.PreferencesDialog.exec_',
+        fake_exec
+    ):
+        editor.show_preferences_dialog()
+
     assert editor.dataModel._format_spec == '10.3e'
     assert editor.get_conf('dataframe_format') == '10.3e'
     editor.set_conf('dataframe_format', '.6g')

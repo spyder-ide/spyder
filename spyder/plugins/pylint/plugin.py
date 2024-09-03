@@ -12,7 +12,7 @@ Pylint Code Analysis Plugin.
 from typing import List
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -41,7 +41,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     CONF_WIDGET_CLASS = PylintConfigPage
     REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
-    TABIFY = [Plugins.Help]
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -90,9 +90,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         self.executor_configuration = [
             {
                 'input_extension': 'py',
-                'context': {
-                    'name': 'File'
-                },
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': False,
@@ -138,7 +136,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             add_to_menu={
                 "menu": ApplicationMenus.Source,
                 "section": SourceMenuSections.CodeAnalysis
-            }
+            },
+            shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

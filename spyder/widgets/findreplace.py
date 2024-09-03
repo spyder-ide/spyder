@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
                             QWidget)
 
 # Local imports
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import regexp_error_msg
@@ -54,8 +54,12 @@ class SearchText(PatternComboBox):
         return QSize(self.recommended_width, AppStyle.FindHeight)
 
 
-class FindReplace(QWidget):
+class FindReplace(QWidget, SpyderShortcutsMixin):
     """Find widget"""
+
+    # For shortcuts
+    CONF_SECTION = 'find_replace'
+
     TOOLTIP = {
         'regexp_error': _("Regular expression error"),
         'no_matches': _("No matches")
@@ -257,7 +261,7 @@ class FindReplace(QWidget):
         # Additional adjustments
         self.search_text.setTabOrder(self.search_text, self.replace_text)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.shortcuts = self.create_shortcuts(parent)
+        self.register_shortcuts(parent)
 
         # To highlight found results in the editor
         self.highlight_timer = QTimer(self)
@@ -315,49 +319,20 @@ class FindReplace(QWidget):
 
         return super().eventFilter(widget, event)
 
-    def create_shortcuts(self, parent):
-        """Create shortcuts for this widget"""
-        # Configurable
-        findnext = CONF.config_shortcut(
-            self.find_next,
-            context='find_replace',
-            name='Find next',
-            parent=parent)
+    def register_shortcuts(self, parent):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ('find next', self.find_next, parent),
+            ("find previous", self.find_previous, parent),
+            ('find text', self.show, parent),
+            ('replace text', self.show_replace, parent),
+            ('hide find and replace', self.hide, self),
+        )
 
-        findprev = CONF.config_shortcut(
-            self.find_previous,
-            context='find_replace',
-            name='Find previous',
-            parent=parent)
-
-        togglefind = CONF.config_shortcut(
-            self.show,
-            context='find_replace',
-            name='Find text',
-            parent=parent)
-
-        togglereplace = CONF.config_shortcut(
-            self.show_replace,
-            context='find_replace',
-            name='Replace text',
-            parent=parent)
-
-        hide = CONF.config_shortcut(
-            self.hide,
-            context='find_replace',
-            name='hide find and replace',
-            parent=self)
-
-        return [findnext, findprev, togglefind, togglereplace, hide]
-
-    def get_shortcut_data(self):
-        """
-        Returns shortcut data, a list of tuples (shortcut, text, default)
-        shortcut (QShortcut or QAction instance)
-        text (string): action/shortcut description
-        default (string): default key sequence
-        """
-        return [sc.data for sc in self.shortcuts]
+        for name, callback, widget in shortcuts:
+            self.register_shortcut_for_widget(
+                name=name, triggered=callback, widget=widget
+            )
 
     def update_search_combo(self):
         self.search_text.lineEdit().returnPressed.emit()

@@ -187,6 +187,17 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         # This is shown when expanding/collpasing folders in the Files plugin
         # after spyder-ide/spyder#
         "QFont::setPixelSize: Pixel size <= 0 (0)",
+        # These warnings are shown uncollapsing CollapsibleWidget
+        "QPainter::begin: Paint device returned engine == 0, type: 2",
+        "QPainter::save: Painter not active",
+        "QPainter::setPen: Painter not active",
+        "QPainter::setWorldTransform: Painter not active",
+        "QPainter::setOpacity: Painter not active",
+        "QFont::setPixelSize: Pixel size <= 0 (-3)",
+        "QPainter::setFont: Painter not active",
+        "QPainter::restore: Unbalanced save/restore",
+        # This warning is shown at startup when using PyQt6
+        "<use> element image0 in wrong context!",
     ]
     if msg_string not in BLACKLIST:
         print(msg_string)  # spyder: test-skip
@@ -357,6 +368,14 @@ def create_window(WindowClass, app, splash, options, args):
     main.pre_visible_setup()
     main.show()
     main.post_visible_setup()
+
+    # Add a reference to the main window so it can be accessed from the
+    # application.
+    #
+    # Notes
+    # -----
+    # * **DO NOT** use it to access other plugins functionality through it.
+    app._main_window = main
 
     if main.console:
         main.console.start_interpreter(namespace={})

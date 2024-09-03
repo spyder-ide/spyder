@@ -11,13 +11,13 @@ import sys
 
 from qtpy.QtCore import Signal
 
-from spyder.api.translations import _
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
 )
+from spyder.api.translations import _
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
@@ -201,26 +201,6 @@ class Editor(SpyderDockablePlugin):
             lambda: self.switch_to_plugin(force_focus=True)
         )
 
-        # ---- Run plugin config definitions
-        widget.supported_run_extensions = [
-            {
-                'input_extension': 'py',
-                'contexts': [
-                    {'context': {'name': 'File'}, 'is_super': True},
-                    {'context': {'name': 'Selection'}, 'is_super': False},
-                    {'context': {'name': 'Cell'}, 'is_super': False}
-                ]
-            },
-            {
-                'input_extension': 'ipy',
-                'contexts': [
-                    {'context': {'name': 'File'}, 'is_super': True},
-                    {'context': {'name': 'Selection'}, 'is_super': False},
-                    {'context': {'name': 'Cell'}, 'is_super': False}
-                ]
-            },
-        ]
-
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -273,16 +253,18 @@ class Editor(SpyderDockablePlugin):
                     self.NAME, unsupported_extensions
                 )
         )
-        run.register_run_configuration_provider(
-            self.NAME, widget.supported_run_extensions
-        )
+
+        # This is necessary to register run configs that were added before Run
+        # is available
+        for extension in widget.supported_run_extensions:
+            run.register_run_configuration_provider(self.NAME, [extension])
 
         # Buttons creation
         run.create_run_button(
             RunContext.Cell,
             _("Run cell"),
             icon=self.create_icon('run_cell'),
-            tip=_("Run current cell\n[Use #%% to create cells]"),
+            tip=_("Run current cell"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,

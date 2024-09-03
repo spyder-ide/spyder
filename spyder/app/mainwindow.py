@@ -53,7 +53,10 @@ from qtpy.QtWidgets import (
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets  # analysis:ignore
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
 
 from qtawesome.iconic_font import FontError
 
@@ -72,6 +75,7 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
@@ -90,9 +94,8 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import (
-    Plugins, SpyderPlugin, SpyderPluginV2, SpyderDockablePlugin,
-    SpyderPluginWidget)
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 
 #==============================================================================
 # Windows only local imports
@@ -122,7 +125,8 @@ qInstallMessageHandler(qt_message_handler)
 class MainWindow(
     QMainWindow,
     SpyderMainWindowMixin,
-    SpyderConfigurationAccessor
+    SpyderConfigurationAccessor,
+    SpyderShortcutsMixin,
 ):
     """Spyder main window"""
     CONF_SECTION = 'main'
@@ -376,8 +380,8 @@ class MainWindow(
 
         # Center message
         screen_geometry = self.screen().geometry()
-        x = (screen_geometry.width() - messageBox.width()) / 2
-        y = (screen_geometry.height() - messageBox.height()) / 2
+        x = (screen_geometry.width() - messageBox.width()) // 2
+        y = (screen_geometry.height() - messageBox.height()) // 2
         messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
@@ -453,17 +457,16 @@ class MainWindow(
                 else:
                     self.shortcut_queue.append((action, context, action_name))
 
+        # Register shortcut to switch to plugin
         if isinstance(plugin, SpyderDockablePlugin):
-            try:
-                context = '_'
-                name = 'switch to {}'.format(plugin.CONF_SECTION)
-            except (cp.NoSectionError, cp.NoOptionError):
-                pass
+            context = '_'
+            name = 'switch to {}'.format(plugin.CONF_SECTION)
 
-            sc = QShortcut(QKeySequence(), self,
-                           lambda: self.switch_to_plugin(plugin))
+            sc = QShortcut(
+                QKeySequence(), self, lambda: self.switch_to_plugin(plugin)
+            )
             sc.setContext(Qt.ApplicationShortcut)
-            plugin._shortcut = sc
+            plugin._switch_to_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
                 self.register_shortcut(sc, context, name)
@@ -515,7 +518,7 @@ class MainWindow(
 
         if shortcut is not None:
             self.shortcuts.unregister_shortcut(
-                plugin._shortcut,
+                plugin._switch_to_shortcut,
                 context,
                 "Switch to {}".format(plugin.CONF_SECTION),
             )
@@ -607,46 +610,6 @@ class MainWindow(
         if console:
             console.handle_exception(error_data)
 
-    # ---- Window setup
-    # -------------------------------------------------------------------------
-    def _update_shortcuts_in_panes_menu(self, show=True):
-        """
-        Display the shortcut for the "Switch to plugin..." on the toggle view
-        action of the plugins displayed in the Help/Panes menu.
-
-        Notes
-        -----
-        SpyderDockablePlugins provide two actions that function as a single
-        action. The `Switch to Plugin...` action has an assignable shortcut
-        via the shortcut preferences. The `Plugin toggle View` in the `View`
-        application menu, uses a custom `Toggle view action` that displays the
-        shortcut assigned to the `Switch to Plugin...` action, but is not
-        triggered by that shortcut.
-        """
-        for plugin_name in PLUGIN_REGISTRY:
-            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if isinstance(plugin, SpyderDockablePlugin):
-                try:
-                    # New API
-                    action = plugin.toggle_view_action
-                except AttributeError:
-                    # Old API
-                    action = plugin._toggle_view_action
-
-                if show:
-                    section = plugin.CONF_SECTION
-                    try:
-                        context = '_'
-                        name = 'switch to {}'.format(section)
-                        shortcut = self.get_shortcut(
-                            name, context, plugin_name=section)
-                    except (cp.NoSectionError, cp.NoOptionError):
-                        shortcut = QKeySequence()
-                else:
-                    shortcut = QKeySequence()
-
-                action.setShortcut(shortcut)
-
     def _prevent_freeze_when_moving_dockwidgets(self):
         """
         This is necessary to prevent an ugly freeze when moving dockwidgets to
@@ -724,13 +687,6 @@ class MainWindow(
 
         for plugin in all_plugins.values():
             plugin_name = plugin.NAME
-            # Disable plugins that use web widgets (currently Help and Online
-            # Help) if the user asks for it.
-            # See spyder-ide/spyder#16518
-            if self._cli_options.no_web_widgets:
-                if "help" in plugin_name:
-                    continue
-
             plugin_main_attribute_name = (
                 self._INTERNAL_PLUGINS_MAPPING[plugin_name]
                 if plugin_name in self._INTERNAL_PLUGINS_MAPPING
@@ -772,6 +728,18 @@ class MainWindow(
             if plugin_name in enabled_plugins:
                 PluginClass = internal_plugins[plugin_name]
                 if issubclass(PluginClass, SpyderPluginV2):
+                    # Disable plugins that use web widgets (currently Help and
+                    # Online Help) if the user asks for it.
+                    # See spyder-ide/spyder#16518
+                    # The plugins that require QtWebengine must declare
+                    # themselves as needing that dependency
+                    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+                    if PluginClass.REQUIRE_WEB_WIDGETS and (
+                        not WEBENGINE or
+                        self._cli_options.no_web_widgets
+                    ):
+                        continue
+
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass,
                                                     external=False)
 
@@ -845,15 +813,6 @@ class MainWindow(
         if self.layouts is not None:
             self.layouts.register_custom_layouts()
 
-        # Needed to ensure dockwidgets/panes layout size distribution
-        # when a layout state is already present.
-        # See spyder-ide/spyder#17945
-        if (
-            self.layouts is not None
-            and self.get_conf('window/state', default=None)
-        ):
-            self.layouts.before_mainwindow_visible()
-
         # Tabify new plugins which were installed or created after Spyder ran
         # for the first time.
         # NOTE: **DO NOT** make layout changes after this point or new plugins
@@ -916,9 +875,6 @@ class MainWindow(
             # Connect the window to the signal emitted by the previous server
             # when it gets a client connected to it
             self.sig_open_external_file.connect(self.open_external_file)
-
-        # Update plugins toggle actions to show the "Switch to" plugin shortcut
-        self._update_shortcuts_in_panes_menu()
 
         # Reopen last session if no project is active
         # NOTE: This needs to be after the calls to on_mainwindow_visible
@@ -1140,16 +1096,13 @@ class MainWindow(
                     ]
                 )
 
-        can_close = self.plugin_registry.delete_all_plugins(
-            excluding={Plugins.Layout},
-            close_immediately=close_immediately)
-
-        if not can_close and not close_immediately:
-            return False
-
-        # Save window settings *after* closing all plugin windows, in order
-        # to show them in their previous locations in the next session.
+        # Dock undocked plugins before saving the layout.
         # Fixes spyder-ide/spyder#12139
+        self.plugin_registry.dock_all_undocked_plugins(save_undocked=True)
+
+        # Save layout before closing all plugins. This ensures its restored
+        # correctly in the next session when there are many IPython consoles
+        # open in the current one.
         prefix = 'window' + '/'
         if self.layouts is not None:
             self.layouts.save_current_window_settings(prefix)
@@ -1163,6 +1116,14 @@ class MainWindow(
                     Plugins.Layout, teardown=False)
             except RuntimeError:
                 pass
+
+        # Close all plugins
+        can_close = self.plugin_registry.delete_all_plugins(
+            excluding={Plugins.Layout}, close_immediately=close_immediately
+        )
+
+        if not can_close and not close_immediately:
+            return False
 
         self.already_closed = True
 
