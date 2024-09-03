@@ -1,6 +1,6 @@
 # History of changes for Spyder 6
 
-## Version 6.0.0 (unreleased)
+## Version 6.0.0 (2024-09-03)
 
 ### New features
 
@@ -93,6 +93,31 @@
   `future.add_done_callback` calls to avoid segfaults.
 * `ShellConnectStatusBarWidget` was added to `spyder.api.shellconnect.status`
   to create status bar widgets connected to the current console.
+
+### Issues Closed
+
+* [Issue 22378](https://github.com/spyder-ide/spyder/issues/22378) - Spyder 6.0.0 release ([PR 22401](https://github.com/spyder-ide/spyder/pull/22401) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22374](https://github.com/spyder-ide/spyder/issues/22374) - Check reason why Sphinx upper constraint is needed to make the splash screen work on Windows ([PR 22404](https://github.com/spyder-ide/spyder/pull/22404) by [@mrclary](https://github.com/mrclary))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22404](https://github.com/spyder-ide/spyder/pull/22404) - PR: Resolve issue where splash screen was incorrectly rendered if conda environment is not activated (Installers), by [@mrclary](https://github.com/mrclary) ([22374](https://github.com/spyder-ide/spyder/issues/22374))
+* [PR 22403](https://github.com/spyder-ide/spyder/pull/22403) - PR: Minor fixes to Spyder 6 Changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22401](https://github.com/spyder-ide/spyder/pull/22401) - PR: Update core dependencies for 6.0.0, by [@dalthviz](https://github.com/dalthviz) ([22378](https://github.com/spyder-ide/spyder/issues/22378))
+* [PR 22399](https://github.com/spyder-ide/spyder/pull/22399) - PR: Fix issue where single-instance mode was not enforced (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 22397](https://github.com/spyder-ide/spyder/pull/22397) - PR: Update user-facing Changelog for Spyder 6.0, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22395](https://github.com/spyder-ide/spyder/pull/22395) - PR: Some last minute fixes before releasing Spyder 6, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22394](https://github.com/spyder-ide/spyder/pull/22394) - PR: Restore `TMPDIR` in the kernel if it's available in the system, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22387](https://github.com/spyder-ide/spyder/pull/22387) - PR: Add in-app appeal message for donations (Application), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22382](https://github.com/spyder-ide/spyder/pull/22382) - PR: Pass `TMPDIR` env var to kernels (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22380](https://github.com/spyder-ide/spyder/pull/22380) - PR: Fix listing envs in the Consoles' environment menu (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22379](https://github.com/spyder-ide/spyder/pull/22379) - PR: Update Qtconsole subrepo, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22377](https://github.com/spyder-ide/spyder/pull/22377) - PR: Don't expose `SpyderPlugin` and `SpyderPluginWidget` as part of the public API, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22334](https://github.com/spyder-ide/spyder/pull/22334) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+
+In this release 13 pull requests were closed.
 
 ----
 
