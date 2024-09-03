@@ -186,10 +186,10 @@ def _create_conda_lock(env_type='base'):
 
     definitions = {
         "channels": [
-            CONDA_BLD_PATH,
+            "conda-forge",
             "conda-forge/label/spyder_dev",
             "conda-forge/label/spyder_kernels_rc",
-            "conda-forge"
+            CONDA_BLD_PATH,
         ],
         "dependencies": [k + v for k, v in specs.items()],
         "platforms": [TARGET_PLATFORM]
