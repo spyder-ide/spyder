@@ -25,7 +25,7 @@ from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.run.api import (
     RunContext, RunExecutor, RunConfiguration,
     ExtendedRunExecutionParameters, RunResult, run_execute)
-from spyder.plugins.ipythonconsole.widgets.config import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
