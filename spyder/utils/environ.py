@@ -103,7 +103,7 @@ def get_user_environment_variables():
     elif os.name == 'posix':
         try:
             user_env_script = _get_user_env_script()
-            proc = run_shell_command(user_env_script, env={}, text=True)
+            proc = run_shell_command("." + user_env_script, env={}, text=True)
 
             # Use timeout to fix spyder-ide/spyder#21172
             stdout, stderr = proc.communicate(
