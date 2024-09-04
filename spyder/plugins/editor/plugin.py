@@ -950,6 +950,10 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             _("Underline errors and warnings"),
             'underline_errors', 'set_underline_errors_enabled')
 
+        wrap_lines_action = self._create_checkable_action(
+            _("Wrap lines"), 'wrap', 'set_wrap_enabled',
+            shortcut=CONF.get_shortcut('editor', 'wrap lines'))
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
@@ -958,7 +962,8 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
                 'pycodestyle': show_codestyle_warnings_action,
                 'pydocstyle': show_docstring_warnings_action,
-                'underline_errors': underline_errors}
+                'underline_errors': underline_errors,
+                'wrap': wrap_lines_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1172,6 +1177,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
             underline_errors,
+            wrap_lines_action,
             MENU_SEPARATOR,
             self.todo_list_action,
             self.warning_list_action,
@@ -1354,7 +1360,12 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
                 except RuntimeError:
                     pass
 
-    def _create_checkable_action(self, text, conf_name, method=''):
+    def _create_checkable_action(
+            self,
+            text,
+            conf_name,
+            method='',
+            shortcut=None):
         """Helper function to create a checkable action.
 
         Args:
@@ -1368,7 +1379,7 @@ class Editor(SpyderPluginWidget, SpyderConfigurationObserver):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
 
-        action = create_action(self, text, toggled=toogle)
+        action = create_action(self, text, toggled=toogle, shortcut=shortcut)
         action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
