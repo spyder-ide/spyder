@@ -1250,7 +1250,11 @@ class EditorMainWidget(PluginMainWidget):
         editor = self.get_current_editor()
         readwrite_editor = possible_text_widget == editor
 
-        if readwrite_editor and not editor.isReadOnly():
+        # We need the first validation to avoid a bug at startup. That probably
+        # happens when the menu is tried to be rendered automatically in some
+        # Linux distros.
+        # Fixes spyder-ide/spyder#22432
+        if editor is not None and readwrite_editor and not editor.isReadOnly():
             # Case where the current editor has the focus
             if not self.is_file_opened():
                 return
