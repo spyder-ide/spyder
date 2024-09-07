@@ -111,8 +111,7 @@ For a complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md)
 
 Spyder 5.0 has been a huge success and we hope 6.0 will be as successful. For that we
-fixed 123 bugs, merged 292 pull requests from about 22 authors and added more than
-3098 commits between these two releases.
+fixed 123 bugs and merged 292 pull requests from about 22 authors.
 
 Don't forget to follow Spyder updates/news on the project's
 [website](https://www.spyder-ide.org).
@@ -167,8 +166,6 @@ I'm pleased to announce the second beta of our next major version: Spyder **6.0*
 
 We've been working on this version for more than one year now and it's working
 relatively well. We encourage all people who like the bleeding edge to give it a try.
-This release candidate version includes more than 74 commits over our latest release
-candidate (6.0.0rc1).
 
 Spyder 6.0 comes with the following interesting new features and fixes:
 
