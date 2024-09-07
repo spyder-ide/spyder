@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
+      - 6.*
       - 5.*
-      - 4.x
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
@@ -21,8 +21,8 @@ on:
   pull_request:
     branches:
       - master
+      - 6.*
       - 5.*
-      - 4.x
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
