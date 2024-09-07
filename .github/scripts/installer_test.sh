@@ -66,10 +66,22 @@ check_shortcut() {
     fi
 }
 
+check_spyder_version() {
+    runtime_python=${base_prefix}/envs/spyder-runtime/bin/python
+    actual_version=$(${runtime_python} -c "import spyder; print(spyder.__version__)")
+    echo "Expected version = ${SPYVER}"
+    echo "Actual version   = ${actual_version}"
+    if [[ "${SPYVER}" != "${actual_version}" ]]; then
+        echo "Error: installed Spyder version is incorrect!"
+        exit_status=1
+    fi
+}
+
 install || exit 1
 echo "Install info:"
 check_prefix
 check_uninstall
 check_shortcut
+check_spyder_version
 
 exit $exit_status

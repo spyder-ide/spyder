@@ -264,7 +264,9 @@ jobs:
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
 
+          SPYVER=$(python build_installers.py --version)
           PKG_NAME=$(ls $DISTDIR | grep Spyder-)
+          echo "SPYVER=$SPYVER" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
           echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
@@ -293,6 +295,20 @@ jobs:
               echo "Spyder NOT installed successfully"
               EXIT /B 1
           )
+
+          set runtime_python=%base_prefix%\envs\spyder-runtime\python
+          for /F "tokens=*" %%i in (
+              '%runtime_python% -c "import spyder; print(spyder.__version__)"'
+          ) do (
+              set actual_version=%%~i
+          )
+          echo Expected version = %SPYVER%
+          echo Actual version   = %actual_version%
+          if %SPYVER% neq %actual_version% (
+              echo Error: installed Spyder version is incorrect!
+              EXIT /B 1
+          )
+
           EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
