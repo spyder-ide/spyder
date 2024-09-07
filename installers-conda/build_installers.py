@@ -128,6 +128,10 @@ p.add_argument(
     "--conda-lock", action="store_true",
     help="Create conda-lock file and exit."
 )
+p.add_argument(
+    "--version", action="store_true",
+    help="Print Spyder version and exit."
+)
 args = p.parse_args()
 
 yaml = YAML()
@@ -510,6 +514,9 @@ if __name__ == "__main__":
     if args.conda_lock:
         _create_conda_lock(env_type='base')
         _create_conda_lock(env_type='runtime')
+        sys.exit()
+    if args.version:
+        print(SPYVER)
         sys.exit()
 
     main()
