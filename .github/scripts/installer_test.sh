@@ -25,7 +25,7 @@ check_prefix() {
     fi
 
     if [[ -d "$base_prefix" ]]; then
-        echo "\nContents of ${base_prefix}:"
+        echo -e "\nContents of ${base_prefix}:"
         ls -al $base_prefix
     else
         echo "Base prefix does not exist!"
@@ -49,15 +49,16 @@ check_shortcut() {
     shortcut=$($pythonexe $menuinst shortcut --mode=user)
     if [[ -e "${shortcut}" ]]; then
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            echo "\n${shortcut}/Contents/MacOS contents:"
+            echo -e "\nContents of ${shortcut}/Contents/MacOS:"
             ls -al "${shortcut}/Contents/MacOS"
-            echo -e "\n$shortcut/Contents/Info.plist contents:"
+            echo -e "\nContents of $shortcut/Contents/Info.plist:"
             cat "${shortcut}/Contents/Info.plist"
             script=$(compgen -G "${shortcut}/Contents/MacOS/spyder"*-script)
-            echo -e "\n${script} contents:"
+            echo -e "\nContents of ${script}:"
             cat "${script}"
+            echo ""
         elif [[ "$OSTYPE" == "linux"* ]]; then
-            echo -e "\n${shortcut} contents:"
+            echo -e "\nContents of ${shortcut}:"
             cat $shortcut
         fi
     else
@@ -69,7 +70,7 @@ check_shortcut() {
 check_spyder_version() {
     runtime_python=${base_prefix}/envs/spyder-runtime/bin/python
     actual_version=$(${runtime_python} -c "import spyder; print(spyder.__version__)")
-    echo "Expected version = ${SPYVER}"
+    echo -e "\nExpected version = ${SPYVER}"
     echo "Actual version   = ${actual_version}"
     if [[ "${SPYVER}" != "${actual_version}" ]]; then
         echo "Error: installed Spyder version is incorrect!"
@@ -78,6 +79,7 @@ check_spyder_version() {
 }
 
 install || exit 1
+echo -e "\n#############"
 echo "Install info:"
 check_prefix
 check_uninstall
