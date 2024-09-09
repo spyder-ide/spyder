@@ -166,13 +166,6 @@ class ToolbarContainer(PluginMainContainer):
             )
 
         toolbar = ApplicationToolbar(self, toolbar_id, title)
-        toolbar.setObjectName(toolbar_id)
-
-        TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
-        )
-        self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
-
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
         return toolbar
 
@@ -203,6 +196,12 @@ class ToolbarContainer(PluginMainContainer):
         if toolbar_id in self._ADDED_TOOLBARS:
             raise SpyderAPIError(
                 'Toolbar with ID "{}" already added!'.format(toolbar_id))
+
+        # Add toolbar to registry and add it to the app toolbars dict
+        TOOLBAR_REGISTRY.register_reference(
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+        )
+        self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
 
         # TODO: Make the icon size adjustable in Preferences later on.
         iconsize = 24
