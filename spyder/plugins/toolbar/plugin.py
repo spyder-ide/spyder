@@ -88,7 +88,7 @@ class Toolbar(SpyderPluginV2):
     def on_mainwindow_visible(self):
         container = self.get_container()
 
-        for toolbar in container.get_application_toolbars():
+        for toolbar in self.toolbarslist:
             toolbar.render()
 
         container.create_toolbars_menu()

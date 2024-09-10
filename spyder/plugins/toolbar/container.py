@@ -325,16 +325,16 @@ class ToolbarContainer(PluginMainContainer):
 
         return self._APPLICATION_TOOLBARS[toolbar_id]
 
-    def get_application_toolbars(self) -> List[ApplicationToolbar]:
+    def get_application_toolbars(self) -> Dict[str, ApplicationToolbar]:
         """
         Return all created application toolbars.
 
         Returns
         -------
-        list
-            The list of all the added application toolbars.
+        dict
+            The dict of all the added application toolbars.
         """
-        return self._toolbarslist
+        return self._APPLICATION_TOOLBARS
 
     def save_last_visible_toolbars(self):
         """Save the last visible toolbars state in our preferences."""
