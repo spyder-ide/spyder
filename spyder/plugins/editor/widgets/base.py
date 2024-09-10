@@ -480,8 +480,10 @@ class TextEditBaseWidget(
         """
         if self.get_selected_text():
             QApplication.clipboard().setText(self.get_selected_text())
-        elif self.get_current_line():
-            QApplication.clipboard().setText(self.get_current_line())
+        else:
+            cursor = self.select_current_line_and_sep(set_cursor=False)
+            text = to_text_string(cursor.selectedText())
+            QApplication.clipboard().setText(text)
 
     def toPlainText(self):
         """
@@ -649,6 +651,44 @@ class TextEditBaseWidget(
         self.current_cell = (cursor, cell_full_file)
 
         return cursor, cell_full_file
+
+    def select_current_line_and_sep(self, cursor=None, set_cursor=True):
+        """
+        Selects the current line, including the correct line separator to
+        delete or copy the whole current line.
+
+        This means:
+        - If there is a next block, select the current block's newline char.
+        - Else if there is a previous block, select the previous newline char.
+        - Else select no newline char (1-line file)
+
+        Does a similar thing to `cursor.select(QTextCursor.BlockUnderCursor)`,
+        which always selects the previous newline char.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+
+        cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
+
+        if not cursor.movePosition(QTextCursor.NextBlock,
+                                   QTextCursor.KeepAnchor):
+            # if there is no next Block, we select the previous newline
+            if cursor.movePosition(QTextCursor.PreviousBlock,
+                                   QTextCursor.MoveAnchor):
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.MoveAnchor)
+                cursor.movePosition(QTextCursor.NextBlock,
+                                    QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+            else:
+                # if there is no previous block, we can select the current line
+                # this is the 1-line file case
+                cursor.select(QTextCursor.BlockUnderCursor)
+
+        if set_cursor:
+            self.setTextCursor(cursor)
+        return cursor
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""

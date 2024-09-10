@@ -1950,24 +1950,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Reimplement cut to signal listeners about changes on the text."""
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
-            # If no text is selected, the entire line will be selected and cut
-            cursor = self.textCursor()
-            # Do selection manually so the newline at the end of the line is selected
-            # using cursor.select(QTextCursor.BlockUnderCursor) selects previous newline
-            cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
-            if not cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor):
-                # if there is no next Block, we select the previous newline
-                if not cursor.movePosition(QTextCursor.PreviousBlock, QTextCursor.MoveAnchor):
-                    # if there is no previous block, we can select the current line
-                    # this is the 1-line file case
-                    cursor.select(QTextCursor.BlockUnderCursor)
-                else:
-                    # There is a previous block
-                    cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
-                    cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-                    cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
-
-            self.setTextCursor(cursor)
+            self.select_current_line_and_sep()
 
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
