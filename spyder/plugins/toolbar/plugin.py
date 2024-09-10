@@ -88,9 +88,10 @@ class Toolbar(SpyderPluginV2):
     def on_mainwindow_visible(self):
         container = self.get_container()
 
-        for toolbar in self.toolbarslist:
-            toolbar.render()
+        # Load all toolbars
+        container.load_application_toolbars()
 
+        # Create toolbars menu and show last visible toolbars
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()
 

@@ -23,6 +23,7 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
+from spyder.config.base import DEV
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
@@ -335,6 +336,59 @@ class ToolbarContainer(PluginMainContainer):
             The dict of all the added application toolbars.
         """
         return self._APPLICATION_TOOLBARS
+
+    def load_application_toolbars(self):
+        """Load application toolbars at startup."""
+        app_toolbars = self.get_application_toolbars()
+
+        # Get internal and external toolbars
+        internal_toolbars = get_class_values(ApplicationToolbars)
+        external_toolbars = [
+            toolbar_id
+            for toolbar_id in app_toolbars.keys()
+            if toolbar_id not in internal_toolbars
+        ]
+
+        # Add internal toolbars first in the order below, except the working
+        # directory because it'll be added last.
+        internal_toolbars_order = [
+            ApplicationToolbars.File,
+            ApplicationToolbars.Run,
+            ApplicationToolbars.Debug,
+            ApplicationToolbars.Main,
+        ]
+
+        # Check we didn't left out any internal toolbar from the order above
+        if DEV:
+            if (
+                (set(internal_toolbars) - set(internal_toolbars_order))
+                != {ApplicationToolbars.WorkingDirectory}
+            ):
+                missing_toolbars = (
+                    set(internal_toolbars)
+                    - set(internal_toolbars_order)
+                    - {ApplicationToolbars.WorkingDirectory}
+                )
+
+                raise SpyderAPIError(
+                    f"The internal toolbar(s) {missing_toolbars} are not "
+                    f"listed in the ordering of toolbars that is set below. "
+                    f"Please add them to fix this error"
+                )
+
+        # We need to remove all toolbars to organize them in the way we want
+        for toolbar in self._toolbarslist:
+            self._plugin.main.removeToolBar(toolbar)
+
+        # Add toolbars
+        for toolbar_id in (
+            internal_toolbars_order
+            + external_toolbars
+            + [ApplicationToolbars.WorkingDirectory]
+        ):
+            toolbar = app_toolbars[toolbar_id]
+            self._plugin.main.addToolBar(toolbar)
+            toolbar.render()
 
     def save_last_visible_toolbars(self):
         """Save the last visible toolbars state in our preferences."""
