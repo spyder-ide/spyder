@@ -480,6 +480,8 @@ class TextEditBaseWidget(
         """
         if self.get_selected_text():
             QApplication.clipboard().setText(self.get_selected_text())
+        elif self.get_current_line():
+            QApplication.clipboard().setText(self.get_current_line())
 
     def toPlainText(self):
         """
