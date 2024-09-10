@@ -482,8 +482,7 @@ class TextEditBaseWidget(
             QApplication.clipboard().setText(self.get_selected_text())
         else:
             cursor = self.select_current_line_and_sep(set_cursor=False)
-            text = to_text_string(cursor.selectedText())
-            QApplication.clipboard().setText(text)
+            QApplication.clipboard().setText(self.get_selected_text(cursor))
 
     def toPlainText(self):
         """
