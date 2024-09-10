@@ -1950,7 +1950,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Reimplement cut to signal listeners about changes on the text."""
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
-            return
+            # If no text is selected, the entire line will be selected and cut
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.LineUnderCursor)
+            self.setTextCursor(cursor)
+
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
         self.sig_delete_requested.emit()
