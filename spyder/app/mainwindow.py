@@ -847,10 +847,11 @@ class MainWindow(
             assert 'pandas' not in sys.modules
             assert 'matplotlib' not in sys.modules
 
-        # Call on_mainwindow_visible for all plugins, except Layout because it
-        # needs to be called first (see above).
+        # Call on_mainwindow_visible for all plugins, except Layout and
+        # Application because they need to be called first (see above) and last
+        # (see below), respectively.
         for plugin_name in PLUGIN_REGISTRY:
-            if plugin_name != Plugins.Layout:
+            if plugin_name not in (Plugins.Layout, Plugins.Application):
                 plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
                 try:
                     plugin.on_mainwindow_visible()
@@ -859,6 +860,12 @@ class MainWindow(
                     pass
 
         self.restore_scrollbar_position.emit()
+
+        # This must be called after restore_scrollbar_position.emit so that
+        # the in-app appeal dialog has focus on macOS.
+        # Fixes spyder-ide/spyder#22454.
+        self.get_plugin(Plugins.Application).on_mainwindow_visible()
+        QApplication.processEvents()
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
