@@ -1952,7 +1952,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if not has_selected_text:
             # If no text is selected, the entire line will be selected and cut
             cursor = self.textCursor()
-            cursor.select(QTextCursor.LineUnderCursor)
+            cursor.select(QTextCursor.BlockUnderCursor)
             self.setTextCursor(cursor)
 
         start, end = self.get_selection_start_end()
