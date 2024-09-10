@@ -156,12 +156,16 @@ class Application(SpyderPluginV2):
             screen.logicalDotsPerInchChanged.connect(
                 container.show_dpi_change_message)
 
-        # Show appeal the fifth time Spyder starts
+        # Show appeal the fifth and 25th time Spyder starts
         spyder_runs = self.get_conf("spyder_runs_for_appeal", default=1)
-        if spyder_runs == 5:
+        if spyder_runs in [5, 25]:
             container.inapp_appeal_status.show_appeal()
+
+            # Increase counting in one to not get stuck at this point.
+            # Fixes spyder-ide/spyder#22457
+            self.set_conf("spyder_runs_for_appeal", spyder_runs + 1)
         else:
-            if spyder_runs < 5:
+            if spyder_runs < 25:
                 self.set_conf("spyder_runs_for_appeal", spyder_runs + 1)
 
     # ---- Private API
