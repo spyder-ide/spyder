@@ -705,10 +705,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         )
 
     def update_syspath(self, path_dict, new_path_dict):
-        """Update sys.path contents on kernel."""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False).update_syspath(path_dict, new_path_dict)
+        """Update sys.path contents in the kernel."""
+        # Prevent error when the kernel is not available and users open/close
+        # projects or use the Python path manager.
+        # Fixes spyder-ide/spyder#21563
+        if self.kernel_handler is not None:
+            self.call_kernel(interrupt=True, blocking=False).update_syspath(
+                path_dict, new_path_dict
+            )
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
