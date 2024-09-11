@@ -71,7 +71,7 @@ class ArrayEditorWidgets:
     ToolbarStretcher = 'toolbar_stretcher'
 
 
-# Note: string and unicode data types will be formatted with 's' (see below)
+# Note: string and unicode data types will be formatted with '' (see below)
 SUPPORTED_FORMATS = {
     'single': '.6g',
     'double': '.6g',
@@ -657,7 +657,10 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
+        # Use '' as default format specifier, because 's' does not produce
+        # a `str` for arrays with strings, see spyder-ide/spyder#22466
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, '')
+
         self.model = ArrayModel(self.data, format_spec=format_spec,
                                 readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
