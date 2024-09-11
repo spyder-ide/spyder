@@ -355,6 +355,7 @@ class ToolbarContainer(PluginMainContainer):
             ApplicationToolbars.File,
             ApplicationToolbars.Run,
             ApplicationToolbars.Debug,
+            ApplicationToolbars.ControlDebugger,
             ApplicationToolbars.Main,
         ]
 
