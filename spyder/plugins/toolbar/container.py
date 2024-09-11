@@ -78,8 +78,8 @@ class ToolbarContainer(PluginMainContainer):
 
         self.set_conf('last_visible_toolbars', toolbars)
 
-    def _get_visible_toolbars(self):
-        """Collect the visible toolbars."""
+    def _set_visible_toolbars(self):
+        """Set the current visible toolbars in an attribute."""
         toolbars = []
         for toolbar in self._toolbarslist:
             if (
@@ -98,7 +98,7 @@ class ToolbarContainer(PluginMainContainer):
         if value:
             self._save_visible_toolbars()
         else:
-            self._get_visible_toolbars()
+            self._set_visible_toolbars()
 
         for toolbar in self._visible_toolbars:
             toolbar.setVisible(value)
@@ -393,7 +393,7 @@ class ToolbarContainer(PluginMainContainer):
     def save_last_visible_toolbars(self):
         """Save the last visible toolbars state in our preferences."""
         if self.get_conf("toolbars_visible"):
-            self._get_visible_toolbars()
+            self._set_visible_toolbars()
         self._save_visible_toolbars()
 
     def load_last_visible_toolbars(self):
