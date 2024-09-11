@@ -64,8 +64,8 @@ class ToolbarContainer(PluginMainContainer):
 
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._ADDED_TOOLBARS = OrderedDict()
-        self._toolbarslist = []
-        self._visible_toolbars = []
+        self._toolbarslist: list[ApplicationToolbar] = []
+        self._visible_toolbars: list[ApplicationToolbar] = []
         self._ITEMS_QUEUE: Dict[str, List[ItemInfo]] = {}
 
     # ---- Private Methods
@@ -397,28 +397,28 @@ class ToolbarContainer(PluginMainContainer):
         self._save_visible_toolbars()
 
     def load_last_visible_toolbars(self):
-        """Load the last visible toolbars from our preferences."""
+        """Load the last visible toolbars saved in our config system."""
         toolbars_names = self.get_conf('last_visible_toolbars')
         toolbars_visible = self.get_conf("toolbars_visible")
 
-        if toolbars_names:
-            toolbars_dict = {}
-            for toolbar in self._toolbarslist:
-                toolbars_dict[toolbar.objectName()] = toolbar
+        # This is necessary to discard toolbars that were available in the last
+        # session but are not on this one.
+        visible_toolbars = []
+        for name in toolbars_names:
+            if name in self._APPLICATION_TOOLBARS:
+                visible_toolbars.append(self._APPLICATION_TOOLBARS[name])
 
-            toolbars = []
-            for name in toolbars_names:
-                if name in toolbars_dict:
-                    toolbars.append(toolbars_dict[name])
+        # Update visible toolbars
+        self._visible_toolbars = visible_toolbars
 
-            self._visible_toolbars = toolbars
-        else:
-            # This is necessary to set the toolbars in EditorMainWindow the
-            # first time Spyder starts.
-            self.save_last_visible_toolbars()
-
-        for toolbar in self._visible_toolbars:
-            toolbar.setVisible(toolbars_visible)
+        # Show visible/hidden toolbars
+        for toolbar in self._toolbarslist:
+            if toolbar in self._visible_toolbars:
+                toolbar.setVisible(toolbars_visible)
+                toolbar.toggleViewAction().setChecked(toolbars_visible)
+            else:
+                toolbar.setVisible(False)
+                toolbar.toggleViewAction().setChecked(False)
 
         self.update_actions()
 

@@ -16,6 +16,7 @@ import os
 import sys
 
 # Local import
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
@@ -93,7 +94,13 @@ DEFAULTS = [
              {
               'enable': True,
               'toolbars_visible': True,
-              'last_visible_toolbars': [],
+              'last_visible_toolbars': [
+                  ApplicationToolbars.File,
+                  ApplicationToolbars.Run,
+                  ApplicationToolbars.Debug,
+                  ApplicationToolbars.Main,
+                  ApplicationToolbars.WorkingDirectory,
+              ],
              }),
             ('statusbar',
              {
@@ -587,10 +594,6 @@ NAME_MAP = {
             'window/state',
             ]
          ),
-        ('toolbar', [
-            'last_visible_toolbars',
-            ]
-         ),
         ('editor', [
             'autosave_mapping',
             'bookmarks',
@@ -672,4 +675,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '84.2.0'
+CONF_VERSION = '84.3.0'
