@@ -100,6 +100,8 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
     # -------------------------------------------------------------------------
     def update_status(self, gui):
         """Update interactive state."""
+        logger.debug(f"Setting Matplotlib backend to {gui}")
+
         if self._interactive_gui is None and gui != "inline":
             self._interactive_gui = gui
         self._gui = gui

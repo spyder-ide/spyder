@@ -9,6 +9,7 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import time
@@ -45,8 +46,11 @@ from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 
+logger = logging.getLogger(__name__)
+
 MODULES_FAQ_URL = (
-    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer"
+)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -1186,6 +1190,8 @@ overrided by the Sympy module (e.g. plot)
         if self.is_external_kernel and not self.is_remote():
             return ""
 
+        logger.debug(f"Showing banner for {self}")
+
         # Detect what kind of banner we want to show
         show_banner_o = self.additional_options['show_banner']
         if show_banner_o:
@@ -1465,3 +1471,11 @@ overrided by the Sympy module (e.g. plot)
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)
+
+    # ---- Python methods
+    def __repr__(self):
+        # Handy repr for logging.
+        # Solution from https://stackoverflow.com/a/121508/438386
+        return (
+            "<" + self.__class__.__name__ + " object at " + hex(id(self)) + ">"
+        )
