@@ -186,6 +186,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._kernel_configuration = {}
         self.is_kernel_configured = False
         self._init_kernel_setup = False
+        self._is_banner_shown = False
 
         if handlers is None:
             handlers = {}
@@ -202,9 +203,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # To keep an execution queue
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
-
-        # To show the console banner on first prompt
-        self.sig_prompt_ready.connect(self._show_banner)
 
         # Show a message in our installers to explain users how to use
         # modules that don't come with them.
@@ -321,6 +319,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
+            self._show_banner()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
@@ -1186,13 +1185,17 @@ overrided by the Sympy module (e.g. plot)
 
     def _show_banner(self):
         """Show banner before first prompt."""
-        # Don't show banner for external kernels
-        if self.is_external_kernel and not self.is_remote():
-            return ""
+        if (
+            # Don't show banner for external but local kernels
+            self.is_external_kernel and not self.is_remote()
+            # Don't show it if it was already shown
+            or self._is_banner_shown
+        ):
+            return
 
         logger.debug(f"Showing banner for {self}")
 
-        # Detect what kind of banner we want to show
+        # Check what kind of banner we want to show
         show_banner_o = self.additional_options['show_banner']
         if show_banner_o:
             banner = self.long_banner()
@@ -1205,7 +1208,7 @@ overrided by the Sympy module (e.g. plot)
         self._insert_plain_text(cursor, banner)
 
         # Only do this once
-        self.sig_prompt_ready.disconnect(self._show_banner)
+        self._is_banner_shown = True
 
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
