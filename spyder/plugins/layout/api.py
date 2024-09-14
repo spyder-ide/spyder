@@ -356,7 +356,7 @@ class BaseGridLayoutType:
         # is applied
         base_plugins_to_hide = []
 
-        # Before applying a new layout all plugins need to be hidden
+        # Actions to be performed before applying the layout
         for plugin in dockable_plugins:
             all_plugin_ids.append(plugin.NAME)
 
@@ -367,6 +367,14 @@ class BaseGridLayoutType:
             ):
                 external_plugins_to_show.append(plugin.NAME)
 
+            # Restore undocked_before_hiding state so that the layout is
+            # applied as expected, i.e. all plugins are shown in their expected
+            # positions. It also avoids an error that leaves the main window in
+            # an inconsistent state.
+            # Fixes spyder-ide/spyder#22494
+            plugin.set_conf('window_was_undocked_before_hiding', False)
+
+            # Hide all plugins
             plugin.toggle_view(False)
 
         # Add plugins without an area assigned to the default area and made
