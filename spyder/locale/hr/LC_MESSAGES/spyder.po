@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2023-10-21 00:01\n"
+"PO-Revision-Date: 2024-09-16 11:16\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -19,19 +19,19 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Here you can turn on/off any internal or external Spyder plugin to disable functionality that is not desired or to have a lighter experience. Unchecked plugins in this page will be unloaded immediately and will not be loaded the next time Spyder starts."
-msgstr ""
+msgstr "Ovdje možete uključiti/isključiti bilo koji unutarnji ili vanjski Spyder dodatak kako biste onemogućili neželjene funkcionalnosti ili imali lakše iskustvo. Odznačeni dodaci na ovoj stranici bit će odmah uklonjeni i neće se učitati sljedeći put kada se Spyder pokrene."
 
 #: spyder/api/plugin_registration/_confpage.py:34
 msgid "Internal plugins"
-msgstr ""
+msgstr "Unutarnji dodaci"
 
 #: spyder/api/plugin_registration/_confpage.py:62
 msgid "External plugins"
-msgstr ""
+msgstr "Vanjski dodaci"
 
 #: spyder/api/plugin_registration/registry.py:809
 msgid "Plugins"
-msgstr ""
+msgstr "Dodaci"
 
 #: spyder/api/widgets/main_widget.py:253
 msgid "Main widget toolbar"
