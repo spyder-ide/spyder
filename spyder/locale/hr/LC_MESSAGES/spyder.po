@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-08-07 18:05-0500\n"
-"PO-Revision-Date: 2024-09-16 11:16\n"
+"PO-Revision-Date: 2024-09-16 13:01\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -39,27 +39,27 @@ msgstr "Trenutna konzola nema aktivnu jezgru, pa ovdje nema sadržaja za prikaz"
 
 #: spyder/api/widgets/main_widget.py:259
 msgid "Main widget toolbar"
-msgstr ""
+msgstr "Alatna traka glavnog widgeta"
 
 #: spyder/api/widgets/main_widget.py:269
 msgid "Main widget corner toolbar"
-msgstr ""
+msgstr "Alatna traka u kutu glavnog widgeta"
 
 #: spyder/api/widgets/main_widget.py:282
 msgid "Options menu"
-msgstr ""
+msgstr "Izbornik opcija"
 
 #: spyder/api/widgets/main_widget.py:336 spyder/plugins/base.py:183 spyder/plugins/editor/widgets/editorstack/editorstack.py:539 spyder/plugins/variableexplorer/widgets/arrayeditor.py:801 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1915 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:258
 msgid "Options"
-msgstr ""
+msgstr "Opcije"
 
 #: spyder/api/widgets/main_widget.py:354 spyder/plugins/base.py:198
 msgid "Dock"
-msgstr ""
+msgstr "Dock (priključak)"
 
 #: spyder/api/widgets/main_widget.py:355 spyder/plugins/base.py:200
 msgid "Dock the pane"
-msgstr ""
+msgstr "Prikvači panel"
 
 #: spyder/api/widgets/main_widget.py:361 spyder/api/widgets/main_widget.py:450 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Move"
