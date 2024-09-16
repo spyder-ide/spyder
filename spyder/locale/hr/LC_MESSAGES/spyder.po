@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2023-10-20 18:41-0500\n"
-"PO-Revision-Date: 2024-09-16 11:16\n"
+"PO-Revision-Date: 2024-09-16 13:01\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -35,27 +35,27 @@ msgstr "Dodaci"
 
 #: spyder/api/widgets/main_widget.py:253
 msgid "Main widget toolbar"
-msgstr ""
+msgstr "Alatna traka glavnog widgeta"
 
 #: spyder/api/widgets/main_widget.py:263
 msgid "Main widget corner toolbar"
-msgstr ""
+msgstr "Alatna traka u kutu glavnog widgeta"
 
 #: spyder/api/widgets/main_widget.py:275
 msgid "Options menu"
-msgstr ""
+msgstr "Izbornik opcija"
 
 #: spyder/api/widgets/main_widget.py:322 spyder/plugins/base.py:183 spyder/plugins/editor/widgets/editor.py:692 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:201
 msgid "Options"
-msgstr ""
+msgstr "Opcije"
 
 #: spyder/api/widgets/main_widget.py:346 spyder/plugins/base.py:198
 msgid "Dock"
-msgstr ""
+msgstr "Dock (priključak)"
 
 #: spyder/api/widgets/main_widget.py:347 spyder/plugins/base.py:200
 msgid "Dock the pane"
-msgstr ""
+msgstr "Prikvači panel"
 
 #: spyder/api/widgets/main_widget.py:353 spyder/api/widgets/main_widget.py:457 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Unlock position"
