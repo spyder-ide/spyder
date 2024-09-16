@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-08-07 18:05-0500\n"
-"PO-Revision-Date: 2024-08-21 02:47\n"
+"PO-Revision-Date: 2024-09-16 11:16\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr "Ugrađeni"
 
 #: spyder/api/plugin_registration/registry.py:803
 msgid "Plugins"
-msgstr ""
+msgstr "Dodaci"
 
 #: spyder/api/shellconnect/main_widget.py:153
 msgid "No connected console"
