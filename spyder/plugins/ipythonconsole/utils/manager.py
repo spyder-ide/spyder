@@ -18,6 +18,9 @@ import psutil
 from qtconsole.manager import QtKernelManager
 from traitlets import DottedObjectName
 
+# Local imports
+from spyder.config.base import running_in_binder
+
 
 class SpyderKernelManager(QtKernelManager):
     """
@@ -93,9 +96,12 @@ class SpyderKernelManager(QtKernelManager):
         if self.has_kernel:
             assert self.provisioner is not None
 
-            # This is the additional line that was added to properly
-            # kill the kernel started by Spyder.
-            await self.kill_proc_tree(self.provisioner.process.pid)
+            # This is the additional line that was added to properly kill the
+            # kernel started by Spyder.
+            # Note: We can't do this in Binder because it freezes Spyder.
+            #       Fixes spyder-ide/spyder#22124
+            if not running_in_binder():
+                await self.kill_proc_tree(self.provisioner.process.pid)
 
             await self.provisioner.kill(restart=restart)
 
