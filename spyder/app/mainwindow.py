@@ -1172,16 +1172,32 @@ class MainWindow(
 
     def open_file(self, fname, external=False):
         """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
+        Open fname with the appropriate plugin.
+
+        This is the order we follow to do it:
+        1. We check all plugins to see if one has registered the file name
+           extension in fname.
+        2. If fname is a plain text file, we open it with the Editor.
+        3. If fname is a type that can be imported in the Variable
+           Explorer, we open it there.
+        4. If none of the above applies, we use the OS application
+           registered to handle fname.
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
+
+        # Go through registered file extensions first
+        for plugin_name in PLUGIN_REGISTRY:
+            if PLUGIN_REGISTRY.is_plugin_available(plugin_name):
+                plugin = self.get_plugin(plugin_name)
+                if ext in plugin.FILE_EXTENSIONS:
+                    plugin.open_file(fname)
+
+        # Open file with the editor, the variable explorer or with
+        # an external program
         editor = self.get_plugin(Plugins.Editor, error=False)
         variableexplorer = self.get_plugin(
             Plugins.VariableExplorer, error=False)
-
         if encoding.is_text_file(fname):
             if editor:
                 editor.load(fname)
