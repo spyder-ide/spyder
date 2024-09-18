@@ -264,7 +264,9 @@ jobs:
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
 
+          SPYVER=$(python build_installers.py --version)
           PKG_NAME=$(ls $DISTDIR | grep Spyder-)
+          echo "SPYVER=$SPYVER" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
           echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
@@ -279,7 +281,14 @@ jobs:
         run: |
           set base_prefix=%USERPROFILE%\AppData\Local\spyder-6
           start /wait %PKG_PATH% /InstallationType=JustMe /NoRegistry=1 /S
-          if exist %base_prefix%\install.log type %base_prefix%\install.log
+
+          echo.
+          if exist %base_prefix%\install.log (
+              echo Log output:
+              type %base_prefix%\install.log
+          ) else (
+              echo No log found at %base_prefix%\install.log
+          )
 
           set mode=system
           for /F "tokens=*" %%i in (
@@ -287,12 +296,28 @@ jobs:
           ) do (
               set shortcut=%%~fi
           )
+          echo.
           if exist "%shortcut%" (
-              echo "Spyder installed successfully"
+              echo Spyder installed successfully
           ) else (
-              echo "Spyder NOT installed successfully"
+              echo Spyder NOT installed successfully
               EXIT /B 1
           )
+
+          set runtime_python=%base_prefix%\envs\spyder-runtime\python
+          for /F "tokens=*" %%i in (
+              '%runtime_python% -c "import spyder; print(spyder.__version__)"'
+          ) do (
+              set actual_version=%%~i
+          )
+          echo.
+          echo Expected version = %SPYVER%
+          echo Actual version   = %actual_version%
+          if %SPYVER% neq %actual_version% (
+              echo Error: installed Spyder version is incorrect!
+              EXIT /B 1
+          )
+
           EXIT /B %ERRORLEVEL%
 
       - name: Notarize or Compute Checksum
