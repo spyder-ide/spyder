@@ -275,6 +275,7 @@ extras_require = {
         'pillow',
         'pytest<8.0',
         'pytest-cov',
+        'pytest-docker',
         'pytest-lazy-fixture',
         'pytest-mock',
         'pytest-order',
