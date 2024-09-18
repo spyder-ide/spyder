@@ -43,11 +43,12 @@ requirements.check_qt()
 #==============================================================================
 # Third-party imports
 #==============================================================================
-from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
+from qtpy.compat import getopenfilenames
+from qtpy.QtCore import (QCoreApplication, Qt, QDir, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
+    QApplication, QFileDialog, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -83,7 +84,8 @@ from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter, IMPORT_EXT)
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
@@ -871,6 +873,10 @@ class MainWindow(
         self.get_plugin(Plugins.Application).on_mainwindow_visible()
         QApplication.processEvents()
 
+        # For load_files()
+        self.edit_filetypes = None
+        self.edit_filters = None
+
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
@@ -1170,6 +1176,83 @@ class MainWindow(
             else:
                 console.restore_stds()
 
+    @Slot()
+    def load_files(self):
+        """Load files into Spyder using an 'Open files' dialog."""
+        basedir = getcwd_or_home()
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        # Try to get the current filename from plugin that has focus
+        c_fname = None
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            if plugin.get_widget().isAncestorOf(self.last_focused_widget):
+                c_fname = plugin.get_current_filename()
+                break
+
+        # If we couldn't get it from them, then use the Editor
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if c_fname is None and editor:
+            c_fname = editor.get_current_filename()
+
+        # Switch basedir to the current filename one
+        if editor and c_fname != editor.get_widget().TEMPFILE_PATH:
+            basedir = osp.dirname(c_fname)
+
+        # Select filter for the dialog according to c_fname extension
+        if c_fname is not None:
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(c_fname)[1])
+        else:
+            selectedfilter = ''
+
+        # Open file dialog
+        self.redirect_internalshell_stdio(False)
+        if not running_under_pytest():
+            # See: spyder-ide/spyder#3291
+            if sys.platform == 'darwin':
+                dialog = QFileDialog(
+                    parent=self,
+                    caption=_("Open file"),
+                    directory=basedir,
+                )
+                dialog.setNameFilters(self.edit_filters.split(';;'))
+                dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
+                                 | QDir.Hidden)
+                dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
+            else:
+                filenames, _sf = getopenfilenames(
+                    self,
+                    _("Open file"),
+                    basedir,
+                    self.edit_filters,
+                    selectedfilter=selectedfilter,
+                    options=QFileDialog.HideNameFilterDetails,
+                )
+        else:
+            # Use a Qt (i.e. scriptable) dialog for pytest
+            dialog = QFileDialog(self, _("Open file"),
+                                 options=QFileDialog.DontUseNativeDialog)
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
+        self.redirect_internalshell_stdio(True)
+
+        # Normalize returned filenames
+        if filenames:
+            filenames = [osp.normpath(fname) for fname in filenames]
+        else:
+            return
+
+        # Open filenames
+        for fname in filenames:
+            self.open_file(fname)
+
     def open_file(self, fname, external=False):
         """
         Open fname with the appropriate plugin.
@@ -1192,6 +1275,7 @@ class MainWindow(
                 plugin = self.get_plugin(plugin_name)
                 if ext in plugin.FILE_EXTENSIONS:
                     plugin.open_file(fname)
+                    return
 
         # Open file with the editor, the variable explorer or with
         # an external program

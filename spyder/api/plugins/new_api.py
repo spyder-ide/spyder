@@ -968,6 +968,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         raise NotImplementedError
 
+    def get_current_filename(self):
+        """
+        Get the currently displayed file name.
+
+        This applies to plugins that can handle files in a QTabWiget, like
+        the Editor or spyder-notebook.
+        """
+        return None
+
+
 class SpyderDockablePlugin(SpyderPluginV2):
     """
     A Spyder plugin to enhance functionality with a dockable widget.
