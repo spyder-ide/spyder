@@ -799,7 +799,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             )
 
             banner = ''.join(banner_parts)
-        except CommError:
+        except (CommError, TimeoutError):
             banner = ""
 
         # Pylab additions
@@ -837,8 +837,8 @@ overrided by the Sympy module (e.g. plot)
             env_info = self.get_pythonenv_info()
             py_ver = env_info['python_version']
             ipy_ver = env_info['ipython_version']
-            banner = f'Python {py_ver} -- IPython {ipy_ver}'
-        except CommError:
+            banner = f'Python {py_ver} -- IPython {ipy_ver}\n'
+        except (CommError, TimeoutError):
             banner = ""
 
         return banner
