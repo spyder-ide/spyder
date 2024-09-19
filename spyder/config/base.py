@@ -72,7 +72,7 @@ def running_in_ci_with_conda():
 def running_in_binder():
     """Return True if currently running in Binder."""
     return (
-        os.environ.get("BINDER_REPO_URL")
+        bool(os.environ.get("BINDER_REPO_URL"))
         and "spyder-ide/binder-environments" in os.environ["BINDER_REPO_URL"]
     )
 

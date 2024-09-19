@@ -52,23 +52,28 @@ def test_banners(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
 
-    # Long banner
+    # Check long banner (the default)
     text = control.toPlainText().splitlines()
-    if "Update LANGUAGE_CODES" in text[0]:
-        text = text[1:]
-        while not text[0].strip():
-            text = text[1:]
     py_ver = sys.version.splitlines()[0].strip()
     assert py_ver in text[0]  # Python version in first line
     assert 'license' in text[1]  # 'license' mention in second line
     assert '' == text[2]  # Third line is empty
     assert ipy_release.version in text[3]  # Fourth line is IPython
 
-    # Short banner
-    short_banner = shell.short_banner()
+    # Check short banner for a new console
+    ipyconsole.set_conf("show_banner", False)
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
     py_ver = sys.version.split(' ')[0]
-    expected = 'Python %s -- IPython %s' % (py_ver, ipy_release.version)
-    assert expected == short_banner
+    expected = (
+        f"Python {py_ver} -- IPython {ipy_release.version}\n\n" + "In [1]: "
+    )
+    assert expected == shell._control.toPlainText()
 
 
 @flaky(max_runs=3)
