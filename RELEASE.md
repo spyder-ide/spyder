@@ -158,7 +158,7 @@ For that you need to run the following commands:
 * If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
 
-## Update Changelog and Announcements
+## Update Changelog, Announcements and metadata files
 
 * Create a PR in master to update those files by following the steps below.
 
@@ -183,6 +183,10 @@ For that you need to run the following commands:
 * Update [Announcements.md](Announcements.md) (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 
 * `git add .` and `git commit -m "Update Announcements"`
+
+* Update [org.spyder_ide.spyder.appdata.xml](scripts/org.spyder_ide.spyder.appdata.xml) adding the version to be released over the `<releases>` tag
+
+* `git add .` and `git commit -m "Update metadata files"`
 
 * Once merged, backport the PR that contains these changes to the stable branch (e.g. `6.x`)
 
