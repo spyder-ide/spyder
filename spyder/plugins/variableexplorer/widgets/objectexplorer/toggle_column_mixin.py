@@ -161,6 +161,8 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.
     """
+    # Dummy conf section to avoid a warning
+    CONF_SECTION = ""
 
     def __init__(
         self,
@@ -179,6 +181,9 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
         self.expanded.connect(self.resize_columns_to_contents)
         self.collapsed.connect(self.resize_columns_to_contents)
+
+        # Dummy attribute to be compatible with BaseTableView
+        self.hovered_row = -1
 
     @Slot()
     def resize_columns_to_contents(self):
