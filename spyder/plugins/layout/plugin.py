@@ -668,7 +668,10 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         )
         self.set_conf(
             prefix + 'position',
-            (pos.x(), pos.y()),
+            # We need to do these validations to avoid an error that breaks
+            # doing mouse clicks in WSL.
+            # Fixes spyder-ide/spyder#20851
+            (pos.x() if pos.x() > 0 else 0, pos.y() if pos.y() > 0 else 0),
             section=section,
         )
 
