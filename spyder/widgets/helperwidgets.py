@@ -570,7 +570,7 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     def __init__(
         self,
         parent,
-        icon_filename,
+        icon_filename=None,
         text=None,
         description=None,
         top_stretch: int = 1,
@@ -588,14 +588,15 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             SpyderFontType.Interface).pointSize()
 
         # Image (icon)
-        image_label = QLabel(self)
-        image_label.setPixmap(
-            self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
-        )
-        image_label.setAlignment(Qt.AlignCenter)
-        image_label_qss = qstylizer.style.StyleSheet()
-        image_label_qss.QLabel.setValues(border="0px")
-        image_label.setStyleSheet(image_label_qss.toString())
+        if icon_filename:
+            image_label = QLabel(self)
+            image_label.setPixmap(
+                self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
+            )
+            image_label.setAlignment(Qt.AlignCenter)
+            image_label_qss = qstylizer.style.StyleSheet()
+            image_label_qss.QLabel.setValues(border="0px")
+            image_label.setStyleSheet(image_label_qss.toString())
 
         # Main text
         if text is not None:
@@ -628,8 +629,9 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         # Add the top stretch
         pane_empty_layout.addStretch(top_stretch)
 
-        # add the image_lebel (icon)
-        pane_empty_layout.addWidget(image_label)
+        # Add the image_label (icon)
+        if icon_filename is not None:
+            pane_empty_layout.addWidget(image_label)
 
         # Display spinner if requested
         if spinner:
