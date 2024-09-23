@@ -560,11 +560,15 @@ class MainWindow(
         not_this_plugin: SpyderDockablePlugin, optional
             Unmaximize plugin if the maximized one is `not_this_plugin`.
         """
-        if not_this_plugin is None:
-            self.layouts.unmaximize_dockwidget()
-        else:
-            self.layouts.unmaximize_other_dockwidget(
-                plugin_instance=not_this_plugin)
+        # This is necessary to avoid an error when layouts is not ready.
+        # Fixes spyder-ide/spyder#22514
+        if self.layouts is not None:
+            if not_this_plugin is None:
+                self.layouts.unmaximize_dockwidget()
+            else:
+                self.layouts.unmaximize_other_dockwidget(
+                    plugin_instance=not_this_plugin
+                )
 
     def remove_dockwidget(self, plugin):
         """

@@ -104,6 +104,11 @@ class KernelComm(CommBase, QObject):
         """Open comm through the kernel client."""
         self.kernel_client = kernel_client
         try:
+            logger.debug(
+                f"Opening kernel comm for "
+                f"{'<' + repr(kernel_client).split('.')[-1]}"
+            )
+
             self._register_comm(
                 # Create new comm and send the highest protocol
                 kernel_client.comm_manager.new_comm(self._comm_name)
