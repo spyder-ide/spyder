@@ -31,7 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 from packaging.version import parse
 
-version_info = (6, 0, 1, "a1", "dev0")
+version_info = (6, 0, 1, "rc0")
 
 __version__ = str(parse('.'.join(map(str, version_info))))
 __installer_version__ = __version__
