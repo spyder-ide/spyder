@@ -44,7 +44,11 @@ from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.py3compat import qbytearray_to_str
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
-from spyder.utils.stylesheet import APP_STYLESHEET
+from spyder.utils.stylesheet import (
+    AppStyle,
+    APP_STYLESHEET,
+    PANES_TABBAR_STYLESHEET,
+)
 from spyder.widgets.findreplace import FindReplace
 
 
@@ -204,9 +208,24 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
 
         self.editorstacks.append(editorstack)
         self.main_widget.last_focused_editorstack[self.parent()] = editorstack
+
+        # Setting attributes
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
+
+        # Adjust style.
+        # This is necessary to give some space between the tabwidget pane and
+        # the splitter separator and borders around it.
+        css = PANES_TABBAR_STYLESHEET.get_copy().get_stylesheet()
+        css['QTabWidget::pane'].setValues(
+            marginLeft=f"{AppStyle.MarginSize}px",
+            marginRight=f"{AppStyle.MarginSize}px",
+            marginBottom=f"{AppStyle.MarginSize}px",
+        )
+        editorstack.tabs.setStyleSheet(css.toString())
+
+        # Signals
         editorstack.reset_statusbar.connect(self.readwrite_status.hide)
         editorstack.reset_statusbar.connect(self.encoding_status.hide)
         editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
@@ -217,6 +236,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.sig_editor_cursor_position_changed.connect(
             self.cursorpos_status.update_cursor_position)
         editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
+
+        # Register stack
         self.main_widget.register_editorstack(editorstack)
 
     def __print_editorstacks(self):
