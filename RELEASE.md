@@ -141,21 +141,37 @@ For that you need to run the following commands:
 
 ### Check release candidate
 
+* For stable versions
+
+      git checkout 6.x
+
 * Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
 
       git add .
       git commit -m "Release X.X.XrcX [ci skip]"
 
-* Push changes to the corresponding branch (e.g `6.x` - stable branch  or `master` - new major version)
+* Push changes to the corresponding branch (e.g `6.x` - stable branch  or `master` - for pre-releases)
 
       git push upstream <branch-name>
 
-* Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
-    - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
+* For pre-releases (i.e. alphas/betas/rc's of a new minor or major version):
+
+    * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
+        - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
+
+* For stable versions:
+
+    * Publish the release to PyPI
+
+        * Follow the instructions in the **To do the PyPI release and version tag** section, from the `git clean -xfdi` one onwards.
+
+    * Publish the release to Conda-forge by doing a PR against the `rc` branch of the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock).
+
+    * Publish the release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases).
 
 * Download and test the installation of the resulting artifacts.
 
-* If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
+* If one of the previous steps fails, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
 
 ## Update Changelog, Announcements and metadata files
@@ -205,11 +221,11 @@ For that you need to run the following commands:
     - `git add .` and `git commit -m "Bump version to new minor version"`
     - `git checkout 6.x`
 
-* `git clean -xfdi` and select option `1`
-
 * Update version in `__init__.py` (Remove '{a/b/rc}X' and 'dev0' for stable versions; or remove 'dev0' for pre-releases)
 
 * `git add .` and `git commit -m "Release X.X.X"`
+
+* `git clean -xfdi` and select option `1`
 
 * `python setup.py sdist`
 
