@@ -7,7 +7,8 @@
 
 """IPython console and Spyder Remote Client integration tests."""
 
-# Standard library imports
+# Third party imports
+import pytest
 
 # Local imports
 from spyder.plugins.remoteclient.tests.conftest import await_future
@@ -99,3 +100,7 @@ def test_kernel_kill(ipyconsole, remote_client, remote_client_id, qtbot):
     qtbot.waitUntil(lambda: shell.is_defined("b"), timeout=2000)
 
     ipyconsole.get_widget().close_client()
+
+
+if __name__ == "__main__":
+    pytest.main()

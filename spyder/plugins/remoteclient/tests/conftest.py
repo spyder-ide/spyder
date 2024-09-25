@@ -117,7 +117,7 @@ def remote_client_id(
 
 @pytest.fixture(scope="session")
 def remote_client(
-    ipyconsole_and_remoteclient: tuple[IPythonConsole, RemoteClient],
+    ipyconsole_and_remoteclient: typing.Tuple[IPythonConsole, RemoteClient],
 ) -> RemoteClient:
     """Start the Spyder Remote Client plugin.
 
@@ -130,7 +130,7 @@ def remote_client(
 
 @pytest.fixture(scope="session")
 def ipyconsole(
-    ipyconsole_and_remoteclient: tuple[IPythonConsole, RemoteClient],
+    ipyconsole_and_remoteclient: typing.Tuple[IPythonConsole, RemoteClient],
 ) -> IPythonConsole:
     """Start the IPython Console plugin.
 
@@ -143,7 +143,7 @@ def ipyconsole(
 
 @pytest.fixture(scope="session")
 def ipyconsole_and_remoteclient() -> (
-    typing.Iterator[tuple[IPythonConsole, RemoteClient]]
+    typing.Iterator[typing.Tuple[IPythonConsole, RemoteClient]]
 ):
     """Start the Spyder Remote Client plugin with IPython Console.
 
@@ -182,7 +182,7 @@ def ipyconsole_and_remoteclient() -> (
 @pytest.fixture(scope="session")
 def ssh_server_addr(
     docker_ip: str, docker_services: Services
-) -> tuple[str, int]:
+) -> typing.Tuple[str, int]:
     """Start an SSH server from docker-compose and return its address.
 
     Args
