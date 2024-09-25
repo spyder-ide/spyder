@@ -10,14 +10,12 @@
 import logging
 import os
 import os.path as osp
-import platform
 import shutil
 import subprocess
 import sys
 from sysconfig import get_path
 
 # Third-party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -28,6 +26,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.updatemanager.workers import (
+    get_asset_info,
     WorkerUpdate,
     WorkerDownloadInstaller
 )
@@ -251,28 +250,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        if parse(__version__).major < parse(self.latest_release).major:
-            self.update_type = 'major'
-        elif parse(__version__).minor < parse(self.latest_release).minor:
-            self.update_type = 'minor'
-        else:
-            self.update_type = 'micro'
-
-        mach = platform.machine().lower().replace("amd64", "x86_64")
-
-        if self.update_type == 'major' or not is_conda_based_app():
-            if os.name == 'nt':
-                plat, ext = 'Windows', 'exe'
-            if sys.platform == 'darwin':
-                plat, ext = 'macOS', 'pkg'
-            if sys.platform.startswith('linux'):
-                plat, ext = 'Linux', 'sh'
-            fname = f'Spyder-{plat}-{mach}.{ext}'
-        else:
-            fname = 'spyder-conda-lock.zip'
+        asset_info = get_asset_info(self.latest_release)
+        self.update_type = asset_info['update_type']
 
         dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
-        self.installer_path = osp.join(dirname, fname)
+        self.installer_path = osp.join(dirname, asset_info['name'])
         self.installer_size_path = osp.join(dirname, "size")
 
         logger.info(f"Update type: {self.update_type}")

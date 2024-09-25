@@ -9,6 +9,7 @@ from datetime import datetime as dt
 import logging
 import os
 import os.path as osp
+import platform
 import shutil
 import sys
 from time import sleep
@@ -24,7 +25,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version, running_in_ci
+from spyder.config.base import (
+    _, is_conda_based_app, is_stable_version, running_in_ci
+)
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
 
@@ -64,6 +67,54 @@ def _rate_limits(page):
         f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
     ]
     logger.debug("\n\t".join(msg_items))
+
+
+def get_asset_info(release):
+    """
+    Get the name, update type, and download URL for the asset of the given
+    release.
+
+    Parameters
+    ----------
+    release: str
+        Release version
+
+    Returns
+    -------
+    asset_info: dict
+        name: str
+            Filename with extension of the release asset to download.
+        update_type: str
+            Type of update. One of {'major', 'minor', 'micro'}.
+        url: str
+            Download URL for the asset.
+    """
+    if parse(__version__).major < parse(release).major:
+        update_type = 'major'
+    elif parse(__version__).minor < parse(release).minor:
+        update_type = 'minor'
+    else:
+        update_type = 'micro'
+
+    mach = platform.machine().lower().replace("amd64", "x86_64")
+
+    if update_type == 'major' or not is_conda_based_app():
+        if os.name == 'nt':
+            plat, ext = 'Windows', 'exe'
+        if sys.platform == 'darwin':
+            plat, ext = 'macOS', 'pkg'
+        if sys.platform.startswith('linux'):
+            plat, ext = 'Linux', 'sh'
+        name = f'Spyder-{plat}-{mach}.{ext}'
+    else:
+        name = 'spyder-conda-lock.zip'
+
+    url = (
+        'https://github.com/spyder-ide/spyder/releases/download/'
+        f'v{release}/{name}'
+    )
+
+    return {'name': name, 'update_type': update_type, 'url': url}
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -182,6 +233,18 @@ class WorkerUpdate(BaseWorker):
             self.releases.sort(key=parse)
 
             self._check_update_available()
+
+            # Check if asset is available for download
+            if url.endswith('releases') and self.update_available:
+                asset_info = get_asset_info(self.latest_release)
+                page = requests.head(asset_info['url'], headers=headers)
+                _rate_limits(page)
+                if page.status_code == 404:
+                    # The asset is not available
+                    self.latest_release = __version__
+                    self.update_available = False
+                    logger.debug(f"Asset is not available: {url}")
+
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
@@ -252,10 +315,8 @@ class WorkerDownloadInstaller(BaseWorker):
 
     def _download_installer(self):
         """Donwload Spyder installer."""
-        url = (
-            'https://github.com/spyder-ide/spyder/releases/download/'
-            f'v{self.latest_release}/{osp.basename(self.installer_path)}'
-        )
+        asset_info = get_asset_info(self.latest_release)
+        url = asset_info['url']
         logger.info(f"Downloading {url} to {self.installer_path}")
 
         dirname = osp.dirname(self.installer_path)
