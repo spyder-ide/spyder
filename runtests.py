@@ -29,9 +29,9 @@ CI = bool(os.environ.get('CI', None))
 RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
 
 
-def run_pytest(run_slow=False, extra_args=None):
+def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
     """Run pytest tests for Spyder."""
-    # Be sure to ignore subrepos
+    # Be sure to ignore subrepos and remoteclient plugin
     pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
                    '-W ignore::UserWarning', '--timeout=120',
                    '--timeout_method=thread']
@@ -49,6 +49,12 @@ def run_pytest(run_slow=False, extra_args=None):
     if extra_args:
         pytest_args += extra_args
 
+    if remoteclient:
+        pytest_args += ['./spyder/plugins/remoteclient']
+        os.environ["SPYDER_TEST_REMOTE_CLIENT"] = "true"
+    else:
+        pytest_args += ['--ignore=remoteclient']
+
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
 
@@ -62,12 +68,15 @@ def run_pytest(run_slow=False, extra_args=None):
 def main():
     """Parse args then run the pytest suite for Spyder."""
     test_parser = argparse.ArgumentParser(
-        usage='python runtests.py [-h] [--run-slow] [pytest_args]',
+        usage='python runtests.py [-h] [--run-slow] [--remote-client][pytest_args]',
         description="Helper script to run Spyder's test suite")
     test_parser.add_argument('--run-slow', action='store_true', default=False,
                              help='Run the slow tests')
+    test_parser.add_argument("--remote-client", action="store_true",
+                             default=False, help="Run the remote client tests")
     test_args, pytest_args = test_parser.parse_known_args()
-    run_pytest(run_slow=test_args.run_slow, extra_args=pytest_args)
+    run_pytest(run_slow=test_args.run_slow, extra_args=pytest_args,
+               remoteclient=test_args.remote_client)
 
 
 if __name__ == '__main__':

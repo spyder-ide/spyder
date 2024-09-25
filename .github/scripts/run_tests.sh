@@ -12,8 +12,12 @@ else
 fi
 
 # Run tests
-if [ "$OS" = "linux" ]; then
-    xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
+if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
+    python runtests.py --color=yes --remote-client | tee -a pytest_log.txt
 else
-    python runtests.py --color=yes | tee -a pytest_log.txt
+    if [ "$OS" = "linux" ]; then
+        xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
+    else
+        python runtests.py --color=yes | tee -a pytest_log.txt
+    fi
 fi
