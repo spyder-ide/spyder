@@ -7,6 +7,7 @@
 
 """Fixtures for the Spyder Remote Client plugin tests."""
 
+from __future__ import annotations
 from concurrent.futures import Future
 import contextlib
 import gc
