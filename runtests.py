@@ -53,7 +53,7 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
         pytest_args += ['./spyder/plugins/remoteclient']
         os.environ["SPYDER_TEST_REMOTE_CLIENT"] = "true"
     else:
-        pytest_args += ['--ignore=remoteclient']
+        pytest_args += ['--ignore=./spyder/plugins/remoteclient']
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
