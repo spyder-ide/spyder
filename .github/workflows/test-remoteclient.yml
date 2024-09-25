@@ -148,11 +148,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm -f pytest_log.txt  # Must remove any log file from a previous run
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh
+          rm -f pytest_log.txt
+          pytest --color=yes -W ignore::UserWarning --cov=spyder --no-cov-on-fai --cov-report=xml ./spyder/plugins/remoteclient | tee -a pytest_log.txt
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:
