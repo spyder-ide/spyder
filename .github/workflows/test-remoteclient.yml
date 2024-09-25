@@ -1,4 +1,4 @@
-name: Linux tests
+name: Remote Client Tests
 
 on:
   push:
