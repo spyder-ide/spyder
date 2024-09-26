@@ -1274,6 +1274,7 @@ class MainWindow(
             if PLUGIN_REGISTRY.is_plugin_available(plugin_name):
                 plugin = self.get_plugin(plugin_name)
                 if ext in plugin.FILE_EXTENSIONS:
+                    plugin.switch_to_plugin()
                     plugin.open_file(fname)
                     return
 
