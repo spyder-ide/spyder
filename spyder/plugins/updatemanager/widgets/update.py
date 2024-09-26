@@ -612,7 +612,7 @@ def manual_update_messagebox(parent, latest_release, channel):
             ).format(dont_mix_pip_conda_video)
         else:
             if channel == 'pkgs/main':
-                channel = ''
+                channel = '-c defaults'
             else:
                 channel = f'-c {channel}'
 

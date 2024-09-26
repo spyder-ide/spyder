@@ -172,6 +172,7 @@ class WorkerUpdate(BaseWorker):
         self.releases = None
         self.update_available = False
         self.error = None
+        self.channel = None
 
     def _check_update_available(self):
         """Checks if there is an update available from releases."""
@@ -200,12 +201,15 @@ class WorkerUpdate(BaseWorker):
         error_msg = None
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
-        # If Spyder is installed from defaults channel (pkgs/main), then use
-        # that channel to get updates. The defaults channel can be far behind
-        # our latest release
-        if is_conda_env(sys.prefix):
-            channel, channel_url = get_spyder_conda_channel()
-            if channel == "pkgs/main":
+        if not is_conda_based_app():
+            self.channel = "pypi"  # Default channel if not conda
+            if is_conda_env(sys.prefix):
+                self.channel, channel_url = get_spyder_conda_channel()
+
+            # If Spyder is installed from defaults channel (pkgs/main), then
+            # use that channel to get updates. The defaults channel can be far
+            # behind our latest release.
+            if self.channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
 
         headers = {}
