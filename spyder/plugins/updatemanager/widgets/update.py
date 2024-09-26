@@ -454,14 +454,15 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         if os.name == 'nt':
             cmd = ['start', '"Update Spyder"'] + sub_cmd
         elif sys.platform == 'darwin':
-            # Terminal cannot accept a command with arguments therefore
-            # create a temporary script
-            tmpscript = osp.join(get_temp_dir(), 'tmp_install.sh')
-            with open(tmpscript, 'w') as f:
-                f.write(' '.join(sub_cmd))
-            os.chmod(tmpscript, 0o711)  # set executable permissions
-
-            cmd = ['open', '-b', 'com.apple.terminal', tmpscript]
+            # Terminal cannot accept a command with arguments. Creating a
+            # wrapper script pollutes the shell history. Best option is to
+            # use osascript
+            sub_cmd_str = ' '.join(sub_cmd)
+            cmd = [
+                "osascript", "-e",
+                ("""'tell application "Terminal" to do script"""
+                 f""" "set +o history; {sub_cmd_str}; exit;"'"""),
+            ]
         else:
             programs = [
                 {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
