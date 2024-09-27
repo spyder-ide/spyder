@@ -48,3 +48,25 @@ def test_new_file(application_plugin):
     application_plugin.get_plugin.assert_called_with(Plugins.Editor)
     editor_plugin = application_plugin.get_plugin.return_value
     editor_plugin.new.assert_called()
+
+
+def test_open_file(application_plugin):
+    """
+    Test that triggering the "Open file" action calls the load() function in
+    the Editor plugin with the file names selected in the QFileDialog.
+    """
+    container = application_plugin.get_container()
+    mock_QFileDialog = Mock(name='mock QFileDialog')
+    mock_QFileDialog.return_value.selectedFiles.return_value = [
+        '/home/file1',
+        '/home/file2',
+    ]
+
+    # Note: container.open_file_using_dialog() behaves differently under pytest
+    with patch('spyder.plugins.application.container.QFileDialog', mock_QFileDialog):
+        container.open_action.trigger()
+
+    application_plugin.get_plugin.assert_called_with(Plugins.Editor)
+    editor_plugin = application_plugin.get_plugin.return_value
+    editor_plugin.load.assert_any_call('/home/file1')
+    editor_plugin.load.assert_any_call('/home/file2')

@@ -45,7 +45,7 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,
@@ -393,7 +393,6 @@ class Editor(SpyderDockablePlugin):
 
         # Open section
         open_actions = [
-            widget.open_action,
             widget.open_last_closed_action,
             widget.recent_file_menu,
         ]
@@ -566,7 +565,6 @@ class Editor(SpyderDockablePlugin):
 
         # Open section
         open_actions = [
-            widget.open_action,
             widget.open_last_closed_action,
             widget.recent_file_menu,
         ]
@@ -684,7 +682,6 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            widget.open_action,
             widget.save_action,
             widget.save_all_action,
             widget.create_new_cell
@@ -699,7 +696,6 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            EditorWidgetActions.OpenFile,
             EditorWidgetActions.SaveFile,
             EditorWidgetActions.SaveAll,
             EditorWidgetActions.NewCell
@@ -1150,6 +1146,10 @@ class Editor(SpyderDockablePlugin):
     def get_current_filename(self):
         """Get current editor 'filename'."""
         return self.get_widget().get_current_filename()
+
+    def current_file_is_temporary(self) -> bool:
+        """Return whether file in current editor is a temporary file."""
+        return self.get_current_editor() == self.get_widget().TEMPFILE_PATH
 
     def get_filenames(self):
         """

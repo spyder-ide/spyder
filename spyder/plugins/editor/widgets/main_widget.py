@@ -24,20 +24,17 @@ from typing import Dict, Optional
 import uuid
 
 # Third party imports
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
+from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QFileDialog, QInputDialog, QSplitter,
-                            QVBoxLayout, QWidget)
+                            QInputDialog, QSplitter, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
+from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
@@ -45,6 +42,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
@@ -299,15 +297,6 @@ class EditorMainWidget(PluginMainWidget):
             text=_("O&pen last closed"),
             tip=_("Open last closed"),
             triggered=self.open_last_closed,
-            register_shortcut=True
-        )
-        self.open_action = self.create_action(
-            EditorWidgetActions.OpenFile,
-            text=_("&Open..."),
-            icon=self.create_icon('fileopen'),
-            tip=_("Open file"),
-            triggered=self.load,
-            context=Qt.WidgetShortcut,
             register_shortcut=True
         )
         self.revert_action = self.create_action(
@@ -860,10 +849,6 @@ class EditorMainWidget(PluginMainWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None  # internal console
         self.__last_ec_exec = None  # external console
-
-        # File types and filters used by the Open dialog
-        self.edit_filetypes = None
-        self.edit_filters = None
 
         self.__ignore_cursor_history = False
         current_editor = self.get_current_editor()
@@ -2101,76 +2086,11 @@ class EditorMainWidget(PluginMainWidget):
         except (AttributeError, RuntimeError):
             pass
 
-        editor0 = self.get_current_editor()
-        if editor0 is not None:
-            filename0 = self.get_current_filename()
-        else:
-            filename0 = None
-
         if not filenames:
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
-
-        if not filenames:
-            basedir = getcwd_or_home()
-            if self.edit_filetypes is None:
-                self.edit_filetypes = get_edit_filetypes()
-            if self.edit_filters is None:
-                self.edit_filters = get_edit_filters()
-
-            c_fname = self.get_current_filename()
-            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                basedir = osp.dirname(c_fname)
-
-            self.sig_redirect_stdio_requested.emit(False)
-            parent_widget = self.get_current_editorstack()
-            if filename0 is not None:
-                selectedfilter = get_filter(self.edit_filetypes,
-                                            osp.splitext(filename0)[1])
-            else:
-                selectedfilter = ''
-
-            if not running_under_pytest():
-                # See: spyder-ide/spyder#3291
-                if sys.platform == 'darwin':
-                    dialog = QFileDialog(
-                        parent=parent_widget,
-                        caption=_("Open file"),
-                        directory=basedir,
-                    )
-                    dialog.setNameFilters(self.edit_filters.split(';;'))
-                    dialog.setOption(QFileDialog.HideNameFilterDetails, True)
-                    dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
-                                     | QDir.Hidden)
-                    dialog.setFileMode(QFileDialog.ExistingFiles)
-
-                    if dialog.exec_():
-                        filenames = dialog.selectedFiles()
-                else:
-                    filenames, _sf = getopenfilenames(
-                        parent_widget,
-                        _("Open file"),
-                        basedir,
-                        self.edit_filters,
-                        selectedfilter=selectedfilter,
-                        options=QFileDialog.HideNameFilterDetails,
-                    )
-            else:
-                # Use a Qt (i.e. scriptable) dialog for pytest
-                dialog = QFileDialog(parent_widget, _("Open file"),
-                                     options=QFileDialog.DontUseNativeDialog)
-                if dialog.exec_():
-                    filenames = dialog.selectedFiles()
-
-            self.sig_redirect_stdio_requested.emit(True)
-
-            if filenames:
-                filenames = [osp.normpath(fname) for fname in filenames]
-            else:
-                self.__ignore_cursor_history = cursor_history_state
-                return
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():
