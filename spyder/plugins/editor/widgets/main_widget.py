@@ -46,6 +46,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
     SelectionContextModificator, ExtraAction)
@@ -75,7 +76,6 @@ class EditorWidgetActions:
     # File operations
     NewFile = "New file"
     OpenLastClosed = "Open last closed"
-    OpenFile = "Open file"
     RevertFileFromDisk = "Revert file from disk"
     SaveFile = "Save file"
     SaveAll = "Save all"
@@ -384,15 +384,6 @@ class EditorMainWidget(PluginMainWidget):
             text=_("O&pen last closed"),
             tip=_("Open last closed"),
             triggered=self.open_last_closed,
-            register_shortcut=True
-        )
-        self.open_action = self.create_action(
-            EditorWidgetActions.OpenFile,
-            text=_("&Open..."),
-            icon=self.create_icon('fileopen'),
-            tip=_("Open file"),
-            triggered=self.load,
-            context=Qt.WidgetShortcut,
             register_shortcut=True
         )
         self.revert_action = self.create_action(
@@ -1492,7 +1483,12 @@ class EditorMainWidget(PluginMainWidget):
                 self.vcs_status.update_vcs_state)
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
-        editorstack.set_io_actions(self.new_action, self.open_action,
+
+        open_action = self.get_action(
+            ApplicationActions.OpenFile,
+            plugin=Plugins.Application
+        )
+        editorstack.set_io_actions(self.new_action, open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 

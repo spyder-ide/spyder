@@ -31,6 +31,7 @@ from spyder.plugins.application.container import (
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.qthelpers import add_actions
 
 
@@ -38,7 +39,8 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager]
+                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager,
+                Plugins.Toolbar]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -104,6 +106,15 @@ class Application(SpyderPluginV2):
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.add_status_widget(inapp_appeal_status)
 
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.add_item_to_application_toolbar(
+            container.open_action,
+            toolbar_id=ApplicationToolbars.File
+        )
+
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -132,6 +143,14 @@ class Application(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.remove_status_widget(inapp_appeal_status.ID)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.remove_item_from_application_toolbar(
+            ApplicationActions.OpenFile,
+            toolbar_id=ApplicationToolbars.File
+        )
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -171,15 +190,24 @@ class Application(SpyderPluginV2):
     # ---- Private API
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
+        container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            container.open_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Open,
+            before_section=FileMenuSections.Save
+        )
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
         mainmenu.add_item_to_application_menu(
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -282,8 +310,10 @@ class Application(SpyderPluginV2):
 
     def _depopulate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for action_id in [ApplicationActions.SpyderRestart,
-                          ApplicationActions.SpyderRestartDebug]:
+        for action_id in [
+                ApplicationActions.OpenFile,
+                ApplicationActions.SpyderRestart,
+                ApplicationActions.SpyderRestartDebug]:
             mainmenu.remove_item_from_application_menu(
                 action_id,
                 menu_id=ApplicationMenus.File)
