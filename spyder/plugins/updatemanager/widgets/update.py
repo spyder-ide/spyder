@@ -148,7 +148,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def set_status(self, status=NO_STATUS):
         """Set the update manager status."""
-        self.sig_set_status.emit(status, self.latest_release)
+        self.sig_set_status.emit(status, str(self.latest_release))
 
     def cleanup_threads(self):
         """Clean up QThreads"""

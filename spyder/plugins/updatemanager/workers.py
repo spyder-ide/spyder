@@ -25,15 +25,13 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (
-    _, is_conda_based_app, is_stable_version, running_in_ci
-)
+from spyder.config.base import _, is_conda_based_app, running_in_ci
 from spyder.utils.conda import get_spyder_conda_channel
-from spyder.utils.programs import check_version
 
 # Logger setup
 logger = logging.getLogger(__name__)
 
+CURR_VER = parse(__version__)
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -76,7 +74,7 @@ def get_asset_info(release):
 
     Parameters
     ----------
-    release: str
+    release: str | packaging.version.Version
         Release version
 
     Returns
@@ -89,9 +87,12 @@ def get_asset_info(release):
         url: str
             Download URL for the asset.
     """
-    if parse(__version__).major < parse(release).major:
+    if isinstance(release, str):
+        release = parse(release)
+
+    if CURR_VER.major < release.major:
         update_type = 'major'
-    elif parse(__version__).minor < parse(release).minor:
+    elif CURR_VER.minor < release.minor:
         update_type = 'minor'
     else:
         update_type = 'micro'
@@ -180,15 +181,11 @@ class WorkerUpdate(BaseWorker):
         releases = self.releases.copy()
         if self.stable_only:
             # Only use stable releases
-            releases = [r for r in releases if is_stable_version(r)]
+            releases = [r for r in releases if not r.is_prerelease]
         logger.debug(f"Available versions: {self.releases}")
 
-        self.latest_release = releases[-1] if releases else __version__
-        self.update_available = check_version(
-            __version__,
-            self.latest_release,
-            '<'
-        )
+        self.latest_release = max(releases) if releases else CURR_VER
+        self.update_available = CURR_VER < self.latest_release
 
         logger.debug(f"Update available: {self.update_available}")
         logger.debug(f"Latest release: {self.latest_release}")
@@ -226,15 +223,13 @@ class WorkerUpdate(BaseWorker):
             data = page.json()
             if url.endswith('releases'):
                 # Github url
-                self.releases = [
-                    item['tag_name'].replace('v', '') for item in data
-                ]
+                self.releases = [parse(item['tag_name']) for item in data]
             else:
                 # Conda url
                 spyder_data = data['packages'].get('spyder')
                 if spyder_data:
-                    self.releases = [spyder_data["version"]]
-            self.releases.sort(key=parse)
+                    self.releases = [parse(spyder_data["version"])]
+            self.releases.sort()
 
             self._check_update_available()
 
@@ -245,7 +240,7 @@ class WorkerUpdate(BaseWorker):
                 _rate_limits(page)
                 if page.status_code == 404:
                     # The asset is not available
-                    self.latest_release = __version__
+                    self.latest_release = CURR_VER
                     self.update_available = False
                     logger.debug(f"Asset is not available: {url}")
 
