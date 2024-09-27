@@ -11,24 +11,30 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
-import os
-import sys
 import glob
+import os
+import os.path as osp
+import sys
+from typing import Optional
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+from qtpy.compat import getopenfilenames
+from qtpy.QtCore import QDir, Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
-from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
+from qtpy.QtWidgets import QAction, QFileDialog, QMessageBox, QPushButton
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.utils.installers import InstallerMissingDependencies
-from spyder.config.base import get_conf_path, get_debug_level
+from spyder.config.base import (
+    get_conf_path, get_debug_level, running_under_pytest)
+from spyder.config.utils import (
+    get_edit_filetypes, get_edit_filters, get_filter)
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
+from spyder.utils.installers import InstallerMissingDependencies
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.dependencies import DependenciesDialog
@@ -63,6 +69,7 @@ class ApplicationActions:
 
     # File
     NewFile = "New file"
+    OpenFile = "Open file"
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
@@ -84,6 +91,20 @@ class ApplicationContainer(PluginMainContainer):
     sig_new_file_requested = Signal()
     """
     Signal to request that a new file be created in a suitable plugin.
+    """
+
+    sig_open_file_in_plugin_requested = Signal(str)
+    """
+    Signal to request that given file is opened in a suitable plugin.
+
+    Arguments
+    ---------
+    filename : str
+    """
+
+    sig_open_file_using_dialog_requested = Signal()
+    """
+    Signal to request that the Open File dialog is shown to open a file.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -204,6 +225,16 @@ class ApplicationContainer(PluginMainContainer):
             register_shortcut=True
         )
 
+        self.open_action = self.create_action(
+            ApplicationActions.OpenFile,
+            text=_("&Open..."),
+            icon=self.create_icon('fileopen'),
+            tip=_("Open file"),
+            triggered=self.sig_open_file_using_dialog_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+
         # Debug logs
         if get_debug_level() >= 2:
             self.menu_debug_logs = self.create_menu(
@@ -215,6 +246,10 @@ class ApplicationContainer(PluginMainContainer):
             # start after Application.
             self.menu_debug_logs.aboutToShow.connect(
                 self.create_debug_log_actions)
+
+        # File types and filters used by the Open dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
 
     def update_actions(self):
         pass
@@ -347,6 +382,70 @@ class ApplicationContainer(PluginMainContainer):
             return
 
         self.sig_restart_requested.emit()
+
+    # ---- File actions
+    # -------------------------------------------------------------------------
+    def open_file_using_dialog(self, filename: Optional[str], basedir: str):
+        """
+        Show Open File dialog and open the selected file.
+
+        Parameters
+        ----------
+        filename : Optional[str]
+            Name of currently active file. This is used to set the selected
+            name filter for the Open File dialog.
+        basedir : str
+            Directory initially displayed in the Open File dialog.
+        """
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        self.sig_redirect_stdio_requested.emit(False)
+        if filename is not None:
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(filename)[1])
+        else:
+            selectedfilter = ''
+
+        if not running_under_pytest():
+            # See: spyder-ide/spyder#3291
+            if sys.platform == 'darwin':
+                dialog = QFileDialog(
+                    parent=self,
+                    caption=_("Open file"),
+                    directory=basedir,
+                )
+                dialog.setNameFilters(self.edit_filters.split(';;'))
+                dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
+                                 | QDir.Hidden)
+                dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
+            else:
+                filenames, _sf = getopenfilenames(
+                    self,
+                    _("Open file"),
+                    basedir,
+                    self.edit_filters,
+                    selectedfilter=selectedfilter,
+                    options=QFileDialog.HideNameFilterDetails,
+                )
+        else:
+            # Use a Qt (i.e. scriptable) dialog for pytest
+            dialog = QFileDialog(self, _("Open file"),
+                                 options=QFileDialog.DontUseNativeDialog)
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
+
+        self.sig_redirect_stdio_requested.emit(True)
+
+        for filename in filenames:
+            filename = osp.normpath(filename)
+            self.sig_open_file_in_plugin_requested.emit(filename)
 
     # ---- Log files
     # -------------------------------------------------------------------------

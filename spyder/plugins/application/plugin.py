@@ -32,6 +32,7 @@ from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions
 
 
@@ -63,6 +64,12 @@ class Application(SpyderPluginV2):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
         container.sig_new_file_requested.connect(self.create_new_file)
+        container.sig_open_file_in_plugin_requested.connect(
+            self.open_file_in_plugin
+        )
+        container.sig_open_file_using_dialog_requested.connect(
+            self.open_file_using_dialog
+        )
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -112,7 +119,8 @@ class Application(SpyderPluginV2):
         container = self.get_container()
         toolbar = self.get_plugin(Plugins.Toolbar)
         for action in [
-            container.new_action
+            container.new_action,
+            container.open_action
         ]:
             toolbar.add_item_to_application_toolbar(
                 action,
@@ -152,7 +160,8 @@ class Application(SpyderPluginV2):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         for action in [
-            ApplicationActions.NewFile
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile
         ]:
             toolbar.remove_item_from_application_toolbar(
                 action,
@@ -208,15 +217,25 @@ class Application(SpyderPluginV2):
             before_section=FileMenuSections.Open
         )
 
+        # Open section
+        mainmenu.add_item_to_application_menu(
+            container.open_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Open,
+            before_section=FileMenuSections.Save
+        )
+
         # Restart section
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
         mainmenu.add_item_to_application_menu(
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -321,6 +340,7 @@ class Application(SpyderPluginV2):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for action_id in [
             ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -449,6 +469,35 @@ class Application(SpyderPluginV2):
         """
         plugin = self.get_plugin(Plugins.Editor)
         plugin.new()
+
+    def open_file_using_dialog(self) -> None:
+        """
+        Show Open File dialog and open the selected file.
+
+        Ask Editor plugin for the name of the currently displayed file and
+        whether it is a temporary file, and then call the function with the
+        same name in the container widget to do the actual work.
+        """
+        filename = None
+        basedir = getcwd_or_home()
+
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            filename = editor.get_current_filename()
+            if not editor.current_file_is_temporary():
+                basedir = osp.dirname(filename)
+
+        self.get_container().open_file_using_dialog(filename, basedir)
+
+    def open_file_in_plugin(self, filename: str) -> None:
+        """
+        Open given file in a suitable plugin.
+
+        For the moment, this opens the file in the Editor plugin.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.load(filename)
 
     @property
     def documentation_action(self):
