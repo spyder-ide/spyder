@@ -1,5 +1,4 @@
-name: Automerge
-
+name: automerge
 on:
   pull_request:
     types:
@@ -15,7 +14,6 @@ on:
     types:
       - completed
   status: {}
-
 jobs:
   automerge:
     runs-on: ubuntu-latest
@@ -24,11 +22,7 @@ jobs:
       pull-requests: write
     steps:
       - id: automerge
-        name: Automerge
-        uses: "pascalgn/automerge-action"
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.16.4"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: "automerge"
-          MERGE_REMOVE_LABELS: "automerge"
-          MERGE_METHOD: "squash"
-          BASE_BRANCHES: "6.x"
