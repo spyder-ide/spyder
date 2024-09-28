@@ -17,7 +17,6 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/automerge.yml'
 
   pull_request:
     branches:
@@ -35,7 +34,6 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/automerge.yml'
 
   workflow_dispatch:
 
