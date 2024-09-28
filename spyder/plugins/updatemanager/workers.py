@@ -170,25 +170,54 @@ class WorkerUpdate(BaseWorker):
         super().__init__()
         self.stable_only = stable_only
         self.latest_release = None
-        self.releases = None
         self.update_available = False
         self.error = None
         self.channel = None
 
-    def _check_update_available(self):
+    def _check_update_available(self, releases, github=True):
         """Checks if there is an update available from releases."""
-        # Filter releases
-        releases = self.releases.copy()
         if self.stable_only:
             # Only use stable releases
             releases = [r for r in releases if not r.is_prerelease]
-        logger.debug(f"Available versions: {self.releases}")
+        logger.debug(f"Available versions: {releases}")
 
-        self.latest_release = max(releases) if releases else CURR_VER
-        self.update_available = CURR_VER < self.latest_release
+        latest_release = max(releases) if releases else CURR_VER
+        update_available = CURR_VER < latest_release
 
-        logger.debug(f"Update available: {self.update_available}")
-        logger.debug(f"Latest release: {self.latest_release}")
+        logger.debug(f"Latest release: {latest_release}")
+        logger.debug(f"Update available: {update_available}")
+
+        # Check if the asset is available for download.
+        # If the asset is not available, then check the next latest
+        # release, and so on until either a new asset is available or there
+        # is no update available.
+        if github:
+            asset_available = False
+            while update_available and not asset_available:
+                asset_info = get_asset_info(latest_release)
+                page = requests.head(asset_info['url'])
+                if page.status_code == 302:
+                    # The asset is found
+                    logger.debug(f"Asset available for url: {page.url}")
+                    asset_available = True
+                else:
+                    # The asset is not available
+                    logger.debug(
+                        "Asset not available: "
+                        f"{page.status_code} Client Error: {page.reason}"
+                        f" for url: {page.url}"
+                    )
+                    asset_available = False
+                    releases.remove(latest_release)
+
+                    latest_release = max(releases) if releases else CURR_VER
+                    update_available = CURR_VER < latest_release
+
+                    logger.debug(f"Latest release: {latest_release}")
+                    logger.debug(f"Update available: {update_available}")
+
+        self.latest_release = latest_release
+        self.update_available = update_available
 
     def start(self):
         """Main method of the worker."""
@@ -208,6 +237,7 @@ class WorkerUpdate(BaseWorker):
             # behind our latest release.
             if self.channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
+        github = "api.github.com" in url
 
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
@@ -221,28 +251,17 @@ class WorkerUpdate(BaseWorker):
             page.raise_for_status()
 
             data = page.json()
-            if url.endswith('releases'):
+            if github:
                 # Github url
-                self.releases = [parse(item['tag_name']) for item in data]
+                releases = [parse(item['tag_name']) for item in data]
             else:
-                # Conda url
+                # Conda pkgs/main url
                 spyder_data = data['packages'].get('spyder')
                 if spyder_data:
-                    self.releases = [parse(spyder_data["version"])]
-            self.releases.sort()
+                    releases = [parse(spyder_data["version"])]
+            releases.sort()
 
-            self._check_update_available()
-
-            # Check if asset is available for download
-            if url.endswith('releases') and self.update_available:
-                asset_info = get_asset_info(self.latest_release)
-                page = requests.head(asset_info['url'], headers=headers)
-                _rate_limits(page)
-                if page.status_code == 404:
-                    # The asset is not available
-                    self.latest_release = CURR_VER
-                    self.update_available = False
-                    logger.debug(f"Asset is not available: {url}")
+            self._check_update_available(releases, github)
 
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
