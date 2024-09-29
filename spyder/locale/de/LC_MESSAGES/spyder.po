@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-20 21:39\n"
+"PO-Revision-Date: 2024-09-29 19:30\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -6229,7 +6229,7 @@ msgstr "Um die Tour zu starten, klicken Sie bitte auf den grüne Schaltfläche l
 
 #: spyder/plugins/tours/widgets.py:1078
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyder-Tour"
 
 #: spyder/plugins/tours/widgets.py:1103
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
