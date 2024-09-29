@@ -374,6 +374,12 @@ class BaseGridLayoutType:
             # Fixes spyder-ide/spyder#22494
             plugin.set_conf('window_was_undocked_before_hiding', False)
 
+            # Dock all plugins that are undocked before applying the layout to
+            # avoid odd RuntimeError's.
+            # Fixes spyder-ide/spyder#22584
+            if plugin.get_widget().windowwidget is not None:
+                plugin.close_window()
+
             # Hide all plugins
             plugin.toggle_view(False)
 
