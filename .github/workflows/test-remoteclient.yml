@@ -111,6 +111,7 @@ jobs:
         if: env.USE_CONDA == 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
+          micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
