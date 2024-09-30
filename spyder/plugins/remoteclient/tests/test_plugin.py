@@ -47,19 +47,21 @@ class TestNewServer:
         remote_client_id: str,
     ):
         """Test starting a kernel on a remote server."""
-        kernel_info = await_future(
+        started_kernel_info = await_future(
             remote_client._start_new_kernel(remote_client_id),
         )
 
-        assert (
-            await_future(
-                remote_client._get_kernel_info(
-                    remote_client_id,
-                    kernel_info["id"],
-                ),
-            )
-            == kernel_info
+        current_kernel_info = await_future(
+            remote_client._get_kernel_info(
+                remote_client_id,
+                started_kernel_info["id"],
+            ),
         )
+
+        started_kernel_info.pop("last_activity")
+        current_kernel_info.pop("last_activity")
+
+        assert started_kernel_info == current_kernel_info
 
     def test_shutdown_kernel(
         self,
@@ -97,20 +99,22 @@ class TestNewKerneLAndServer:
         remote_client_id: str,
     ):
         """Test starting a kernel with no remote server installed."""
-        kernel_info = await_future(
+        started_kernel_info = await_future(
             remote_client._start_new_kernel(remote_client_id),
             timeout=180,
         )
-        self.kernel_id = kernel_info["id"]
-        assert (
-            await_future(
-                remote_client._get_kernel_info(
-                    remote_client_id,
-                    self.kernel_id,
-                ),
-            )
-            == kernel_info
+
+        current_kernel_info = await_future(
+            remote_client._get_kernel_info(
+                remote_client_id,
+                started_kernel_info["id"],
+            ),
         )
+
+        started_kernel_info.pop("last_activity")
+        current_kernel_info.pop("last_activity")
+
+        assert started_kernel_info == current_kernel_info
 
     def test_restart_kernel(
         self,
