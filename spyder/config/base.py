@@ -63,9 +63,9 @@ def running_remoteclient_tests():
     Return True if currently running the remoteclient tests.
 
     This function is used to do some adjustment for testing. The environment
-    variable SPYDER_REMOTECLIENT_TESTS is defined in conftest.py.
+    variable SPYDER_TEST_REMOTE_CLIENT is 'true' in conftest.py.
     """
-    return bool(os.environ.get("SPYDER_REMOTECLIENT_TESTS"))
+    return bool(os.environ.get("SPYDER_TEST_REMOTE_CLIENT") == "true")
 
 def running_in_ci():
     """Return True if currently running under CI."""
