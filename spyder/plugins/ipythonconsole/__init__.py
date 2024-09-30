@@ -14,7 +14,7 @@ IPython Console plugin based on QtConsole
 from spyder.config.base import (
     is_stable_version,
     running_under_pytest,
-    running_under_remoteclient_tests,
+    running_remoteclient_tests,
 )
 
 
@@ -26,7 +26,7 @@ _d = '&#45;'
 # Required version of Spyder-kernels
 SPYDER_KERNELS_MIN_VERSION = (
     "3.0.0"
-    if not running_under_pytest() or running_under_remoteclient_tests()
+    if not running_under_pytest() or running_remoteclient_tests()
     else "3.1.0.dev0"
 )
 SPYDER_KERNELS_MAX_VERSION = (
