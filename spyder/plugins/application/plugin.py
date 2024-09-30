@@ -32,7 +32,9 @@ from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions
+
 
 
 class Application(SpyderPluginV2):
@@ -430,6 +432,20 @@ class Application(SpyderPluginV2):
             # the error can be inspected in the internal console
             print(error)  # spyder: test-skip
             print(command)  # spyder: test-skip
+
+    def open_file_using_dialog(self):
+        editor_main = self.main.editor.get_widget()
+        editor = editor_main.get_current_editor()
+        if editor is not None:
+            filename = editor_main.get_current_filename()
+        else:
+            filename = None
+
+        basedir = getcwd_or_home()
+        if filename is not None and filename != editor_main.TEMPFILE_PATH:
+            basedir = osp.dirname(filename)
+
+        self.get_container().open_file_using_dialog(filename, basedir)
 
     @property
     def documentation_action(self):

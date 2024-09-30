@@ -11,10 +11,11 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
+import glob
 import os
 import os.path as osp
 import sys
-import glob
+from typing import Optional
 
 # Third party imports
 from qtpy.compat import getopenfilenames
@@ -34,7 +35,6 @@ from spyder.config.utils import (
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.installers import InstallerMissingDependencies
-from spyder.utils.misc import getcwd_or_home
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.dependencies import DependenciesDialog
@@ -200,7 +200,7 @@ class ApplicationContainer(PluginMainContainer):
             text=_("&Open..."),
             icon=self.create_icon('fileopen'),
             tip=_("Open file"),
-            triggered=self.open_file_using_dialog,
+            triggered=self._plugin.open_file_using_dialog,
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True
@@ -356,31 +356,27 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- File actions
     # -------------------------------------------------------------------------
-    def open_file_using_dialog(self):
-        """Show Open File dialog and open the selected file"""
-        # As a temporary hack, we call directly into the Editor plugin.
-        editor_main = self._plugin.main.editor.get_widget()
+    def open_file_using_dialog(self, filename: Optional[str], basedir: str):
+        """
+        Show Open File dialog and open the selected file.
 
-        editor0 = editor_main.get_current_editor()
-        if editor0 is not None:
-            filename0 = editor_main.get_current_filename()
-        else:
-            filename0 = None
-
-        basedir = getcwd_or_home()
+        Parameters
+        ----------
+        filename : Optional[str]
+            Name of currently active file. This is used to set the selected
+            name filter for the Open File dialog.
+        basedir : str
+            Directory initially displayed in the Open File dialog.
+        """
         if self.edit_filetypes is None:
             self.edit_filetypes = get_edit_filetypes()
         if self.edit_filters is None:
             self.edit_filters = get_edit_filters()
 
-        c_fname = editor_main.get_current_filename()
-        if c_fname is not None and c_fname != editor_main.TEMPFILE_PATH:
-            basedir = osp.dirname(c_fname)
-
         self.sig_redirect_stdio_requested.emit(False)
-        if filename0 is not None:
+        if filename is not None:
             selectedfilter = get_filter(self.edit_filetypes,
-                                        osp.splitext(filename0)[1])
+                                        osp.splitext(filename)[1])
         else:
             selectedfilter = ''
 
