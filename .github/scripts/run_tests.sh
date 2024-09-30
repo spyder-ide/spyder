@@ -13,7 +13,7 @@ fi
 
 # Run tests
 if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
-    python runtests.py --color=yes --remote-client | tee -a pytest_log.txt
+    xvfb-run --auto-servernum python runtests.py --color=yes --remote-client | tee -a pytest_log.txt
 else
     if [ "$OS" = "linux" ]; then
         xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
