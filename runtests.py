@@ -50,7 +50,6 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
         pytest_args += extra_args
 
     if remoteclient:
-        pytest_args += ['--container-scope=class']
         pytest_args += ['./spyder/plugins/remoteclient']
         os.environ["SPYDER_TEST_REMOTE_CLIENT"] = "true"
     else:
