@@ -61,8 +61,9 @@ else
 
 fi
 
-if [ -z "$SPYDER_TEST_REMOTE_CLIENT" ]; then
-
+if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
+    pip install pytest-docker
+else
     # Install subrepos from source
     python -bb -X dev install_dev_repos.py --not-editable --no-install spyder
 
