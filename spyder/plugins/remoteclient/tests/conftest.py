@@ -78,7 +78,7 @@ def docker_compose_file(pytestconfig):
     return str(HERE / "docker-compose.yml")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def remote_client_id(
     ssh_server_addr: typing.Tuple[str, int], remote_client: RemoteClient
 ) -> typing.Iterator[SpyderRemoteClient]:
@@ -180,7 +180,7 @@ def ipyconsole_and_remoteclient() -> (
         gc.collect()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def ssh_server_addr(
     docker_ip: str, docker_services: Services
 ) -> typing.Tuple[str, int]:
