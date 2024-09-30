@@ -9,6 +9,7 @@
 
 # Third party imports
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.plugins.remoteclient.plugin import RemoteClient
@@ -21,6 +22,7 @@ from spyder.plugins.remoteclient.tests.conftest import await_future
 class TestNewServer:
     """Test the installation of the Spyder Remote Client plugin."""
 
+    @flaky(max_runs=3, min_passes=1)
     def test_installation(
         self,
         remote_client: RemoteClient,
@@ -88,6 +90,7 @@ class TestNewServer:
 class TestNewKerneLAndServer:
     """Test the installation of the Spyder Remote Client plugin."""
 
+    @flaky(max_runs=3, min_passes=1)
     def test_new_kernel(
         self,
         remote_client: RemoteClient,

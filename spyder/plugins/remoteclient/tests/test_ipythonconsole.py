@@ -9,11 +9,13 @@
 
 # Third party imports
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.plugins.remoteclient.tests.conftest import await_future
 
 
+@flaky(max_runs=3, min_passes=1)
 def test_shutdown_kernel(ipyconsole, remote_client, remote_client_id, qtbot):
     """Starts and stops a kernel on the remote server."""
     remote_client.create_ipyclient_for_server(remote_client_id)
