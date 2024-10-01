@@ -115,6 +115,23 @@ def test_type_errors(setup_arrayeditor, qtbot):
     assert_array_equal(contents, np.ones(10))
 
 
+@pytest.mark.parametrize(
+    'data',
+    [np.array([['a', 'b'], ['c', 'd']])]
+)
+def test_string_array_data_is_str(setup_arrayeditor):
+    """
+    Verify that the displayed data of an array of strings is of type `str`.
+
+    Regression test for spyder-ide/spyder#22466.
+    """
+    dlg = setup_arrayeditor
+    idx = dlg.arraywidget.model.index(0, 0)
+    data = dlg.arraywidget.model.data(idx)
+    assert data == 'a'
+    assert type(data) is str
+
+
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only works on Linux")
 @pytest.mark.parametrize(

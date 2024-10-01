@@ -69,6 +69,14 @@ def running_in_ci_with_conda():
     return running_in_ci() and os.environ.get('USE_CONDA', None) == 'true'
 
 
+def running_in_binder():
+    """Return True if currently running in Binder."""
+    return (
+        bool(os.environ.get("BINDER_REPO_URL"))
+        and "spyder-ide/binder-environments" in os.environ["BINDER_REPO_URL"]
+    )
+
+
 def is_stable_version(version):
     """
     Return true if version is stable, i.e. with letters in the final component.

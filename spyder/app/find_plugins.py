@@ -82,7 +82,9 @@ def find_external_plugins():
                         "Entry point name '{0}' and plugin.NAME '{1}' "
                         "do not match!".format(name, plugin_class.NAME)
                     )
-            except (ModuleNotFoundError, ImportError) as error:
+            except Exception as error:
+                # We catch any error here to avoid Spyder to crash at startup
+                # due to faulty or outdated plugins.
                 print("%s: %s" % (name, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
 

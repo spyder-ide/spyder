@@ -469,10 +469,8 @@ def test_copy_paste_autoindent(codeeditor):
     # Copy
     cursor = editor.textCursor()
     cursor.setPosition(30)
-    cursor.setPosition(59, QTextCursor.KeepAnchor)
+    cursor.setPosition(51, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
-    cb = QApplication.clipboard()
-    cb.setText("d\n    if e:\n        f", mode=cb.Clipboard)
     editor.copy()
 
     d = {
@@ -495,10 +493,8 @@ def test_copy_paste_autoindent(codeeditor):
     # Copy
     cursor = editor.textCursor()
     cursor.setPosition(30-4)
-    cursor.setPosition(59, QTextCursor.KeepAnchor)
+    cursor.setPosition(51, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
-    cb = QApplication.clipboard()
-    cb.setText("    d\n    if e:\n        f", mode=cb.Clipboard)
     editor.copy()
 
     d = {

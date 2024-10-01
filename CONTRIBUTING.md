@@ -124,47 +124,18 @@ $ python runtests.py
 
 ## Spyder Branches
 
-When you start to work on a new pull request (PR), you need to be sure that your work is done on top of the correct Spyder branch, and that you base your PR on Github against it.
-
-To guide you, issues on Github are marked with a milestone that indicates the correct branch to use. If not, follow these guidelines:
-
-* Use the `5.x` branch for bugfixes only (*e.g.* milestones `v5.0.1` or `v5.1.2`)
-* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v6.0beta1` or `v6.0beta2`).
-
-You should also submit bugfixes to `5.x` or `master` for errors that are only present in those respective branches.
-
-To start working on a new PR, you need to execute these commands, filling in the branch names where appropriate:
+To start working on a new pull request you need to execute these commands, filling in the branch name where appropriate:
 
 ```bash
-$ git checkout <SPYDER-BASE-BRANCH>
-$ git pull upstream <SPYDER-BASE-BRANCH>
+$ git checkout master
+$ git pull upstream master
 $ git checkout -b <NAME-NEW-BRANCH>
-```
-
-
-### Changing the base branch
-
-If you started your work in the wrong base branch, or want to backport it, you can change the base branch using `git rebase --onto`, like this:
-
-```bash
-$ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
-```
-
-For example, backporting `my_branch` from `master` to `5.x`:
-
-```bash
-$ git rebase --onto 5.x master my_branch
 ```
 
 
 ## Making contributions that depend on pull requests in spyder-kernels
 
-Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console. The way the branches on their respective repos are linked appears in the table below:
-
-| Spyder branch       | Associated spyder-kernels branch  |
-| ------------------- | --------------------------------- |
-| 5.x                 | 2.x                               |
-| master (future 6.x) | master (future 3.x)               |
+Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console.
 
 For this reason, a clone of spyder-kernels is placed in the `external-deps` subfolder of the Spyder repository. The instructions on this section will help you in case you need to make changes that touch both repositories at the same time.
 
@@ -176,7 +147,7 @@ echo 'source /path/to/git-subrepo/.rc' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git repositories placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
+As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git clones placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
 
 * Go to the `~/spyder` folder, checkout your `fix_in_spyder` branch and replace the spyder-kernels clone in the `external-deps` subfolder by a clone of your `fix_in_kernel` branch:
 
@@ -207,10 +178,8 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 * When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch because the clone in Spyder's repo must point out again to the spyder-kernel's repo and not to your own clone. For that, please run:
 
     ```
-    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/spyder-ide/spyder-kernels.git -b <branch> -u -f
+    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/spyder-ide/spyder-kernels.git -b master -u -f
     ```
-
-where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
 
 
 ## Making contributions that depend on pull requests in python-lsp-server or qtconsole

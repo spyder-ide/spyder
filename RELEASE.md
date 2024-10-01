@@ -2,6 +2,20 @@
 
 To release a new version of Spyder you need to follow these steps:
 
+
+## Create backport PR for new minor versions
+
+Before releasing a new minor version (e.g. 6.1.0 after 6.0.x) that needs to include many changes only available in `master`, it's necessary to create a PR to backport those changes to the stable branch.
+
+For that you need to run the following commands:
+
+- `git checkout 6.x`
+- `git checkout -b backport-for-minor-version`
+- `git diff master 6.x > minor.patch`
+- `patch -p1 -R < minor.patch`
+- `git add .` and `git commit -m "Backport changes for X.X.X"`
+
+
 ## Update translation strings (at least one week before the release)
 
 * Install [gettext-helpers](https://github.com/spyder-ide/gettext-helpers) from source.
@@ -31,6 +45,7 @@ To release a new version of Spyder you need to follow these steps:
   An example of that message can be found in
 
   https://github.com/spyder-ide/spyder/issues/14117
+
 
 ## Before starting the release
 
@@ -73,15 +88,11 @@ To release a new version of Spyder you need to follow these steps:
 
 * Don't forget to remove your local checkout of `translate/<branch-name>` because that's going to be outdated for next time.
 
-* Update the `master` and `<branch-name>` branches as necessary. For example, if translations were done for the stable branch `6.x`, you could do the update with
+* Update the `<branch-name>` branch as necessary. For example, if translations were done for the stable branch `6.x`, you could do the update with
 
       git checkout 6.x
       git fetch upstream
       git merge upstream/6.x
-      git checkout master
-      git merge 6.x
-      Merge from 6.x: PR #xxxxx
-      git push upstream master
 
 ### Update core dependencies
 
@@ -130,7 +141,7 @@ To release a new version of Spyder you need to follow these steps:
 
 ### Check release candidate
 
-* Update version in `__init__.py` (set release version, remove '.dev0', add 'rcX'), then
+* Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
 
       git add .
       git commit -m "Release X.X.XrcX [ci skip]"
@@ -146,26 +157,24 @@ To release a new version of Spyder you need to follow these steps:
 
 * If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
-## To do the PyPI release and version tag
 
-* Close the current milestone on Github
+## Update Changelog, Announcements and metadata files
 
-* git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - alphas or betas of a new major version).
+* Create a PR in master to update those files by following the steps below.
 
-* For a new major release (e.g. version 6.0.0 after 5.5.6):
+* For a new major release (e.g. 6.0.0):
 
-    - `git checkout -b 6.x`
-    - `git checkout master`
-    - Update version in `__init__.py` to reflect next major version as dev version (i.e `7.0.0.dev0`).
-    - `git add .` and `git commit -m "Bump version to 7.0"`
-    - `git checkout 6.x`
     - In `CHANGELOG.md`, move entry for current version to the `Older versions` section and add one for the new version.
     - `git add .` and `git commit -m "Add link to changelog of new major version"`
+    - In `.github/workflows/test-*.yml`, add `6.*` to the `branches` sections and remove the oldest branch from them (e.g. `4.*`).
+    - `git add .` and `git commit -m "CI: Update workflows to run in new stable branch [ci skip]"`
+
+* For the first alpha of a new major version (e.g 7.0.0a1):
+
+    - Add a new file called `changelogs/Spyder-X+1.md` to the tree (e.g. `changelogs/Spyder-7.md`).
+    - Add `changelogs/Spyder-X+1.md` to `MANIFEST.in`, remove `changelogs/Spyder-X.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
 * Update `changelogs/Spyder-X.md` (`changelogs/Spyder-6.md` for Spyder 6 for example) with `loghub spyder-ide/spyder -m vX.X.X`
-
-    - When releasing the first alpha of a new major version (e.g. Spyder 7), you need to add a new file called `changelogs/Spyder-X+1.md` to the tree (`changelogs/Spyder-7.md` for Spyder 7 for example).
-    - After that, add `changelogs/Spyder-X+1.md` to `MANIFEST.in`, remove `changelogs/Spyder-X.md` from it and add that path to the `check-manifest/ignore` section of `setup.cfg`.
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-X.md`. For this take a look at closed issues and PRs for the current milestone.
 
@@ -175,9 +184,30 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git add .` and `git commit -m "Update Announcements"`
 
+* Update [org.spyder_ide.spyder.appdata.xml](scripts/org.spyder_ide.spyder.appdata.xml) adding the version to be released over the `<releases>` tag
+
+* `git add .` and `git commit -m "Update metadata files"`
+
+* Once merged, backport the PR that contains these changes to the stable branch (e.g. `6.x`)
+
+
+## To do the PyPI release and version tag
+
+* Close the current milestone on Github
+
+* git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - alphas/betas/rcs of a new minor/major version).
+
+* For a new major release (e.g. version 6.0.0 after 5.5.6):
+
+    - `git checkout -b 6.x`
+    - `git checkout master`
+    - Update version in `__init__.py` to reflect next minor version as dev version (i.e `6.1.0a1.dev0`).
+    - `git add .` and `git commit -m "Bump version to new minor version"`
+    - `git checkout 6.x`
+
 * `git clean -xfdi` and select option `1`
 
-* Update version in `__init__.py` (set release version, remove 'dev0')
+* Update version in `__init__.py` (Remove '{a/b/rc}X' and 'dev0' for stable versions; or remove 'dev0' for pre-releases)
 
 * `git add .` and `git commit -m "Release X.X.X"`
 
@@ -203,16 +233,12 @@ To release a new version of Spyder you need to follow these steps:
 
 * `git tag -a vX.X.X -m "Release X.X.X"`
 
-* Update version in `__init__.py` (add 'dev0' and increment minor)
+* Update version in `__init__.py` (add 'a1', 'dev0' and increment patch version for stable versions; or increment alpha/beta/rc version for pre-releases)
 
 * `git add .` and `git commit -m "Back to work [ci skip]"`
 
 * Push changes and new tag to the corresponding branches. When doing a stable release from `6.x`, for example, you could push changes with
 
-      git checkout master
-      git merge 6.x
-      git commit -m "Release X.X.X [ci skip]"
-      git push upstream master
       git push upstream 6.x
       git push upstream --tags
 
