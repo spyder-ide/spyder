@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-29 19:30\n"
+"PO-Revision-Date: 2024-10-01 12:54\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -79,7 +79,7 @@ msgstr "Den Bereich abdocken"
 
 #: spyder/api/widgets/main_widget.py:375 spyder/plugins/base.py:220 spyder/plugins/variableexplorer/widgets/arrayeditor.py:873 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1837 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:358 spyder/plugins/variableexplorer/widgets/texteditor.py:70 spyder/widgets/collectionseditor.py:1742 spyder/widgets/reporterror.py:239
 msgid "Close"
-msgstr "S&chließen"
+msgstr "Schließen"
 
 #: spyder/api/widgets/main_widget.py:376 spyder/plugins/base.py:222
 msgid "Close the pane"
@@ -4891,11 +4891,11 @@ msgstr "Diagrammrahmen anzeigen."
 
 #: spyder/plugins/plots/widgets/main_widget.py:115
 msgid "Fit plots to pane"
-msgstr ""
+msgstr "Plots an das Fenster anpassen"
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Plot an die Fenstergröße anpassen"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -4935,7 +4935,7 @@ msgstr "Einstellungen"
 
 #: spyder/plugins/preferences/plugin.py:317
 msgid "Manage Spyder's preferences."
-msgstr ""
+msgstr "Einstellungen von Spyder verwalten."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset Spyder to factory defaults"
@@ -5421,7 +5421,7 @@ msgstr "Möchten Sie den ausgewählten Pfad wirklich entfernen?"
 
 #: spyder/plugins/remoteclient/api/client.py:193
 msgid "We're closing the connection. Please be patient"
-msgstr ""
+msgstr "Wir schließen die Verbindung. Bitte haben Sie Geduld"
 
 #: spyder/plugins/remoteclient/api/client.py:211
 msgid "The connection was lost"
@@ -5437,7 +5437,7 @@ msgstr "Es war nicht möglich, den lokalen Port weiterzuleiten"
 
 #: spyder/plugins/remoteclient/api/client.py:373
 msgid "Error starting the remote server"
-msgstr ""
+msgstr "Fehler beim Starten des Remote-Servers"
 
 #: spyder/plugins/remoteclient/api/client.py:385
 msgid "Error getting server info"
@@ -5481,7 +5481,7 @@ msgstr "Dieses Feld ist leer"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:228
 msgid "Configure SSH settings for connecting to remote hosts"
-msgstr ""
+msgstr "SSH-Einstellungen für die Verbindung zu Remote-Hosts konfigurieren"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:230
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely, such as on a cloud instance, office workstation or high-performance cluster."
@@ -5645,11 +5645,11 @@ msgstr "Status: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:162
 msgid "Manage remote connections..."
-msgstr ""
+msgstr "Remote-Verbindungen verwalten..."
 
 #: spyder/plugins/remoteclient/widgets/container.py:168
 msgid "New console in remote server"
-msgstr ""
+msgstr "Neue Konsole im Remote-Server"
 
 #: spyder/plugins/remoteclient/widgets/container.py:237
 msgid "There was an error connecting to the server <b>{}</b>. Please check your connection is working."
@@ -6311,7 +6311,7 @@ msgstr "Möchten Sie das Herunterladen wirklich abbrechen?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:389
 msgid "Spyder download"
-msgstr ""
+msgstr "Spyder herunterladen"
 
 #: spyder/plugins/updatemanager/widgets/update.py:418
 msgid "Would you like to install it?"
@@ -6319,7 +6319,7 @@ msgstr "Möchten Sie es installieren?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:422
 msgid "Spyder install"
-msgstr ""
+msgstr "Spyder installieren"
 
 #: spyder/plugins/updatemanager/widgets/update.py:494
 msgid "Check for updates at startup"
@@ -6331,7 +6331,7 @@ msgstr "Okay"
 
 #: spyder/plugins/updatemanager/widgets/update.py:537
 msgid "Spyder update error"
-msgstr ""
+msgstr "Spyder Update-Fehler"
 
 #: spyder/plugins/updatemanager/widgets/update.py:548
 msgid "New Spyder version"
