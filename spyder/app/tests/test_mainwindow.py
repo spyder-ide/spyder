@@ -3622,37 +3622,37 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Rename one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.rename_item(new_name='arr2')
 
     # Wait until all objects have updated in the variable explorer
     def data(cm, i, j):
         return cm.data(cm.index(i, j))
-    qtbot.waitUntil(lambda: data(nsb.editor.model, 1, 0) == 'arr2',
+    qtbot.waitUntil(lambda: data(nsb.editor.model(), 1, 0) == 'arr2',
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr2'
-    assert data(nsb.editor.model, 2, 0) == 'li'
-    assert data(nsb.editor.model, 3, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr2'
+    assert data(nsb.editor.model(), 2, 0) == 'li'
+    assert data(nsb.editor.model(), 3, 0) == 's'
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 5,
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr'
-    assert data(nsb.editor.model, 2, 0) == 'arr2'
-    assert data(nsb.editor.model, 3, 0) == 'li'
-    assert data(nsb.editor.model, 4, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr'
+    assert data(nsb.editor.model(), 2, 0) == 'arr2'
+    assert data(nsb.editor.model(), 3, 0) == 'li'
+    assert data(nsb.editor.model(), 4, 0) == 's'
 
 
 @flaky(max_runs=3)
@@ -3689,23 +3689,23 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Remove one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.remove_item(force=True)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 3,
                     timeout=EVAL_TIMEOUT)
 
     def data(cm, i, j):
         assert cm.rowCount() == 3
         return cm.data(cm.index(i, j))
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'li'
-    assert data(nsb.editor.model, 2, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'li'
+    assert data(nsb.editor.model(), 2, 0) == 's'
 
 
 @flaky(max_runs=3)
