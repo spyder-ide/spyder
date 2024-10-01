@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import QPoint, Qt, QTimer
+from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -2789,14 +2789,13 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 
     application_plugin = main_window.application
     MockQDesktopServices = Mock()
-    mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
     application_plugin.trouble_action.trigger()
-    assert MockQDesktopServices.openUrl.call_count == 1
-    mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
+    MockQDesktopServices.openUrl.assert_called_once_with(
+        QUrl(__trouble_url__))
 
 
 @flaky(max_runs=3)
