@@ -1160,6 +1160,10 @@ class Editor(SpyderDockablePlugin):
         """Get current editor 'filename'."""
         return self.get_widget().get_current_filename()
 
+    def current_file_is_temporary(self) -> bool:
+        """Return whether file in current editor is a temporary file."""
+        return self.get_current_editor() == self.get_widget().TEMPFILE_PATH
+
     def get_filenames(self):
         """
         Get list with all open files.

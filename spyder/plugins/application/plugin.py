@@ -36,7 +36,6 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions
 
 
-
 class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
@@ -433,17 +432,22 @@ class Application(SpyderPluginV2):
             print(error)  # spyder: test-skip
             print(command)  # spyder: test-skip
 
-    def open_file_using_dialog(self):
-        editor_main = self.main.editor.get_widget()
-        editor = editor_main.get_current_editor()
-        if editor is not None:
-            filename = editor_main.get_current_filename()
-        else:
-            filename = None
+    def open_file_using_dialog(self) -> None:
+        """
+        Show Open File dialog and open the selected file.
 
+        Ask Editor plugin for the name of the currently displayed file and
+        whether it is a temporary file, and then call the function with the
+        same name in the container widget to do the actual work.
+        """
+        filename = None
         basedir = getcwd_or_home()
-        if filename is not None and filename != editor_main.TEMPFILE_PATH:
-            basedir = osp.dirname(filename)
+
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            filename = editor.get_current_filename()
+            if not editor.current_file_is_temporary():
+                basedir = osp.dirname(filename)
 
         self.get_container().open_file_using_dialog(filename, basedir)
 
