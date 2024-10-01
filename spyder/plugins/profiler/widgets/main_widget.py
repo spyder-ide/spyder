@@ -518,7 +518,7 @@ class ProfilerWidget(PluginMainWidget):
         if wdir is None:
             wdir = self._last_wdir
             if wdir is None:
-                wdir = osp.basename(filename)
+                wdir = osp.dirname(filename)
 
         if args is None:
             args = self._last_args
