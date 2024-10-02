@@ -247,7 +247,7 @@ class SpyderCodeRunner(Magics):
             debugger.set_remote_filename(filename)
             debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
-            def debug_exec(code, glob, loc):
+            def debug_exec(code, glob=None, loc=None):
                 return sys.call_tracing(debugger.run, (code, glob, loc))
 
             # Enter recursive debugger
