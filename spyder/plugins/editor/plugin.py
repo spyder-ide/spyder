@@ -47,7 +47,7 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,

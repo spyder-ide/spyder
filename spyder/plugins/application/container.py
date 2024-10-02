@@ -201,8 +201,7 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('fileopen'),
             tip=_("Open file"),
             triggered=self._plugin.open_file_using_dialog,
-            context=Qt.ApplicationShortcut,
-            shortcut_context="_",
+            shortcut_context="main",
             register_shortcut=True
         )
 
