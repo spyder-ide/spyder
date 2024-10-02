@@ -63,6 +63,9 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.sig_open_file_in_plugin_requested.connect(
+            self.open_file_in_plugin
+        )
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -450,6 +453,16 @@ class Application(SpyderPluginV2):
                 basedir = osp.dirname(filename)
 
         self.get_container().open_file_using_dialog(filename, basedir)
+
+    def open_file_in_plugin(self, filename: str) -> None:
+        """
+        Open given file in a suitable plugin.
+
+        For the moment, this opens the file in the Editor plugin.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.load(filename)
 
     @property
     def documentation_action(self):

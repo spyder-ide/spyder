@@ -87,6 +87,15 @@ class ApplicationContainer(PluginMainContainer):
     Signal to load a log file
     """
 
+    sig_open_file_in_plugin_requested = Signal(str)
+    """
+    Signal to request that given file is opened in a suitable plugin.
+
+    Arguments
+    ---------
+    filename : str
+    """
+
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -413,9 +422,9 @@ class ApplicationContainer(PluginMainContainer):
 
         self.sig_redirect_stdio_requested.emit(True)
 
-        if filenames:
-            filenames = [osp.normpath(fname) for fname in filenames]
-            self._plugin.main.editor.get_widget().load(filenames)
+        for filename in filenames:
+            filename = osp.normpath(filename)
+            self.sig_open_file_in_plugin_requested.emit(filename)
 
     # ---- Log files
     # -------------------------------------------------------------------------
