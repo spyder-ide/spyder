@@ -160,12 +160,24 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         Check for Spyder updates using a QThread.
 
+        Do not check for updates if the environment is a system or a managed
+        environment.
+
         Update actions are disabled in the menubar and statusbar while
         checking for updates.
 
         If startup is True, then checking for updates is delayed 1 min;
         actions are disabled during this time as well.
         """
+        if (
+            sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
+            or False  # TODO: replace with test for distro file
+        ):
+            logger.debug(
+                "Will not check for updates: system or managed environment."
+            )
+            return
+
         logger.debug(f"Checking for updates. startup = {startup}.")
 
         # Disable check_update_action while the thread is working
