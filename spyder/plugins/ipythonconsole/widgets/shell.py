@@ -1207,6 +1207,11 @@ overrided by the Sympy module (e.g. plot)
         cursor.setPosition(0)
         self._insert_plain_text(cursor, banner)
 
+        # We need to do this so the banner is available to other QtConsole
+        # methods (e.g. console resets).
+        # Fixes spyder-ide/spyder#22593
+        self.banner = banner
+
         # Only do this once
         self._is_banner_shown = True
 

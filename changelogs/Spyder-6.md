@@ -1,5 +1,64 @@
 # History of changes for Spyder 6
 
+## Version 6.0.1 (2024/09/23)
+
+### Important fixes
+
+* Fix Spyder hanging at startup on Linux when started in a terminal in background mode.
+* Fix appeal/sponsor Spyder message being shown at every startup.
+* Fix error that prevented mouse clicks in Spyder to work on the Windows Subsystem for Linux.
+* Avoid crashes at startup from faulty/outdated external plugins.
+* Fix Spyder installer not being able to finish installation due to Start Menu entry error in some Conda installations.
+* Fix Spyder installer not installing the right Spyder version (`6.0.0` vs `6.0.0rc2`)
+* Fix Binder instance with example workshop project from being non-responsive.
+* Fix errors related to unmaximazing panes and layout changes.
+
+### Issues Closed
+
+* [Issue 22514](https://github.com/spyder-ide/spyder/issues/22514) - AttributeError when unmaximizing plugin ([PR 22534](https://github.com/spyder-ide/spyder/pull/22534) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22494](https://github.com/spyder-ide/spyder/issues/22494) - Error while changing the layout and a plugin was closed while undocked ([PR 22502](https://github.com/spyder-ide/spyder/pull/22502) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22466](https://github.com/spyder-ide/spyder/issues/22466) - ndarray of text does not display correctly in variable explorer ([PR 22484](https://github.com/spyder-ide/spyder/pull/22484) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 22457](https://github.com/spyder-ide/spyder/issues/22457) - Help Spyder dialog is shown at every startup ([PR 22476](https://github.com/spyder-ide/spyder/pull/22476) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22454](https://github.com/spyder-ide/spyder/issues/22454) - Support Spyder dialog does not get focus on startup ([PR 22476](https://github.com/spyder-ide/spyder/pull/22476) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22440](https://github.com/spyder-ide/spyder/issues/22440) - IPython console not showing initial banner in Spyder 6 ([PR 22501](https://github.com/spyder-ide/spyder/pull/22501) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22433](https://github.com/spyder-ide/spyder/issues/22433) - Spyder 6 - `%autoreload` magic not loaded by default on Windows ([PR 22438](https://github.com/spyder-ide/spyder/pull/22438) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22432](https://github.com/spyder-ide/spyder/issues/22432) - AttributeError message at start up ([PR 22437](https://github.com/spyder-ide/spyder/pull/22437) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22428](https://github.com/spyder-ide/spyder/issues/22428) - Spyder 6.0 fails to install when creating Start Menu entry
+* [Issue 22416](https://github.com/spyder-ide/spyder/issues/22416) - Installers for 6.0.0 release come with 6.0.0rc2 ([PR 22424](https://github.com/spyder-ide/spyder/pull/22424) by [@mrclary](https://github.com/mrclary))
+* [Issue 22415](https://github.com/spyder-ide/spyder/issues/22415) - Spyder 6.0 hangs at startup on Linux (proc.communicate never times out) ([PR 22504](https://github.com/spyder-ide/spyder/pull/22504) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 22124](https://github.com/spyder-ide/spyder/issues/22124) - Spyder on Binder is non-responsive ([PR 22509](https://github.com/spyder-ide/spyder/pull/22509) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21563](https://github.com/spyder-ide/spyder/issues/21563) - Error while closing project just after Spyder starts ([PR 22490](https://github.com/spyder-ide/spyder/pull/22490) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 20851](https://github.com/spyder-ide/spyder/issues/20851) - Spyder under WSL2 loss of mouse click ability (corruption of transient.ini file??) ([PR 22549](https://github.com/spyder-ide/spyder/pull/22549) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 14 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 22550](https://github.com/spyder-ide/spyder/pull/22550) - PR: Avoid crashes at startup due to faulty/outdated external plugins, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22549](https://github.com/spyder-ide/spyder/pull/22549) - PR: Prevent storing a negative position when saving the main window settings (Layout), by [@ccordoba12](https://github.com/ccordoba12) ([20851](https://github.com/spyder-ide/spyder/issues/20851))
+* [PR 22539](https://github.com/spyder-ide/spyder/pull/22539) - PR: Add step to `RELEASE.md` to update metadata files (`org.spyder_ide.spyder.appdata.xml`), by [@dalthviz](https://github.com/dalthviz)
+* [PR 22538](https://github.com/spyder-ide/spyder/pull/22538) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 22534](https://github.com/spyder-ide/spyder/pull/22534) - PR: Prevent error when unmaximizing plugins (Main window), by [@ccordoba12](https://github.com/ccordoba12) ([22514](https://github.com/spyder-ide/spyder/issues/22514))
+* [PR 22530](https://github.com/spyder-ide/spyder/pull/22530) - PR: Update translations for 6.0.1, by [@dalthviz](https://github.com/dalthviz)
+* [PR 22509](https://github.com/spyder-ide/spyder/pull/22509) - PR: Don't kill kernel process tree when running in Binder (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([22124](https://github.com/spyder-ide/spyder/issues/22124))
+* [PR 22504](https://github.com/spyder-ide/spyder/pull/22504) - PR: Don't use script to get env vars if Spyder is launched from a terminal (Utils), by [@ccordoba12](https://github.com/ccordoba12) ([22415](https://github.com/spyder-ide/spyder/issues/22415))
+* [PR 22502](https://github.com/spyder-ide/spyder/pull/22502) - PR: Reset `undocked before hiding` state of all plugins before applying layout, by [@ccordoba12](https://github.com/ccordoba12) ([22494](https://github.com/spyder-ide/spyder/issues/22494))
+* [PR 22501](https://github.com/spyder-ide/spyder/pull/22501) - PR: Show banner when the kernel is ready (IPython console) , by [@ccordoba12](https://github.com/ccordoba12) ([22440](https://github.com/spyder-ide/spyder/issues/22440))
+* [PR 22490](https://github.com/spyder-ide/spyder/pull/22490) - PR: Prevent error when updating `sys.path` in consoles (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([21563](https://github.com/spyder-ide/spyder/issues/21563))
+* [PR 22484](https://github.com/spyder-ide/spyder/pull/22484) - PR: Change default format in array editor to `''`, by [@jitseniesen](https://github.com/jitseniesen) ([22466](https://github.com/spyder-ide/spyder/issues/22466))
+* [PR 22476](https://github.com/spyder-ide/spyder/pull/22476) - PR: Fix issues showing the in-app appeal message, by [@ccordoba12](https://github.com/ccordoba12) ([22457](https://github.com/spyder-ide/spyder/issues/22457), [22454](https://github.com/spyder-ide/spyder/issues/22454))
+* [PR 22474](https://github.com/spyder-ide/spyder/pull/22474) - PR: Update org.spyder_ide.spyder.appdata.xml, by [@kevinsmia1939](https://github.com/kevinsmia1939)
+* [PR 22468](https://github.com/spyder-ide/spyder/pull/22468) - PR: Fix development version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22459](https://github.com/spyder-ide/spyder/pull/22459) - PR: Update workflows to run in the `6.x` branch (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22442](https://github.com/spyder-ide/spyder/pull/22442) - PR: Update contributing, release and maintenance instructions for backporting, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22438](https://github.com/spyder-ide/spyder/pull/22438) - PR: Enable `autoreload` magic on all operating systems (Config), by [@ccordoba12](https://github.com/ccordoba12) ([22433](https://github.com/spyder-ide/spyder/issues/22433))
+* [PR 22437](https://github.com/spyder-ide/spyder/pull/22437) - PR: Fix bug when calling `update_edit_menu` at startup (Editor), by [@ccordoba12](https://github.com/ccordoba12) ([22432](https://github.com/spyder-ide/spyder/issues/22432))
+* [PR 22424](https://github.com/spyder-ide/spyder/pull/22424) - PR: Prioritize conda-forge channel so that stable releases are pulled above unstable ones (Installers), by [@mrclary](https://github.com/mrclary) ([22416](https://github.com/spyder-ide/spyder/issues/22416))
+
+In this release 20 pull requests were closed.
+
+----
+
 ## Version 6.0.0 (2024-09-03)
 
 ### New features
@@ -42,8 +101,8 @@
 
 * Make Spyder accept Chinese, Korean or Japanese input on Linux by adding
   `fcitx-qt5` as a new dependency (in conda environments only).
-* The file switcher can browse and open files present in the current project (
-  in conda environments or if the `fzf` package is installed).
+* The file switcher can browse and open files present in the current project
+  (in conda environments or if the `fzf` package is installed).
 * Improve how options are displayed and handled in several Variable Explorer
   viewers.
 * The interface font used by the entire application can be configured in
