@@ -26,6 +26,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.profiler.widgets.profiler_data_tree import (
     ProfilerSubWidget)
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 class ProfilerWidgetActions:
@@ -238,8 +239,10 @@ class ProfilerWidget(ShellConnectMainWidget):
             ProfilerWidgetActions.ToggleTreeDirection)
         toggle_builtins_action = self.get_action(
             ProfilerWidgetActions.ToggleBuiltins)
+        
+        widget_inactive = widget is None or isinstance(widget, PaneEmptyWidget)
 
-        if widget is None:
+        if widget_inactive:
             search = False
             inverted_tree = False
             ignore_builtins = False
@@ -257,7 +260,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         can_undo = False
         can_clear = False
         widget = self.current_widget()
-        if widget is not None:
+        widget_inactive = widget is None or isinstance(widget, PaneEmptyWidget)
+        if not widget_inactive:
             tree_empty = widget.data_tree.profdata is None
             can_undo = len(widget.data_tree.history) > 1
             can_redo = len(widget.data_tree.redo_history) > 0
