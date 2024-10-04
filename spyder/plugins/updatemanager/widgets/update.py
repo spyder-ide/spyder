@@ -14,6 +14,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from sysconfig import get_path
 
 # Third-party imports
 from packaging.version import parse
@@ -47,6 +48,11 @@ INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
 URL_I = 'https://docs.spyder-ide.org/current/installation.html'
+
+SKIP_CHECK_UPDATE = (
+    sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
+    or osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
+)
 
 
 class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
@@ -169,12 +175,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         If startup is True, then checking for updates is delayed 1 min;
         actions are disabled during this time as well.
         """
-        if (
-            sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
-            or False  # TODO: replace with test for distro file
-        ):
+        if SKIP_CHECK_UPDATE:
             logger.debug(
-                "Will not check for updates: system or managed environment."
+                "Skip check for updates: system or managed environment."
             )
             return
 
