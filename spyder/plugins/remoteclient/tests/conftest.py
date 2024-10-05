@@ -41,6 +41,33 @@ PASSWORD = USERNAME
 HERE = Path(__file__).resolve().parent
 
 
+def check_server(ip="127.0.0.1", port=22):
+    """Check if a server is listening on the given IP and port.
+
+    Args
+    ----
+        ip (str, optional): IP address to check. Defaults to "127.0.0.1".
+        port (int, optional): Port to check. Defaults to 22.
+
+    Returns
+    -------
+        bool: server is listening on the given IP and port
+    """
+    test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        test_socket.connect((ip, port))
+    except OSError:
+        return False
+    else:
+        test_socket.close()
+    return True
+
+
+def await_future(future: Future[T], timeout: float = 30) -> T:
+    """Wait for a future to finish or timeout."""
+    return future.result(timeout=timeout)
+
+
 class MainWindowMock(QMainWindow):
     """QMainWindow mock for the Remote Client plugin tests."""
 
@@ -120,7 +147,8 @@ def remote_client_id(
 def remote_client(
     ipyconsole_and_remoteclient: typing.Tuple[IPythonConsole, RemoteClient],
 ) -> RemoteClient:
-    """Start the Spyder Remote Client plugin.
+    """
+    Start the Spyder Remote Client plugin.
 
     Yields
     ------
@@ -133,7 +161,8 @@ def remote_client(
 def ipyconsole(
     ipyconsole_and_remoteclient: typing.Tuple[IPythonConsole, RemoteClient],
 ) -> IPythonConsole:
-    """Start the IPython Console plugin.
+    """
+    Start the IPython Console plugin.
 
     Yields
     ------
@@ -206,30 +235,3 @@ def ssh_server_addr(
     )
 
     return docker_ip, port
-
-
-def check_server(ip="127.0.0.1", port=22):
-    """Check if a server is listening on the given IP and port.
-
-    Args
-    ----
-        ip (str, optional): IP address to check. Defaults to "127.0.0.1".
-        port (int, optional): Port to check. Defaults to 22.
-
-    Returns
-    -------
-        bool: server is listening on the given IP and port
-    """
-    test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        test_socket.connect((ip, port))
-    except OSError:
-        return False
-    else:
-        test_socket.close()
-    return True
-
-
-def await_future(future: Future[T], timeout: float = 30) -> T:
-    """Wait for a future to finish or timeout."""
-    return future.result(timeout=timeout)

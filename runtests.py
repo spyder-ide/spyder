@@ -68,7 +68,7 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
 def main():
     """Parse args then run the pytest suite for Spyder."""
     test_parser = argparse.ArgumentParser(
-        usage='python runtests.py [-h] [--run-slow] [--remote-client][pytest_args]',
+        usage='python runtests.py [-h] [--run-slow] [--remote-client] [pytest_args]',
         description="Helper script to run Spyder's test suite")
     test_parser.add_argument('--run-slow', action='store_true', default=False,
                              help='Run the slow tests')

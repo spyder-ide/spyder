@@ -58,6 +58,7 @@ def running_under_pytest():
     """
     return bool(os.environ.get('SPYDER_PYTEST'))
 
+
 def running_remoteclient_tests():
     """
     Return True if currently running the remoteclient tests.
@@ -66,6 +67,7 @@ def running_remoteclient_tests():
     variable SPYDER_TEST_REMOTE_CLIENT is 'true' in conftest.py.
     """
     return bool(os.environ.get("SPYDER_TEST_REMOTE_CLIENT") == "true")
+
 
 def running_in_ci():
     """Return True if currently running under CI."""
