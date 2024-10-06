@@ -587,18 +587,25 @@ class Application(SpyderPluginV2):
         """
         Show Open File dialog and open the selected file.
 
-        Ask Editor plugin for the name of the currently displayed file and
-        whether it is a temporary file, and then call the function with the
-        same name in the container widget to do the actual work.
+        Try asking the plugin that currently has focus for the name of the
+        displayed file and whether it is a temporary file. If that does not
+        work, ask the Editor plugin. Finally, call the function with the same
+        name in the container widget to do the actual work.
         """
-        filename = None
-        basedir = getcwd_or_home()
+        plugin = self.focused_plugin
+        if plugin:
+            filename = plugin.get_current_filename()
+        else:
+            filename = None
 
-        if self.is_plugin_available(Plugins.Editor):
-            editor = self.get_plugin(Plugins.Editor)
-            filename = editor.get_current_filename()
-            if not editor.current_file_is_temporary():
-                basedir = osp.dirname(filename)
+        if filename is None and self.is_plugin_available(Plugins.Editor):
+            plugin = self.get_plugin(Plugins.Editor)
+            filename = plugin.get_current_filename()
+
+        if filename is not None and not plugin.current_file_is_temporary():
+            basedir = osp.dirname(filename)
+        else:
+            basedir = getcwd_or_home()
 
         self.get_container().open_file_using_dialog(filename, basedir)
 

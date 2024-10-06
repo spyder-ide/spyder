@@ -10,7 +10,7 @@ Tests for the Application plugin.
 
 # Standard library imports
 import os.path as osp
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch, ANY
 
 # Third party imports
 import pytest
@@ -71,7 +71,7 @@ def test_file_actions(
         editor_function.assert_called()
 
 
-def test_open_file(application_plugin):
+def test_open_file_action(application_plugin):
     """
     Test that triggering the "Open file" action creates a QFileDialog.
     Assume that there are two plugins, the editor plugin and another plugin
@@ -109,6 +109,33 @@ def test_open_file(application_plugin):
     mock_QFileDialog.assert_called()
     editor_plugin.load.assert_called_with(osp.normpath('/home/file1'))
     xyz_plugin.open_file.assert_called_with(osp.normpath('/home/file2.xyz'))
+
+
+@pytest.mark.parametrize('plugin_filename', ['plugin', None])
+def test_open_file_using_dialog(application_plugin, plugin_filename):
+    """
+    That that open_file_using_dialog asks the currently focused plugin for the
+    current file name, and that if the result is None the Editor plugin is
+    asked as a fallback.
+    """
+    mock_plugin = Mock()
+    mock_plugin.get_current_filename.return_value = plugin_filename
+
+    mock_editor = Mock()
+    mock_editor.get_current_filename.return_value = 'editor'
+
+    application_plugin.focused_plugin = mock_plugin
+    application_plugin.get_plugin.return_value = mock_editor
+
+    container = application_plugin.get_container()
+    with patch.object(container, 'open_file_using_dialog') as mock:
+        application_plugin.open_file_using_dialog()
+
+    if plugin_filename:
+        mock.assert_called_with(plugin_filename, ANY)
+    else:
+        application_plugin.get_plugin.assert_called_with(Plugins.Editor)
+        mock.assert_called_with('editor', ANY)
 
 
 def test_enable_file_action(application_plugin):

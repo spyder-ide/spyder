@@ -19,7 +19,7 @@ import logging
 import os
 import os.path as osp
 import sys
-from typing import List, Union
+from typing import List, Optional, Union
 import warnings
 
 # Third party imports
@@ -1104,6 +1104,28 @@ class SpyderDockablePlugin(SpyderPluginV2):
             The name of the file to be opened.
         """
         raise NotImplementedError
+
+    def get_current_filename(self) -> Optional[str]:
+        """
+        Return file name of the file that is currently displayed.
+
+        This is meant for plugins like the Editor or Notebook plugin which
+        editor display files. Return `None` if no file is displayed or if this
+        does not display files.
+
+        This function is used in the `Open file` action to initialize the
+        "Open file" dialog.
+        """
+        return None
+
+    def current_file_is_temporary(self) -> bool:
+        """
+        Return whether currently displayed file is a temporary file.
+
+        This function should only be called if a file is displayed, that is,
+        if `self.get_current_filename()` does not return `None`.
+        """
+        return False
 
     def open_last_closed_file(self) -> None:
         """
