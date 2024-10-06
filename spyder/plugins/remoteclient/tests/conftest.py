@@ -105,10 +105,26 @@ def docker_compose_file(pytestconfig):
     return str(HERE / "docker-compose.yml")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
+def shell(ipyconsole, remote_client, remote_client_id, qtbot):
+    """Create a new shell widget."""
+    remote_client.create_ipyclient_for_server(remote_client_id)
+    client = ipyconsole.get_current_client()
+    shell = client.shellwidget
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=180000,
+    )
+
+    yield shell
+
+    ipyconsole.get_widget().close_client(client=client)
+
+
+@pytest.fixture(scope="class")
 def remote_client_id(
     ssh_server_addr: typing.Tuple[str, int], remote_client: RemoteClient
-) -> typing.Iterator[SpyderRemoteClient]:
+) -> typing.Iterator[str]:
     """Add the Spyder Remote Client plugin to the registry."""
     ssh_options = {
         "host": ssh_server_addr[0],
@@ -172,7 +188,7 @@ def ipyconsole(
 
 
 @pytest.fixture(scope="session")
-def ipyconsole_and_remoteclient() -> (
+def ipyconsole_and_remoteclient(qapp) -> (
     typing.Iterator[typing.Tuple[IPythonConsole, RemoteClient]]
 ):
     """Start the Spyder Remote Client plugin with IPython Console.
@@ -181,8 +197,6 @@ def ipyconsole_and_remoteclient() -> (
     ------
         tuple: IPython Console and Spyder Remote Client plugins
     """
-    app = qapplication(translate=False)
-    app.setQuitOnLastWindowClosed(False)
 
     window = MainWindowMock()
 
@@ -200,16 +214,11 @@ def ipyconsole_and_remoteclient() -> (
         os.environ.pop("IPYCONSOLE_TESTING")
         CONF.reset_manager()
         PLUGIN_REGISTRY.reset()
-        if app.instance():
-            for widget in app.allWidgets():
-                with contextlib.suppress(RuntimeError):
-                    widget.close()
-            app.quit()
         del window
         gc.collect()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def ssh_server_addr(
     docker_ip: str, docker_services: Services
 ) -> typing.Tuple[str, int]:
