@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 from concurrent.futures import Future
-import contextlib
 import gc
 import os
 from pathlib import Path
@@ -26,10 +25,8 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.app.cli_options import get_options
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
 from spyder.plugins.remoteclient.plugin import RemoteClient
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
-from spyder.utils.qthelpers import qapplication
 
 
 T = typing.TypeVar("T")

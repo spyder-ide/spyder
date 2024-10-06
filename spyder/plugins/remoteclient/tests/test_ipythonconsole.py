@@ -8,8 +8,8 @@
 """IPython console and Spyder Remote Client integration tests."""
 
 # Third party imports
-import pytest
 from flaky import flaky
+import pytest
 
 # Local imports
 from spyder.plugins.remoteclient.tests.conftest import await_future
@@ -45,10 +45,6 @@ class TestIpythonConsole:
         with qtbot.waitSignal(shell.executed):
             shell.execute("a = 10")
 
-        # Restart kernel and wait until it's up again.
-        # NOTE: We trigger the restart_action instead of calling `restart_kernel`
-        # directly to also check that that action is working as expected and avoid
-        # regressions such as spyder-ide/spyder#22084.
         shell._prompt_html = None
         ipyconsole.get_widget().restart_action.trigger()
         qtbot.waitUntil(
@@ -89,12 +85,12 @@ class TestIpythonConsole:
             "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
         )
 
-        # Since the heartbeat and the tunnels are running in separate threads, we
-        # need to make sure that the heartbeat thread has "higher" priority than
-        # the tunnel thread, otherwise the kernel will be restarted and the tunnels
-        # recreated before the heartbeat can detect the kernel is dead.
-        # In the test enviroment, the heartbeat needs to be set to a lower value
-        # because there are fewer threads running.
+        # Since the heartbeat and the tunnels are running in separate threads,
+        # we need to make sure that the heartbeat thread has "higher" priority
+        # than the tunnel thread, otherwise the kernel will be restarted and
+        # the tunnels recreated before the heartbeat can detect the kernel
+        # is dead. In the test enviroment, the heartbeat needs to be set to a
+        # lower value because there are fewer threads running.
         shell.kernel_handler.set_time_to_dead(0.2)
 
         with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
