@@ -11,7 +11,7 @@ spyder.plugins.ipythonconsole
 IPython Console plugin based on QtConsole
 """
 
-from spyder.config.base import is_stable_version, running_under_pytest
+from spyder.config.base import is_stable_version
 
 # Use this variable, which corresponds to the html dash symbol, for any command
 # that requires a dash below. That way users will be able to copy/paste
@@ -19,12 +19,8 @@ from spyder.config.base import is_stable_version, running_under_pytest
 _d = '&#45;'
 
 # Required version of Spyder-kernels
-SPYDER_KERNELS_MIN_VERSION = (
-    '3.0.0' if not running_under_pytest() else '3.1.0.dev0'
-)
-SPYDER_KERNELS_MAX_VERSION = (
-    '3.1.0' if not running_under_pytest() else '4.0.0'
-)
+SPYDER_KERNELS_MIN_VERSION = '3.1.0.dev0'
+SPYDER_KERNELS_MAX_VERSION = '3.2.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION},<{SPYDER_KERNELS_MAX_VERSION}'
 )
