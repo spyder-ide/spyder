@@ -154,7 +154,6 @@ def remote_client_id(
     try:
         remote_client.load_client(options=ssh_options, config_id=config_id)
         yield config_id
-
     finally:
         remote_client.on_close(cancellable=False)
 
@@ -191,7 +190,8 @@ def ipyconsole(
 def ipyconsole_and_remoteclient(qapp) -> (
     typing.Iterator[typing.Tuple[IPythonConsole, RemoteClient]]
 ):
-    """Start the Spyder Remote Client plugin with IPython Console.
+    """
+    Start the Spyder Remote Client plugin with IPython Console.
 
     Yields
     ------
