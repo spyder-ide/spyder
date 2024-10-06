@@ -262,7 +262,6 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
     install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
-    install_requires.append('spyder-kernels>=3.0.0,<3.2.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],
