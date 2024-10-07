@@ -11,11 +11,7 @@ spyder.plugins.ipythonconsole
 IPython Console plugin based on QtConsole
 """
 
-from spyder.config.base import (
-    is_stable_version,
-    running_under_pytest,
-    running_remoteclient_tests,
-)
+from spyder.config.base import is_stable_version, running_remoteclient_tests
 
 
 # Use this variable, which corresponds to the html dash symbol, for any command
@@ -25,13 +21,9 @@ _d = '&#45;'
 
 # Required version of Spyder-kernels
 SPYDER_KERNELS_MIN_VERSION = (
-    "3.0.0"
-    if not running_under_pytest() or running_remoteclient_tests()
-    else "3.1.0.dev0"
+    "3.0.0" if running_remoteclient_tests() else "3.1.0.dev0"
 )
-SPYDER_KERNELS_MAX_VERSION = (
-    '3.1.0' if not running_under_pytest() else '4.0.0'
-)
+SPYDER_KERNELS_MAX_VERSION = '3.2.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION},<{SPYDER_KERNELS_MAX_VERSION}'
 )
