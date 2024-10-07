@@ -1656,6 +1656,45 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert control.toPlainText().split()[-2:] == ["In", "[3]:"]
 
 
+def test_pdb_magics_are_recursive(ipyconsole, qtbot, tmp_path):
+    """
+    Check that calls to Pdb magics start a recursive debugger when called in
+    a debugging session.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = ipyconsole.get_widget().get_focus_widget()
+
+    # Code to run
+    code = "a = 10\n\n# %%\n\nb = 20"
+
+    # Write code to file on disk
+    file = tmp_path / 'test_pdb_magics.py'
+    file.write_text(code)
+
+    # Filename in the format used when running magics from the main toolbar
+    fname = str(file).replace('\\', '/')
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%debugfile {fname}")
+
+    # Run %debugfile in debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute(f"%debugfile {fname}")
+
+    # Check that there are no errors and we started a recursive debugger
+    assert "error" not in control.toPlainText().lower()
+    assert "(IPdb [1]):" in control.toPlainText()
+
+    # Run %debugcell in debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute(f"%debugcell -i 0 {fname}")
+
+    # Check that there are no errors and we started a recursive debugger
+    assert "error" not in control.toPlainText().lower()
+    assert "((IPdb [1])):" in control.toPlainText()
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on windows")
 def test_stop_pdb(ipyconsole, qtbot):
