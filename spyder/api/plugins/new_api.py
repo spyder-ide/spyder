@@ -972,6 +972,12 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the action to switch is called a second time.
     RAISE_AND_FOCUS = False
 
+    # List of file extensions which the plugin can open.
+    # If the user opens a file with one of these extensions, then the file
+    # will open in this plugin using the `open_file` function.
+    # Example: ['.ipynb'] for spyder-notebook
+    FILE_EXTENSIONS = []
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1052,6 +1058,23 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.sig_toggle_view_changed.connect(self.sig_toggle_view_changed)
         widget.sig_update_ancestor_requested.connect(
             self.sig_update_ancestor_requested)
+
+    # ---- API: Optional methods to override
+    # -------------------------------------------------------------------------
+    def open_file(self, filename: str):
+        """
+        Open file inside plugin.
+
+        This method will be called if the user wants to open a file with one
+        of the file name extensions listed in `FILE_EXTENSIONS`, so you need
+        to define that variable too.
+
+        Parameters
+        ----------
+        filename: str
+            The name of the file to be opened.
+        """
+        raise NotImplementedError
 
     # ---- API: available methods
     # -------------------------------------------------------------------------
