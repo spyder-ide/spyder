@@ -81,7 +81,7 @@ def test_sort_by_column(namespacebrowser, qtbot):
     # Check header is clickable
     assert header.sectionsClickable()
 
-    model = browser.editor.model
+    model = browser.editor.model()
 
     # Base check of the model
     assert model.rowCount() == 2
@@ -133,7 +133,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
 
     # Assert we loaded the expected amount of data and that we can fetch
     # more.
-    model = browser.editor.model
+    model = browser.editor.model()
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
 
@@ -170,7 +170,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
 
     # Assert we loaded the expected amount of data and that we can fetch
     # more data.
-    model = browser.editor.model
+    model = browser.editor.model()
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
     assert data(model, 49, 0) == 'e49'

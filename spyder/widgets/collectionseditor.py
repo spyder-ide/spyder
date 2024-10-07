@@ -1053,7 +1053,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             else:
                 row = index_clicked.row()
                 # TODO: Remove hard coded "Value" column number (3 here)
-                self.__index_clicked = index_clicked.child(row, 3)
+                self.__index_clicked = self.model().index(row, 3)
 
                 # Wait for a bit to edit values so dialogs are focused on
                 # double clicks. That will preserve the way things worked in
@@ -1158,7 +1158,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         if not index.isValid():
             return
         # TODO: Remove hard coded "Value" column number (3 here)
-        self.edit(index.child(index.row(), 3))
+        self.edit(self.model().index(index.row(), 3))
 
     @Slot()
     def remove_item(self, force=False):
@@ -1304,7 +1304,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         if not index.isValid():
             return
         # TODO: Remove hard coded "Value" column number (3 here)
-        index = index.child(index.row(), 3)
+        index = index.model().index(index.row(), 3)
         self.delegate.createEditor(self, None, index, object_explorer=True)
 
     def __prepare_plot(self):
@@ -1470,7 +1470,6 @@ class CollectionsEditorTableView(BaseTableView):
             names=names,
             minmax=self.get_conf('minmax')
         )
-        self.model = self.source_model
         self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(
             self, namespacebrowser, data_function
@@ -1899,7 +1898,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             self.source_model.load_all)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
-        self.model = self.proxy_model
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
