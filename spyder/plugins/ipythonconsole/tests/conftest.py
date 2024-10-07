@@ -8,6 +8,7 @@
 # Standard library imports
 import os
 import os.path as osp
+from pathlib import Path
 import sys
 import threading
 import traceback
@@ -203,18 +204,45 @@ def ipyconsole(qtbot, request, tmpdir):
 
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
+
+    # Plugin setup
     console.on_initialize()
     console._register()
     console.get_widget().matplotlib_status.register_ipythonconsole(console)
+
+    # Register handlers to run cells.
+    def get_file_code(fname, save_all=True):
+        """
+        Get code from a file.
+
+        save_all is necessary to keep consistency with the handler registered
+        in the editor.
+        """
+        path = Path(fname)
+        return path.read_text()
+
+    def get_cell(cell_id, fname):
+        """
+        Get cell code from a file.
+
+        For now this only works with unnamed cells and cell separators of the
+        form `# %%`.
+        """
+        path = Path(fname)
+        contents = path.read_text()
+        cells = contents.split("# %%")
+        return cells[int(cell_id)]
+
+    console.register_spyder_kernel_call_handler('get_file_code', get_file_code)
+    console.register_spyder_kernel_call_handler('run_cell', get_cell)
+
+    # Start client and show window
     console.create_new_client(
         special=special,
         given_name=given_name,
         path_to_custom_interpreter=path_to_custom_interpreter
     )
     window.setCentralWidget(console.get_widget())
-
-    # Set exclamation mark to True
-    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
 
     if os.name == 'nt':
         qtbot.addWidget(window)
@@ -223,6 +251,10 @@ def ipyconsole(qtbot, request, tmpdir):
         window.resize(640, 480)
         window.show()
 
+    # Set exclamation mark to True
+    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
+
+    # Create new client for Matplotlb backend tests
     if auto_backend or tk_backend:
         qtbot.wait(SHELL_TIMEOUT)
         console.create_new_client()
