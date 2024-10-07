@@ -991,6 +991,12 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # `enable_file_action` in the Applications plugin.
     CAN_HANDLE_FILE_ACTIONS = False
 
+    # List of file extensions which the plugin can open.
+    # If the user opens a file with one of these extensions, then the file
+    # will open in this plugin using the `open_file` function.
+    # Example: ['.ipynb'] for spyder-notebook
+    FILE_EXTENSIONS = []
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1081,6 +1087,21 @@ class SpyderDockablePlugin(SpyderPluginV2):
         This function will be called if the user create a new file using
         the `File > New` menu item or the "New file" button in the toolbar,
         and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def open_file(self, filename: str):
+        """
+        Open file inside plugin.
+
+        This method will be called if the user wants to open a file with one
+        of the file name extensions listed in `FILE_EXTENSIONS`, so you need
+        to define that variable too.
+
+        Parameters
+        ----------
+        filename: str
+            The name of the file to be opened.
         """
         raise NotImplementedError
 
