@@ -9,13 +9,14 @@ Tests for the Application plugin.
 """
 
 # Standard library imports
-from unittest.mock import Mock, patch
+import os.path as osp
+from unittest.mock import MagicMock, Mock, patch
 
 # Third party imports
 import pytest
 
 # Local imports
-from spyder.api.plugins import Plugins
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.plugins.application.api import ApplicationActions
 
 
@@ -72,24 +73,42 @@ def test_file_actions(
 
 def test_open_file(application_plugin):
     """
-    Test that triggering the "Open file" action calls the load() function in
-    the Editor plugin with the file names selected in the QFileDialog.
+    Test that triggering the "Open file" action creates a QFileDialog.
+    Assume that there are two plugins, the editor plugin and another plugin
+    that says it can handle .xyz files. Check that if the user selects one
+    file with no extension and one with an .xyz extension, then the load()
+    function in the Editor plugin is called with the first file and the
+    open_file() function in the other plugin is called with the second file.
     """
-    container = application_plugin.get_container()
-    mock_QFileDialog = Mock(name='mock QFileDialog')
+    mock_QFileDialog = Mock()
     mock_QFileDialog.return_value.selectedFiles.return_value = [
         '/home/file1',
-        '/home/file2',
+        '/home/file2.xyz',
     ]
+
+    xyz_plugin = Mock(spec=SpyderDockablePlugin, FILE_EXTENSIONS=['.xyz'])
+
+    editor_plugin = Mock()
+    editor_plugin.get_current_filename.return_value = 'current-file'
+
+    def my_get_plugin(name):
+        return {'xyz': xyz_plugin, Plugins.Editor: editor_plugin}[name]
+
+    mock_registry = MagicMock()
+    mock_registry.__iter__.side_effect = lambda: iter(['xyz', Plugins.Editor])
+    mock_registry.get_plugin.side_effect = my_get_plugin
+
+    application_plugin.get_plugin.side_effect = my_get_plugin
 
     # Note: container.open_file_using_dialog() behaves differently under pytest
     with patch('spyder.plugins.application.container.QFileDialog', mock_QFileDialog):
-        container.open_action.trigger()
+        with patch('spyder.plugins.application.plugin.PLUGIN_REGISTRY', mock_registry):
+            container = application_plugin.get_container()
+            container.open_action.trigger()
 
-    application_plugin.get_plugin.assert_called_with(Plugins.Editor)
-    editor_plugin = application_plugin.get_plugin.return_value
-    editor_plugin.load.assert_any_call('/home/file1')
-    editor_plugin.load.assert_any_call('/home/file2')
+    mock_QFileDialog.assert_called()
+    editor_plugin.load.assert_called_with(osp.normpath('/home/file1'))
+    xyz_plugin.open_file.assert_called_with(osp.normpath('/home/file2.xyz'))
 
 
 def test_enable_file_action(application_plugin):
