@@ -533,6 +533,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # dependency of IPykernel.
             # See spyder-ide/spyder#21900
             "debugpy_stream undefined, debugging will not be enabled",
+            # Harmless warning from OpenCL on Windows.
+            # See spyder-ide/spyder#22551
+            "The system cannot find the path specified",
         ]
 
         return any([err in error for err in benign_errors])
