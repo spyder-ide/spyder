@@ -64,35 +64,40 @@ fi
 # Install subrepos from source
 python -bb -X dev install_dev_repos.py --not-editable --no-install spyder
 
-# Install boilerplate plugin
-pushd spyder/app/tests/spyder-boilerplate
-pip install --no-deps -q -e .
-popd
-
 # Install Spyder to test it as if it was properly installed.
 python -bb -X dev -m build
 python -bb -X dev -m pip install --no-deps dist/spyder*.whl
 
-# Adjust PATH on Windows so that we can use conda below. This needs to be done
-# at this point or the pip slots fail.
-if [ "$OS" = "win" ]; then
-    PATH=/c/Miniconda/Scripts/:$PATH
-fi
+if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
+    pip install pytest-docker
+else
 
-# Create environment for Jedi environment tests
-conda create -n jedi-test-env -q -y python=3.9 flask
-install_spyder_kernels jedi-test-env
-conda list -n jedi-test-env
+    # Install boilerplate plugin
+    pushd spyder/app/tests/spyder-boilerplate
+    pip install --no-deps -q -e .
+    popd
 
-# Create environment to test conda env activation before launching a kernel
-conda create -n spytest-ž -q -y -c conda-forge python=3.9
-install_spyder_kernels spytest-ž
-conda list -n spytest-ž
+    # Adjust PATH on Windows so that we can use conda below. This needs to be done
+    # at this point or the pip slots fail.
+    if [ "$OS" = "win" ]; then
+        PATH=/c/Miniconda/Scripts/:$PATH
+    fi
 
-# Install pyenv on Linux systems
-if [ "$RUN_SLOW" = "false" ]; then
-    if [ "$OS" = "linux" ]; then
-        curl https://pyenv.run | bash
-        $HOME/.pyenv/bin/pyenv install 3.8.1
+    # Create environment for Jedi environment tests
+    conda create -n jedi-test-env -q -y python=3.9 flask
+    install_spyder_kernels jedi-test-env
+    conda list -n jedi-test-env
+
+    # Create environment to test conda env activation before launching a kernel
+    conda create -n spytest-ž -q -y -c conda-forge python=3.9
+    install_spyder_kernels spytest-ž
+    conda list -n spytest-ž
+
+    # Install pyenv on Linux systems
+    if [ "$RUN_SLOW" = "false" ]; then
+        if [ "$OS" = "linux" ]; then
+            curl https://pyenv.run | bash
+            $HOME/.pyenv/bin/pyenv install 3.8.1
+        fi
     fi
 fi

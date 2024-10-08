@@ -1,0 +1,6 @@
+services:
+  test-spyder-remote-server:
+    build: .
+    ports:
+      - "22"
+    privileged: true  # Required for /usr/sbin/init
