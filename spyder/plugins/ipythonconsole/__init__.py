@@ -13,6 +13,7 @@ IPython Console plugin based on QtConsole
 
 from spyder.config.base import is_stable_version
 
+
 # Use this variable, which corresponds to the html dash symbol, for any command
 # that requires a dash below. That way users will be able to copy/paste
 # commands from the kernel error message directly to their terminals.
