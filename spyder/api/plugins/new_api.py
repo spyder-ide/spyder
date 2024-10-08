@@ -168,6 +168,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
     REQUIRE_WEB_WIDGETS = False
 
+    # List of file extensions which the plugin can open.
+    # If the user opens a file with one of these extensions, then the file
+    # will open in this plugin.
+    # Example: ['.ipynb'] for spyder-notebook
+    FILE_EXTENSIONS = []
+
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and
@@ -946,6 +952,30 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             A list that contains the options that were updated.
         """
         pass
+
+    def open_file(self, filename):
+        """
+        Open file inside plugin.
+
+        This method will be called if the user wants to open a file with one
+        of the file name extensions listed in `FILE_EXTENSIONS`, so you need
+        to define that variable too.
+
+        Parameters
+        ----------
+        filename: str
+            The name of the file to be opened.
+        """
+        raise NotImplementedError
+
+    def get_current_filename(self):
+        """
+        Get the currently displayed file name.
+
+        This applies to plugins that can handle files in a QTabWiget, like
+        the Editor or spyder-notebook.
+        """
+        return None
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

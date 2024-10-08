@@ -174,6 +174,7 @@ class Explorer(SpyderDockablePlugin):
         widget.sig_dir_opened.connect(self.sig_dir_opened)
         widget.sig_file_created.connect(self.sig_file_created)
         widget.sig_open_file_requested.connect(self.sig_open_file_requested)
+        self.sig_open_file_requested.connect(self.main.open_file)
         widget.sig_open_interpreter_requested.connect(
             self.sig_open_interpreter_requested)
         widget.sig_module_created.connect(self.sig_module_created)
@@ -194,7 +195,6 @@ class Explorer(SpyderDockablePlugin):
         self.sig_folder_removed.connect(editor.removed_tree)
         self.sig_folder_renamed.connect(editor.renamed_tree)
         self.sig_module_created.connect(editor.new)
-        self.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -228,7 +228,6 @@ class Explorer(SpyderDockablePlugin):
         self.sig_folder_removed.disconnect(editor.removed_tree)
         self.sig_folder_renamed.disconnect(editor.renamed_tree)
         self.sig_module_created.disconnect(editor.new)
-        self.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
