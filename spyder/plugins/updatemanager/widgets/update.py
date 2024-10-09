@@ -14,6 +14,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from sysconfig import get_path
 
 # Third-party imports
 from packaging.version import parse
@@ -47,6 +48,14 @@ INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
 URL_I = 'https://docs.spyder-ide.org/current/installation.html'
+
+SKIP_CHECK_UPDATE = (
+    sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
+    or (
+        not is_anaconda()
+        and osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
+    )
+)
 
 
 class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
@@ -160,12 +169,21 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         Check for Spyder updates using a QThread.
 
+        Do not check for updates if the environment is a system or a managed
+        environment.
+
         Update actions are disabled in the menubar and statusbar while
         checking for updates.
 
         If startup is True, then checking for updates is delayed 1 min;
         actions are disabled during this time as well.
         """
+        if SKIP_CHECK_UPDATE:
+            logger.debug(
+                "Skip check for updates: system or managed environment."
+            )
+            return
+
         logger.debug(f"Checking for updates. startup = {startup}.")
 
         # Disable check_update_action while the thread is working
