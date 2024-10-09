@@ -51,7 +51,10 @@ URL_I = 'https://docs.spyder-ide.org/current/installation.html'
 
 SKIP_CHECK_UPDATE = (
     sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
-    or osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
+    or (
+        not is_anaconda()
+        and osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
+    )
 )
 
 
