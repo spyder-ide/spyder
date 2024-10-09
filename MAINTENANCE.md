@@ -9,15 +9,15 @@ These are some instructions meant for maintainers of this repo.
 * If `meeseeksdev` fails to do the backport, you need to manually open a PR against the stable branch to do it with the following actions:
 
     - `git checkout 6.x`
-    - `git checkout -b backport-of-pr-<number>`
-    - `git cherry-pick <commit that was merged to master for that PR>`
+    - `git checkout -b backport-pr-<number>`
+    - `git cherry-pick -m 1 <commit that was merged to master for that PR>`
     - Solve conflicts
 
 * If a PR that involved updating our spyder-kernels subrepo and needs to be included in the stable branch (e.g. `6.x`), you need to manually create a PR against it with the following actions:
 
     - `git checkout 6.x`
-    - `git checkout -b backport-of-pr-<number>`
-    - `git cherry-pick <commit that was merged to master>`
+    - `git checkout -b backport-pr-<number>`
+    - `git cherry-pick -m 1 <commit that was merged to master for that PR>`
     - `git reset -- external-deps/spyder-kernels`
     - `git checkout -- external-deps/spyder-kernels`
     - `git commit` with the files left
