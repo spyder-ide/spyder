@@ -1395,10 +1395,19 @@ overrided by the Sympy module (e.g. plot)
             and not self.is_remote()
         ):
             # The kernel might never restart, show position of fault file
-            msg += (
-                "\n" + _("Its crash file is located at:") + " "
-                + self.kernel_handler.fault_filename()
-            )
+            # if available else show kernel error
+            if self.kernel_handler.fault_filename():
+                msg += (
+                    "\n" + _("Its crash file is located at:") + " "
+                    + self.kernel_handler.fault_filename()
+                )
+            else:
+                self.ipyclient.show_kernel_error(
+                    _("Unable to connect with the kernel. If you are trying "
+                      "to connect to an existing kernel check that the "
+                      "connection file actually corresponds with the kernel "
+                      "you want to connect to")
+                )
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
         self.insert_horizontal_ruler()
