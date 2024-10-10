@@ -9,7 +9,9 @@ from datetime import datetime as dt
 import logging
 import os
 import os.path as osp
+import platform
 import shutil
+import sys
 from time import sleep
 import traceback
 from zipfile import ZipFile
@@ -22,14 +24,14 @@ from requests.exceptions import ConnectionError, HTTPError, SSLError
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_stable_version, running_in_ci
+from spyder.config.base import _, is_conda_based_app, running_in_ci
 from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
-from spyder.utils.programs import check_version
 
 # Logger setup
 logger = logging.getLogger(__name__)
 
+CURR_VER = parse(__version__)
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -63,6 +65,57 @@ def _rate_limits(page):
         f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
     ]
     logger.debug("\n\t".join(msg_items))
+
+
+def get_asset_info(release):
+    """
+    Get the name, update type, and download URL for the asset of the given
+    release.
+
+    Parameters
+    ----------
+    release: str | packaging.version.Version
+        Release version
+
+    Returns
+    -------
+    asset_info: dict
+        name: str
+            Filename with extension of the release asset to download.
+        update_type: str
+            Type of update. One of {'major', 'minor', 'micro'}.
+        url: str
+            Download URL for the asset.
+    """
+    if isinstance(release, str):
+        release = parse(release)
+
+    if CURR_VER.major < release.major:
+        update_type = 'major'
+    elif CURR_VER.minor < release.minor:
+        update_type = 'minor'
+    else:
+        update_type = 'micro'
+
+    mach = platform.machine().lower().replace("amd64", "x86_64")
+
+    if update_type == 'major' or not is_conda_based_app():
+        if os.name == 'nt':
+            plat, ext = 'Windows', 'exe'
+        if sys.platform == 'darwin':
+            plat, ext = 'macOS', 'pkg'
+        if sys.platform.startswith('linux'):
+            plat, ext = 'Linux', 'sh'
+        name = f'Spyder-{plat}-{mach}.{ext}'
+    else:
+        name = 'spyder-conda-lock.zip'
+
+    url = (
+        'https://github.com/spyder-ide/spyder/releases/download/'
+        f'v{release}/{name}'
+    )
+
+    return {'name': name, 'update_type': update_type, 'url': url}
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -117,28 +170,54 @@ class WorkerUpdate(BaseWorker):
         super().__init__()
         self.stable_only = stable_only
         self.latest_release = None
-        self.releases = None
         self.update_available = False
         self.error = None
+        self.channel = None
 
-    def _check_update_available(self):
+    def _check_update_available(self, releases, github=True):
         """Checks if there is an update available from releases."""
-        # Filter releases
-        releases = self.releases.copy()
         if self.stable_only:
             # Only use stable releases
-            releases = [r for r in releases if is_stable_version(r)]
-        logger.debug(f"Available versions: {self.releases}")
+            releases = [r for r in releases if not r.is_prerelease]
+        logger.debug(f"Available versions: {releases}")
 
-        self.latest_release = releases[-1] if releases else __version__
-        self.update_available = check_version(
-            __version__,
-            self.latest_release,
-            '<'
-        )
+        latest_release = max(releases) if releases else CURR_VER
+        update_available = CURR_VER < latest_release
 
-        logger.debug(f"Update available: {self.update_available}")
-        logger.debug(f"Latest release: {self.latest_release}")
+        logger.debug(f"Latest release: {latest_release}")
+        logger.debug(f"Update available: {update_available}")
+
+        # Check if the asset is available for download.
+        # If the asset is not available, then check the next latest
+        # release, and so on until either a new asset is available or there
+        # is no update available.
+        if github:
+            asset_available = False
+            while update_available and not asset_available:
+                asset_info = get_asset_info(latest_release)
+                page = requests.head(asset_info['url'])
+                if page.status_code == 302:
+                    # The asset is found
+                    logger.debug(f"Asset available for url: {page.url}")
+                    asset_available = True
+                else:
+                    # The asset is not available
+                    logger.debug(
+                        "Asset not available: "
+                        f"{page.status_code} Client Error: {page.reason}"
+                        f" for url: {page.url}"
+                    )
+                    asset_available = False
+                    releases.remove(latest_release)
+
+                    latest_release = max(releases) if releases else CURR_VER
+                    update_available = CURR_VER < latest_release
+
+                    logger.debug(f"Latest release: {latest_release}")
+                    logger.debug(f"Update available: {update_available}")
+
+        self.latest_release = latest_release
+        self.update_available = update_available
 
     def start(self):
         """Main method of the worker."""
@@ -148,13 +227,17 @@ class WorkerUpdate(BaseWorker):
         error_msg = None
         url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
-        # If Spyder is installed from defaults channel (pkgs/main), then use
-        # that channel to get updates. The defaults channel can be far behind
-        # our latest release
-        if is_anaconda():
-            channel, channel_url = get_spyder_conda_channel()
-            if channel == "pkgs/main":
+        if not is_conda_based_app():
+            self.channel = "pypi"  # Default channel if not conda
+            if is_anaconda():
+                self.channel, channel_url = get_spyder_conda_channel()
+
+            # If Spyder is installed from defaults channel (pkgs/main), then
+            # use that channel to get updates. The defaults channel can be far
+            # behind our latest release.
+            if self.channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
+        github = "api.github.com" in url
 
         headers = {}
         token = os.getenv('GITHUB_TOKEN')
@@ -168,19 +251,18 @@ class WorkerUpdate(BaseWorker):
             page.raise_for_status()
 
             data = page.json()
-            if url.endswith('releases'):
+            if github:
                 # Github url
-                self.releases = [
-                    item['tag_name'].replace('v', '') for item in data
-                ]
+                releases = [parse(item['tag_name']) for item in data]
             else:
-                # Conda url
+                # Conda pkgs/main url
                 spyder_data = data['packages'].get('spyder')
                 if spyder_data:
-                    self.releases = [spyder_data["version"]]
-            self.releases.sort(key=parse)
+                    releases = [parse(spyder_data["version"])]
+            releases.sort()
 
-            self._check_update_available()
+            self._check_update_available(releases, github)
+
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
@@ -251,10 +333,8 @@ class WorkerDownloadInstaller(BaseWorker):
 
     def _download_installer(self):
         """Donwload Spyder installer."""
-        url = (
-            'https://github.com/spyder-ide/spyder/releases/download/'
-            f'v{self.latest_release}/{osp.basename(self.installer_path)}'
-        )
+        asset_info = get_asset_info(self.latest_release)
+        url = asset_info['url']
         logger.info(f"Downloading {url} to {self.installer_path}")
 
         dirname = osp.dirname(self.installer_path)
