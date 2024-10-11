@@ -35,6 +35,8 @@ on:
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
 
+  workflow_call:
+
   workflow_dispatch:
 
 concurrency:

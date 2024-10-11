@@ -1,0 +1,63 @@
+name: Purge caches
+on:
+  schedule:
+    # 4:10 UTC Sunday
+    - cron: "10 4 * * 0"
+
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Purge Cache
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh extension install actions/gh-actions-cache
+
+          REPO=${{ github.repository }}
+
+          echo "Fetching list of cache key"
+          allCaches=$(gh actions-cache list -L 100 -R $REPO | cut -f 1 )
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $allCaches
+          do
+              gh actions-cache delete $cacheKey -R $REPO --confirm
+          done
+          echo "Done"
+
+  run-test-files:
+    name: Run test-files
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-files.yml
+
+  run-test-linux:
+    name: Run test-linux
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-linux.yml
+
+  run-test-mac:
+    name: Run test-mac
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-mac.yml
+
+  run-test-remoteclient:
+    name: Run test-remoteclient
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-remoteclient.yml
+
+  run-test-win:
+    name: Run test-win
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-win.yml
