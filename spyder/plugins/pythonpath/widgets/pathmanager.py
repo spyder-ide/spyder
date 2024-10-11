@@ -648,17 +648,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
         super().accept()
 
     def reject(self):
-        # Send back original paths (system_paths may be updated)
-        self.sig_path_changed.emit(
-            self.user_paths, self.system_paths, self.prioritize
-        )
+        # ??? Do we need this?
         super().reject()
 
     def closeEvent(self, event):
-        # Send back original paths (system_paths may be updated)
-        self.sig_path_changed.emit(
-            self.user_paths, self.system_paths, self.prioritize
-        )
+        # ??? Do we need this?
         super().closeEvent(event)
 
 
