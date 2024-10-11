@@ -16,7 +16,6 @@ import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.config.utils import is_anaconda
 from spyder.plugins.ipythonconsole.tests.conftest import get_conda_test_env
 from spyder.utils.conda import (
     find_conda,
@@ -25,8 +24,9 @@ from spyder.utils.conda import (
     get_list_conda_envs_cache,
     get_spyder_conda_channel,
 )
+from spyder_kernels.utils.pythonenv import is_conda_env
 
-if not is_anaconda():
+if not is_conda_env(sys.prefix):
     pytest.skip("Requires conda to be installed", allow_module_level=True)
 
 if os.name == 'nt':

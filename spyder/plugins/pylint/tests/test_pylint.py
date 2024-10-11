@@ -10,6 +10,7 @@
 # Standard library imports
 from io import open
 import os.path as osp
+import sys
 from unittest.mock import Mock, MagicMock
 
 # Third party imports
@@ -30,11 +31,11 @@ if QApplication.instance() is None:
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.config.utils import is_anaconda
 from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import get_python_executable
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # pylint: disable=redefined-outer-name
 
@@ -64,6 +65,7 @@ enable=blacklisted-name
 bad-names={bad_names}
 good-names=e
 """
+
 
 class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
@@ -204,7 +206,7 @@ def test_get_pylintrc_path(pylintrc_files, mocker):
     actual_path = get_pylintrc_path(
         search_paths=list(search_paths.values()),
         home_path=search_paths[HOME_DIR],
-        )
+    )
     assert actual_path == expected_path
 
 
@@ -293,7 +295,9 @@ def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("custom_interpreter", [True, False])
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
                             custom_interpreter):

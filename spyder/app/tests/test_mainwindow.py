@@ -66,7 +66,6 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci,
     running_in_ci_with_conda)
 from spyder.config.manager import CONF
-from spyder.config.utils import is_anaconda
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
 from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
@@ -90,6 +89,7 @@ from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 @pytest.mark.order(1)
@@ -1503,7 +1503,9 @@ def test_run_code(main_window, qtbot, tmpdir):
     shell.execute('a = 100')
     editor.go_to_line(6)
     qtbot.keyClick(code_editor, Qt.Key_Right)
-    run_from_line_action = main_window.run.get_action('run selection from line')
+    run_from_line_action = main_window.run.get_action(
+        'run selection from line'
+    )
     with qtbot.waitSignal(shell.executed):
         run_from_line_action.trigger()
     qtbot.wait(500)
@@ -2268,7 +2270,7 @@ def test_plots_scroll(main_window, qtbot):
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
-    # make sure we didn't scroll to the end and a new thumbnail was not selected
+    # Ensure we didn't scroll to the end and a new thumbnail was not selected
     assert len(sb._thumbnails) == 45
     assert sb._thumbnails[-1] != sb.current_thumbnail
     assert scrollbar.value() != scrollbar.maximum()
@@ -3345,7 +3347,9 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(
     not sys.platform.startswith("linux"),
@@ -5359,7 +5363,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "            print()\n"
         "        def c():\n"
         "            print()\n"
-        )
+    )
 
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -5405,7 +5409,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "\n"
         "            def c():\n"
         "                print()\n"
-        )
+    )
     assert expected in code_editor.toPlainText()
 
 
@@ -5720,7 +5724,7 @@ def test_out_runfile_runcell(main_window, qtbot):
         "a = 1 + 3; a;": (4, False),
         "a = 1 + 5\na": (6, True),
         "a = 1 + 7\na;": (8, False)
-        }
+    }
     for code in codes:
         num, shown = codes[code]
         # create new file

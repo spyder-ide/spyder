@@ -35,7 +35,6 @@ import sympy
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
-from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
@@ -43,6 +42,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 @flaky(max_runs=3)
@@ -291,7 +291,9 @@ def test_cython_client(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.environment_client
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_environment_client(ipyconsole, qtbot):
@@ -1339,7 +1341,9 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_conda_env_activation(ipyconsole, qtbot):
@@ -2350,7 +2354,9 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
-@pytest.mark.skipif(not is_anaconda(), reason="Only works with Anaconda")
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason="Only works with Anaconda"
+)
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up
