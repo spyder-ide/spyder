@@ -35,8 +35,9 @@ from spyder.api.plugins import Plugins
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter, is_kde_desktop, is_anaconda)
+from spyder.config.utils import (
+    get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
+)
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -57,6 +58,7 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import mimedata2url, create_waitspinner
 from spyder.utils.stylesheet import PANES_TABBAR_STYLESHEET
 from spyder.widgets.tabs import BaseTabs
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 logger = logging.getLogger(__name__)
 
@@ -309,7 +311,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.close_quotes_enabled = True
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
-        self.indent_chars = " "*4
+        self.indent_chars = " " * 4
         self.tab_stop_width_spaces = 4
         self.show_class_func_dropdown = False
         self.help_enabled = False
@@ -410,12 +412,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             and osp.splitdrive(getcwd_or_home())[0] != file_drive
         ):
             QMessageBox.warning(
-               self,
-               _("No available relative path"),
-               _("It is not possible to copy a relative path "
-                 "for this file because it is placed in a "
-                 "different drive than your current working "
-                 "directory. Please copy its absolute path.")
+                self,
+                _("No available relative path"),
+                _("It is not possible to copy a relative path "
+                  "for this file because it is placed in a "
+                  "different drive than your current working "
+                  "directory. Please copy its absolute path.")
             )
         else:
             base_path = getcwd_or_home()
@@ -1296,8 +1298,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
 
         for new_window_and_close_action in (
-                self.__get_new_window_and_close_actions()
-                ):
+            self.__get_new_window_and_close_actions()
+        ):
             self.menu.add_action(
                 new_window_and_close_action,
                 section=EditorStackMenuSections.NewWindowCloseSection
@@ -1511,13 +1513,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             return
         else:
             steps = abs(end - start)
-            direction = (end-start) // steps  # +1 for right, -1 for left
+            direction = (end - start) // steps  # +1 for right, -1 for left
 
         data = self.data
         self.blockSignals(True)
 
         for i in range(start, end, direction):
-            data[i], data[i+direction] = data[i+direction], data[i]
+            data[i], data[i + direction] = data[i + direction], data[i]
 
         self.blockSignals(False)
         self.refresh()
@@ -1654,8 +1656,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """ Close all files opened to the right """
         num = self.get_stack_index()
         n = self.get_stack_count()
-        for __ in range(num, n-1):
-            self.close_file(num+1)
+        for __ in range(num, n - 1):
+            self.close_file(num + 1)
 
     def close_all_but_this(self):
         """Close all files but the current one"""
@@ -1970,7 +1972,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # Don't use filters on KDE to not make the dialog incredible
         # slow
         # Fixes spyder-ide/spyder#4156.
-        if is_kde_desktop() and not is_anaconda():
+        if is_kde_desktop() and not is_conda_env(sys.prefix):
             filters = ''
             selectedfilter = ''
         else:

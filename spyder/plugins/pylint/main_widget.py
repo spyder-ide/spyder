@@ -31,8 +31,7 @@ from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, is_conda_based_app
-from spyder.config.utils import is_anaconda
+from spyder.config.base import get_conf_path
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
@@ -43,6 +42,7 @@ from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
 from spyder.widgets.helperwidgets import PaneEmptyWidget
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 # --- Constants
@@ -229,7 +229,7 @@ class ResultsTree(OneColumnTree):
                     modname = osp.join(modname, "__init__")
 
                 for ext in (".py", ".pyw"):
-                    if osp.isfile(modname+ext):
+                    if osp.isfile(modname + ext):
                         modname = modname + ext
                         break
 
@@ -384,7 +384,7 @@ class PylintWidget(PluginMainWidget):
             processEnvironment.insert("USERPROFILE", user_profile)
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
-            if not is_conda_based_app() and not is_anaconda():
+            if not is_conda_env(sys.prefix):
                 processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
 
         process.setProcessEnvironment(processEnvironment)
@@ -998,7 +998,7 @@ class PylintWidget(PluginMainWidget):
         if i_rate > 0:
             i_rate_end = output.find("/10", i_rate)
             if i_rate_end > 0:
-                rate = output[i_rate+len(txt_rate):i_rate_end]
+                rate = output[i_rate + len(txt_rate):i_rate_end]
 
         # Previous run
         previous = ""
@@ -1007,7 +1007,7 @@ class PylintWidget(PluginMainWidget):
             i_prun = output.find(txt_prun, i_rate_end)
             if i_prun > 0:
                 i_prun_end = output.find("/10", i_prun)
-                previous = output[i_prun+len(txt_prun):i_prun_end]
+                previous = output[i_prun + len(txt_prun):i_prun_end]
 
         return rate, previous, results
 
