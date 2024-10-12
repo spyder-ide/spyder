@@ -98,7 +98,7 @@ class PythonpathContainer(PluginMainContainer):
             self.path_manager_dialog.update_paths(
                 project_paths=self._project_paths,
                 user_paths=self._user_paths,
-                system_paths=self._get_system_paths(),
+                system_paths=self._system_paths,
                 prioritize=self._prioritize
             )
 
