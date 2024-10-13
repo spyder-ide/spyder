@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-20 02:49\n"
+"PO-Revision-Date: 2024-10-13 00:31\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -837,7 +837,7 @@ msgstr "Ajuda Spyder"
 
 #: spyder/plugins/application/widgets/status.py:146
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Ajude-me, Spyder!"
 
 #: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:166 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4612 spyder/plugins/editor/widgets/editorstack/editorstack.py:300 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:362 spyder/plugins/editor/widgets/main_widget.py:2156 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:343 spyder/plugins/tours/tours.py:82
 msgid "Editor"
@@ -1706,7 +1706,7 @@ msgstr "Executar código enquanto depurar"
 
 #: spyder/plugins/debugger/confpage.py:26
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
-msgstr ""
+msgstr "Você pode rodar muitas linhas de código em cada nova solicitação enquanto depura. Por favor, introduza cada um separadamente, por ponto e vírgula e um espaço. Por exemplo:<br><i>importar matplotlib.pyplot como ptl</i>"
 
 #: spyder/plugins/debugger/confpage.py:34 spyder/plugins/ipythonconsole/confpage.py:236
 msgid "Lines:"
@@ -1762,7 +1762,7 @@ msgstr "Inspetor de execução"
 
 #: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:210
 msgid "Exclude internal frames when inspecting execution"
-msgstr ""
+msgstr "Excluir frames internos ao inspecionar execução"
 
 #: spyder/plugins/debugger/plugin.py:56 spyder/plugins/debugger/widgets/main_widget.py:196
 msgid "Debugger"
