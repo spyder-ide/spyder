@@ -10,7 +10,7 @@ Toolbar Container.
 
 # Standard library imports
 from collections import OrderedDict
-from spyder.utils.qthelpers import SpyderAction
+import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 # Third party imports
@@ -21,13 +21,17 @@ from qtpy import PYSIDE2
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
-from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.utils import get_class_values
-from spyder.config.base import DEV
+from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
+from spyder.config.base import DEV
 from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 
+
+# Logging
+logger = logging.getLogger(__name__)
 
 # Type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
@@ -59,6 +63,7 @@ class QActionID(QAction):
 
 
 class ToolbarContainer(PluginMainContainer):
+
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent=parent)
 
@@ -349,8 +354,7 @@ class ToolbarContainer(PluginMainContainer):
             if toolbar_id not in internal_toolbars
         ]
 
-        # Add internal toolbars first in the order below, except the working
-        # directory because it'll be added last.
+        # Default order for internal toolbars
         internal_toolbars_order = [
             ApplicationToolbars.File,
             ApplicationToolbars.Run,
@@ -359,7 +363,7 @@ class ToolbarContainer(PluginMainContainer):
             ApplicationToolbars.Main,
         ]
 
-        # Check we didn't left out any internal toolbar from the order above
+        # Check we didn't leave out any internal toolbar from the order above
         if DEV:
             if (
                 (set(internal_toolbars) - set(internal_toolbars_order))
@@ -377,19 +381,58 @@ class ToolbarContainer(PluginMainContainer):
                     f"Please add them to fix this error"
                 )
 
-        # We need to remove all toolbars to organize them in the way we want
+        logger.debug("Loading application toolbars")
+
+        # We need to remove all toolbars first to organize them in the way we
+        # want
         for toolbar in self._toolbarslist:
             self._plugin.main.removeToolBar(toolbar)
 
-        # Add toolbars
+        toolbars_order = self.get_conf("toolbars_order")
+        if not toolbars_order:
+            # This is necessary only once, when there was no order saved in the
+            # previous session
+            toolbars_order = internal_toolbars_order + external_toolbars
+        else:
+            # Add new external toolbars to the right of the previous ones.
+            new_external_toolbars = [
+                toolbar_id
+                for toolbar_id in external_toolbars
+                if toolbar_id not in toolbars_order
+            ]
+            toolbars_order = toolbars_order + new_external_toolbars
+
+        # Add toolbars with the working directory to the right because it has a
+        # spacer
         for toolbar_id in (
-            internal_toolbars_order
-            + external_toolbars
+            toolbars_order
             + [ApplicationToolbars.WorkingDirectory]
         ):
             toolbar = app_toolbars[toolbar_id]
             self._plugin.main.addToolBar(toolbar)
             toolbar.render()
+
+    def save_toolbars_order(self):
+        """Save toolbars order from left to right when the app is closed."""
+        logger.debug("Saving application toolbars order")
+
+        # We need to make visible all toolbars so that Qt correctly reports
+        # their positions.
+        for toolbar in self._toolbarslist:
+            toolbar.setVisible(True)
+
+        # Get all toolbars with the exception of the working directory because
+        # it'll be added to the right at startup given that it has a spacer to
+        # its left.
+        toolbars = self.get_application_toolbars().copy()
+        toolbars.pop(ApplicationToolbars.WorkingDirectory)
+
+        # Get current order
+        order = sorted(toolbars.values(), key=lambda toolbar: toolbar.x())
+        ordered_ids = [toolbar.ID for toolbar in order]
+
+        # Save order
+        self.set_conf("toolbars_order", ordered_ids)
 
     def save_last_visible_toolbars(self):
         """Save the last visible toolbars state in our preferences."""
