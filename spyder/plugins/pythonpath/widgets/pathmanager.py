@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.plugins.pythonpath.utils import check_path
+from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
@@ -43,6 +43,7 @@ class PathManagerToolbuttons:
     MoveToBottom = 'move_to_bottom'
     AddPath = 'add_path'
     RemovePath = 'remove_path'
+    ImportPaths = 'import_paths'
     ExportPaths = 'export_paths'
     Prioritize = 'prioritize'
 
@@ -170,6 +171,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
             tip=_('Remove path'),
             icon=self.create_icon('editclear'),
             triggered=lambda x: self.remove_path())
+        self.import_button = self.create_toolbutton(
+            PathManagerToolbuttons.ImportPaths,
+            tip=_('Import from PYTHONPATH environment variable'),
+            icon=self.create_icon('fileimport'),
+            triggered=lambda x: self.import_paths())
         self.export_button = self.create_toolbutton(
             PathManagerToolbuttons.ExportPaths,
             icon=self.create_icon('fileexport'),
@@ -186,7 +192,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                                   self.movedown_button, self.movebottom_button]
         return (
             [self.add_button, self.remove_button] +
-            self.selection_widgets + [self.export_button] +
+            self.selection_widgets + [self.import_button, self.export_button] +
             [self.prioritize_button]
         )
 
@@ -248,6 +254,23 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         return css.toString()
 
+    def _setup_system_paths(self, paths):
+        """Add system paths, creating system header if necessary"""
+        if not paths:
+            return
+
+        if not self.system_header:
+            self.system_header, system_widget = (
+                self._create_header(_("System PYTHONPATH"))
+            )
+            self.headers.append(self.system_header)
+            self.listwidget.addItem(self.system_header)
+            self.listwidget.setItemWidget(self.system_header, system_widget)
+
+        for path, active in paths.items():
+            item = self._create_item(path, active)
+            self.listwidget.addItem(item)
+
     # ---- Public methods
     # -------------------------------------------------------------------------
     @property
@@ -308,18 +331,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
-        # System path
-        if self.system_paths:
-            self.system_header, system_widget = (
-                self._create_header(_("System PYTHONPATH"))
-            )
-            self.headers.append(self.system_header)
-            self.listwidget.addItem(self.system_header)
-            self.listwidget.setItemWidget(self.system_header, system_widget)
-
-            for path, active in self.system_paths.items():
-                item = self._create_item(path, active)
-                self.listwidget.addItem(item)
+        # System paths
+        self._setup_system_paths(self.system_paths)
 
         # Prioritize
         self.prioritize_button.setChecked(self.prioritize)
@@ -595,6 +608,33 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
                 # Refresh widget
                 self.refresh()
+
+    @Slot()
+    def import_paths(self):
+        """Import PYTHONPATH from environment."""
+        current_system_paths = self.get_system_paths()
+        system_paths = get_system_pythonpath()
+
+        # Inherit active state from current system paths
+        system_paths = OrderedDict(
+            {p: current_system_paths.get(p, True) for p in system_paths}
+        )
+
+        # Remove system paths
+        if self.system_header:
+            header_row = self.listwidget.row(self.system_header)
+            for row in range(self.listwidget.count(), header_row, -1):
+                self.listwidget.takeItem(row)
+
+            # Also remove system header
+            if not system_paths:
+                self.listwidget.takeItem(header_row)
+                self.headers.remove(self.system_header)
+                self.system_header = None
+
+        self._setup_system_paths(system_paths)
+
+        self.refresh()
 
     def move_to(self, absolute=None, relative=None):
         """Move items of list widget."""
