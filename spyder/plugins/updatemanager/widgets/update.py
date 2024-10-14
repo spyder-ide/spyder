@@ -20,6 +20,7 @@ from sysconfig import get_path
 from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
@@ -33,7 +34,6 @@ from spyder.plugins.updatemanager.workers import (
 from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.programs import get_temp_dir, is_program_installed
 from spyder.widgets.helperwidgets import MessageCheckBox
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Logger setup
 logger = logging.getLogger(__name__)

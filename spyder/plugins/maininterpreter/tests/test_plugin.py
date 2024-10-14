@@ -13,11 +13,11 @@ import sys
 
 # Third party imports
 import pytest
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 @pytest.fixture

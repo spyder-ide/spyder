@@ -24,6 +24,7 @@ import time
 from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
 import zmq
 import psutil
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -41,7 +42,6 @@ from spyder.plugins.completion.providers.languageserver.transport import (
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.utils.misc import getcwd_or_home, select_port
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),

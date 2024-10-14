@@ -21,11 +21,11 @@ import sys
 
 # Third party imports
 import pytest
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 import spyder.config.base
 from spyder.utils.conda import get_list_conda_envs
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 # ============================================================================

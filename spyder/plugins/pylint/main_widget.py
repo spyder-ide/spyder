@@ -26,6 +26,7 @@ from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
                             QTreeWidgetItem, QStackedWidget, QVBoxLayout)
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -42,7 +43,6 @@ from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
 from spyder.widgets.helperwidgets import PaneEmptyWidget
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 # --- Constants

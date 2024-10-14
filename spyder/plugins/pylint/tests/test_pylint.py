@@ -18,6 +18,7 @@ from flaky import flaky
 import pytest
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QApplication, QMainWindow
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # This is necessary to run these tests independently from the rest in our
 # test suite.
@@ -35,7 +36,6 @@ from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import get_python_executable
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 # pylint: disable=redefined-outer-name
 

@@ -20,13 +20,13 @@ from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.config.base import _, is_stable_version, running_in_ci
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Logger setup
 logger = logging.getLogger(__name__)

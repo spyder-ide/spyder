@@ -41,6 +41,7 @@ from qtpy.QtCore import QPoint, Qt, QTimer
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __trouble_url__
@@ -89,7 +90,6 @@ from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
 from spyder.widgets.dock import DockTitleBar
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 @pytest.mark.order(1)

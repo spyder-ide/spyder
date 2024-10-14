@@ -30,6 +30,7 @@ import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
+from spyder_kernels.utils.pythonenv import is_conda_env
 import sympy
 
 # Local imports
@@ -42,7 +43,6 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 @flaky(max_runs=3)

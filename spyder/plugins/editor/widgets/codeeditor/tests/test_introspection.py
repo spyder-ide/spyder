@@ -19,6 +19,7 @@ import pytest
 import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
@@ -29,7 +30,6 @@ from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri
 )
 from spyder.utils.conda import get_list_conda_envs
-from spyder_kernels.utils.pythonenv import is_conda_env
 
 
 # Location of this file
