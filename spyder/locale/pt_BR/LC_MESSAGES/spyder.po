@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-10-14 13:03\n"
+"PO-Revision-Date: 2024-10-14 14:02\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -6275,7 +6275,7 @@ msgstr "Checando atualizações"
 
 #: spyder/plugins/updatemanager/widgets/update.py:46
 msgid "Install on close"
-msgstr ""
+msgstr "Instalar quando fechar"
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "<h3>Spyder {} is available!</h3><br>"
