@@ -16,14 +16,15 @@ import os
 import os.path as osp
 from pathlib import Path
 import shutil
+import sys
 
 
 # Third party imports
 import pytest
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 import spyder.config.base
-from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -57,7 +58,9 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
 @pytest.mark.skipif(
     not spyder.config.base.running_in_ci(), reason="Only works on CIs"
 )
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 def test_is_conda_based_app():
     """Test that is_conda_based_app is working as expected."""
     # Get conda env to use

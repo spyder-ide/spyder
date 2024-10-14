@@ -20,13 +20,13 @@ from sysconfig import get_path
 from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
-from spyder.config.utils import is_anaconda
 from spyder.plugins.updatemanager.workers import (
     WorkerUpdate,
     WorkerDownloadInstaller
@@ -52,7 +52,7 @@ URL_I = 'https://docs.spyder-ide.org/current/installation.html'
 SKIP_CHECK_UPDATE = (
     sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
     or (
-        not is_anaconda()
+        not is_conda_env(sys.prefix)
         and osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
     )
 )
@@ -590,7 +590,7 @@ def confirm_messagebox(parent, message, title, version=None, critical=False,
 def manual_update_messagebox(parent, latest_release, channel):
     msg = ""
     if os.name == "nt":
-        if is_anaconda():
+        if is_conda_env(sys.prefix):
             msg += _("Run the following command or commands in "
                      "the Anaconda prompt to update manually:"
                      "<br><br>")
@@ -598,14 +598,14 @@ def manual_update_messagebox(parent, latest_release, channel):
             msg += _("Run the following command in a cmd prompt "
                      "to update manually:<br><br>")
     else:
-        if is_anaconda():
+        if is_conda_env(sys.prefix):
             msg += _("Run the following command or commands in a "
                      "terminal to update manually:<br><br>")
         else:
             msg += _("Run the following command in a terminal to "
                      "update manually:<br><br>")
 
-    if is_anaconda():
+    if is_conda_env(sys.prefix):
         is_pypi = channel == 'pypi'
 
         if is_anaconda_pkg() and not is_pypi:

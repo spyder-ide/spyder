@@ -10,6 +10,7 @@ import logging
 import os
 import os.path as osp
 import shutil
+import sys
 from time import sleep
 import traceback
 from zipfile import ZipFile
@@ -19,11 +20,11 @@ from packaging.version import parse
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.config.base import _, is_stable_version, running_in_ci
-from spyder.config.utils import is_anaconda
 from spyder.utils.conda import get_spyder_conda_channel
 from spyder.utils.programs import check_version
 
@@ -151,7 +152,7 @@ class WorkerUpdate(BaseWorker):
         # If Spyder is installed from defaults channel (pkgs/main), then use
         # that channel to get updates. The defaults channel can be far behind
         # our latest release
-        if is_anaconda():
+        if is_conda_env(sys.prefix):
             channel, channel_url = get_spyder_conda_channel()
             if channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
