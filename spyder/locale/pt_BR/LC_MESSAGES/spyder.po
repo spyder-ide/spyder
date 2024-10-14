@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-10-14 14:02\n"
+"PO-Revision-Date: 2024-10-14 15:18\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -6299,7 +6299,7 @@ msgstr "Você gostaria de baixar e instalar automaticamente?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:344
 msgid "Downloading Spyder {} ..."
-msgstr ""
+msgstr "Baixando Spyder {} ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:387
 msgid "Do you really want to cancel the download?"
@@ -6435,7 +6435,7 @@ msgstr "O formato (%s) está incorreto"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:772 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1744
 msgid "Display options ..."
-msgstr ""
+msgstr "Opções de exibição..."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:778 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1734 spyder/widgets/browser.py:191 spyder/widgets/collectionseditor.py:1612
 msgid "Refresh"
@@ -6443,7 +6443,7 @@ msgstr "Atualizar"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:780 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1736 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:245 spyder/widgets/collectionseditor.py:1614
 msgid "Refresh editor with current value of variable in console"
-msgstr ""
+msgstr "Atualizar editor com o valor atual da variável no console"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:787
 msgid "Resize"
@@ -7106,11 +7106,11 @@ msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:65
 msgid "{} editor preferences"
-msgstr ""
+msgstr "{} preferências de editor"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:70
 msgid "Formatting"
-msgstr ""
+msgstr "Formatação"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:73
 msgid "<a href=\"{url}\">Format specification</a> for floats:"
@@ -7150,7 +7150,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:122
 msgid "Compare each cell against the largest and smallest numbers in the entire dataframe"
-msgstr ""
+msgstr "Compare cada célula com os maiores e menores números de todo o dataframe"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:131
 msgid "Column by column"
