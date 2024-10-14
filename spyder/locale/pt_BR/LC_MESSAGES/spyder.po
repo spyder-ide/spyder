@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-10-14 10:42\n"
+"PO-Revision-Date: 2024-10-14 13:03\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -1770,7 +1770,7 @@ msgstr "Depurado"
 
 #: spyder/plugins/debugger/plugin.py:60
 msgid "View, explore and navigate stack frames while debugging."
-msgstr ""
+msgstr "Visualize, explore e navegue nas pilhas de quadros durante a depuração."
 
 #: spyder/plugins/debugger/plugin.py:160
 msgid "&Debug file"
@@ -3964,7 +3964,7 @@ msgstr "Usar recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
-msgstr "Esta opção habilita o recargamento automático mágico.<br>Consulte sua documentação para aprender a usá-la."
+msgstr "Esta opção habilita o recargamento automático mágico.<br> Por favor, consulte a documentação para aprender a usá-lo."
 
 #: spyder/plugins/ipythonconsole/confpage.py:361
 msgid "Symbolic mathematics"
@@ -4052,7 +4052,7 @@ msgstr "Ocorreu um erro ao tentar carregar o arquivo de conexão do kernel. O er
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:41
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "O ambiente ou instalação Python cujo interpretador está localizado em<pre> <tt>{0}</tt></pre>não tem o <tt>spyder-kernels</tt> ou a versão correta dele instalado ({1}). Sem este módulo não é possível para o Spyder criar um console para você.<br><br>Você pode instalá-lo ativando seu ambiente (se necessário) e depois executando em um terminal do sistema:<pre> <tt>{2} </tt></pre>ou<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:226
 msgid "Connecting to kernel..."
@@ -4892,7 +4892,7 @@ msgstr ""
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Ajustar o gráfico ao tamanho do painel"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -5126,7 +5126,7 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/main_widget.py:189
 msgid "Create one using the menu entry Projects > New project."
-msgstr ""
+msgstr "Crie um usando os Projetos de Entrada de Menu > Novo projeto."
 
 #: spyder/plugins/projects/widgets/main_widget.py:231
 msgid "New Project..."
@@ -5166,7 +5166,7 @@ msgstr "<b>%s</b> não é um projeto do Spyder!"
 
 #: spyder/plugins/projects/widgets/main_widget.py:466
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr ""
+msgstr "Você deseja mesmo deletar <b>{fila de nome}</b>?<br><br><b>Nota:</b> Isso deletará apenas o projeto. Os arquivos continuarão no disco."
 
 #: spyder/plugins/projects/widgets/main_widget.py:482
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
@@ -5354,7 +5354,7 @@ msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:114
 msgid "The paths listed below will be passed to the IPython console and to the Editor as additional locations to search for Python modules."
-msgstr ""
+msgstr "Os caminhos listados abaixo serão passados para os consoles IPython e o servidor de linguagem Python como locais adicionais para pesquisar módulos do Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:160
 msgid "Move path to the top"
@@ -5634,11 +5634,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:289
 msgid "Connection to: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Conectar a: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:295
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Status: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:162
 msgid "Manage remote connections..."
@@ -5646,7 +5646,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:168
 msgid "New console in remote server"
-msgstr ""
+msgstr "Novo console em servidor remoto"
 
 #: spyder/plugins/remoteclient/widgets/container.py:237
 msgid "There was an error connecting to the server <b>{}</b>. Please check your connection is working."
