@@ -16,21 +16,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh extension install actions/gh-actions-cache
-
           REPO=${{ github.repository }}
 
-          echo "Fetching list of cache key"
-          allCaches=$(gh actions-cache list -L 100 -R $REPO | cut -f 1 )
+          gh cache list --repo $REPO
 
           ## Setting this to not fail the workflow while deleting cache keys.
           set +e
-          echo "Deleting caches..."
-          for cacheKey in $allCaches
-          do
-              gh actions-cache delete $cacheKey -R $REPO --confirm
-          done
-          echo "Done"
+          gh cache delete --repo $REPO --all
+
+          # Last command must be successful so that workflow step does not fail
+          echo Purging cache is complete.
 
   run-test-files:
     name: Run test-files
