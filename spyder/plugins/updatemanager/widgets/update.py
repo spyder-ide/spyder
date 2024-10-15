@@ -254,7 +254,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.update_type = asset_info['update_type']
 
         dirname = osp.join(get_temp_dir(), 'updates', str(self.latest_release))
-        self.installer_path = osp.join(dirname, asset_info['name'])
+        self.installer_path = osp.join(dirname, asset_info['filename'])
         self.installer_size_path = osp.join(dirname, "size")
 
         logger.info(f"Update type: {self.update_type}")

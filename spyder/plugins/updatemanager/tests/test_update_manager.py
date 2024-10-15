@@ -13,7 +13,7 @@ import pytest
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
 from spyder.plugins.updatemanager.workers import (
-    get_asset_info, WorkerUpdate, HTTP_ERROR_MSG
+    UpdateType, get_asset_info, WorkerUpdate, HTTP_ERROR_MSG
 )
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
@@ -52,7 +52,7 @@ def test_updates(qtbot, mocker, caplog, version, channel):
     mocker.patch.object(
         UpdateManagerWidget, "start_update", new=lambda x: None
     )
-    mocker.patch.object(workers, "CURR_VER", new=parse(version))
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
     mocker.patch.object(
         workers, "get_spyder_conda_channel", return_value=channel
     )
@@ -87,7 +87,7 @@ def test_updates(qtbot, mocker, caplog, version, channel):
 @pytest.mark.parametrize("stable_only", [True, False])
 def test_update_non_stable(qtbot, mocker, version, release, stable_only):
     """Test we offer unstable updates."""
-    mocker.patch.object(workers, "CURR_VER", new=parse(version))
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
 
     release = parse(release)
     worker = WorkerUpdate(stable_only)
@@ -102,7 +102,7 @@ def test_update_non_stable(qtbot, mocker, version, release, stable_only):
 @pytest.mark.parametrize("version", ["4.0.0", "6.0.0"])
 def test_update_no_asset(qtbot, mocker, version):
     """Test update availability when asset is not available"""
-    mocker.patch.object(workers, "CURR_VER", new=parse(version))
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
 
     releases = [parse("6.0.1"), parse("6.100.0")]
     worker = WorkerUpdate(True)
@@ -117,11 +117,15 @@ def test_update_no_asset(qtbot, mocker, version):
 
 @pytest.mark.parametrize(
     "release,update_type",
-    [("6.0.1", "micro"), ("6.1.0", "minor"), ("7.0.0", "major")]
+    [
+        ("6.0.1", UpdateType.Micro),
+        ("6.1.0", UpdateType.Minor),
+        ("7.0.0", UpdateType.Major)
+    ]
 )
 @pytest.mark.parametrize("app", [True, False])
 def test_get_asset_info(qtbot, mocker, release, update_type, app):
-    mocker.patch.object(workers, "CURR_VER", new=parse("6.0.0"))
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse("6.0.0"))
     mocker.patch.object(workers, "is_conda_based_app", return_value=app)
 
     info = get_asset_info(release)
@@ -129,10 +133,10 @@ def test_get_asset_info(qtbot, mocker, release, update_type, app):
 
     if update_type == "major" or not app:
         assert info['url'].endswith(('.exe', '.pkg', '.sh'))
-        assert info['name'].endswith(('.exe', '.pkg', '.sh'))
+        assert info['filename'].endswith(('.exe', '.pkg', '.sh'))
     else:
         assert info['url'].endswith(".zip")
-        assert info['name'].endswith(".zip")
+        assert info['filename'].endswith(".zip")
 
 
 # ---- Test WorkerDownloadInstaller

@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+from __future__ import annotations  # noqa; required for typing in Python 3.8
 from datetime import datetime as dt
 import logging
 import os
@@ -14,10 +15,11 @@ import shutil
 import sys
 from time import sleep
 import traceback
+from typing import TypedDict
 from zipfile import ZipFile
 
 # Third party imports
-from packaging.version import parse
+from packaging.version import parse, Version
 from qtpy.QtCore import QObject, Signal
 import requests
 from requests.exceptions import ConnectionError, HTTPError, SSLError
@@ -31,7 +33,7 @@ from spyder.utils.conda import get_spyder_conda_channel
 # Logger setup
 logger = logging.getLogger(__name__)
 
-CURR_VER = parse(__version__)
+CURRENT_VERSION = parse(__version__)
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -67,7 +69,28 @@ def _rate_limits(page):
     logger.debug("\n\t".join(msg_items))
 
 
-def get_asset_info(release):
+class UpdateType:
+    """Enum with the different update types."""
+
+    Major = "major"
+    Minor = "minor"
+    Micro = "micro"
+
+
+class AssetInfo(TypedDict):
+    """Schema for asset information."""
+
+    # Filename with extension of the release asset to download.
+    filename: str
+
+    # Type of update
+    update_type: UpdateType
+
+    # Download URL for the asset.
+    url: str
+
+
+def get_asset_info(release: str | Version) -> AssetInfo:
     """
     Get the name, update type, and download URL for the asset of the given
     release.
@@ -79,27 +102,22 @@ def get_asset_info(release):
 
     Returns
     -------
-    asset_info: dict
-        name: str
-            Filename with extension of the release asset to download.
-        update_type: str
-            Type of update. One of {'major', 'minor', 'micro'}.
-        url: str
-            Download URL for the asset.
+    asset_info: AssetInfo
+        Information about the asset.
     """
     if isinstance(release, str):
         release = parse(release)
 
-    if CURR_VER.major < release.major:
-        update_type = 'major'
-    elif CURR_VER.minor < release.minor:
-        update_type = 'minor'
+    if CURRENT_VERSION.major < release.major:
+        update_type = UpdateType.Major
+    elif CURRENT_VERSION.minor < release.minor:
+        update_type = UpdateType.Minor
     else:
-        update_type = 'micro'
+        update_type = UpdateType.Micro
 
     mach = platform.machine().lower().replace("amd64", "x86_64")
 
-    if update_type == 'major' or not is_conda_based_app():
+    if update_type == UpdateType.Major or not is_conda_based_app():
         if os.name == 'nt':
             plat, ext = 'Windows', 'exe'
         if sys.platform == 'darwin':
@@ -115,7 +133,7 @@ def get_asset_info(release):
         f'v{release}/{name}'
     )
 
-    return {'name': name, 'update_type': update_type, 'url': url}
+    return AssetInfo(filename=name, update_type=update_type, url=url)
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -174,15 +192,19 @@ class WorkerUpdate(BaseWorker):
         self.error = None
         self.channel = None
 
-    def _check_update_available(self, releases, github=True):
+    def _check_update_available(
+        self,
+        releases: list[Version],
+        github: bool = True
+    ):
         """Checks if there is an update available from releases."""
         if self.stable_only:
             # Only use stable releases
             releases = [r for r in releases if not r.is_prerelease]
         logger.debug(f"Available versions: {releases}")
 
-        latest_release = max(releases) if releases else CURR_VER
-        update_available = CURR_VER < latest_release
+        latest_release = max(releases) if releases else CURRENT_VERSION
+        update_available = CURRENT_VERSION < latest_release
 
         logger.debug(f"Latest release: {latest_release}")
         logger.debug(f"Update available: {update_available}")
@@ -204,14 +226,14 @@ class WorkerUpdate(BaseWorker):
                     # The asset is not available
                     logger.debug(
                         "Asset not available: "
-                        f"{page.status_code} Client Error: {page.reason}"
-                        f" for url: {page.url}"
+                        f"{page.status_code} Client Error: {page.reason} "
+                        f"for url: {page.url}"
                     )
                     asset_available = False
                     releases.remove(latest_release)
 
-                    latest_release = max(releases) if releases else CURR_VER
-                    update_available = CURR_VER < latest_release
+                    latest_release = max(releases) if releases else CURRENT_VERSION
+                    update_available = CURRENT_VERSION < latest_release
 
                     logger.debug(f"Latest release: {latest_release}")
                     logger.debug(f"Update available: {update_available}")
