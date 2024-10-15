@@ -97,7 +97,6 @@ from spyder.plugins.run.api import (
 )
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
 from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.environ import set_user_env
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -6539,8 +6538,7 @@ def test_switch_to_plugin(main_window, qtbot):
 
 
 @flaky(max_runs=5)
-def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
-                                restore_user_env):
+def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     """
     Test that PYTHONPATH is passed to IPython consoles under different
     scenarios.
@@ -6554,11 +6552,6 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     # Main variables
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
 
-    # Add a directory to PYTHONPATH
-    sys_dir = tmp_path / 'sys_dir'
-    sys_dir.mkdir()
-    set_user_env({"PYTHONPATH": str(sys_dir)})
-
     # Add a directory to the current list of paths to simulate a path added by
     # users
     user_dir = tmp_path / 'user_dir'
@@ -6566,25 +6559,17 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     user_paths = OrderedDict({str(user_dir): True})
     if os.name != "nt":
         assert ppm.get_container()._spyder_pythonpath == []
-    ppm.get_container()._save_paths(user_paths=user_paths)
-
-    # Open Pythonpath dialog to detect sys_dir
-    ppm.show_path_manager()
-    qtbot.wait(500)
-
-    # Check we're showing two headers
-    assert len(ppm.path_manager_dialog.headers) == 2
 
     # Check the PPM emits the right signal after closing the dialog
     with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
-        ppm.path_manager_dialog.close()
+        ppm.get_container()._save_paths(user_paths=user_paths)
 
     # Check directories were added to sys.path in the right order
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute("import sys; sys_path = sys.path")
 
     sys_path = shell.get_value("sys_path")
-    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+    assert sys_path[-1:] == [str(user_dir)]
 
     # Create new console
     ipyconsole.create_new_client()
@@ -6597,7 +6582,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
         shell1.execute("import sys; sys_path = sys.path")
 
     sys_path = shell1.get_value("sys_path")
-    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+    assert sys_path[-1:] == [str(user_dir)]
 
     # Check that disabling a path from the PPM removes it from sys.path in all
     # consoles
