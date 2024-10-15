@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-20 00:42\n"
+"PO-Revision-Date: 2024-10-15 03:54\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -813,7 +813,7 @@ msgstr "提供主应用程序的基础操作。"
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "关于Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -833,11 +833,11 @@ msgstr "复制版本信息"
 
 #: spyder/plugins/application/widgets/status.py:44
 msgid "Help Spyder"
-msgstr ""
+msgstr "帮忙改进Spyder"
 
 #: spyder/plugins/application/widgets/status.py:146
 msgid "Help Spyder!"
-msgstr ""
+msgstr "帮忙改进Spyder!"
 
 #: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:166 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4612 spyder/plugins/editor/widgets/editorstack/editorstack.py:300 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:362 spyder/plugins/editor/widgets/main_widget.py:2156 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:343 spyder/plugins/tours/tours.py:82
 msgid "Editor"
@@ -5557,7 +5557,7 @@ msgstr "连接信息"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:729
 msgid "Remote connections"
-msgstr ""
+msgstr "远程连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:765
 msgid "Save connection"
@@ -6213,7 +6213,7 @@ msgstr "要运行导览，请按下 Spyder 窗口标题栏左侧的绿色按钮�
 
 #: spyder/plugins/tours/widgets.py:1078
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyder导览"
 
 #: spyder/plugins/tours/widgets.py:1103
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
