@@ -780,12 +780,22 @@ class MainWindow(
         as before, e.g self.console or self.main.console, preserving the
         same accessor as before.
         """
+        # It seems the Layout plugin is failing to be loaded under some
+        # circumstances, so we need errors for it to be raised. That way,
+        # they'll be reported by users on Github.
+        # See spyder-ide/spyder#22639
+        if attr == "layouts":
+            return self.get_plugin(
+                self._INTERNAL_PLUGINS_MAPPING[attr], error=True
+            )
+
         # Mapping of new plugin identifiers vs old attributtes
         # names given for plugins
         try:
             if attr in self._INTERNAL_PLUGINS_MAPPING.keys():
                 return self.get_plugin(
-                    self._INTERNAL_PLUGINS_MAPPING[attr], error=False)
+                    self._INTERNAL_PLUGINS_MAPPING[attr], error=False
+                )
             return self.get_plugin(attr)
         except SpyderAPIError:
             pass
