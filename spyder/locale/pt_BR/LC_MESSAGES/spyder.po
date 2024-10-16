@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-10-14 15:18\n"
+"PO-Revision-Date: 2024-10-16 20:31\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -6190,7 +6190,7 @@ msgstr "A Análise de Código ajuda você a melhorar a qualidade de seus program
 
 #: spyder/plugins/tours/tours.py:204
 msgid "The end"
-msgstr "O fim"
+msgstr "Fim"
 
 #: spyder/plugins/tours/tours.py:205
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
@@ -7154,7 +7154,7 @@ msgstr "Compare cada célula com os maiores e menores números de todo o datafra
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:131
 msgid "Column by column"
-msgstr ""
+msgstr "Coluna por Coluna"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:132
 msgid "Compare each cell against the largest and smallest numbers in the same column"
@@ -7327,7 +7327,10 @@ msgid "\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
+msgstr "<b>Auxiliar de matriz Numpy</b><br><br>\n"
+"* Digite uma matriz usando a sintaxe: <tt>1 2;3 4</tt><br>\n"
+"* Use dois espaços ou tabulações para gerar um <b>;</b>.<br>\n"
+"* Você pode pressionar <b>Shift+Enter</b> quando terminar."
 
 #: spyder/widgets/arraybuilder.py:236
 msgid "\n"
