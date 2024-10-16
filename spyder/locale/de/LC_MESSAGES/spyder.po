@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-20 21:39\n"
+"PO-Revision-Date: 2024-10-01 14:48\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -79,7 +79,7 @@ msgstr "Den Bereich abdocken"
 
 #: spyder/api/widgets/main_widget.py:375 spyder/plugins/base.py:220 spyder/plugins/variableexplorer/widgets/arrayeditor.py:873 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1837 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:358 spyder/plugins/variableexplorer/widgets/texteditor.py:70 spyder/widgets/collectionseditor.py:1742 spyder/widgets/reporterror.py:239
 msgid "Close"
-msgstr "S&chließen"
+msgstr "Schließen"
 
 #: spyder/api/widgets/main_widget.py:376 spyder/plugins/base.py:222
 msgid "Close the pane"
@@ -3343,7 +3343,7 @@ msgstr "<b>-u</b> wird zu den anderen Optionen hinzugefügt, die Sie hier festge
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:74
 msgid "Bash/Batch script settings"
-msgstr ""
+msgstr "Einstellungen für Bash/Batch-Skript"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:77 spyder/plugins/ipythonconsole/widgets/run_conf.py:64 spyder/plugins/profiler/widgets/run_conf.py:37
 msgid "Command line options:"
@@ -4035,7 +4035,7 @@ msgstr "Python-Dateien, Zellen, Code und Befehle interaktiv ausführen."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:67
 msgid "It was not possible to open an SSH tunnel for the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "Es war nicht möglich, einen SSH-Tunnel für den Remote-Kernel zu öffnen. Bitte überprüfen Sie Ihre Anmeldedaten und den Status der Serververbindung."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:37
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4631,7 +4631,7 @@ msgstr "Bitte beachten Sie, dass diese Änderungen nur auf neue IPython-Konsolen
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
-msgstr ""
+msgstr "Verwalten Sie den standardmäßigen Python-Interpreter zum Ausführen, Analysieren und Profilen ihres Codes in Spyder."
 
 #: spyder/plugins/mainmenu/plugin.py:48
 msgid "Main menus"
@@ -4687,7 +4687,7 @@ msgstr "Online-Hilfe"
 
 #: spyder/plugins/onlinehelp/plugin.py:52
 msgid "Browse and search documentation for installed Python modules interactively."
-msgstr ""
+msgstr "Durchsuchen Sie interaktiv die Dokumentation nach installierten Python-Modulen."
 
 #: spyder/plugins/onlinehelp/pydoc_patch.py:827
 msgid "There was an error while retrieving documentation for the object you requested: Object could not be found"
@@ -4891,11 +4891,11 @@ msgstr "Diagrammrahmen anzeigen."
 
 #: spyder/plugins/plots/widgets/main_widget.py:115
 msgid "Fit plots to pane"
-msgstr ""
+msgstr "Plots an das Fenster anpassen"
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Plot an die Fenstergröße anpassen"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -4935,7 +4935,7 @@ msgstr "Einstellungen"
 
 #: spyder/plugins/preferences/plugin.py:317
 msgid "Manage Spyder's preferences."
-msgstr ""
+msgstr "Einstellungen von Spyder verwalten."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset Spyder to factory defaults"
@@ -5421,7 +5421,7 @@ msgstr "Möchten Sie den ausgewählten Pfad wirklich entfernen?"
 
 #: spyder/plugins/remoteclient/api/client.py:193
 msgid "We're closing the connection. Please be patient"
-msgstr ""
+msgstr "Wir schließen die Verbindung. Bitte haben Sie Geduld"
 
 #: spyder/plugins/remoteclient/api/client.py:211
 msgid "The connection was lost"
@@ -5437,7 +5437,7 @@ msgstr "Es war nicht möglich, den lokalen Port weiterzuleiten"
 
 #: spyder/plugins/remoteclient/api/client.py:373
 msgid "Error starting the remote server"
-msgstr ""
+msgstr "Fehler beim Starten des Remote-Servers"
 
 #: spyder/plugins/remoteclient/api/client.py:385
 msgid "Error getting server info"
@@ -5481,7 +5481,7 @@ msgstr "Dieses Feld ist leer"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:228
 msgid "Configure SSH settings for connecting to remote hosts"
-msgstr ""
+msgstr "SSH-Einstellungen für die Verbindung zu Remote-Hosts konfigurieren"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:230
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely, such as on a cloud instance, office workstation or high-performance cluster."
@@ -5645,15 +5645,15 @@ msgstr "Status: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:162
 msgid "Manage remote connections..."
-msgstr ""
+msgstr "Remote-Verbindungen verwalten..."
 
 #: spyder/plugins/remoteclient/widgets/container.py:168
 msgid "New console in remote server"
-msgstr ""
+msgstr "Neue Konsole im Remote-Server"
 
 #: spyder/plugins/remoteclient/widgets/container.py:237
 msgid "There was an error connecting to the server <b>{}</b>. Please check your connection is working."
-msgstr ""
+msgstr "Beim Verbinden mit dem Server <b>{}</b> ist ein Fehler aufgetreten. Bitte überprüfen Sie, ob Ihre Verbindung funktioniert."
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
@@ -5693,7 +5693,7 @@ msgstr "Aktuelle Änderungen zurücksetzen"
 
 #: spyder/plugins/run/confpage.py:288
 msgid "Global presets"
-msgstr ""
+msgstr "Globale Voreinstellungen"
 
 #: spyder/plugins/run/confpage.py:303
 msgid "Save all files before running script"
@@ -5809,11 +5809,11 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
-msgstr ""
+msgstr "Voreingestellte Konfiguration:"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Select between global or local (i.e. for this file) configuration presets. You can set the latter below"
-msgstr ""
+msgstr "Wählen Sie zwischen globalen und lokalen (d.h. für diese Datei) Konfigurationsvoreinstellungen aus. Sie können letzteres weiter unten einstellen"
 
 #: spyder/plugins/run/widgets.py:621
 msgid "Configuration properties"
@@ -6229,7 +6229,7 @@ msgstr "Um die Tour zu starten, klicken Sie bitte auf den grüne Schaltfläche l
 
 #: spyder/plugins/tours/widgets.py:1078
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyder-Tour"
 
 #: spyder/plugins/tours/widgets.py:1103
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
@@ -6311,7 +6311,7 @@ msgstr "Möchten Sie das Herunterladen wirklich abbrechen?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:389
 msgid "Spyder download"
-msgstr ""
+msgstr "Spyder herunterladen"
 
 #: spyder/plugins/updatemanager/widgets/update.py:418
 msgid "Would you like to install it?"
@@ -6319,7 +6319,7 @@ msgstr "Möchten Sie es installieren?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:422
 msgid "Spyder install"
-msgstr ""
+msgstr "Spyder installieren"
 
 #: spyder/plugins/updatemanager/widgets/update.py:494
 msgid "Check for updates at startup"
@@ -6331,7 +6331,7 @@ msgstr "Okay"
 
 #: spyder/plugins/updatemanager/widgets/update.py:537
 msgid "Spyder update error"
-msgstr ""
+msgstr "Spyder Update-Fehler"
 
 #: spyder/plugins/updatemanager/widgets/update.py:548
 msgid "New Spyder version"
@@ -6553,7 +6553,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:180
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported by Spyder's standalone application.<br>"
-msgstr ""
+msgstr "Spyder kann die Variable, die Sie versuchen anzuzeigen, nicht anzeigen, weil die Standalone-Anwendung von Spyder das Modul <tt>{module}</tt> nicht supportet.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:185
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not found in your Spyder environment. Please install this package in this environment.<br>"
@@ -7631,7 +7631,7 @@ msgstr "Ungültige Anmeldedaten"
 
 #: spyder/widgets/github/backend.py:158
 msgid "Failed to create issue on Github, invalid credentials..."
-msgstr ""
+msgstr "Erstellen von Issue auf Github fehlgeschlagen, ungültige Anmeldedaten..."
 
 #: spyder/widgets/github/backend.py:171
 msgid "Failed to create issue"
@@ -7639,7 +7639,7 @@ msgstr "Erstellen des Fehlerberichts fehlgeschlagen"
 
 #: spyder/widgets/github/backend.py:172
 msgid "Failed to create issue on Github. Status %d: %s"
-msgstr ""
+msgstr "Erstellen von Issue auf Github fehlgeschlagen. Status %d: %s"
 
 #: spyder/widgets/github/backend.py:189
 msgid "Issue created on Github"

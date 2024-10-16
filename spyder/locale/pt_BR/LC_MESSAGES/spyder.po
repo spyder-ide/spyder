@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-09-20 02:49\n"
+"PO-Revision-Date: 2024-10-16 20:31\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -837,7 +837,7 @@ msgstr "Ajuda Spyder"
 
 #: spyder/plugins/application/widgets/status.py:146
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Ajude-me, Spyder!"
 
 #: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:166 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4612 spyder/plugins/editor/widgets/editorstack/editorstack.py:300 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:362 spyder/plugins/editor/widgets/main_widget.py:2156 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:343 spyder/plugins/tours/tours.py:82
 msgid "Editor"
@@ -1706,7 +1706,7 @@ msgstr "Executar código enquanto depurar"
 
 #: spyder/plugins/debugger/confpage.py:26
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
-msgstr ""
+msgstr "Você pode rodar muitas linhas de código em cada nova solicitação enquanto depura. Por favor, introduza cada um separadamente, por ponto e vírgula e um espaço. Por exemplo:<br><i>importar matplotlib.pyplot como ptl</i>"
 
 #: spyder/plugins/debugger/confpage.py:34 spyder/plugins/ipythonconsole/confpage.py:236
 msgid "Lines:"
@@ -1762,7 +1762,7 @@ msgstr "Inspetor de execução"
 
 #: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:210
 msgid "Exclude internal frames when inspecting execution"
-msgstr ""
+msgstr "Excluir frames internos ao inspecionar execução"
 
 #: spyder/plugins/debugger/plugin.py:56 spyder/plugins/debugger/widgets/main_widget.py:196
 msgid "Debugger"
@@ -1770,7 +1770,7 @@ msgstr "Depurado"
 
 #: spyder/plugins/debugger/plugin.py:60
 msgid "View, explore and navigate stack frames while debugging."
-msgstr ""
+msgstr "Visualize, explore e navegue nas pilhas de quadros durante a depuração."
 
 #: spyder/plugins/debugger/plugin.py:160
 msgid "&Debug file"
@@ -3960,11 +3960,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:347
 msgid "Use autoreload"
-msgstr ""
+msgstr "Usar recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "Esta opção habilita o recargamento automático mágico.<br> Por favor, consulte a documentação para aprender a usá-lo."
 
 #: spyder/plugins/ipythonconsole/confpage.py:361
 msgid "Symbolic mathematics"
@@ -4052,7 +4052,7 @@ msgstr "Ocorreu um erro ao tentar carregar o arquivo de conexão do kernel. O er
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:41
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "O ambiente ou instalação Python cujo interpretador está localizado em<pre> <tt>{0}</tt></pre>não tem o <tt>spyder-kernels</tt> ou a versão correta dele instalado ({1}). Sem este módulo não é possível para o Spyder criar um console para você.<br><br>Você pode instalá-lo ativando seu ambiente (se necessário) e depois executando em um terminal do sistema:<pre> <tt>{2} </tt></pre>ou<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:226
 msgid "Connecting to kernel..."
@@ -4892,7 +4892,7 @@ msgstr ""
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Ajustar o gráfico ao tamanho do painel"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
@@ -5126,7 +5126,7 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/main_widget.py:189
 msgid "Create one using the menu entry Projects > New project."
-msgstr ""
+msgstr "Crie um usando os Projetos de Entrada de Menu > Novo projeto."
 
 #: spyder/plugins/projects/widgets/main_widget.py:231
 msgid "New Project..."
@@ -5166,7 +5166,7 @@ msgstr "<b>%s</b> não é um projeto do Spyder!"
 
 #: spyder/plugins/projects/widgets/main_widget.py:466
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr ""
+msgstr "Você deseja mesmo deletar <b>{fila de nome}</b>?<br><br><b>Nota:</b> Isso deletará apenas o projeto. Os arquivos continuarão no disco."
 
 #: spyder/plugins/projects/widgets/main_widget.py:482
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
@@ -5354,7 +5354,7 @@ msgstr ""
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:114
 msgid "The paths listed below will be passed to the IPython console and to the Editor as additional locations to search for Python modules."
-msgstr ""
+msgstr "Os caminhos listados abaixo serão passados para os consoles IPython e o servidor de linguagem Python como locais adicionais para pesquisar módulos do Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:160
 msgid "Move path to the top"
@@ -5634,11 +5634,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:289
 msgid "Connection to: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Conectar a: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:295
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Status: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:162
 msgid "Manage remote connections..."
@@ -5646,7 +5646,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:168
 msgid "New console in remote server"
-msgstr ""
+msgstr "Novo console em servidor remoto"
 
 #: spyder/plugins/remoteclient/widgets/container.py:237
 msgid "There was an error connecting to the server <b>{}</b>. Please check your connection is working."
@@ -6190,7 +6190,7 @@ msgstr "A Análise de Código ajuda você a melhorar a qualidade de seus program
 
 #: spyder/plugins/tours/tours.py:204
 msgid "The end"
-msgstr "O fim"
+msgstr "Fim"
 
 #: spyder/plugins/tours/tours.py:205
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
@@ -6275,7 +6275,7 @@ msgstr "Checando atualizações"
 
 #: spyder/plugins/updatemanager/widgets/update.py:46
 msgid "Install on close"
-msgstr ""
+msgstr "Instalar quando fechar"
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "<h3>Spyder {} is available!</h3><br>"
@@ -6299,7 +6299,7 @@ msgstr "Você gostaria de baixar e instalar automaticamente?"
 
 #: spyder/plugins/updatemanager/widgets/update.py:344
 msgid "Downloading Spyder {} ..."
-msgstr ""
+msgstr "Baixando Spyder {} ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:387
 msgid "Do you really want to cancel the download?"
@@ -6435,7 +6435,7 @@ msgstr "O formato (%s) está incorreto"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:772 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1744
 msgid "Display options ..."
-msgstr ""
+msgstr "Opções de exibição..."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:778 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1734 spyder/widgets/browser.py:191 spyder/widgets/collectionseditor.py:1612
 msgid "Refresh"
@@ -6443,7 +6443,7 @@ msgstr "Atualizar"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:780 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1736 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:245 spyder/widgets/collectionseditor.py:1614
 msgid "Refresh editor with current value of variable in console"
-msgstr ""
+msgstr "Atualizar editor com o valor atual da variável no console"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:787
 msgid "Resize"
@@ -7106,11 +7106,11 @@ msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:65
 msgid "{} editor preferences"
-msgstr ""
+msgstr "{} preferências de editor"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:70
 msgid "Formatting"
-msgstr ""
+msgstr "Formatação"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:73
 msgid "<a href=\"{url}\">Format specification</a> for floats:"
@@ -7150,11 +7150,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:122
 msgid "Compare each cell against the largest and smallest numbers in the entire dataframe"
-msgstr ""
+msgstr "Compare cada célula com os maiores e menores números de todo o dataframe"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:131
 msgid "Column by column"
-msgstr ""
+msgstr "Coluna por Coluna"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:132
 msgid "Compare each cell against the largest and smallest numbers in the same column"
@@ -7327,7 +7327,10 @@ msgid "\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
+msgstr "<b>Auxiliar de matriz Numpy</b><br><br>\n"
+"* Digite uma matriz usando a sintaxe: <tt>1 2;3 4</tt><br>\n"
+"* Use dois espaços ou tabulações para gerar um <b>;</b>.<br>\n"
+"* Você pode pressionar <b>Shift+Enter</b> quando terminar."
 
 #: spyder/widgets/arraybuilder.py:236
 msgid "\n"
