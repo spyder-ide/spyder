@@ -10,14 +10,12 @@
 import logging
 import os
 import os.path as osp
-import platform
 import shutil
 import subprocess
 import sys
 from sysconfig import get_path
 
 # Third-party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
 
@@ -28,6 +26,7 @@ from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.config.utils import is_anaconda
 from spyder.plugins.updatemanager.workers import (
+    get_asset_info,
     WorkerUpdate,
     WorkerDownloadInstaller
 )
@@ -149,7 +148,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def set_status(self, status=NO_STATUS):
         """Set the update manager status."""
-        self.sig_set_status.emit(status, self.latest_release)
+        self.sig_set_status.emit(status, str(self.latest_release))
 
     def cleanup_threads(self):
         """Clean up QThreads"""
@@ -251,28 +250,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        if parse(__version__).major < parse(self.latest_release).major:
-            self.update_type = 'major'
-        elif parse(__version__).minor < parse(self.latest_release).minor:
-            self.update_type = 'minor'
-        else:
-            self.update_type = 'micro'
+        asset_info = get_asset_info(self.latest_release)
+        self.update_type = asset_info['update_type']
 
-        mach = platform.machine().lower().replace("amd64", "x86_64")
-
-        if self.update_type == 'major' or not is_conda_based_app():
-            if os.name == 'nt':
-                plat, ext = 'Windows', 'exe'
-            if sys.platform == 'darwin':
-                plat, ext = 'macOS', 'pkg'
-            if sys.platform.startswith('linux'):
-                plat, ext = 'Linux', 'sh'
-            fname = f'Spyder-{plat}-{mach}.{ext}'
-        else:
-            fname = 'spyder-conda-lock.zip'
-
-        dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
-        self.installer_path = osp.join(dirname, fname)
+        dirname = osp.join(get_temp_dir(), 'updates', str(self.latest_release))
+        self.installer_path = osp.join(dirname, asset_info['filename'])
         self.installer_size_path = osp.join(dirname, "size")
 
         logger.info(f"Update type: {self.update_type}")
@@ -472,14 +454,15 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         if os.name == 'nt':
             cmd = ['start', '"Update Spyder"'] + sub_cmd
         elif sys.platform == 'darwin':
-            # Terminal cannot accept a command with arguments therefore
-            # create a temporary script
-            tmpscript = osp.join(get_temp_dir(), 'tmp_install.sh')
-            with open(tmpscript, 'w') as f:
-                f.write(' '.join(sub_cmd))
-            os.chmod(tmpscript, 0o711)  # set executable permissions
-
-            cmd = ['open', '-b', 'com.apple.terminal', tmpscript]
+            # Terminal cannot accept a command with arguments. Creating a
+            # wrapper script pollutes the shell history. Best option is to
+            # use osascript
+            sub_cmd_str = ' '.join(sub_cmd)
+            cmd = [
+                "osascript", "-e",
+                ("""'tell application "Terminal" to do script"""
+                 f""" "set +o history; {sub_cmd_str}; exit;"'"""),
+            ]
         else:
             programs = [
                 {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
@@ -629,7 +612,7 @@ def manual_update_messagebox(parent, latest_release, channel):
             ).format(dont_mix_pip_conda_video)
         else:
             if channel == 'pkgs/main':
-                channel = ''
+                channel = '-c defaults'
             else:
                 channel = f'-c {channel}'
 
