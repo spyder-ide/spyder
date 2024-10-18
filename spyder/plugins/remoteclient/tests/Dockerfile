@@ -34,4 +34,12 @@ RUN ex +"%s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" -scwq! /etc/sudoers
 USER ubuntu
 RUN ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
+
+# Configure and Install the spyder-remote-services
+
+COPY --from=external-deps spyder-remote-services /home/ubuntu/spyder-remote-services
+COPY --from=external-deps spyder-kernels /home/ubuntu/spyder-kernels
+
+RUN bash /home/ubuntu/spyder-remote-services/scripts/installer_dev.sh /home/ubuntu/spyder-remote-services /home/ubuntu/spyder-kernels
+
 CMD ["/usr/bin/sudo", "/usr/sbin/sshd", "-D", "-o", "ListenAddress=172.16.128.2"]
