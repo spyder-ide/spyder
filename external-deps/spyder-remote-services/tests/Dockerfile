@@ -5,6 +5,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup the default user.
 RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo ubuntu
 RUN echo 'ubuntu:ubuntu' | chpasswd
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# Build image with Python and SSHD.
+FROM ubuntu-base AS ubuntu-with-sshd
+USER root
 
 # Install required tools.
 RUN apt-get -qq update \
@@ -12,6 +18,7 @@ RUN apt-get -qq update \
     && apt-get -qq --no-install-recommends install ca-certificates \
     && apt-get -qq --no-install-recommends install vim-tiny \
     && apt-get -qq --no-install-recommends install sudo \
+    && apt-get -qq --no-install-recommends install git \
     && apt-get -qq --no-install-recommends install openssh-server \
     && apt-get -qq clean \
     && rm -rf /var/lib/apt/lists/*
@@ -33,13 +40,7 @@ RUN ex +"%s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" -scwq! /etc/sudoers
 # Generate and configure user keys.
 USER ubuntu
 RUN ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
+#COPY --chown=ubuntu:root "./files/authorized_keys" /home/ubuntu/.ssh/authorized_keys
 
 
-# Configure and Install the spyder-remote-services
-
-COPY --from=external-deps --chown=ubuntu spyder-remote-services /home/ubuntu/spyder-remote-services
-COPY --from=external-deps --chown=ubuntu spyder-kernels /home/ubuntu/spyder-kernels
-
-RUN bash /home/ubuntu/spyder-remote-services/scripts/installer_dev.sh /home/ubuntu/spyder-remote-services /home/ubuntu/spyder-kernels
-
-CMD ["/usr/bin/sudo", "/usr/sbin/sshd", "-D", "-o", "ListenAddress=172.16.128.2"]
+CMD ["/usr/bin/sudo", "/usr/sbin/sshd", "-D", "-o", "ListenAddress=0.0.0.0"]

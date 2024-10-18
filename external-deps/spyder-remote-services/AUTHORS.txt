@@ -1,0 +1,5 @@
+The Spyder Remote Services Contributors are composed of:
+
+* Carlos Cordoba <ccordoba12@gmail.com> (Current Spyder/-Remote Services maintainer)
+* All other developers that have committed to the spyder-remote-services repository:
+  <https://github.com/spyder-ide/spyder-remote-services/graphs/contributors>
