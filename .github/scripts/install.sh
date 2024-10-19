@@ -62,7 +62,7 @@ else
 fi
 
 # Install subrepos from source
-python -bb -X dev install_dev_repos.py --not-editable --no-install spyder
+python -bb -X dev install_dev_repos.py --not-editable --no-install spyder spyder-remote-services
 
 # Install Spyder to test it as if it was properly installed.
 python -bb -X dev -m build

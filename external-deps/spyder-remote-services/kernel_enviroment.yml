@@ -1,0 +1,12 @@
+name: spyder-kernel
+channels:
+  - conda-forge/label/spyder_kernels_rc
+  - conda-forge  
+  # We want to have a reproducible setup, so we don't want default channels,
+  # which may be different for different users. All required channels should
+  # be listed explicitly here.
+  - nodefaults
+dependencies:
+  - python=3.12.*
+  - pip
+  - spyder-kernels
