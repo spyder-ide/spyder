@@ -30,12 +30,12 @@ import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
+from spyder_kernels.utils.pythonenv import is_conda_env
 import sympy
 
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
-from spyder.config.utils import is_anaconda
 from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
@@ -291,7 +291,9 @@ def test_cython_client(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.environment_client
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_environment_client(ipyconsole, qtbot):
@@ -1339,7 +1341,9 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.order(1)
 @pytest.mark.test_environment_interpreter
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(not os.name == 'nt', reason='Works reliably on Windows')
 def test_conda_env_activation(ipyconsole, qtbot):
@@ -1654,6 +1658,45 @@ def test_recursive_pdb(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("1 + 1")
     assert control.toPlainText().split()[-2:] == ["In", "[3]:"]
+
+
+def test_pdb_magics_are_recursive(ipyconsole, qtbot, tmp_path):
+    """
+    Check that calls to Pdb magics start a recursive debugger when called in
+    a debugging session.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = ipyconsole.get_widget().get_focus_widget()
+
+    # Code to run
+    code = "a = 10\n\n# %%\n\nb = 20"
+
+    # Write code to file on disk
+    file = tmp_path / 'test_pdb_magics.py'
+    file.write_text(code)
+
+    # Filename in the format used when running magics from the main toolbar
+    fname = str(file).replace('\\', '/')
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%debugfile {fname}")
+
+    # Run %debugfile in debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute(f"%debugfile {fname}")
+
+    # Check that there are no errors and we started a recursive debugger
+    assert "error" not in control.toPlainText().lower()
+    assert "(IPdb [1]):" in control.toPlainText()
+
+    # Run %debugcell in debugger
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute(f"%debugcell -i 0 {fname}")
+
+    # Check that there are no errors and we started a recursive debugger
+    assert "error" not in control.toPlainText().lower()
+    assert "((IPdb [1])):" in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -2311,7 +2354,9 @@ def test_run_script(ipyconsole, qtbot, tmp_path):
         assert sw.get_value(variable_name) == 1
 
 
-@pytest.mark.skipif(not is_anaconda(), reason="Only works with Anaconda")
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason="Only works with Anaconda"
+)
 def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     """Test that we show Spyder-kernels error message on restarts."""
     # Wait until the window is fully up

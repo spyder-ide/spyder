@@ -13,10 +13,10 @@ import sys
 
 # Third party imports
 import pytest
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
-from spyder.config.utils import is_anaconda
 from spyder.plugins.maininterpreter.plugin import MainInterpreter
 
 
@@ -28,7 +28,9 @@ def maininterpreter(qtbot):
     return plugin
 
 
-@pytest.mark.skipif(not is_anaconda(), reason="Requires conda to be installed")
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason="Requires conda to be installed"
+)
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 def test_conda_interpreters(maininterpreter, qtbot):
     """Test info from conda interpreters."""

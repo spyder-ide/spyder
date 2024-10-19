@@ -10,23 +10,23 @@
 import logging
 import os
 import os.path as osp
-import platform
 import shutil
 import subprocess
 import sys
+from sysconfig import get_path
 
 # Third-party imports
-from packaging.version import parse
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
-from spyder.config.utils import is_anaconda
 from spyder.plugins.updatemanager.workers import (
+    get_asset_info,
     WorkerUpdate,
     WorkerDownloadInstaller
 )
@@ -47,6 +47,14 @@ INSTALL_ON_CLOSE = _("Install on close")
 
 HEADER = _("<h3>Spyder {} is available!</h3><br>")
 URL_I = 'https://docs.spyder-ide.org/current/installation.html'
+
+SKIP_CHECK_UPDATE = (
+    sys.executable.startswith(('/usr/bin/', '/usr/local/bin/'))
+    or (
+        not is_conda_env(sys.prefix)
+        and osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
+    )
+)
 
 
 class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
@@ -140,7 +148,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def set_status(self, status=NO_STATUS):
         """Set the update manager status."""
-        self.sig_set_status.emit(status, self.latest_release)
+        self.sig_set_status.emit(status, str(self.latest_release))
 
     def cleanup_threads(self):
         """Clean up QThreads"""
@@ -160,12 +168,21 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         Check for Spyder updates using a QThread.
 
+        Do not check for updates if the environment is a system or a managed
+        environment.
+
         Update actions are disabled in the menubar and statusbar while
         checking for updates.
 
         If startup is True, then checking for updates is delayed 1 min;
         actions are disabled during this time as well.
         """
+        if SKIP_CHECK_UPDATE:
+            logger.debug(
+                "Skip check for updates: system or managed environment."
+            )
+            return
+
         logger.debug(f"Checking for updates. startup = {startup}.")
 
         # Disable check_update_action while the thread is working
@@ -233,28 +250,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _set_installer_path(self):
         """Set the temp file path for the downloaded installer."""
-        if parse(__version__).major < parse(self.latest_release).major:
-            self.update_type = 'major'
-        elif parse(__version__).minor < parse(self.latest_release).minor:
-            self.update_type = 'minor'
-        else:
-            self.update_type = 'micro'
+        asset_info = get_asset_info(self.latest_release)
+        self.update_type = asset_info['update_type']
 
-        mach = platform.machine().lower().replace("amd64", "x86_64")
-
-        if self.update_type == 'major' or not is_conda_based_app():
-            if os.name == 'nt':
-                plat, ext = 'Windows', 'exe'
-            if sys.platform == 'darwin':
-                plat, ext = 'macOS', 'pkg'
-            if sys.platform.startswith('linux'):
-                plat, ext = 'Linux', 'sh'
-            fname = f'Spyder-{plat}-{mach}.{ext}'
-        else:
-            fname = 'spyder-conda-lock.zip'
-
-        dirname = osp.join(get_temp_dir(), 'updates', self.latest_release)
-        self.installer_path = osp.join(dirname, fname)
+        dirname = osp.join(get_temp_dir(), 'updates', str(self.latest_release))
+        self.installer_path = osp.join(dirname, asset_info['filename'])
         self.installer_size_path = osp.join(dirname, "size")
 
         logger.info(f"Update type: {self.update_type}")
@@ -454,14 +454,15 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         if os.name == 'nt':
             cmd = ['start', '"Update Spyder"'] + sub_cmd
         elif sys.platform == 'darwin':
-            # Terminal cannot accept a command with arguments therefore
-            # create a temporary script
-            tmpscript = osp.join(get_temp_dir(), 'tmp_install.sh')
-            with open(tmpscript, 'w') as f:
-                f.write(' '.join(sub_cmd))
-            os.chmod(tmpscript, 0o711)  # set executable permissions
-
-            cmd = ['open', '-b', 'com.apple.terminal', tmpscript]
+            # Terminal cannot accept a command with arguments. Creating a
+            # wrapper script pollutes the shell history. Best option is to
+            # use osascript
+            sub_cmd_str = ' '.join(sub_cmd)
+            cmd = [
+                "osascript", "-e",
+                ("""'tell application "Terminal" to do script"""
+                 f""" "set +o history; {sub_cmd_str}; exit;"'"""),
+            ]
         else:
             programs = [
                 {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
@@ -572,7 +573,7 @@ def confirm_messagebox(parent, message, title, version=None, critical=False,
 def manual_update_messagebox(parent, latest_release, channel):
     msg = ""
     if os.name == "nt":
-        if is_anaconda():
+        if is_conda_env(sys.prefix):
             msg += _("Run the following command or commands in "
                      "the Anaconda prompt to update manually:"
                      "<br><br>")
@@ -580,14 +581,14 @@ def manual_update_messagebox(parent, latest_release, channel):
             msg += _("Run the following command in a cmd prompt "
                      "to update manually:<br><br>")
     else:
-        if is_anaconda():
+        if is_conda_env(sys.prefix):
             msg += _("Run the following command or commands in a "
                      "terminal to update manually:<br><br>")
         else:
             msg += _("Run the following command in a terminal to "
                      "update manually:<br><br>")
 
-    if is_anaconda():
+    if is_conda_env(sys.prefix):
         is_pypi = channel == 'pypi'
 
         if is_anaconda_pkg() and not is_pypi:
@@ -611,7 +612,7 @@ def manual_update_messagebox(parent, latest_release, channel):
             ).format(dont_mix_pip_conda_video)
         else:
             if channel == 'pkgs/main':
-                channel = ''
+                channel = '-c defaults'
             else:
                 channel = f'-c {channel}'
 

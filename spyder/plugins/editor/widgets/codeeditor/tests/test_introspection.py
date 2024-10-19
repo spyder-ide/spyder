@@ -19,15 +19,16 @@ import pytest
 import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri)
+    path_as_uri
+)
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -1012,7 +1013,9 @@ def spam():
 
 @pytest.mark.order(1)
 @flaky(max_runs=20)
-@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to work')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Requires conda to work'
+)
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'), reason="Works reliably on Linux"
@@ -1156,12 +1159,12 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
 @pytest.mark.parametrize(
     "directory",
     [
-         pytest.param(
-             '/home',
-             marks=pytest.mark.skipif(
-                 not sys.platform.startswith('linux'),
-                 reason='Only works on Linux'
-             )
+        pytest.param(
+            '/home',
+            marks=pytest.mark.skipif(
+                not sys.platform.startswith('linux'),
+                reason='Only works on Linux'
+            )
         ),
         pytest.param(
             'C:\\Users',
