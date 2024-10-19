@@ -1403,10 +1403,12 @@ overrided by the Sympy module (e.g. plot)
                 )
             else:
                 self.ipyclient.show_kernel_error(
-                    _("Unable to connect with the kernel. If you are trying "
-                      "to connect to an existing kernel check that the "
-                      "connection file actually corresponds with the kernel "
-                      "you want to connect to")
+                    _(
+                        "It was not possible to connect to the kernel. If you "
+                        "are trying to connect to an existing kernel, check "
+                        "that the connection file you selected actually "
+                        "corresponds to the kernel you want to connect to."
+                    )
                 )
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
