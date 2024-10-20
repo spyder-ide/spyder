@@ -409,6 +409,9 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
+              # -- File menu --
+              # (intended context for these is plugins that support them)
+              'main/new file': "Ctrl+N",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -477,7 +480,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",

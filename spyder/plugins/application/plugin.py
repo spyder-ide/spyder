@@ -31,6 +31,7 @@ from spyder.plugins.application.container import (
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.qthelpers import add_actions
 
 
@@ -38,7 +39,8 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager]
+                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager,
+                Plugins.Toolbar]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -60,6 +62,7 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.sig_new_file_requested.connect(self.create_new_file)
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -104,6 +107,18 @@ class Application(SpyderPluginV2):
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.add_status_widget(inapp_appeal_status)
 
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        for action in [
+            container.new_action
+        ]:
+            toolbar.add_item_to_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File
+            )
+
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -132,6 +147,17 @@ class Application(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.remove_status_widget(inapp_appeal_status.ID)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        for action in [
+            ApplicationActions.NewFile
+        ]:
+            toolbar.remove_item_from_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File
+            )
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -171,7 +197,18 @@ class Application(SpyderPluginV2):
     # ---- Private API
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
+        container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # New section
+        mainmenu.add_item_to_application_menu(
+            container.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open
+        )
+
+        # Restart section
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
@@ -282,8 +319,11 @@ class Application(SpyderPluginV2):
 
     def _depopulate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for action_id in [ApplicationActions.SpyderRestart,
-                          ApplicationActions.SpyderRestartDebug]:
+        for action_id in [
+            ApplicationActions.NewFile,
+            ApplicationActions.SpyderRestart,
+            ApplicationActions.SpyderRestartDebug
+        ]:
             mainmenu.remove_item_from_application_menu(
                 action_id,
                 menu_id=ApplicationMenus.File)
@@ -400,6 +440,15 @@ class Application(SpyderPluginV2):
             # the error can be inspected in the internal console
             print(error)  # spyder: test-skip
             print(command)  # spyder: test-skip
+
+    def create_new_file(self) -> None:
+        """
+        Create new file in a suitable plugin.
+
+        For the moment, this creates a new file in the Editor plugin.
+        """
+        plugin = self.get_plugin(Plugins.Editor)
+        plugin.new()
 
     @property
     def documentation_action(self):
