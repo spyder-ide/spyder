@@ -294,15 +294,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.new_action = self.create_action(
-            EditorWidgetActions.NewFile,
-            text=_("&New file..."),
-            icon=self.create_icon('filenew'),
-            tip=_("New file"),
-            triggered=self.new,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
         self.open_last_closed_action = self.create_action(
             EditorWidgetActions.OpenLastClosed,
             text=_("O&pen last closed"),

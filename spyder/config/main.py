@@ -417,6 +417,9 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
+              # -- File menu --
+              # (intended context for these is plugins that support them)
+              'main/new file': "Ctrl+N",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -485,7 +488,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
@@ -691,4 +693,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '86.0.0'
+CONF_VERSION = '87.0.0'

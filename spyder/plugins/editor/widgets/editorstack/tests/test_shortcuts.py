@@ -19,6 +19,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
@@ -73,6 +74,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
     assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
+    assert CONF.get_shortcut('main', 'new file') == 'Ctrl+N'
 
 
 @pytest.mark.skipif(
@@ -361,6 +363,17 @@ def test_shortcuts_for_new_editors(editorstack, qtbot):
     editor = editorstack.get_current_editor()
     qtbot.keyClick(editor, Qt.Key_1, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == '# Line5\nLine6\nLine7\nLine8\n'
+
+
+def test_new_file_shortcut(editorstack, qtbot):
+    """
+    Test that typing "New File" shortcut raises the signal requesting that a
+    new file be created.
+    """
+    editor = editorstack.get_current_editor()
+    with qtbot.waitSignal(editorstack.sig_trigger_action) as blocker:
+        qtbot.keyClick(editor, Qt.Key_N, modifier=Qt.ControlModifier)
+    assert blocker.args == ['New file', Plugins.Application]
 
 
 if __name__ == "__main__":

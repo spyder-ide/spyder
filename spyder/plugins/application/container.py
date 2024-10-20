@@ -62,6 +62,7 @@ class ApplicationActions:
     SpyderUserEnvVariables = "spyder_user_env_variables_action"
 
     # File
+    NewFile = "New file"
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
@@ -78,6 +79,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_load_log_file = Signal(str)
     """
     Signal to load a log file
+    """
+
+    sig_new_file_requested = Signal()
+    """
+    Signal to request that a new file be created in a suitable plugin.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -186,6 +192,17 @@ class ApplicationContainer(PluginMainContainer):
             context=Qt.ApplicationShortcut,
             shortcut_context="_",
             register_shortcut=True)
+
+        # File actions
+        self.new_action = self.create_action(
+            ApplicationActions.NewFile,
+            text=_("&New file..."),
+            icon=self.create_icon('filenew'),
+            tip=_("New file"),
+            triggered=self.sig_new_file_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
 
         # Debug logs
         if get_debug_level() >= 2:

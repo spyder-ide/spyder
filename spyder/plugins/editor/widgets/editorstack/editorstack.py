@@ -39,6 +39,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
@@ -466,7 +467,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('New file', self.sig_new_file[()]),
             ('Open file', self.plugin_load[()]),
             ('Open last closed', self.sig_open_last_closed),
             ('Save file', self.save),
@@ -531,6 +531,20 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     Plugins.Debugger
                 ),
                 context=Plugins.Debugger,
+            )
+
+        # Register shortcuts for file actions defined in Applications plugin
+        for action_id in [
+            "New file",
+        ]:
+            self.register_shortcut_for_widget(
+                name=action_id,
+                triggered=functools.partial(
+                    self.sig_trigger_action.emit,
+                    action_id,
+                    Plugins.Application
+                ),
+                context='main',
             )
 
     def update_switcher_actions(self, switcher_available):
@@ -1313,7 +1327,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 )
         else:
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-            new_action = self.get_action(EditorWidgetActions.NewFile)
+            new_action = self.get_action(
+                ApplicationActions.NewFile,
+                plugin=Plugins.Application
+            )
             open_action = self.get_action(EditorWidgetActions.OpenFile)
             for menu_action in (new_action, open_action):
                 self.menu.add_action(menu_action)
