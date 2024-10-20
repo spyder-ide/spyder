@@ -71,7 +71,6 @@ logger = logging.getLogger(__name__)
 
 class EditorWidgetActions:
     # File operations
-    NewFile = "New file"
     OpenLastClosed = "Open last closed"
     RevertFileFromDisk = "Revert file from disk"
     SaveFile = "Save file"
@@ -367,15 +366,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.new_action = self.create_action(
-            EditorWidgetActions.NewFile,
-            text=_("&New file..."),
-            icon=self.create_icon('filenew'),
-            tip=_("New file"),
-            triggered=self.new,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
         self.open_last_closed_action = self.create_action(
             EditorWidgetActions.OpenLastClosed,
             text=_("O&pen last closed"),
@@ -1477,11 +1467,15 @@ class EditorMainWidget(PluginMainWidget):
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
 
+        new_action = self.get_action(
+            ApplicationActions.NewFile,
+            plugin=Plugins.Application
+        )
         open_action = self.get_action(
             ApplicationActions.OpenFile,
             plugin=Plugins.Application
         )
-        editorstack.set_io_actions(self.new_action, open_action,
+        editorstack.set_io_actions(new_action, open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 

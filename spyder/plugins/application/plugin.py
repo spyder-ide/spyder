@@ -69,6 +69,7 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.sig_new_file_requested.connect(self.new_file)
         container.sig_open_file_in_plugin_requested.connect(
             self.open_file_in_plugin
         )
@@ -124,10 +125,14 @@ class Application(SpyderPluginV2):
     def on_toolbar_available(self):
         container = self.get_container()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.add_item_to_application_toolbar(
-            container.open_action,
-            toolbar_id=ApplicationToolbars.File
-        )
+        for action in [
+            container.new_action,
+            container.open_action
+        ]:
+            toolbar.add_item_to_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File
+            )
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
@@ -161,10 +166,14 @@ class Application(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        toolbar.remove_item_from_application_toolbar(
+        for action in [
+            ApplicationActions.NewFile,
             ApplicationActions.OpenFile,
-            toolbar_id=ApplicationToolbars.File
-        )
+        ]:
+            toolbar.remove_item_from_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File
+            )
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -221,6 +230,14 @@ class Application(SpyderPluginV2):
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart
+        )
+
+        # New Section
+        mainmenu.add_item_to_application_menu(
+            container.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open
         )
 
     def _populate_tools_menu(self):
@@ -325,9 +342,11 @@ class Application(SpyderPluginV2):
     def _depopulate_file_menu(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for action_id in [
-                ApplicationActions.OpenFile,
-                ApplicationActions.SpyderRestart,
-                ApplicationActions.SpyderRestartDebug]:
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
+            ApplicationActions.SpyderRestart,
+            ApplicationActions.SpyderRestartDebug
+        ]:
             mainmenu.remove_item_from_application_menu(
                 action_id,
                 menu_id=ApplicationMenus.File)
@@ -454,6 +473,15 @@ class Application(SpyderPluginV2):
         This function is called if another plugin gets keyboard focus.
         """
         self.focused_plugin = plugin
+
+    def new_file(self) -> None:
+        """
+        Create new file in a suitable plugin.
+
+        For the moment, this creates a new file in the Editor plugin.
+        """
+        plugin = self.get_plugin(Plugins.Editor)
+        plugin.new()
 
     def open_file_using_dialog(self) -> None:
         """

@@ -422,14 +422,6 @@ class Editor(SpyderDockablePlugin):
                 before_section=FileMenuSections.Print
             )
 
-        # New Section
-        mainmenu.add_item_to_application_menu(
-            widget.new_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.New,
-            before_section=FileMenuSections.Open
-        )
-
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
@@ -598,12 +590,6 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.File
             )
 
-        # New Section
-        mainmenu.remove_item_from_application_menu(
-            widget.new_action,
-            menu_id=ApplicationMenus.File
-        )
-
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
@@ -698,7 +684,6 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            widget.new_action,
             widget.save_action,
             widget.save_all_action,
             widget.create_new_cell
@@ -713,7 +698,6 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            EditorWidgetActions.NewFile,
             EditorWidgetActions.SaveFile,
             EditorWidgetActions.SaveAll,
             EditorWidgetActions.NewCell

@@ -407,6 +407,7 @@ DEFAULTS = [
               '_/re-run last script': "F6",
               # -- File menu --
               # (intended context for these is plugins that support them)
+              'main/new file': "Ctrl+N",
               'main/open file': "Ctrl+O",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
@@ -478,7 +479,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
