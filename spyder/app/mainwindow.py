@@ -1207,27 +1207,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             else:
                 console.restore_stds()
 
-    def open_file(self, fname, external=False):
-        """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
-        """
-        fname = to_text_string(fname)
-        ext = osp.splitext(fname)[1]
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        variableexplorer = self.get_plugin(
-            Plugins.VariableExplorer, error=False)
-
-        if encoding.is_text_file(fname):
-            if editor:
-                editor.load(fname)
-        elif variableexplorer is not None and ext in IMPORT_EXT:
-            variableexplorer.get_widget().import_data(fname)
-        elif not external:
-            fname = file_uri(fname)
-            start_file(fname)
-
     def get_initial_working_directory(self):
         """Return the initial working directory."""
         return self.INITIAL_CWD
@@ -1252,8 +1231,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if sys.platform == 'darwin' and 'bin/spyder' in fname:
             return
 
-        if osp.isfile(fpath):
-            self.open_file(fpath, external=True)
+        application = self.get_plugin(Plugins.Application, error=False)
+        if osp.isfile(fpath) and application:
+            application.open_file_in_plugin(fpath)
         elif osp.isdir(fpath):
             QMessageBox.warning(
                 self, _("Error"),

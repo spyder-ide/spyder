@@ -3055,6 +3055,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         timeout=SHELL_TIMEOUT)
 
     pylint_plugin = main_window.get_plugin(Plugins.Pylint)
+    application_plugin = main_window.get_plugin(Plugins.Application)
 
     # Show pylint plugin
     pylint_plugin.dockwidget.show()
@@ -3068,7 +3069,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         fh = basedir.join('{}.py'.format(idx))
         fname = str(fh)
         fh.write('print("Hello world!")')
-        main_window.open_file(fh)
+        application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
@@ -3083,7 +3084,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         fh = basedir.join('{}.py'.format(idx))
         fh.write('print("Hello world!")')
         fname = str(fh)
-        main_window.open_file(fh)
+        application_plugin.open_file_in_plugin(fname)
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
