@@ -143,8 +143,17 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
-    sig_trigger_run_action = Signal(str)
-    sig_trigger_debugger_action = Signal(str)
+    sig_trigger_action = Signal(str, str)
+    """
+    This signal is emitted to request that an action be triggered.
+
+    Parameters
+    ----------
+    id: str
+        The id of the action.
+    plugin: str
+        The plugin in which the action is registered.
+    """
 
     sig_open_last_closed = Signal()
     """
@@ -503,8 +512,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_run_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Run
                 ),
             )
 
@@ -516,8 +526,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_debugger_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Debugger
                 ),
                 context=Plugins.Debugger,
             )
