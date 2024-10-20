@@ -96,6 +96,11 @@ class ApplicationContainer(PluginMainContainer):
     filename : str
     """
 
+    sig_open_file_using_dialog_requested = Signal()
+    """
+    Signal to request that the Open File dialog is shown to open a file.
+    """
+
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -209,7 +214,7 @@ class ApplicationContainer(PluginMainContainer):
             text=_("&Open..."),
             icon=self.create_icon('fileopen'),
             tip=_("Open file"),
-            triggered=self._plugin.open_file_using_dialog,
+            triggered=self.sig_open_file_using_dialog_requested.emit,
             shortcut_context="main",
             register_shortcut=True
         )
