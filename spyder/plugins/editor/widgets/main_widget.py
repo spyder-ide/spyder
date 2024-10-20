@@ -1624,10 +1624,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_codeeditor_created.connect(self.sig_codeeditor_created)
         editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
         editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
-        editorstack.sig_trigger_run_action.connect(self.trigger_run_action)
-        editorstack.sig_trigger_debugger_action.connect(
-            self.trigger_debugger_action
-        )
+        editorstack.sig_trigger_action.connect(self.trigger_action)
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -3087,14 +3084,9 @@ class EditorMainWidget(PluginMainWidget):
         if current_fname != fname:
             editorstack.set_current_filename(fname)
 
-    def trigger_run_action(self, action_id):
-        """Trigger a run action according to its id."""
-        action = self.get_action(action_id, plugin=Plugins.Run)
-        action.trigger()
-
-    def trigger_debugger_action(self, action_id):
-        """Trigger a run action according to its id."""
-        action = self.get_action(action_id, plugin=Plugins.Debugger)
+    def trigger_action(self, action_id, plugin):
+        """Trigger an action according to its id and plugin."""
+        action = self.get_action(action_id, plugin=plugin)
         action.trigger()
 
     # ---- Code bookmarks
