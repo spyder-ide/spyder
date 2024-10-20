@@ -55,6 +55,7 @@ class ApplicationActions:
     SpyderTroubleshootingAction = "spyder_troubleshooting_action"
     SpyderDependenciesAction = "spyder_dependencies_action"
     SpyderSupportAction = "spyder_support_action"
+    HelpSpyderAction = "help_spyder_action"
     SpyderAbout = "spyder_about_action"
 
     # Tools
@@ -136,6 +137,13 @@ class ApplicationContainer(PluginMainContainer):
             ApplicationActions.SpyderSupportAction,
             _("Spyder support..."),
             triggered=lambda: start_file(__forum_url__))
+
+        self.create_action(
+            ApplicationActions.HelpSpyderAction,
+            _("Help Spyder..."),
+            icon=self.create_icon("inapp_appeal"),
+            triggered=self.inapp_appeal_status.show_appeal
+        )
 
         # About action
         self.about_action = self.create_action(

@@ -118,6 +118,8 @@ class InAppAppealStatus(BaseTimerStatus):
     def show_appeal(self):
         if self._appeal_dialog is None:
             self._appeal_dialog = InAppAppealDialog(self)
+
+        if not self._appeal_dialog.isVisible():
             self._appeal_dialog.show()
 
     # ---- StatusBarWidget API
