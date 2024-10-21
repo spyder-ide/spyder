@@ -13,7 +13,6 @@ blocking threads.
 # Standard library imports
 from collections import deque
 import logging
-import os
 import sys
 
 # Third party imports
@@ -124,17 +123,11 @@ class ProcessWorker(QObject):
         self._process.readyReadStandardOutput.connect(self._partial)
 
     def _get_encoding(self):
-        """Return the encoding/codepage to use."""
-        enco = 'utf-8'
-
-        #  Currently only cp1252 is allowed?
-        if os.name == 'nt':
-            import ctypes
-            codepage = to_text_string(ctypes.cdll.kernel32.GetACP())
-            # import locale
-            # locale.getpreferredencoding()  # Differences?
-            enco = 'cp' + codepage
-        return enco
+        """Return the encoding to use."""
+        # It seems that in Python 3 we only need this encoding to correctly
+        # decode bytes on all operating systems.
+        # See spyder-ide/spyder#22546
+        return 'utf-8'
 
     def _set_environment(self, environ):
         """Set the environment on the QProcess."""
