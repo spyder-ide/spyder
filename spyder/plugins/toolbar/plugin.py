@@ -38,8 +38,8 @@ class Toolbar(SpyderPluginV2):
     CONTAINER_CLASS = ToolbarContainer
     CAN_BE_DISABLED = False
 
-    # --- SpyderDocakblePlugin API
-    #  -----------------------------------------------------------------------
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _('Toolbar')
@@ -57,6 +57,9 @@ class Toolbar(SpyderPluginV2):
         create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
         create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
+        create_app_toolbar(
+            ApplicationToolbars.ControlDebugger, _("Control debugger toolbar")
+        )
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
 
     @on_plugin_available(plugin=Plugins.MainMenu)
@@ -88,19 +91,23 @@ class Toolbar(SpyderPluginV2):
     def on_mainwindow_visible(self):
         container = self.get_container()
 
-        for toolbar in container.get_application_toolbars():
-            toolbar.render()
+        # Load all toolbars
+        container.load_application_toolbars()
 
+        # Create toolbars menu and show last visible toolbars
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()
 
     def on_close(self, _unused):
         container = self.get_container()
+
+        # NOTE: DO NOT change the order in which these methods are called!
         container.save_last_visible_toolbars()
+        container.save_toolbars_order()
         for toolbar in container._visible_toolbars:
             toolbar.setVisible(False)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(self, toolbar_id, title):
         """
@@ -230,7 +237,8 @@ class Toolbar(SpyderPluginV2):
         for toolbar in self.toolbarslist:
             toolbar.setMovable(not value)
 
-    # --- Convenience properties, while all plugins migrate.
+    # ---- Convenience properties
+    # -------------------------------------------------------------------------
     @property
     def toolbars_menu(self):
         return self.get_container().get_menu("toolbars_menu")

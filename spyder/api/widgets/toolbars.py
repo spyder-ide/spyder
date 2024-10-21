@@ -303,6 +303,12 @@ class ApplicationToolbar(SpyderToolbar):
 
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
+    def __str__(self):
+        return f"ApplicationToolbar('{self.ID}')"
+
+    def __repr__(self):
+        return f"ApplicationToolbar('{self.ID}')"
+
 
 class MainWidgetToolbar(SpyderToolbar):
     """
