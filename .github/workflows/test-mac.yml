@@ -112,7 +112,6 @@ jobs:
           environment-file: requirements/main.yml
           auto-activate-base: false
           activate-environment: test
-          use-only-tar-bz2: true
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
         shell: bash -l {0}
