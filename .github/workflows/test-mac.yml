@@ -107,13 +107,13 @@ jobs:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v1
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
-          environment-name: test
-          cache-downloads: true
-          create-args: python=${{ matrix.PYTHON_VERSION }}
+          auto-activate-base: false
+          activate-environment: test
+          use-only-tar-bz2: true
+          python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install additional dependencies
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
