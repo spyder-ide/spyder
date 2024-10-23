@@ -2188,6 +2188,27 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                             cursor.select(QtGui.QTextCursor.Document)
                             cursor.removeSelectedText()
 
+                    elif act.action == 'move' and act.unit == 'line':
+                        if act.dir == 'up':
+                            for i in range(act.count):
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.Up
+                                )
+                        elif act.dir == 'down':
+                            for i in range(act.count):
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.Down
+                                )
+                        elif act.dir == 'leftup':
+                            for i in range(act.count):
+                                cursor.movePosition(
+                                    QtGui.QTextCursor.Up
+                                )
+                            cursor.movePosition(
+                                QtGui.QTextCursor.StartOfLine,
+                                QtGui.QTextCursor.MoveAnchor
+                            )
+
                     elif act.action == 'carriage-return':
                         cursor.movePosition(
                             QtGui.QTextCursor.StartOfLine,
@@ -2203,7 +2224,19 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                                 QtGui.QTextCursor.MoveAnchor)
 
                     elif act.action == 'newline':
-                        cursor.movePosition(QtGui.QTextCursor.EndOfLine)
+                        if (
+                            cursor.block() != cursor.document().lastBlock()
+                            and not cursor.document()
+                            .toPlainText()
+                            .endswith(self._prompt)
+                        ):
+                            cursor.movePosition(QtGui.QTextCursor.NextBlock)
+                        else:
+                            cursor.movePosition(
+                                QtGui.QTextCursor.EndOfLine,
+                                QtGui.QTextCursor.MoveAnchor,
+                            )
+                            cursor.insertText("\n")
 
                 # simulate replacement mode
                 if substring is not None:

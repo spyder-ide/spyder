@@ -92,10 +92,7 @@ class AnsiCodeProcessor(object):
         self.actions = []
         start = 0
 
-        # strings ending with \r are assumed to be ending in \r\n since
-        # \n is appended to output strings automatically.  Accounting
-        # for that, here.
-        last_char = '\n' if len(string) > 0 and string[-1] == '\n' else None
+        last_char = None
         string = string[:-1] if last_char is not None else string
 
         for match in ANSI_OR_SPECIAL_PATTERN.finditer(string):
@@ -122,7 +119,7 @@ class AnsiCodeProcessor(object):
                 self.actions = []
             elif g0 == '\n' or g0 == '\r\n':
                 self.actions.append(NewLineAction('newline'))
-                yield g0
+                yield None
                 self.actions = []
             else:
                 params = [ param for param in groups[1].split(';') if param ]
@@ -147,7 +144,7 @@ class AnsiCodeProcessor(object):
 
         if last_char is not None:
             self.actions.append(NewLineAction('newline'))
-            yield last_char
+            yield None
 
     def set_csi_code(self, command, params=[]):
         """ Set attributes based on CSI (Control Sequence Introducer) code.
@@ -184,6 +181,22 @@ class AnsiCodeProcessor(object):
             dir = 'up' if command == 'S' else 'down'
             count = params[0] if params else 1
             self.actions.append(ScrollAction('scroll', dir, 'line', count))
+
+        elif command == 'A':  # Move N lines Up
+            dir = 'up'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+
+        elif command == 'B':  # Move N lines Down
+            dir = 'down'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+
+        elif command == 'F':  # Goes back to the begining of the n-th previous line
+            dir = 'leftup'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+        
 
     def set_osc_code(self, params):
         """ Set attributes based on OSC (Operating System Command) parameters.
