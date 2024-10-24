@@ -12,12 +12,15 @@ IPython console plugin.
 """
 
 # Standard library imports
+from io import StringIO
 import os
 import os.path as osp
 import re
 import sre_constants
 import sys
 import textwrap
+from token import NUMBER
+from tokenize import generate_tokens
 
 # Third party imports
 from packaging.version import parse
@@ -25,7 +28,7 @@ from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
@@ -1498,6 +1501,26 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
+
+    # ---- Qt methods
+    def mouseDoubleClickEvent(self, event):
+        cur = self.cursorForPosition(event.pos())
+        block = cur.block()
+        text = block.text()
+        pos = block.position()
+        pos_in_block = cur.positionInBlock()
+        for t_type, _, start, end, _ in generate_tokens(StringIO(text).read):
+            if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
+                cur.setPosition(pos + start[1])
+                cur.setPosition(pos + end[1], QTextCursor.MoveMode.KeepAnchor)
+                self.setTextCursor(cur)
+                return
+            elif start[1] > pos_in_block:
+                break
+        if isinstance(self, QPlainTextEdit):
+            QPlainTextEdit.mouseDoubleClickEvent(self, event)
+        elif isinstance(self, QTextEdit):
+            QTextEdit.mouseDoubleClickEvent(self, event)
 
 
 class TracebackLinksMixin(object):
