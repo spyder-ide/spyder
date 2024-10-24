@@ -1504,6 +1504,7 @@ class BaseEditMixin(object):
 
     # ---- Qt methods
     def mouseDoubleClickEvent(self, event):
+        """select NUMBER tokens to select numeric literals on double click"""
         cur = self.cursorForPosition(event.pos())
         block = cur.block()
         text = block.text()
