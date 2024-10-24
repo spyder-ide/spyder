@@ -340,11 +340,7 @@ def test_get_environment(mocker):
     """Test that the environment variables depend on the OS."""
     if os.name == 'nt':
         mocker.patch(
-            "spyder.plugins.pylint.main_widget.is_conda_based_app",
-            return_value=False
-        )
-        mocker.patch(
-            "spyder.plugins.pylint.main_widget.is_anaconda",
+            "spyder.plugins.pylint.main_widget.is_conda_env",
             return_value=False
         )
         mocker.patch(
