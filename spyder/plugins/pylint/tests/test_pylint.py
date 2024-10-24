@@ -339,21 +339,29 @@ def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
 def test_get_environment(mocker):
     """Test that the environment variables depend on the OS."""
     if os.name == 'nt':
-        mocker.patch("spyder.plugins.pylint.main_widget.is_conda_based_app",
-                     return_value=False)
-        mocker.patch("spyder.plugins.pylint.main_widget.is_anaconda",
-                     return_value=False)
-        mocker.patch("spyder.plugins.pylint.main_widget.get_home_dir",
-                     return_value='')
+        mocker.patch(
+            "spyder.plugins.pylint.main_widget.is_conda_based_app",
+            return_value=False
+        )
+        mocker.patch(
+            "spyder.plugins.pylint.main_widget.is_anaconda",
+            return_value=False
+        )
+        mocker.patch(
+            "spyder.plugins.pylint.main_widget.get_home_dir",
+            return_value=''
+        )
 
-    etalon = {
+    expected_vars = {
         "nt": ["APPDATA", "PYTHONIOENCODING", "PYTHONPATH", "USERPROFILE"],
-        "posix": ["PYTHONIOENCODING", "PYTHONPATH"]}
+        "posix": ["PYTHONIOENCODING", "PYTHONPATH"]
+    }
 
     process_environment = Pylint.WIDGET_CLASS.get_environment(
-        pythonpath_manager_values=["project_dir"])
+        pythonpath_manager_values=["project_dir"]
+    )
 
-    assert process_environment.keys() == etalon[os.name]
+    assert process_environment.keys() == expected_vars[os.name]
 
 
 if __name__ == "__main__":

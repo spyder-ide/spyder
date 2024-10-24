@@ -374,9 +374,11 @@ class PylintWidget(PluginMainWidget):
 
         command_args = self.get_command(self.get_filename())
         pythonpath_manager_values = self.get_conf(
-            'spyder_pythonpath', default=[], section='pythonpath_manager')
+            'spyder_pythonpath', default=[], section='pythonpath_manager'
+        )
         process.setProcessEnvironment(
-            self.get_environment(pythonpath_manager_values))
+            self.get_environment(pythonpath_manager_values)
+        )
         process.start(sys.executable, command_args)
         running = process.waitForStarted()
         if not running:
@@ -936,8 +938,9 @@ class PylintWidget(PluginMainWidget):
         return command_args
 
     @staticmethod
-    def get_environment(pythonpath_manager_values: list
-                        ) -> QProcessEnvironment:
+    def get_environment(
+        pythonpath_manager_values: list
+    ) -> QProcessEnvironment:
         """Get evironment variables for pylint command."""
         process_environment = QProcessEnvironment()
         process_environment.insert("PYTHONIOENCODING", "utf8")
@@ -956,7 +959,9 @@ class PylintWidget(PluginMainWidget):
             # Needed for Windows installations using standalone Python and pip.
             # See spyder-ide/spyder#19385
             if not is_conda_env(sys.prefix):
-                process_environment.insert("APPDATA", os.environ.get("APPDATA"))
+                process_environment.insert(
+                    "APPDATA", os.environ.get("APPDATA")
+                )
 
         return process_environment
 
