@@ -1501,7 +1501,7 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
-                
+
     # ---- Qt methods
     def mouseDoubleClickEvent(self, event):
         """select NUMBER tokens to select numeric literals on double click"""
