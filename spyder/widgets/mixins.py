@@ -1504,20 +1504,24 @@ class BaseEditMixin(object):
 
     # ---- Qt methods
     def mouseDoubleClickEvent(self, event):
-        """select NUMBER tokens to select numeric literals on double click"""
-        cur = self.cursorForPosition(event.pos())
-        block = cur.block()
+        """Select NUMBER tokens to select numeric literals on double click."""
+        cursor = self.cursorForPosition(event.pos())
+        block = cursor.block()
         text = block.text()
         pos = block.position()
-        pos_in_block = cur.positionInBlock()
+        pos_in_block = cursor.positionInBlock()
+
         for t_type, _, start, end, _ in generate_tokens(StringIO(text).read):
             if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
-                cur.setPosition(pos + start[1])
-                cur.setPosition(pos + end[1], QTextCursor.MoveMode.KeepAnchor)
-                self.setTextCursor(cur)
+                cursor.setPosition(pos + start[1])
+                cursor.setPosition(
+                    pos + end[1], QTextCursor.MoveMode.KeepAnchor
+                )
+                self.setTextCursor(cursor)
                 return
             elif start[1] > pos_in_block:
                 break
+
         if isinstance(self, QPlainTextEdit):
             QPlainTextEdit.mouseDoubleClickEvent(self, event)
         elif isinstance(self, QTextEdit):
