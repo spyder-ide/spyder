@@ -101,7 +101,7 @@ DEFAULTS = [
                   ApplicationToolbars.Main,
                   ApplicationToolbars.WorkingDirectory,
               ],
-              'toolbars_order': [],
+              'last_toolbars': [],
              }),
             ('statusbar',
              {

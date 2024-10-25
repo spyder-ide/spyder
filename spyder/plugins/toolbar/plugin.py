@@ -100,10 +100,8 @@ class Toolbar(SpyderPluginV2):
 
     def on_close(self, _unused):
         container = self.get_container()
-
-        # NOTE: DO NOT change the order in which these methods are called!
         container.save_last_visible_toolbars()
-        container.save_toolbars_order()
+        container.save_last_toolbars()
         for toolbar in container._visible_toolbars:
             toolbar.setVisible(False)
 

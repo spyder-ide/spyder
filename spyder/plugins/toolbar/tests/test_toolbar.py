@@ -93,16 +93,15 @@ def test_default_order(toolbar):
     assert current_order == sorted(current_order)
 
 
-def test_restore_toolbar_order(toolbar, qtbot):
+def test_restore_toolbars_order(toolbar, qtbot):
     """
     Check that if a toolbar is moved by users to a different position, then the
-    new order is saved on close and restored during the next startup.
+    new order is restored during the next startup.
     """
     new_order = [
         ApplicationToolbars.Debug,
         ApplicationToolbars.File,
         ApplicationToolbars.Run,
-        ApplicationToolbars.ControlDebugger,
         ApplicationToolbars.Main,
     ]
 
@@ -118,8 +117,8 @@ def test_restore_toolbar_order(toolbar, qtbot):
     # Close toolbar plugin (which is called when the main window is closed)
     toolbar.on_close(False)
 
-    # Check the order was saved as expected to our config system
-    assert toolbar.get_conf("toolbars_order") == new_order
+    # Check the list of available toolbars was saved to our config system
+    assert toolbar.get_conf("last_toolbars")
 
     # Reload toolbars as if a new Spyder session was started
     toolbar.on_mainwindow_visible()
@@ -133,10 +132,10 @@ def test_restore_toolbar_order(toolbar, qtbot):
     assert current_order == sorted(current_order)
 
 
-def test_no_toolbar_after_working_directory(toolbar, qtbot):
+def test_reorder_toolbars(toolbar, qtbot):
     """
-    Check that any toolbar that is placed to the right of the working directory
-    is repositioned to its left during the next startup.
+    Check that if a toolbar is removed, then toolbars are reordered the next
+    time with the working directory being shown to the right.
     """
     # Select the toolbars we are going to move
     cwd_toolbar = toolbar.get_application_toolbar(
@@ -152,6 +151,10 @@ def test_no_toolbar_after_working_directory(toolbar, qtbot):
     # Close toolbar plugin (which is called when the main window is closed)
     toolbar.on_close(False)
     qtbot.wait(500)
+
+    # Simulate that a toolbar was present in the last sesstion and then removed
+    last_toolbars = toolbar.get_conf("last_toolbars")
+    toolbar.set_conf("last_toolbars", last_toolbars + ["foo_toolbar"])
 
     # Reload toolbars as if a new Spyder session was started
     toolbar.on_mainwindow_visible()

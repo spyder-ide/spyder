@@ -381,61 +381,49 @@ class ToolbarContainer(PluginMainContainer):
                     f"Please add them to fix this error"
                 )
 
-        logger.debug("Loading application toolbars")
-
-        # We need to remove all toolbars first to organize them in the way we
-        # want
-        for toolbar in self._toolbarslist:
-            self._plugin.main.removeToolBar(toolbar)
-
-        toolbars_order = self.get_conf("toolbars_order")
-        if not toolbars_order:
-            # This is necessary only once, when there was no order saved in the
-            # previous session
-            toolbars_order = internal_toolbars_order + external_toolbars
-        else:
-            # Add new external toolbars to the right of the previous ones.
-            new_external_toolbars = [
-                toolbar_id
-                for toolbar_id in external_toolbars
-                if toolbar_id not in toolbars_order
-            ]
-            toolbars_order = toolbars_order + new_external_toolbars
-
-        # Add toolbars with the working directory to the right because it has a
-        # spacer
-        for toolbar_id in (
-            toolbars_order
-            + [ApplicationToolbars.WorkingDirectory]
+        # Reorganize toolbars only if this is the first time Spyder starts or
+        # new toolbars were added
+        last_toolbars = self.get_conf("last_toolbars")
+        if (
+            not last_toolbars
+            or set(last_toolbars) != set(app_toolbars.keys())
         ):
-            toolbar = app_toolbars[toolbar_id]
-            self._plugin.main.addToolBar(toolbar)
-            toolbar.render()
+            logger.debug("Reorganize application toolbars")
 
-    def save_toolbars_order(self):
-        """Save toolbars order from left to right when the app is closed."""
-        logger.debug("Saving application toolbars order")
+            # We need to remove all toolbars first to organize them in the way
+            # we want
+            for toolbar in self._toolbarslist:
+                self._plugin.main.removeToolBar(toolbar)
 
-        # We need to make visible all toolbars so that Qt correctly reports
-        # their positions.
+            # Add toolbars with the working directory to the right because it's
+            # not clear where it ends, so users can have a hard time finding a
+            # new toolbar in the interface if it's placed next to it.
+            toolbars_order = internal_toolbars_order + external_toolbars
+            for toolbar_id in (
+                toolbars_order
+                + [ApplicationToolbars.WorkingDirectory]
+            ):
+                toolbar = app_toolbars[toolbar_id]
+                self._plugin.main.addToolBar(toolbar)
+                toolbar.render()
+        else:
+            logger.debug("Render application toolbars")
+
+            for toolbar in self._toolbarslist:
+                toolbar.render()
+
+    def save_last_toolbars(self):
+        """Save the last available toolbars when the app is closed."""
+        logger.debug("Saving current application toolbars")
+
+        toolbars = []
         for toolbar in self._toolbarslist:
-            toolbar.setVisible(True)
+            toolbars.append(toolbar.objectName())
 
-        # Get all toolbars with the exception of the working directory because
-        # it'll be added to the right at startup given that it has a spacer to
-        # its left.
-        toolbars = self.get_application_toolbars().copy()
-        toolbars.pop(ApplicationToolbars.WorkingDirectory)
-
-        # Get current order
-        order = sorted(toolbars.values(), key=lambda toolbar: toolbar.x())
-        ordered_ids = [toolbar.ID for toolbar in order]
-
-        # Save order
-        self.set_conf("toolbars_order", ordered_ids)
+        self.set_conf('last_toolbars', toolbars)
 
     def save_last_visible_toolbars(self):
-        """Save the last visible toolbars state in our preferences."""
+        """Save the last visible toolbars in our preferences."""
         if self.get_conf("toolbars_visible"):
             self._set_visible_toolbars()
         self._save_visible_toolbars()
