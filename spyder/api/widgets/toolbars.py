@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import uuid
 
 # Third part imports
-from qtpy.QtCore import QEvent, QObject, QSize, Qt
+from qtpy.QtCore import QEvent, QObject, QSize, Qt, Signal
 from qtpy.QtWidgets import (
     QAction, QProxyStyle, QStyle, QToolBar, QToolButton, QWidget)
 
@@ -102,6 +102,12 @@ class SpyderToolbar(QToolBar):
     Spyder Toolbar.
 
     This class provides toolbars with some predefined functionality.
+    """
+
+    sig_is_rendered = Signal()
+    """
+    This signal is emitted to let other objects know that the toolbar is now
+    rendered.
     """
 
     def __init__(self, parent, title):
@@ -278,6 +284,8 @@ class SpyderToolbar(QToolBar):
 
                 if item.isCheckable():
                     widget.setCheckable(True)
+
+        self.sig_is_rendered.emit()
 
 
 class ApplicationToolbar(SpyderToolbar):
