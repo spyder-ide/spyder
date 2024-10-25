@@ -20,7 +20,7 @@ import sre_constants
 import sys
 import textwrap
 from token import NUMBER
-from tokenize import generate_tokens
+from tokenize import generate_tokens, TokenError
 
 # Third party imports
 from packaging.version import parse
@@ -1516,17 +1516,23 @@ class BaseEditMixin(object):
         #   an EOF error trying to double click a line with opening or closing
         #   triple quotes as well.
         text = text.replace('"', ' ').replace("'", ' ')
+        readline = StringIO(text).read
 
-        for t_type, _, start, end, _ in generate_tokens(StringIO(text).read):
-            if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
-                cursor.setPosition(pos + start[1])
-                cursor.setPosition(
-                    pos + end[1], QTextCursor.MoveMode.KeepAnchor
-                )
-                self.setTextCursor(cursor)
-                return
-            elif start[1] > pos_in_block:
-                break
+        try:
+            for t_type, _, start, end, _ in generate_tokens(readline):
+                if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
+                    cursor.setPosition(pos + start[1])
+                    cursor.setPosition(
+                        pos + end[1], QTextCursor.MoveMode.KeepAnchor
+                    )
+                    self.setTextCursor(cursor)
+                    return
+                elif start[1] > pos_in_block:
+                    break
+        except TokenError:
+            # Ignore 'EOF in multi-line statement' from tokenize._tokenize
+            # IndentationError should be impossible from tokenizing one line
+            pass
 
         if isinstance(self, QPlainTextEdit):
             QPlainTextEdit.mouseDoubleClickEvent(self, event)
