@@ -40,7 +40,6 @@ def toolbar(qtbot):
         (ApplicationToolbars.File, "filenew"),
         (ApplicationToolbars.Run, "run"),
         (ApplicationToolbars.Debug, "debug"),
-        (ApplicationToolbars.ControlDebugger, "arrow-step-over"),
         (ApplicationToolbars.Main, "python"),
     ]
 
@@ -70,19 +69,9 @@ def test_default_order(toolbar):
         ApplicationToolbars.File,
         ApplicationToolbars.Run,
         ApplicationToolbars.Debug,
-        ApplicationToolbars.ControlDebugger,
         ApplicationToolbars.Main,
         ApplicationToolbars.WorkingDirectory,
     ]
-
-    # Check the control debugger toolbar is hidden by default
-    control_debugger = toolbar.get_application_toolbar(
-        ApplicationToolbars.ControlDebugger
-    )
-    assert not control_debugger.isVisible()
-
-    # Make control debugger visible so Qt can correctly get its x position
-    control_debugger.setVisible(True)
 
     # Check the horizontal order obtained the displayed toolbar doesn't change
     # after sorting it.

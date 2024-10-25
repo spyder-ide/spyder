@@ -167,7 +167,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug,
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
             shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
@@ -184,7 +187,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
         )
 
         run.create_run_in_executor_button(
@@ -200,7 +206,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
         )
 
     @on_plugin_teardown(plugin=Plugins.Run)
@@ -339,11 +348,11 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         ]:
             toolbar.add_item_to_application_toolbar(
                 self.get_action(action_id),
-                toolbar_id=ApplicationToolbars.ControlDebugger,
+                toolbar_id=ApplicationToolbars.Debug,
             )
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
-    def on_toolbar_teardonw(self):
+    def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
 
         for action_id in [
@@ -355,7 +364,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         ]:
             toolbar.remove_item_from_application_toolbar(
                 action_id,
-                toolbar_id=ApplicationToolbars.ControlDebugger,
+                toolbar_id=ApplicationToolbars.Debug,
             )
 
     # ---- Private API
