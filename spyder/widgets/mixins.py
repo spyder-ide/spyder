@@ -1511,6 +1511,12 @@ class BaseEditMixin(object):
         pos = block.position()
         pos_in_block = cursor.positionInBlock()
 
+        # Strip quotes to prevent tokenizer from trying to emit STRING tokens
+        #   because we want to interpret numbers inside strings. This solves
+        #   an EOF error trying to double click a line with opening or closing
+        #   triple quotes as well.
+        text = text.replace('"', ' ').replace("'", ' ')
+
         for t_type, _, start, end, _ in generate_tokens(StringIO(text).read):
             if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
                 cursor.setPosition(pos + start[1])
