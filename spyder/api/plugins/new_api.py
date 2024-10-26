@@ -983,6 +983,13 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the action to switch is called a second time.
     RAISE_AND_FOCUS = False
 
+    # Whether the plugin can handle file actions.
+    # If set to true, then the `create_new_file`, `open_last_closed_file`,
+    # `save_file`, `save_file_as`, `save_copy_as`, `save_all`, `revert_file`,
+    # `close_file` and `close_all` functions will be called to handle the
+    # corresponding actions.
+    CAN_HANDLE_FILE_ACTIONS = False
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1063,6 +1070,98 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.sig_toggle_view_changed.connect(self.sig_toggle_view_changed)
         widget.sig_update_ancestor_requested.connect(
             self.sig_update_ancestor_requested)
+
+    # ---- API: Optional methods to override
+    # -------------------------------------------------------------------------
+    def create_new_file(self) -> None:
+        """
+        Create a new file inside the plugin.
+
+        This function will be called if the user create a new file using
+        the `File > New` menu item or the "New file" button in the toolbar,
+        and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def open_last_closed_file(self) -> None:
+        """
+        Open the last closed file again.
+
+        This function will be called if the `File > Open last closed` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS`
+        is set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_file(self) -> None:
+        """
+        Save the current file.
+
+        This function will be called if the user saves the current file using
+        the `File > Save` menu item or the "Save file" button in the toolbar,
+        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_file_as(self) -> None:
+        """
+        Save the current file under a different name.
+
+        This function will be called if the `File > Save as` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_copy_as(self) -> None:
+        """
+        Save a copy of the current file under a different name.
+
+        This function will be called if the `File > Save copy as` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_all(self) -> None:
+        """
+        Save all files that are opened in the plugin.
+
+        This function will be called if the user saves all files using the
+        `File > Save all` menu item or the "Save all" button in the toolbar,
+        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def revert_file(self) -> None:
+        """
+        Revert the current file to the version stored on disk.
+
+        This function will be called if the `File > Revert` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def close_file(self) -> None:
+        """
+        Close the current file.
+
+        This function will be called if the `File > Close` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def close_all(self) -> None:
+        """
+        Close all opened files.
+
+        This function will be called if the `File > Close all` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
 
     # ---- API: available methods
     # -------------------------------------------------------------------------

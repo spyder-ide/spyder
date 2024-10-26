@@ -540,10 +540,16 @@ class Application(SpyderPluginV2):
         """
         Create new file in a suitable plugin.
 
-        For the moment, this creates a new file in the Editor plugin.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then create a new
+        file in that plugin. Otherwise, create a new file in the Editor plugin.
         """
-        plugin = self.get_plugin(Plugins.Editor)
-        plugin.new()
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.create_new_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.new()
 
     def open_file_using_dialog(self) -> None:
         """
@@ -578,9 +584,15 @@ class Application(SpyderPluginV2):
         """
         Open the last closed file again.
 
-        For the moment, forward the request to the Editor plugin.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then open the
+        last closed file in that plugin. Otherwise, open the last closed file
+        in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.open_last_closed_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.open_last_closed()
 
@@ -599,25 +611,47 @@ class Application(SpyderPluginV2):
         """
         Save current file.
 
-        For the moment, this instructs the Editor plugin to save the current
-        file.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin. Otherwise, save the current file in the
+        Editor plugin.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.save()
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save()
 
     def save_file_as(self) -> None:
         """
-        Save current file in Editor plugin under a different name.
+        Save current file under a different name.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin under a different name. Otherwise, save
+        the current file in the Editor plugin under a different name.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file_as()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_as()
 
     def save_copy_as(self) -> None:
         """
-        Save copy of current file in Editor plugin under a different name.
+        Save copy of current file under a different name.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save a copy of
+        the current file in that plugin under a different name. Otherwise, save
+        a copy of the current file in the Editor plugin under a different name.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_copy_as()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_copy_as()
 
@@ -625,34 +659,64 @@ class Application(SpyderPluginV2):
         """
         Save all files.
 
-        Save all files in the Editor plugin.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save all files
+        in that plugin. Otherwise, save all files in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_all()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_all()
 
     def revert_file(self) -> None:
         """
-        Revert current file in Editor plugin to version on disk.
+        Revert current file to version on disk.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.revert_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.revert_file()
 
     def close_file(self) -> None:
         """
-        Close current file in Editor plugin to version on disk.
+        Close the current file.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.close_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.close_file()
 
     def close_all(self) -> None:
         """
-        Close all opened files in the Editor plugin.
+        Close all opened files in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.close_all_files()
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.close_all()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.close_all_files()
 
     def enable_save_action(self, state: bool) -> None:
         """
