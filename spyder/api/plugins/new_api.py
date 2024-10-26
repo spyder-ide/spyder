@@ -988,6 +988,11 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # will open in this plugin using the `open_file` function.
     # Example: ['.ipynb'] for spyder-notebook
     FILE_EXTENSIONS = []
+    
+    # Whether the plugin can handle file actions.
+    # If set to true, then the `create_new_file` function will be called to
+    # create a new file in the plugin.
+    CAN_HANDLE_FILE_ACTIONS = False
 
     # ---- API: Available signals
     # -------------------------------------------------------------------------
@@ -1072,6 +1077,16 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     # ---- API: Optional methods to override
     # -------------------------------------------------------------------------
+    def create_new_file(self) -> None:
+        """
+        Create a new file inside the plugin.
+
+        This function will be called if the user create a new file using
+        the `File > New` menu item or the "New file" button in the toolbar,
+        and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
     def open_file(self, filename: str):
         """
         Open file inside plugin.
