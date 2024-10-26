@@ -29,33 +29,44 @@ def test_focused_plugin(application_plugin):
     assert application_plugin.focused_plugin == mock_plugin
 
 
+@pytest.mark.parametrize('can_file', [True, False])
 @pytest.mark.parametrize(
-    'action_name, editor_function_name',
+    'action_name, editor_function_name, plugin_function_name',
     [
-        ('new_action', 'new'),
-        ('open_last_closed_action', 'open_last_closed'),
-        ('save_action', 'save'),
-        ('save_all_action', 'save_all'),
-        ('save_as_action', 'save_as'),
-        ('save_copy_as_action', 'save_copy_as'),
-        ('revert_action', 'revert_file'),
-        ('close_file_action', 'close_file'),
-        ('close_all_action', 'close_all_files'),
+        ('new_action', 'new', 'create_new_file'),
+        ('open_last_closed_action', 'open_last_closed', 'open_last_closed_file'),
+        ('save_action', 'save', 'save_file'),
+        ('save_all_action', 'save_all', 'save_all'),
+        ('save_as_action', 'save_as', 'save_file_as'),
+        ('save_copy_as_action', 'save_copy_as', 'save_copy_as'),
+        ('revert_action', 'revert_file', 'revert_file'),
+        ('close_file_action', 'close_file', 'close_file'),
+        ('close_all_action', 'close_all_files', 'close_all'),
     ],
 )
-def test_file_actions(application_plugin, action_name, editor_function_name):
+def test_file_actions(
+    application_plugin, action_name, editor_function_name,
+    plugin_function_name, can_file
+):
     """
     Test that triggering file actions calls the corresponding function in the
     Editor plugin.
     """
+    mock_plugin = Mock(CAN_HANDLE_FILE_ACTIONS=can_file)
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin)
+
     container = application_plugin.get_container()
     action = getattr(container, action_name)
     action.trigger()
 
-    application_plugin.get_plugin.assert_called_with(Plugins.Editor)
-    editor_plugin = application_plugin.get_plugin.return_value
-    editor_function = getattr(editor_plugin, editor_function_name)
-    editor_function.assert_called()
+    if can_file:
+        editor_function = getattr(mock_plugin, plugin_function_name)
+        editor_function.assert_called()
+    else:
+        application_plugin.get_plugin.assert_called_with(Plugins.Editor)
+        editor_plugin = application_plugin.get_plugin.return_value
+        editor_function = getattr(editor_plugin, editor_function_name)
+        editor_function.assert_called()
 
 
 def test_open_file(application_plugin):
