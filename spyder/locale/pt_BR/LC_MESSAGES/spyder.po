@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-09-18 21:34-0500\n"
-"PO-Revision-Date: 2024-10-27 00:32\n"
+"PO-Revision-Date: 2024-10-27 02:33\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -4046,7 +4046,7 @@ msgstr "O ambiente ou instalação Python cujo interpretador está localizado em
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:62
 msgid "This Python environment doesn't have the right version of <tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "Este ambiente Python não possui a versão correta de <tt>spyder-kernels</tt> instalada (>= {0} e < {1}). Sem esse módulo, não é possível para o Spyder criar um console para você.<br><br>Você pode instalá-lo ativando seu ambiente (se necessário) e, em seguida, executando em um terminal do sistema:<pre> <tt>{2}</tt></pre>ou<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:478
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
@@ -4438,7 +4438,7 @@ msgstr "Parece que você está tentando usar um módulo que não vem com o nosso
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:50
 msgid "Click to toggle between inline and interactive Matplotlib plotting"
-msgstr ""
+msgstr "Clique para alternar entre a plotagem no console e a plotagem interativa do Matplotlib"
 
 #: spyder/plugins/layout/container.py:79
 msgid "Close current pane"
@@ -4750,7 +4750,7 @@ msgstr "Explorador de Elementos"
 
 #: spyder/plugins/outlineexplorer/plugin.py:39
 msgid "Explore functions, classes and methods in open files. Note that if you disable the 'Completion and linting' plugin, this one won't work."
-msgstr ""
+msgstr "Explore funções, classes e métodos em arquivos abertos. Observe que, se você desativar o plugin 'Análise e preenchimento de código', este não funcionará."
 
 #: spyder/plugins/outlineexplorer/widgets.py:39 spyder/widgets/dependencies.py:34
 msgid "Module"
