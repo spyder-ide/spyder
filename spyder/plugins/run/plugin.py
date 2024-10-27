@@ -139,12 +139,25 @@ class Run(SpyderPluginV2):
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.add_item_to_application_toolbar(
-            self.get_action(RunActions.Run), ApplicationToolbars.Run)
+            self.get_action(RunActions.Run), ApplicationToolbars.Run
+        )
 
         while self.pending_toolbar_actions != []:
-            action, toolbar_id = self.pending_toolbar_actions.pop(0)
+            (
+                action,
+                toolbar_id,
+                section,
+                before,
+                before_section,
+            ) = self.pending_toolbar_actions.pop(0)
+
             toolbar.add_item_to_application_toolbar(
-                action, toolbar_id)
+                action,
+                toolbar_id,
+                section,
+                before,
+                before_section,
+            )
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
@@ -407,7 +420,7 @@ class Run(SpyderPluginV2):
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
         context_modificator: Optional[str] = None,
-        add_to_toolbar: bool | str = False,
+        add_to_toolbar: bool | str | dict = False,
         add_to_menu: bool | dict = False,
         re_run: bool = False
     ) -> QAction:
@@ -438,7 +451,10 @@ class Run(SpyderPluginV2):
             selection <up to line>.
         add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
-            main toolbar. If a string, it must be a toolbar_id
+            main toolbar. If a string, it must be a toolbar_id. If dictionary,
+            it corresponds to
+            {'toolbar': ..., 'section': ..., 'before': ...,
+             'before_section': ...}
         add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
@@ -488,16 +504,39 @@ class Run(SpyderPluginV2):
         )
 
         if add_to_toolbar:
-            toolbar_id = ApplicationToolbars.Run
+            toolbar_id, section, before, before_section = (
+                ApplicationToolbars.Run,
+                None,
+                None,
+                None
+            )
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+            if isinstance(add_to_toolbar, dict):
+                toolbar_id = add_to_toolbar['toolbar']
+                section = add_to_toolbar.get('section')
+                before = add_to_toolbar.get('before')
+                before_section = add_to_menu.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
-                    action, toolbar_id)
+                    action,
+                    toolbar_id,
+                    section,
+                    before,
+                    before_section,
+                )
             else:
-                self.pending_toolbar_actions.append((action, toolbar_id))
+                self.pending_toolbar_actions.append(
+                    (
+                        action,
+                        toolbar_id,
+                        section,
+                        before,
+                        before_section,
+                    )
+                )
 
             self.toolbar_actions |= {key}
 
@@ -614,7 +653,7 @@ class Run(SpyderPluginV2):
         tip: Optional[str] = None,
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
-        add_to_toolbar: bool | str = False,
+        add_to_toolbar: bool | str | dict = False,
         add_to_menu: bool | dict = False,
         shortcut_widget_context: Qt.ShortcutContext = Qt.WidgetShortcut,
     ) -> QAction:
@@ -639,9 +678,12 @@ class Run(SpyderPluginV2):
         register_shortcut: bool
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
-        add_to_toolbar: bool or str
+        add_to_toolbar: bool or str or dict
             If True, then the action will be added to the Run section of the
-            main toolbar. If a string, it will be a toolbat id
+            main toolbar. If a string, it must be a toolbar_id. If dictionary,
+            it corresponds to
+            {'toolbar': ..., 'section': ..., 'before': ...,
+             'before_section': ...}
         add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
@@ -685,16 +727,39 @@ class Run(SpyderPluginV2):
         )
 
         if add_to_toolbar:
-            toolbar_id = ApplicationToolbars.Run
+            toolbar_id, section, before, before_section = (
+                ApplicationToolbars.Run,
+                None,
+                None,
+                None
+            )
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+            if isinstance(add_to_toolbar, dict):
+                toolbar_id = add_to_toolbar['toolbar']
+                section = add_to_toolbar.get('section')
+                before = add_to_toolbar.get('before')
+                before_section = add_to_menu.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
-                    action, toolbar_id)
+                    action,
+                    toolbar_id,
+                    section,
+                    before,
+                    before_section,
+                )
             else:
-                self.pending_toolbar_actions.append((action, toolbar_id))
+                self.pending_toolbar_actions.append(
+                    (
+                        action,
+                        toolbar_id,
+                        section,
+                        before,
+                        before_section,
+                    )
+                )
 
             self.toolbar_actions |= {key}
 

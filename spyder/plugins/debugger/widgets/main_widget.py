@@ -19,12 +19,15 @@ from qtpy.QtWidgets import QHBoxLayout, QSplitter
 import qstylizer.style
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.plugins.debugger.widgets.framesbrowser import (
     FramesBrowser, FramesBrowserState)
 from spyder.plugins.debugger.widgets.breakpoint_table_view import (
     BreakpointTableView, BreakpointTableViewActions)
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 
 
 # =============================================================================
@@ -169,6 +172,12 @@ class DebuggerWidget(ShellConnectMainWidget):
         # showing/hiding the breakpoints table
         self.splitter.setStyleSheet(
             f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
+        )
+
+        # To manipulate the control debugger buttons in the Debug toolbar
+        self._control_debugger_toolbar_widgets = []
+        self._app_toolbar_button_width = (
+            int(APP_TOOLBAR_STYLESHEET.BUTTON_WIDTH.split("px")[0])
         )
 
         # Layout
@@ -428,6 +437,8 @@ class DebuggerWidget(ShellConnectMainWidget):
                     DebuggerWidgetActions.GotoCursor]:
                 action = self.get_action(action_name)
                 action.setEnabled(pdb_prompt)
+
+            self._set_visible_control_debugger_buttons(pdb_prompt)
 
             rows = self.breakpoints_table.selectionModel().selectedRows()
             initial_row = rows[0] if rows else None
@@ -722,6 +733,31 @@ class DebuggerWidget(ShellConnectMainWidget):
         if base_width - table_width > 0:
             self.splitter.setSizes([base_width - table_width, table_width])
 
+    def on_debug_toolbar_rendered(self):
+        """Actions to take when the Debug toolbar is rendered."""
+        debug_toolbar = self.get_toolbar(
+            ApplicationToolbars.Debug, plugin=Plugins.Toolbar
+        )
+
+        # Get widgets corresponding to control debugger actions in the Debug
+        # toolbar
+        for action_id in [
+            DebuggerWidgetActions.Next,
+            DebuggerWidgetActions.Step,
+            DebuggerWidgetActions.Return,
+            DebuggerWidgetActions.Continue,
+            DebuggerWidgetActions.Stop,
+        ]:
+            action = self.get_action(action_id)
+            widget = debug_toolbar.widgetForAction(action)
+
+            # Hide widgets by default because no debugging session is
+            # active at startup
+            widget.setFixedWidth(0)
+
+            # Save widgets in this list to manipulate them later
+            self._control_debugger_toolbar_widgets.append(widget)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     def _update_stylesheet(self, is_table_shown=False):
@@ -739,3 +775,11 @@ class DebuggerWidget(ShellConnectMainWidget):
             borderBottomRightRadius=f'{border_radius}',
         )
         self._stack.setStyleSheet(css.toString())
+
+    def _set_visible_control_debugger_buttons(self, visible: bool):
+        """Show/hide control debugger buttons in the Debug toolbar."""
+        for widget in self._control_debugger_toolbar_widgets:
+            if visible:
+                widget.setFixedWidth(self._app_toolbar_button_width)
+            else:
+                widget.setFixedWidth(0)
