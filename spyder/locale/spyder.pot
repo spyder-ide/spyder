@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2024-09-18 21:34-0500\n"
+"POT-Creation-Date: 2024-10-28 16:09-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,7 +90,7 @@ msgstr ""
 msgid "Lock pane to the current position"
 msgstr ""
 
-#: spyder/api/widgets/toolbars.py:124
+#: spyder/api/widgets/toolbars.py:130
 msgid "More"
 msgstr ""
 
@@ -110,23 +110,23 @@ msgstr ""
 msgid "Loading {}..."
 msgstr ""
 
-#: spyder/app/mainwindow.py:675 spyder/plugins/tours/widgets.py:1099
+#: spyder/app/mainwindow.py:679 spyder/plugins/tours/widgets.py:1099
 msgid "Welcome to Spyder!"
 msgstr ""
 
-#: spyder/app/mainwindow.py:769
+#: spyder/app/mainwindow.py:773
 msgid "Setting up main window..."
 msgstr ""
 
-#: spyder/app/mainwindow.py:1218 spyder/plugins/application/confpage.py:301 spyder/plugins/application/container.py:288 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:206 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:224 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:169 spyder/plugins/editor/widgets/editorstack/editorstack.py:2500 spyder/plugins/explorer/widgets/explorer.py:1293 spyder/plugins/explorer/widgets/explorer.py:1646 spyder/plugins/ipythonconsole/widgets/shell.py:1033 spyder/plugins/layout/container.py:299 spyder/plugins/profiler/widgets/main_widget.py:579 spyder/plugins/profiler/widgets/main_widget.py:738 spyder/plugins/projects/widgets/main_widget.py:333 spyder/plugins/projects/widgets/main_widget.py:356 spyder/plugins/projects/widgets/main_widget.py:576 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/pylint/main_widget.py:397 spyder/plugins/pylint/main_widget.py:429 spyder/plugins/remoteclient/widgets/connectionstatus.py:46 spyder/plugins/variableexplorer/widgets/arrayeditor.py:696 spyder/plugins/variableexplorer/widgets/arrayeditor.py:1146 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:175 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:190 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:196 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:568 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:991 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2285 spyder/widgets/collectionseditor.py:1937 spyder/widgets/reporterror.py:430
+#: spyder/app/mainwindow.py:1222 spyder/plugins/application/confpage.py:301 spyder/plugins/application/container.py:296 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:206 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:224 spyder/plugins/completion/providers/languageserver/conftabs/docstring.py:149 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:169 spyder/plugins/editor/widgets/editorstack/editorstack.py:2500 spyder/plugins/explorer/widgets/explorer.py:1293 spyder/plugins/explorer/widgets/explorer.py:1646 spyder/plugins/ipythonconsole/widgets/shell.py:1036 spyder/plugins/layout/container.py:299 spyder/plugins/profiler/widgets/main_widget.py:579 spyder/plugins/profiler/widgets/main_widget.py:738 spyder/plugins/projects/widgets/main_widget.py:333 spyder/plugins/projects/widgets/main_widget.py:356 spyder/plugins/projects/widgets/main_widget.py:576 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/pylint/main_widget.py:397 spyder/plugins/pylint/main_widget.py:429 spyder/plugins/remoteclient/widgets/connectionstatus.py:46 spyder/plugins/variableexplorer/widgets/arrayeditor.py:696 spyder/plugins/variableexplorer/widgets/arrayeditor.py:1146 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:175 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:190 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:196 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:568 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:991 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2285 spyder/widgets/collectionseditor.py:1937 spyder/widgets/reporterror.py:430
 msgid "Error"
 msgstr ""
 
-#: spyder/app/mainwindow.py:1219
+#: spyder/app/mainwindow.py:1223
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
 msgstr ""
 
-#: spyder/app/mainwindow.py:1378
+#: spyder/app/mainwindow.py:1382
 msgid "Initializing..."
 msgstr ""
 
@@ -499,7 +499,7 @@ msgstr ""
 msgid "Main interface"
 msgstr ""
 
-#: spyder/plugins/appearance/confpage.py:60 spyder/plugins/ipythonconsole/confpage.py:119 spyder/plugins/ipythonconsole/widgets/status.py:110
+#: spyder/plugins/appearance/confpage.py:60 spyder/plugins/ipythonconsole/confpage.py:119 spyder/plugins/ipythonconsole/widgets/status.py:112
 msgid "Automatic"
 msgstr ""
 
@@ -709,95 +709,99 @@ msgstr ""
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
 msgstr ""
 
-#: spyder/plugins/application/container.py:105
+#: spyder/plugins/application/container.py:106
 msgid "Spyder documentation"
 msgstr ""
 
-#: spyder/plugins/application/container.py:116
+#: spyder/plugins/application/container.py:117
 msgid "Tutorial videos"
 msgstr ""
 
-#: spyder/plugins/application/container.py:123
+#: spyder/plugins/application/container.py:124
 msgid "Troubleshooting..."
 msgstr ""
 
-#: spyder/plugins/application/container.py:127
+#: spyder/plugins/application/container.py:128
 msgid "Report issue..."
 msgstr ""
 
-#: spyder/plugins/application/container.py:132
+#: spyder/plugins/application/container.py:133
 msgid "Dependencies..."
 msgstr ""
 
-#: spyder/plugins/application/container.py:137
+#: spyder/plugins/application/container.py:138
 msgid "Spyder support..."
 msgstr ""
 
 #: spyder/plugins/application/container.py:143
+msgid "Help Spyder..."
+msgstr ""
+
+#: spyder/plugins/application/container.py:151
 msgid "About %s..."
 msgstr ""
 
-#: spyder/plugins/application/container.py:150
+#: spyder/plugins/application/container.py:158
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
 msgstr ""
 
-#: spyder/plugins/application/container.py:153
+#: spyder/plugins/application/container.py:161
 msgid "Show current user environment variables (i.e. for all sessions)"
 msgstr ""
 
-#: spyder/plugins/application/container.py:157
+#: spyder/plugins/application/container.py:165
 msgid "Current user environment variables..."
 msgstr ""
 
-#: spyder/plugins/application/container.py:165
+#: spyder/plugins/application/container.py:173
 msgid "&Restart"
 msgstr ""
 
-#: spyder/plugins/application/container.py:167
+#: spyder/plugins/application/container.py:175
 msgid "Restart"
 msgstr ""
 
-#: spyder/plugins/application/container.py:175
+#: spyder/plugins/application/container.py:183
 msgid "&Restart in debug mode"
 msgstr ""
 
-#: spyder/plugins/application/container.py:176
+#: spyder/plugins/application/container.py:184
 msgid "Restart in debug mode"
 msgstr ""
 
-#: spyder/plugins/application/container.py:186
+#: spyder/plugins/application/container.py:194
 msgid "Debug logs"
 msgstr ""
 
-#: spyder/plugins/application/container.py:267
+#: spyder/plugins/application/container.py:275
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
 msgstr ""
 
-#: spyder/plugins/application/container.py:304
+#: spyder/plugins/application/container.py:312
 msgid "Question"
 msgstr ""
 
-#: spyder/plugins/application/container.py:307
+#: spyder/plugins/application/container.py:315
 msgid "Which debug mode do you want Spyder to restart in?"
 msgstr ""
 
-#: spyder/plugins/application/container.py:310
+#: spyder/plugins/application/container.py:318
 msgid "Verbose"
 msgstr ""
 
-#: spyder/plugins/application/container.py:311
+#: spyder/plugins/application/container.py:319
 msgid "Minimal"
 msgstr ""
 
-#: spyder/plugins/application/container.py:427 spyder/plugins/ipythonconsole/widgets/shell.py:869
+#: spyder/plugins/application/container.py:435 spyder/plugins/ipythonconsole/widgets/shell.py:872
 msgid "Don't show again."
 msgstr ""
 
-#: spyder/plugins/application/container.py:442
+#: spyder/plugins/application/container.py:450
 msgid "Restart now"
 msgstr ""
 
-#: spyder/plugins/application/container.py:444 spyder/plugins/tours/widgets.py:1114
+#: spyder/plugins/application/container.py:452 spyder/plugins/tours/widgets.py:1114
 msgid "Dismiss"
 msgstr ""
 
@@ -833,7 +837,7 @@ msgstr ""
 msgid "Help Spyder"
 msgstr ""
 
-#: spyder/plugins/application/widgets/status.py:146
+#: spyder/plugins/application/widgets/status.py:148
 msgid "Help Spyder!"
 msgstr ""
 
@@ -1754,11 +1758,11 @@ msgstr ""
 msgid "Execution Inspector"
 msgstr ""
 
-#: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:210
+#: spyder/plugins/debugger/confpage.py:85 spyder/plugins/debugger/widgets/main_widget.py:219
 msgid "Exclude internal frames when inspecting execution"
 msgstr ""
 
-#: spyder/plugins/debugger/plugin.py:56 spyder/plugins/debugger/widgets/main_widget.py:196
+#: spyder/plugins/debugger/plugin.py:56 spyder/plugins/debugger/widgets/main_widget.py:205
 msgid "Debugger"
 msgstr ""
 
@@ -1774,11 +1778,11 @@ msgstr ""
 msgid "Debug file"
 msgstr ""
 
-#: spyder/plugins/debugger/plugin.py:177 spyder/plugins/debugger/plugin.py:178
+#: spyder/plugins/debugger/plugin.py:180 spyder/plugins/debugger/plugin.py:181
 msgid "Debug cell"
 msgstr ""
 
-#: spyder/plugins/debugger/plugin.py:193 spyder/plugins/debugger/plugin.py:194
+#: spyder/plugins/debugger/plugin.py:199 spyder/plugins/debugger/plugin.py:200
 msgid "Debug selection or current line"
 msgstr ""
 
@@ -1802,7 +1806,7 @@ msgstr ""
 msgid "Line"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/breakpoint_table_view.py:217 spyder/plugins/debugger/widgets/main_widget.py:320 spyder/plugins/debugger/widgets/main_widget.py:321
+#: spyder/plugins/debugger/widgets/breakpoint_table_view.py:217 spyder/plugins/debugger/widgets/main_widget.py:329 spyder/plugins/debugger/widgets/main_widget.py:330
 msgid "Clear breakpoints in all files"
 msgstr ""
 
@@ -1850,71 +1854,71 @@ msgstr ""
 msgid "Scope"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:211
+#: spyder/plugins/debugger/widgets/main_widget.py:220
 msgid "Exclude frames that are not part of the user code"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:219
+#: spyder/plugins/debugger/widgets/main_widget.py:228
 msgid "Search frames"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:227
+#: spyder/plugins/debugger/widgets/main_widget.py:236
 msgid "Inspect execution"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:235
+#: spyder/plugins/debugger/widgets/main_widget.py:244
 msgid "Start debugging after last error"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:243
+#: spyder/plugins/debugger/widgets/main_widget.py:252
 msgid "Interrupt execution and start the debugger"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:251
+#: spyder/plugins/debugger/widgets/main_widget.py:260
 msgid "Execute current line"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:259
+#: spyder/plugins/debugger/widgets/main_widget.py:268
 msgid "Continue execution until next breakpoint"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:267
+#: spyder/plugins/debugger/widgets/main_widget.py:276
 msgid "Step into function or method"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:275
+#: spyder/plugins/debugger/widgets/main_widget.py:284
 msgid "Execute until function or method returns"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:283
+#: spyder/plugins/debugger/widgets/main_widget.py:292
 msgid "Stop debugging"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:291
+#: spyder/plugins/debugger/widgets/main_widget.py:300
 msgid "Show the file and line where the debugger is placed in the editor"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:302 spyder/plugins/debugger/widgets/main_widget.py:303
+#: spyder/plugins/debugger/widgets/main_widget.py:311 spyder/plugins/debugger/widgets/main_widget.py:312
 msgid "Set/Clear breakpoint"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:311 spyder/plugins/debugger/widgets/main_widget.py:312
+#: spyder/plugins/debugger/widgets/main_widget.py:320 spyder/plugins/debugger/widgets/main_widget.py:321
 msgid "Set/Edit conditional breakpoint"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:327
+#: spyder/plugins/debugger/widgets/main_widget.py:336
 msgid "List breakpoints"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:333 spyder/plugins/debugger/widgets/main_widget.py:460 spyder/plugins/debugger/widgets/main_widget.py:461 spyder/plugins/editor/confpage.py:74
+#: spyder/plugins/debugger/widgets/main_widget.py:342 spyder/plugins/debugger/widgets/main_widget.py:471 spyder/plugins/debugger/widgets/main_widget.py:472 spyder/plugins/editor/confpage.py:74
 msgid "Show breakpoints"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:455 spyder/plugins/debugger/widgets/main_widget.py:456
+#: spyder/plugins/debugger/widgets/main_widget.py:466 spyder/plugins/debugger/widgets/main_widget.py:467
 msgid "Hide breakpoints"
 msgstr ""
 
-#: spyder/plugins/debugger/widgets/main_widget.py:554
+#: spyder/plugins/debugger/widgets/main_widget.py:565
 msgid "The current file cannot be closed because it is in debug mode."
 msgstr ""
 
@@ -3581,7 +3585,7 @@ msgstr ""
 msgid "Object"
 msgstr ""
 
-#: spyder/plugins/help/widgets.py:343 spyder/plugins/ipythonconsole/widgets/client.py:545 spyder/plugins/ipythonconsole/widgets/run_conf.py:42
+#: spyder/plugins/help/widgets.py:343 spyder/plugins/ipythonconsole/widgets/client.py:548 spyder/plugins/ipythonconsole/widgets/run_conf.py:42
 msgid "Console"
 msgstr ""
 
@@ -3766,7 +3770,7 @@ msgstr ""
 msgid "This lets you generate graphics and work with arrays <b>without</b> importing the commands to do it. It's also useful to develop GUIs with Spyder."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/confpage.py:118 spyder/plugins/ipythonconsole/widgets/status.py:108
+#: spyder/plugins/ipythonconsole/confpage.py:118 spyder/plugins/ipythonconsole/widgets/status.py:110
 msgid "Inline"
 msgstr ""
 
@@ -4060,7 +4064,7 @@ msgstr ""
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:468 spyder/plugins/ipythonconsole/widgets/client.py:809
+#: spyder/plugins/ipythonconsole/widgets/client.py:468 spyder/plugins/ipythonconsole/widgets/client.py:812
 msgid "The error is:<br><br><tt>{}</tt>"
 msgstr ""
 
@@ -4068,7 +4072,7 @@ msgstr ""
 msgid "An error occurred while starting the kernel"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/client.py:801
+#: spyder/plugins/ipythonconsole/widgets/client.py:804
 msgid "It was not possible to restart the kernel"
 msgstr ""
 
@@ -4148,7 +4152,7 @@ msgstr ""
 msgid "New console in environment"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:431 spyder/plugins/ipythonconsole/widgets/main_widget.py:1248 spyder/plugins/ipythonconsole/widgets/status.py:210 spyder/plugins/maininterpreter/container.py:288
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:431 spyder/plugins/ipythonconsole/widgets/main_widget.py:1248 spyder/plugins/ipythonconsole/widgets/status.py:212 spyder/plugins/maininterpreter/container.py:288
 msgid "Custom"
 msgstr ""
 
@@ -4160,7 +4164,7 @@ msgstr ""
 msgid "Restart kernel"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/main_widget.py:451 spyder/plugins/ipythonconsole/widgets/main_widget.py:680 spyder/plugins/ipythonconsole/widgets/shell.py:861 spyder/plugins/variableexplorer/widgets/main_widget.py:173
+#: spyder/plugins/ipythonconsole/widgets/main_widget.py:451 spyder/plugins/ipythonconsole/widgets/main_widget.py:680 spyder/plugins/ipythonconsole/widgets/shell.py:864 spyder/plugins/variableexplorer/widgets/main_widget.py:173
 msgid "Remove all variables"
 msgstr ""
 
@@ -4392,43 +4396,47 @@ msgstr ""
 msgid "Directly enter debugging when errors appear"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:505
+#: spyder/plugins/ipythonconsole/widgets/shell.py:508
 msgid "<br><br>The kernel appears to be dead, so it can't be interrupted. Please open a new console to keep working.<br>"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:511
+#: spyder/plugins/ipythonconsole/widgets/shell.py:514
 msgid "<br><br>It is not possible to interrupt a non-Spyder kernel I did not start.<br>"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:862
+#: spyder/plugins/ipythonconsole/widgets/shell.py:865
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:919
+#: spyder/plugins/ipythonconsole/widgets/shell.py:922
 msgid "<br><br>Removing all variables...<br>"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:994
+#: spyder/plugins/ipythonconsole/widgets/shell.py:997
 msgid "Changing backend to Qt for Mayavi"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1036
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1039
 msgid "Important"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1374
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1388
 msgid "The kernel died, restarting..."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1375
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1389
 msgid "Restarting kernel..."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1385
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1401
 msgid "Its crash file is located at:"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:1450
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1406
+msgid "It was not possible to connect to the kernel. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
+msgstr ""
+
+#: spyder/plugins/ipythonconsole/widgets/shell.py:1475
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
 msgstr ""
 
@@ -5202,7 +5210,7 @@ msgstr ""
 msgid "Project type"
 msgstr ""
 
-#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:208 spyder/plugins/updatemanager/widgets/update.py:519 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
+#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:208 spyder/plugins/updatemanager/widgets/update.py:520 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
 msgid "Cancel"
 msgstr ""
 
@@ -6074,15 +6082,15 @@ msgstr ""
 msgid "unsaved file"
 msgstr ""
 
-#: spyder/plugins/toolbar/container.py:119 spyder/plugins/toolbar/container.py:134 spyder/plugins/toolbar/container.py:135
+#: spyder/plugins/toolbar/container.py:125 spyder/plugins/toolbar/container.py:140 spyder/plugins/toolbar/container.py:141
 msgid "Show toolbars"
 msgstr ""
 
-#: spyder/plugins/toolbar/container.py:125
+#: spyder/plugins/toolbar/container.py:131
 msgid "Toolbars"
 msgstr ""
 
-#: spyder/plugins/toolbar/container.py:131 spyder/plugins/toolbar/container.py:132
+#: spyder/plugins/toolbar/container.py:137 spyder/plugins/toolbar/container.py:138
 msgid "Hide toolbars"
 msgstr ""
 
@@ -6280,7 +6288,7 @@ msgstr ""
 msgid "<h3>Spyder {} is available!</h3><br>"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:232
+#: spyder/plugins/updatemanager/widgets/update.py:249
 msgid "Spyder is up to date."
 msgstr ""
 
@@ -6288,7 +6296,7 @@ msgstr ""
 msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:307 spyder/plugins/updatemanager/widgets/update.py:320 spyder/plugins/updatemanager/widgets/update.py:510
+#: spyder/plugins/updatemanager/widgets/update.py:307 spyder/plugins/updatemanager/widgets/update.py:320 spyder/plugins/updatemanager/widgets/update.py:511
 msgid "Spyder update"
 msgstr ""
 
@@ -6316,67 +6324,67 @@ msgstr ""
 msgid "Spyder install"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:494
+#: spyder/plugins/updatemanager/widgets/update.py:495
 msgid "Check for updates at startup"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:520
+#: spyder/plugins/updatemanager/widgets/update.py:521
 msgid "OK"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:537
+#: spyder/plugins/updatemanager/widgets/update.py:538
 msgid "Spyder update error"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:548
+#: spyder/plugins/updatemanager/widgets/update.py:549
 msgid "New Spyder version"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:567
+#: spyder/plugins/updatemanager/widgets/update.py:568
 msgid "After closing"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:576
+#: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:580
+#: spyder/plugins/updatemanager/widgets/update.py:581
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:584
+#: spyder/plugins/updatemanager/widgets/update.py:585
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:587
+#: spyder/plugins/updatemanager/widgets/update.py:588
 msgid "Run the following command in a terminal to update manually:<br><br>"
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:606
+#: spyder/plugins/updatemanager/widgets/update.py:607
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:624
+#: spyder/plugins/updatemanager/widgets/update.py:625
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
 msgstr ""
 
-#: spyder/plugins/updatemanager/widgets/update.py:633
+#: spyder/plugins/updatemanager/widgets/update.py:634
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
 msgstr ""
 
-#: spyder/plugins/updatemanager/workers.py:34
+#: spyder/plugins/updatemanager/workers.py:38
 msgid "Unable to connect to the Spyder update service.<br><br>Make sure your connection is working properly."
 msgstr ""
 
-#: spyder/plugins/updatemanager/workers.py:39
+#: spyder/plugins/updatemanager/workers.py:43
 msgid "HTTP error {status_code} when checking for updates.<br><br>Make sure your connection is working properly,and try again later."
 msgstr ""
 
-#: spyder/plugins/updatemanager/workers.py:45
+#: spyder/plugins/updatemanager/workers.py:49
 msgid "SSL certificate verification failed while checking for Spyder updates.<br><br>Please contact your network administrator for assistance."
 msgstr ""
 
-#: spyder/plugins/updatemanager/workers.py:322
+#: spyder/plugins/updatemanager/workers.py:424
 msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
 msgstr ""
 
