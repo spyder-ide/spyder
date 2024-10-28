@@ -1307,7 +1307,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             dirname = osp.join(current_path, str(name))
             try:
                 os.mkdir(dirname)
-            except EnvironmentError as error:
+            except OSError as error:
                 QMessageBox.critical(
                     self, title,
                     _("<b>Unable to create folder <i>%s</i></b>"
@@ -1319,8 +1319,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                     try:
                         with open(fname, 'wb') as f:
                             f.write(to_binary_string('#'))
-                        return dirname
-                    except EnvironmentError as error:
+                    except OSError as error:
                         QMessageBox.critical(
                             self, title,
                             _("<b>Unable to create file <i>%s</i></b>"
