@@ -106,7 +106,7 @@ class SpyderKernelClient(QtKernelClient):
                 client_keys=[sshkey],
                 **self._split_shh_address(hostname),
             )
-        else:            
+        else:
             self.__tunnel_handler = KernelClientTunneler.new_connection(
                 password=password,
                 **self._split_shh_address(hostname),
@@ -135,6 +135,8 @@ class SpyderKernelClient(QtKernelClient):
         """Split ssh address into host and port."""
         user_host, _, port = address.partition(':')
         user, _, host = user_host.rpartition('@')
-        return {'username': user if user else None,
-                'host': host if host else None,
-                'port': int(port) if port else None}
+        return {
+            'username': user if user else None,
+            'host': host if host else None,
+            'port': int(port) if port else None
+        }
