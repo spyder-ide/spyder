@@ -176,8 +176,11 @@ jobs:
               pkg_format: '2'
               zstd_compression_level: '19'
             channels:
+              - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
+              # TODO: Add this channel when we create it
+              # - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -197,8 +200,11 @@ jobs:
               pkg_format: '2'
               zstd_compression_level: '19'
             channels:
+              - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
+              # TODO: Add this channel when we create it
+              # - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst

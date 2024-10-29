@@ -191,8 +191,11 @@ def _create_conda_lock(env_type='base'):
     definitions = {
         "channels": [
             "conda-forge",
+            "conda-forge/label/spyder_rc",
             "conda-forge/label/spyder_dev",
             "conda-forge/label/spyder_kernels_rc",
+            # TODO: Add this channel when we create it
+            # "conda-forge/label/spyder_kernels_dev",
             CONDA_BLD_PATH,
         ],
         "dependencies": [k + v for k, v in specs.items()],
@@ -265,8 +268,11 @@ def _get_condarc():
     contents = dedent(
         """
         channels:  #!final
+          - conda-forge/label/spyder_rc
           - conda-forge/label/spyder_dev
           - conda-forge/label/spyder_kernels_rc
+          # TODO: Add this channel when we create it
+          # - conda-forge/label/spyder_kernels_dev
           - conda-forge
         repodata_fns:  #!final
           - repodata.json
