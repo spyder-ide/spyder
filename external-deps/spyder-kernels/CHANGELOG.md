@@ -1,5 +1,21 @@
 # History of changes
 
+## Version 3.0.1 (2024-10-29)
+
+### Pull Requests Merged
+
+* [PR 517](https://github.com/spyder-ide/spyder-kernels/pull/517) - PR: Manually register the Matplotlib inline backend in case it hasn't, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 514](https://github.com/spyder-ide/spyder-kernels/pull/514) - PR: Fix development version for the stable branch, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 510](https://github.com/spyder-ide/spyder-kernels/pull/510) - PR: Replace Quansight logo by CZI one in Readme, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 508](https://github.com/spyder-ide/spyder-kernels/pull/508) - PR: Update workflows to run in the `3.x` branch (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 506](https://github.com/spyder-ide/spyder-kernels/pull/506) - PR: Make `glob` and `loc` kwargs of `debug_exec`, by [@impact27](https://github.com/impact27)
+* [PR 504](https://github.com/spyder-ide/spyder-kernels/pull/504) - PR: Update workflow actions (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 503](https://github.com/spyder-ide/spyder-kernels/pull/503) - PR: Update `load_dicom` to accommodate Pydicom 3.0, by [@mrclary](https://github.com/mrclary)
+
+In this release 7 pull requests were closed.
+
+----
+
 ## Version 3.0.0 (2024-08-29)
 
 ### New features
