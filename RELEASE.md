@@ -116,7 +116,9 @@ For that you need to run the following commands:
 
 * For spyder-kernels:
 
-  - Switch to the stable branch (e.g. `git checkout 6.x`)
+  - Switch to the stable branch
+
+        git checkout 6.x
 
   - Create a new branch in your fork with the name `update-spyder-kernels`
 
@@ -151,6 +153,11 @@ For that you need to run the following commands:
     - `requirements/{main,windows,macos,linux}.yml`
     - `binder/environment.yml`
 
+  - Commit with
+
+        git add .
+        git commit -m "Update core dependencies"
+
   - Update our subrepos with the following commands, but only if new versions are available!
 
         git subrepo pull external-deps/python-lsp-server
@@ -160,35 +167,44 @@ For that you need to run the following commands:
 
 ### Check release candidate
 
-* For stable versions
+* For pre-releases of a new bug fix version
 
-      git checkout 6.x
+    - Switch to the stable branch
 
-* Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
+          git checkout 6.x
 
-      git add .
-      git commit -m "Release X.X.XrcX [ci skip]"
+    - Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
 
-* Push changes to the corresponding branch (e.g `6.x` - stable branch  or `master` - for pre-releases)
+          git add .
+          git commit -m "Release X.X.XrcX"
 
-      git push upstream <branch-name>
+    - Follow the instructions in the **To do the PyPI release and version tag** section, from the `git clean -xfdi` one onwards.
 
-* For pre-releases (i.e. alphas/betas/rc's of a new minor or major version):
+    - Publish the release to Conda-forge by doing a PR against the `rc` branch of the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock).
 
-    * Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
+    - Publish the release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases) to check the installers are built as expected.
+
+    - Download and test the installation of the resulting installers.
+
+* For pre-releases of a new minor or major version:
+
+    - Switch to master
+
+          git checkout master
+
+    - Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
+
+          git add .
+          git commit -m "Release X.X.XrcX [ci skip]"
+
+    - Push changes to master
+
+          git push upstream master
+
+    - Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
         - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
 
-* For stable versions:
-
-    * Publish the release to PyPI
-
-        * Follow the instructions in the **To do the PyPI release and version tag** section, from the `git clean -xfdi` one onwards.
-
-    * Publish the release to Conda-forge by doing a PR against the `rc` branch of the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock).
-
-    * Publish the release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases).
-
-* Download and test the installation of the resulting artifacts.
+    - Download and test the installation of the resulting artifacts.
 
 * If one of the previous steps fails, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
