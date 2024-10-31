@@ -12,12 +12,12 @@ Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 This release comes five weeks after version 6.0.1 and it contains the
 following important fixes:
 
+* Fix plots not being generated with the Matplotlib inline backend.
+* Restore missing debugger buttons to the main toolbar.
 * Several fixes and improvements to the update detection mechanism.
 * Fix SSH tunneling info handling for remote kernels connection and add remote client tests.
-* Fix issue related with Matplotlib inline backend registration.
 * Handle kernel fault file not being available.
-* Fix Debugger toolbar buttons and restore missing debugging buttons.
-* Update QtConsole constraint to 5.6.1 to support move cursor ANSI codes.
+* Update QtConsole constraint to 5.6.1 to support ANSI codes that move cursor.
 
 In this release we fixed 15 issues and merged 31 pull requests. For a full
 list of fixes, please see our
