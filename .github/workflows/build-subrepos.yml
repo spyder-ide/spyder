@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-subrepos-${{ github.ref }}
+  group: build-subrepos-${{ inputs.branch || github.ref_name }}
   cancel-in-progress: true
 
 name: Create Subrepo Conda Packages

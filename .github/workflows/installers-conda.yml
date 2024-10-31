@@ -119,7 +119,7 @@ jobs:
       branch: ${{ matrix.branch }}
 
   build-installers:
-    name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
+    name: Build installer
     if: ${{ ! failure() && ! cancelled() }}
     runs-on: ${{ matrix.os }}
     needs:
