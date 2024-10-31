@@ -1,27 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.1 is released!
+**Subject**: [ANN] Spyder 6.0.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.1** has been released and is available for
+I'm pleased to announce that Spyder **6.0.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 6.0.0 and it contains the
+This release comes five weeks after version 6.0.1 and it contains the
 following important fixes:
 
-* Fix Spyder hanging at startup on Linux when started in a terminal in background mode.
-* Fix appeal/sponsor Spyder message being shown at every startup.
-* Fix error that prevented mouse clicks in Spyder to work on the Windows Subsystem for Linux.
-* Avoid crashes at startup from faulty/outdated external plugins.
-* Fix Spyder installer not being able to finish installation due to Start Menu entry error in some Conda installations.
-* Fix Spyder installer not installing the right Spyder version (`6.0.0` vs `6.0.0rc2`)
-* Fix Binder instance with example workshop project from being non-responsive.
-* Fix errors related to unmaximazing panes and layout changes.
+* Fix plots not being generated with the Matplotlib inline backend.
+* Restore missing debugger buttons to the main toolbar.
+* Several fixes and improvements to the update detection mechanism.
+* Fix SSH tunneling info handling for remote kernels connection and add remote client tests.
+* Handle kernel fault file not being available.
+* Update QtConsole constraint to 5.6.1 to support ANSI codes that move cursor.
 
-In this release we fixed 14 issues and merged 20 pull requests. For a full
+In this release we fixed 15 issues and merged 31 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
