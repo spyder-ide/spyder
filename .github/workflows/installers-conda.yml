@@ -112,6 +112,7 @@ jobs:
     needs:
       - build-matrix
     strategy:
+      fail-fast: false
       matrix:
         branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
     uses: ./.github/workflows/build-subrepos.yml
@@ -143,6 +144,7 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+      MATRIX_BRANCH: ${{ matrix.branch }}
 
     steps:
       - name: Checkout Code
@@ -290,11 +292,15 @@ jobs:
           python build_installers.py ${args[@]}
 
           SPYVER=$(python build_installers.py --version)
-          PKG_NAME=$(ls $DISTDIR | grep Spyder-)
+          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_PATH)
+          ARTIFACT_NAME=${PKG_NAME%.*}
+          [[ "$GITHUB_EVENT_NAME" == "schedule" ]] && ARTIFACT_NAME=$ARTIFACT_NAME-$MATRIX_BRANCH
+
           echo "SPYVER=$SPYVER" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
-          echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
 
       - name: Test macOS or Linux Installer
         if: runner.os != 'Windows'
