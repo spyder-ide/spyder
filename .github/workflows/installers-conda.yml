@@ -1,6 +1,7 @@
 on:
   schedule:
-    - cron: '30 6 * * *'
+    # 6:30 UTC Sunday
+    - cron: '30 6 * * 0'
 
   pull_request:
     paths:
@@ -50,7 +51,7 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-name: Nightly conda-based installers
+name: Weekly conda-based installers
 
 env:
   IS_RELEASE: ${{ github.event_name == 'release' }}
@@ -69,6 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
+      branch: ${{ steps.build-matrix.outputs.branch }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
 
@@ -93,14 +95,28 @@ jobs:
             include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64', 'spyk-arch': 'win-64'}"
         fi
 
+        if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then
+            branch="'master', '6.x'"
+        else
+            branch="'$GITHUB_REF_NAME'"
+        fi
+
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
+        echo "branch=[$branch]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
 
   build-subrepos:
     name: Build Subrepos
     # env.USE_SUBREPOS is not available at job level; must copy-paste here
     if: github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    needs:
+      - build-matrix
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
     uses: ./.github/workflows/build-subrepos.yml
+    with:
+      branch: ${{ matrix.branch }}
 
   build-installers:
     name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
@@ -112,9 +128,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
+        target-platform: ${{ fromJson(needs.build-matrix.outputs.target_platform) }}
         python-version: ['3.11']
-        include: ${{fromJson(needs.build-matrix.outputs.include)}}
+        branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
+        include: ${{ fromJson(needs.build-matrix.outputs.include) }}
     defaults:
       run:
         shell: bash -le {0}
@@ -132,6 +149,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ matrix.branch }}
 
       - name: Setup Remote SSH Connection
         if: env.ENABLE_SSH == 'true'
