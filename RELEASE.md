@@ -284,7 +284,9 @@ For that you need to run the following commands:
 
 * `git tag -a vX.X.X -m "Release X.X.X"`
 
-* Update version in `__init__.py` (add 'a1', 'dev0' and increment patch version for stable versions; or increment alpha/beta/rc version for pre-releases)
+* Update version in `__init__.py`:
+    - Add 'a1', 'dev0' and increment patch version for final version releases
+    - Add 'dev0' and increment alpha/beta/rc version for pre-releases
 
 * `git add .` and `git commit -m "Back to work [ci skip]"`
 
