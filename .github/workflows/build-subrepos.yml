@@ -2,11 +2,16 @@ on:
   push:
     branches:
       - 'master'
+      - '6.x'
     paths:
       - '**.gitrepo'
       - '.github/workflows/build-subrepos.yml'
 
   workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
   workflow_dispatch:
 
@@ -47,6 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.branch || github.ref_name }}
 
       - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
         id: cache
