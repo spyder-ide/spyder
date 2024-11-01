@@ -3415,16 +3415,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         )
 
         # Run actions
-        run_cell_action = self.get_action("run cell", plugin=Plugins.Run)
-        run_cell_and_advance_action = self.get_action(
-            "run cell and advance", plugin=Plugins.Run
-        )
-        rerun_cell_action = self.get_action(
-            "re-run cell", plugin=Plugins.Run
-        )
-        run_selection_action = self.get_action(
-            "run selection and advance", plugin=Plugins.Run
-        )
+        try:
+            run_cell_action = self.get_action("run cell", plugin=Plugins.Run)
+            run_cell_and_advance_action = self.get_action(
+                "run cell and advance", plugin=Plugins.Run
+            )
+            rerun_cell_action = self.get_action(
+                "re-run cell", plugin=Plugins.Run
+            )
+            run_selection_action = self.get_action(
+                "run selection and advance", plugin=Plugins.Run
+            )
+        except KeyError:
+            # This is necessary for our tests because some of them need to run
+            # independently of other plugins.
+            run_cell_action = None
 
         # Zoom actions
         zoom_in_action = self.create_action(
@@ -3484,17 +3489,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         )
 
         # Run section
-        for menu_action in [
-            run_cell_action,
-            run_cell_and_advance_action,
-            rerun_cell_action,
-            run_selection_action,
-        ]:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.RunSection
-            )
+        if run_cell_action is not None:
+            for menu_action in [
+                run_cell_action,
+                run_cell_and_advance_action,
+                rerun_cell_action,
+                run_selection_action,
+            ]:
+                self.add_item_to_menu(
+                    menu_action,
+                    self.menu,
+                    section=CodeEditorContextMenuSections.RunSection
+                )
 
         # Inspect section
         inspect_actions = [
