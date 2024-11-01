@@ -41,7 +41,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
     NAME = 'debugger'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences, Plugins.Run]
-    OPTIONAL = [Plugins.Editor, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -167,7 +167,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug,
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
             shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
@@ -184,7 +187,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
         )
 
         run.create_run_in_executor_button(
@@ -200,7 +206,10 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 "section": DebugMenuSections.StartDebug,
                 "before_section": DebugMenuSections.ControlDebug
             },
-            add_to_toolbar=ApplicationToolbars.Debug
+            add_to_toolbar={
+                "toolbar": ApplicationToolbars.Debug,
+                "before": DebuggerWidgetActions.Next,
+            },
         )
 
     @on_plugin_teardown(plugin=Plugins.Run)
@@ -324,6 +333,45 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             mainmenu.remove_item_from_application_menu(
                 name,
                 menu_id=ApplicationMenus.Debug
+            )
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action_id in [
+            DebuggerWidgetActions.Next,
+            DebuggerWidgetActions.Step,
+            DebuggerWidgetActions.Return,
+            DebuggerWidgetActions.Continue,
+            DebuggerWidgetActions.Stop,
+        ]:
+            toolbar.add_item_to_application_toolbar(
+                self.get_action(action_id),
+                toolbar_id=ApplicationToolbars.Debug,
+            )
+
+        debug_toolbar = toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug
+        )
+        debug_toolbar.sig_is_rendered.connect(
+            self.get_widget().on_debug_toolbar_rendered
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+
+        for action_id in [
+            DebuggerWidgetActions.Next,
+            DebuggerWidgetActions.Step,
+            DebuggerWidgetActions.Return,
+            DebuggerWidgetActions.Continue,
+            DebuggerWidgetActions.Stop,
+        ]:
+            toolbar.remove_item_from_application_toolbar(
+                action_id,
+                toolbar_id=ApplicationToolbars.Debug,
             )
 
     # ---- Private API

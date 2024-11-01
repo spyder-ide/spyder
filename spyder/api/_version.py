@@ -9,10 +9,10 @@ Spyder API Version.
 
 The API version should be modified according to the following rules:
 
-1. If a module/class/method/function is added, then the minor version
+1. If a module/class/method/function/signal is added, then the minor version
    must be increased.
 
-2. If a module/class/method/function is removed, renamed or changes its
+2. If a module/class/method/function/signal is removed, renamed or changes its
    signature, then the major version must be increased.
 
 3. Whenever possible, deprecation marks and alerts should be employed in
@@ -22,5 +22,5 @@ The API version should be modified according to the following rules:
    updated.
 """
 
-VERSION_INFO = (1, 0, 0)
+VERSION_INFO = (1, 1, 0)
 __version__ = '.'.join(map(str, VERSION_INFO))
