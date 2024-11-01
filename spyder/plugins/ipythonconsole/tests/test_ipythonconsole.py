@@ -28,6 +28,7 @@ import numpy as np
 from packaging.version import parse
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -2415,6 +2416,37 @@ def test_restore_tmpdir(ipyconsole, qtbot, tmp_path):
         shell.execute("import os; tmpdir = os.environ.get('TMPDIR')")
 
     assert shell.get_value('tmpdir') == system_tmpdir
+
+
+def test_floats_selected_on_double_click(ipyconsole, qtbot):
+    """
+    Check that doing a double click on floats selects the entire number.
+
+    This is a regression test for issue spyder-ide/spyder#22207
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Write a floating point number
+    control = shell._control
+    float_number = "10.999e5"
+    qtbot.keyClicks(control, float_number)
+
+    # Move the cursor to the left a bit
+    for __ in range(3):
+        control.moveCursor(QTextCursor.Left, mode=QTextCursor.MoveAnchor)
+
+    # Perform a double click and check the entire number was selected
+    qtbot.mouseDClick(control.viewport(), Qt.LeftButton)
+    assert control.get_selected_text() == float_number
+
+    # Move cursor at the beginning and check the number is also selected
+    qtbot.keyClick(control, Qt.Key_Home)
+    qtbot.mouseDClick(control.viewport(), Qt.LeftButton)
+    assert control.get_selected_text() == float_number
 
 
 if __name__ == "__main__":
