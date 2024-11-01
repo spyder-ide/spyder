@@ -41,6 +41,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import _, running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.panel import Panel
@@ -108,6 +109,7 @@ class CodeEditorMenus:
 
 
 class CodeEditorContextMenuSections:
+    RunSection = "run_section"
     InspectSection = "inspect_section"
     UndoRedoSection = "undo_redo_section"
     EditSection = "edit_section"
@@ -3412,6 +3414,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             triggered=self.sig_show_object_info
         )
 
+        # Run actions
+        run_cell_action = self.get_action("run cell", plugin=Plugins.Run)
+        run_cell_and_advance_action = self.get_action(
+            "run cell and advance", plugin=Plugins.Run
+        )
+        rerun_cell_action = self.get_action(
+            "re-run cell", plugin=Plugins.Run
+        )
+        run_selection_action = self.get_action(
+            "run selection and advance", plugin=Plugins.Run
+        )
+
         # Zoom actions
         zoom_in_action = self.create_action(
             CodeEditorActions.ZoomIn,
@@ -3468,6 +3482,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.menu = self.create_menu(
             CodeEditorMenus.ContextMenu, register=False
         )
+
+        # Run section
+        for menu_action in [
+            run_cell_action,
+            run_cell_and_advance_action,
+            rerun_cell_action,
+            run_selection_action,
+        ]:
+            self.add_item_to_menu(
+                menu_action,
+                self.menu,
+                section=CodeEditorContextMenuSections.RunSection
+            )
 
         # Inspect section
         inspect_actions = [
