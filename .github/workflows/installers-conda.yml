@@ -98,7 +98,7 @@ jobs:
         if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then
             branch="'master', '6.x'"
         else
-            branch="'$GITHUB_REF_NAME'"
+            branch="''"
         fi
 
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
