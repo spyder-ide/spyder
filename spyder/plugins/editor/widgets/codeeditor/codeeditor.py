@@ -4407,6 +4407,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.ipynb_convert_action.setVisible(self.is_json() and
                                              nbformat is not None)
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
+        self.inspect_current_object_action.setVisible(self.enable_hover)
 
         formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
