@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-10-28 21:26\n"
+"PO-Revision-Date: 2024-11-01 05:23\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -737,7 +737,7 @@ msgstr "Suporte do Spyder..."
 
 #: spyder/plugins/application/container.py:143
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Ajude-me, Spyder..."
 
 #: spyder/plugins/application/container.py:151
 msgid "About %s..."
@@ -3958,7 +3958,7 @@ msgstr "No modo <b>%s</b>, o Autocall não é aplicado se não houver argumentos
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
-msgstr "Recarga automática "
+msgstr "Recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Autoreload reloads modules automatically every time before executing your Python code.<br>This is a different mechanism than the User Module Reloader (UMR) and it can be slow on Windows due to limitations of its file system."
@@ -4438,7 +4438,7 @@ msgstr "Seu arquivo de erro está localizado em:"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1406
 msgid "It was not possible to connect to the kernel. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "Não foi possível se conectar ao kernel. Se você estiver tentando se conectar a um kernel existente, verifique se o arquivo de conexão selecionado corresponde ao kernel ao qual você deseja se conectar."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1475
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
