@@ -39,7 +39,6 @@ from spyder.plugins.completion.decorators import (
     handles,
     class_register,
 )
-from spyder.plugins.editor.panels import FoldingPanel
 from spyder.plugins.editor.panels.utils import (
     merge_folding,
     collect_folding_regions,
@@ -181,7 +180,7 @@ class LSPMixin:
         self.sync_mode = TextDocumentSyncKind.FULL
         self.will_save_notify = False
         self.will_save_until_notify = False
-        self.enable_hover = True
+        self.enable_hover = False
         self.auto_completion_characters = []
         self.resolve_completions_enabled = False
         self.signature_completion_characters = []
