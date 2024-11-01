@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-01 05:23\n"
+"PO-Revision-Date: 2024-11-01 13:53\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3970,7 +3970,7 @@ msgstr "Usar recarga automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
-msgstr "Esta opção habilita o recargamento automático mágico.<br> Por favor, consulte a documentação para aprender a usá-lo."
+msgstr "Esta opção habilita o autoreload mágico.<br> Por favor, consulte a documentação para aprender a usá-lo."
 
 #: spyder/plugins/ipythonconsole/confpage.py:361
 msgid "Symbolic mathematics"
