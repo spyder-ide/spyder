@@ -1455,7 +1455,7 @@ class BaseEditMixin(object):
                                                word=word)
         return match_number
 
-    # ---- Array builder helper / See 'spyder/widgets/arraybuilder.py'
+    # ---- Array builder helper methods
     # -------------------------------------------------------------------------
     def enter_array_inline(self):
         """Enter array builder inline mode."""
@@ -1503,6 +1503,7 @@ class BaseEditMixin(object):
                 cursor.endEditBlock()
 
     # ---- Qt methods
+    # -------------------------------------------------------------------------
     def mouseDoubleClickEvent(self, event):
         """Select NUMBER tokens to select numeric literals on double click."""
         cursor = self.cursorForPosition(event.pos())
