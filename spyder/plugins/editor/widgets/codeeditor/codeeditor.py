@@ -37,7 +37,8 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
                         QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
+from qtpy.QtWidgets import (QApplication, QMessageBox, QSplitter, QScrollBar, 
+                            QTextEdit)
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
@@ -524,9 +525,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     
     def add_cursor(self, cursor: QTextCursor):
         self.extra_cursors.append(cursor)
+        selections = []
+        for cursor in self.extra_cursors:
+            extra_selection = TextDecoration(cursor, draw_order=5,kind="extra_cursor_selection")
+            extra_selection.cursor = cursor
+            
+            # TODO get colors from theme? or from stylesheet?
+            extra_selection.set_foreground(QColor("#ffffff"))
+            extra_selection.set_background(QColor("#346792"))
+            selections.append(extra_selection)
+        self.set_extra_selections('extra_cursor_selections', selections)
+        
         
     def clear_extra_cursors(self):
         self.extra_cursors = []
+        self.set_extra_selections('extra_cursor_selections', [])
+        
+    def merge_extra_cursors(self):
+        pass
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -537,14 +553,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.viewport().update()
 
     def _paint_cursors(self):  # TODO move into paintEvent? so we can add extraSelections before super()paintEvent then paint cursors afterward?
+        """paint all cursors and cursor selections"""
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
         qp.setBrushOrigin(offset)
 
         for cursor in self.extra_cursors + [self.textCursor()]:
-            # add to extraSelections to paint selection
-            # TODO
+            # TODO add to extraSelections to paint selection
 
             # paint cursor
             editable = not self.isReadOnly()
@@ -556,6 +572,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 block.isVisible()):
                 # TODO don't bother with preeditArea?
                 for top, blocknum, visblock in self.visible_blocks:
+                    #TODO is there a better way to get `top` because we already
+                    #   have cursor.block(). Is it meaningfully slow anyway
+                    #   even if it is a double loop? We paint pretty often...
                     if block.position() == visblock.position():
                         offset.setY(top)
                         block.layout().drawCursor(qp, offset,
@@ -566,12 +585,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     @Slot()
     def start_cursor_blink(self):
+        """start manually updating the cursor(s) blink state: Show cursors"""
         self.current_blink_state = True
         self.cursor_blink_timer.start()
         self.viewport().update()
 
     @Slot()
     def stop_cursor_blink(self):
+        """stop manually updating the cursor(s) blink state: Hide cursors"""
         self.cursor_blink_state = False
         self.cursor_blink_timer.stop()
         self.viewport().update()
@@ -4451,7 +4472,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
         if event.button() == Qt.LeftButton and ctrl and alt:
-            self.add_cursor(self.textCursor())
+            # move existing primary cursor to extra_cursors list and set new
+            #   primary cursor
+            self.add_cursor(self.textCursor())  
             self.setTextCursor(self.cursorForPosition(pos))
         else:
             self.clear_extra_cursors()
