@@ -835,18 +835,25 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
         plain_font.setPointSize(size)
 
         # Select a size that matches the app font one, so that the UI looks
-        # consistent. We only check three point sizes above and below the app
-        # font to avoid getting stuck in an infinite loop.
+        # consistent.
+        attempts = 0
         monospace_size = size
         while (
+            # Keep going until the xHeight's of both fonts match
             QFontMetrics(plain_font).xHeight() != x_height
+            # We only check three point sizes above and below the app font to
+            # avoid getting stuck in an infinite loop.
             and ((size - 4) < monospace_size < (size + 4))
+            # Do this up to six times to not get stuck in an infinite loop.
+            # Fixes spyder-ide/spyder#22661
+            and attempts < 6
         ):
             if QFontMetrics(plain_font).xHeight() > x_height:
                 monospace_size -= 1
             else:
                 monospace_size += 1
             plain_font.setPointSize(monospace_size)
+            attempts += 1
 
         # There are some fonts (e.g. MS Serif) for which it seems that Qt
         # can't detect their xHeight's as expected. So, we check below
