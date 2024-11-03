@@ -788,6 +788,8 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
         # This is filled at startup in spyder.app.utils.create_window
         self._main_window: QMainWindow = None
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def event(self, event):
 
         if sys.platform == 'darwin' and event.type() == QEvent.FileOpen:
@@ -803,6 +805,8 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
 
         return QApplication.event(self, event)
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def set_font(self):
         """Set font for the entire application."""
         # This selects the system font by default
@@ -821,10 +825,24 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
         if size > 0:
             app_font.setPointSize(size)
 
-        self.set_monospace_interface_font(app_font)
+        self._set_monospace_interface_font(app_font)
         self.setFont(app_font)
 
-    def set_monospace_interface_font(self, app_font):
+    def get_mainwindow_position(self) -> QPoint:
+        """Get main window position."""
+        return self._main_window.pos()
+
+    def get_mainwindow_width(self) -> int:
+        """Get main window width."""
+        return self._main_window.width()
+
+    def get_mainwindow_height(self) -> int:
+        """Get main window height."""
+        return self._main_window.height()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _set_monospace_interface_font(self, app_font):
         """
         Set monospace interface font in our config system according to the app
         one.
@@ -867,18 +885,6 @@ class SpyderApplication(QApplication, SpyderConfigurationAccessor,
                       section='appearance')
         self.set_conf('monospace_app_font/size', monospace_size,
                       section='appearance')
-
-    def get_mainwindow_position(self) -> QPoint:
-        """Get main window position."""
-        return self._main_window.pos()
-
-    def get_mainwindow_width(self) -> int:
-        """Get main window width."""
-        return self._main_window.width()
-
-    def get_mainwindow_height(self) -> int:
-        """Get main window height."""
-        return self._main_window.height()
 
 
 def restore_launchservices():
