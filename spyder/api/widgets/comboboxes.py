@@ -53,6 +53,10 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
     Adapted from https://stackoverflow.com/a/33464045/438386
     """
 
+    def __init__(self, parent, elide_mode=None):
+        super().__init__(parent)
+        self._elide_mode = elide_mode
+
     def paint(self, painter, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
         if data and data == "separator":
@@ -63,8 +67,12 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
                 option.rect.right() - AppStyle.MarginSize,
                 option.rect.center().y()
             )
-        else:
-            super().paint(painter, option, index)
+            return
+
+        if self._elide_mode is not None:
+            option.textElideMode = self._elide_mode
+
+        super().paint(painter, option, index)
 
     def sizeHint(self, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
@@ -257,8 +265,11 @@ class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # This is necessary for items to get the style set in our stylesheet.
-        self.setItemDelegate(QStyledItemDelegate(self))
+        # Avoid font name eliding because it confuses users.
+        # Fixes spyder-ide/spyder#22683
+        self.setItemDelegate(
+            _SpyderComboBoxDelegate(self, elide_mode=Qt.ElideNone)
+        )
 
         # Adjust popup width to contents.
         self.setSizeAdjustPolicy(
