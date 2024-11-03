@@ -255,14 +255,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.cursor_width = self.get_conf('cursor/width', section='main')
-        self.setCursorWidth(0)  # draw our own cursor
-        self.extra_cursors = []
-        self.cursor_blink_state = False
-        self.cursor_blink_timer = QTimer(self)
-        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime()//2)
-        self.cursor_blink_timer.timeout.connect(self._on_cursor_blinktimer_timeout)
-
+        self.init_multi_cursor()
+        
         self.focus_in.connect(self.start_cursor_blink)
         self.focus_changed.connect(self.stop_cursor_blink)
 
@@ -519,8 +513,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._rehighlight_timer.setInterval(150)
 
     # ---- Multi Cursor
+    def init_multi_cursor(self):
+        self.cursor_width = self.get_conf('cursor/width', section='main')
+        self.setCursorWidth(0)  # draw our own cursor
+        self.extra_cursors = []
+        self.cursor_blink_state = False
+        self.cursor_blink_timer = QTimer(self)
+        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime()//2)
+        self.cursor_blink_timer.timeout.connect(self._on_cursor_blinktimer_timeout)
+    
     def add_cursor(self, cursor: QTextCursor):
         self.extra_cursors.append(cursor)
+        
+    def clear_extra_cursors(self):
+        self.extra_cursors = []
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -4447,18 +4453,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl and alt:
             self.add_cursor(self.textCursor())
             self.setTextCursor(self.cursorForPosition(pos))
-        elif event.button() == Qt.LeftButton and ctrl:
-            TextEditBaseWidget.mousePressEvent(self, event)
-            cursor = self.cursorForPosition(pos)
-            uri = self._last_hover_pattern_text
-            if uri:
-                self.go_to_uri_from_cursor(uri)
-            else:
-                self.go_to_definition_from_cursor(cursor)
-        elif event.button() == Qt.LeftButton and alt:
-            self.sig_alt_left_mouse_pressed.emit(event)
         else:
-            TextEditBaseWidget.mousePressEvent(self, event)
+            self.clear_extra_cursors()
+            if event.button() == Qt.LeftButton and ctrl:
+                TextEditBaseWidget.mousePressEvent(self, event)
+                cursor = self.cursorForPosition(pos)
+                uri = self._last_hover_pattern_text
+                if uri:
+                    self.go_to_uri_from_cursor(uri)
+                else:
+                    self.go_to_definition_from_cursor(cursor)
+            elif event.button() == Qt.LeftButton and alt:
+                self.sig_alt_left_mouse_pressed.emit(event)
+            else:
+                TextEditBaseWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
