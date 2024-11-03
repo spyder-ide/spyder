@@ -1452,7 +1452,7 @@ class BaseEditMixin(object):
                                                word=word)
         return match_number
 
-    # ---- Array builder helper / See 'spyder/widgets/arraybuilder.py'
+    # ---- Array builder helper methods
     # -------------------------------------------------------------------------
     def enter_array_inline(self):
         """Enter array builder inline mode."""
