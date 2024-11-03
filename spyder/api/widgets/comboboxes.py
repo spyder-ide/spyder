@@ -17,7 +17,7 @@ import sys
 import qstylizer.style
 from qtpy import PYQT5, PYQT6
 from qtpy.QtCore import QSize, Qt, Signal
-from qtpy.QtGui import QColor
+from qtpy.QtGui import QColor, QPainter, QFontMetrics
 from qtpy.QtWidgets import (
     QComboBox,
     QFontComboBox,
@@ -25,7 +25,8 @@ from qtpy.QtWidgets import (
     QLineEdit,
     QProxyStyle,
     QStyle,
-    QStyledItemDelegate
+    QStyledItemDelegate,
+    QStyleOptionFrame,
 )
 
 # Local imports
@@ -83,12 +84,15 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
 
 
 class _SpyderComboBoxLineEdit(QLineEdit):
-    """Dummy lineedit used for non-editable comboboxes."""
+    """Lineedit used for comboboxes."""
 
     sig_mouse_clicked = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent, editable, elide_mode=None):
         super().__init__(parent)
+        self._editable = editable
+        self._elide_mode = elide_mode
+        self._focus_in = False
 
         # Fix style issues
         css = qstylizer.style.StyleSheet()
@@ -105,12 +109,61 @@ class _SpyderComboBoxLineEdit(QLineEdit):
         self.setStyleSheet(css.toString())
 
     def mouseReleaseEvent(self, event):
-        self.sig_mouse_clicked.emit()
+        if not self._editable:
+            # Emit a signal to display the popup afterwards
+            self.sig_mouse_clicked.emit()
         super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
-        # Avoid selecting the lineedit text with double clicks
-        pass
+        if not self._editable:
+            # Avoid selecting the lineedit text with double clicks
+            pass
+        else:
+            super().mouseDoubleClickEvent(event)
+
+    def focusInEvent(self, event):
+        self._focus_in = True
+        super().focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        self._focus_in = False
+        super().focusOutEvent(event)
+
+    def paintEvent(self, event):
+        if self._elide_mode is not None and not self._focus_in:
+            # This code is taken for the most part from the
+            # AmountEdit.paintEvent method, part of the Electrum project. See
+            # the Electrum entry in our NOTICE.txt file for the details.
+            # Licensed under the MIT license.
+            painter = QPainter(self)
+            option = QStyleOptionFrame()
+            self.initStyleOption(option)
+
+            text_rect = self.style().subElementRect(
+                QStyle.SE_LineEditContents, option, self
+            )
+
+            # Neded so the text is placed correctly according to our style
+            text_rect.adjust(2, 0, 0, 0)
+
+            fm = QFontMetrics(self.font())
+            text = fm.elidedText(
+                self.text(), self._elide_mode, text_rect.width()
+            )
+
+            color = (
+                SpyderPalette.COLOR_TEXT_1
+                if self.isEnabled()
+                else SpyderPalette.COLOR_DISABLED
+            )
+            painter.setPen(QColor(color))
+            painter.drawText(
+                text_rect, int(Qt.AlignLeft | Qt.AlignVCenter), text
+            )
+
+            return
+
+        super().paintEvent(event)
 
 
 class _SpyderComboBoxMixin:
@@ -189,7 +242,7 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
         if not self._is_shown:
             if not self.isEditable():
                 self.is_editable = False
-                self.setLineEdit(_SpyderComboBoxLineEdit(self))
+                self.setLineEdit(_SpyderComboBoxLineEdit(self, editable=False))
 
                 # This is necessary to make Qt position the popup widget below
                 # the combobox for non-editable ones.
@@ -269,6 +322,13 @@ class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
         # Fixes spyder-ide/spyder#22683
         self.setItemDelegate(
             _SpyderComboBoxDelegate(self, elide_mode=Qt.ElideNone)
+        )
+
+        # Elide selected font name in case it's too long
+        self.setLineEdit(
+            _SpyderComboBoxLineEdit(
+                self, editable=True, elide_mode=Qt.ElideMiddle
+            )
         )
 
         # Adjust popup width to contents.
