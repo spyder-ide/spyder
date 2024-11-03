@@ -1110,12 +1110,21 @@ class EditorMainWidget(PluginMainWidget):
 
         self.deregister_file_run_metadata(old_filename)
 
-        # This avoids to register the run metadata of new_filename twice, which
-        # can happen for some rename operations.
-        if not self.id_per_file.get(new_filename):
+        # Get file extension (without the dot)
+        filename_ext = osp.splitext(new_filename)[1][1:]
+
+        # Check if we can actually register the new file
+        if (
+            # This avoids to register new_filename twice, which can happen for
+            # some rename operations.
+            not self.id_per_file.get(new_filename)
+            # Check if the new file extension is supported.
+            # Fixes spyder-ide/spyder#22630
+            and filename_ext in self.supported_run_configurations
+        ):
             self.register_file_run_metadata(new_filename)
 
-        if is_selected:
+        if is_selected and self.id_per_file.get(new_filename):
             self._plugin._switch_focused_run_configuration(
                 self.id_per_file[new_filename]
             )
