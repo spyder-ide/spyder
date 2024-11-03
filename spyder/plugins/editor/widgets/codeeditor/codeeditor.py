@@ -255,7 +255,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.setCursorWidth(self.get_conf('cursor/width', section='main'))
+        self.cursor_width = self.get_conf('cursor/width', section='main')
+        self.setCursorWidth(0)  # draw our own cursor
+        self.extra_cursors = []
+        self.cursor_blink_state = False
+        self.cursor_blink_timer = QTimer(self)
+        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime()//2)
+        self.cursor_blink_timer.timeout.connect(self._on_cursor_blinktimer_timeout)
+
+        self.focus_in.connect(self.start_cursor_blink)
+        self.focus_changed.connect(self.stop_cursor_blink)
 
         self.text_helper = TextHelper(self)
 
@@ -508,6 +517,59 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._rehighlight_timer = QTimer(self)
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
+
+    # ---- Multi Cursor
+    def add_cursor(self, cursor: QTextCursor):
+        self.extra_cursors.append(cursor)
+
+    def _on_cursor_blinktimer_timeout(self):
+        """
+        text cursor blink timer generates paint events
+        """
+        self.cursor_blink_state = not self.cursor_blink_state
+        if self.isVisible():
+            self.viewport().update()
+
+    def _paint_cursors(self):  # TODO move into paintEvent? so we can add extraSelections before super()paintEvent then paint cursors afterward?
+        qp = QPainter()
+        qp.begin(self.viewport())
+        offset = self.contentOffset()
+        qp.setBrushOrigin(offset)
+
+        for cursor in self.extra_cursors + [self.textCursor()]:
+            # add to extraSelections to paint selection
+            # TODO
+
+            # paint cursor
+            editable = not self.isReadOnly()
+            flags = (self.textInteractionFlags() &
+                     Qt.TextInteractionFlag.TextSelectableByKeyboard)
+            block = cursor.block()
+            if (self.cursor_blink_state and
+                (editable or flags) and
+                block.isVisible()):
+                # TODO don't bother with preeditArea?
+                for top, blocknum, visblock in self.visible_blocks:
+                    if block.position() == visblock.position():
+                        offset.setY(top)
+                        block.layout().drawCursor(qp, offset,
+                                                  cursor.positionInBlock(),
+                                                  self.cursor_width)
+                        break
+        qp.end()
+
+    @Slot()
+    def start_cursor_blink(self):
+        self.current_blink_state = True
+        self.cursor_blink_timer.start()
+        self.viewport().update()
+
+    @Slot()
+    def stop_cursor_blink(self):
+        self.cursor_blink_state = False
+        self.cursor_blink_timer.stop()
+        self.viewport().update()
+
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -4382,7 +4444,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         pos = event.pos()
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
-        if event.button() == Qt.LeftButton and ctrl:
+        if event.button() == Qt.LeftButton and ctrl and alt:
+            self.add_cursor(self.textCursor())
+            self.setTextCursor(self.cursorForPosition(pos))
+        elif event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
             uri = self._last_hover_pattern_text
@@ -4496,6 +4561,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Overrides paint event to update the list of visible blocks"""
         self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
+        self._paint_cursors()
         self.painted.emit(event)
 
     def update_visible_blocks(self, event):
