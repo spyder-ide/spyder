@@ -37,7 +37,7 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
                         QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import (QApplication, QMessageBox, QSplitter, QScrollBar, 
+from qtpy.QtWidgets import (QApplication, QMessageBox, QSplitter, QScrollBar,
                             QTextEdit)
 from spyder_kernels.utils.dochelpers import getobj
 
@@ -530,6 +530,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
         self.extra_cursors.append(cursor)
+        self.set_extra_cursor_selections()
+
+    def set_extra_cursor_selections(self):
         selections = []
         for cursor in self.extra_cursors:
             extra_selection = TextDecoration(cursor, draw_order=5,
@@ -556,12 +559,61 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
         if self.extra_cursors:
-            for cursor in self.extra_cursors + [self.textCursor()]:
-                self.setTextCursor(cursor)
-                # TODO works for text, not for movement arrows or home, end
-                self._handle_keypress_event(event)
-                print("curs")
             event.accept()
+            key = event.key()
+            text = event.text()
+            shift = event.modifiers() & Qt.ShiftModifier
+            ctrl = event.modifiers() & Qt.ControlModifier
+            move_mode = QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
+
+            for cursor in self.extra_cursors + [self.textCursor()]:
+
+                self.setTextCursor(cursor)
+                # ---- handle movement keys
+                if key == Qt.Key_Up:
+                    cursor.movePosition(QTextCursor.Up, move_mode)
+                elif key == Qt.Key_Down:
+                    cursor.movePosition(QTextCursor.Down, move_mode)
+                elif key == Qt.Key_Left:
+                    if ctrl:
+                        cursor.movePosition(
+                            QTextCursor.PreviousWord, move_mode
+                            )
+                    else:
+                        cursor.movePosition(QTextCursor.Left, move_mode)
+                elif key == Qt.Key_Right:
+                    if ctrl:
+                        cursor.movePosition(QTextCursor.NextWord, move_mode)
+                    else:
+                        cursor.movePosition(QTextCursor.Right, move_mode)
+                elif key == Qt.Key_Home:
+                    if ctrl:
+                        cursor.movePosition(QTextCursor.Start, move_mode)
+                    else:
+                        block_pos = cursor.block().position()
+                        line = cursor.block().text()
+                        indent_pos = block_pos + len(line) - len(line.lstrip())
+                        if cursor.position() != indent_pos:
+                            cursor.setPosition(indent_pos, move_mode)
+                        else:
+                            cursor.setPosition(block_pos, move_mode)
+                elif key == Qt.Key_End:
+                    if ctrl:
+                        cursor.movePosition(QTextCursor.End, move_mode)
+                    else:
+                        cursor.movePosition(QTextCursor.EndOfBlock, move_mode)
+                    if not cursor.hasSelection():
+                        cursor.movePosition(QTextCursor.NextCharacter,
+                                            move_mode)
+                    cursor.removeSelectedText()
+                    # TODO needed? See spyder-ide/spyder#12663
+                    #    from remove_selected_text
+                    # cursor.setPosition(cursor.position())
+                else:
+                    self._handle_keypress_event(event)
+            self.merge_extra_cursors()
+            self.set_extra_cursor_selections()
+            self.setTextCursor(cursor)  # last cursor from for loop is primary
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -694,10 +746,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def create_cursor_callback(self, attr):
         """Make a callback for cursor move event type, (e.g. "Start")"""
         def cursor_move_event():
-            cursor = self.textCursor()
             move_type = getattr(QTextCursor, attr)
-            cursor.movePosition(move_type)
-            self.setTextCursor(cursor)
+            for cursor in self.extra_cursors + [self.textCursor()]:
+                cursor.movePosition(move_type)
+                self.setTextCursor(cursor)
         return cursor_move_event
 
     def register_shortcuts(self):
@@ -1413,17 +1465,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
-        self.sig_delete_requested.emit()
-
-        if not self.has_selected_text():
-            cursor = self.textCursor()
-            if not cursor.atEnd():
-                cursor.setPosition(
-                    self.next_cursor_position(), QTextCursor.KeepAnchor
-                )
+        for cursor in self.extra_cursors + [self.textCursor()]:
             self.setTextCursor(cursor)
 
-        self.remove_selected_text()
+            if not self.has_selected_text():
+                cursor = self.textCursor()
+                if not cursor.atEnd():
+                    cursor.setPosition(
+                        self.next_cursor_position(), QTextCursor.KeepAnchor
+                    )
+                self.setTextCursor(cursor)
+
+            self.remove_selected_text()
+        self.sig_delete_requested.emit()
 
     def delete_line(self):
         """Delete current line."""
@@ -4490,7 +4544,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl and alt:
             # move existing primary cursor to extra_cursors list and set new
             #   primary cursor
-            self.add_cursor(self.textCursor())  
+            self.add_cursor(self.textCursor())
             self.setTextCursor(self.cursorForPosition(pos))
         else:
             self.clear_extra_cursors()
