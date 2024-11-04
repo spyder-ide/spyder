@@ -393,7 +393,6 @@ class Editor(SpyderDockablePlugin):
 
         # Open section
         open_actions = [
-            widget.open_last_closed_action,
             widget.recent_file_menu,
         ]
         for open_action in open_actions:
@@ -565,7 +564,6 @@ class Editor(SpyderDockablePlugin):
 
         # Open section
         open_actions = [
-            widget.open_last_closed_action,
             widget.recent_file_menu,
         ]
         for open_action in open_actions:
@@ -922,6 +920,12 @@ class Editor(SpyderDockablePlugin):
         return widget.load(
             filenames=filename, goto=goto, word=word, editorwindow=widget
         )
+
+    def open_last_closed(self) -> None:
+        """
+        Open the last closed tab again.
+        """
+        return self.get_widget().open_last_closed()
 
     def new(self, *args, **kwargs):
         """

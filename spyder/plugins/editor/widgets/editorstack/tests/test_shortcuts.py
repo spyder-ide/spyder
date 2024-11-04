@@ -76,6 +76,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
     assert CONF.get_shortcut('main', 'new file') == 'Ctrl+N'
     assert CONF.get_shortcut('main', 'open file') == 'Ctrl+O'
+    assert CONF.get_shortcut('main', 'open last closed') == 'Ctrl+Shift+T'
 
 
 @pytest.mark.skipif(
@@ -375,6 +376,7 @@ def test_shortcuts_for_new_editors(editorstack, qtbot):
     [
         (Qt.Key_N, Qt.ControlModifier, 'New file'),
         (Qt.Key_O, Qt.ControlModifier, 'Open file'),
+        (Qt.Key_T, Qt.ControlModifier | Qt.ShiftModifier, 'Open last closed'),
 ])
 def test_file_shortcut(editorstack, qtbot, key, modifier, action):
     """

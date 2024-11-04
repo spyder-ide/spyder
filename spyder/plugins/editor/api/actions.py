@@ -10,7 +10,6 @@ Actions defined in the Spyder editor plugin.
 
 class EditorWidgetActions:
     # File operations
-    OpenLastClosed = "Open last closed"
     RevertFileFromDisk = "Revert file from disk"
     SaveFile = "Save file"
     SaveAll = "Save all"
