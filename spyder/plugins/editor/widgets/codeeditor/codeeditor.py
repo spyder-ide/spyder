@@ -525,6 +525,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.focus_in.connect(self.start_cursor_blink)
         self.focus_changed.connect(self.stop_cursor_blink)
         self.painted.connect(self.paint_cursors)
+        self.sig_key_pressed.connect(self.handle_multi_cursor_keypress)
 
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
@@ -551,6 +552,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if not self.extra_cursors:
             return
         # TODO write this
+
+    @Slot(QKeyEvent)
+    def handle_multi_cursor_keypress(self, event: QKeyEvent):
+        if self.extra_cursors:
+            for cursor in self.extra_cursors + [self.textCursor()]:
+                self.setTextCursor(cursor)
+                # TODO works for text, not for movement arrows or home, end
+                self._handle_keypress_event(event)
+                print("curs")
+            event.accept()
 
     def _on_cursor_blinktimer_timeout(self):
         """
