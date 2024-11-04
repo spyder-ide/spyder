@@ -70,6 +70,7 @@ class ApplicationActions:
     # File
     NewFile = "New file"
     OpenFile = "Open file"
+    OpenLastClosed = "Open last closed"
     # The name of the action needs to match the name of the shortcut
     # so 'Restart' is used instead of something like 'restart_action'
     SpyderRestart = "Restart"
@@ -105,6 +106,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_open_file_using_dialog_requested = Signal()
     """
     Signal to request that the Open File dialog is shown to open a file.
+    """
+
+    sig_open_last_closed_requested = Signal()
+    """
+    Signal to request that the last closed file be opened again.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -231,6 +237,14 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('fileopen'),
             tip=_("Open file"),
             triggered=self.sig_open_file_using_dialog_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.open_last_closed_action = self.create_action(
+            ApplicationActions.OpenLastClosed,
+            text=_("O&pen last closed"),
+            tip=_("Open last closed"),
+            triggered=self.sig_open_last_closed_requested.emit,
             shortcut_context="main",
             register_shortcut=True
         )

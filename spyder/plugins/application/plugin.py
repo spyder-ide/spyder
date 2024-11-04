@@ -70,6 +70,9 @@ class Application(SpyderPluginV2):
         container.sig_open_file_using_dialog_requested.connect(
             self.open_file_using_dialog
         )
+        container.sig_open_last_closed_requested.connect(
+            self.open_last_closed_file
+        )
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -224,6 +227,11 @@ class Application(SpyderPluginV2):
             section=FileMenuSections.Open,
             before_section=FileMenuSections.Save
         )
+        mainmenu.add_item_to_application_menu(
+            container.open_last_closed_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Open
+        )
 
         # Restart section
         mainmenu.add_item_to_application_menu(
@@ -341,6 +349,7 @@ class Application(SpyderPluginV2):
         for action_id in [
             ApplicationActions.NewFile,
             ApplicationActions.OpenFile,
+            ApplicationActions.OpenLastClosed,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -498,6 +507,16 @@ class Application(SpyderPluginV2):
         if self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.load(filename)
+
+    def open_last_closed_file(self) -> None:
+        """
+        Open the last closed file again.
+
+        For the moment, forward the request to the Editor plugin.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.open_last_closed()
 
     @property
     def documentation_action(self):

@@ -37,17 +37,26 @@ def application_plugin(qapp, qtbot):
         yield application
 
 
-def test_new_file(application_plugin):
+@pytest.mark.parametrize(
+    'action_name, editor_function_name',
+    [
+        ('new_action', 'new'),
+        ('open_last_closed_action', 'open_last_closed'),
+    ],
+)
+def test_file_actions(application_plugin, action_name, editor_function_name):
     """
-    Test that triggering the "New file" action calls the new() function in
-    the Editor plugin.
+    Test that triggering file actions calls the corresponding function in the
+    Editor plugin.
     """
     container = application_plugin.get_container()
-    container.new_action.trigger()
+    action = getattr(container, action_name)
+    action.trigger()
 
     application_plugin.get_plugin.assert_called_with(Plugins.Editor)
     editor_plugin = application_plugin.get_plugin.return_value
-    editor_plugin.new.assert_called()
+    editor_function = getattr(editor_plugin, editor_function_name)
+    editor_function.assert_called()
 
 
 def test_open_file(application_plugin):
