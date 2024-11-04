@@ -71,7 +71,6 @@ logger = logging.getLogger(__name__)
 
 class EditorWidgetActions:
     # File operations
-    OpenLastClosed = "Open last closed"
     RevertFileFromDisk = "Revert file from disk"
     SaveFile = "Save file"
     SaveAll = "Save all"
@@ -366,13 +365,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.open_last_closed_action = self.create_action(
-            EditorWidgetActions.OpenLastClosed,
-            text=_("O&pen last closed"),
-            tip=_("Open last closed"),
-            triggered=self.open_last_closed,
-            register_shortcut=True
-        )
         self.revert_action = self.create_action(
             EditorWidgetActions.RevertFileFromDisk,
             text=_("&Revert"),
