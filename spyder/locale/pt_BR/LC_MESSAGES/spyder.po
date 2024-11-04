@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-01 13:53\n"
+"PO-Revision-Date: 2024-11-04 12:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:26
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
-msgstr "Desative um plugin Spyder (externo ou embutido) para impedir que ele carregue até que seja novamente habilitado, para simplificar a interface ou caso ele cause problemas."
+msgstr "Desative um plugin Spyder (externo ou interno) para impedir que ele carregue até que seja novamente habilitado, para simplificar a interface ou caso ele cause problemas."
 
 #: spyder/api/plugin_registration/_confpage.py:56
 msgid "Built-in"
@@ -2022,7 +2022,7 @@ msgid "If enabled, modified lines of code (excluding strings)\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr "Se ativado, as linhas de código modificadas (excluindo as strings)\n"
 "terão seus espaços em branco à direita removidos se existirem.\n"
-"Se desativado, apenas os espaços em branco adicionados pelo Spyder serão removidos."
+"Se desativado, apenas os espaços em branco adicionados pelo Spyder serão removidos. "
 
 #: spyder/plugins/editor/confpage.py:161
 msgid "Intelligent backspace"
@@ -3958,15 +3958,15 @@ msgstr "No modo <b>%s</b>, o Autocall não é aplicado se não houver argumentos
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
-msgstr "Recarga automática"
+msgstr "Autoreload"
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Autoreload reloads modules automatically every time before executing your Python code.<br>This is a different mechanism than the User Module Reloader (UMR) and it can be slow on Windows due to limitations of its file system."
-msgstr "Recarga automática recarrega módulos automaticamente, toda vez, antes de executar seu código Python.<br> Este é um mecanismo diferente do mecanismo do Recarregador de Módulos do Usuário (UMR) e pode ser lento no Windows devido a limitações do seu sistema de arquivos."
+msgstr "Autoreload recarrega módulos automaticamente, toda vez, antes de executar seu código Python.<br> Este é um mecanismo diferente do mecanismo do Recarregador de Módulos do Usuário (UMR) e pode ser lento no Windows devido a limitações do seu sistema de arquivos."
 
 #: spyder/plugins/ipythonconsole/confpage.py:347
 msgid "Use autoreload"
-msgstr "Usar recarga automática"
+msgstr "Usar autoreload"
 
 #: spyder/plugins/ipythonconsole/confpage.py:349
 msgid "This option enables the autoreload magic.<br>Please refer to its documentation to learn how to use it."
@@ -7033,7 +7033,7 @@ msgstr "Verdadeiro se o objeto puder ser chamado. Determinado com a função int
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:334
 msgid "True if the object is a user-defined or built-in function or method.Determined with the inspect.isroutine() method."
-msgstr "True se o objeto for uma função ou método for interno ou definido pelo usuário. Determinado com o método inspect.isroutine()."
+msgstr "Verdadeiro se o objeto for uma função ou método interno ou definido pelo usuário. Determinado com o método inspect.isroutine()."
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:344
 msgid "Predicates from the inspect module"
@@ -7129,7 +7129,7 @@ msgstr "<a href=\"{url}\">Formatar especificação</a> para floats:"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:80
 msgid "Use same syntax as for built-in <tt>format()</tt> function. Default is <tt>.6g</tt>."
-msgstr "Use a mesma sintaxe que para a função <tt>format()</tt> integrada. O padrão é <tt>.6g</tt>."
+msgstr "Use a mesma sintaxe que para a função <tt>format()</tt> interna. O padrão é <tt>.6g</tt>."
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:94
 msgid "Background color"
