@@ -548,7 +548,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def merge_extra_cursors(self):
         """Merge overlapping cursors"""
-        pass
+        if not self.extra_cursors:
+            return
+        # TODO write this
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -572,13 +574,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                      Qt.TextInteractionFlag.TextSelectableByKeyboard)
             block = cursor.block()
             if (self.cursor_blink_state and
-                (editable or flags) and
-                block.isVisible()):
+                    (editable or flags) and
+                    block.isVisible()):
                 # TODO don't bother with preeditArea?
                 for top, blocknum, visblock in self.visible_blocks:
-                    #TODO is there a better way to get `top` because we already
-                    #   have cursor.block(). Is it meaningfully slow anyway
-                    #   even if it is a double loop? We paint pretty often...
+                    # TODO is there a better way to get `top` because we
+                    #   already have cursor.block(). Is it meaningfully slow
+                    #   anyway even if it is a double loop?
                     if block.position() == visblock.position():
                         offset.setY(top)
                         block.layout().drawCursor(qp, offset,
@@ -600,7 +602,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.cursor_blink_state = False
         self.cursor_blink_timer.stop()
         self.viewport().update()
-
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -4596,7 +4597,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Overrides paint event to update the list of visible blocks"""
         self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
-        # self._paint_cursors()
         self.painted.emit(event)
 
     def update_visible_blocks(self, event):
