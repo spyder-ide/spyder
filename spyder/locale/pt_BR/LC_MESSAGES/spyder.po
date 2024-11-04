@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-04 13:58\n"
+"PO-Revision-Date: 2024-11-04 16:47\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -157,7 +157,7 @@ msgstr "Erro de saída do Spyder"
 
 #: spyder/app/restart.py:144
 msgid "Spyder reset error"
-msgstr "Erro de reset Spyder"
+msgstr "Erro de reset do Spyder"
 
 #: spyder/app/restart.py:145
 msgid "Spyder restart error"
@@ -941,7 +941,7 @@ msgstr "Use pipes stdio para se comunicar com o servidor"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset Spyder to factory defaults</tt><br><br>instead of reporting a bug."
-msgstr "<b>A modificação dessas opções pode interromper o preenchimento de código!!</b><br><br>Se isso acontecer, redefina suas preferências do Spyder acessando o menu<br><br><tt> Ferramentas>Redefinir o Spyder aos padrões de fábrica</tt><br><br>em vez de relatar um bug."
+msgstr "<b>A modificação dessas opções pode interromper o preenchimento de código!!</b><br><br>Se isso acontecer, redefina suas preferências do Spyder acessando o menu<br><br><tt> Ferramentas>Redefinir o Spyder às configurações padrões</tt><br><br>em vez de relatar um bug."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
