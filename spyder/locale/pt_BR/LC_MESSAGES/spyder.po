@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-04 12:17\n"
+"PO-Revision-Date: 2024-11-04 13:58\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -59,7 +59,7 @@ msgstr "Barra de ícones"
 
 #: spyder/api/widgets/main_widget.py:355 spyder/plugins/base.py:200
 msgid "Dock the pane"
-msgstr "Encaixar o painel"
+msgstr "Acoplar o painel"
 
 #: spyder/api/widgets/main_widget.py:361 spyder/api/widgets/main_widget.py:450 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Move"
@@ -71,7 +71,7 @@ msgstr "Desbloqueie para mover o painel para outra posição"
 
 #: spyder/api/widgets/main_widget.py:368 spyder/plugins/base.py:213
 msgid "Undock"
-msgstr "Desencaixar"
+msgstr "Desacoplar"
 
 #: spyder/api/widgets/main_widget.py:369 spyder/plugins/base.py:215
 msgid "Undock the pane"
