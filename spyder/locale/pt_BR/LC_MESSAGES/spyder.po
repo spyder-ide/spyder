@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-04 16:47\n"
+"PO-Revision-Date: 2024-11-04 19:33\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -142,7 +142,7 @@ msgstr "Não foi possível fechar a última instância do Spyder.\n"
 #: spyder/app/restart.py:139
 msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr "Não foi possível retornar às definições padrão do Spyder.\n"
+msgstr "Não foi possível redefinir às configurações padrão do Spyder.\n"
 "Reinicialização abortada."
 
 #: spyder/app/restart.py:141
@@ -157,11 +157,11 @@ msgstr "Erro de saída do Spyder"
 
 #: spyder/app/restart.py:144
 msgid "Spyder reset error"
-msgstr "Erro de reset do Spyder"
+msgstr "Erro de redefinição do Spyder"
 
 #: spyder/app/restart.py:145
 msgid "Spyder restart error"
-msgstr "Erro de reinicialização"
+msgstr "Erro de reinicialização do Spyder"
 
 #: spyder/app/restart.py:186
 msgid "Closing Spyder"
@@ -169,7 +169,7 @@ msgstr "Fechando o Spyder"
 
 #: spyder/app/restart.py:256
 msgid "Resetting Spyder to defaults"
-msgstr "Resetando definições padrões do Spyder"
+msgstr "Redefinindo para as configurações padrão do Spyder"
 
 #: spyder/app/restart.py:288
 msgid "Restarting"
@@ -182,7 +182,7 @@ msgstr "O contexto do atalho deve coincidir com '_' ou o `CONF_SECTION` do plugi
 #: spyder/config/manager.py:752
 msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr "Ocorreu um erro ao carregar as opções de configuração do Spyder. Você precisa redefini-las para o Spyder para poder iniciar.\n\n"
+msgstr "Ocorreu um erro ao carregar as opções de configuração do Spyder. Você precisa redefini-las para o Spyder poder iniciar.\n\n"
 "Deseja continuar?"
 
 #: spyder/config/manager.py:760
@@ -307,7 +307,7 @@ msgstr "Conecte-se a kernels remotos através do SSH"
 
 #: spyder/dependencies.py:115
 msgid "Atomic file writes in the Editor"
-msgstr "Arquivo atômico grava no editor"
+msgstr "Arquivo Atomic grava no editor"
 
 #: spyder/dependencies.py:119
 msgid "Character encoding auto-detection for the Editor"
@@ -331,7 +331,7 @@ msgstr "Acessar os metadados para um pacote Python"
 
 #: spyder/dependencies.py:139
 msgid "Compute folding range nesting levels"
-msgstr "Calcule os níveis de aninhamento"
+msgstr "Calcular os níveis de aninhamento"
 
 #: spyder/dependencies.py:143
 msgid "IPython interactive python environment"
@@ -535,7 +535,7 @@ msgstr "Excluir esquema"
 
 #: spyder/plugins/appearance/confpage.py:88 spyder/plugins/preferences/widgets/configdialog.py:105
 msgid "Reset to defaults"
-msgstr "Redefinir Preferências"
+msgstr "Redefinir para o padrão"
 
 #: spyder/plugins/appearance/confpage.py:120
 msgid "Fonts"
@@ -941,7 +941,7 @@ msgstr "Use pipes stdio para se comunicar com o servidor"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset Spyder to factory defaults</tt><br><br>instead of reporting a bug."
-msgstr "<b>A modificação dessas opções pode interromper o preenchimento de código!!</b><br><br>Se isso acontecer, redefina suas preferências do Spyder acessando o menu<br><br><tt> Ferramentas>Redefinir o Spyder às configurações padrões</tt><br><br>em vez de relatar um bug."
+msgstr "<b>A modificação dessas opções pode interromper o preenchimento de código!!</b><br><br>Se isso acontecer, redefina suas preferências do Spyder acessando o menu<br><br><tt> Ferramentas>Redefinir Spyder para as configurações padrão</tt><br><br>em vez de relatar um bug."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1189,7 +1189,7 @@ msgstr "Servidores disponíveis:"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:55 spyder/plugins/completion/providers/snippets/conftabs.py:76 spyder/plugins/explorer/confpage.py:58 spyder/plugins/shortcuts/confpage.py:28
 msgid "Reset to default values"
-msgstr "Restaurar os valores padrões"
+msgstr "Redefinir para os valores padrão"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:56
 msgid "Set up a new server"
@@ -2382,7 +2382,7 @@ msgstr "Menos zoom"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:3434
 msgid "Zoom reset"
-msgstr "Resetar Zoom"
+msgstr "Redefinir Zoom"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:3444 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4536
 msgid "Generate docstring"
@@ -3704,7 +3704,7 @@ msgstr "Perguntar antes de remover todas variáveis definidas pelo usuário"
 msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr "Esta opção permite ocultar a mensagem de aviso mostrada\n"
-"quando limpando as variáveis do Spyder."
+"quando redefinindo as variáveis do Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:55
 msgid "Ask for confirmation before restarting"
@@ -4474,7 +4474,7 @@ msgstr "Preferências do Layout"
 
 #: spyder/plugins/layout/container.py:137
 msgid "Reset to Spyder default"
-msgstr "Restaurar padrão do Spyder"
+msgstr "Redefinir para o padrão do Spyder"
 
 #: spyder/plugins/layout/container.py:145
 msgid "Use next layout"
@@ -4499,7 +4499,7 @@ msgstr "O layout <b>{0}</b> será sobrescrito. Você deseja continuar?"
 #: spyder/plugins/layout/container.py:368
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr "O esquema das janelas retornará para as configurações padrões: isso afeta a posição, tamanho e componentes da janela.\n"
+msgstr "O esquema das janelas será redefinido para as configurações padrão: isso afeta a posição, tamanho e componentes da janela.\n"
 "Deseja continuar?"
 
 #: spyder/plugins/layout/layouts.py:71
@@ -4544,7 +4544,7 @@ msgstr "Bloquear painéis e barras de ferramentas"
 
 #: spyder/plugins/layout/plugin.py:499
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
-msgstr "Erro ao abrir o layout personalizado.  Por favor feche o Spyder e tente novamente.  Se o problema persistir então você deve usar 'Voltar para o layout padrão do Spyder' no menu."
+msgstr "Erro ao abrir o layout personalizado.  Por favor feche o Spyder e tente novamente.  Se o problema persistir então você deve usar 'Redefinir para o padrão do Spyder' no menu."
 
 #: spyder/plugins/layout/plugin.py:516
 msgid "Quick switch layout #%s has not yet been defined."
@@ -4874,7 +4874,7 @@ msgstr "Sem gráficos para exibir"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:191
 msgid "Run plot-generating code in the Editor or IPython console to see your figures appear here. This pane only supports static images, so it can't display interactive plots like Bokeh, Plotly or Altair."
-msgstr "Execute código gerado pelo gráfico no editor ou no console IPython para ver suas figuras aparecendo aqui. Este painel suporta apenas imagens estáticas, para que não possa exibir gráficos interativos como Bokeh, Plotly ou Altair."
+msgstr "Execute código gerado pelo gráfico no editor ou no console IPython para ver suas figuras aparecendo aqui. Este painel suporta apenas imagens estáticas, assim não é possível exibir gráficos interativos como Bokeh, Plotly ou Altair."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:617
 msgid "The image is broken, please try to generate it again"
@@ -4934,7 +4934,7 @@ msgstr "Próximo gráfico"
 
 #: spyder/plugins/preferences/plugin.py:299
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
-msgstr "O Spyder será reiniciado e voltará para suas definições padrões: <br><br>Deseja continuar?"
+msgstr "O Spyder será reiniciado e redefinirá para suas definições padrão: <br><br>Deseja continuar?"
 
 #: spyder/plugins/preferences/plugin.py:313 spyder/plugins/preferences/widgets/configdialog.py:30 spyder/plugins/preferences/widgets/container.py:120
 msgid "Preferences"
@@ -5672,7 +5672,7 @@ msgstr "As seguintes são as predefinições de configuração globais dos difer
 
 #: spyder/plugins/run/confpage.py:219
 msgid "Configuration presets:"
-msgstr "Configuração de predefinições"
+msgstr "Predefinições de configuração:"
 
 #: spyder/plugins/run/confpage.py:228
 msgid "Runner:"
@@ -5816,11 +5816,11 @@ msgstr "Este é o runner que será usado para execução quando você clicar no 
 
 #: spyder/plugins/run/widgets.py:594
 msgid "Preset configuration:"
-msgstr "Configuração predefinida"
+msgstr "Configuração predefinida:"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Select between global or local (i.e. for this file) configuration presets. You can set the latter below"
-msgstr "Selecione entre predefinições de configuração globais ou locais (ou seja, para este arquivo). Você pode definir o último abaixo"
+msgstr "Selecione entre predefinições de configuração globais ou locais (por exemplo, para este arquivo). Você pode definir o último abaixo"
 
 #: spyder/plugins/run/widgets.py:621
 msgid "Configuration properties"
@@ -5872,7 +5872,7 @@ msgstr "Redefinir atalhos"
 
 #: spyder/plugins/shortcuts/confpage.py:71
 msgid "Do you want to reset to default values?"
-msgstr "Você deseja restaurar os valores padrões?"
+msgstr "Você deseja redefinir os valores padrão?"
 
 #: spyder/plugins/shortcuts/plugin.py:65
 msgid "Keyboard shortcuts"
@@ -6176,7 +6176,7 @@ msgstr "Esse painel mostra as figuras e imagens criadas durante sua execução d
 
 #: spyder/plugins/tours/tours.py:156
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr "Esse painel deixa você vasculhar os arquivos e diretórios no seu computador.<br><br> Você pode abrir qualquer arquivo na sua aplicação correspondente clicando duas vez nele, e tipos de arquivos suportados serão abertos dentro do Spyder.<br><br> O painel de arquivos também permite a você copiar um ou muitos caminhos absolutos ou relativos, automaticamente formatados como strings ou listas Python, e executar a variedade de outras operações de arquivos."
+msgstr "Esse painel deixa você procurar os arquivos e diretórios no seu computador.<br><br> Você pode abrir qualquer arquivo na sua aplicação correspondente clicando duas vez nele, e tipos de arquivos suportados serão abertos dentro do Spyder.<br><br> O painel de arquivos também permite a você copiar um ou muitos caminhos absolutos ou relativos, automaticamente formatados como strings ou listas Python, e executar a variedade de outras operações de arquivos."
 
 #: spyder/plugins/tours/tours.py:170
 msgid "History Log"
