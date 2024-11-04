@@ -257,9 +257,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         # Caret (text cursor)
         self.init_multi_cursor()
-        
-        self.focus_in.connect(self.start_cursor_blink)
-        self.focus_changed.connect(self.stop_cursor_blink)
 
         self.text_helper = TextHelper(self)
 
@@ -515,54 +512,61 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     # ---- Multi Cursor
     def init_multi_cursor(self):
+        """Initialize attrs and callbacks for multi-cursor functionality"""
         self.cursor_width = self.get_conf('cursor/width', section='main')
         self.setCursorWidth(0)  # draw our own cursor
         self.extra_cursors = []
         self.cursor_blink_state = False
         self.cursor_blink_timer = QTimer(self)
         self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime()//2)
-        self.cursor_blink_timer.timeout.connect(self._on_cursor_blinktimer_timeout)
-    
+        self.cursor_blink_timer.timeout.connect(
+            self._on_cursor_blinktimer_timeout
+            )
+        self.focus_in.connect(self.start_cursor_blink)
+        self.focus_changed.connect(self.stop_cursor_blink)
+        self.painted.connect(self.paint_cursors)
+
     def add_cursor(self, cursor: QTextCursor):
+        """Add this cursor to the list of extra cursors"""
         self.extra_cursors.append(cursor)
         selections = []
         for cursor in self.extra_cursors:
-            extra_selection = TextDecoration(cursor, draw_order=5,kind="extra_cursor_selection")
+            extra_selection = TextDecoration(cursor, draw_order=5,
+                                             kind="extra_cursor_selection")
             extra_selection.cursor = cursor
-            
+
             # TODO get colors from theme? or from stylesheet?
             extra_selection.set_foreground(QColor("#ffffff"))
             extra_selection.set_background(QColor("#346792"))
             selections.append(extra_selection)
         self.set_extra_selections('extra_cursor_selections', selections)
-        
-        
+
     def clear_extra_cursors(self):
+        """Remove all extra cursors"""
         self.extra_cursors = []
         self.set_extra_selections('extra_cursor_selections', [])
-        
+
     def merge_extra_cursors(self):
+        """Merge overlapping cursors"""
         pass
 
     def _on_cursor_blinktimer_timeout(self):
         """
-        text cursor blink timer generates paint events
+        Text cursor blink timer generates paint events and inverts draw state
         """
         self.cursor_blink_state = not self.cursor_blink_state
         if self.isVisible():
             self.viewport().update()
 
-    def _paint_cursors(self):  # TODO move into paintEvent? so we can add extraSelections before super()paintEvent then paint cursors afterward?
-        """paint all cursors and cursor selections"""
+    @Slot(QPaintEvent)
+    def paint_cursors(self, event):
+        """Paint all cursors"""
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
         qp.setBrushOrigin(offset)
 
         for cursor in self.extra_cursors + [self.textCursor()]:
-            # TODO add to extraSelections to paint selection
-
-            # paint cursor
             editable = not self.isReadOnly()
             flags = (self.textInteractionFlags() &
                      Qt.TextInteractionFlag.TextSelectableByKeyboard)
@@ -4592,7 +4596,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Overrides paint event to update the list of visible blocks"""
         self.update_visible_blocks(event)
         TextEditBaseWidget.paintEvent(self, event)
-        self._paint_cursors()
+        # self._paint_cursors()
         self.painted.emit(event)
 
     def update_visible_blocks(self, event):
