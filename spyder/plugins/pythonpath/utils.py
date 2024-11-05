@@ -16,7 +16,10 @@ from spyder.utils.environ import get_user_env
 
 
 def check_path(path):
-    """Check that `path` is not a [site|dist]-packages folder."""
+    """
+    Check that `path` is not a [site|dist]-packages folder or a Conda
+    distribution `pkgs` directory.
+    """
     pattern_string = r'(ana|mini|micro)(conda|mamba|forge)\d*(/base)*/pkgs'
     if os.name == 'nt':
         pattern_string = (
