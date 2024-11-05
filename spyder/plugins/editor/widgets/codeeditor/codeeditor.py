@@ -602,6 +602,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.movePosition(QTextCursor.End, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.EndOfBlock, move_mode)
+                elif key == Qt.Key_Delete:
                     if not cursor.hasSelection():
                         cursor.movePosition(QTextCursor.NextCharacter,
                                             move_mode)
