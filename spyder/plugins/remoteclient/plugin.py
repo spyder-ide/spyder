@@ -15,6 +15,7 @@ import contextlib
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot
+from packaging.version import Version
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -65,6 +66,8 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_established = Signal(str)
     sig_connection_lost = Signal(str)
     sig_connection_status_changed = Signal(dict)
+
+    sig_version_mismatch = Signal(Version)
 
     _sig_kernel_started = Signal(object, dict)
 
