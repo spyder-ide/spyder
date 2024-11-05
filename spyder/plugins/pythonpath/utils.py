@@ -17,7 +17,7 @@ from spyder.utils.environ import get_user_env
 
 def check_path(path):
     """Check that `path` is not a [site|dist]-packages folder."""
-    pattern_string = r'(ana|Ana|mini|micro)(conda|mamba|forge)\d*(/base)*/pkgs'
+    pattern_string = r'(ana|mini|micro)(conda|mamba|forge)\d*(/base)*/pkgs'
     if os.name == 'nt':
         pattern_string = (
             f'.*({pattern_string}'
@@ -30,7 +30,7 @@ def check_path(path):
             r'(python|python\d+|python\d+\.\d+)/'
             r'(site|dist)-packages).*'
         )
-    pattern = re.compile(pattern_string)
+    pattern = re.compile(pattern_string, re.IGNORECASE)
 
     path_norm = path.replace('\\', '/')
     return pattern.match(path_norm) is None
