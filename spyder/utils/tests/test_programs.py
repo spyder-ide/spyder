@@ -34,7 +34,7 @@ else:
     if sys.platform.startswith('linux'):
         home_dir = '/usr/share/miniconda/'
     else:
-        home_dir = '/usr/local/miniconda/'
+        home_dir = "/Users/runner/miniconda3"
 
     VALID_INTERPRETER = os.path.join(home_dir, 'bin', 'python')
     VALID_W_INTERPRETER = os.path.join(home_dir, 'bin', 'pythonw')

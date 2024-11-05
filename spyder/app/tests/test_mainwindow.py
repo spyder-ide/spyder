@@ -6630,19 +6630,16 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
-@pytest.mark.skipif(
-    os.name == 'nt',
-    reason="No quotes on Windows file paths"
-)
-def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+@pytest.mark.skipif(os.name == "nt", reason="No quotes on Windows file paths")
+def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
     Test that we can run files with quotes in name, renamed files,
     and ipy files.
     """
     # create a file with a funky name
     path = "a'b\"c\\.py"
-    file = tmpdir.join(path)
-    file.write("print(23 + 780)")
+    file = tmp_path / path
+    file.write_text("print(23 + 780)")
     path = to_text_string(file)
     main_window.editor.load(path)
 
@@ -6702,18 +6699,19 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
 
-    with tempfile.TemporaryDirectory() as td:
+    new_dir = tmp_path / f"foo_{random.randint(1, 1000)}"
+    new_dir.mkdir()
 
-        editorstack = main_window.editor.get_current_editorstack()
-        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
-        main_window.editor.save()
-        with qtbot.waitSignal(shell.executed):
-            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.select_savename = lambda fn: str(new_dir / "fn.ipy")
+    editorstack.save_as()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
-        assert "799" in control.toPlainText()
-        assert "error" not in control.toPlainText()
-        assert "fn.ipy" in control.toPlainText()
-        main_window.editor.close_file()
+    assert "799" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "fn.ipy" in control.toPlainText()
+    main_window.editor.close_file()
 
 
 @flaky(max_runs=5)
