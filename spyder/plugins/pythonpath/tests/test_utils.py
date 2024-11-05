@@ -27,6 +27,7 @@ def test_check_path(tmp_path):
         assert not check_path('lib\\site-packages')
         assert not check_path('lib\\dist-packages')
         assert not check_path('Lib/site-packages')
+        assert not check_path('Anaconda3/pkgs')
     else:
         # One digit Python versions
         assert not check_path('lib/python3.9/site-packages')
@@ -45,3 +46,9 @@ def test_check_path(tmp_path):
 
         # Paths that don't have digits must pass
         assert check_path('lib/pythonX.Y/site-packages')
+
+        # Distribution packages
+        assert not check_path('anaconda3/pkgs')
+        assert not check_path('miniconda3/pkgs')
+        assert not check_path('miniforge/base/pkgs')  # macOS Homebrew
+        assert not check_path('micromamba/pkgs')
