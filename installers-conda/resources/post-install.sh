@@ -65,6 +65,9 @@ for shell_init in ${shell_init_list[@]}; do
     # Don't create non-existent global init file
     [[ "$mode" == "system" && ! -f "$shell_init" ]] && continue
 
+    # Resolve possible symlink
+    [[ -f $shell_init ]] && shell_init=$(readlink -f $shell_init)
+
     echo "Creating aliases in $shell_init ..."
     add_alias
 done
@@ -120,7 +123,9 @@ done
 
 # Remove aliases from shell startup
 for x in ${shell_init_list[@]}; do
-    [[ ! -f "\$x" ]] && continue
+    # Resolve possible symlink
+    [[ ! -f "\$x" ]] && continue || x=\$(readlink -f \$x)
+
     echo "Removing Spyder shell commands from \$x..."
     sed -i.bak -e "/$m1/,/$m2/d" \$x
     rm \$x.bak

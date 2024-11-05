@@ -101,6 +101,33 @@ class SpyderShell(ZMQInteractiveShell):
             enabled_gui = "inline"
         gui = enabled_gui
 
+        # Check if the inline backend is registered. It should be at this
+        # point, but sometimes that can fail due to a mismatch between
+        # the installed versions of IPython, matplotlib and matplotlib-inline.
+        # Fixes spyder-ide/spyder#22420.
+        if gui == "inline":
+            is_inline_registered = False
+
+            # The flush_figures callback should be listed as a post_execute
+            # event if the backend was registered successfully.
+            for event in self.events.callbacks["post_execute"]:
+                if "matplotlib_inline.backend_inline.flush_figures" in repr(
+                    event
+                ):
+                    is_inline_registered = True
+                    break
+
+            # Manually register the backend in case it wasn't
+            if not is_inline_registered:
+                from IPython.core.pylabtools import activate_matplotlib
+                from matplotlib_inline.backend_inline import (
+                    configure_inline_support
+                )
+
+                backend = "module://matplotlib_inline.backend_inline"
+                activate_matplotlib(backend)
+                configure_inline_support(self, backend)
+
         # To easily track the current interactive backend
         if self.kernel.interactive_backend is None:
             self.kernel.interactive_backend = gui if gui != "inline" else None

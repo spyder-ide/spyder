@@ -17,6 +17,7 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
 
   pull_request:
     branches:
@@ -34,6 +35,9 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+
+  workflow_call:
 
   workflow_dispatch:
     inputs:
@@ -69,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.9']
+        PYTHON_VERSION: ['3.11']
         TEST_TYPE: ['fast', 'slow']
     timeout-minutes: 90
     steps:

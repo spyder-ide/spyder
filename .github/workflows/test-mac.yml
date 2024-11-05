@@ -17,6 +17,7 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
 
   pull_request:
     branches:
@@ -34,6 +35,9 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+
+  workflow_call:
 
   workflow_dispatch:
     inputs:
@@ -56,7 +60,7 @@ jobs:
     # Use this to disable the workflow
     # if: false
     name: Mac - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
-    runs-on: macos-12
+    runs-on: macos-13
     env:
       CI: 'true'
       QTCONSOLE_TESTING: 'true'
@@ -69,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['conda']
-        PYTHON_VERSION: ['3.9']
+        PYTHON_VERSION: ['3.11']
         TEST_TYPE: ['fast', 'slow']
     timeout-minutes: 90
     steps:
@@ -102,6 +106,11 @@ jobs:
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
+      - name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: false
+          python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Create conda test environment
         uses: mamba-org/setup-micromamba@v1
         with:

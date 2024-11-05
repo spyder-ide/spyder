@@ -101,11 +101,14 @@ if not args.no_install:
         REPOS[DEVPATH.name]["editable"] = False
 
     for name in REPOS.keys():
-        if not REPOS[name]['editable']:
-            install_repo(name)
-            installed_dev_repo = True
-        else:
-            logger.info("%s installed in editable mode", name)
+        # Don't install the spyder-remote-services subrepo because it's not
+        # necessary on the Spyder side.
+        if name != "spyder-remote-services":
+            if not REPOS[name]['editable']:
+                install_repo(name)
+                installed_dev_repo = True
+            else:
+                logger.info("%s installed in editable mode", name)
 
 if installed_dev_repo:
     logger.info("Restarting bootstrap to pick up installed subrepos")

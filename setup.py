@@ -242,12 +242,12 @@ install_requires = [
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.3.1,<1.4.0',
-    'qtconsole>=5.6.0,<5.7.0',
+    'qtconsole>=5.6.1,<5.7.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0,<3.1.0',
+    'spyder-kernels>=3.0.0,<3.2.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
@@ -262,7 +262,6 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
     install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
-    install_requires.append('spyder-kernels>=3.0.0,<3.2.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],

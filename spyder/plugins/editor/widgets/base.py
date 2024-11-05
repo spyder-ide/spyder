@@ -1152,7 +1152,7 @@ class TextEditBaseWidget(
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()
-            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+            event = QMouseEvent(QEvent.MouseButtonPress, event.position(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)

@@ -514,8 +514,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
                     )
                     self.headers.append(self.user_header)
 
-                # Add header if not visible
-                if self.listwidget.row(self.user_header) < 0:
                     if self.editable_top_row > 0:
                         header_row = self.editable_top_row - 1
                     else:
@@ -577,7 +575,10 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 # Remove user header if there are no more user paths
                 if len(self.user_path) == 0:
                     self.listwidget.takeItem(
-                        self.listwidget.row(self.user_header))
+                        self.listwidget.row(self.user_header)
+                    )
+                    self.headers.remove(self.user_header)
+                    self.user_header = None
 
                 # Refresh widget
                 self.refresh()

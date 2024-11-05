@@ -10,16 +10,17 @@ Helper script for installing spyder and external-deps locally in editable mode.
 
 import argparse
 from importlib.metadata import PackageNotFoundError, distribution
-import os
-import sys
+from json import loads
 from logging import Formatter, StreamHandler, getLogger
+import os
 from pathlib import Path
 from subprocess import check_output
+import sys
 
 from packaging.requirements import Requirement
 
-# Remove current/script directory from sys.path[0] if added by the Python invocation,
-# otherwise Spyder's install status may be incorrectly determined.
+# Remove current/script directory from sys.path[0] if added by the Python
+# invocation, otherwise Spyder's install status may be incorrectly determined.
 SYS_PATH_0 = Path(sys.path[0]).resolve()
 if SYS_PATH_0 in (Path(__file__).resolve().parent, Path.cwd()):
     sys.path.pop(0)
@@ -43,7 +44,13 @@ for p in [DEVPATH] + list(DEPS_PATH.iterdir()):
         dist = None
         editable = None
     else:
-        editable = (p == dist._path or p in dist._path.parents)
+        direct_url = dist.read_text('direct_url.json')
+        if direct_url:
+            editable = (
+                loads(direct_url).get('dir_info', {}).get('editable', False)
+            )
+        else:
+            editable = (p == dist._path or p in dist._path.parents)
 
         # This fixes detecting that PyLSP was installed in editable mode under
         # some scenarios.

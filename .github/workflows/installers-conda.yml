@@ -78,7 +78,7 @@ jobs:
       run: |
         if [[ $BUILD_MAC == "true" ]]; then
             target_platform="'osx-64'"
-            include="{'os': 'macos-12', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
+            include="{'os': 'macos-13', 'target-platform': 'osx-64', 'spyk-arch': 'unix'}"
         fi
         if [[ $BUILD_ARM == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'osx-arm64'"
@@ -176,8 +176,11 @@ jobs:
               pkg_format: '2'
               zstd_compression_level: '19'
             channels:
+              - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
+              # TODO: Add this channel when we create it
+              # - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -197,8 +200,11 @@ jobs:
               pkg_format: '2'
               zstd_compression_level: '19'
             channels:
+              - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
+              # TODO: Add this channel when we create it
+              # - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -210,11 +216,12 @@ jobs:
 
       - name: Env Variables
         run: |
-          NSIS_USING_LOG_BUILD=1
-          [[ "$IS_RELEASE" == "true" || "$IS_PRE_RELEASE" == "true" ]] && NSIS_USING_LOG_BUILD=0
-          CONDA_BLD_PATH=${RUNNER_TEMP}/conda-bld
+          if [[ "$IS_RELEASE" != "true" && "$IS_PRE_RELEASE" != "true" ]]; then
+              NSIS_USING_LOG_BUILD=1
+              echo "NSIS_USING_LOG_BUILD=$NSIS_USING_LOG_BUILD" >> $GITHUB_ENV
+          fi
 
-          echo "NSIS_USING_LOG_BUILD=$NSIS_USING_LOG_BUILD" >> $GITHUB_ENV
+          CONDA_BLD_PATH=${RUNNER_TEMP}/conda-bld
           echo "CONDA_BLD_PATH=$CONDA_BLD_PATH" >> $GITHUB_ENV
 
           env | sort

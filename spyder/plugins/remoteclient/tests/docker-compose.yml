@@ -1,0 +1,13 @@
+services:
+  test-spyder-remote-server:
+    build:
+      context: ./
+      additional_contexts:
+        external-deps: ../../../../external-deps
+      dockerfile: Dockerfile
+    volumes:
+      - "../../../../external-deps/spyder-remote-services:/home/ubuntu/spyder-remote-services"
+      - "../../../../external-deps/spyder-kernels:/home/ubuntu/spyder-kernels"
+    ports:
+      - "22"
+    privileged: true  # Required for /usr/sbin/init
