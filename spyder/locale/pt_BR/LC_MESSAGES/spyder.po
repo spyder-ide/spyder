@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-04 20:59\n"
+"PO-Revision-Date: 2024-11-06 01:27\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -55,7 +55,7 @@ msgstr "Opções"
 
 #: spyder/api/widgets/main_widget.py:354 spyder/plugins/base.py:198
 msgid "Dock"
-msgstr "Barra de ícones"
+msgstr "Acoplar"
 
 #: spyder/api/widgets/main_widget.py:355 spyder/plugins/base.py:200
 msgid "Dock the pane"
@@ -339,7 +339,7 @@ msgstr "IPython ambiente interativo python"
 
 #: spyder/dependencies.py:147
 msgid "Main backend for the Python Language Server"
-msgstr "Módulo principal para o servidor de linguagem Python"
+msgstr "Módulo principal para o Python Language Server"
 
 #: spyder/dependencies.py:151
 msgid "Optimize algorithms for folding"
@@ -359,7 +359,7 @@ msgstr "Manipular notebooks do Jupyter no Editor"
 
 #: spyder/dependencies.py:168
 msgid "Improve code completion for objects that use Numpy docstrings"
-msgstr "Melhorar o preenchimento automático de código para objetos que usam as sequências de caracteres Numpy"
+msgstr "Melhorar o preenchimento automático de código para objetos que usam as docstrings do Numpy"
 
 #: spyder/dependencies.py:172
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -395,7 +395,7 @@ msgstr "Use a mesma instalação do Pylint com diferentes ambientes virtuais"
 
 #: spyder/dependencies.py:206
 msgid "Code completion and linting for the Editor"
-msgstr "Preenchimento de código e sugestões para o Editor"
+msgstr "Análise e preenchimento de código para o Editor"
 
 #: spyder/dependencies.py:210
 msgid "Autoformat Python files in the Editor with the Black package"
@@ -659,7 +659,7 @@ msgstr "integração macOS"
 
 #: spyder/plugins/application/confpage.py:166
 msgid "Open files from Finder with Spyder"
-msgstr "Abrir arquivos do Finder com Spyder"
+msgstr "Abrir arquivos do Localizador com Spyder"
 
 #: spyder/plugins/application/confpage.py:168
 msgid "Register Spyder with the Launch Services"
@@ -925,7 +925,7 @@ msgstr "Ativar configurações avançadas"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:47
 msgid "Module for the Python language server: "
-msgstr "Módulo para o servidor de linguagem Python: "
+msgstr "Módulo para o Python Language Server: "
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:51
 msgid "IP Address and port to bind the server to: "
@@ -1097,7 +1097,7 @@ msgstr "Autoformatar arquivos ao salvar"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:141
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr "Se ativada, auto formatação tomará lugar quando salvar um arquivo"
+msgstr "Se ativada, autoformatação será realizada quando salvar um arquivo"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:145
 msgid "Code formatting"
@@ -1173,7 +1173,7 @@ msgstr "Sublinhar erros e avisos"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:41
 msgid "Enable complexity linting with the Mccabe package"
-msgstr "Ativar análise complexity com o pacote Mccabe"
+msgstr "Ativar análise complexa de código com o pacote Mccabe"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:30
 msgid "Other languages"
@@ -1181,7 +1181,7 @@ msgstr "Outras linguagens"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:36
 msgid "Spyder uses the <a href=\"{lsp_url}\">Language Server Protocol</a> to provide code completion and linting for its Editor. Here, you can setup and configure LSP servers for languages other than Python, so Spyder can provide such features for those languages as well."
-msgstr "O Spyder usa o <a href=\"{lsp_url}\"> Protocolo do servidor de Liguagem </a> para fornecer preenchimento de código e dicas para o seu editor. Aqui você pode instalar e configurar servidores LSP para outros linguagens além do Python, para que o Spyder possa fornecer esses recursos também para essas linguagens."
+msgstr "O Spyder usa o <a href=\"{lsp_url}\"> Language Server Protocol</a> para fornecer análise e preenchimento de código para o seu editor. Aqui você pode instalar e configurar servidores LSP para outros linguagens além do Python, para que o Spyder possa fornecer esses recursos também para essas linguagens."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:47
 msgid "Available servers:"
@@ -1205,11 +1205,11 @@ msgstr "Protocolo do Servidor de Linguagem (LSP)"
 
 #: spyder/plugins/completion/providers/languageserver/provider.py:411
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
-msgstr "Não foi localizado servidor da linguagem {language} no endereço <br><br><tt>{host}:{port}</tt><br><br> Por isso, auto preenchimento e revisão de código para {language} não funcionará durante a atual sessão."
+msgstr "Não foi localizado servidor da linguagem {language} no endereço <br><br><tt>{host}:{port}</tt><br><br> Por isso, análise e preenchimento de código para {language} não funcionará durante a atual sessão."
 
 #: spyder/plugins/completion/providers/languageserver/provider.py:451
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
-msgstr "Auto preenchimento e revisão de código no editor para arquivos {language} não funcionará durante a sessão atual, ou parou de funcionar. <br><br>"
+msgstr "Preenchimento e análise de código no editor para arquivos {language} não funcionará durante a sessão atual, ou parou de funcionar. <br><br>"
 
 #: spyder/plugins/completion/providers/languageserver/provider.py:455
 msgid "Do you want to restart Spyder now?"
@@ -1354,8 +1354,7 @@ msgstr "abaixo"
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:42
 msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr "Auto preenchimento, recolhimento de código,\n"
-"revisão e símbolos de status."
+msgstr "Preenchimento, análise, dobradura de código e status de símbolos."
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:71
 msgid "Restart {} Language Server"
@@ -1371,7 +1370,7 @@ msgstr "a gramática LSP"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:42
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr "Spyder permite definir snippets de complementação customizados para usar em adição aos oferecidos pela Linguagem de Protocolo se servidor (do inglês LSP). Cada snippet deverá seguir {} <br><br> <b>Atenção:</b> Todas as mudanças serão efetivas somente quando aplicar as configurações"
+msgstr "Spyder permite definir snippets de preenchimento customizados para usar em adição aos oferecidos pelo Language Server Protocol (LSP). Cada snippets deverá seguir {} <br><br> <b>Atenção:</b> Todas as mudanças serão efetivas somente quando aplicar as configurações"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:70
 msgid "Available snippets"
@@ -1419,7 +1418,7 @@ msgstr "Houve um erro quando ao tentar carregar o arquivo JSON fornecido: <tt>{0
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:182
 msgid "Invalid snippet file"
-msgstr "Arquivo snippte inválido"
+msgstr "Arquivo snippet inválido"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:183
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
@@ -1447,11 +1446,11 @@ msgstr "Snippet inválido"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:233
 msgid "To add a new text snippet, you need to define the text that triggers it, a short description (two words maximum) of the snippet and if it should delete the trigger text when inserted. Finally, you need to define the snippet body to insert."
-msgstr "Para adicionar um novo snippet de texto, você precisa definir o texto que engatilha-o, uma curta descrição (duas palavras no máximo) do snippet, e, se deveria deleta o texto gatilho quando inserido. Finalmente, você precisa definir o corpo do snippet para inserir."
+msgstr "Para adicionar um novo snippet de texto, é necessário definir o texto que o aciona, uma breve descrição (máximo de duas palavras) do snippet e se ele deve excluir o texto de ativação ao ser inserido. Por fim, é necessário definir o corpo do snippet para ser inserido."
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:257
 msgid "Trigger text:"
-msgstr "Texto gatilho:"
+msgstr "Texto de ativação:"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:262
 msgid "Description:"
@@ -1459,11 +1458,11 @@ msgstr "Descrição:"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:267
 msgid "Remove trigger text on insertion"
-msgstr "Remover texto gatilho na inserção"
+msgstr "Remover texto de ativação na inserção"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:268
 msgid "Check if the text that triggers this snippet should be removed when inserting it"
-msgstr "Verificar se o texto que engatilha o snippet deveria ser removido quando inseri-lo"
+msgstr "Verificar se o texto que aciona o snippet deve ser removido quando inseri-lo"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:274
 msgid "<b>Snippet text:</b>"
@@ -1475,7 +1474,7 @@ msgstr "Editor de snippet"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:290
 msgid "Trigger text for the current snippet"
-msgstr "Texto gatilho para o snippet atual"
+msgstr "Texto de ativação para o snippet atual"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:313
 msgid "Snippet text completion to insert"
@@ -1483,7 +1482,7 @@ msgstr "Conclulsão de Texto snippet para inserir"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:320
 msgid "Trigger information"
-msgstr "Informação de gatilho"
+msgstr "Informação da ativação"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:449 spyder/plugins/run/models.py:450
 msgid "Double-click to view or edit"
@@ -1491,7 +1490,7 @@ msgstr "Clique duplo para ver ou editar"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:461
 msgid "Trigger text"
-msgstr "Texto gatilho"
+msgstr "Texto de ativação"
 
 #: spyder/plugins/completion/providers/snippets/widgets/snippetsconfig.py:463
 msgid "Description"
@@ -1722,7 +1721,7 @@ msgstr "Interação"
 
 #: spyder/plugins/debugger/confpage.py:46
 msgid "Prevent editor from closing files while debugging"
-msgstr "Impedir o edito de fechar arquivos durante depuração"
+msgstr "Impedir o editor de fechar arquivos durante depuração"
 
 #: spyder/plugins/debugger/confpage.py:48
 msgid "This option prevents the user from closing a file while it is debugged."
@@ -2008,8 +2007,8 @@ msgid "If enabled, pressing Tab will always indent,\n"
 "shortcut: Ctrl+Space)"
 msgstr "Se ativada, pressionando Tab o código\n"
 "será indentado, mesmo se o cursor não estiver\n"
-"no inicio da linha (se essa opção for ativada a\n"
-"completação de código poderá ser usada\n"
+"no inicio da linha (se essa opção for ativada o \n"
+"preenchimento de código poderá ser usada\n"
 "pressionando Ctrl+Espaço)"
 
 #: spyder/plugins/editor/confpage.py:155
@@ -2026,7 +2025,7 @@ msgstr "Se ativado, as linhas de código modificadas (excluindo as strings)\n"
 
 #: spyder/plugins/editor/confpage.py:161
 msgid "Intelligent backspace"
-msgstr "Tecla de retorno (\"backspace\") inteligente"
+msgstr "Backspace inteligente"
 
 #: spyder/plugins/editor/confpage.py:163
 msgid "Make the backspace key automatically remove the amount of indentation characters set above."
@@ -2038,11 +2037,11 @@ msgstr "Remoção automática dos espaços finais ao salvar arquivos"
 
 #: spyder/plugins/editor/confpage.py:171
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr "Inserir uma nova linha no fim se não não exite quando salvar o arquivo"
+msgstr "Inserir uma nova linha no final, caso não exista, ao salvar um arquivo."
 
 #: spyder/plugins/editor/confpage.py:176
 msgid "Trim all newlines after the final one when saving a file"
-msgstr "Aparar todas a novas linhas depois da última quando salvar um arquivo"
+msgstr "Aparar todas as novas linhas depois da última ao salvar um arquivo"
 
 #: spyder/plugins/editor/confpage.py:181
 msgid "Indentation characters: "
@@ -2422,7 +2421,7 @@ msgstr "Classificar guias em ordem alfabética"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:272 spyder/plugins/explorer/widgets/explorer.py:490
 msgid "Show in Finder"
-msgstr "Mostrar no Buscador"
+msgstr "Mostrar no Localizador"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:274
 msgid "Show in external file explorer"
