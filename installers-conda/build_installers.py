@@ -147,6 +147,9 @@ base_specs = {
 rt_specs = {
     "python": f"={PY_VER}",
     "spyder": f"={SPYVER}",
+    "spyder-line-profiler": ">=0.4.0",
+    "spyder-notebook": ">=0.6.1",
+    "spyder-unittest": ">=0.7.0",
     "cython": "",
     "matplotlib-base": "",
     "numpy": "",
