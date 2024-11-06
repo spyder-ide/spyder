@@ -1,11 +1,22 @@
 @rem  This script launches Spyder after install
 @echo off
 
-if "%CI%"=="1" set no_launch_spyder=true
+call :redirect 2>&1 >> %PREFIX%\install.log
+
+:redirect
+@echo Environment Variables:
+set
+
+if defined CI set no_launch_spyder=true
 if "%INSTALLER_UNATTENDED%"=="1" set no_launch_spyder=true
+@echo CI = %CI%
+@echo INSTALLER_UNATTENDED = %INSTALLER_UNATTENDED%
+@echo no_launch_spyder = %no_launch_spyder%
 if defined no_launch_spyder (
     @echo Installing in CI or silent mode, do not launch Spyder
     exit /b %errorlevel%
+) else (
+    @echo Launching Spyder after install completed.
 )
 
 set mode=system
@@ -17,6 +28,7 @@ for /F "tokens=*" %%i in (
 ) do (
     set shortcut=%%~fi
 )
+@echo shortcut = %shortcut%
 
 @rem  Launch Spyder
 set tmpdir=%TMP%\spyder
