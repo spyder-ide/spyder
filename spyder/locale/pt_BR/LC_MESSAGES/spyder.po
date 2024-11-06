@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-06 14:59\n"
+"PO-Revision-Date: 2024-11-06 23:53\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3627,7 +3627,7 @@ msgstr "Recuperando documentação"
 
 #: spyder/plugins/help/widgets.py:787
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou na frente dele no Console.%s"
+msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele tanto no Editor quanto no Console.%s"
 
 #: spyder/plugins/help/widgets.py:791
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
@@ -3745,7 +3745,7 @@ msgstr " linhas"
 
 #: spyder/plugins/ipythonconsole/confpage.py:86
 msgid "Buffer:  "
-msgstr "Buffer: "
+msgstr "Buffer:  "
 
 #: spyder/plugins/ipythonconsole/confpage.py:88
 msgid "Set the maximum number of lines of text shown in the\n"
@@ -3917,7 +3917,7 @@ msgstr "<b>Aviso</b>: Reduz a velocidade do console ao trabalhar com grandes dat
 
 #: spyder/plugins/ipythonconsole/confpage.py:285
 msgid "Greedy completion"
-msgstr "Preenchimento ávido"
+msgstr "Preenchimento de código ambicioso"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't.<br><br>"
@@ -3925,15 +3925,15 @@ msgstr "Habilite o preenchimento de código usando a tecla <tt>Tab</tt> em eleme
 
 #: spyder/plugins/ipythonconsole/confpage.py:298
 msgid "Use greedy completion in the IPython console"
-msgstr "Usar preenchimento de código ávido no console IPython"
+msgstr "Usar preenchimento de código ambicioso no console IPython"
 
 #: spyder/plugins/ipythonconsole/confpage.py:310
 msgid "Autocall"
-msgstr "Autocall"
+msgstr "Chamada Automática"
 
 #: spyder/plugins/ipythonconsole/confpage.py:311
 msgid "Autocall makes IPython automatically call any callable object even if you didn't type explicit parentheses.<br>For example, if you type <i>str 43</i> it becomes <i>str(43)</i> automatically."
-msgstr "Esta opção faz com que o Python chame automaticamente qualquer objeto mesmo se você não tenha digitado os parenteses.<br>Por exemplo, ao escrever <i>str 43</i>, ele será convertido automaticamente para <i>str(43)</i>."
+msgstr "Esta opção faz com que o IPython chame automaticamente qualquer objeto \"chamável\" (callable) mesmo que você não tenha digitado os parenteses.<br>Por exemplo, ao escrever <i>str 43</i>, ele será convertido automaticamente para <i>str(43)</i>."
 
 #: spyder/plugins/ipythonconsole/confpage.py:318
 msgid "Smart"
@@ -3949,11 +3949,11 @@ msgstr "Desativado"
 
 #: spyder/plugins/ipythonconsole/confpage.py:322
 msgid "Autocall:  "
-msgstr "Autocall: "
+msgstr "Chamada Automática:  "
 
 #: spyder/plugins/ipythonconsole/confpage.py:323
 msgid "On <b>%s</b> mode, Autocall is not applied if there are no arguments after the callable. On <b>%s</b> mode, all callable objects are automatically called (even if no arguments are present)."
-msgstr "No modo <b>%s</b>, o Autocall não é aplicado se não houver argumentos depois do objeto chamável. No modo <b>%s</b>, todos os objetos chamáveis são chamados automaticamente (mesmo se não houver argumentos presentes)."
+msgstr "No modo <b>%s</b>, a Chamada Automática não é aplicada se não houver argumentos depois do objeto \"chamável\". No modo <b>%s</b>, todos os objetos chamáveis são chamados automaticamente (mesmo se não houver argumentos presentes)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
@@ -4333,7 +4333,7 @@ msgstr "A variável não é selecionável"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:41
 msgid "The kernel is dead"
-msgstr "O núcleo está morto"
+msgstr "O kernel está morto"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:42
 msgid "An unkown error occurred. Check the console because its contents could have been printed there"
