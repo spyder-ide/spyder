@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-06 01:27\n"
+"PO-Revision-Date: 2024-11-06 13:15\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -2257,7 +2257,7 @@ msgstr "Erro ao criar o diretório de salvamento automático"
 
 #: spyder/plugins/editor/utils/autosave.py:418
 msgid "Error while autosaving {} to {}"
-msgstr "Erro ao salvar automaticamente {} para {}"
+msgstr "Erro ao salvar automaticamente {} em {}"
 
 #: spyder/plugins/editor/utils/switcher_manager.py:55 spyder/plugins/switcher/tests/test_switcher.py:28 spyder/plugins/switcher/tests/test_switcher.py:194
 msgid "Go to Line"
@@ -2437,7 +2437,7 @@ msgstr "Criar uma nova janela de edição"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:395
 msgid "Spyder can't show this file in the external file explorer because the <tt>xdg-utils</tt> package is not available on your system."
-msgstr "Spyder não pode mostrar este arquivo no explorador externo por causa que o pacote <tt>xdg-utils</tt> não está disponível no seu sistema."
+msgstr "Spyder não pode mostrar este arquivo no explorador externo porque o pacote <tt>xdg-utils</tt> não está disponível no seu sistema."
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:414
 msgid "No available relative path"
@@ -2513,7 +2513,7 @@ msgstr "O arquivo <b>%s</b> está indisponível.<br><br>O arquivo pode ter sido 
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:2342
 msgid "The file <b>{}</b> has been modified outside Spyder.<br><br>Do you want to reload it and lose all your changes?"
-msgstr "O arquivo <b>{}</b> foi modificado fora do Spyder.<br><br>Você deseja recarregá-lo e perder todas as suas alterações?"
+msgstr "O arquivo <b>{}</b> foi modificado fora do Spyder.<br><br>Deseja recarregá-lo e perder todas as suas alterações?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:2362
 msgid "The file <b>{}</b> has been modified outside Spyder but it was not possible to reload it.<br><br>Therefore, it will be closed."
@@ -2521,7 +2521,7 @@ msgstr "O arquivo <b>{}</b> foi modificado fora do Spyder mas não foi possível
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:2481
 msgid "All changes to file <b>%s</b> will be lost.<br>Do you want to revert it from disk?"
-msgstr "Todas as modificações do arquivo <b>%s</b> serão perdidas.<br>Você deseja reverter para o arquivo do disco?"
+msgstr "Todas as modificações do arquivo <b>%s</b> serão perdidas.<br>Deseja reverter para o arquivo do disco?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:2501
 msgid "File <b>%s</b> is not saved on disk, so it can't be reverted."
@@ -2939,7 +2939,7 @@ msgstr "Permissões de arquivo"
 
 #: spyder/plugins/editor/widgets/status.py:46
 msgid "File EOL Status"
-msgstr "Estatus EQL arquivo"
+msgstr "Status do arquivo EQL"
 
 #: spyder/plugins/editor/widgets/status.py:60
 msgid "Encoding"
@@ -2979,7 +2979,7 @@ msgstr "Configuração de filtro"
 
 #: spyder/plugins/explorer/confpage.py:43 spyder/plugins/explorer/widgets/explorer.py:1065
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr "Filtrar arquivo por nome, extensão, ou mair usando <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\"> padrões globais.</a> Por favor, digite os padrões globais dos arquivos que você quer mostrar, separados por vírgulas."
+msgstr "Filtrar arquivo por nome, extensão, ou mais usando <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\"> padrões glob.</a> Por favor, digite os padrões glob dos arquivos que você quer mostrar, separados por vírgulas."
 
 #: spyder/plugins/explorer/confpage.py:89 spyder/widgets/config.py:1151
 msgid "General"
@@ -3119,7 +3119,7 @@ msgstr "Renomear"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1230
 msgid "Do you really want to rename <b>%s</b> and overwrite the existing file <b>%s</b>?"
-msgstr "Você deseja mesmo renomear <b>%s</b> e sobrescrever o arquivo já existente <b>%s</b>?"
+msgstr "Deseja mesmo renomear <b>%s</b> e sobrescrever o arquivo já existente <b>%s</b>?"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1246
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
@@ -3151,7 +3151,7 @@ msgstr "Nome da pasta:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1461
 msgid "File/Folder copy error"
-msgstr "Erro de cópia de arquivo/pasta"
+msgstr "Erro na cópia de arquivo/pasta"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1462
 msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
@@ -3171,7 +3171,7 @@ msgstr "Cópia recursiva"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1530
 msgid "Source is an ancestor of destination folder."
-msgstr "Origem é um ancestral da pasta de destino."
+msgstr "A fonte é um ancestral da pasta de destino."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1537
 msgid "Error pasting folder"
@@ -3299,7 +3299,7 @@ msgstr "Aplicativos associados:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:313
 msgid "Set default"
-msgstr "Conjunto padrão"
+msgstr "Definir padrão"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:412
 msgid "Application not found!"
@@ -3323,7 +3323,7 @@ msgstr "Executar scripts em um terminal externo do sistema."
 
 #: spyder/plugins/externalterminal/plugin.py:225
 msgid "Running an external system terminal is not supported on platform %s."
-msgstr "Executar um terminal externo não é suportado na plataforma %s."
+msgstr "Executar um terminal externo do sistema não é suportado na plataforma %s."
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:48 spyder/plugins/maininterpreter/confpage.py:68 spyder/plugins/maininterpreter/plugin.py:69
 msgid "Python interpreter"
@@ -3395,7 +3395,7 @@ msgstr "Procurar texto no painel de busca"
 
 #: spyder/plugins/findinfiles/plugin.py:63
 msgid "Search text in multiple files"
-msgstr "Procurar em vários arquivos"
+msgstr "Buscar em vários arquivos"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:60 spyder/plugins/workingdirectory/container.py:187
 msgid "Current working directory"
@@ -3423,7 +3423,7 @@ msgstr "Limpar outros diretórios"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:164
 msgid "Do you want to clear the list of other directories?"
-msgstr "Você tem certeza que deseja limpar a lista de outros diretórios?"
+msgstr "Tem certeza que deseja limpar a lista de outros diretórios?"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:97 spyder/widgets/findreplace.py:64
 msgid "Regular expression error"
@@ -3439,11 +3439,11 @@ msgstr "Procurar o conteúdo de arquivos de texto em qualquer diretório usando 
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:179
 msgid "Write text to search"
-msgstr "Escrever texto para busca"
+msgstr "Digite o texto para buscar"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:181
 msgid "Search in:"
-msgstr "Procurar em:"
+msgstr "Buscar em:"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:184
 msgid "Exclude:"
@@ -3467,7 +3467,7 @@ msgstr "Distinção entre maiúsculas e minúsculas"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:266
 msgid "Case sensitive search"
-msgstr "Pesquisa sensível a caixa"
+msgstr "Buscar com diferenças entre maiúsculo e minúsculo"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:274
 msgid "&Find in files"
@@ -3475,7 +3475,7 @@ msgstr "Procurar em arqui&vos"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:275
 msgid "Search text"
-msgstr "Pesquisar texto"
+msgstr "Buscar texto"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:291 spyder/plugins/findinfiles/widgets/main_widget.py:292
 msgid "Exclude case sensitive"
@@ -4297,7 +4297,7 @@ msgstr "Tem certeza que deseja fechar esse console?"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1961
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
-msgstr "Você deseja fechar todos os outros consoles conectados ao mesmo kernel deste?"
+msgstr "Deseja fechar todos os outros consoles conectados ao mesmo kernel deste?"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2206
 msgid "Cannot restart a kernel not started by Spyder\n"
@@ -5855,7 +5855,7 @@ msgstr "personalizado"
 
 #: spyder/plugins/shortcuts/confpage.py:27
 msgid "Search: "
-msgstr "Procurar: "
+msgstr "Buscar: "
 
 #: spyder/plugins/shortcuts/confpage.py:30
 msgid "Here you can browse the list of all available shortcuts in Spyder. You can also customize them by double-clicking on any entry in this table."
@@ -5863,7 +5863,7 @@ msgstr "Aqui você pode navegar pela lista de todos os atalhos disponíveis no S
 
 #: spyder/plugins/shortcuts/confpage.py:39
 msgid "Search for a shortcut in the table above"
-msgstr "Procure um atalho na tabela acima"
+msgstr "Buscar um atalho na tabela acima"
 
 #: spyder/plugins/shortcuts/confpage.py:70
 msgid "Shortcuts reset"
@@ -5871,7 +5871,7 @@ msgstr "Redefinir atalhos"
 
 #: spyder/plugins/shortcuts/confpage.py:71
 msgid "Do you want to reset to default values?"
-msgstr "Você deseja redefinir os valores padrão?"
+msgstr "Deseja redefinir os valores padrão?"
 
 #: spyder/plugins/shortcuts/plugin.py:65
 msgid "Keyboard shortcuts"
@@ -6664,11 +6664,11 @@ msgstr "A coluna com o nome \"{}\" já existe!"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1400 spyder/widgets/collectionseditor.py:1177
 msgid "Do you want to remove the selected item?"
-msgstr "Você deseja remover o item selecionado?"
+msgstr "Deseja remover o item selecionado?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1401 spyder/widgets/collectionseditor.py:1178
 msgid "Do you want to remove all selected items?"
-msgstr "Você deseja remover todos os itens selecionados?"
+msgstr "Deseja remover todos os itens selecionados?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1416
 msgid "Warning: It was not possible to remove this item!"
@@ -6884,7 +6884,7 @@ msgstr "Excluir referências a funções, módulos e qualquer outro callable."
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:429
 msgid "Search variable names and types"
-msgstr "Pesquisar nomes e tipos de variáveis"
+msgstr "Busque nomes e tipos de variáveis"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:437
 msgid "Refresh variables"
@@ -7612,11 +7612,11 @@ msgstr "Localizar o próximo"
 
 #: spyder/widgets/findreplace.py:174
 msgid "Enable case sensitive searches"
-msgstr "Ativar pesquisas sensíveis a maiúsculas"
+msgstr "Ativar buscas diferenciando maiúsculas"
 
 #: spyder/widgets/findreplace.py:182
 msgid "Only search for whole words"
-msgstr "Procure apenas palavras inteiras"
+msgstr "Busque apenas palavras inteiras"
 
 #: spyder/widgets/findreplace.py:219
 msgid "Replace"
