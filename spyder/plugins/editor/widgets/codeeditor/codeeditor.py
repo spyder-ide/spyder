@@ -530,6 +530,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
         self.extra_cursors.append(cursor)
+        self.merge_extra_cursors()
         self.set_extra_cursor_selections()
 
     def set_extra_cursor_selections(self):
@@ -537,7 +538,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         for cursor in self.extra_cursors:
             extra_selection = TextDecoration(cursor, draw_order=5,
                                              kind="extra_cursor_selection")
-            extra_selection.cursor = cursor
 
             # TODO get colors from theme? or from stylesheet?
             extra_selection.set_foreground(QColor("#ffffff"))
@@ -565,7 +565,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
             move_mode = QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
-
+            self.textCursor().beginEditBlock()
             for cursor in self.extra_cursors + [self.textCursor()]:
 
                 self.setTextCursor(cursor)
@@ -577,13 +577,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 elif key == Qt.Key_Left:
                     if ctrl:
                         cursor.movePosition(
-                            QTextCursor.PreviousWord, move_mode
+                            QTextCursor.StartOfWord, move_mode
                             )
                     else:
                         cursor.movePosition(QTextCursor.Left, move_mode)
                 elif key == Qt.Key_Right:
                     if ctrl:
-                        cursor.movePosition(QTextCursor.NextWord, move_mode)
+                        cursor.movePosition(QTextCursor.EndOfWord, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.Right, move_mode)
                 elif key == Qt.Key_Home:
@@ -605,7 +605,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 elif key == Qt.Key_Delete:
                     if not cursor.hasSelection():
                         cursor.movePosition(QTextCursor.NextCharacter,
-                                            move_mode)
+                                            QTextCursor.KeepAnchor)
                     cursor.removeSelectedText()
                     # TODO needed? See spyder-ide/spyder#12663
                     #    from remove_selected_text
@@ -614,6 +614,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     self._handle_keypress_event(event)
             self.merge_extra_cursors()
             self.set_extra_cursor_selections()
+            cursor.endEditBlock()
             self.setTextCursor(cursor)  # last cursor from for loop is primary
 
     def _on_cursor_blinktimer_timeout(self):
