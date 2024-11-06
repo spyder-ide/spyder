@@ -1,6 +1,7 @@
 on:
   schedule:
-    - cron: '30 6 * * *'
+    # 6:30 UTC Sunday
+    - cron: '30 6 * * 0'
 
   pull_request:
     paths:
@@ -50,7 +51,7 @@ concurrency:
   group: installers-conda-${{ github.ref }}
   cancel-in-progress: true
 
-name: Nightly conda-based installers
+name: Weekly conda-based installers
 
 env:
   IS_RELEASE: ${{ github.event_name == 'release' }}
@@ -69,6 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       target_platform: ${{ steps.build-matrix.outputs.target_platform }}
+      branch: ${{ steps.build-matrix.outputs.branch }}
       include: ${{ steps.build-matrix.outputs.include }}
       python_version: ${{ steps.build-matrix.outputs.python_version }}
 
@@ -93,17 +95,32 @@ jobs:
             include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64', 'spyk-arch': 'win-64'}"
         fi
 
+        if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then
+            branch="'master', '6.x'"
+        else
+            branch="''"
+        fi
+
         echo "target_platform=[$target_platform]" >> $GITHUB_OUTPUT
+        echo "branch=[$branch]" >> $GITHUB_OUTPUT
         echo "include=[$include]" >> $GITHUB_OUTPUT
 
   build-subrepos:
     name: Build Subrepos
     # env.USE_SUBREPOS is not available at job level; must copy-paste here
     if: github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && ! inputs.pre)
+    needs:
+      - build-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
     uses: ./.github/workflows/build-subrepos.yml
+    with:
+      branch: ${{ matrix.branch }}
 
   build-installers:
-    name: Build installer for ${{ matrix.target-platform }} Python-${{ matrix.python-version }}
+    name: Build installer
     if: ${{ ! failure() && ! cancelled() }}
     runs-on: ${{ matrix.os }}
     needs:
@@ -112,9 +129,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target-platform: ${{fromJson(needs.build-matrix.outputs.target_platform)}}
+        target-platform: ${{ fromJson(needs.build-matrix.outputs.target_platform) }}
         python-version: ['3.11']
-        include: ${{fromJson(needs.build-matrix.outputs.include)}}
+        branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
+        include: ${{ fromJson(needs.build-matrix.outputs.include) }}
     defaults:
       run:
         shell: bash -le {0}
@@ -126,12 +144,14 @@ jobs:
       MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
       APPLICATION_PWD: ${{ secrets.APPLICATION_PWD }}
       CONSTRUCTOR_TARGET_PLATFORM: ${{ matrix.target-platform }}
+      MATRIX_BRANCH: ${{ matrix.branch }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ matrix.branch }}
 
       - name: Setup Remote SSH Connection
         if: env.ENABLE_SSH == 'true'
@@ -272,11 +292,15 @@ jobs:
           python build_installers.py ${args[@]}
 
           SPYVER=$(python build_installers.py --version)
-          PKG_NAME=$(ls $DISTDIR | grep Spyder-)
+          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_NAME=$(basename $PKG_PATH)
+          ARTIFACT_NAME=${PKG_NAME%.*}
+          [[ "$GITHUB_EVENT_NAME" == "schedule" ]] && ARTIFACT_NAME=$ARTIFACT_NAME-$MATRIX_BRANCH
+
           echo "SPYVER=$SPYVER" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=${PKG_NAME%.*}" >> $GITHUB_ENV
-          echo "PKG_PATH=$DISTDIR/$PKG_NAME" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
 
       - name: Test macOS or Linux Installer
         if: runner.os != 'Windows'
