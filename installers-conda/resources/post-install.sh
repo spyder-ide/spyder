@@ -186,7 +186,7 @@ fi
 echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 # ---- Launch Spyder
-if [[ -n "$CI" || "$INSTALLER_UNATTENDED" == "1" ]]; then
+if [[ -n "$CI" || "$INSTALLER_UNATTENDED" == "1" || "$COMMAND_LINE_INSTALL" == "1" ]]; then
     echo Installing in CI or batch mode, do not launch Spyder
     exit 0
 fi
