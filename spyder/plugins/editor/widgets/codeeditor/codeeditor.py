@@ -561,15 +561,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.extra_cursors:
             event.accept()
             key = event.key()
-            text = event.text()
+            text = event.text()  # TODO needed for any key handling?
             shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
             move_mode = QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
+            cursors = self.extra_cursors + [self.textCursor()]
+
+            # Some operations should only be 1 per row even if there's multiple
+            #   cursors on that row
+            handled_rows = []
+
             self.textCursor().beginEditBlock()
-            for cursor in self.extra_cursors + [self.textCursor()]:
+            for cursor in cursors:
 
                 self.setTextCursor(cursor)
-                # ---- handle movement keys
+                # ---- handle arrow keys
                 if key == Qt.Key_Up:
                     cursor.movePosition(QTextCursor.Up, move_mode)
                 elif key == Qt.Key_Down:
@@ -586,6 +592,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.movePosition(QTextCursor.EndOfWord, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.Right, move_mode)
+                # ---- handle Home, End
                 elif key == Qt.Key_Home:
                     if ctrl:
                         cursor.movePosition(QTextCursor.Start, move_mode)
@@ -602,6 +609,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.movePosition(QTextCursor.End, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.EndOfBlock, move_mode)
+                # ---- handle Delete (maybe backspace?)
                 elif key == Qt.Key_Delete:
                     if not cursor.hasSelection():
                         cursor.movePosition(QTextCursor.NextCharacter,
@@ -610,6 +618,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     # TODO needed? See spyder-ide/spyder#12663
                     #    from remove_selected_text
                     # cursor.setPosition(cursor.position())
+                # ---- handle Tab
+                elif key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
+                    # Don't do intelligent tab with multi-cursor to skip
+                    #   calls to do_completion. Avoiding completions with multi
+                    #   cursor is much easier than solving all the edge cases.
+
+                    # Trivial implementation: # TODO respect tab_mode
+                    self.replace(self.indent_chars)
+                elif key == Qt.Key_Backtab and not ctrl:
+                    self.unindent()
+                # ---- use default handler for cursor (text)
                 else:
                     self._handle_keypress_event(event)
             self.merge_extra_cursors()
@@ -667,6 +686,46 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.cursor_blink_state = False
         self.cursor_blink_timer.stop()
         self.viewport().update()
+
+    def multi_cursor_copy(self):
+        """copy multi-cursor selections separated by newlines"""
+        cursors = self.extra_cursors + [self.textCursor()]
+        cursors.sort(key=lambda cursor: cursor.position())
+        selections = []
+        for cursor in cursors:
+            text = cursor.selectedText().replace(u"\u2029",
+                                                 self.get_line_separator())
+            selections.append(text)  # TODO skip empty selections?
+        clip_text = self.get_line_separator().join(selections)
+        print(clip_text)
+        QApplication.clipboard().setText(clip_text)
+
+    def multi_cursor_cut(self):
+        self.multi_cursor_copy()
+        self.textCursor().beginEditBlock()
+        for cursor in self.extra_cursors + [self.textCursor()]:
+            cursor.removeSelectedText()
+        self.merge_extra_cursors()
+        self.set_extra_cursor_selections()
+        self.textCursor().endEditBlock()
+
+    def multi_cursor_paste(self, clip_text):
+        main_cursor = self.textCursor()
+        main_cursor.beginEditBlock()
+        cursors = self.extra_cursors + [main_cursor]
+        cursors.sort(key=lambda cursor: cursor.position())
+        self.skip_rstrip = True
+        self.sig_will_paste_text.emit(clip_text)
+        for cursor, text in zip(cursors, clip_text.splitlines()):
+            self.setTextCursor(cursor)
+            cursor.insertText(text)
+            # TODO handle extra lines or extra cursors?
+        self.setTextCursor(main_cursor)
+        self.merge_extra_cursors()
+        self.set_extra_cursor_selections()
+        main_cursor.endEditBlock()
+        self.sig_text_was_inserted.emit()
+        self.skip_rstrip = False
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -1469,15 +1528,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Remove selected text or next character."""
         for cursor in self.extra_cursors + [self.textCursor()]:
             self.setTextCursor(cursor)
-
             if not self.has_selected_text():
-                cursor = self.textCursor()
                 if not cursor.atEnd():
                     cursor.setPosition(
                         self.next_cursor_position(), QTextCursor.KeepAnchor
                     )
                 self.setTextCursor(cursor)
-
             self.remove_selected_text()
         self.sig_delete_requested.emit()
 
@@ -2003,6 +2059,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
+        if self.extra_cursors:
+            self.multi_cursor_paste(text)
+            return
 
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
@@ -2111,6 +2170,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def cut(self):
         """Reimplement cut to signal listeners about changes on the text."""
+        if self.extra_cursors:
+            self.multi_cursor_cut()
+            return
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
             return
@@ -2124,6 +2186,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def copy(self):
         """Reimplement copy to save indentation."""
+        if self.extra_cursors:
+            self.multi_cursor_copy()
+            return
         TextEditBaseWidget.copy(self)
         self._save_clipboard_indentation()
 
