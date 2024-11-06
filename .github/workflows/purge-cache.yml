@@ -27,6 +27,12 @@ jobs:
           # Last command must be successful so that workflow step does not fail
           echo Purging cache is complete.
 
+  build-subrepos:
+    name: Build subrepos
+    needs:
+      - cleanup
+    uses: ./.github/workflows/build-subrepos.yml
+
   run-test-files:
     name: Run test-files
     needs:

@@ -2175,7 +2175,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
-            return
+            self.select_current_line_and_sep()
+
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
         self.sig_delete_requested.emit()
