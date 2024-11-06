@@ -17,6 +17,7 @@ import pytest
 
 # Local imports
 from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
+from spyder.py3compat import to_text_string
 
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -546,6 +547,71 @@ def test_delete(codeeditor):
     editor.setTextCursor(cursor)
     editor.delete()
     assert editor.get_text_line(0) == ' f1(a, b):'
+
+
+def test_copy_entire_line(codeeditor):
+    """Test copying an entire line, if nothing is selected."""
+    editor = codeeditor
+    text = "import this\nmsg='Hello World!'\nprint(msg)"
+    editor.set_text(text)
+
+    # copy first line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.copy()
+
+    cb = QApplication.clipboard()
+    assert cb.text() == "import this\n"
+
+    # copy second line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.copy()
+    cb = QApplication.clipboard()
+    assert cb.text() == "msg='Hello World!'\n"
+
+    # copy third line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.copy()
+    cb = QApplication.clipboard()
+    # since it is the last line, the newline should be
+    # at the start with the current implementation
+    assert cb.text() == "\nprint(msg)"
+
+
+def test_cut_entire_line(codeeditor):
+    """Test cutting an entire line, if nothing is selected."""
+    editor = codeeditor
+    text = "import this\nmsg='Hello World!'\nprint(msg)"
+    editor.set_text(text)
+
+    # cut first line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.cut()
+
+    cb = QApplication.clipboard()
+    assert cb.text() == "import this\n"
+
+    # cut third line (tests last line case)
+    cb = QApplication.clipboard()
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.cut()
+    assert cb.text() == "\nprint(msg)"
+
+    # cut third line
+    editor.cut()
+    cb = QApplication.clipboard()
+    # since it is the last line in the document,
+    # there is no newline to cut, thus this has no newline anymore
+    assert cb.text() == "msg='Hello World!'"
 
 
 def test_paste_files(codeeditor, copy_files_clipboard):
