@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-06 13:15\n"
+"PO-Revision-Date: 2024-11-06 14:59\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -2669,7 +2669,7 @@ msgstr "Ir para o arquivo anterior"
 
 #: spyder/plugins/editor/widgets/main_widget.py:512
 msgid "&Find text"
-msgstr "&Procurar"
+msgstr "&Procurar texto"
 
 #: spyder/plugins/editor/widgets/main_widget.py:514 spyder/plugins/onlinehelp/widgets.py:215 spyder/widgets/browser.py:478
 msgid "Find text"
@@ -3463,11 +3463,11 @@ msgstr "Use expressão regular"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:265
 msgid "Case sensitive"
-msgstr "Distinção entre maiúsculas e minúsculas"
+msgstr "Distinção entre maiúsculo e minúsculo"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:266
 msgid "Case sensitive search"
-msgstr "Buscar com diferenças entre maiúsculo e minúsculo"
+msgstr "Buscar com distinção entre maiúsculo e minúsculo"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:274
 msgid "&Find in files"
@@ -3603,7 +3603,7 @@ msgstr "Rich Text"
 
 #: spyder/plugins/help/widgets.py:417
 msgid "Plain Text"
-msgstr "Texto Simple"
+msgstr "Texto Simples"
 
 #: spyder/plugins/help/widgets.py:424
 msgid "Lock/Unlock"
@@ -7636,7 +7636,7 @@ msgstr "Substituir todas as ocorrências"
 
 #: spyder/widgets/findreplace.py:751
 msgid "of"
-msgstr "do"
+msgstr "de"
 
 #: spyder/widgets/findreplace.py:755
 msgid "matches"
