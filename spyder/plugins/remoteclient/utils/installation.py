@@ -6,20 +6,11 @@
 
 from spyder.plugins.ipythonconsole import SPYDER_KERNELS_VERSION
 from spyder.config.base import running_remoteclient_tests
+from spyder.plugins.remoteclient import SPYDER_REMOTE_VERSION
 
 
-SERVER_ENTRY_POINT = "spyder-server"
 SERVER_ENV = "spyder-remote"
 PACKAGE_NAME = "spyder-remote-services"
-
-SPYDER_REMOTE_MIN_VERSION = "0.1.3"
-SPYDER_REMOTE_MAX_VERSION = '1.0.0'
-SPYDER_REMOTE_VERSION = (
-    f'>={SPYDER_REMOTE_MIN_VERSION},<{SPYDER_REMOTE_MAX_VERSION}'
-)
-
-ENCODING = "utf-8"
-
 SCRIPT_URL = (
     f"https://raw.githubusercontent.com/spyder-ide/{PACKAGE_NAME}/master/scripts"
 )

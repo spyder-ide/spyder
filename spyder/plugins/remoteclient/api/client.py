@@ -15,6 +15,10 @@ from packaging.version import Version
 
 from spyder.api.translations import _
 from spyder.config.base import get_debug_level
+from spyder.plugins.remoteclient import (
+    SPYDER_REMOTE_MAX_VERSION,
+    SPYDER_REMOTE_MIN_VERSION,
+)
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
@@ -29,8 +33,6 @@ from spyder.plugins.remoteclient.utils.installation import (
     get_installer_command,
     get_server_version_command,
     SERVER_ENV,
-    SPYDER_REMOTE_MAX_VERSION,
-    SPYDER_REMOTE_MIN_VERSION
 )
 
 
