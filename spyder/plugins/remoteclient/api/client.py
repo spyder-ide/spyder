@@ -105,9 +105,9 @@ class SpyderRemoteClient:
                 )
             )
 
-    def __emit_version_mismatch(self, version):
+    def __emit_version_mismatch(self, version: str):
         if self._plugin is not None:
-            self._plugin.sig_version_mismatch.emit(version)
+            self._plugin.sig_version_mismatch.emit(self.config_id, version)
 
     @property
     def _api_token(self):
@@ -438,17 +438,21 @@ class SpyderRemoteClient:
             self._logger.error("Checking server version timed out")
             return False
 
-        version = Version(output.stdout.splitlines()[-1].strip())
+        version = output.stdout.splitlines()[-1].strip()
 
-        if version >= Version(SPYDER_REMOTE_MAX_VERSION):
+        if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self._logger.error(
                 f"Server version mismatch: {version} is greater than "
                 f"the maximum supported version {SPYDER_REMOTE_MAX_VERSION}"
             )
             self.__emit_version_mismatch(version)
+            self.__emit_connection_status(
+                status=ConnectionStatus.Error,
+                message=_("Error connecting to the remote server"),
+            )
             return False
 
-        if version < Version(SPYDER_REMOTE_MIN_VERSION):
+        if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
             self._logger.error(
                 f"Server version mismatch: {version} is lower than "
                 f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}"

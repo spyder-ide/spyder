@@ -14,11 +14,13 @@ import functools
 
 # Third-party imports
 from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
+from spyder.plugins.remoteclient import SPYDER_REMOTE_MAX_VERSION
 from spyder.plugins.remoteclient.api import (
     MAX_CLIENT_MESSAGES,
     RemoteClientActions,
@@ -261,6 +263,30 @@ class RemoteClientContainer(PluginMainContainer):
         else:
             # Connect client to the kernel
             ipyclient.connect_kernel(kernel_handler)
+
+    def on_server_version_mismatch(self, config_id, version: str):
+        """
+        Actions to take when there's a mismatch between the
+        spyder-remote-services version installed in the server and the one
+        supported by Spyder.
+        """
+        auth_method = self.get_conf(f"{config_id}/auth_method")
+        server_name = self.get_conf(f"{config_id}/{auth_method}/name")
+
+        QMessageBox.critical(
+            self,
+            _("Remote server error"),
+            _(
+                "When trying to connect to the server <b>{}</b>, we detected "
+                "that the version of <tt>spyder-remote-services</tt>, the "
+                "package Spyder needs to communicate to, is <b>{}</b>, which "
+                "is greater than the maximum one currently supported "
+                "(<b>{}</b>)."
+                "<br><br>"
+                "Please update Spyder to fix this problem."
+            ).format(server_name, version, SPYDER_REMOTE_MAX_VERSION),
+            QMessageBox.Ok,
+        )
 
     # ---- Private API
     # -------------------------------------------------------------------------
