@@ -33,9 +33,9 @@ from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
-                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
-                        QTextDocument, QTextFormat, QTextOption,
+from qtpy.QtGui import (QColor, QCursor, QFont, QFontMetrics, QPaintEvent,
+                        QPainter, QMouseEvent, QTextCursor, QDesktopServices,
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import (QApplication, QMessageBox, QSplitter, QScrollBar,
                             QTextEdit)
@@ -514,6 +514,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def init_multi_cursor(self):
         """Initialize attrs and callbacks for multi-cursor functionality"""
         self.cursor_width = self.get_conf('cursor/width', section='main')
+        self.overwrite_mode = self.overwriteMode()
+        # track overwrite manually for painting the cursor(s)
+        self.setOverwriteMode(False)
         self.setCursorWidth(0)  # draw our own cursor
         self.extra_cursors = []
         self.cursor_blink_state = False
@@ -646,7 +649,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         editable = not self.isReadOnly()
         flags = (self.textInteractionFlags() &
                  Qt.TextInteractionFlag.TextSelectableByKeyboard)
-        self.textCursor().block().charFormat()
+        if self.overwrite_mode:
+            font = self.textCursor().block().charFormat().font()
+            cursor_width = QFontMetrics(font).horizontalAdvance(" ")
+        else:
+            cursor_width = self.cursor_width
         for cursor in self.extra_cursors + [self.textCursor()]:
             block = cursor.block()
             if (self.cursor_blink_state and
@@ -657,7 +664,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                 offset_y))
                 block.layout().drawCursor(qp, offset,
                                           cursor.positionInBlock(),
-                                          self.cursor_width)
+                                          cursor_width)
         qp.end()
 
     @Slot()
@@ -3874,6 +3881,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         else:
             self._set_completions_hint_idle()
 
+        # Only set overwrite mode during key handling to allow correct painting
+        #   of multiple overwrite cursors. Must unset overwrite before return.
+        self.setOverwriteMode(self.overwrite_mode)
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
@@ -3896,10 +3906,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
+            self.setOverwriteMode(False)
             return
 
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
+            self.setOverwriteMode(False)
             # The user pressed only a modifier key.
             if ctrl:
                 pos = self.mapFromGlobal(QCursor.pos())
@@ -3968,7 +3980,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                         cur_indent=cur_indent)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
-            self.setOverwriteMode(not self.overwriteMode())
+            self.overwrite_mode = not self.overwrite_mode
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             if has_selection or not self.intelligent_backspace:
                 self._handle_keypress_event(event)
@@ -4090,6 +4102,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
+        self.setOverwriteMode(False)
 
     def do_automatic_completions(self):
         """Perform on the fly completions."""
