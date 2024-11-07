@@ -641,27 +641,23 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
+        offset_y = offset.y()
         qp.setBrushOrigin(offset)
-
+        editable = not self.isReadOnly()
+        flags = (self.textInteractionFlags() &
+                 Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        self.textCursor().block().charFormat()
         for cursor in self.extra_cursors + [self.textCursor()]:
-            editable = not self.isReadOnly()
-            flags = (self.textInteractionFlags() &
-                     Qt.TextInteractionFlag.TextSelectableByKeyboard)
             block = cursor.block()
             if (self.cursor_blink_state and
                     (editable or flags) and
                     block.isVisible()):
                 # TODO don't bother with preeditArea?
-                for top, blocknum, visblock in self.visible_blocks:
-                    # TODO is there a better way to get `top` because we
-                    #   already have cursor.block(). Is it meaningfully slow
-                    #   anyway even if it is a double loop?
-                    if block.position() == visblock.position():
-                        offset.setY(top)
-                        block.layout().drawCursor(qp, offset,
-                                                  cursor.positionInBlock(),
-                                                  self.cursor_width)
-                        break
+                offset.setY(int(self.blockBoundingGeometry(block).top() +
+                                offset_y))
+                block.layout().drawCursor(qp, offset,
+                                          cursor.positionInBlock(),
+                                          self.cursor_width)
         qp.end()
 
     @Slot()
@@ -688,7 +684,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                                  self.get_line_separator())
             selections.append(text)  # TODO skip empty selections?
         clip_text = self.get_line_separator().join(selections)
-        print(clip_text)
         QApplication.clipboard().setText(clip_text)
 
     def multi_cursor_cut(self):
@@ -3917,6 +3912,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     event.accept()
                     return
             return
+
+        self.start_cursor_blink()  # reset cursor blink by reseting timer
 
         # ---- Handle hard coded and builtin actions
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
