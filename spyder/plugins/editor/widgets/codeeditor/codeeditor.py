@@ -609,15 +609,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.movePosition(QTextCursor.End, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.EndOfBlock, move_mode)
-                # ---- handle Delete (maybe backspace?)
-                elif key == Qt.Key_Delete:
-                    if not cursor.hasSelection():
-                        cursor.movePosition(QTextCursor.NextCharacter,
-                                            QTextCursor.KeepAnchor)
-                    cursor.removeSelectedText()
-                    # TODO needed? See spyder-ide/spyder#12663
-                    #    from remove_selected_text
-                    # cursor.setPosition(cursor.position())
                 # ---- handle Tab
                 elif key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                     # Don't do intelligent tab with multi-cursor to skip
@@ -1526,15 +1517,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
+        self.textCursor().beginEditBlock()
         for cursor in self.extra_cursors + [self.textCursor()]:
-            self.setTextCursor(cursor)
-            if not self.has_selected_text():
-                if not cursor.atEnd():
-                    cursor.setPosition(
-                        self.next_cursor_position(), QTextCursor.KeepAnchor
-                    )
-                self.setTextCursor(cursor)
-            self.remove_selected_text()
+            cursor.deleteChar()
+        cursor.endEditBlock()
         self.sig_delete_requested.emit()
 
     def delete_line(self):
@@ -2175,8 +2161,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
-            self.select_current_line_and_sep()
-
+            return
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
         self.sig_delete_requested.emit()
