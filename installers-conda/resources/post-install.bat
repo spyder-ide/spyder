@@ -13,7 +13,7 @@ if "%INSTALLER_UNATTENDED%"=="1" set no_launch_spyder=true
 @echo INSTALLER_UNATTENDED = %INSTALLER_UNATTENDED%
 @echo no_launch_spyder = %no_launch_spyder%
 if defined no_launch_spyder (
-    @echo Installing in CI or silent mode, do not launch Spyder
+    @echo Installing in silent mode, do not launch Spyder
     exit /b %errorlevel%
 ) else (
     @echo Launching Spyder after install completed.
