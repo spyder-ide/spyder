@@ -5,6 +5,7 @@
 {% set RESOURCE_PATH = environ["REPO_PATH"] + '\installers-conda\resources\' %}  # [win]
 {% set BUILD_PATH = environ["REPO_PATH"] + '/installers-conda/build/' %}  # [linux or osx]
 {% set BUILD_PATH = environ["REPO_PATH"] + '\installers-conda\build\' %}  # [win]
+{% set CERT_ID = environ["CERT_ID"] %}  # [osx]
 
 name: Spyder
 company: Spyder-IDE
@@ -45,6 +46,10 @@ pkg_name: spyder-6  # [osx]
 default_location_pkg: Library  # [osx]
 welcome_image: {{ BUILD_PATH }}welcome_img_mac.png  # [osx]
 welcome_file: {{ BUILD_PATH }}osx_pkg_welcome.rtf  # [osx]
+
+signing_identity_name: {{ CERT_ID }}  # [osx]
+notarization_identity_name: {{ CERT_ID }}  # [osx]
+signing_certificate: {{ environ["CONSTRUCTOR_SIGNING_CERTIFICATE"] }}  # [win]
 
 extra_files:
   - {{ RESOURCE_PATH }}bundle_readme.md: README.txt
