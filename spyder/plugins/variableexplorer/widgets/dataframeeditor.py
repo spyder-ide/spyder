@@ -1007,8 +1007,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
     def flags(self, index):
         """Set flags"""
         return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable | Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable | Qt.EditRole
+                Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.EditRole
         )
 
     def edit_header_item(self):
@@ -1569,9 +1569,9 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
     def flags(self, index):
         """Set flags"""
         return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable |
-                Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable
+                Qt.ItemFlag.ItemIsEditable |
+                Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable
         )
 
     def setData(self, index, value, role):
@@ -1993,9 +1993,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     def flags(self, index):
         """Set flags"""
         return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable |
-                Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable
+                Qt.ItemFlag.ItemIsEditable |
+                Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable
         )
 
     def create_table_level(self):
