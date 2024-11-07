@@ -9,6 +9,7 @@ Spyder dialog widgets.
 """
 
 # Third-party imports
+from qtpy import QT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QDialogButtonBox, QProxyStyle, QStyle
@@ -26,7 +27,11 @@ class _SpyderButtonsProxyStyle(QProxyStyle):
             # platforms. We selected that layout because Windows is our most
             # popular platform.
             # Solution found in https://stackoverflow.com/a/35907926/438386
-            return QDialogButtonBox.WinLayout
+            if QT6:  # PySide6/PyQt6
+                return QDialogButtonBox.ButtonLayout.WinLayout.value
+            else:  # PySide2/PyQt5
+                return int(QDialogButtonBox.ButtonLayout.WinLayout)
+
 
         return super().styleHint(hint, option, widget, return_data)
 

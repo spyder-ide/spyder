@@ -10,7 +10,7 @@ import sys
 
 # Third party imports
 from qtpy import QT_VERSION
-from qtpy.QtCore import Qt, QEvent
+from qtpy.QtCore import Qt, QEvent, QPointF
 from qtpy.QtGui import QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QTextEdit
 import pytest
@@ -139,7 +139,7 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
             button, position = key
             cursor = widget.textCursor()
             cursor.setPosition(position)
-            xypos = widget.cursorRect(cursor).center()
+            xypos = QPointF(widget.cursorRect(cursor).center())
             widget.mousePressEvent(QMouseEvent(
                     QEvent.MouseButtonPress, xypos,
                     button, button,
