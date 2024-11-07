@@ -1,0 +1,76 @@
+{% set SPYDER_VERSION = {{ environ["SPYVER"] }} %}
+{% set REPO_PATH = {{ environ["REPO_PATH"] }} %}
+{% set EXT = {{ environ["INSTALL_TYPE"] }} %}
+
+name: Spyder
+company: Spyder-IDE
+reverse_domain_identifier: org.spyder-ide.Spyder
+version: {{ SPYDER_VERSION }}
+
+installer_filename: Spyder-Linux-x86_64.{{ EXT }}  # [linux]
+installer_filename: Spyder-Windows-x86_64.{{ EXT }}  # [win]
+installer_filename: Spyder-macOS-arm64.{{ EXT }}  # [osx and arm64]
+installer_filename: Spyder-macOS-x86_64.{{ EXT }}  # [osx and not arm64]
+installer_type: {{ EXT }}
+
+license_file: {{ REPO_PATH }}/spyder/LICENSE.txt  # [linux]
+license_file: {{ REPO_PATH }}\spyder\installers-conda\resources\bundle_license.rtf  # [win]
+license_file: {{ REPO_PATH }}/spyder/installers-conda/resources/bundle_license.rtf  # [osx]
+
+uninstall_name: Spyder 6  # [win]
+welcome_image: {{ REPO_PATH }}\spyder\installers-conda\build\welcome_img_win.png  # [win]
+header_image: {{ REPO_PATH }}\spyder\installers-conda\build\header_img_win.png  # [win]
+icon_image: {{ REPO_PATH }}\spyder\img_src\spyder.ico  # [win]
+check_path_length: false  # [win]
+
+progress_notifications: true  # [osx]
+
+default_prefix: $HOME/.local/spyder-6  # [linux]
+default_prefix: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix: $HOME/Library/spyder-6  # [osx]
+default_prefix_domain_user: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix_all_users: '%ALLUSERSPROFILE%\spyder-6'  # [win]
+
+pre_install: {{ REPO_PATH }}/spyder/installers-conda/resources/pre-install.sh  # [linux]
+pre_install: {{ REPO_PATH }}\spyder\installers-conda\resources\pre-install.bat  # [win]
+pre_install: {{ REPO_PATH }}/spyder/installers-conda/resources/pre-install.sh  # [osx]
+
+post_install: {{ REPO_PATH }}/spyder/installers-conda/resources/post-install.sh  # [linux]
+post_install: {{ REPO_PATH }}\spyder\installers-conda\resources\post-install.bat  # [win]
+post_install: {{ REPO_PATH }}/spyder/installers-conda/resources/post-install.sh  # [osx]
+
+conclusion_text: ''  # [osx]
+readme_text: ''  # [osx]
+pkg_name: spyder-6  # [osx]
+default_location_pkg: Library  # [osx]
+welcome_image: {{ REPO_PATH }}/spyder/installers-conda/build/welcome_img_mac.png  # [osx]
+welcome_file: {{ REPO_PATH }}/spyder/installers-conda/build/osx_pkg_welcome.rtf  # [osx]
+
+extra_files:
+  - {{ REPO_PATH }}/spyder/installers-conda/resources/bundle_readme.md: README.txt  # [linux or osx]
+  - {{ REPO_PATH }}\spyder\installers-conda\resources\bundle_readme.md: README.txt  # [win]
+  - {{ REPO_PATH }}/spyder/installers-conda/resources/condarc: .condarc  # [linux or osx]
+  - {{ REPO_PATH }}\spyder\installers-conda\resources\condarc: .condarc  # [win]
+  - {{ REPO_PATH }}/spyder/installers-conda/resources/menuinst_cli.py: bin/menuinst_cli.py  # [linux or osx]
+  - {{ REPO_PATH }}\spyder\installers-conda\resources\menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
+
+initialize_by_default: false
+initialize_conda: false
+register_python: false
+register_envs: false
+
+environment_file: {{ REPO_PATH }}/spyder/installers-conda/build/conda-base-linux-64.lock  # [linux]
+environment_file: {{ REPO_PATH }}\spyder\installers-conda\build\conda-base-win-64.lock  # [win]
+environment_file:  {{ REPO_PATH }}/spyder/installers-conda/build/conda-base-osx-arm64.lock  # [osx and arm64]
+environment_file: {{ REPO_PATH }}/spyder/installers-conda/build/conda-base-osx-64.lock  # [osx and not arm64]
+
+extra_envs:
+  spyder-runtime:
+    environment_file: {{ REPO_PATH }}/spyder/installers-conda/build/conda-runtime-linux-64.lock  # [linux]
+    environment_file: {{ REPO_PATH }}\spyder\installers-conda\build\conda-runtime-win-64.lock  # [win]
+    environment_file: {{ REPO_PATH }}/spyder/installers-conda/build/conda-runtime-osx-arm64.lock  # [osx and arm64]
+    environment_file: {{ REPO_PATH }}/spyder/installers-conda/build/conda-runtime-osx-64.lock  # [osx and not arm64]
+
+channels_remap:
+  - src: __CONDA_BLD__
+    dest: https://conda.anaconda.org/conda-forge
