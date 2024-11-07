@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-06 23:53\n"
+"PO-Revision-Date: 2024-11-07 01:26\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -4409,7 +4409,7 @@ msgstr "<br><br>Não foi possível interromper um kernel que não seja do Spyder
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:865
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
-msgstr "Todas as variáveis definidas pelo usuário serão removidas. Você tem certeza disso?"
+msgstr "Todas as variáveis definidas pelo usuário serão removidas. Tem certeza disso?"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:922
 msgid "<br><br>Removing all variables...<br>"
@@ -4535,7 +4535,7 @@ msgstr "Gerenciador de layouts"
 
 #: spyder/plugins/layout/plugin.py:258
 msgid "Unlock panes and toolbars"
-msgstr "Bloquear painéis e barras de ferramentas"
+msgstr "Desbloquear painéis e barras de ferramentas"
 
 #: spyder/plugins/layout/plugin.py:261
 msgid "Lock panes and toolbars"
@@ -4753,7 +4753,7 @@ msgstr "Classificar arquivos em ordem alfabética"
 
 #: spyder/plugins/outlineexplorer/plugin.py:34
 msgid "Outline Explorer"
-msgstr "Explorador de Elementos"
+msgstr "Explorador de Estrutura"
 
 #: spyder/plugins/outlineexplorer/plugin.py:39
 msgid "Explore functions, classes and methods in open files. Note that if you disable the 'Completion and linting' plugin, this one won't work."
@@ -4765,7 +4765,7 @@ msgstr "Módulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:40
 msgid "Namespace"
-msgstr "Espaço nominal"
+msgstr "Espaço para nomes"
 
 #: spyder/plugins/outlineexplorer/widgets.py:41
 msgid "Package"
@@ -4789,7 +4789,7 @@ msgstr "Atributo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:46
 msgid "constructor"
-msgstr "eonstrutor"
+msgstr "construtor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Enum"
@@ -4817,11 +4817,11 @@ msgstr "Número"
 
 #: spyder/plugins/outlineexplorer/widgets.py:54
 msgid "Boolean"
-msgstr "Boleano"
+msgstr "Booleano"
 
 #: spyder/plugins/outlineexplorer/widgets.py:55
 msgid "Array"
-msgstr "Array"
+msgstr "Matriz"
 
 #: spyder/plugins/outlineexplorer/widgets.py:57 spyder/widgets/collectionseditor.py:247
 msgid "Key"
@@ -4833,11 +4833,11 @@ msgstr "Nulo"
 
 #: spyder/plugins/outlineexplorer/widgets.py:59
 msgid "Enum member"
-msgstr "Membro Enum"
+msgstr "Membre da enumeração"
 
 #: spyder/plugins/outlineexplorer/widgets.py:60
 msgid "Struct"
-msgstr "Struct"
+msgstr "Estrutura"
 
 #: spyder/plugins/outlineexplorer/widgets.py:61
 msgid "Event"
@@ -4861,7 +4861,7 @@ msgstr "Bloquear comentário"
 
 #: spyder/plugins/plots/plugin.py:34 spyder/plugins/plots/widgets/main_widget.py:85 spyder/plugins/tours/tours.py:147
 msgid "Plots"
-msgstr "Figuras"
+msgstr "Gráficos"
 
 #: spyder/plugins/plots/plugin.py:38
 msgid "View, browse and save generated figures."
@@ -4877,7 +4877,7 @@ msgstr "Execute código gerado pelo gráfico no editor ou no console IPython par
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:617
 msgid "The image is broken, please try to generate it again"
-msgstr "A imagem está danificada. Por favor, tente gerá-la novamente"
+msgstr "O gráfico está danificado. Por favor, tente gerá-lo novamente"
 
 #: spyder/plugins/plots/widgets/main_widget.py:99
 msgid "Mute inline plotting"
@@ -4889,11 +4889,11 @@ msgstr "Silencie a plotagem embutida no console ipython."
 
 #: spyder/plugins/plots/widgets/main_widget.py:107
 msgid "Show plot outline"
-msgstr "Mostrar contorno da figura"
+msgstr "Mostrar contorno do gráfico"
 
 #: spyder/plugins/plots/widgets/main_widget.py:108
 msgid "Show the plot outline."
-msgstr "Mostrar o contorno da figura."
+msgstr "Mostrar o contorno do gráfico."
 
 #: spyder/plugins/plots/widgets/main_widget.py:115
 msgid "Fit plots to pane"
@@ -4905,23 +4905,23 @@ msgstr "Ajustar o gráfico ao tamanho do painel"
 
 #: spyder/plugins/plots/widgets/main_widget.py:126 spyder/plugins/plots/widgets/main_widget.py:127
 msgid "Save plot as..."
-msgstr "Salvar figura como..."
+msgstr "Salvar gráfico como..."
 
 #: spyder/plugins/plots/widgets/main_widget.py:134 spyder/plugins/plots/widgets/main_widget.py:135
 msgid "Save all plots..."
-msgstr "Salvar todos as imagens..."
+msgstr "Salvar todos os gráficos..."
 
 #: spyder/plugins/plots/widgets/main_widget.py:143
 msgid "Copy plot to clipboard as image"
-msgstr "Copiar figura para área de transferência como imagem"
+msgstr "Copiar gráfico para área de transferência como imagem"
 
 #: spyder/plugins/plots/widgets/main_widget.py:150
 msgid "Remove plot"
-msgstr "Remover figura"
+msgstr "Remover gráfico"
 
 #: spyder/plugins/plots/widgets/main_widget.py:157 spyder/plugins/plots/widgets/main_widget.py:158
 msgid "Remove all plots"
-msgstr "Remover todas as figuras"
+msgstr "Remover todos os gráficos"
 
 #: spyder/plugins/plots/widgets/main_widget.py:165 spyder/plugins/plots/widgets/main_widget.py:166
 msgid "Previous plot"
@@ -5035,7 +5035,7 @@ msgstr "os módulos do Python Profiler"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:384
 msgid "Save profiler result"
-msgstr "Salvar resultados do profiler"
+msgstr "Salvar resultados do IProfiler"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:389 spyder/plugins/profiler/widgets/main_widget.py:406
 msgid "Profiler result"
@@ -5411,7 +5411,7 @@ msgstr "Exportar"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:348
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to clear the contents of PYTHONPATH before adding Spyder's path list?"
-msgstr "Isto irá sincronizar a lista de caminhos do Spyder com o <b>PYTHONPATH</b> para o usuário atual, permitindo que você execute seus módulos Python fora do Spyder sem ter que configuraro sys.path. <br><br>Você quer limpar o conteúdo do PYTHONPATH antes de adicionar a lista de caminhos do Spyder?"
+msgstr "Isto irá sincronizar a lista de caminhos do Spyder com o <b>PYTHONPATH</b> para o usuário atual, permitindo que você execute seus módulos Python fora do Spyder sem ter que configuraro sys.path. <br><br>Deseja limpar o conteúdo do PYTHONPATH antes de adicionar a lista de caminhos do Spyder?"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:500
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of it?"
@@ -5907,7 +5907,7 @@ msgstr "Pressione o atalho."
 
 #: spyder/plugins/shortcuts/widgets/table.py:205
 msgid "Ok"
-msgstr "Está bem"
+msgstr "Ok"
 
 #: spyder/plugins/shortcuts/widgets/table.py:207
 msgid "Clear"
@@ -5915,7 +5915,7 @@ msgstr "Limpar"
 
 #: spyder/plugins/shortcuts/widgets/table.py:219
 msgid "Clear all entered key sequences"
-msgstr "Limpar todas as seqüências de teclas inseridas"
+msgstr "Limpar todas as sequências de teclas inseridas"
 
 #: spyder/plugins/shortcuts/widgets/table.py:224
 msgid "Remove last key sequence entered"
@@ -6027,7 +6027,7 @@ msgstr "Comandos"
 
 #: spyder/plugins/switcher/tests/test_switcher.py:147
 msgid "change view"
-msgstr "mudar de view"
+msgstr "alterar visualização"
 
 #: spyder/plugins/switcher/tests/test_switcher.py:148
 msgid "Indent Using Spaces"
@@ -6155,7 +6155,7 @@ msgstr "Este é o painel aonde você escreve seu código Python antes de execut�
 
 #: spyder/plugins/tours/tours.py:101
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr "É aqui que você pode executar o código Python, seja do Editor ou interativamente. Para executar o arquivo atual, pressione <b>F5</b> por padrão ou pressione <b>F9</b> para executar a linha ou seleção atual.<br><br>O Console do IPython vem com muitos recursos úteis que melhoram muito seu fluxo de trabalho de programação, como realce de sintaxe, preenchimento automático, plotagem e comandos 'mágico'. Para saber mais, confira a <a href=\"{0}\">documentação</a>.<br><br>{1}"
+msgstr "É aqui que você pode executar o código Python, seja do Editor ou interativamente. Para executar o arquivo atual, pressione <b>F5</b> por padrão ou pressione <b>F9</b> para executar a linha ou seleção atual.<br><br>O Console do IPython vem com muitos recursos úteis que melhoram bastante seu fluxo de trabalho de programação, como realce de sintaxe, preenchimento automático, plotagem e comandos 'mágico'. Para saber mais, confira a <a href=\"{0}\">documentação</a>.<br><br>{1}"
 
 #: spyder/plugins/tours/tours.py:120 spyder/plugins/variableexplorer/widgets/main_widget.py:137
 msgid "Variable Explorer"
@@ -6163,7 +6163,7 @@ msgstr "Explorador de variáveis"
 
 #: spyder/plugins/tours/tours.py:121
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr "Neste painel você pode ver e editar as variáveis geradas durante a execução de um programa, ou aqueles digitados diretamente no console IPhyton. <br><br> Se você rodou o código no passo anterior, o Explorador de Variável mostrará os objetos lista e dicionário gerados. Clicando duas vezes em qualquer variável, uma numa janela será aberta onde você pode inspecionar e modificar seus componentes."
+msgstr "Neste painel você pode ver e editar as variáveis geradas durante a execução de um programa, ou aqueles digitados diretamente no console IPhyton. <br><br> Se você executou o código na etapa anterior, o Explorador de Variável mostrará os objetos lista e dicionário gerados. Clicando duas vezes em qualquer variável, uma numa janela será aberta onde você pode inspecionar e modificar seus componentes."
 
 #: spyder/plugins/tours/tours.py:136
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
@@ -6171,11 +6171,11 @@ msgstr "Este painel mostra a documentação das funções, classes, métodos ou 
 
 #: spyder/plugins/tours/tours.py:148
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr "Esse painel mostra as figuras e imagens criadas durante sua execução de código. Ele permite a você navegar, aproximar, copiar e salvar as plotagens geradas."
+msgstr "Esse painel mostra as figuras e imagens criadas durante sua execução de código. Ele permite a você navegar, aproximar, copiar e salvar os gráficos gerados."
 
 #: spyder/plugins/tours/tours.py:156
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr "Esse painel deixa você procurar os arquivos e diretórios no seu computador.<br><br> Você pode abrir qualquer arquivo na sua aplicação correspondente clicando duas vez nele, e tipos de arquivos suportados serão abertos dentro do Spyder.<br><br> O painel de arquivos também permite a você copiar um ou muitos caminhos absolutos ou relativos, automaticamente formatados como strings ou listas Python, e executar a variedade de outras operações de arquivos."
+msgstr "Esse painel deixa você procurar os arquivos e diretórios no seu computador.<br><br> Você pode abrir qualquer arquivo na sua aplicação correspondente clicando duas vez nele, e tipos de arquivos suportados serão abertos dentro do Spyder.<br><br> O painel de arquivos também permite a você copiar um ou muitos caminhos absolutos ou relativos, automaticamente formatados como strings ou listas Python, e executar uma variedade de outras operações com arquivos."
 
 #: spyder/plugins/tours/tours.py:170
 msgid "History Log"
@@ -6183,7 +6183,7 @@ msgstr "Registro do Histórico"
 
 #: spyder/plugins/tours/tours.py:171
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr "Esse painel registra todos os comando e execução de código em qualquer console Python, permitindo a você facilmente rastrear seus passos para pesquisa reproduzível."
+msgstr "Esse painel registra todos os comando e execução de código em qualquer console Python, permitindo a você facilmente rastrear seus passos para pesquisa reprodutível."
 
 #: spyder/plugins/tours/tours.py:179
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
@@ -6195,7 +6195,7 @@ msgstr "O Analisador ajuda você a otimizar seu código determinando o tempo de 
 
 #: spyder/plugins/tours/tours.py:197
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr "A Análise de Código ajuda você a melhorar a qualidade de seus programas detectando problemas de estilo, práticas ruins e bugs potenciais."
+msgstr "A Análise de Código ajuda você a melhorar a qualidade de seus programas detectando problemas de estilo, práticas ruins e potenciais bugs."
 
 #: spyder/plugins/tours/tours.py:204
 msgid "The end"
@@ -6353,11 +6353,11 @@ msgstr "Execute o seguinte comando ou comandos no prompt Anaconda para atualizar
 
 #: spyder/plugins/updatemanager/widgets/update.py:581
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
-msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br><br>"
+msgstr "Execute o seguinte comando em um prompt de comando para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/updatemanager/widgets/update.py:585
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
-msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br><br>"
+msgstr "Execute o seguinte comando ou comandos em um terminal para atualizar manualmente:<br><br>"
 
 #: spyder/plugins/updatemanager/widgets/update.py:588
 msgid "Run the following command in a terminal to update manually:<br><br>"
@@ -6413,7 +6413,7 @@ msgstr "Excluir tipos de dados não suportados"
 
 #: spyder/plugins/variableexplorer/confpage.py:31 spyder/plugins/variableexplorer/widgets/main_widget.py:419
 msgid "Exclude callables and modules"
-msgstr "Excluir chamadas e módulos"
+msgstr "Excluir objetos chamáveis e módulos"
 
 #: spyder/plugins/variableexplorer/confpage.py:43 spyder/plugins/variableexplorer/widgets/main_widget.py:143
 msgid "Show arrays min/max"
@@ -6501,7 +6501,7 @@ msgstr "Vetores sem dimensões definidas não são suportadas"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:957
 msgid "%s arrays"
-msgstr "%s vetores"
+msgstr "%s matrizes"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:958
 msgid "%s are currently not supported"
@@ -6880,7 +6880,7 @@ msgstr "Excluir referências a tipos de dados que não têm um visualizador espe
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:420
 msgid "Exclude references to functions, modules and any other callable."
-msgstr "Excluir referências a funções, módulos e qualquer outro callable."
+msgstr "Excluir referências a funções, módulos e qualquer outro objeto chamável."
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:429
 msgid "Search variable names and types"
@@ -6920,7 +6920,7 @@ msgstr "<b>Não foi possível carregar '%s'</b><br><br>A mensagem de erro foi:<b
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:352
 msgid "Do you want to overwrite old variables (if any) in the namespace when loading the data?"
-msgstr "Você quer substituir variáveis antigas (se houver) no namespace ao carregar os dados?"
+msgstr "Deseja substituir variáveis antigas (se houver) no namespace ao carregar os dados?"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:357
 msgid "Data loading"
@@ -6936,7 +6936,7 @@ msgstr "Os dados são grandes demais para serem carregados"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:378
 msgid "The file could not be opened successfully. Recall that the Variable Explorer supports the following file extensions to import data:<br><br><tt>{extensions}</tt>"
-msgstr "O arquivo não pôde ser aberto com sucesso. Lembre que o Explorador Variável suporta as seguintes extensões de arquivo para importar dados:<br><br><tt>{extensions}</tt>"
+msgstr "O arquivo não pode ser aberto com sucesso. Lembre que o Explorador Variável suporta as seguintes extensões de arquivo para importar dados:<br><br><tt>{extensions}</tt>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:425
 msgid "<b>Some objects could not be saved:</b>"
@@ -6988,7 +6988,7 @@ msgstr "O nome do objeto."
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:221 spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:230
 msgid "<root>"
-msgstr "<raiz>"
+msgstr "<root>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:228
 msgid "A path to the data: e.g. var[1]['a'].item"
@@ -7028,7 +7028,7 @@ msgstr "O objeto é um atributo do pai (em vez de, por exemplo, um elemento da l
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:324
 msgid "True if the object is callable.Determined with the `callable` built-in function.Callable objects are displayed in blue in the table."
-msgstr "Verdadeiro se o objeto puder ser chamado. Determinado com a função interna `callable`. Os objetos callable são exibidos em azul na tabela."
+msgstr "Verdadeiro se o objeto puder ser chamado. Determinado com a função interna `callable`. Os objetos chamáveis (callable) são exibidos em azul na tabela."
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:334
 msgid "True if the object is a user-defined or built-in function or method.Determined with the inspect.isroutine() method."
@@ -7084,11 +7084,11 @@ msgstr "Mostra/oculta atributos que podem ser chamados (funções, métodos, etc
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:231
 msgid "Show __special__ attributes"
-msgstr "Mostrar atributos __especial__"
+msgstr "Mostrar atributos __special__"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:233
 msgid "Shows or hides __special__ attributes"
-msgstr "Mostra ou oculta atributos __especial__"
+msgstr "Mostra ou oculta atributos __special__"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:313
 msgid "Details"
@@ -7288,11 +7288,11 @@ msgstr "Áreas laterais:"
 
 #: spyder/utils/syntaxhighlighters.py:63
 msgid "Matched <br>parens:"
-msgstr "Parênteses fechados:"
+msgstr "Parênteses <br>fechados:"
 
 #: spyder/utils/syntaxhighlighters.py:64
 msgid "Unmatched <br>parens:"
-msgstr "Parênteses abertos:"
+msgstr "Parênteses <br>abertos:"
 
 #: spyder/utils/syntaxhighlighters.py:65
 msgid "Normal text:"
@@ -7444,7 +7444,7 @@ msgstr "Por favor instale o <b>matplotlib</b> ou <b>guiqwt</b>."
 
 #: spyder/widgets/collectionseditor.py:1337
 msgid "<b>Unable to plot data.</b><br><br>Error message:<br>%s"
-msgstr "<b>Não foi possível mostrar os dados.</b><br><br>Mensagem de erro:<br>%s"
+msgstr "<b>Não foi possível plotar os dados.</b><br><br>Mensagem de erro:<br>%s"
 
 #: spyder/widgets/collectionseditor.py:1358
 msgid "<b>Unable to show image.</b><br><br>Error message:<br>%s"
@@ -7684,7 +7684,7 @@ msgstr "Não foi possível recuperar seu token. Por favor, tente novamente."
 
 #: spyder/widgets/github/gh_login.py:37
 msgid "Sign in to Github"
-msgstr "Autenticar no Github"
+msgstr "Fazer login no Github"
 
 #: spyder/widgets/github/gh_login.py:56
 msgid "For users <b>with</b> two-factor authentication enabled, or who prefer a per-app token authentication.<br><br>You can go <b><a href=\"{}\">here</a></b> and click \"Generate token\" at the bottom to create a new token to use for this, with the appropriate permissions."
