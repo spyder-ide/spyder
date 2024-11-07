@@ -6,6 +6,7 @@ on:
     paths:
       - 'installers-conda/**'
       - '.github/workflows/installers-conda.yml'
+      - '.github/scripts/installer_test.sh'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
 
