@@ -263,162 +263,12 @@ def _generate_background_images(installer_type):
         background.save(output, format="png")
 
 
-def _get_condarc():
-    contents = dedent(
-        """
-        channels:  #!final
-          - conda-forge/label/spyder_rc
-          - conda-forge/label/spyder_dev
-          - conda-forge/label/spyder_kernels_rc
-          # TODO: Add this channel when we create it
-          # - conda-forge/label/spyder_kernels_dev
-          - conda-forge
-        repodata_fns:  #!final
-          - repodata.json
-        auto_update_conda: false  #!final
-        notify_outdated_conda: false  #!final
-        channel_priority: flexible  #!final
-        env_prompt: '[spyder]({default_env}) '  #! final
-        register_envs: false  #! final
-        """
-    )
-    # the undocumented #!final comment is explained here
-    # https://www.anaconda.com/blog/conda-configuration-engine-power-users
-    file = BUILD / "condarc"
-    file.write_text(contents)
-
-    return str(file)
-
-
 def _get_conda_bld_path_url():
     bld_path_url = "file://"
     if WINDOWS:
         bld_path_url += "/"
     bld_path_url += Path(os.getenv('CONDA_BLD_PATH')).as_posix()
     return bld_path_url
-
-
-def _definitions():
-    condarc = _get_condarc()
-    definitions = {
-        "name": APP,
-        "company": "Spyder-IDE",
-        "reverse_domain_identifier": "org.spyder-ide.Spyder",
-        "version": str(SPYVER),
-        "environment_file": str(BASE_LOCK_FILE),
-        "installer_filename": OUTPUT_FILE.name,
-        "installer_type": args.install_type,
-        "initialize_by_default": False,
-        "initialize_conda": False,
-        "register_python": False,
-        "register_envs": False,
-        "extra_envs": {
-            "spyder-runtime": {
-                "environment_file": str(RT_LOCK_FILE),
-            }
-        },
-        "channels_remap": [
-            {
-                "src": _get_conda_bld_path_url(),
-                "dest": "https://conda.anaconda.org/conda-forge"
-            }
-        ]
-    }
-
-    definitions["license_file"] = str(RESOURCES / "bundle_license.rtf")
-    if args.install_type == "sh":
-        definitions["license_file"] = str(SPYREPO / "LICENSE.txt")
-
-    if LINUX:
-        definitions.update(
-            {
-                "default_prefix": os.path.join(
-                    "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
-                ),
-                "pre_install": str(RESOURCES / "pre-install.sh"),
-                "post_install": str(RESOURCES / "post-install.sh"),
-                "extra_files": [
-                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-                    {condarc: ".condarc"},
-                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
-                ],
-            }
-        )
-
-    if MACOS:
-        welcome_text_tmpl = \
-            (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
-        welcome_file = BUILD / "osx_pkg_welcome.rtf"
-        welcome_file.write_text(
-            welcome_text_tmpl.replace("__VERSION__", str(SPYVER)))
-
-        definitions.update(
-            {
-                "progress_notifications": True,
-                "pre_install": str(RESOURCES / "pre-install.sh"),
-                "post_install": str(RESOURCES / "post-install.sh"),
-                "conclusion_text": "",
-                "readme_text": "",
-                # For sh installer
-                "default_prefix": os.path.join(
-                    "$HOME", "Library", INSTALLER_DEFAULT_PATH_STEM
-                ),
-                # For pkg installer
-                "pkg_name": INSTALLER_DEFAULT_PATH_STEM,
-                "default_location_pkg": "Library",
-                "welcome_image": str(WELCOME_IMG_MAC),
-                "welcome_file": str(welcome_file),
-                "extra_files": [
-                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-                    {condarc: ".condarc"},
-                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
-                ],
-            }
-        )
-
-        if args.cert_id:
-            definitions["signing_identity_name"] = args.cert_id
-            definitions["notarization_identity_name"] = args.cert_id
-
-    if WINDOWS:
-        definitions.update(
-            {
-                "uninstall_name": f"Spyder {SPYVER.major}",
-                "welcome_image": str(WELCOME_IMG_WIN),
-                "header_image": str(HEADER_IMG_WIN),
-                "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
-                "default_prefix": os.path.join(
-                    "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
-                ),
-                "default_prefix_domain_user": os.path.join(
-                    "%LOCALAPPDATA%", INSTALLER_DEFAULT_PATH_STEM
-                ),
-                "default_prefix_all_users": os.path.join(
-                    "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
-                ),
-                "check_path_length": False,
-                "pre_install": str(RESOURCES / "pre-install.bat"),
-                "post_install": str(RESOURCES / "post-install.bat"),
-                "extra_files": [
-                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-                    {condarc: ".condarc"},
-                    {str(RESOURCES / "menuinst_cli.py"): "Scripts/menuinst_cli.py"},
-                ],
-            }
-        )
-
-        signing_certificate = os.environ.get("CONSTRUCTOR_SIGNING_CERTIFICATE")
-        if signing_certificate:
-            definitions["signing_certificate"] = signing_certificate
-
-    if definitions.get("welcome_image") or definitions.get("header_image"):
-        _generate_background_images(definitions.get("installer_type", "all"))
-
-    logger.info(f"Contents of {CONSTRUCTOR_FILE}:")
-    if logger.getEffectiveLevel() <= 20:
-        yaml.dump(definitions, sys.stdout)
-
-    yaml.dump(definitions, CONSTRUCTOR_FILE)
 
 
 def _constructor():
@@ -452,32 +302,6 @@ def _constructor():
     run(cmd_args, check=True, env=env)
 
 
-def licenses():
-    info_path = BUILD / "info.json"
-    try:
-        info = json.load(info_path)
-    except FileNotFoundError:
-        print(
-            "!! Use `constructor --debug` to write info.json and get licenses",
-            file=sys.stderr,
-        )
-        raise
-
-    zipname = BUILD / f"licenses.{OS}-{ARCH}.zip"
-    output_zip = zipfile.ZipFile(zipname, mode="w",
-                                 compression=zipfile.ZIP_DEFLATED)
-    output_zip.write(info_path)
-    for package_id, license_info in info["_licenses"].items():
-        package_name = package_id.split("::", 1)[1]
-        for license_type, license_files in license_info.items():
-            for i, license_file in enumerate(license_files, 1):
-                arcname = (f"{package_name}.{license_type.replace(' ', '_')}"
-                           f".{i}.txt")
-                output_zip.write(license_file, arcname=arcname)
-    output_zip.close()
-    return zipname.resolve()
-
-
 def main():
     t0 = time()
     try:
@@ -509,9 +333,6 @@ if __name__ == "__main__":
         sys.exit()
     if args.artifact_name:
         print(OUTPUT_FILE)
-        sys.exit()
-    if args.licenses:
-        print(licenses())
         sys.exit()
     if args.images:
         _generate_background_images()
