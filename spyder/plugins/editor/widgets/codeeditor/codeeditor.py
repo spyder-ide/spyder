@@ -37,8 +37,7 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QFontMetrics, QPaintEvent,
                         QPainter, QMouseEvent, QTextCursor, QDesktopServices,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import (QApplication, QMessageBox, QSplitter, QScrollBar,
-                            QTextEdit)
+from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
@@ -576,7 +575,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     # given cursors.sort, pos1 should be <= pos2
                     pos1 = cursor1.position()
                     pos2 = cursor2.position()
-                    print(pos1, pos2)
                     anchor1 = cursor1.anchor()
                     anchor2 = cursor2.anchor()
 
@@ -601,6 +599,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             if not cursor_was_removed:
                 break
+        self.set_extra_cursor_selections()
 
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
@@ -614,8 +613,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             # Will cursors have increased or decreased in position?
             increasing_direction = True
             # Some operations should only be 1 per row even if there's multiple
-            #   cursors on that row (smart indent/unindent)
-            handled_rows = []
+            #   cursors on that row (smart indent/unindent?)
+            handled_rows = []  # TODO needed for any key handling?
 
             self.textCursor().beginEditBlock()
             for cursor in self.all_cursors:
@@ -768,6 +767,27 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         main_cursor.endEditBlock()
         self.sig_text_was_inserted.emit()
         self.skip_rstrip = False
+
+    def for_each_cursor(self, method):
+        """
+        Wrap callable to execute for each cursor by calling setTextCursor for each"""
+        pass  # TODO write this & use to override shortcut methods?
+
+    def clears_extra_cursors(self, method):
+        """Wrap callable to clear extra_cursors prior to calling"""
+        pass  # TODO write this & use to override shortcut methods?
+
+    def restrict_single_cursor(self, method):
+        """Wrap callable to only execute if extra_cursors is clear"""
+        def wrapped(*args, **kwargs):
+            if self.extra_cursors:
+                # Don't do completion for each cursor, as that would be too
+                #    cluttered, and no way to easily choose different
+                #    completions for each cursor. #TODO maybe do completion on
+                #    primary cursor and insert to all cursors?
+                return
+            else:  # TODO test this & use to override shortcut methods?
+                method(*args, **kwargs)
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -2254,6 +2274,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
             self.skip_rstrip = False
+
+    @Slot()
+    def selectAll(self):
+        """overrides Qt selectAll method to ensure we clear extra cursors"""
+        self.clear_extra_cursors()
+        super().selectAll()
 
     # ---- High-level editor features
     # -------------------------------------------------------------------------
