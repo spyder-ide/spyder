@@ -533,7 +533,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
         self.extra_cursors.append(cursor)
-        self.merge_extra_cursors()
+        self.merge_extra_cursors(True)
         self.set_extra_cursor_selections()
 
     def set_extra_cursor_selections(self):
@@ -553,11 +553,54 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.extra_cursors = []
         self.set_extra_selections('extra_cursor_selections', [])
 
-    def merge_extra_cursors(self):
+    @property
+    def all_cursors(self):
+        return self.extra_cursors + [self.textCursor()]
+
+    def merge_extra_cursors(self, increasing_position):
         """Merge overlapping cursors"""
         if not self.extra_cursors:
             return
-        # TODO write this
+
+        while True:
+            cursor_was_removed = False
+
+            cursors = self.all_cursors
+            main_cursor = self.all_cursors[-1]
+            cursors.sort(key= lambda cursor: cursor.position())
+
+            for i, cursor1 in enumerate(cursors[:-1]):
+                if cursor_was_removed:
+                    break  # list will be modified, so re-start at while loop
+                for cursor2 in cursors[i+1:]:
+                    # given cursors.sort, pos1 should be <= pos2
+                    pos1 = cursor1.position()
+                    pos2 = cursor2.position()
+                    print(pos1, pos2)
+                    anchor1 = cursor1.anchor()
+                    anchor2 = cursor2.anchor()
+
+                    if not pos1 == pos2:
+                        continue  # only merge coincident cursors
+
+                    if cursor1 is main_cursor:
+                        # swap cursors to keep main_cursor
+                        cursor1, cursor2 = cursor2, cursor1
+                    self.extra_cursors.remove(cursor1)
+                    cursor_was_removed = True
+
+                    # reposition cursor we're keeping
+                    positions = sorted([pos1, anchor1, anchor2])
+                    if not increasing_position:
+                        positions.reverse()
+                    cursor2.setPosition(positions[0],
+                                        QTextCursor.MoveMode.MoveAnchor)
+                    cursor2.setPosition(positions[2],
+                                        QTextCursor.MoveMode.KeepAnchor)
+                    break
+
+            if not cursor_was_removed:
+                break
 
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
@@ -568,22 +611,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
             move_mode = QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
-            cursors = self.extra_cursors + [self.textCursor()]
-
+            # Will cursors have increased or decreased in position?
+            increasing_direction = True
             # Some operations should only be 1 per row even if there's multiple
-            #   cursors on that row
+            #   cursors on that row (smart indent/unindent)
             handled_rows = []
 
             self.textCursor().beginEditBlock()
-            for cursor in cursors:
+            for cursor in self.all_cursors:
 
                 self.setTextCursor(cursor)
                 # ---- handle arrow keys
                 if key == Qt.Key_Up:
                     cursor.movePosition(QTextCursor.Up, move_mode)
+                    increasing_direction = False
                 elif key == Qt.Key_Down:
                     cursor.movePosition(QTextCursor.Down, move_mode)
                 elif key == Qt.Key_Left:
+                    increasing_direction = False
                     if ctrl:
                         cursor.movePosition(
                             QTextCursor.StartOfWord, move_mode
@@ -597,6 +642,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.movePosition(QTextCursor.Right, move_mode)
                 # ---- handle Home, End
                 elif key == Qt.Key_Home:
+                    increasing_direction = False
                     if ctrl:
                         cursor.movePosition(QTextCursor.Start, move_mode)
                     else:
@@ -621,11 +667,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     # Trivial implementation: # TODO respect tab_mode
                     self.replace(self.indent_chars)
                 elif key == Qt.Key_Backtab and not ctrl:
+                    increasing_direction = False
                     self.unindent()
                 # ---- use default handler for cursor (text)
                 else:
                     self._handle_keypress_event(event)
-            self.merge_extra_cursors()
+            self.merge_extra_cursors(increasing_direction)
             self.set_extra_cursor_selections()
             cursor.endEditBlock()
             self.setTextCursor(cursor)  # last cursor from for loop is primary
@@ -654,7 +701,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor_width = QFontMetrics(font).horizontalAdvance(" ")
         else:
             cursor_width = self.cursor_width
-        for cursor in self.extra_cursors + [self.textCursor()]:
+        for cursor in self.all_cursors:
             block = cursor.block()
             if (self.cursor_blink_state and
                     (editable or flags) and
@@ -683,7 +730,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def multi_cursor_copy(self):
         """copy multi-cursor selections separated by newlines"""
-        cursors = self.extra_cursors + [self.textCursor()]
+        cursors = self.all_cursors
         cursors.sort(key=lambda cursor: cursor.position())
         selections = []
         for cursor in cursors:
@@ -696,16 +743,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def multi_cursor_cut(self):
         self.multi_cursor_copy()
         self.textCursor().beginEditBlock()
-        for cursor in self.extra_cursors + [self.textCursor()]:
+        for cursor in self.all_cursors:
             cursor.removeSelectedText()
-        self.merge_extra_cursors()
+        # merge direction doesn't matter here as all selections are removed
+        self.merge_extra_cursors(True)
         self.set_extra_cursor_selections()
         self.textCursor().endEditBlock()
 
     def multi_cursor_paste(self, clip_text):
         main_cursor = self.textCursor()
         main_cursor.beginEditBlock()
-        cursors = self.extra_cursors + [main_cursor]
+        cursors = self.all_cursors
         cursors.sort(key=lambda cursor: cursor.position())
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(clip_text)
@@ -714,7 +762,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor.insertText(text)
             # TODO handle extra lines or extra cursors?
         self.setTextCursor(main_cursor)
-        self.merge_extra_cursors()
+        # merge direction doesn't matter here as all selections are removed
+        self.merge_extra_cursors(True)
         self.set_extra_cursor_selections()
         main_cursor.endEditBlock()
         self.sig_text_was_inserted.emit()
@@ -801,7 +850,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Make a callback for cursor move event type, (e.g. "Start")"""
         def cursor_move_event():
             move_type = getattr(QTextCursor, attr)
-            for cursor in self.extra_cursors + [self.textCursor()]:
+            for cursor in self.all_cursors:
                 cursor.movePosition(move_type)
                 self.setTextCursor(cursor)
         return cursor_move_event
@@ -1520,7 +1569,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def delete(self):
         """Remove selected text or next character."""
         self.textCursor().beginEditBlock()
-        for cursor in self.extra_cursors + [self.textCursor()]:
+        for cursor in self.all_cursors:
             cursor.deleteChar()
         cursor.endEditBlock()
         self.sig_delete_requested.emit()
@@ -4607,8 +4656,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if event.button() == Qt.LeftButton and ctrl and alt:
             # move existing primary cursor to extra_cursors list and set new
             #   primary cursor
-            self.add_cursor(self.textCursor())
+            old_cursor = self.textCursor()
             self.setTextCursor(self.cursorForPosition(pos))
+            self.add_cursor(old_cursor)
         else:
             self.clear_extra_cursors()
             if event.button() == Qt.LeftButton and ctrl:
