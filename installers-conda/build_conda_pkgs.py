@@ -11,8 +11,6 @@ import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from configparser import ConfigParser
 from datetime import timedelta
-from logging import Formatter, StreamHandler, getLogger
-from pathlib import Path
 from subprocess import check_call
 from textwrap import dedent
 from time import time
@@ -22,16 +20,9 @@ from git import Repo, rmtree
 from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
-fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
-h = StreamHandler()
-h.setFormatter(fmt)
-logger = getLogger('BuildCondaPkgs')
-logger.addHandler(h)
-logger.setLevel('INFO')
+# Local imports
+from utils import logger as logger, HERE, BUILD
 
-HERE = Path(__file__).parent
-BUILD = HERE / "build"
-RESOURCES = HERE / "resources"
 EXTDEPS = HERE.parent / "external-deps"
 SPECS = BUILD / "specs.yaml"
 REQUIREMENTS = HERE.parent / "requirements"
@@ -40,7 +31,6 @@ REQ_WINDOWS = REQUIREMENTS / 'windows.yml'
 REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
-BUILD.mkdir(exist_ok=True)
 SPYPATCHFILE = BUILD / "installers-conda.patch"
 
 yaml = YAML()
@@ -57,10 +47,7 @@ class BuildCondaPkg:
     shallow_ver = None
 
     def __init__(self, data={}, debug=False, shallow=False):
-        self.logger = getLogger(self.__class__.__name__)
-        if not self.logger.handlers:
-            self.logger.addHandler(h)
-        self.logger.setLevel('INFO')
+        self.logger = logger.getChild(self.__class__.__name__)
 
         self.debug = debug
 
@@ -81,6 +68,7 @@ class BuildCondaPkg:
 
     def _get_source(self, shallow=False):
         """Clone source and feedstock to distribution directory for building"""
+        BUILD.mkdir(exist_ok=True)
         self._build_cleanup()
 
         if self.source == HERE.parent:
@@ -119,7 +107,7 @@ class BuildCondaPkg:
         """Remove cloned source and feedstock repositories"""
         for src in [self._bld_src, self._fdstk_path]:
             if src.exists() and src != HERE.parent:
-                logger.info(f"Removing {src}...")
+                self.logger.info(f"Removing {src}...")
                 rmtree(src)
 
     def _get_version(self):

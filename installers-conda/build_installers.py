@@ -27,7 +27,6 @@ from argparse import ArgumentParser
 from datetime import timedelta
 from functools import partial
 import json
-from logging import getLogger
 import os
 from packaging.version import parse
 from pathlib import Path
@@ -45,16 +44,9 @@ from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
 # Local imports
-from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h
-
-DIST = HERE / "dist"
-
-logger = getLogger('BuildInstallers')
-logger.addHandler(h)
-logger.setLevel('INFO')
+from utils import logger, SPYREPO, RESOURCES, BUILD, DIST
 
 APP = "Spyder"
-SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
@@ -305,6 +297,7 @@ def _constructor():
 def main():
     t0 = time()
     try:
+        BUILD.mkdir(exist_ok=True)
         DIST.mkdir(exist_ok=True)
         _create_conda_lock(env_type='base')
         assert BASE_LOCK_FILE.exists()
@@ -327,22 +320,16 @@ def main():
 if __name__ == "__main__":
     if args.arch:
         print(ARCH)
-        sys.exit()
-    if args.ext:
+    elif args.ext:
         print(args.install_type)
-        sys.exit()
-    if args.artifact_name:
+    elif args.artifact_name:
         print(OUTPUT_FILE)
-        sys.exit()
-    if args.images:
+    elif args.images:
         _generate_background_images()
-        sys.exit()
-    if args.conda_lock:
+    elif args.conda_lock:
         _create_conda_lock(env_type='base')
         _create_conda_lock(env_type='runtime')
-        sys.exit()
-    if args.version:
+    elif args.version:
         print(SPYVER)
-        sys.exit()
-
-    main()
+    else:
+        main()
