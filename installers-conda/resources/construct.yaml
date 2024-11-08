@@ -1,22 +1,21 @@
-{% set SPYDER_VERSION = environ["SPYVER"] %}
-{% set EXT = environ["INSTALLER_TYPE"] %}
-{% set CONDA_BLD_PATH = environ["CONDA_BLD_PATH"] %}
+{% set OS = environ["OS"] or "Windows" %}
+{% set ARCH = environ["ARCH"] or "x86_64" %}
+{% set INSTALL_TYPE = environ["INSTALL_TYPE"] or "exe" %}
+{% set INSTALL_VER = environ["INSTALL_VER"] %}
 {% set RESOURCE_PATH = environ["REPO_PATH"] + '/installers-conda/resources/' %}  # [linux or osx]
 {% set RESOURCE_PATH = environ["REPO_PATH"] + '\installers-conda\resources\' %}  # [win]
 {% set BUILD_PATH = environ["REPO_PATH"] + '/installers-conda/build/' %}  # [linux or osx]
 {% set BUILD_PATH = environ["REPO_PATH"] + '\installers-conda\build\' %}  # [win]
 {% set CERT_ID = environ["CERT_ID"] %}  # [osx]
+{% set WIN_SIGN_CERT = environ["WIN_SIGN_CERT"] %}
 
 name: Spyder
 company: Spyder-IDE
 reverse_domain_identifier: org.spyder-ide.Spyder
-version: {{ SPYDER_VERSION }}
+version: {{ INSTALL_VER }}
 
-installer_filename: Spyder-Linux-x86_64.{{ EXT }}  # [linux]
-installer_filename: Spyder-Windows-x86_64.{{ EXT }}  # [win]
-installer_filename: Spyder-macOS-arm64.{{ EXT }}  # [osx and arm64]
-installer_filename: Spyder-macOS-x86_64.{{ EXT }}  # [osx and not arm64]
-installer_type: {{ EXT }}
+installer_filename: Spyder-{{ OS }}-{{ ARCH }}.{{ INSTALL_TYPE }}
+installer_type: {{ INSTALL_TYPE }}
 
 license_file: {{ environ["REPO_PATH"] }}/LICENSE.txt  # [linux]
 license_file: {{ RESOURCE_PATH }}bundle_license.rtf  # [win or osx]
@@ -49,7 +48,7 @@ welcome_file: {{ BUILD_PATH }}osx_pkg_welcome.rtf  # [osx]
 
 signing_identity_name: {{ CERT_ID }}  # [osx]
 notarization_identity_name: {{ CERT_ID }}  # [osx]
-signing_certificate: {{ environ["CONSTRUCTOR_SIGNING_CERTIFICATE"] }}  # [win]
+signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
 
 extra_files:
   - {{ RESOURCE_PATH }}bundle_readme.md: README.txt
@@ -64,7 +63,7 @@ register_envs: false
 
 environment_file: {{ BUILD_PATH }}conda-base-linux-64.lock  # [linux]
 environment_file: {{ BUILD_PATH }}conda-base-win-64.lock  # [win]
-environment_file:  {{ BUILD_PATH }}conda-base-osx-arm64.lock  # [osx and arm64]
+environment_file: {{ BUILD_PATH }}conda-base-osx-arm64.lock  # [osx and arm64]
 environment_file: {{ BUILD_PATH }}conda-base-osx-64.lock  # [osx and not arm64]
 
 extra_envs:
@@ -73,7 +72,3 @@ extra_envs:
     environment_file: {{ BUILD_PATH }}conda-runtime-win-64.lock  # [win]
     environment_file: {{ BUILD_PATH }}conda-runtime-osx-arm64.lock  # [osx and arm64]
     environment_file: {{ BUILD_PATH }}conda-runtime-osx-64.lock  # [osx and not arm64]
-
-channels_remap:
-  - src: file://{{ CONDA_BLD_PATH }}
-    dest: https://conda.anaconda.org/conda-forge
