@@ -241,9 +241,19 @@ class _SpyderComboBoxMixin:
 
 
 class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
-    """Combobox widget for Spyder when its items don't have icons."""
+    """Default combobox widget for Spyder."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, items_elide_mode=None):
+        """
+        Default combobox widget for Spyder.
+
+        Parameters
+        ----------
+        parent: QWidget, optional
+            The combobox parent.
+        items_elide_mode: Qt.TextElideMode, optional
+            Elide mode for the combobox items.
+        """
         if PYQT5 or PYQT6:
             super().__init__(parent)
         else:
@@ -254,11 +264,12 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
         self._is_shown = False
         self._is_popup_shown = False
 
-        # This is also necessary to have more fine-grained control over the
-        # style of our comboboxes with css, e.g. to add more padding between
-        # its items.
+        # This is necessary to have more fine-grained control over the style of
+        # our comboboxes with css, e.g. to add more padding between its items.
         # See https://stackoverflow.com/a/33464045/438386 for the details.
-        self.setItemDelegate(_SpyderComboBoxDelegate(self))
+        self.setItemDelegate(
+            _SpyderComboBoxDelegate(self, elide_mode=items_elide_mode)
+        )
 
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
@@ -327,8 +338,18 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
 class SpyderComboBoxWithIcons(SpyderComboBox):
     """"Combobox widget for Spyder when its items have icons."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, items_elide_mode=None):
+        """"
+        Combobox widget for Spyder when its items have icons.
+
+        Parameters
+        ----------
+        parent: QWidget, optional
+            The combobox parent.
+        items_elide_mode: Qt.TextElideMode, optional
+            Elide mode for the combobox items.
+        """
+        super().__init__(parent, items_elide_mode)
 
         # Padding is not necessary because icons give items enough of it.
         self._css["QComboBox QAbstractItemView::item"].setValues(
