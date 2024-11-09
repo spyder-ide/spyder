@@ -348,7 +348,7 @@ PKGS = {
 }
 
 if __name__ == "__main__":
-    p = ArgumentParser(
+    parser = ArgumentParser(
         description=dedent(
             """
             Build conda packages to local channel.
@@ -381,19 +381,20 @@ if __name__ == "__main__":
               "[--build BUILD [BUILD] ...] [--debug] [--shallow]",
         formatter_class=RawTextHelpFormatter
     )
-    p.add_argument(
-        '--debug', action='store_true', default=False,
-        help="Do not remove cloned sources and feedstocks"
-    )
-    p.add_argument(
+    parser.add_argument(
         '--build', nargs="+", default=PKGS.keys(),
         help=("Space-separated list of packages to build. "
               f"Default is {list(PKGS.keys())}")
     )
-    p.add_argument(
+    parser.add_argument(
+        '--debug', action='store_true', default=False,
+        help="Do not remove cloned sources and feedstocks"
+    )
+    parser.add_argument(
         '--shallow', action='store_true', default=False,
         help="Perform shallow clone for build")
-    args = p.parse_args()
+
+    args = parser.parse_args()
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
