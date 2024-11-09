@@ -20,7 +20,7 @@ import platform
 import re
 from subprocess import run
 import sys
-from textwrap import indent
+from textwrap import dedent, indent
 from time import time
 
 # Third-party imports
@@ -28,7 +28,7 @@ from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
 # Local imports
-from utils import logger, SPYREPO, RESOURCES, BUILD, DIST
+from utils import logger, SPYREPO, RESOURCES, BUILD, DIST, DocFormatter
 
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
@@ -235,7 +235,31 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
+    parser = ArgumentParser(
+        description="Build conda-based installer.",
+        epilog=dedent(
+            """
+            If building the installer using constructor directly, the
+            constructor.yaml can be customized with the following environment
+            variables:
+                OS : {Windos, Linux, macOS}
+                    The system name used for naming the installer file.
+                ARCH : {x86_64, arm64}
+                    The system architecture used for naming the installer file.
+                INSTALL_TYPE : {exe, sh, pkg}
+                    The installer type to build.
+                INSTALLER_VER
+                    This should be the same as the Spyder version.
+                REPO_PATH
+                    Full path to the Spyder repository.
+                CERT_ID
+                    Apple developer certificate identifier.
+                WIN_SIGN_CERT
+                    Path to the PFX signing certificate for Windows.
+            """
+        ),
+        formatter_class=DocFormatter
+    )
     parser.add_argument(
         "--artifact-name", action="store_true",
         help="Print artifact name.",

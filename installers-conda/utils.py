@@ -4,6 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+from argparse import ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from logging import Formatter, StreamHandler, getLogger
 from pathlib import Path
 
@@ -19,3 +20,10 @@ SPYREPO = HERE.parent
 RESOURCES = HERE / "resources"
 BUILD = HERE / "build"
 DIST = HERE / "dist"
+
+
+class DocFormatter(
+    RawDescriptionHelpFormatter,
+    ArgumentDefaultsHelpFormatter
+):
+    pass
