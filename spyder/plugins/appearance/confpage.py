@@ -8,10 +8,20 @@
 
 import sys
 
+import qstylizer.style
 from qtconsole.styles import dark_color
-from qtpy.QtCore import Slot
-from qtpy.QtWidgets import (QFontComboBox, QGridLayout, QGroupBox, QMessageBox,
-                            QPushButton, QStackedWidget, QVBoxLayout)
+from qtpy.QtCore import Qt, Slot
+from qtpy.QtGui import QFont
+from qtpy.QtWidgets import (
+    QFontComboBox,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+)
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
@@ -87,13 +97,6 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button = QPushButton(_("Delete scheme"))
         self.reset_button = QPushButton(_("Reset to defaults"))
 
-        self.preview_editor = SimpleCodeEditor(self)
-        self.preview_editor.setMinimumWidth(210)
-        self.preview_editor.set_language('Python')
-        self.preview_editor.set_text(PREVIEW_TEXT)
-        self.preview_editor.set_blanks_enabled(False)
-        self.preview_editor.set_scrollpastend_enabled(False)
-
         self.stacked_widget = QStackedWidget(self)
         self.scheme_editor_dialog = SchemeEditor(
             parent=self,
@@ -147,6 +150,32 @@ class AppearanceConfigPage(PluginConfigPage):
             tip=system_font_tip
         )
 
+        # Preview widgets
+        preview_editor_label = QLabel(_("Editor"))
+        self.preview_editor = SimpleCodeEditor(self)
+        self.preview_editor.setFixedWidth(260)
+        self.preview_editor.set_language('Python')
+        self.preview_editor.set_text(PREVIEW_TEXT)
+        self.preview_editor.set_blanks_enabled(False)
+        self.preview_editor.set_scrollpastend_enabled(False)
+
+        preview_interface_label = QLabel(_("Interface font"))
+        self.preview_interface = QLabel("Happy Spydering!")
+        self.preview_interface.setFixedWidth(260)
+        self.preview_interface.setFixedHeight(50)
+        self.preview_interface.setWordWrap(True)
+        self.preview_interface.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+
+        preview_interface_label_css = qstylizer.style.StyleSheet()
+        preview_interface_label_css.QLabel.setValues(
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_4}",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
+        )
+        self.preview_interface.setStyleSheet(
+            preview_interface_label_css.toString()
+        )
+
         # Fonts layout
         fonts_grid_layout = QGridLayout()
         fonts_grid_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
@@ -170,10 +199,15 @@ class AppearanceConfigPage(PluginConfigPage):
         options_layout.addWidget(syntax_group)
         options_layout.addWidget(fonts_group)
 
-        # Right preview layout
-        preview_group = QGroupBox(_("Preview"))
+        # Right previews layout
+        preview_group = QGroupBox(_("Previews"))
         preview_layout = QVBoxLayout()
+        preview_layout.addSpacing(AppStyle.MarginSize)
+        preview_layout.addWidget(preview_editor_label)
         preview_layout.addWidget(self.preview_editor)
+        preview_layout.addSpacing(2 * AppStyle.MarginSize)
+        preview_layout.addWidget(preview_interface_label)
+        preview_layout.addWidget(self.preview_interface)
         preview_group.setLayout(preview_layout)
 
         # Combined layout
@@ -204,6 +238,18 @@ class AppearanceConfigPage(PluginConfigPage):
         )
         self.plain_text_font.sizebox.valueChanged.connect(
             lambda value: self.update_preview()
+        )
+        self.app_font.fontbox.currentFontChanged.connect(
+            lambda font: self.update_interface_preview()
+        )
+        self.app_font.fontbox.sig_popup_is_hidden.connect(
+            self.update_interface_preview
+        )
+        self.app_font.fontbox.sig_item_in_popup_changed.connect(
+            self.update_interface_preview
+        )
+        self.app_font.sizebox.valueChanged.connect(
+            lambda value: self.update_interface_preview()
         )
         system_font_checkbox.checkbox.stateChanged.connect(
             self.update_app_font_group
@@ -355,6 +401,16 @@ class AppearanceConfigPage(PluginConfigPage):
             font=plain_text_font,
             color_scheme=scheme_name
         )
+
+    def update_interface_preview(self, font_family=None):
+        """Update the interface preview label."""
+        if font_family is None:
+            app_font = self.app_font.fontbox.currentFont()
+        else:
+            app_font = QFont(font_family)
+
+        app_font.setPointSize(self.app_font.sizebox.value())
+        self.preview_interface.setFont(app_font)
 
     def update_app_font_group(self, state):
         """Update app font group enabled state."""
