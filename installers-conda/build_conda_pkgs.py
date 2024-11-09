@@ -8,7 +8,7 @@
 import os
 import re
 import sys
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser
 from configparser import ConfigParser
 from datetime import timedelta
 from subprocess import check_call
@@ -21,7 +21,7 @@ from ruamel.yaml import YAML
 from setuptools_scm import get_version
 
 # Local imports
-from utils import logger as logger, HERE, BUILD
+from utils import logger as logger, HERE, BUILD, DocFormatter
 
 EXTDEPS = HERE.parent / "external-deps"
 REQUIREMENTS = HERE.parent / "requirements"
@@ -339,16 +339,14 @@ PKGS = {
 
 if __name__ == "__main__":
     parser = ArgumentParser(
-        description=dedent(
+        description="Build conda packages to local channel.",
+        epilog=dedent(
             """
-            Build conda packages to local channel.
-
             This module builds conda packages for Spyder and external-deps for
             inclusion in the conda-based installer. The following classes are
             provided for each package:
                 SpyderCondaPkg
                 PylspCondaPkg
-                QdarkstyleCondaPkg
                 QtconsoleCondaPkg
                 SpyderKernelsCondaPkg
 
@@ -362,19 +360,15 @@ if __name__ == "__main__":
             appropriate environment variable from the following:
                 SPYDER_SOURCE
                 PYTHON_LSP_SERVER_SOURCE
-                QDARKSTYLE_SOURCE
                 QTCONSOLE_SOURCE
                 SPYDER_KERNELS_SOURCE
             """
         ),
-        usage="python build_conda_pkgs.py "
-              "[--build BUILD [BUILD] ...] [--debug]",
-        formatter_class=RawTextHelpFormatter
+        formatter_class=DocFormatter
     )
     parser.add_argument(
-        '--build', nargs="+", default=PKGS.keys(),
-        help=("Space-separated list of packages to build. "
-              f"Default is {list(PKGS.keys())}")
+        '--build', nargs="+", default=list(PKGS.keys()),
+        help="Space-separated list of packages to build."
     )
     parser.add_argument(
         '--debug', action='store_true', default=False,
