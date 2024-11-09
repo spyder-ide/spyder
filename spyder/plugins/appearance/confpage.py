@@ -104,8 +104,9 @@ class AppearanceConfigPage(PluginConfigPage):
         )
 
         self.scheme_choices_dict = {}
-        schemes_combobox_widget = self.create_combobox('', [('', '')],
-                                                       'selected')
+        schemes_combobox_widget = self.create_combobox(
+            '', [('', '')], 'selected', items_elide_mode=Qt.ElideNone
+        )
         self.schemes_combobox = schemes_combobox_widget.combobox
 
         # Syntax layout

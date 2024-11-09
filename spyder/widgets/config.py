@@ -915,12 +915,13 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         return widget
 
     def create_combobox(self, text, choices, option, default=NoDefault,
-                        tip=None, restart=False, section=None):
+                        tip=None, restart=False, section=None,
+                        items_elide_mode=None):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
         label = QLabel(text)
-        combobox = SpyderComboBox()
+        combobox = SpyderComboBox(items_elide_mode=items_elide_mode)
         for name, key in choices:
             if not (name is None and key is None):
                 combobox.addItem(name, to_qvariant(key))
