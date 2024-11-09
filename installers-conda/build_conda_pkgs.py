@@ -43,9 +43,8 @@ class BuildCondaPkg:
     source = None
     feedstock = None
     feedstock_branch = None
-    shallow_ver = None
 
-    def __init__(self, data={}, debug=False, shallow=False):
+    def __init__(self, data={}, debug=False):
         self.logger = logger.getChild(self.__class__.__name__)
 
         self.debug = debug
@@ -54,7 +53,7 @@ class BuildCondaPkg:
         self._fdstk_path = BUILD / self.feedstock.split("/")[-1]
         self._patchfile = self._fdstk_path / "recipe" / "version.patch"
 
-        self._get_source(shallow=shallow)
+        self._get_source()
         self._get_version()
 
         self.data = {'version': self.version}
@@ -65,7 +64,7 @@ class BuildCondaPkg:
 
         self._recipe_patched = False
 
-    def _get_source(self, shallow=False):
+    def _get_source(self):
         """Clone source and feedstock to distribution directory for building"""
         BUILD.mkdir(exist_ok=True)
         self._build_cleanup()
@@ -86,12 +85,7 @@ class BuildCondaPkg:
 
             # Clone from source
             kwargs = dict(to_path=self._bld_src)
-            if shallow:
-                kwargs.update(shallow_exclude=self.shallow_ver)
-                self.logger.info(
-                    f"Cloning source shallow from tag {self.shallow_ver}...")
-            else:
-                self.logger.info("Cloning source...")
+            self.logger.info("Cloning source...")
             self.repo = Repo.clone_from(remote, **kwargs)
             self.repo.git.checkout(commit)
 
@@ -236,7 +230,6 @@ class SpyderCondaPkg(BuildCondaPkg):
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
     feedstock_branch = "main"
-    shallow_ver = "v5.3.2"
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
@@ -321,7 +314,6 @@ class PylspCondaPkg(BuildCondaPkg):
     source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
     feedstock_branch = "main"
-    shallow_ver = "v1.4.1"
 
 
 class QtconsoleCondaPkg(BuildCondaPkg):
@@ -329,7 +321,6 @@ class QtconsoleCondaPkg(BuildCondaPkg):
     source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
     feedstock_branch = "main"
-    shallow_ver = "5.3.1"
 
 
 class SpyderKernelsCondaPkg(BuildCondaPkg):
@@ -337,7 +328,6 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
     feedstock_branch = "rc"
-    shallow_ver = "v2.3.1"
 
 
 PKGS = {
@@ -378,7 +368,7 @@ if __name__ == "__main__":
             """
         ),
         usage="python build_conda_pkgs.py "
-              "[--build BUILD [BUILD] ...] [--debug] [--shallow]",
+              "[--build BUILD [BUILD] ...] [--debug]",
         formatter_class=RawTextHelpFormatter
     )
     parser.add_argument(
@@ -390,9 +380,6 @@ if __name__ == "__main__":
         '--debug', action='store_true', default=False,
         help="Do not remove cloned sources and feedstocks"
     )
-    parser.add_argument(
-        '--shallow', action='store_true', default=False,
-        help="Perform shallow clone for build")
 
     args = parser.parse_args()
 
@@ -400,7 +387,7 @@ if __name__ == "__main__":
     t0 = time()
 
     for k in args.build:
-        pkg = PKGS[k](debug=args.debug, shallow=args.shallow)
+        pkg = PKGS[k](debug=args.debug)
         pkg.build()
 
     elapse = timedelta(seconds=int(time() - t0))
