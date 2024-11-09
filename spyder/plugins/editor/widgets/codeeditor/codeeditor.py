@@ -630,13 +630,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     increasing_direction = False
                     if ctrl:
                         cursor.movePosition(
-                            QTextCursor.StartOfWord, move_mode
+                            QTextCursor.PreviousWord, move_mode
                             )
                     else:
                         cursor.movePosition(QTextCursor.Left, move_mode)
                 elif key == Qt.Key_Right:
                     if ctrl:
-                        cursor.movePosition(QTextCursor.EndOfWord, move_mode)
+                        cursor.movePosition(QTextCursor.NextWord, move_mode)
                     else:
                         cursor.movePosition(QTextCursor.Right, move_mode)
                 # ---- handle Home, End
@@ -4181,7 +4181,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def do_automatic_completions(self):
         """Perform on the fly completions."""
-        if not self.automatic_completions:
+        if not self.automatic_completions or self.extra_cursors:
             return
 
         cursor = self.textCursor()
