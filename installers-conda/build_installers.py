@@ -211,9 +211,22 @@ def _constructor(install_type, spy_ver, debug=False):
     logger.info(f"Created {_output_file(install_type)}")
 
 
+def _cleanup_build(debug=False):
+    if debug or not BUILD.exists():
+        # Do not clean the build directory
+        return
+
+    exts = (".exe", ".sh", ".pkg", ".yml", ".rtf", ".lock", ".png")
+    for f in BUILD.glob("*"):
+        if f.suffix in exts:
+            f.unlink()
+
+
 def main(spy_ver, extra_specs, install_type, no_local, debug):
     BUILD.mkdir(exist_ok=True)
     DIST.mkdir(exist_ok=True)
+
+    _cleanup_build()
 
     _generate_background_images(install_type)
 
@@ -233,6 +246,8 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
 
+    _cleanup_build(debug)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(
@@ -248,7 +263,7 @@ if __name__ == "__main__":
                     The system architecture used for naming the installer file.
                 INSTALL_TYPE : {exe, sh, pkg}
                     The installer type to build.
-                INSTALLER_VER
+                INSTALL_VER
                     This should be the same as the Spyder version.
                 REPO_PATH
                     Full path to the Spyder repository.
@@ -263,6 +278,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--artifact-name", action="store_true",
         help="Print artifact name.",
+    )
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="Clean up the build directory."
     )
     parser.add_argument(
         "--conda-lock", action="store_true",
@@ -301,13 +320,15 @@ if __name__ == "__main__":
 
     if args.artifact_name:
         print(_output_file(args.install_type))
-    elif args.version:
-        print(spy_ver)
-    elif args.images:
-        _generate_background_images(args.install_type)
+    elif args.clean:
+        _cleanup_build()
     elif args.conda_lock:
         _create_conda_lock('base', no_local=args.no_local)
         _create_conda_lock('runtime', extra_specs, args.no_local)
+    elif args.images:
+        _generate_background_images(args.install_type)
+    elif args.version:
+        print(spy_ver)
     else:
         main(
             spy_ver, extra_specs, args.install_type, args.no_local, args.debug

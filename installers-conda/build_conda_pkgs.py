@@ -67,7 +67,7 @@ class BuildCondaPkg:
     def _get_source(self):
         """Clone source and feedstock to distribution directory for building"""
         BUILD.mkdir(exist_ok=True)
-        self._build_cleanup()
+        self._cleanup_build()
 
         if self.source == HERE.parent:
             self._bld_src = self.source
@@ -96,8 +96,12 @@ class BuildCondaPkg:
             kwargs.update(branch=self.feedstock_branch)
         Repo.clone_from(self.feedstock, **kwargs)
 
-    def _build_cleanup(self):
+    def _cleanup_build(self, debug=False):
         """Remove cloned source and feedstock repositories"""
+        if debug:
+            self.logger.info("Keeping cloned source and feedstock")
+            return
+
         for src in [self._bld_src, self._fdstk_path]:
             if src.exists() and src != HERE.parent:
                 self.logger.info(f"Removing {src}...")
@@ -215,10 +219,7 @@ class BuildCondaPkg:
             ])
         finally:
             self._recipe_patched = False
-            if self.debug:
-                self.logger.info("Keeping cloned source and feedstock")
-            else:
-                self._build_cleanup()
+            self._cleanup_build(self.debug)
 
             elapse = timedelta(seconds=int(time() - t0))
             self.logger.info(f"Build time = {elapse}")
