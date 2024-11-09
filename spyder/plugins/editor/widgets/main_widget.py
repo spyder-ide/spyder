@@ -1595,6 +1595,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_open_file.connect(self.report_open_file)
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_new_file[()].connect(self.new)
+        editorstack.sig_open_last_closed.connect(self.open_last_closed)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
