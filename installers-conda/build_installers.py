@@ -30,7 +30,6 @@ from setuptools_scm import get_version
 # Local imports
 from utils import logger, SPYREPO, RESOURCES, BUILD, DIST
 
-# ---- Parse arguments
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
@@ -50,42 +49,6 @@ elif MACOS:
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
-p = ArgumentParser()
-p.add_argument(
-    "--debug", action="store_true",
-    help="Do not delete build files after building the installer."
-)
-p.add_argument(
-    "--artifact-name", action="store_true",
-    help="Print artifact name.",
-)
-p.add_argument(
-    "--extra-specs", action="extend", nargs="+", default=[],
-    help="One or more extra conda specs to add to the installer.",
-)
-p.add_argument(
-    "--no-local", action="store_true",
-    help="Do not use packages from the local conda channel."
-)
-p.add_argument(
-    "--images", action="store_true",
-    help="Generate background images.",
-)
-p.add_argument(
-    "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
-    help=f"Installer type. Default is {INSTALL_CHOICES[0]}."
-)
-p.add_argument(
-    "--conda-lock", action="store_true",
-    help="Create conda-lock files."
-)
-p.add_argument(
-    "--version", action="store_true",
-    help="Print Spyder version."
-)
-args = p.parse_args()
-
-# ---- Set module constants
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
@@ -93,16 +56,12 @@ indent4 = partial(indent, prefix="    ")
 ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 PLATFORM = (PLATFORM + ARCH).replace("x86_64", "64")
 
-BASE_LOCK_FILE = BUILD / f"conda-base-{PLATFORM}.lock"
-RT_LOCK_FILE = BUILD / f"conda-runtime-{PLATFORM}.lock"
-OUTPUT_FILE = DIST / f"Spyder-{OS}-{ARCH}.{args.install_type}"
 
-
-def _process_extra_specs():
+def _process_extra_specs(extra_specs, no_local=False):
     # Default to current scm version, possible release tag.
     specs = {"spyder": ["=", parse(get_version(SPYREPO)).public]}
 
-    if not args.no_local:
+    if not no_local:
         # Use latest local channel package versions as default
         bld_path = os.getenv("CONDA_BLD_PATH", "")
         channel_file = Path(bld_path) / "channeldata.json"
@@ -119,25 +78,21 @@ def _process_extra_specs():
             if version:
                 specs.update({pkg: ["=", version]})
 
-    for value in args.extra_specs:
+    for value in extra_specs:
         pkg, *spec = re.split("(=|>=|<=|!=)", value)
         specs.update({pkg: spec})
 
     if not specs.get("spyder"):
         raise ValueError("Spyder version must be specified.")
 
-    extra_specs = [k + "".join(s) for k, s in specs.items() if s]
+    new_extra_specs = [k + "".join(s) for k, s in specs.items() if s]
 
-    return extra_specs, specs.get("spyder")[1]
-
-
-extra_specs, spy_ver = _process_extra_specs()
+    return new_extra_specs, specs.get("spyder")[1]
 
 
-# ---- Module functions
-def _generate_background_images():
+def _generate_background_images(install_type):
     """This requires Pillow."""
-    if args.install_type == "sh":
+    if install_type == "sh":
         # shell installers are text-based, no graphics
         return
 
@@ -150,7 +105,7 @@ def _generate_background_images():
 
     BUILD.mkdir(exist_ok=True)
 
-    if args.install_type == "exe":
+    if install_type == "exe":
         sidebar = Image.new("RGBA", (164, 314), (0, 0, 0, 0))
         sidebar.paste(logo.resize((101, 101)), (32, 180))
         output = BUILD / "welcome_img_win.png"
@@ -161,7 +116,7 @@ def _generate_background_images():
         output = BUILD / "header_img_win.png"
         banner.save(output, format="png")
 
-    if args.install_type == "pkg":
+    if install_type == "pkg":
         _logo = Image.new("RGBA", logo.size, "WHITE")
         _logo.paste(logo, mask=logo)
         background = Image.new("RGBA", (1227, 600), (0, 0, 0, 0))
@@ -175,16 +130,14 @@ def _generate_background_images():
         )
 
 
-def _create_conda_lock(env_type='base'):
+def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     env_file = RESOURCES / f"{env_type}_env.yml"
 
-    lock_file = BASE_LOCK_FILE
     if env_type == "runtime":
-        lock_file = RT_LOCK_FILE
-        if extra_specs or args.no_local:
+        if extra_specs or no_local:
             rt_specs = yaml.load(env_file.read_text())
 
-            if not args.no_local:
+            if not no_local:
                 # Add local channel
                 rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH", ""))
 
@@ -193,11 +146,15 @@ def _create_conda_lock(env_type='base'):
                 rt_specs["dependencies"].extend(extra_specs)
 
             # Write to BUILD directory
+            BUILD.mkdir(exist_ok=True)
             env_file = BUILD / env_file.name
             yaml.dump(rt_specs, env_file)
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
+
+    lock_file_template = BUILD / f"conda-{env_type}-{{platform}}.lock"
+    lock_file = BUILD / f"conda-{env_type}-{PLATFORM}.lock"
 
     cmd_args = [
         "conda-lock", "lock",
@@ -205,7 +162,7 @@ def _create_conda_lock(env_type='base'):
         "--file", str(env_file),
         # Note conda-lock doesn't provide output file option, only template
         "--filename-template",
-        str(BUILD / f"conda-{env_type}-{{platform}}.lock"),
+        str(lock_file_template),
         "--platform", PLATFORM
     ]
 
@@ -216,11 +173,17 @@ def _create_conda_lock(env_type='base'):
     logger.info(f"Contents of {lock_file}:\n{lock_file.read_text()}")
 
     # Copy to dist directory
+    DIST.mkdir(exist_ok=True)
     (DIST / lock_file.name).write_text(lock_file.read_text())
 
 
-def _constructor():
+def _output_file(install_type):
+    return DIST / f"Spyder-{OS}-{ARCH}.{install_type}"
+
+
+def _constructor(install_type, spy_ver, debug=False):
     """Build installer from construct.yaml"""
+    DIST.mkdir(exist_ok=True)
 
     cmd_args = [
         "constructor",
@@ -228,7 +191,7 @@ def _constructor():
         "--platform", PLATFORM,
         str(RESOURCES)
     ]
-    if args.debug:
+    if debug:
         cmd_args.append("--debug")
 
     env = os.environ.copy()
@@ -236,7 +199,7 @@ def _constructor():
         {
             "OS": OS,
             "ARCH": ARCH,
-            "INSTALL_TYPE": args.install_type,
+            "INSTALL_TYPE": install_type,
             "INSTALL_VER": spy_ver,
             "REPO_PATH": str(SPYREPO),
         }
@@ -245,43 +208,83 @@ def _constructor():
     logger.info("Command: " + " ".join(cmd_args))
 
     run(cmd_args, check=True, env=env)
+    logger.info(f"Created {_output_file(install_type)}")
 
 
-def main():
-    _generate_background_images()
+def main(spy_ver, extra_specs, install_type, no_local, debug):
+    BUILD.mkdir(exist_ok=True)
+    DIST.mkdir(exist_ok=True)
+
+    _generate_background_images(install_type)
+
     t0 = time()
     try:
-        BUILD.mkdir(exist_ok=True)
-        DIST.mkdir(exist_ok=True)
-        _create_conda_lock(env_type='base')
-        assert BASE_LOCK_FILE.exists()
-        logger.info(f"Created {BASE_LOCK_FILE}")
-        _create_conda_lock(env_type='runtime')
-        assert RT_LOCK_FILE.exists()
-        logger.info(f"Created {RT_LOCK_FILE}")
-
+        _create_conda_lock('base', no_local=no_local)
+        _create_conda_lock('runtime', extra_specs, no_local)
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
 
     t0 = time()
     try:
-        _constructor()
-        assert OUTPUT_FILE.exists()
-        logger.info(f"Created {OUTPUT_FILE}")
+        _constructor(install_type, spy_ver, debug)
+        logger.info(f"Created {_output_file(args.install_type)}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
         logger.info(f"Build time: {elapse}")
 
 
-if args.artifact_name:
-    print(OUTPUT_FILE)
-elif args.version:
-    print(spy_ver)
-elif args.images:
-    _generate_background_images()
-elif args.conda_lock:
-    _create_conda_lock(env_type='base')
-    _create_conda_lock(env_type='runtime')
-else:
-    main()
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--artifact-name", action="store_true",
+        help="Print artifact name.",
+    )
+    parser.add_argument(
+        "--conda-lock", action="store_true",
+        help="Create conda-lock files."
+    )
+    parser.add_argument(
+        "--debug", action="store_true",
+        help="Do not delete build files after building the installer."
+    )
+    parser.add_argument(
+        "--extra-specs", action="extend", nargs="+", default=[],
+        help="One or more extra conda specs to add to the installer.",
+    )
+    parser.add_argument(
+        "--images", action="store_true",
+        help="Generate background images.",
+    )
+    parser.add_argument(
+        "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
+        help=f"Installer type. Default is {INSTALL_CHOICES[0]}."
+    )
+    parser.add_argument(
+        "--no-local", action="store_true",
+        help="Do not use packages from the local conda channel."
+    )
+    parser.add_argument(
+        "--version", action="store_true",
+        help="Print Spyder version."
+    )
+
+    args = parser.parse_args()
+
+    extra_specs, spy_ver = _process_extra_specs(
+        args.extra_specs, args.no_local
+    )
+
+    if args.artifact_name:
+        print(_output_file(args.install_type))
+    elif args.version:
+        print(spy_ver)
+    elif args.images:
+        _generate_background_images(args.install_type)
+    elif args.conda_lock:
+        _create_conda_lock('base', no_local=args.no_local)
+        _create_conda_lock('runtime', extra_specs, args.no_local)
+    else:
+        main(
+            spy_ver, extra_specs, args.install_type, args.no_local, args.debug
+        )
