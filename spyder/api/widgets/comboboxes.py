@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (
     QStyledItemDelegate,
     QStyleOptionFrame,
 )
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.utils.palette import SpyderPalette
@@ -169,6 +170,22 @@ class _SpyderComboBoxLineEdit(QLineEdit):
 class _SpyderComboBoxMixin:
     """Mixin with the basic style and functionality for our comboboxes."""
 
+    sig_item_in_popup_changed = Signal(str)
+    """
+    This signal is emitted when an item in the combobox popup (i.e. dropdown)
+    has changed.
+
+    Parameters
+    ----------
+    item: str
+        Item text
+    """
+
+    sig_popup_is_hidden = Signal()
+    """
+    This signal is emitted when the combobox popup (i.e. dropdown) is hidden.
+    """
+
     def __init__(self):
 
         # Style
@@ -179,11 +196,18 @@ class _SpyderComboBoxMixin:
         style.setParent(self)
         self.setStyle(style)
 
+        # Report when the user is hovering a new item in the dropdown
+        self.view().entered.connect(self._on_item_changed)
+
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
         # added automatically by Qt. That means the menu is not built using our
         # API and it's not localized.
         pass
+
+    @qdebounced(timeout=100)
+    def _on_item_changed(self, index):
+        self.sig_item_in_popup_changed.emit(index.data())
 
     def _generate_stylesheet(self):
         """Base stylesheet for Spyder comboboxes."""
@@ -287,6 +311,7 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
     def hidePopup(self):
         """Adjustments when the popup is hidden."""
         super().hidePopup()
+        self.sig_popup_is_hidden.emit()
 
         if not sys.platform == "darwin":
             # Make borders rounded when popup is not visible. This doesn't work
@@ -316,7 +341,11 @@ class SpyderComboBoxWithIcons(SpyderComboBox):
 class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        if PYQT5 or PYQT6:
+            super().__init__(parent)
+        else:
+            QFontComboBox.__init__(self, parent)
+            _SpyderComboBoxMixin.__init__(self)
 
         # Avoid font name eliding because it confuses users.
         # Fixes spyder-ide/spyder#22683
@@ -343,3 +372,7 @@ class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
         if sys.platform == "darwin":
             popup = self.findChild(QFrame)
             popup.move(popup.x() - 3, popup.y() + 4)
+
+    def hidePopup(self):
+        super().hidePopup()
+        self.sig_popup_is_hidden.emit()
