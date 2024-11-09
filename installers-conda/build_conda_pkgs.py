@@ -24,7 +24,6 @@ from setuptools_scm import get_version
 from utils import logger as logger, HERE, BUILD
 
 EXTDEPS = HERE.parent / "external-deps"
-SPECS = BUILD / "specs.yaml"
 REQUIREMENTS = HERE.parent / "requirements"
 REQ_MAIN = REQUIREMENTS / 'main.yml'
 REQ_WINDOWS = REQUIREMENTS / 'windows.yml'
@@ -399,17 +398,9 @@ if __name__ == "__main__":
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
 
-    if SPECS.exists():
-        specs = yaml.load(SPECS.read_text())
-    else:
-        specs = {k: "" for k in PKGS}
-
     for k in args.build:
         pkg = PKGS[k](debug=args.debug, shallow=args.shallow)
         pkg.build()
-        specs[k] = "=" + pkg.version
-
-    yaml.dump(specs, SPECS)
 
     elapse = timedelta(seconds=int(time() - t0))
     logger.info(f"Total build time = {elapse}")
