@@ -25,6 +25,7 @@ import re
 import sre_constants
 import sys
 import textwrap
+from functools import wraps
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
@@ -769,25 +770,33 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.skip_rstrip = False
 
     def for_each_cursor(self, method):
-        """
-        Wrap callable to execute for each cursor by calling setTextCursor for each"""
-        pass  # TODO write this & use to override shortcut methods?
+        """Wrap callable to execute once for each cursor"""
+        @wraps(method)
+        def wrapper(*args, **kwargs):
+            self.textCursor().beginEditBlock()
+            for cursor in self.all_cursors:
+                self.setTextCursor(cursor)
+                method(*args, **kwargs)
+            # selections will be deleted so merge direction does not matter
+            self.merge_extra_cursors(True)
+            self.textCursor().endEditBlock()
+        return wrapper
 
     def clears_extra_cursors(self, method):
         """Wrap callable to clear extra_cursors prior to calling"""
-        pass  # TODO write this & use to override shortcut methods?
+        @wraps(method)
+        def wrapper(*args, **kwargs):
+            self.clear_extra_cursors()
+            method(*args, **kwargs)
+        return wrapper
 
     def restrict_single_cursor(self, method):
-        """Wrap callable to only execute if extra_cursors is clear"""
-        def wrapped(*args, **kwargs):
-            if self.extra_cursors:
-                # Don't do completion for each cursor, as that would be too
-                #    cluttered, and no way to easily choose different
-                #    completions for each cursor. #TODO maybe do completion on
-                #    primary cursor and insert to all cursors?
-                return
-            else:  # TODO test this & use to override shortcut methods?
+        """Wrap callable to only execute if there is a single cursor"""
+        @wraps(method)
+        def wrapper(*args, **kwargs):
+            if not self.extra_cursors:
                 method(*args, **kwargs)
+        return wrapper
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
@@ -878,9 +887,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ('code completion', self.do_completion),
-            ('duplicate line down', self.duplicate_line_down),
-            ('duplicate line up', self.duplicate_line_up),
+            ('code completion', self.restrict_single_cursor(self.do_completion)),
+            ('duplicate line down', self.for_each_cursor(self.duplicate_line_down)),
+            ('duplicate line up', self.for_each_cursor(self.duplicate_line_up)),
             ('delete line', self.delete_line),
             ('move line up', self.move_line_up),
             ('move line down', self.move_line_down),
@@ -1592,29 +1601,32 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         for cursor in self.all_cursors:
             cursor.deleteChar()
         cursor.endEditBlock()
+        self.merge_extra_cursors(True)
         self.sig_delete_requested.emit()
 
     def delete_line(self):
         """Delete current line."""
-        cursor = self.textCursor()
-
-        if self.has_selected_text():
-            self.extend_selection_to_complete_lines()
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
-        else:
-            start_pos = end_pos = cursor.position()
-
-        cursor.setPosition(start_pos)
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        while cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
-            if cursor.atEnd():
-                break
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-
-        self.setTextCursor(cursor)
-        self.delete()
+        self.textCursor().beginEditBlock()
+        for cursor in self.all_cursors:
+            start = cursor.selectionStart()
+            end = cursor.selectionEnd()
+            cursor.setPosition(start,
+                               QTextCursor.MoveMode.MoveAnchor)
+            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock,
+                                QTextCursor.MoveMode.MoveAnchor)
+            cursor.setPosition(end,
+                               QTextCursor.MoveMode.KeepAnchor)
+            cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock,
+                                QTextCursor.MoveMode.KeepAnchor)
+            if not cursor.atEnd():
+                cursor.movePosition(QTextCursor.MoveOperation.NextBlock,
+                                    QTextCursor.MoveMode.KeepAnchor)
+            self.setTextCursor(cursor)
+        for cursor in self.all_cursors:
+            cursor.removeSelectedText()
+            self.setTextCursor(cursor)
+        self.textCursor().endEditBlock()
+        self.merge_extra_cursors(True)
         self.ensureCursorVisible()
 
     # ---- Scrolling
