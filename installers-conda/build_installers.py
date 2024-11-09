@@ -276,10 +276,6 @@ if __name__ == "__main__":
         formatter_class=DocFormatter
     )
     parser.add_argument(
-        "--artifact-name", action="store_true",
-        help="Print artifact name.",
-    )
-    parser.add_argument(
         "--clean", action="store_true",
         help="Clean up the build directory."
     )
@@ -296,12 +292,16 @@ if __name__ == "__main__":
         help="One or more extra conda specs to add to the installer.",
     )
     parser.add_argument(
-        "--images", action="store_true",
+        "--build-images", action="store_true",
         help="Generate background images.",
     )
     parser.add_argument(
         "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
         help=f"Installer type. Default is {INSTALL_CHOICES[0]}."
+    )
+    parser.add_argument(
+        "--installer-path", action="store_true",
+        help="Print artifact name.",
     )
     parser.add_argument(
         "--no-local", action="store_true",
@@ -318,14 +318,14 @@ if __name__ == "__main__":
         args.extra_specs, args.no_local
     )
 
-    if args.artifact_name:
+    if args.installer_path:
         print(_output_file(args.install_type))
     elif args.clean:
         _cleanup_build()
     elif args.conda_lock:
         _create_conda_lock('base', no_local=args.no_local)
         _create_conda_lock('runtime', extra_specs, args.no_local)
-    elif args.images:
+    elif args.build_images:
         _generate_background_images(args.install_type)
     elif args.version:
         print(spy_ver)
