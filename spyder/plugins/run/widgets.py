@@ -515,12 +515,26 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
                     )
                     return
 
+        # Check if params are app default ones.
+        # Fixes spyder-ide/spyder#22649
+        if self.current_params is None:
+            # The user is trying to create new params, so this is not a
+            # default.
+            is_default = False
+        else:
+            if self.current_params["default"]:
+                # Default params
+                is_default = True
+            else:
+                # User created params
+                is_default = False
+
         ext_exec_params = ExtendedRunExecutionParameters(
             uuid=uuid,
             name=name,
             params=exec_params,
             file_uuid=None,
-            default=False,
+            default=is_default,
         )
 
         self.saved_conf = (self.selected_extension, self.selected_context,
