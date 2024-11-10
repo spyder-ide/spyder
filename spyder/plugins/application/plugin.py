@@ -552,9 +552,15 @@ class Application(SpyderPluginV2):
         """
         Open the last closed file again.
 
-        For the moment, forward the request to the Editor plugin.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then open the
+        last closed file in that plugin. Otherwise, open the last closed file
+        in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.open_last_closed_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.open_last_closed()
 
