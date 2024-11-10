@@ -704,7 +704,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         for cursor in self.all_cursors:
             block = cursor.block()
             if draw_cursor and block.isVisible():
-                # TODO don't bother with preeditArea?
                 block_geometry_top = int(self.blockBoundingGeometry(block).top())
                 offset.setY(block_geometry_top + content_offset_y)
                 block.layout().drawCursor(qp, offset,
@@ -734,7 +733,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         for cursor in cursors:
             text = cursor.selectedText().replace(u"\u2029",
                                                  self.get_line_separator())
-            selections.append(text)  # TODO skip empty selections?
+            selections.append(text)
         clip_text = self.get_line_separator().join(selections)
         QApplication.clipboard().setText(clip_text)
 
@@ -757,7 +756,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         for cursor, text in zip(cursors, clip_text.splitlines()):
             self.setTextCursor(cursor)
             cursor.insertText(text)
-            # TODO handle extra lines or extra cursors?
+            # handle extra lines or extra cursors?
         self.setTextCursor(main_cursor)
         # merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
@@ -2713,8 +2712,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor = self.textCursor()
         if self.has_selected_text():
             # Remove prefix from selected line(s)
-            start_pos, end_pos = sorted([cursor.selectionStart(),
-                                         cursor.selectionEnd()])
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.setPosition(start_pos)
             if not cursor.atBlockStart():
                 cursor.movePosition(QTextCursor.StartOfBlock)
@@ -3168,8 +3166,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def toggle_comment(self):
         """Toggle comment on current line or selection"""
         cursor = self.textCursor()
-        start_pos, end_pos = sorted([cursor.selectionStart(),
-                                     cursor.selectionEnd()])
+        start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
         cursor.setPosition(end_pos)
         last_line = cursor.block().blockNumber()
         if cursor.atBlockStart() and start_pos != end_pos:
