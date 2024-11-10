@@ -175,7 +175,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         param_names: Dict[Tuple[str, str], List[str]],
         extensions: Optional[List[str]] = None,
         contexts: Optional[Dict[str, List[str]]] = None,
-        default_params: Optional[ExtendedRunExecutionParameters] = None,
+        current_params: Optional[ExtendedRunExecutionParameters] = None,
         extension: Optional[str] = None,
         context: Optional[str] = None,
         new_config: bool = False
@@ -185,7 +185,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.executor_name = executor_name
         self.executor_params = executor_params
         self.param_names = param_names
-        self.default_params = default_params
+        self.current_params = current_params
         self.extensions = extensions or []
         self.contexts = contexts or {}
         self.extension = extension
@@ -193,11 +193,11 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         self.new_config = new_config
 
         self.parameters_name = None
-        if default_params is not None:
+        if current_params is not None:
             self.parameters_name = (
                 _("Default")
-                if default_params["default"]
-                else default_params["name"]
+                if current_params["default"]
+                else current_params["name"]
             )
 
         self.current_widget = None
@@ -342,7 +342,7 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
             self.store_params_text.setText(self.parameters_name)
 
             # Don't allow to change name for default or already saved params.
-            if self.default_params["default"] or not self.new_config:
+            if self.current_params["default"] or not self.new_config:
                 self.store_params_text.setEnabled(False)
 
         # --- Stylesheet
@@ -403,8 +403,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
 
         default_params = self.current_widget.get_default_configuration()
 
-        if self.default_params:
-            params = self.default_params['params']
+        if self.current_params:
+            params = self.current_params['params']
             working_dir_params = params['working_dir']
             exec_params = params
 
@@ -490,8 +490,8 @@ class ExecutionParametersDialog(BaseRunConfigDialog):
         exec_params = RunExecutionParameters(
             working_dir=cwd_opts, executor_params=widget_conf)
 
-        if self.default_params:
-            uuid = self.default_params['uuid']
+        if self.current_params:
+            uuid = self.current_params['uuid']
         else:
             uuid = str(uuid4())
 
