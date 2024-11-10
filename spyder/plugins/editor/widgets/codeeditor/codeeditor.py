@@ -522,10 +522,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.extra_cursors = []
         self.cursor_blink_state = False
         self.cursor_blink_timer = QTimer(self)
-        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime()//2)
+        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime() // 2)
         self.cursor_blink_timer.timeout.connect(
             self._on_cursor_blinktimer_timeout
-            )
+        )
         self.focus_in.connect(self.start_cursor_blink)
         self.focus_changed.connect(self.stop_cursor_blink)
         self.painted.connect(self.paint_cursors)
@@ -573,7 +573,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             for i, cursor1 in enumerate(cursors[:-1]):
                 if cursor_was_removed:
                     break  # list will be modified, so re-start at while loop
-                for cursor2 in cursors[i+1:]:
+                for cursor2 in cursors[i + 1:]:
                     # given cursors.sort, pos1 should be <= pos2
                     pos1 = cursor1.position()
                     pos2 = cursor2.position()
@@ -632,7 +632,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     if ctrl:
                         cursor.movePosition(
                             QTextCursor.PreviousWord, move_mode
-                            )
+                        )
                     else:
                         cursor.movePosition(QTextCursor.Left, move_mode)
                 elif key == Qt.Key_Right:
@@ -691,11 +691,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
-        offset_y = offset.y()
+        content_offset_y = offset.y()
         qp.setBrushOrigin(offset)
         editable = not self.isReadOnly()
         flags = (self.textInteractionFlags() &
                  Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        draw_cursor = self.cursor_blink_state and (editable or flags)
         if self.overwrite_mode:
             font = self.textCursor().block().charFormat().font()
             cursor_width = QFontMetrics(font).horizontalAdvance(" ")
@@ -703,12 +704,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor_width = self.cursor_width
         for cursor in self.all_cursors:
             block = cursor.block()
-            if (self.cursor_blink_state and
-                    (editable or flags) and
-                    block.isVisible()):
+            if draw_cursor and block.isVisible():
                 # TODO don't bother with preeditArea?
-                offset.setY(int(self.blockBoundingGeometry(block).top() +
-                                offset_y))
+                block_geometry_top = int(self.blockBoundingGeometry(block).top())
+                offset.setY(block_geometry_top + content_offset_y)
                 block.layout().drawCursor(qp, offset,
                                           cursor.positionInBlock(),
                                           cursor_width)
@@ -3708,7 +3707,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Go to definition'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)  # BUG: causes bool to be passed to go_to_definition_from_cursor somehow
+            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)
         )
         self.inspect_current_object_action = self.create_action(
             CodeEditorActions.InspectCurrentObject,
@@ -3716,7 +3715,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('MessageBoxInformation'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.sig_show_object_info
+            triggered=self.sig_show_object_info  # TODO multi-cursor how to consider?
         )
 
         # Run actions
@@ -3768,7 +3767,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Generate docstring'),
             register_shortcut=True,
             register_action=False,
-            triggered=writer.write_docstring_at_first_line_of_function
+            triggered=writer.write_docstring_at_first_line_of_function  # TODO multi-cursor how to consider?
         )
 
         # Document formatting
@@ -3784,7 +3783,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon("transparent"),
             register_shortcut=True,
             register_action=False,
-            triggered=self.format_document_or_range
+            triggered=self.format_document_or_range  # TODO multi-cursor how to consider?
         )
         self.format_action.setEnabled(False)
 
