@@ -16,6 +16,7 @@ Editor widget based on QtGui.QPlainTextEdit
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+
 # Standard library imports
 from unicodedata import category
 import logging
@@ -776,11 +777,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             new_cursors = []
             for cursor in self.all_cursors:
                 self.setTextCursor(cursor)
+                # may call setTtextCursor with modified copy
                 method(*args, **kwargs)
+                # get modified cursor to re-add to extra_cursors
                 new_cursors.append(self.textCursor())
 
-            # clear and re-add extra cursors to account for method operating
-            #   on a copy of the cursor
+            # re-add extra cursors
             self.clear_extra_cursors()
             self.setTextCursor(new_cursors[-1])
             for cursor in new_cursors[:-1]:
@@ -885,10 +887,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def create_cursor_callback(self, attr):
         """Make a callback for cursor move event type, (e.g. "Start")"""
         def cursor_move_event():
+            cursor = self.textCursor()
             move_type = getattr(QTextCursor, attr)
-            for cursor in self.all_cursors:
-                cursor.movePosition(move_type)
-                self.setTextCursor(cursor)
+            cursor.movePosition(move_type)
+            self.setTextCursor(cursor)
         return cursor_move_event
 
     def register_shortcuts(self):
@@ -898,47 +900,47 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('duplicate line down', self.for_each_cursor(self.duplicate_line_down)),
             ('duplicate line up', self.for_each_cursor(self.duplicate_line_up)),
             ('delete line', self.delete_line),
-            ('move line up', self.move_line_up),
-            ('move line down', self.move_line_down),
+            ('move line up', self.move_line_up),  # TODO multi-cursor
+            ('move line down', self.move_line_down),  # TODO multi-cursor
             ('go to new line', self.for_each_cursor(self.go_to_new_line)),
             ('go to definition', self.clears_extra_cursors(self.go_to_definition_from_cursor)),
-            ('toggle comment', self.toggle_comment),
-            ('blockcomment', self.blockcomment),
-            ('create_new_cell', self.create_new_cell),
-            ('unblockcomment', self.unblockcomment),
-            ('transform to uppercase', self.transform_to_uppercase),
-            ('transform to lowercase', self.transform_to_lowercase),
-            ('indent', lambda: self.indent(force=True)),
-            ('unindent', lambda: self.unindent(force=True)),
-            ('start of line', self.create_cursor_callback('StartOfLine')),
-            ('end of line', self.create_cursor_callback('EndOfLine')),
-            ('previous line', self.create_cursor_callback('Up')),
-            ('next line', self.create_cursor_callback('Down')),
-            ('previous char', self.create_cursor_callback('Left')),
-            ('next char', self.create_cursor_callback('Right')),
-            ('previous word', self.create_cursor_callback('PreviousWord')),
-            ('next word', self.create_cursor_callback('NextWord')),
-            ('kill to line end', self.kill_line_end),
-            ('kill to line start', self.kill_line_start),
-            ('yank', self._kill_ring.yank),
-            ('rotate kill ring', self._kill_ring.rotate),
-            ('kill previous word', self.kill_prev_word),
-            ('kill next word', self.kill_next_word),
-            ('start of document', self.create_cursor_callback('Start')),
-            ('end of document', self.create_cursor_callback('End')),
-            ('undo', self.undo),
-            ('redo', self.redo),
+            ('toggle comment', self.toggle_comment),  # TODO multi-cursor
+            ('blockcomment', self.blockcomment),  # TODO multi-cursor
+            ('create_new_cell', self.for_each_cursor(self.create_new_cell)),
+            ('unblockcomment', self.unblockcomment),  # TODO multi-cursor
+            ('transform to uppercase', self.transform_to_uppercase),  # TODO multi-cursor
+            ('transform to lowercase', self.transform_to_lowercase),  # TODO multi-cursor
+            ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
+            ('unindent', self.for_each_cursor(lambda: self.unindent(force=True))),
+            ('start of line', self.for_each_cursor(self.create_cursor_callback('StartOfLine'))),
+            ('end of line', self.for_each_cursor(self.create_cursor_callback('EndOfLine'))),
+            ('previous line', self.for_each_cursor(self.create_cursor_callback('Up'))),
+            ('next line', self.for_each_cursor(self.create_cursor_callback('Down'))),
+            ('previous char', self.for_each_cursor(self.create_cursor_callback('Left'))),
+            ('next char', self.for_each_cursor(self.create_cursor_callback('Right'))),
+            ('previous word', self.for_each_cursor(self.create_cursor_callback('PreviousWord'))),
+            ('next word', self.for_each_cursor(self.create_cursor_callback('NextWord'))),
+            ('kill to line end', self.kill_line_end),  # TODO multi-cursor
+            ('kill to line start', self.kill_line_start),  # TODO multi-cursor
+            ('yank', self._kill_ring.yank),  # TODO multi-cursor
+            ('rotate kill ring', self._kill_ring.rotate),  # TODO multi-cursor
+            ('kill previous word', self.kill_prev_word),  # TODO multi-cursor
+            ('kill next word', self.kill_next_word),  # TODO multi-cursor
+            ('start of document', self.for_each_cursor(self.create_cursor_callback('Start'))),
+            ('end of document', self.for_each_cursor(self.create_cursor_callback('End'))),
+            ('undo', self.undo),  # TODO multi-cursor (cursor positions)
+            ('redo', self.redo),  # TODO multi-cursor (cursor positions)
             ('cut', self.cut),
             ('copy', self.copy),
             ('paste', self.paste),
             ('delete', self.delete),
-            ('select all', self.selectAll),
-            ('docstring', self.writer_docstring.write_docstring_for_shortcut),
-            ('autoformatting', self.format_document_or_range),
-            ('scroll line down', self.scroll_line_down),
-            ('scroll line up', self.scroll_line_up),
-            ('enter array inline', self.enter_array_inline),
-            ('enter array table', self.enter_array_table),
+            ('select all', self.clears_extra_cursors(self.selectAll)),
+            ('docstring', self.writer_docstring.write_docstring_for_shortcut),  # TODO multi-cursor
+            ('autoformatting', self.format_document_or_range),  # TODO multi-cursor
+            ('scroll line down', self.scroll_line_down),  # TODO multi-cursor?
+            ('scroll line up', self.scroll_line_up),  # TODO multi-cursor?
+            ('enter array inline', self.enter_array_inline),  # TODO multi-cursor
+            ('enter array table', self.enter_array_table),  # TODO multi-cursor
         )
 
         for name, callback in shortcuts:
@@ -2294,12 +2296,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.is_redoing = False
             self.skip_rstrip = False
 
-    @Slot()
-    def selectAll(self):
-        """overrides Qt selectAll method to ensure we clear extra cursors"""
-        self.clear_extra_cursors()
-        super().selectAll()
-
     # ---- High-level editor features
     # -------------------------------------------------------------------------
     @Slot()
@@ -2322,6 +2318,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Execute the GoToLineDialog dialog box"""
         dlg = GoToLineDialog(self)
         if dlg.exec_():
+            self.clear_extra_cursors()
             self.go_to_line(dlg.get_line_number())
 
     def hide_tooltip(self):
