@@ -772,13 +772,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def for_each_cursor(self, method):
         """Wrap callable to execute once for each cursor"""
         @wraps(method)
-        def wrapper(*args, **kwargs):
+        def wrapper():
             self.textCursor().beginEditBlock()
             new_cursors = []
             for cursor in self.all_cursors:
                 self.setTextCursor(cursor)
                 # may call setTtextCursor with modified copy
-                method(*args, **kwargs)
+                method()
                 # get modified cursor to re-add to extra_cursors
                 new_cursors.append(self.textCursor())
 
@@ -794,17 +794,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def clears_extra_cursors(self, method):
         """Wrap callable to clear extra_cursors prior to calling"""
         @wraps(method)
-        def wrapper(*args, **kwargs):
+        def wrapper():
             self.clear_extra_cursors()
-            method(*args, **kwargs)
+            method()
         return wrapper
 
     def restrict_single_cursor(self, method):
         """Wrap callable to only execute if there is a single cursor"""
         @wraps(method)
-        def wrapper(*args, **kwargs):
+        def wrapper():
             if not self.extra_cursors:
-                method(*args, **kwargs)
+                method()
         return wrapper
 
     # ---- Hover/Hints
@@ -3639,7 +3639,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('undo'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.undo,
+            triggered=self.undo,  # TODO multi-cursor position history
         )
         self.redo_action = self.create_action(
             CodeEditorActions.Redo,
@@ -3647,7 +3647,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('redo'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.redo
+            triggered=self.redo  # TODO multi-cursor position history
         )
         self.cut_action = self.create_action(
             CodeEditorActions.Cut,
@@ -3679,7 +3679,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('selectall'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.selectAll
+            triggered=self.clears_extra_cursors(self.selectAll)
         )
         toggle_comment_action = self.create_action(
             CodeEditorActions.ToggleComment,
@@ -3694,21 +3694,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Clear all ouput'),
             icon=self.create_icon('ipython_console'),
             register_action=False,
-            triggered=self.clear_all_output
+            triggered=self.clear_all_output  # TODO multi-cursor how to consider?
         )
         self.ipynb_convert_action = self.create_action(
             CodeEditorActions.ConvertToPython,
             text=_('Convert to Python file'),
             icon=self.create_icon('python'),
             register_action=False,
-            triggered=self.convert_notebook
+            triggered=self.convert_notebook  # TODO multi-cursor how to consider?
         )
         self.gotodef_action = self.create_action(
             CodeEditorActions.GoToDefinition,
             text=_('Go to definition'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)
+            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)  # BUG: causes bool to be passed to go_to_definition_from_cursor somehow
         )
         self.inspect_current_object_action = self.create_action(
             CodeEditorActions.InspectCurrentObject,
@@ -4702,7 +4702,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.setTextCursor(self.cursorForPosition(pos))
             self.add_cursor(old_cursor)
         else:
-            self.clear_extra_cursors()
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.clear_extra_cursors()
             if event.button() == Qt.LeftButton and ctrl:
                 TextEditBaseWidget.mousePressEvent(self, event)
                 cursor = self.cursorForPosition(pos)
