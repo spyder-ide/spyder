@@ -567,7 +567,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             cursors = self.all_cursors
             main_cursor = self.all_cursors[-1]
-            cursors.sort(key= lambda cursor: cursor.position())
+            cursors.sort(key=lambda cursor: cursor.position())
 
             for i, cursor1 in enumerate(cursors[:-1]):
                 if cursor_was_removed:
@@ -607,15 +607,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.extra_cursors:
             event.accept()
             key = event.key()
-            text = event.text()  # TODO needed for any key handling?
             shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
-            move_mode = QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
+            if shift:
+                move_mode = QTextCursor.KeepAnchor
+            else:
+                move_mode = QTextCursor.MoveAnchor
             # Will cursors have increased or decreased in position?
-            increasing_direction = True
-            # Some operations should only be 1 per row even if there's multiple
-            #   cursors on that row (smart indent/unindent?)
-            handled_rows = []  # TODO needed for any key handling?
+            increasing_direction = True  # used to merge multi-selections
 
             self.textCursor().beginEditBlock()
             for cursor in self.all_cursors:
@@ -774,10 +773,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         @wraps(method)
         def wrapper(*args, **kwargs):
             self.textCursor().beginEditBlock()
+            new_cursors = []
             for cursor in self.all_cursors:
                 self.setTextCursor(cursor)
                 method(*args, **kwargs)
-            # selections will be deleted so merge direction does not matter
+                new_cursors.append(self.textCursor())
+
+            # clear and re-add extra cursors to account for method operating
+            #   on a copy of the cursor
+            self.clear_extra_cursors()
+            self.setTextCursor(new_cursors[-1])
+            for cursor in new_cursors[:-1]:
+                self.add_cursor(cursor)
             self.merge_extra_cursors(True)
             self.textCursor().endEditBlock()
         return wrapper
@@ -893,8 +900,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('delete line', self.delete_line),
             ('move line up', self.move_line_up),
             ('move line down', self.move_line_down),
-            ('go to new line', self.go_to_new_line),
-            ('go to definition', self.go_to_definition_from_cursor),
+            ('go to new line', self.for_each_cursor(self.go_to_new_line)),
+            ('go to definition', self.clears_extra_cursors(self.go_to_definition_from_cursor)),
             ('toggle comment', self.toggle_comment),
             ('blockcomment', self.blockcomment),
             ('create_new_cell', self.create_new_cell),
@@ -3704,7 +3711,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Go to definition'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.go_to_definition_from_cursor
+            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)
         )
         self.inspect_current_object_action = self.create_action(
             CodeEditorActions.InspectCurrentObject,
