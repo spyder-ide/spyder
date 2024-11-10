@@ -82,4 +82,4 @@ dependencies:
 # Required for desktop view on mybinder.org
 - websockify
 - pip:
-  - jupyter-desktop-server
+  - jupyter-remote-desktop-proxy

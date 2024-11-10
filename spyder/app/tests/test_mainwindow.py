@@ -37,7 +37,7 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import QPoint, Qt, QTimer
+from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -2789,14 +2789,13 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 
     application_plugin = main_window.application
     MockQDesktopServices = Mock()
-    mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
     application_plugin.trouble_action.trigger()
-    assert MockQDesktopServices.openUrl.call_count == 1
-    mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
+    MockQDesktopServices.openUrl.assert_called_once_with(
+        QUrl(__trouble_url__))
 
 
 @flaky(max_runs=3)
@@ -3622,37 +3621,37 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Rename one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.rename_item(new_name='arr2')
 
     # Wait until all objects have updated in the variable explorer
     def data(cm, i, j):
         return cm.data(cm.index(i, j))
-    qtbot.waitUntil(lambda: data(nsb.editor.model, 1, 0) == 'arr2',
+    qtbot.waitUntil(lambda: data(nsb.editor.model(), 1, 0) == 'arr2',
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr2'
-    assert data(nsb.editor.model, 2, 0) == 'li'
-    assert data(nsb.editor.model, 3, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr2'
+    assert data(nsb.editor.model(), 2, 0) == 'li'
+    assert data(nsb.editor.model(), 3, 0) == 's'
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 5,
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr'
-    assert data(nsb.editor.model, 2, 0) == 'arr2'
-    assert data(nsb.editor.model, 3, 0) == 'li'
-    assert data(nsb.editor.model, 4, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr'
+    assert data(nsb.editor.model(), 2, 0) == 'arr2'
+    assert data(nsb.editor.model(), 3, 0) == 'li'
+    assert data(nsb.editor.model(), 4, 0) == 's'
 
 
 @flaky(max_runs=3)
@@ -3689,23 +3688,23 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Remove one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.remove_item(force=True)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 3,
                     timeout=EVAL_TIMEOUT)
 
     def data(cm, i, j):
         assert cm.rowCount() == 3
         return cm.data(cm.index(i, j))
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'li'
-    assert data(nsb.editor.model, 2, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'li'
+    assert data(nsb.editor.model(), 2, 0) == 's'
 
 
 @flaky(max_runs=3)

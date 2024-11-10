@@ -714,9 +714,9 @@ def test_docstring_comments(editor_auto_docstring, text, expected):
     editor = editor_auto_docstring
     editor.set_text(text)
 
+    # position cursor somewhere inside the `def` statement
     cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.NextBlock)
-    cursor.setPosition(QTextCursor.End, QTextCursor.MoveAnchor)
+    cursor.setPosition(11, QTextCursor.MoveAnchor)
     editor.setTextCursor(cursor)
 
     editor.writer_docstring.write_docstring_for_shortcut()
