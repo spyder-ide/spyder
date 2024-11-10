@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-10-28 21:26\n"
+"PO-Revision-Date: 2024-11-10 18:55\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1824,7 +1824,7 @@ msgstr "Изменить выбранную точку останова"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:143
 msgid "Debugging is not active"
-msgstr ""
+msgstr "Отладка не активна"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:144
 msgid "Start a debugging session with the ⏯ button, allowing you to step through your code and see the functions here that Python has run."
@@ -1976,7 +1976,7 @@ msgstr "Отображение"
 
 #: spyder/plugins/editor/confpage.py:127
 msgid "Other"
-msgstr ""
+msgstr "Другое"
 
 #: spyder/plugins/editor/confpage.py:135
 msgid "Automatic insertion of parentheses, braces and brackets"
@@ -2097,7 +2097,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Templates"
-msgstr ""
+msgstr "Шаблоны"
 
 #: spyder/plugins/editor/confpage.py:249
 msgid "Edit template for new files"
@@ -2481,7 +2481,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1762 spyder/widgets/collectionseditor.py:774
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1763 spyder/plugins/editor/widgets/recover.py:186
 msgid "Discard"
@@ -2489,11 +2489,11 @@ msgstr "Отклонить"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1768
 msgid "Save all"
-msgstr ""
+msgstr "Сохранить все"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1770
 msgid "Discard all"
-msgstr ""
+msgstr "Отменить все"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:1902 spyder/plugins/editor/widgets/editorstack/editorstack.py:2093 spyder/plugins/explorer/widgets/utils.py:63
 msgid "Save Error"
@@ -3039,7 +3039,7 @@ msgstr "Переместить..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:492
 msgid "Show in folder"
-msgstr ""
+msgstr "Показать в папке"
 
 #: spyder/plugins/explorer/widgets/explorer.py:512
 msgid "Browse Git repository"
@@ -3407,7 +3407,7 @@ msgstr "Проект"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:65
 msgid "Current file"
-msgstr ""
+msgstr "Текущий файл"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:69
 msgid "Select another directory"
@@ -3837,7 +3837,7 @@ msgstr "4 по умолчанию"
 
 #: spyder/plugins/ipythonconsole/confpage.py:175
 msgid "Font size:"
-msgstr ""
+msgstr "Размер шрифта:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
 msgid "points"
@@ -3845,7 +3845,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:181
 msgid "Default is 10"
-msgstr ""
+msgstr "По умолчанию 10"
 
 #: spyder/plugins/ipythonconsole/confpage.py:184
 msgid "Bottom edge:"
@@ -4192,7 +4192,7 @@ msgstr "Показать содержимое sys.path"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:522
 msgid "Copy (raw text)"
-msgstr ""
+msgstr "Копировать (чистый текст)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:536 spyder/widgets/browser.py:147
 msgid "Select all"
@@ -4208,11 +4208,11 @@ msgstr "Введите встроенный массив"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:566
 msgid "Save as html..."
-msgstr ""
+msgstr "Сохранить как html..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:573
 msgid "Print..."
-msgstr ""
+msgstr "Печать..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:580
 msgid "Clear line or block"
@@ -4228,15 +4228,15 @@ msgstr "Копировать изображение"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:602
 msgid "Save image as..."
-msgstr ""
+msgstr "Сохранить изображение как..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:608
 msgid "Copy SVG"
-msgstr ""
+msgstr "Копировать SVG"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:614
 msgid "Save SVG as..."
-msgstr ""
+msgstr "Сохранить SVG как..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:626
 msgid "New special console"
@@ -5114,7 +5114,7 @@ msgstr "рекурсия"
 
 #: spyder/plugins/profiler/widgets/run_conf.py:34
 msgid "File settings"
-msgstr ""
+msgstr "Настройки файла"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5494,7 +5494,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:261
 msgid "Password"
-msgstr ""
+msgstr "Пароль"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:262
 msgid "Key file"
@@ -5778,11 +5778,11 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
-msgstr ""
+msgstr "Сброс"
 
 #: spyder/plugins/run/widgets.py:212
 msgid "Save configuration as:"
-msgstr ""
+msgstr "Сохранить конфигурацию как:"
 
 #: spyder/plugins/run/widgets.py:214
 msgid "Configuration name:"
@@ -5790,7 +5790,7 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:245
 msgid "File extension:"
-msgstr ""
+msgstr "Расширение файла:"
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
