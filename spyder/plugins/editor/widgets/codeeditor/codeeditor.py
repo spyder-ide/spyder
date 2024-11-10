@@ -16,7 +16,6 @@ Editor widget based on QtGui.QPlainTextEdit
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-
 # Standard library imports
 from unicodedata import category
 import logging
@@ -535,7 +534,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Add this cursor to the list of extra cursors"""
         self.extra_cursors.append(cursor)
         self.merge_extra_cursors(True)
-        self.set_extra_cursor_selections()
 
     def set_extra_cursor_selections(self):
         selections = []
@@ -556,6 +554,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     @property
     def all_cursors(self):
+        """Return list of all extra_cursors (if any) plus the primary cursor"""
         return self.extra_cursors + [self.textCursor()]
 
     def merge_extra_cursors(self, increasing_position):
@@ -567,7 +566,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor_was_removed = False
 
             cursors = self.all_cursors
-            main_cursor = self.all_cursors[-1]
+            main_cursor = cursors[-1]
             cursors.sort(key=lambda cursor: cursor.position())
 
             for i, cursor1 in enumerate(cursors[:-1]):
@@ -605,6 +604,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
+        """Re-Implement keyEvent handler for multi-cursor"""
         if self.extra_cursors:
             event.accept()
             key = event.key()
@@ -673,7 +673,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 else:
                     self._handle_keypress_event(event)
             self.merge_extra_cursors(increasing_direction)
-            self.set_extra_cursor_selections()
             cursor.endEditBlock()
             self.setTextCursor(cursor)  # last cursor from for loop is primary
 
@@ -746,7 +745,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor.removeSelectedText()
         # merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
-        self.set_extra_cursor_selections()
         self.textCursor().endEditBlock()
 
     def multi_cursor_paste(self, clip_text):
@@ -763,7 +761,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.setTextCursor(main_cursor)
         # merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
-        self.set_extra_cursor_selections()
         main_cursor.endEditBlock()
         self.sig_text_was_inserted.emit()
         self.skip_rstrip = False
