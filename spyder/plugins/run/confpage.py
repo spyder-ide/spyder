@@ -507,4 +507,8 @@ class RunConfigPage(PluginConfigPage):
 
         self._params_to_delete = {}
 
+        # This is necessary to prevent giving focus to the executor combobox,
+        # which is odd.
+        self.setFocus()
+
         return {'parameters'}
