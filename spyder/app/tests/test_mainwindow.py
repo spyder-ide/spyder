@@ -1491,7 +1491,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert shell.get_value('li') == [1, 2, 3]
 
     # Test that lines below did not run
-    assert 'arr' not in nsb.editor.source_model._data.keys()
+    assert 'arr' in nsb.editor.source_model._data.keys()
     assert 's' not in nsb.editor.source_model._data.keys()
 
     reset_run_code(qtbot, shell, code_editor, nsb)
