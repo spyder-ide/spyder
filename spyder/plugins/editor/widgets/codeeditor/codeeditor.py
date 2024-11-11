@@ -1601,36 +1601,44 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
+        
         self.textCursor().beginEditBlock()
-        for cursor in self.all_cursors:
-            cursor.deleteChar()
-        cursor.endEditBlock()
-        self.merge_extra_cursors(True)
         self.sig_delete_requested.emit()
+        for cursor in self.all_cursors:
+            self.setTextCursor(cursor)
+            if not self.has_selected_text():
+                if not cursor.atEnd():
+                    cursor.setPosition(
+                        self.next_cursor_position(), QTextCursor.KeepAnchor
+                    )
+                self.setTextCursor(cursor)
+    
+            self.remove_selected_text()
+            self.setTextCursor(cursor)
+        self.textCursor().endEditBlock()
 
     def delete_line(self):
         """Delete current line."""
-        self.textCursor().beginEditBlock()
+        cursor = self.textCursor()
         for cursor in self.all_cursors:
-            start = cursor.selectionStart()
-            end = cursor.selectionEnd()
-            cursor.setPosition(start,
-                               QTextCursor.MoveMode.MoveAnchor)
-            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock,
-                                QTextCursor.MoveMode.MoveAnchor)
-            cursor.setPosition(end,
-                               QTextCursor.MoveMode.KeepAnchor)
-            cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock,
-                                QTextCursor.MoveMode.KeepAnchor)
-            if not cursor.atEnd():
-                cursor.movePosition(QTextCursor.MoveOperation.NextBlock,
-                                    QTextCursor.MoveMode.KeepAnchor)
-            self.setTextCursor(cursor)
-        for cursor in self.all_cursors:
-            cursor.removeSelectedText()
-            self.setTextCursor(cursor)
-        self.textCursor().endEditBlock()
-        self.merge_extra_cursors(True)
+
+            if self.has_selected_text():
+                self.extend_selection_to_complete_lines()
+                start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+                cursor.setPosition(start_pos)
+            else:
+                start_pos = end_pos = cursor.position()
+
+            cursor.setPosition(start_pos)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            while cursor.position() <= end_pos:
+                cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+                if cursor.atEnd():
+                    break
+                cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+
+        self.setTextCursor(cursor)
+        self.delete()
         self.ensureCursorVisible()
 
     # ---- Scrolling
