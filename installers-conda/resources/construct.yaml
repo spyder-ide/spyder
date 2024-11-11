@@ -9,6 +9,8 @@
 {% set CERT_ID = environ["CERT_ID"] %}  # [osx]
 {% set WIN_SIGN_CERT = environ["WIN_SIGN_CERT"] %}
 
+# ---- Installer parameters
+
 name: Spyder
 company: Spyder-IDE
 reverse_domain_identifier: org.spyder-ide.Spyder
@@ -26,7 +28,19 @@ header_image: {{ BUILD_PATH }}header_img_win.png  # [win]
 icon_image: {{ environ["REPO_PATH"] }}\img_src\spyder.ico  # [win]
 check_path_length: false  # [win]
 
+conclusion_text: ''  # [osx]
+readme_text: ''  # [osx]
+pkg_name: spyder-6  # [osx]
+default_location_pkg: Library  # [osx]
+welcome_image: {{ BUILD_PATH }}welcome_img_mac.png  # [osx]
+welcome_file: {{ BUILD_PATH }}osx_pkg_welcome.rtf  # [osx]
 progress_notifications: true  # [osx]
+
+signing_identity_name: {{ CERT_ID }}  # [osx]
+notarization_identity_name: {{ CERT_ID }}  # [osx]
+signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
+
+# ---- Payload parameters
 
 default_prefix: $HOME/.local/spyder-6  # [linux or osx]
 default_prefix: '%LOCALAPPDATA%/spyder-6'  # [win]
@@ -38,17 +52,6 @@ pre_install: {{ RESOURCE_PATH }}pre-install.bat  # [win]
 
 post_install: {{ RESOURCE_PATH }}post-install.sh  # [linux or osx]
 post_install: {{ RESOURCE_PATH }}post-install.bat  # [win]
-
-conclusion_text: ''  # [osx]
-readme_text: ''  # [osx]
-pkg_name: spyder-6  # [osx]
-default_location_pkg: Library  # [osx]
-welcome_image: {{ BUILD_PATH }}welcome_img_mac.png  # [osx]
-welcome_file: {{ BUILD_PATH }}osx_pkg_welcome.rtf  # [osx]
-
-signing_identity_name: {{ CERT_ID }}  # [osx]
-notarization_identity_name: {{ CERT_ID }}  # [osx]
-signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
 
 extra_files:
   - {{ RESOURCE_PATH }}bundle_readme.md: README.txt
