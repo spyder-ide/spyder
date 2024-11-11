@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-11-10 20:52\n"
+"PO-Revision-Date: 2024-11-11 09:29\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -443,7 +443,7 @@ msgstr ""
 
 #: spyder/dependencies.py:256
 msgid "Determine package versions"
-msgstr ""
+msgstr "Определить версию пакета"
 
 #: spyder/dependencies.py:260
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -816,7 +816,7 @@ msgstr "Обеспечение основных действий приложе�
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "О Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -2405,7 +2405,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:247 spyder/plugins/explorer/widgets/explorer.py:483
 msgid "Copy relative path"
-msgstr ""
+msgstr "Копировать относительный путь"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:254
 msgid "Close all to the right"
