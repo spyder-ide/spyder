@@ -25,7 +25,7 @@ import re
 import sre_constants
 import sys
 import textwrap
-from functools import wraps
+import functools
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
@@ -611,9 +611,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
             if shift:
-                move_mode = QTextCursor.KeepAnchor
+                move_mode = QTextCursor.MoveMode.KeepAnchor
             else:
-                move_mode = QTextCursor.MoveAnchor
+                move_mode = QTextCursor.MoveMode.MoveAnchor
             # Will cursors have increased or decreased in position?
             increasing_direction = True  # used to merge multi-selections
 
@@ -623,28 +623,40 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.setTextCursor(cursor)
                 # ---- handle arrow keys
                 if key == Qt.Key_Up:
-                    cursor.movePosition(QTextCursor.Up, move_mode)
+                    cursor.movePosition(
+                        QTextCursor.MoveOperation.Up, move_mode
+                    )
                     increasing_direction = False
                 elif key == Qt.Key_Down:
-                    cursor.movePosition(QTextCursor.Down, move_mode)
+                    cursor.movePosition(
+                        QTextCursor.MoveOperation.Down, move_mode
+                    )
                 elif key == Qt.Key_Left:
                     increasing_direction = False
                     if ctrl:
                         cursor.movePosition(
-                            QTextCursor.PreviousWord, move_mode
+                            QTextCursor.MoveOperation.PreviousWord, move_mode
                         )
                     else:
-                        cursor.movePosition(QTextCursor.Left, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.Left, move_mode
+                        )
                 elif key == Qt.Key_Right:
                     if ctrl:
-                        cursor.movePosition(QTextCursor.NextWord, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.NextWord, move_mode
+                        )
                     else:
-                        cursor.movePosition(QTextCursor.Right, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.Right, move_mode
+                        )
                 # ---- handle Home, End
                 elif key == Qt.Key_Home:
                     increasing_direction = False
                     if ctrl:
-                        cursor.movePosition(QTextCursor.Start, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.Start, move_mode
+                        )
                     else:
                         block_pos = cursor.block().position()
                         line = cursor.block().text()
@@ -655,9 +667,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                             cursor.setPosition(block_pos, move_mode)
                 elif key == Qt.Key_End:
                     if ctrl:
-                        cursor.movePosition(QTextCursor.End, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.End, move_mode
+                        )
                     else:
-                        cursor.movePosition(QTextCursor.EndOfBlock, move_mode)
+                        cursor.movePosition(
+                            QTextCursor.MoveOperation.EndOfBlock, move_mode
+                        )
                 # ---- handle Tab
                 elif key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                     # Don't do intelligent tab with multi-cursor to skip
@@ -672,6 +688,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 # ---- use default handler for cursor (text)
                 else:
                     self._handle_keypress_event(event)
+                self.setTextCursor(cursor)
             self.merge_extra_cursors(increasing_direction)
             cursor.endEditBlock()
             self.setTextCursor(cursor)  # last cursor from for loop is primary
@@ -766,7 +783,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def for_each_cursor(self, method):
         """Wrap callable to execute once for each cursor"""
-        @wraps(method)
+        @functools.wraps(method)
         def wrapper():
             self.textCursor().beginEditBlock()
             new_cursors = []
@@ -788,7 +805,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def clears_extra_cursors(self, method):
         """Wrap callable to clear extra_cursors prior to calling"""
-        @wraps(method)
+        @functools.wraps(method)
         def wrapper():
             self.clear_extra_cursors()
             method()
@@ -796,7 +813,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def restrict_single_cursor(self, method):
         """Wrap callable to only execute if there is a single cursor"""
-        @wraps(method)
+        @functools.wraps(method)
         def wrapper():
             if not self.extra_cursors:
                 method()
