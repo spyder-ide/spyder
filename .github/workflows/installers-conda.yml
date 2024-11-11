@@ -290,8 +290,6 @@ jobs:
 
       - name: Build Package Installer
         run: |
-          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
-
           python build_installers.py
 
           SPYVER=$(python build_installers.py --version)

@@ -202,6 +202,7 @@ def _constructor(install_type, spy_ver, debug=False):
             "INSTALL_TYPE": install_type,
             "INSTALL_VER": spy_ver,
             "REPO_PATH": str(SPYREPO),
+            "CONDA_SHORTCUTS": "false", # Don't create shortcuts while building
         }
     )
 
