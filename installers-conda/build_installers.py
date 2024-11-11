@@ -133,22 +133,21 @@ def _generate_background_images(install_type):
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     env_file = RESOURCES / f"{env_type}_env.yml"
 
-    if env_type == "runtime":
-        if extra_specs or no_local:
-            rt_specs = yaml.load(env_file.read_text())
+    if env_type == "runtime" and (extra_specs or not no_local):
+        rt_specs = yaml.load(env_file.read_text())
 
-            if not no_local and os.getenv("CONDA_BLD_PATH"):
-                # Add local channel
-                rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH"))
+        if not no_local and os.getenv("CONDA_BLD_PATH"):
+            # Add local channel
+            rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH"))
 
-            if extra_specs:
-                # Update runtime environment dependencies
-                rt_specs["dependencies"].extend(extra_specs)
+        if extra_specs:
+            # Update runtime environment dependencies
+            rt_specs["dependencies"].extend(extra_specs)
 
-            # Write to BUILD directory
-            BUILD.mkdir(exist_ok=True)
-            env_file = BUILD / env_file.name
-            yaml.dump(rt_specs, env_file)
+        # Write to BUILD directory
+        BUILD.mkdir(exist_ok=True)
+        env_file = BUILD / env_file.name
+        yaml.dump(rt_specs, env_file)
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
