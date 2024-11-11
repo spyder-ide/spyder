@@ -3092,14 +3092,9 @@ class EditorMainWidget(PluginMainWidget):
         return run_conf
 
     def get_run_configuration_per_context(
-        self, context, extra_action_name, context_modificator,
-        re_run=False
+        self, context, extra_action_name, context_modificator, re_run=False
     ) -> Optional[RunConfiguration]:
-        # TODO: Should be moved over the plugin?
         editorstack = self.get_current_editorstack()
-        if self.get_conf('save_all_before_run', section="run"):
-            editorstack.save_all(save_new_files=False)
-
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
         fname_ext = filename_ext[1:]
