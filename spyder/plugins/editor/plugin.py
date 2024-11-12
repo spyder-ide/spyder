@@ -391,18 +391,6 @@ class Editor(SpyderDockablePlugin):
                     before_section=FileMenuSections.Restart
                 )
 
-        # Open section
-        open_actions = [
-            widget.recent_file_menu,
-        ]
-        for open_action in open_actions:
-            mainmenu.add_item_to_application_menu(
-                open_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Open,
-                before_section=FileMenuSections.Save
-            )
-
         # Save section
         save_actions = [
             widget.save_action,
@@ -561,16 +549,6 @@ class Editor(SpyderDockablePlugin):
                     tab_navigation_action,
                     menu_id=ApplicationMenus.File
                 )
-
-        # Open section
-        open_actions = [
-            widget.recent_file_menu,
-        ]
-        for open_action in open_actions:
-            mainmenu.remove_item_from_application_menu(
-                open_action,
-                menu_id=ApplicationMenus.File
-            )
 
         # Save section
         save_actions = [
@@ -799,6 +777,18 @@ class Editor(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_new_recent_file.connect(application.add_recent_file)
+
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_new_recent_file.disconnect(application.add_recent_file)
 
     def update_font(self):
         """Update font from Preferences"""

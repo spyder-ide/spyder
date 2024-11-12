@@ -85,6 +85,7 @@ DEFAULTS = [
               'report_error/remember_token': False,
               'show_dpi_message': True,
               'show_message_when_panes_are_empty': True,
+              'max_recent_files': 20,
               }),
             ('update_manager',
              {
@@ -266,7 +267,6 @@ DEFAULTS = [
               'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
-              'max_recent_files': 20,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
@@ -605,6 +605,7 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
+            'recent_files',
             'window/position',
             'window/size',
             'window/state',
@@ -615,7 +616,6 @@ NAME_MAP = {
             'bookmarks',
             'filenames',
             'layout_settings',
-            'recent_files',
             'splitter_state',
             'file_uuids'
             ]

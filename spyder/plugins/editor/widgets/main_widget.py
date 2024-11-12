@@ -24,7 +24,7 @@ from typing import Dict, Optional
 import uuid
 
 # Third party imports
-from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.compat import from_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
@@ -74,7 +74,6 @@ class EditorWidgetMenus:
     TodoList = "todo_list_menu"
     WarningErrorList = "warning_error_list_menu"
     EOL = "eol_menu"
-    RecentFiles = "recent_files_menu"
 
 
 class EditorMainWidget(PluginMainWidget):
@@ -192,6 +191,17 @@ class EditorMainWidget(PluginMainWidget):
     sig_switch_to_plugin_requested = Signal()
     """
     This signal will request to change the focus to the plugin.
+    """
+
+    sig_new_recent_file = Signal(str)
+    """
+    This signal is emitted when a file is opened or got a new name.
+
+    Parameters
+    ----------
+    filename: str
+        The name of the opened file. If the file is renamed, then this should
+        be the new name.
     """
 
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
@@ -361,21 +371,6 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.close_all_files,
             context=Qt.WidgetShortcut,
             register_shortcut=True
-        )
-        self.recent_file_menu = self.create_menu(
-            EditorWidgetMenus.RecentFiles,
-            title=_("Open &recent")
-        )
-        self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
-        self.max_recent_action = self.create_action(
-            EditorWidgetActions.MaxRecentFiles,
-            text=_("Maximum number of recent files..."),
-            triggered=self.change_max_recent_files
-        )
-        self.clear_recent_action = self.create_action(
-            EditorWidgetActions.ClearRecentFiles,
-            text=_("Clear this list"), tip=_("Clear recent files list"),
-            triggered=self.clear_recent_files
         )
         self.workdir_action = self.create_action(
             EditorWidgetActions.SetWorkingDirectory,
@@ -836,7 +831,6 @@ class EditorMainWidget(PluginMainWidget):
                 QByteArray().fromHex(str(state).encode('utf-8'))
             )
 
-        self.recent_files = self.get_conf('recent_files', [])
         self.untitled_num = 0
 
         # Parameters of last file execution:
@@ -908,7 +902,6 @@ class EditorMainWidget(PluginMainWidget):
         )
         for window in self.editorwindows:
             window.close()
-        self.set_conf('recent_files', self.recent_files)
         self.autosave.stop_autosave_timer()
 
     # ---- Private API
@@ -1856,16 +1849,6 @@ class EditorMainWidget(PluginMainWidget):
             directory = osp.dirname(osp.abspath(fname))
             self.sig_dir_opened.emit(directory)
 
-    def __add_recent_file(self, fname):
-        """Add to recent file list"""
-        if fname is None:
-            return
-        if fname in self.recent_files:
-            self.recent_files.remove(fname)
-        self.recent_files.insert(0, fname)
-        if len(self.recent_files) > self.get_conf('max_recent_files'):
-            self.recent_files.pop(-1)
-
     def _clone_file_everywhere(self, finfo):
         """
         Clone file (*src_editor* widget) in all editorstacks.
@@ -1995,59 +1978,6 @@ class EditorMainWidget(PluginMainWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
-    def update_recent_file_menu(self):
-        """Update recent file menu"""
-        recent_files = []
-        for fname in self.recent_files:
-            if osp.isfile(fname):
-                recent_files.append(fname)
-
-        self.recent_file_menu.clear_actions()
-        if recent_files:
-            for fname in recent_files:
-                action = create_action(
-                    self, fname,
-                    icon=ima.get_icon_by_extension_or_type(
-                        fname, scale_factor=1.0))
-                action.triggered[bool].connect(self.load)
-                action.setData(to_qvariant(fname))
-
-                self.recent_file_menu.add_action(
-                    action,
-                    section="recent_files_section",
-                    omit_id=True,
-                    before_section="recent_files_actions_section"
-                )
-
-        self.clear_recent_action.setEnabled(len(recent_files) > 0)
-        for menu_action in (self.max_recent_action, self.clear_recent_action):
-            self.recent_file_menu.add_action(
-                menu_action, section="recent_files_actions_section"
-            )
-
-        self.recent_file_menu.render()
-
-    @Slot()
-    def clear_recent_files(self):
-        """Clear recent files list"""
-        self.recent_files = []
-
-    @Slot()
-    def change_max_recent_files(self):
-        """Change max recent files entries"""
-        editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInt(
-            editorstack,
-            _('Editor'),
-            _('Maximum number of recent files'),
-            self.get_conf('max_recent_files'),
-            1,
-            35
-        )
-
-        if valid:
-            self.set_conf('max_recent_files', mrf)
-
     @Slot()
     @Slot(str)
     @Slot(str, int, str)
@@ -2162,7 +2092,7 @@ class EditorMainWidget(PluginMainWidget):
                 slots = self.get_conf('bookmarks', default={})
                 current_editor.set_bookmarks(load_bookmarks(filename, slots))
                 current_es.analyze_script()
-                self.__add_recent_file(filename)
+                self.sig_new_recent_file.emit(filename)
 
             if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
@@ -2288,7 +2218,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack = self.get_current_editorstack()
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
-            self.__add_recent_file(fname)
+            self.sig_new_recent_file.emit(fname)
 
             # We need to call this directly because at least on Windows
             # editorstack.editor_focus_changed is not emitted after saving the
