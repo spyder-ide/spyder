@@ -277,14 +277,16 @@ class RemoteClientContainer(PluginMainContainer):
             self,
             _("Remote server error"),
             _(
-                "When trying to connect to the server <b>{}</b>, we detected "
-                "that the version of <tt>spyder-remote-services</tt>, the "
-                "package Spyder needs to communicate to, is <b>{}</b>, which "
-                "is greater than the maximum one currently supported "
-                "(<b>{}</b>)."
+                "The version of <tt>spyder-remote-services</tt> on the"
+                "remote host <b>{server}</b> (<b>{srs_version}</b>) is newer"
+                "than the latest Spyder supports (<b>{max_version}</b>)."
                 "<br><br>"
-                "Please update Spyder to fix this problem."
-            ).format(server_name, version, SPYDER_REMOTE_MAX_VERSION),
+                "Please update Spyder to be able to connect to this host."
+            ).format(
+                server=server_name,
+                srs_version=version,
+                max_version=SPYDER_REMOTE_MAX_VERSION,
+            ),
             QMessageBox.Ok,
         )
 
