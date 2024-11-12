@@ -799,7 +799,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             )
 
             banner = ''.join(banner_parts)
-        except (CommError, TimeoutError):
+        except (CommError, TimeoutError, RuntimeError):
+            # RuntimeError happens when the kernel crashes after it starts.
+            # See spyder-ide/spyder#22929
             banner = ""
 
         # Pylab additions
