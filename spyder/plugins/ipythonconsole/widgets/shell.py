@@ -187,6 +187,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.is_kernel_configured = False
         self._init_kernel_setup = False
         self._is_banner_shown = False
+        # Set bright colors instead of bold formating for better traceback
+        # readability
+        self._ansi_processor.bold_text_enabled = False
 
         if handlers is None:
             handlers = {}
@@ -448,6 +451,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self.get_conf('autoreload'):
             # Enable autoreload_magic
             self.set_kernel_configuration("autoreload_magic", True)
+
+        self.silent_execute("%xmode verbose")
 
         self.call_kernel(
             interrupt=self.is_debugging(),
@@ -1436,6 +1441,21 @@ overrided by the Sympy module (e.g. plot)
         if self.syntax_style:
             self._highlighter._style = create_style_class(self.syntax_style)
             self._highlighter._clear_caches()
+            self.silent_execute(
+f"""
+import IPython.core.ultratb
+from IPython.core.ultratb import VerboseTB
+
+from spyder.plugins.ipythonconsole.utils.style import create_style_class
+
+IPython.core.ultratb.get_style_by_name = create_style_class
+
+if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
+    VerboseTB.tb_highlight_style = '{self.syntax_style}'
+elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
+    VerboseTB._tb_highlight_style = '{self.syntax_style}'
+"""
+            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
