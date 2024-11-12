@@ -139,6 +139,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_trigger_run_action = Signal(str)
     sig_trigger_debugger_action = Signal(str)
 
+    sig_open_last_closed = Signal()
+    """
+    This signal requests that the last closed tab be re-opened.
+    """
+
     sig_codeeditor_created = Signal(object)
     """
     This signal is emitted when a codeeditor is created.
@@ -444,6 +449,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
             ('New file', self.sig_new_file[()]),
             ('Open file', self.plugin_load[()]),
+            ('Open last closed', self.sig_open_last_closed),
             ('Save file', self.save),
             ('Save all', self.save_all),
             ('Save As', self.sig_save_as),
