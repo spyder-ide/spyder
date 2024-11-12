@@ -218,17 +218,30 @@ class Application(SpyderPluginV2):
     def _populate_file_menu(self):
         container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # New section
         mainmenu.add_item_to_application_menu(
+            container.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open
+        )
+
+        # Open section
+        open_actions = [
             container.open_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Open,
-            before_section=FileMenuSections.Save
-        )
-        mainmenu.add_item_to_application_menu(
             container.open_last_closed_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Open
-        )
+            container.recent_files_menu,
+        ]
+        for open_action in open_actions:
+            mainmenu.add_item_to_application_menu(
+                open_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Save
+            )
+
+        # Restart section
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
@@ -238,14 +251,6 @@ class Application(SpyderPluginV2):
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart
-        )
-
-        # New Section
-        mainmenu.add_item_to_application_menu(
-            container.new_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.New,
-            before_section=FileMenuSections.Open
         )
 
     def _populate_tools_menu(self):
@@ -348,11 +353,13 @@ class Application(SpyderPluginV2):
             menu_id=ApplicationMenus.Help)
 
     def _depopulate_file_menu(self):
+        container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for action_id in [
             ApplicationActions.NewFile,
             ApplicationActions.OpenFile,
             ApplicationActions.OpenLastClosed,
+            container.recent_file_menu,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -563,6 +570,17 @@ class Application(SpyderPluginV2):
         elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.open_last_closed()
+
+    def add_recent_file(self, fname: str) -> None:
+        """
+        Add file to list of recent files.
+
+        This function adds the given file name to the list of recent files,
+        which is used in the `File > Open recent` menu. The function ensures
+        that the list has no duplicates and it is no longer than the maximum
+        length.
+        """
+        self.get_container().add_recent_file(fname)
 
     @property
     def documentation_action(self):
