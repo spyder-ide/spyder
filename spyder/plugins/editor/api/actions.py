@@ -19,8 +19,6 @@ class EditorWidgetActions:
     Print = "print_action"
     CloseFile = "Close current file"
     CloseAll = "Close all"
-    MaxRecentFiles = "max_recent_files_action"
-    ClearRecentFiles = "clear_recent_files_action"
 
     # Navigation
     GoToNextFile = "Go to next file"

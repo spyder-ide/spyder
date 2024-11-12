@@ -11,6 +11,7 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
+import functools
 import glob
 import os
 import os.path as osp
@@ -21,7 +22,8 @@ from typing import Optional
 from qtpy.compat import getopenfilenames
 from qtpy.QtCore import QDir, Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
-from qtpy.QtWidgets import QAction, QFileDialog, QMessageBox, QPushButton
+from qtpy.QtWidgets import (
+    QAction, QFileDialog, QInputDialog, QMessageBox, QPushButton)
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
@@ -34,6 +36,7 @@ from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter)
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
+from spyder.utils.icon_manager import ima
 from spyder.utils.installers import InstallerMissingDependencies
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
@@ -43,6 +46,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 
 class ApplicationPluginMenus:
     DebugLogsMenu = "debug_logs_menu"
+    RecentFilesMenu = "recent_files_menu"
 
 
 class LogsMenuSections:
@@ -52,10 +56,11 @@ class LogsMenuSections:
 
 # Actions
 class ApplicationActions:
+    # For actions with shortcuts, the name of the action needs to match the
+    # name of the shortcut so 'spyder documentation' is used instead of
+    # something like 'spyder_documentation'
+
     # Help
-    # The name of the action needs to match the name of the shortcut so
-    # 'spyder documentation' is used instead of something
-    # like 'spyder_documentation'
     SpyderDocumentationAction = "spyder documentation"
     SpyderDocumentationVideoAction = "spyder_documentation_video_action"
     SpyderTroubleshootingAction = "spyder_troubleshooting_action"
@@ -71,8 +76,8 @@ class ApplicationActions:
     NewFile = "New file"
     OpenFile = "Open file"
     OpenLastClosed = "Open last closed"
-    # The name of the action needs to match the name of the shortcut
-    # so 'Restart' is used instead of something like 'restart_action'
+    MaxRecentFiles = "max_recent_files_action"
+    ClearRecentFiles = "clear_recent_files_action"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -119,6 +124,9 @@ class ApplicationContainer(PluginMainContainer):
         # Keep track of dpi message
         self.current_dpi = None
         self.dpi_messagebox = None
+
+        # Keep track of list of recent files
+        self.recent_files = self.get_conf('recent_files', [])
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -248,6 +256,23 @@ class ApplicationContainer(PluginMainContainer):
             shortcut_context="main",
             register_shortcut=True
         )
+        self.recent_files_menu = self.create_menu(
+            ApplicationPluginMenus.RecentFilesMenu,
+            title=_("Open &recent")
+        )
+        self.recent_files_menu.aboutToShow.connect(
+            self.update_recent_files_menu
+        )
+        self.max_recent_action = self.create_action(
+            ApplicationActions.MaxRecentFiles,
+            text=_("Maximum number of recent files..."),
+            triggered=self.change_max_recent_files
+        )
+        self.clear_recent_action = self.create_action(
+            ApplicationActions.ClearRecentFiles,
+            text=_("Clear this list"), tip=_("Clear recent files list"),
+            triggered=self.clear_recent_files
+        )
 
         # Debug logs
         if get_debug_level() >= 2:
@@ -273,6 +298,7 @@ class ApplicationContainer(PluginMainContainer):
     def on_close(self):
         """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
+        self.set_conf('recent_files', self.recent_files)
         if self.dependencies_thread is not None:
             self.dependencies_thread.quit()
             self.dependencies_thread.wait()
@@ -460,6 +486,82 @@ class ApplicationContainer(PluginMainContainer):
         for filename in filenames:
             filename = osp.normpath(filename)
             self.sig_open_file_in_plugin_requested.emit(filename)
+
+    def add_recent_file(self, fname: str) -> None:
+        """
+        Add file to list of recent files.
+
+        This function adds the given file name to the list of recent files,
+        which is used in the `File > Open recent` menu. The function ensures
+        that the list has no duplicates and it is no longer than the maximum
+        length.
+        """
+        if fname in self.recent_files:
+            self.recent_files.remove(fname)
+        self.recent_files.insert(0, fname)
+        if len(self.recent_files) > self.get_conf('max_recent_files'):
+            self.recent_files.pop(-1)
+
+    def clear_recent_files(self) -> None:
+        """
+        Clear list of recent files.
+        """
+        self.recent_files = []
+
+    def update_recent_files_menu(self):
+        """
+        Update recent files menu
+
+        Add menu items for all the recent files to the menu. Also add items
+        for setting the maximum number and for clearing the list.
+
+        This function is called before the menu is about to be shown.
+        """
+        self.recent_files_menu.clear_actions()
+        recent_files = [fname for fname in self.recent_files
+                        if osp.isfile(fname)]
+        for fname in recent_files:
+            icon = ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            action = self.create_action(
+                name=f'Recent file {fname}',
+                text=fname,
+                icon=icon,
+                triggered=functools.partial(
+                    self.sig_open_file_in_plugin_requested.emit,
+                    fname
+                )
+            )
+            self.recent_files_menu.add_action(
+                action,
+                section='recent_files_section',
+                omit_id=True,
+                before_section='recent_files_actions_section'
+            )
+
+        self.clear_recent_action.setEnabled(len(recent_files) > 0)
+        for menu_action in (self.max_recent_action, self.clear_recent_action):
+            self.recent_files_menu.add_action(
+                menu_action,
+                section='recent_files_actions_section'
+            )
+
+        self.recent_files_menu.render()
+
+    def change_max_recent_files(self) -> None:
+        """
+        Change the maximum length of the list of recent files.
+        """
+        mrf, valid = QInputDialog.getInt(
+            self,
+            _('Editor'),
+            _('Maximum number of recent files'),
+            self.get_conf('max_recent_files'),
+            1,
+            35
+        )
+
+        if valid:
+            self.set_conf('max_recent_files', mrf)
 
     # ---- Log files
     # -------------------------------------------------------------------------
