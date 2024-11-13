@@ -7,7 +7,7 @@
 * Add `items_elide_mode` kwarg to the constructors of `SpyderComboBox` and
   `SpyderComboBoxWithIcons`.
 * The `sig_item_in_popup_changed` and `sig_popup_is_hidden` signals were added
-  to `SpyderComboBox` and `SpyderFontComboBox`.
+  to `SpyderComboBox`, `SpyderComboBoxWithIcons` and `SpyderFontComboBox`.
 
 ----
 

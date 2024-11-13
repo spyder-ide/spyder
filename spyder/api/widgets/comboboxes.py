@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
     QFontComboBox,
     QFrame,
     QLineEdit,
+    QListView,
     QProxyStyle,
     QStyle,
     QStyledItemDelegate,
@@ -167,6 +168,18 @@ class _SpyderComboBoxLineEdit(QLineEdit):
         super().paintEvent(event)
 
 
+class _SpyderComboBoxView(QListView):
+    """Listview used for comboboxes"""
+
+    sig_current_item_changed = Signal(object)
+
+    def currentChanged(self, current, previous):
+        # This covers selecting a different item with the keyboard or when
+        # hovering with the mouse over the list.
+        self.sig_current_item_changed.emit(current)
+        super().currentChanged(current, previous)
+
+
 class _SpyderComboBoxMixin:
     """Mixin with the basic style and functionality for our comboboxes."""
 
@@ -196,8 +209,10 @@ class _SpyderComboBoxMixin:
         style.setParent(self)
         self.setStyle(style)
 
-        # Report when the user is hovering a new item in the dropdown
-        self.view().entered.connect(self._on_item_changed)
+        # Report when the current item in the dropdown has changed
+        view = _SpyderComboBoxView(self)
+        view.sig_current_item_changed.connect(self._on_item_changed)
+        self.setView(view)
 
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
@@ -207,7 +222,8 @@ class _SpyderComboBoxMixin:
 
     @qdebounced(timeout=100)
     def _on_item_changed(self, index):
-        self.sig_item_in_popup_changed.emit(index.data())
+        if index.isValid():
+            self.sig_item_in_popup_changed.emit(index.data())
 
     def _generate_stylesheet(self):
         """Base stylesheet for Spyder comboboxes."""
