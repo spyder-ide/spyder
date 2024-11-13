@@ -826,6 +826,22 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             if not self.extra_cursors:
                 method()
         return wrapper
+    
+    def go_to_next_cell(self):  # TODO test this
+        """
+        reimplement to clear extra cursors before calling
+        TextEditBaseWidget.go_to_next_cell
+        """
+        self.clear_extra_cursors()
+        super().go_to_next_cell()
+    
+    def go_to_previous_cell(self):  # TODO test this
+        """
+        reimplement to clear extra cursors before calling
+        TextEditBaseWidget.go_to_previous_cell
+        """
+        self.clear_extra_cursors()
+        super().go_to_previous_cell()
 
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
