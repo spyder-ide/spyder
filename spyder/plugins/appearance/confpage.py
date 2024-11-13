@@ -504,6 +504,10 @@ class AppearanceConfigPage(PluginConfigPage):
                 option = "temp/{0}".format(key)
                 value = temporal_color_scheme[key]
                 self.set_option(option, value)
+
+            if not self.scheme_choices_dict.get("temp"):
+                self.scheme_choices_dict["temp"] = "temp"
+
             self.update_editor_preview(scheme_name='temp')
 
     def delete_scheme(self):
