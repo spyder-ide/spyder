@@ -1595,6 +1595,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_open_file.connect(self.report_open_file)
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_new_file[()].connect(self.new)
+        editorstack.sig_open_last_closed.connect(self.open_last_closed)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
@@ -3092,14 +3093,9 @@ class EditorMainWidget(PluginMainWidget):
         return run_conf
 
     def get_run_configuration_per_context(
-        self, context, extra_action_name, context_modificator,
-        re_run=False
+        self, context, extra_action_name, context_modificator, re_run=False
     ) -> Optional[RunConfiguration]:
-        # TODO: Should be moved over the plugin?
         editorstack = self.get_current_editorstack()
-        if self.get_conf('save_all_before_run', section="run"):
-            editorstack.save_all(save_new_files=False)
-
         fname = self.get_current_filename()
         __, filename_ext = osp.splitext(fname)
         fname_ext = filename_ext[1:]
@@ -3121,8 +3117,13 @@ class EditorMainWidget(PluginMainWidget):
             else:
                 text, offsets, line_cols, enc = editorstack.get_selection()
 
-            if extra_action_name == ExtraAction.Advance:
+            # Don't advance line if the selection includes multiple lines. That
+            # was the behavior in Spyder 5 and users are accustomed to it.
+            # Fixes spyder-ide/spyder#22060
+            eol = self.get_current_editor().get_line_separator()
+            if extra_action_name == ExtraAction.Advance and not (eol in text):
                 editorstack.advance_line()
+
             context_name = 'Selection'
             run_input = SelectionRun(
                 path=fname, selection=text, encoding=enc,
