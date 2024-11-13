@@ -826,7 +826,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             if not self.extra_cursors:
                 method()
         return wrapper
-    
+
     def go_to_next_cell(self):  # TODO test this
         """
         reimplement to clear extra cursors before calling
@@ -834,7 +834,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """
         self.clear_extra_cursors()
         super().go_to_next_cell()
-    
+
     def go_to_previous_cell(self):  # TODO test this
         """
         reimplement to clear extra cursors before calling
@@ -939,11 +939,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('move line up', self.move_line_up),  # TODO multi-cursor
             ('move line down', self.move_line_down),  # TODO multi-cursor
             ('go to new line', self.for_each_cursor(self.go_to_new_line)),
-            ('go to definition', self.clears_extra_cursors(self.go_to_definition_from_cursor)),
+            ('go to definition', self.go_to_definition_from_cursor),  # clears extra cursors already handled by go_to_line
             ('toggle comment', self.for_each_cursor(self.toggle_comment)),
-            ('blockcomment', self.blockcomment),  # TODO multi-cursor
+            ('blockcomment', self.for_each_cursor(self.blockcomment)),  # TODO multi-cursor a bit wonky
             ('create_new_cell', self.for_each_cursor(self.create_new_cell)),
-            ('unblockcomment', self.unblockcomment),  # TODO multi-cursor
+            ('unblockcomment', self.for_each_cursor(self.unblockcomment)),  # TODO multi-cursor a bit wonky
             ('transform to uppercase', self.for_each_cursor(self.transform_to_uppercase)),
             ('transform to lowercase', self.for_each_cursor(self.transform_to_lowercase)),
             ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
@@ -2350,6 +2350,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
+        self.clear_extra_cursors()  # handles go to warnings, todo, line number, definition, etc.
         self.text_helper.goto_line(line, column=start_column,
                                    end_column=end_column, move=True,
                                    word=word)
@@ -2362,7 +2363,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Execute the GoToLineDialog dialog box"""
         dlg = GoToLineDialog(self)
         if dlg.exec_():
-            self.clear_extra_cursors()
             self.go_to_line(dlg.get_line_number())
 
     def hide_tooltip(self):
@@ -3750,7 +3750,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Go to definition'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.clears_extra_cursors(self.go_to_definition_from_cursor)
+            triggered=self.go_to_definition_from_cursor
         )
         self.inspect_current_object_action = self.create_action(
             CodeEditorActions.InspectCurrentObject,
