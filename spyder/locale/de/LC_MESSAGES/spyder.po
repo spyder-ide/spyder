@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-10-28 16:09-0500\n"
-"PO-Revision-Date: 2024-10-30 19:05\n"
+"PO-Revision-Date: 2024-11-14 16:12\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -738,7 +738,7 @@ msgstr "Spyder-Unterstützung..."
 
 #: spyder/plugins/application/container.py:143
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Spyder helfen..."
 
 #: spyder/plugins/application/container.py:151
 msgid "About %s..."
@@ -838,11 +838,11 @@ msgstr "Versionsinfo kopieren"
 
 #: spyder/plugins/application/widgets/status.py:44
 msgid "Help Spyder"
-msgstr ""
+msgstr "Spyder helfen"
 
 #: spyder/plugins/application/widgets/status.py:148
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Spyder helfen!"
 
 #: spyder/plugins/base.py:333 spyder/plugins/editor/confpage.py:57 spyder/plugins/editor/plugin.py:166 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4612 spyder/plugins/editor/widgets/editorstack/editorstack.py:300 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:362 spyder/plugins/editor/widgets/main_widget.py:2156 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:343 spyder/plugins/tours/tours.py:82
 msgid "Editor"
