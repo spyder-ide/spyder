@@ -4662,22 +4662,91 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._restore_editor_cursor_and_selections()
         TextEditBaseWidget.leaveEvent(self, event)
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QKeyEvent):
         """Override Qt method."""
         self.hide_tooltip()
 
-        ctrl = event.modifiers() & Qt.ControlModifier
-        alt = event.modifiers() & Qt.AltModifier
+        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
+        shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
         pos = event.pos()
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
         if event.button() == Qt.LeftButton and ctrl and alt:
-            # move existing primary cursor to extra_cursors list and set new
-            #   primary cursor
-            old_cursor = self.textCursor()
-            self.setTextCursor(self.cursorForPosition(pos))
-            self.add_cursor(old_cursor)
-        else:
+            # ---- Ctrl-Alt: multi-cursor mouse interactions
+            if shift:  
+                # Ctrl-Shift-Alt click adds colum of cursors towards primary 
+                #    cursor
+                first_cursor = self.textCursor()
+                anchor_block = first_cursor.block()
+                anchor_col = first_cursor.anchor() - anchor_block.position()
+                second_cursor = self.cursorForPosition(pos)
+                pos_block = second_cursor.block()
+                pos_col = second_cursor.positionInBlock()
+                
+                #move primary cursor to pos_col
+                first_cursor.setPosition(anchor_block.position() + pos_col,
+                                          QTextCursor.MoveMode.KeepAnchor)
+                self.setTextCursor(first_cursor)
+                block = anchor_block
+                while True:
+                    #get the next block
+                    if anchor_block < pos_block:
+                        block = block.next()
+                    else:
+                        block = block.previous()
+                        
+                    #add a cursor for this block
+                    if block.isVisible() and block.isValid():
+                        cursor = QTextCursor(first_cursor)
+                        a_col = min(block.length(), anchor_col)
+                        cursor.setPosition(block.position() + a_col,
+                                            QTextCursor.MoveMode.MoveAnchor)
+                        p_col = min(block.length(), pos_col)
+                        cursor.setPosition(block.position() + p_col,
+                                            QTextCursor.MoveMode.KeepAnchor)
+                        self.add_cursor(cursor)
+                    
+                    #break if it's the last block
+                    if block == pos_block:
+                        break
+
+            else:  # Ctrl-Alt click adds and removes cursors
+                # move existing primary cursor to extra_cursors list and set
+                #   new primary cursor
+                old_cursor = self.textCursor()
+                new_cursor = self.cursorForPosition(pos)
+                
+                removed_cursor = False
+                # don't attempt to remove cursor if there's only one
+                if self.extra_cursors:
+                    same_cursor = None
+                    for cursor in self.all_cursors:
+                        if new_cursor.position() == cursor.position():
+                            same_cursor = cursor
+                            break
+                    if same_cursor is not None:
+                        removed_cursor = True
+                        if same_cursor in self.extra_cursors:
+                            # cursor to be removed was not primary
+                            self.extra_cursors.remove(same_cursor)
+                        else:
+                            # cursor to be removed is primary cursor
+                            # pick a new primary by position
+                            new_primary = max(
+                                self.extra_cursors,
+                                key=lambda cursor: cursor.position()
+                            )
+                            self.extra_cursors.remove(new_primary)
+                            self.setTextCursor(new_primary)
+                        # possibly clear selection of removed cursor
+                        self.set_extra_cursor_selections()
+                
+                if not removed_cursor:
+                    self.setTextCursor(new_cursor)
+                    self.add_cursor(old_cursor)
+        else: 
+            # ---- not multi-cursor
             if event.button() == Qt.MouseButton.LeftButton:
                 self.clear_extra_cursors()
             if event.button() == Qt.LeftButton and ctrl:
