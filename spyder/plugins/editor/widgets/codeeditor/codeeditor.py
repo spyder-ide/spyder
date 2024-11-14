@@ -668,16 +668,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def start_cursor_blink(self):
         """start manually updating the cursor(s) blink state: Show cursors"""
-        self.current_blink_state = True
+        self.cursor_blink_state = True
         self.cursor_blink_timer.start()
-        self.viewport().update()
 
     @Slot()
     def stop_cursor_blink(self):
         """stop manually updating the cursor(s) blink state: Hide cursors"""
         self.cursor_blink_state = False
         self.cursor_blink_timer.stop()
-        self.viewport().update()
 
     def multi_cursor_copy(self):
         """
@@ -907,7 +905,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('paste', self.paste),
             ('delete', self.delete),
             ('select all', self.clears_extra_cursors(self.selectAll)),
-            ('docstring', self.for_each_cursor(self.writer_docstring.write_docstring_for_shortcut)),  # TODO multi-cursor
+            ('docstring', self.for_each_cursor(self.writer_docstring.write_docstring_for_shortcut)),
             ('autoformatting', self.format_document_or_range),  # TODO multi-cursor
             ('scroll line down', self.scroll_line_down),
             ('scroll line up', self.scroll_line_up),
@@ -3956,7 +3954,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
-
+        
+        self.start_cursor_blink()  # reset cursor blink by reseting timer
+        
         self._last_pressed_key = key = event.key()
         self._last_key_pressed_text = text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -3993,8 +3993,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     event.accept()
                     return
             return
-
-        self.start_cursor_blink()  # reset cursor blink by reseting timer
 
         # ---- Handle hard coded and builtin actions
         operators = {'+', '-', '*', '**', '/', '//', '%', '@', '<<', '>>',
