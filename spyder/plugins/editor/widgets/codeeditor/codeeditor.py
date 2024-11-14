@@ -607,91 +607,28 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Re-Implement keyEvent handler for multi-cursor"""
         if self.extra_cursors:
             event.accept()
+            
             key = event.key()
-            shift = event.modifiers() & Qt.ShiftModifier
             ctrl = event.modifiers() & Qt.ControlModifier
-            if shift:
-                move_mode = QTextCursor.MoveMode.KeepAnchor
+            
+            # TODO handle other keys? move to keyPressEvent and emit (and 
+            #   handle) sig_key_pressed for each cursor
+            # ---- handle Tab
+            if key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
+                # Don't do intelligent tab with multi-cursor to skip
+                #   calls to do_completion. Avoiding completions with multi
+                #   cursor is much easier than solving all the edge cases.
+
+                # Trivial implementation: # TODO respect tab_mode
+                self.for_each_cursor(lambda: self.replace(self.indent_chars))()
+            elif key == Qt.Key_Backtab and not ctrl:
+                increasing_direction = False
+                self.for_each_cursor(self.unindent,False)()
+            # ---- use default handler for cursor (text)
             else:
-                move_mode = QTextCursor.MoveMode.MoveAnchor
-            # Will cursors have increased or decreased in position?
-            increasing_direction = True  # used to merge multi-selections
-
-            self.textCursor().beginEditBlock()
-            for cursor in self.all_cursors:
-
-                self.setTextCursor(cursor)
-                # ---- handle arrow keys
-                if key == Qt.Key_Up:
-                    cursor.movePosition(
-                        QTextCursor.MoveOperation.Up, move_mode
-                    )
-                    increasing_direction = False
-                elif key == Qt.Key_Down:
-                    cursor.movePosition(
-                        QTextCursor.MoveOperation.Down, move_mode
-                    )
-                elif key == Qt.Key_Left:
-                    increasing_direction = False
-                    if ctrl:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.PreviousWord, move_mode
-                        )
-                    else:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.Left, move_mode
-                        )
-                elif key == Qt.Key_Right:
-                    if ctrl:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.NextWord, move_mode
-                        )
-                    else:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.Right, move_mode
-                        )
-                # ---- handle Home, End
-                elif key == Qt.Key_Home:
-                    increasing_direction = False
-                    if ctrl:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.Start, move_mode
-                        )
-                    else:
-                        block_pos = cursor.block().position()
-                        line = cursor.block().text()
-                        indent_pos = block_pos + len(line) - len(line.lstrip())
-                        if cursor.position() != indent_pos:
-                            cursor.setPosition(indent_pos, move_mode)
-                        else:
-                            cursor.setPosition(block_pos, move_mode)
-                elif key == Qt.Key_End:
-                    if ctrl:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.End, move_mode
-                        )
-                    else:
-                        cursor.movePosition(
-                            QTextCursor.MoveOperation.EndOfBlock, move_mode
-                        )
-                # ---- handle Tab
-                elif key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
-                    # Don't do intelligent tab with multi-cursor to skip
-                    #   calls to do_completion. Avoiding completions with multi
-                    #   cursor is much easier than solving all the edge cases.
-
-                    # Trivial implementation: # TODO respect tab_mode
-                    self.replace(self.indent_chars)
-                elif key == Qt.Key_Backtab and not ctrl:
-                    increasing_direction = False
-                    self.unindent()
-                # ---- use default handler for cursor (text)
-                else:
-                    self._handle_keypress_event(event)
-                self.setTextCursor(cursor)
-            self.merge_extra_cursors(increasing_direction)
-            cursor.endEditBlock()
-            self.setTextCursor(cursor)  # last cursor from for loop is primary
+                self.for_each_cursor(lambda: self._handle_keypress_event(event))()
+                
+            return
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -789,7 +726,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.sig_text_was_inserted.emit()
         self.skip_rstrip = False
 
-    def for_each_cursor(self, method):
+    def for_each_cursor(self, method, merge_increasing=True):
         """Wrap callable to execute once for each cursor"""
         @functools.wraps(method)
         def wrapper():
@@ -807,7 +744,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.setTextCursor(new_cursors[-1])
             for cursor in new_cursors[:-1]:
                 self.add_cursor(cursor)
-            self.merge_extra_cursors(True)
+            self.merge_extra_cursors(merge_increasing)
             self.textCursor().endEditBlock()
         return wrapper
 
@@ -827,18 +764,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 method()
         return wrapper
 
-    def go_to_next_cell(self):  # TODO test this
+    def go_to_next_cell(self):
         """
-        reimplement to clear extra cursors before calling
-        TextEditBaseWidget.go_to_next_cell
+        reimplements TextEditBaseWidget.go_to_next_cell to clear extra cursors
         """
         self.clear_extra_cursors()
         super().go_to_next_cell()
 
-    def go_to_previous_cell(self):  # TODO test this
+    def go_to_previous_cell(self):
         """
-        reimplement to clear extra cursors before calling
-        TextEditBaseWidget.go_to_previous_cell
+        reimplements TextEditBaseWidget.go_to_previous_cell to clear extra
+        cursors
         """
         self.clear_extra_cursors()
         super().go_to_previous_cell()
@@ -947,14 +883,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('transform to uppercase', self.for_each_cursor(self.transform_to_uppercase)),
             ('transform to lowercase', self.for_each_cursor(self.transform_to_lowercase)),
             ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
-            ('unindent', self.for_each_cursor(lambda: self.unindent(force=True))),
-            ('start of line', self.for_each_cursor(self.create_cursor_callback('StartOfLine'))),
+            ('unindent', self.for_each_cursor(lambda: self.unindent(force=True), False)),
+            ('start of line', self.for_each_cursor(self.create_cursor_callback('StartOfLine'), False)),
             ('end of line', self.for_each_cursor(self.create_cursor_callback('EndOfLine'))),
-            ('previous line', self.for_each_cursor(self.create_cursor_callback('Up'))),
+            ('previous line', self.for_each_cursor(self.create_cursor_callback('Up'), False)),
             ('next line', self.for_each_cursor(self.create_cursor_callback('Down'))),
-            ('previous char', self.for_each_cursor(self.create_cursor_callback('Left'))),
+            ('previous char', self.for_each_cursor(self.create_cursor_callback('Left'), False)),
             ('next char', self.for_each_cursor(self.create_cursor_callback('Right'))),
-            ('previous word', self.for_each_cursor(self.create_cursor_callback('PreviousWord'))),
+            ('previous word', self.for_each_cursor(self.create_cursor_callback('PreviousWord'), False)),
             ('next word', self.for_each_cursor(self.create_cursor_callback('NextWord'))),
             ('kill to line end', self.kill_line_end),  # TODO multi-cursor
             ('kill to line start', self.kill_line_start),  # TODO multi-cursor
