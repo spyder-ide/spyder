@@ -532,6 +532,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
+        # TODO remove cursor if duplicate: ctrl-click to add *and* remove
         self.extra_cursors.append(cursor)
         self.merge_extra_cursors(True)
 
@@ -611,8 +612,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             key = event.key()
             ctrl = event.modifiers() & Qt.ControlModifier
             
-            # TODO handle other keys? move to keyPressEvent and emit (and 
-            #   handle) sig_key_pressed for each cursor
+            # TODO handle other keys? 
+            # TODO handle sig_key_pressed for each cursor? (maybe not: extra extensions add complexity. Keep multi-cursor simpler)
             # ---- handle Tab
             if key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                 # Don't do intelligent tab with multi-cursor to skip
@@ -622,7 +623,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 # Trivial implementation: # TODO respect tab_mode
                 self.for_each_cursor(lambda: self.replace(self.indent_chars))()
             elif key == Qt.Key_Backtab and not ctrl:
-                increasing_direction = False
                 self.for_each_cursor(self.unindent,False)()
             # ---- use default handler for cursor (text)
             else:
@@ -907,7 +907,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('paste', self.paste),
             ('delete', self.delete),
             ('select all', self.clears_extra_cursors(self.selectAll)),
-            ('docstring', self.writer_docstring.write_docstring_for_shortcut),  # TODO multi-cursor
+            ('docstring', self.for_each_cursor(self.writer_docstring.write_docstring_for_shortcut)),  # TODO multi-cursor
             ('autoformatting', self.format_document_or_range),  # TODO multi-cursor
             ('scroll line down', self.scroll_line_down),
             ('scroll line up', self.scroll_line_up),
@@ -3746,7 +3746,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Generate docstring'),
             register_shortcut=True,
             register_action=False,
-            triggered=writer.write_docstring_at_first_line_of_function  # TODO multi-cursor how to consider?
+            triggered=writer.write_docstring_at_first_line_of_function  # multi-cursor not needed: cursor position is taken from context menu position
         )
 
         # Document formatting
@@ -4870,7 +4870,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 text=_("Generate docstring"),
                 icon=self.create_icon('TextFileIcon'),
                 register_action=False,
-                triggered=writer.write_docstring
+                triggered=self.for_each_cursor(writer.write_docstring)  # TODO multi-cursor support only needed if we start sending sig_key_pressed from multi-cursor key handler
             )
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
