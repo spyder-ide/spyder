@@ -6461,9 +6461,9 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
         assert str(user_dir) not in sys_path
 
 
-@flaky(max_runs=10)
+# @flaky(max_runs=10)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
-@pytest.mark.order(before='test_shell_execution')
+# @pytest.mark.order(before='test_shell_execution')
 def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     """
     Test that file names in IPython console tracebacks are clickable.
@@ -6502,7 +6502,7 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     control.setFocus()
     find_widget = main_window.ipyconsole.get_widget().find_widget
     find_widget.show()
-    find_widget.search_text.lineEdit().setText('  File')
+    find_widget.search_text.lineEdit().setText('File')
     find_widget.find_previous()
 
     # Position mouse on top of that line

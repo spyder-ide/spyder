@@ -452,7 +452,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Enable autoreload_magic
             self.set_kernel_configuration("autoreload_magic", True)
 
-        self.silent_execute("%xmode verbose")
+        self.silent_execute("%xmode context")
 
         self.call_kernel(
             interrupt=self.is_debugging(),
