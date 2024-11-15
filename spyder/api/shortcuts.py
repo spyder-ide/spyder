@@ -35,11 +35,15 @@ class SpyderShortcutsMixin:
         Parameters
         ----------
         name: str
-            Key identifier under which the shortcut is stored.
-        context: Optional[str]
-            Name of the shortcut context.
-        plugin: Optional[str]
-            Name of the plugin where the shortcut is defined.
+            The shortcut name (e.g. "run cell").
+        context: str, optional
+            Name of the shortcut context, e.g. "editor" for shortcuts that have
+            effect when the Editor is focused or "_" for global shortcuts. If
+            not set, the widget's CONF_SECTION will be used as context.
+        plugin_name: str, optional
+            Name of the plugin where the shortcut is defined. This is necessary
+            for third-party plugins that have shortcuts with a context
+            different from the plugin name.
 
         Returns
         -------
@@ -49,7 +53,7 @@ class SpyderShortcutsMixin:
         Raises
         ------
         configparser.NoOptionError
-            If the context does not exist in the configuration.
+            If the shortcut does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
         return CONF.get_shortcut(context, name, plugin_name)
@@ -69,16 +73,20 @@ class SpyderShortcutsMixin:
         shortcut: str
             Key sequence of the shortcut.
         name: str
-            Key identifier under which the shortcut is stored.
-        context: Optional[str]
-            Name of the shortcut context.
-        plugin: Optional[str]
-            Name of the plugin where the shortcut is defined.
+            The shortcut name (e.g. "run cell").
+        context: str, optional
+            Name of the shortcut context, e.g. "editor" for shortcuts that have
+            effect when the Editor is focused or "_" for global shortcuts. If
+            not set, the widget's CONF_SECTION will be used as context.
+        plugin_name: str, optional
+            Name of the plugin where the shortcut is defined. This is necessary
+            for third-party plugins that have shortcuts with a context
+            different from the plugin name.
 
         Raises
         ------
         configparser.NoOptionError
-            If the context does not exist in the configuration.
+            If the shortcut does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
         return CONF.set_shortcut(context, name, shortcut, plugin_name)
@@ -96,16 +104,17 @@ class SpyderShortcutsMixin:
         Parameters
         ----------
         name: str
-            Key identifier under which the shortcut is stored.
+            The shortcut name (e.g. "run cell").
         triggered: Callable
             Callable (i.e. function or method) that will be triggered by the
             shortcut.
-        widget: Optional[QWidget]
-            Widget to which register this shortcut. By default we register it
-            to the one that calls this method.
-        context: Optional[str]
-            Name of the context (plugin) where the shortcut is defined. By
-            default we use the widget's CONF_SECTION.
+        widget: QWidget, optional
+            Widget to which this shortcut will be registered. If not set, the
+            widget that calls this method will be used.
+        context: str, optional
+            Name of the shortcut context, e.g. "editor" for shortcuts that have
+            effect when the Editor is focused or "_" for global shortcuts. If
+            not set, the widget's CONF_SECTION will be used as context.
         """
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
