@@ -28,7 +28,10 @@ from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
-from spyder.plugins.shortcuts.utils import ShortcutData
+from spyder.plugins.shortcuts.utils import (
+    ShortcutData,
+    SHORTCUTS_FOR_WIDGETS_DATA,
+)
 from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 from spyder.utils.qthelpers import add_shortcut_to_tooltip, SpyderAction
 
@@ -123,10 +126,10 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     # ---- Public API
     # -------------------------------------------------------------------------
     def get_shortcut_data(self):
-        """
-        Return the registered shortcut data from the main application window.
-        """
-        return self._shortcut_data
+        """Return the registered shortcut data."""
+        # We need to include the second list here so that those shortcuts are
+        # displayed in Preferences.
+        return self._shortcut_data + SHORTCUTS_FOR_WIDGETS_DATA
 
     def reset_shortcuts(self):
         """Reset shrotcuts."""

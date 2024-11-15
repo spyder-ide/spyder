@@ -7,7 +7,7 @@
 """Shortcuts utils."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 from qtpy.QtCore import QObject
 
@@ -16,8 +16,15 @@ from qtpy.QtCore import QObject
 class ShortcutData:
     """Dataclass to represent shortcut data."""
 
-    qobject: QObject
-    """QObject to which the shortcut will be associated."""
+    qobject: Optional[QObject]
+    """
+    QObject to which the shortcut will be associated.
+
+    Notes
+    -----
+    This can be None when there's no need to register the shortcut to a
+    specific QObject.
+    """
 
     name: str
     """Shortcut name (e.g. "run cell")."""
@@ -44,3 +51,7 @@ class ShortcutData:
 
     add_shortcut_to_tip: bool = False
     """Whether to add the shortcut to the qobject's tooltip."""
+
+
+# List to save shortcut data registered for all widgets
+SHORTCUTS_FOR_WIDGETS_DATA: List[ShortcutData] = []

@@ -18,6 +18,10 @@ from qtpy.QtWidgets import QShortcut, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.plugins.shortcuts.utils import (
+    ShortcutData,
+    SHORTCUTS_FOR_WIDGETS_DATA,
+)
 
 
 class SpyderShortcutsMixin:
@@ -119,7 +123,14 @@ class SpyderShortcutsMixin:
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
 
+        # Register shortcut to widget
         keystr = self.get_shortcut(name, context)
         qsc = QShortcut(QKeySequence(keystr), widget)
         qsc.activated.connect(triggered)
         qsc.setContext(Qt.WidgetWithChildrenShortcut)
+
+        # Keep track of all widget shortcuts. This is necessary to show them in
+        # Preferences.
+        data = ShortcutData(qobject=None, name=name, context=context)
+        if data not in SHORTCUTS_FOR_WIDGETS_DATA:
+            SHORTCUTS_FOR_WIDGETS_DATA.append(data)
