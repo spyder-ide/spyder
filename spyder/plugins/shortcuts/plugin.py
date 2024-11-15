@@ -12,6 +12,7 @@ Shortcuts Plugin.
 
 # Standard library imports
 import configparser
+from typing import List
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -27,6 +28,7 @@ from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.shortcuts.confpage import ShortcutsConfigPage
+from spyder.plugins.shortcuts.utils import ShortcutData
 from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 from spyder.utils.qthelpers import add_shortcut_to_tooltip, SpyderAction
 
@@ -73,7 +75,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         return cls.create_icon('keyboard')
 
     def on_initialize(self):
-        self._shortcut_data = []
+        self._shortcut_data: List[ShortcutData] = []
         self._shortcut_sequences = set({})
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
@@ -143,16 +145,28 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
-        self._shortcut_data.append((qaction_or_qshortcut, context,
-                                   name, add_shortcut_to_tip, plugin_name))
+        self._shortcut_data.append(
+            ShortcutData(
+                qobject=qaction_or_qshortcut,
+                name=name,
+                context=context,
+                plugin_name=plugin_name,
+                add_shortcut_to_tip=add_shortcut_to_tip,
+            )
+        )
 
     def unregister_shortcut(self, qaction_or_qshortcut, context, name,
                             add_shortcut_to_tip=True, plugin_name=None):
         """
         Unregister QAction or QShortcut from Spyder main application.
         """
-        data = (qaction_or_qshortcut, context, name, add_shortcut_to_tip,
-                plugin_name)
+        data = ShortcutData(
+            qobject=qaction_or_qshortcut,
+            name=name,
+            context=context,
+            plugin_name=plugin_name,
+            add_shortcut_to_tip=add_shortcut_to_tip,
+        )
 
         if data in self._shortcut_data:
             self._shortcut_data.remove(data)
@@ -166,24 +180,25 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         # TODO: Check shortcut existence based on action existence, so that we
         # can update shortcut names without showing the old ones on the
         # preferences
-        for index, (qobject, context, name, add_shortcut_to_tip,
-                    plugin_name) in enumerate(self._shortcut_data):
+        for index, data in enumerate(self._shortcut_data):
             try:
                 shortcut_sequence = self.get_shortcut(
-                    name, context, plugin_name
+                    data.name, data.context, data.plugin_name
                 )
             except (configparser.NoSectionError, configparser.NoOptionError):
                 # If shortcut does not exist, save it to CONF. This is an
                 # action for which there is no shortcut assigned (yet) in
                 # the configuration
-                self.set_shortcut('', name, context, plugin_name)
+                self.set_shortcut(
+                    "", data.name, data.context, data.plugin_name
+                )
                 shortcut_sequence = ''
 
             if shortcut_sequence:
                 if shortcut_sequence in self._shortcut_sequences:
                     continue
 
-                self._shortcut_sequences |= {(context, shortcut_sequence)}
+                self._shortcut_sequences |= {(data.context, shortcut_sequence)}
                 keyseq = QKeySequence(shortcut_sequence)
             else:
                 # Needed to remove old sequences that were cleared.
@@ -194,18 +209,21 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
             # The shortcut will be displayed only on the menus and handled by
             # about to show/hide signals.
             if (
-                name.startswith('switch to')
-                and isinstance(qobject, SpyderAction)
+                data.name.startswith('switch to')
+                and isinstance(data.qobject, SpyderAction)
             ):
                 keyseq = QKeySequence()
 
+            # Register shortcut for the associated qobject
             try:
-                if isinstance(qobject, QAction):
-                    qobject.setShortcut(keyseq)
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
+                if isinstance(data.qobject, QAction):
+                    data.qobject.setShortcut(keyseq)
+                    if data.add_shortcut_to_tip:
+                        add_shortcut_to_tooltip(
+                            data.qobject, data.context, data.name
+                        )
+                elif isinstance(data.qobject, QShortcut):
+                    data.qobject.setKey(keyseq)
             except RuntimeError:
                 # Object has been deleted
                 toberemoved.append(index)

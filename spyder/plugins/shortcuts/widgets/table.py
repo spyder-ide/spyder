@@ -8,6 +8,7 @@
 
 # Standard library importsimport re
 import re
+from typing import List
 
 # Third party imports
 from qtawesome import IconWidget
@@ -24,6 +25,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.config.manager import CONF
+from spyder.plugins.shortcuts.utils import ShortcutData
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
@@ -638,7 +640,7 @@ class ShortcutsTable(HoverRowsTableView):
         HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self._parent = parent
         self.finder = None
-        self.shortcut_data = None
+        self.shortcut_data: List[ShortcutData] = []
         self.source_model = ShortcutsModel(self)
         self.proxy_model = ShortcutsSortFilterProxy(self)
         self.last_regex = ''
@@ -701,11 +703,14 @@ class ShortcutsTable(HoverRowsTableView):
 
     def load_shortcuts(self):
         """Load shortcuts and assign to table model."""
-        # item[1] -> context, item[2] -> name
-        # Data might be capitalized so we user lower()
+        # Data might be capitalized so we use lower() below.
         # See: spyder-ide/spyder/#12415
-        shortcut_data = set([(item[1].lower(), item[2].lower()) for item
-                             in self.shortcut_data])
+        shortcut_data = set(
+            [
+                (data.context.lower(), data.name.lower())
+                for data in self.shortcut_data
+            ]
+        )
         shortcut_data = list(sorted(set(shortcut_data)))
         shortcuts = []
 
@@ -746,8 +751,10 @@ class ShortcutsTable(HoverRowsTableView):
                    and (sh1.context == sh2.context or sh1.context == '_' or
                         sh2.context == '_'):
                     conflicts.append((sh1, sh2))
+
         if conflicts:
-            self.parent().show_this_page.emit()
+            if self.parent() is not None:
+                self.parent().show_this_page.emit()
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
                               for sh1, sh2 in conflicts])
             QMessageBox.warning(self, _("Conflicts"),
@@ -901,7 +908,9 @@ def load_shortcuts_data():
     for context, name, __ in CONF.iter_shortcuts():
         context = context.lower()
         name = name.lower()
-        shortcut_data.append((None, context, name, None, None))
+        shortcut_data.append(
+            ShortcutData(qobject=None, name=name, context=context)
+        )
     return shortcut_data
 
 
