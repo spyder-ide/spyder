@@ -1439,6 +1439,8 @@ overrided by the Sympy module (e.g. plot)
         if self.syntax_style:
             self._highlighter._style = create_style_class(self.syntax_style)
             self._highlighter._clear_caches()
+            if changed is None:
+                return
             self.set_kernel_configuration(
                 "traceback_highlight_style", self.syntax_style
             )
