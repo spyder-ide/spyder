@@ -641,6 +641,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot(QPaintEvent)
     def paint_cursors(self, event):
         """Paint all cursors"""
+        if not self.extra_cursors:
+            #revert to builtin cursor rendering if single cursor to handle
+            #   cursor drawing while dragging a selection of text around.
+            self.setCursorWidth(self.cursor_width)
+            return
+        self.setCursorWidth(0)
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
@@ -4685,7 +4691,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 pos_col = second_cursor.positionInBlock()
                 
                 #move primary cursor to pos_col
-                first_cursor.setPosition(anchor_block.position() + pos_col,
+                p_col = min(len(anchor_block.text()), pos_col)
+                # block.length() includes line seperator? just /n?
+                # use len(block.text()) instead
+                first_cursor.setPosition(anchor_block.position() + p_col,
                                           QTextCursor.MoveMode.KeepAnchor)
                 self.setTextCursor(first_cursor)
                 block = anchor_block
@@ -4699,10 +4708,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     #add a cursor for this block
                     if block.isVisible() and block.isValid():
                         cursor = QTextCursor(first_cursor)
-                        a_col = min(block.length(), anchor_col)
+                        
+                        a_col = min(len(block.text()), anchor_col)
                         cursor.setPosition(block.position() + a_col,
                                             QTextCursor.MoveMode.MoveAnchor)
-                        p_col = min(block.length(), pos_col)
+                        p_col = min(len(block.text()), pos_col)
                         cursor.setPosition(block.position() + p_col,
                                             QTextCursor.MoveMode.KeepAnchor)
                         self.add_cursor(cursor)
