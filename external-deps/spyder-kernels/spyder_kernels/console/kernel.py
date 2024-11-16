@@ -639,6 +639,8 @@ class SpyderKernel(IPythonKernel):
                     ret["special_kernel_error"] = value
             elif key == "color scheme":
                 self.set_color_scheme(value)
+            elif key == "traceback_highlight_style":
+                self.set_traceback_syntax_highlighting(value)
             elif key == "jedi_completer":
                 self.set_jedi_completer(value)
             elif key == "greedy_completer":
@@ -664,6 +666,25 @@ class SpyderKernel(IPythonKernel):
         elif color_scheme == "light":
             self.shell.run_line_magic("colors", "lightbg")
             self.set_sympy_forecolor(background_color='light')
+
+    def set_traceback_syntax_highlighting(self, syntax_style):
+        """Set the traceback syntax highlighting."""
+        try:
+            import IPython.core.ultratb
+            from IPython.core.ultratb import VerboseTB
+
+            from spyder.plugins.ipythonconsole.utils.style import create_style_class
+
+            IPython.core.ultratb.get_style_by_name = create_style_class
+
+            if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
+                VerboseTB.tb_highlight_style = syntax_style
+            elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
+                VerboseTB._tb_highlight_style = syntax_style
+        except Exception:
+            # Only usable if the kernel has access to Spyder syntax style function logic
+            # i.e spyder-kernels and Spyder are installed in the same environment
+            pass
 
     def get_cwd(self):
         """Get current working directory."""
