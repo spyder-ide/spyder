@@ -662,13 +662,23 @@ class SpyderKernel(IPythonKernel):
         if color_scheme == "dark":
             # Needed to change the colors of tracebacks
             self.shell.run_line_magic("colors", "linux")
-            self.set_sympy_forecolor(background_color='dark')
         elif color_scheme == "light":
             self.shell.run_line_magic("colors", "lightbg")
-            self.set_sympy_forecolor(background_color='light')
+        self.set_sympy_forecolor(background_color=color_scheme)
+        self.set_traceback_highlighting(color_scheme)
+
+    def set_traceback_highlighting(self, color_scheme):
+        """Set the traceback highlighting color."""
+        color = 'bg:ansired' if color_scheme == 'dark' else 'bg:ansiyellow'
+        from IPython.core.ultratb import VerboseTB
+
+        if getattr(VerboseTB, 'tb_highlight', None) is not None:
+            VerboseTB.tb_highlight = color
+        elif getattr(VerboseTB, '_tb_highlight', None) is not None:
+            VerboseTB._tb_highlight = color
 
     def set_traceback_syntax_highlighting(self, syntax_style):
-        """Set the traceback syntax highlighting."""
+        """Set the traceback syntax highlighting style."""
         try:
             import IPython.core.ultratb
             from IPython.core.ultratb import VerboseTB
