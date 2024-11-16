@@ -26,6 +26,7 @@ import sre_constants
 import sys
 import textwrap
 import functools
+import itertools
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
@@ -719,7 +720,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursors.sort(key=lambda cursor: cursor.position())
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(clip_text)
-        for cursor, text in zip(cursors, clip_text.splitlines()):
+        lines = clip_text.splitlines()
+        if len(lines) == 1:
+            lines = itertools.repeat(lines[0])
+        for cursor, text in zip(cursors, lines):
             self.setTextCursor(cursor)
             cursor.insertText(text)
             # handle extra lines or extra cursors?
