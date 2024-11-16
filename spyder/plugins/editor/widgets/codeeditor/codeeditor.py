@@ -522,7 +522,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.extra_cursors = []
         self.cursor_blink_state = False
         self.cursor_blink_timer = QTimer(self)
-        self.cursor_blink_timer.setInterval(QApplication.cursorFlashTime() // 2)
+        self.cursor_blink_timer.setInterval(
+            QApplication.cursorFlashTime() // 2
+        )
         self.cursor_blink_timer.timeout.connect(
             self._on_cursor_blinktimer_timeout
         )
@@ -609,12 +611,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Re-Implement keyEvent handler for multi-cursor"""
         if self.extra_cursors:
             event.accept()
-            
             key = event.key()
             ctrl = event.modifiers() & Qt.ControlModifier
-            
-            # TODO handle other keys? 
-            # TODO handle sig_key_pressed for each cursor? (maybe not: extra extensions add complexity. Keep multi-cursor simpler)
+            # TODO handle other keys?
+            # TODO handle sig_key_pressed for each cursor?
+            #    (maybe not: extra extensions add complexity.
+            #    Keep multi-cursor simpler)
             # ---- handle Tab
             if key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                 # Don't do intelligent tab with multi-cursor to skip
@@ -624,11 +626,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 # Trivial implementation: # TODO respect tab_mode
                 self.for_each_cursor(lambda: self.replace(self.indent_chars))()
             elif key == Qt.Key_Backtab and not ctrl:
-                self.for_each_cursor(self.unindent,False)()
+                self.for_each_cursor(self.unindent, False)()
             # ---- use default handler for cursor (text)
             else:
-                self.for_each_cursor(lambda: self._handle_keypress_event(event))()
-                
+                self.for_each_cursor(
+                    lambda: self._handle_keypress_event(event)
+                    )()
+
             return
 
     def _on_cursor_blinktimer_timeout(self):
@@ -649,8 +653,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             cursor_width = self.cursor_width
 
         if not self.extra_cursors:
-            #revert to builtin cursor rendering if single cursor to handle
-            #   cursor drawing while dragging a selection of text around.
+            # Revert to builtin cursor rendering if single cursor to handle
+            #    cursor drawing while dragging a selection of text around.
             self.setCursorWidth(cursor_width)
             return
 
@@ -664,12 +668,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         flags = (self.textInteractionFlags() &
                  Qt.TextInteractionFlag.TextSelectableByKeyboard)
         draw_cursor = self.cursor_blink_state and (editable or flags)
-        
+
         for cursor in self.all_cursors:
             block = cursor.block()
             if draw_cursor and block.isVisible():
-                block_geometry_top = int(self.blockBoundingGeometry(block).top())
-                offset.setY(block_geometry_top + content_offset_y)
+                block_top = int(self.blockBoundingGeometry(block).top())
+                offset.setY(block_top + content_offset_y)
                 block.layout().drawCursor(qp, offset,
                                           cursor.positionInBlock(),
                                           cursor_width)
@@ -2297,7 +2301,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
-        self.clear_extra_cursors()  # handles go to warnings, todo, line number, definition, etc.
+        # handles go to warnings, todo, line number, definition, etc.
+        self.clear_extra_cursors()
         self.text_helper.goto_line(line, column=start_column,
                                    end_column=end_column, move=True,
                                    word=word)
@@ -3284,7 +3289,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # See spyder-ide/spyder#2845.
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
-            unblockcomment =  self.__unblockcomment(compatibility=True)
+            unblockcomment = self.__unblockcomment(compatibility=True)
         else:
             return unblockcomment
 
@@ -3705,7 +3710,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('MessageBoxInformation'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.sig_show_object_info  # only consider main cursor; don't clear extra cursors
+            triggered=self.sig_show_object_info
         )
 
         # Run actions
@@ -3757,7 +3762,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Generate docstring'),
             register_shortcut=True,
             register_action=False,
-            triggered=writer.write_docstring_at_first_line_of_function  # multi-cursor not needed: cursor position is taken from context menu position
+            triggered=writer.write_docstring_at_first_line_of_function
         )
 
         # Document formatting
@@ -3967,9 +3972,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
-        
+
         self.start_cursor_blink()  # reset cursor blink by reseting timer
-        
+
         self._last_pressed_key = key = event.key()
         self._last_key_pressed_text = text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -4687,8 +4692,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         if event.button() == Qt.LeftButton and ctrl and alt:
             # ---- Ctrl-Alt: multi-cursor mouse interactions
-            if shift:  
-                # Ctrl-Shift-Alt click adds colum of cursors towards primary 
+            if shift:
+                # Ctrl-Shift-Alt click adds colum of cursors towards primary
                 #    cursor
                 first_cursor = self.textCursor()
                 anchor_block = first_cursor.block()
@@ -4696,35 +4701,35 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 second_cursor = self.cursorForPosition(pos)
                 pos_block = second_cursor.block()
                 pos_col = second_cursor.positionInBlock()
-                
-                #move primary cursor to pos_col
+
+                # Move primary cursor to pos_col
                 p_col = min(len(anchor_block.text()), pos_col)
                 # block.length() includes line seperator? just /n?
                 # use len(block.text()) instead
                 first_cursor.setPosition(anchor_block.position() + p_col,
-                                          QTextCursor.MoveMode.KeepAnchor)
+                                         QTextCursor.MoveMode.KeepAnchor)
                 self.setTextCursor(first_cursor)
                 block = anchor_block
                 while True:
-                    #get the next block
+                    # Get the next block
                     if anchor_block < pos_block:
                         block = block.next()
                     else:
                         block = block.previous()
-                        
-                    #add a cursor for this block
+
+                    # Add a cursor for this block
                     if block.isVisible() and block.isValid():
                         cursor = QTextCursor(first_cursor)
-                        
+
                         a_col = min(len(block.text()), anchor_col)
                         cursor.setPosition(block.position() + a_col,
-                                            QTextCursor.MoveMode.MoveAnchor)
+                                           QTextCursor.MoveMode.MoveAnchor)
                         p_col = min(len(block.text()), pos_col)
                         cursor.setPosition(block.position() + p_col,
-                                            QTextCursor.MoveMode.KeepAnchor)
+                                           QTextCursor.MoveMode.KeepAnchor)
                         self.add_cursor(cursor)
-                    
-                    #break if it's the last block
+
+                    # Break if it's the last block
                     if block == pos_block:
                         break
 
@@ -4733,7 +4738,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 #   new primary cursor
                 old_cursor = self.textCursor()
                 new_cursor = self.cursorForPosition(pos)
-                
+
                 removed_cursor = False
                 # don't attempt to remove cursor if there's only one
                 if self.extra_cursors:
@@ -4758,11 +4763,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                             self.setTextCursor(new_primary)
                         # possibly clear selection of removed cursor
                         self.set_extra_cursor_selections()
-                
+
                 if not removed_cursor:
                     self.setTextCursor(new_cursor)
                     self.add_cursor(old_cursor)
-        else: 
+        else:
             # ---- not multi-cursor
             if event.button() == Qt.MouseButton.LeftButton:
                 self.clear_extra_cursors()
@@ -5019,8 +5024,8 @@ class TestWidget(QSplitter):
     def __init__(self, parent):
         QSplitter.__init__(self, parent)
         self.editor = CodeEditor(self)
-        self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                                 font=QFont("Courier New", 10),
+        self.editor.setup_editor(linenumbers=True, markers=True,
+                                 tab_mode=False, font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
         self.setWindowIcon(ima.icon('spyder'))
