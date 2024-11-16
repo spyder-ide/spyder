@@ -452,8 +452,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Enable autoreload_magic
             self.set_kernel_configuration("autoreload_magic", True)
 
-        self.silent_execute("%xmode context")
-
         self.call_kernel(
             interrupt=self.is_debugging(),
             callback=self.kernel_configure_callback
@@ -1441,20 +1439,8 @@ overrided by the Sympy module (e.g. plot)
         if self.syntax_style:
             self._highlighter._style = create_style_class(self.syntax_style)
             self._highlighter._clear_caches()
-            self.silent_execute(
-f"""
-import IPython.core.ultratb
-from IPython.core.ultratb import VerboseTB
-
-from spyder.plugins.ipythonconsole.utils.style import create_style_class
-
-IPython.core.ultratb.get_style_by_name = create_style_class
-
-if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
-    VerboseTB.tb_highlight_style = '{self.syntax_style}'
-elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
-    VerboseTB._tb_highlight_style = '{self.syntax_style}'
-"""
+            self.set_kernel_configuration(
+                "traceback_highlight_style", self.syntax_style
             )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
