@@ -516,7 +516,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Initialize attrs and callbacks for multi-cursor functionality"""
         self.cursor_width = self.get_conf('cursor/width', section='main')
         self.overwrite_mode = self.overwriteMode()
-        # track overwrite manually for painting the cursor(s)
+        # track overwrite manually when for painting reasons with multi-cursor
         self.setOverwriteMode(False)
         self.setCursorWidth(0)  # draw our own cursor
         self.extra_cursors = []
@@ -642,11 +642,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot(QPaintEvent)
     def paint_cursors(self, event):
         """Paint all cursors"""
+        if self.overwrite_mode:
+            font = self.textCursor().block().charFormat().font()
+            cursor_width = QFontMetrics(font).horizontalAdvance(" ")
+        else:
+            cursor_width = self.cursor_width
+
         if not self.extra_cursors:
             #revert to builtin cursor rendering if single cursor to handle
             #   cursor drawing while dragging a selection of text around.
-            self.setCursorWidth(self.cursor_width)
+            self.setCursorWidth(cursor_width)
             return
+
         self.setCursorWidth(0)
         qp = QPainter()
         qp.begin(self.viewport())
@@ -657,11 +664,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         flags = (self.textInteractionFlags() &
                  Qt.TextInteractionFlag.TextSelectableByKeyboard)
         draw_cursor = self.cursor_blink_state and (editable or flags)
-        if self.overwrite_mode:
-            font = self.textCursor().block().charFormat().font()
-            cursor_width = QFontMetrics(font).horizontalAdvance(" ")
-        else:
-            cursor_width = self.cursor_width
+        
         for cursor in self.all_cursors:
             block = cursor.block()
             if draw_cursor and block.isVisible():
