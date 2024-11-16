@@ -700,7 +700,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
-        self._syntax_style_changed()
+        self._syntax_style_changed(changed={})
         if reset:
             self.reset(clear=True)
         if not self.spyder_kernel_ready:
