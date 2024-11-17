@@ -161,10 +161,13 @@ class AppearanceConfigPage(PluginConfigPage):
         self.preview_editor.set_scrollpastend_enabled(False)
 
         preview_interface_label = QLabel(_("Interface font"))
-        self.preview_interface = QLabel("Happy Spydering!")
+        self.preview_interface = QLabel("Sample text")
         self.preview_interface.setFixedWidth(260)
         self.preview_interface.setFixedHeight(45)
         self.preview_interface.setWordWrap(True)
+        self.preview_interface.setTextInteractionFlags(
+            Qt.TextEditorInteraction
+        )
         self.preview_interface.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
         preview_interface_label_css = qstylizer.style.StyleSheet()
