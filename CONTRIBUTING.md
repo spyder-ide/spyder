@@ -237,6 +237,18 @@ Due to that, a clone of those projects is placed in the `external-deps` director
     ```
 
 
+## Guidelines for Spyder API changes
+
+If your work makes changes to public classes, methods or Qt signals in `spyder.api`, or to the public interface of any plugin (e.g. `plugins/editor/plugin.py`), you must add a note about it in the current Changelog (e.g. `changelogs/Spyder-6.md`).
+If an entry for the version where your PR will be included doesn't exist yet, create one (with `Unreleased` as its date) and a subsection called `API changes`.
+
+Please note that the Spyder API must be changed according to the following guidelines:
+
+* For bugfix versions (e.g. `6.0.3`), you can only add new Qt signals or methods, or kwargs to current methods.
+* For minor versions (e.g. `6.1.0`), you should try to do the same as for bugfix versions, unless it's **strictly** necessary to break the API by removing or changing certain Qt signals, classes or methods in a backwards incompatible way.
+* For major versions (e.g. `7.0.0`), there are no restrictions on API changes.
+
+
 ## Adding Third-Party Content
 
 All files or groups of files, including source code, images, icons, and other assets, that originate from projects outside of the Spyder organization (regardless of the license), must be first approved by the Spyder team. Always check with us (on Github, Gitter, Google Group, etc) before attempting to add content from an external project, and only do so when necessary.
