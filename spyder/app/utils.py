@@ -98,7 +98,8 @@ def set_opengl_implementation(option):
     if hasattr(QQuickWindow, "setGraphicsApi"):
         set_api = QQuickWindow.setGraphicsApi  # Qt 6
     else:
-        set_api = QQuickWindow.setSceneGraphBackend  # Qt 5
+        if QQuickWindow is not None:
+            set_api = QQuickWindow.setSceneGraphBackend  # Qt 5
 
     if option == 'software':
         QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)

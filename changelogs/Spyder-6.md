@@ -1,5 +1,16 @@
 # History of changes for Spyder 6
 
+## Version 6.0.3 (Unreleased)
+
+### API changes
+
+* Add `items_elide_mode` kwarg to the constructors of `SpyderComboBox` and
+  `SpyderComboBoxWithIcons`.
+* The `sig_item_in_popup_changed` and `sig_popup_is_hidden` signals were added
+  to `SpyderComboBox`, `SpyderComboBoxWithIcons` and `SpyderFontComboBox`.
+
+----
+
 ## Version 6.0.2 (2024/10/31)
 
 ### Important fixes
@@ -10,6 +21,12 @@
 * Fix SSH tunneling info handling for remote kernels connection and add remote client tests.
 * Handle kernel fault file not being available.
 * Update QtConsole constraint to 5.6.1 to support ANSI codes that move the cursor.
+
+### API changes
+
+* The `sig_is_rendered` signal was added to `SpyderToolbar`.
+* The `add_toolbar` kwarg of the `create_run_button` and `create_run_in_executor_button`
+  methods of the Run plugin can now accept a dictionary.
 
 ### Issues Closed
 
