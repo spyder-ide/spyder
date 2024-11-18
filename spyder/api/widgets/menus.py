@@ -402,7 +402,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}"
         )
 
-        # Set the right background color This is the only way to do it!
+        # Set the right background color. This is the only way to do it!
         css['QWidget:disabled QMenu'].setValues(
             backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
