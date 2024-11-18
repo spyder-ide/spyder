@@ -883,38 +883,54 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ('code completion', self.restrict_single_cursor(self.do_completion)),
-            ('duplicate line down', self.for_each_cursor(self.duplicate_line_down)),
-            ('duplicate line up', self.for_each_cursor(self.duplicate_line_up)),
+            ('code completion', self.restrict_single_cursor(
+                self.do_completion)),
+            ('duplicate line down', self.for_each_cursor(
+                self.duplicate_line_down)),
+            ('duplicate line up', self.for_each_cursor(
+                self.duplicate_line_up)),
             ('delete line', self.delete_line),
             ('move line up', self.move_line_up),  # TODO multi-cursor
             ('move line down', self.move_line_down),  # TODO multi-cursor
             ('go to new line', self.for_each_cursor(self.go_to_new_line)),
-            ('go to definition', self.go_to_definition_from_cursor),  # clears extra cursors already handled by go_to_line
+            ('go to definition', self.go_to_definition_from_cursor),
             ('toggle comment', self.for_each_cursor(self.toggle_comment)),
-            ('blockcomment', self.for_each_cursor(self.blockcomment)),  # TODO multi-cursor a bit wonky
+            ('blockcomment', self.for_each_cursor(self.blockcomment)),
             ('create_new_cell', self.for_each_cursor(self.create_new_cell)),
-            ('unblockcomment', self.for_each_cursor(self.unblockcomment)),  # TODO multi-cursor a bit wonky
-            ('transform to uppercase', self.for_each_cursor(self.transform_to_uppercase)),
-            ('transform to lowercase', self.for_each_cursor(self.transform_to_lowercase)),
+            ('unblockcomment', self.for_each_cursor(self.unblockcomment)),
+            ('transform to uppercase', self.for_each_cursor(
+                self.transform_to_uppercase)),
+            ('transform to lowercase', self.for_each_cursor(
+                self.transform_to_lowercase)),
             ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
-            ('unindent', self.for_each_cursor(lambda: self.unindent(force=True), False)),
-            ('start of line', self.for_each_cursor(self.create_cursor_callback('StartOfLine'), False)),
-            ('end of line', self.for_each_cursor(self.create_cursor_callback('EndOfLine'))),
-            ('previous line', self.for_each_cursor(self.create_cursor_callback('Up'), False)),
-            ('next line', self.for_each_cursor(self.create_cursor_callback('Down'))),
-            ('previous char', self.for_each_cursor(self.create_cursor_callback('Left'), False)),
-            ('next char', self.for_each_cursor(self.create_cursor_callback('Right'))),
-            ('previous word', self.for_each_cursor(self.create_cursor_callback('PreviousWord'), False)),
-            ('next word', self.for_each_cursor(self.create_cursor_callback('NextWord'))),
+            ('unindent', self.for_each_cursor(
+                lambda: self.unindent(force=True), False)),
+            ('start of line', self.for_each_cursor(
+                self.create_cursor_callback('StartOfLine'), False)),
+            ('end of line', self.for_each_cursor(
+                self.create_cursor_callback('EndOfLine'))),
+            ('previous line', self.for_each_cursor(
+                self.create_cursor_callback('Up'), False)),
+            ('next line', self.for_each_cursor(
+                self.create_cursor_callback('Down'))),
+            ('previous char', self.for_each_cursor(
+                self.create_cursor_callback('Left'), False)),
+            ('next char', self.for_each_cursor(
+                self.create_cursor_callback('Right'))),
+            ('previous word', self.for_each_cursor(
+                self.create_cursor_callback('PreviousWord'), False)),
+            ('next word', self.for_each_cursor(
+                self.create_cursor_callback('NextWord'))),
             ('kill to line end', self.kill_line_end),  # TODO multi-cursor
             ('kill to line start', self.kill_line_start),  # TODO multi-cursor
             ('yank', self._kill_ring.yank),  # TODO multi-cursor
             ('rotate kill ring', self._kill_ring.rotate),  # TODO multi-cursor
             ('kill previous word', self.kill_prev_word),  # TODO multi-cursor
             ('kill next word', self.kill_next_word),  # TODO multi-cursor
-            ('start of document', self.clears_extra_cursors(self.create_cursor_callback('Start'))),
-            ('end of document', self.clears_extra_cursors(self.create_cursor_callback('End'))),
+            ('start of document', self.clears_extra_cursors(
+                self.create_cursor_callback('Start'))),
+            ('end of document', self.clears_extra_cursors(
+                self.create_cursor_callback('End'))),
             ('undo', self.undo),  # TODO multi-cursor (cursor positions)
             ('redo', self.redo),  # TODO multi-cursor (cursor positions)
             ('cut', self.cut),
@@ -922,12 +938,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('paste', self.paste),
             ('delete', self.delete),
             ('select all', self.clears_extra_cursors(self.selectAll)),
-            ('docstring', self.for_each_cursor(self.writer_docstring.write_docstring_for_shortcut)),
+            ('docstring', self.for_each_cursor(
+                self.writer_docstring.write_docstring_for_shortcut)),
             ('autoformatting', self.format_document_or_range),  # TODO multi-cursor
             ('scroll line down', self.scroll_line_down),
             ('scroll line up', self.scroll_line_up),
-            ('enter array inline', self.clears_extra_cursors(self.enter_array_inline)),
-            ('enter array table', self.clears_extra_cursors(self.enter_array_table)),
+            ('enter array inline', self.clears_extra_cursors(
+                self.enter_array_inline)),
+            ('enter array table', self.clears_extra_cursors(
+                self.enter_array_table)),
         )
 
         for name, callback in shortcuts:
@@ -1597,15 +1616,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.textCursor().beginEditBlock()
         self.sig_delete_requested.emit()
         for cursor in self.all_cursors:
-            self.setTextCursor(cursor)
-            if not self.has_selected_text():
-                if not cursor.atEnd():
-                    cursor.setPosition(
-                        self.next_cursor_position(), QTextCursor.KeepAnchor
-                    )
-                self.setTextCursor(cursor)
-
-            self.remove_selected_text()
+            cursor.deleteChar()
             self.setTextCursor(cursor)
         self.textCursor().endEditBlock()
 
@@ -1616,18 +1627,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             if self.has_selected_text():
                 self.extend_selection_to_complete_lines()
-                start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-                cursor.setPosition(start_pos)
+                start, end = cursor.selectionStart(), cursor.selectionEnd()
+                cursor.setPosition(start)
             else:
-                start_pos = end_pos = cursor.position()
+                start = end = cursor.position()
 
-            cursor.setPosition(start_pos)
+            cursor.setPosition(start)
             cursor.movePosition(QTextCursor.StartOfBlock)
-            while cursor.position() <= end_pos:
-                cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            while cursor.position() <= end:
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
                 if cursor.atEnd():
                     break
-                cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.NextBlock,
+                                    QTextCursor.KeepAnchor)
 
         self.setTextCursor(cursor)
         self.delete()
@@ -4959,7 +4972,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 text=_("Generate docstring"),
                 icon=self.create_icon('TextFileIcon'),
                 register_action=False,
-                triggered=self.for_each_cursor(writer.write_docstring)  # TODO multi-cursor support only needed if we start sending sig_key_pressed from multi-cursor key handler
+                # TODO multi-cursor support only needed if we start sending
+                #    sig_key_pressed from multi-cursor key handler
+                triggered=self.for_each_cursor(writer.write_docstring)
             )
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
