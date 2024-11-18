@@ -531,7 +531,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.focus_in.connect(self.start_cursor_blink)
         self.focus_changed.connect(self.stop_cursor_blink)
         self.painted.connect(self.paint_cursors)
-        self.sig_key_pressed.connect(self.handle_multi_cursor_keypress)
+        # self.sig_key_pressed.connect(self.handle_multi_cursor_keypress)
 
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
@@ -600,6 +600,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                         QTextCursor.MoveMode.MoveAnchor)
                     cursor2.setPosition(positions[2],
                                         QTextCursor.MoveMode.KeepAnchor)
+                    if cursor2 is main_cursor:
+                        self.setTextCursor(cursor2)
                     break
 
             if not cursor_was_removed:
@@ -609,31 +611,66 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
         """Re-Implement keyEvent handler for multi-cursor"""
-        if self.extra_cursors:
-            event.accept()
-            key = event.key()
-            ctrl = event.modifiers() & Qt.ControlModifier
-            # TODO handle other keys?
-            # TODO handle sig_key_pressed for each cursor?
-            #    (maybe not: extra extensions add complexity.
-            #    Keep multi-cursor simpler)
+
+        key = event.key()
+        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
+        shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        # TODO handle other keys?
+        # TODO handle sig_key_pressed for each cursor?
+        #    (maybe not: extra extensions add complexity.
+        #    Keep multi-cursor simpler)
+        # ---- handle insert
+        if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
+            self.overwrite_mode = not self.overwrite_mode
+            return
+        
+        increasing_position = True
+        new_cursors = []
+        # some operations should be limited to once per line ?
+        handled_lines = []
+        self.textCursor().beginEditBlock()
+        for cursor in self.all_cursors:
+            self.setTextCursor(cursor)
+            event.ignore()
+            self.sig_key_pressed.emit(event)
+            if event.isAccepted():
+                # text folding swallows most input to prevent typing on folded
+                #    lines.
+                pass
             # ---- handle Tab
-            if key == Qt.Key_Tab and not ctrl:  # ctrl-tab is shortcut
+            elif key == Qt.Key.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                 # Don't do intelligent tab with multi-cursor to skip
                 #   calls to do_completion. Avoiding completions with multi
                 #   cursor is much easier than solving all the edge cases.
 
-                # Trivial implementation: # TODO respect tab_mode
-                self.for_each_cursor(lambda: self.replace(self.indent_chars))()
-            elif key == Qt.Key_Backtab and not ctrl:
-                self.for_each_cursor(self.unindent, False)()
+                self.indent(force=self.tab_mode)
+            elif key == Qt.Key.Key_Backtab and not ctrl:
+                increasing_position = False
+                # TODO ignore indent level of neighboring lines and simply 
+                #    indent by 1 level at a time. Cursor update order can
+                #    make this unpredictable otherwise.
+                self.unindent(force=self.tab_mode)
             # ---- use default handler for cursor (text)
             else:
-                self.for_each_cursor(
-                    lambda: self._handle_keypress_event(event)
-                    )()
+                if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
+                    increasing_position = False
+                if (key in (Qt.Key.Key_Up, Qt.Key.Key_Down) and
+                    cursor.verticalMovementX() == -1):
+                    # Builtin handler somehow does not set verticalMovementX
+                    #    when moving up and down (but works fine for single
+                    #    cursor somehow)  # TODO why
+                    x = self.cursorRect(cursor).x()
+                    cursor.setVerticalMovementX(x)
+                    self.setTextCursor(cursor)
+                self._handle_keypress_event(event)
 
-            return
+            # Update edited extra_cursors
+            new_cursors.append(self.textCursor())
+        self.extra_cursors = new_cursors[:-1]
+        self.merge_extra_cursors(increasing_position)
+        self.textCursor().endEditBlock()
+        event.accept()  # TODO when to pass along keypress or not
 
     def _on_cursor_blinktimer_timeout(self):
         """
@@ -3982,11 +4019,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # Only set overwrite mode during key handling to allow correct painting
         #   of multiple overwrite cursors. Must unset overwrite before return.
         self.setOverwriteMode(self.overwrite_mode)
+        self.start_cursor_blink()  # reset cursor blink by reseting timer
+        if self.extra_cursors:
+            self.handle_multi_cursor_keypress(event)
+            self.setOverwriteMode(False)
+            return
+
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
-
-        self.start_cursor_blink()  # reset cursor blink by reseting timer
 
         self._last_pressed_key = key = event.key()
         self._last_key_pressed_text = text = to_text_string(event.text())
