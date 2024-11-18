@@ -6,6 +6,7 @@
 
 """Appearance entry in Preferences."""
 
+import configparser
 import sys
 
 import qstylizer.style
@@ -279,8 +280,17 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in names:
             self.scheme_editor_dialog.add_color_scheme_stack(name)
 
+        valid_custom_names = []
         for name in custom_names:
-            self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
+            try:
+                self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
+                valid_custom_names.append(name)
+            except configparser.NoOptionError:
+                # Ignore invalid custom syntax highlighting themes
+                # See spyder-ide/spyder#22492
+                pass
+
+        self.set_option("custom_names", valid_custom_names)
 
         if sys.platform == 'darwin':
             system_font_checkbox.checkbox.setEnabled(False)
