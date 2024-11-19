@@ -283,7 +283,9 @@ class AppearanceConfigPage(PluginConfigPage):
         valid_custom_names = []
         for name in custom_names:
             try:
-                self.scheme_editor_dialog.add_color_scheme_stack(name, custom=True)
+                self.scheme_editor_dialog.add_color_scheme_stack(
+                    name, custom=True
+                )
                 valid_custom_names.append(name)
             except configparser.NoOptionError:
                 # Ignore invalid custom syntax highlighting themes
