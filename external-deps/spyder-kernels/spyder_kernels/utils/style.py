@@ -109,6 +109,6 @@ def create_style_class(color_scheme_dict):
 
     class StyleClass(Style):
         default_style = ""
-        styles = create_pygments_dict(color_scheme_dict)
+        styles = create_pygments_dict(dict(color_scheme_dict))
 
     return StyleClass

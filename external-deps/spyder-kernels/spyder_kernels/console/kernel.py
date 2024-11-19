@@ -677,7 +677,7 @@ class SpyderKernel(IPythonKernel):
         elif getattr(VerboseTB, '_tb_highlight', None) is not None:
             VerboseTB._tb_highlight = color
 
-    def set_traceback_syntax_highlighting(self, syntax_style, syntax_style_dict):
+    def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
         import IPython.core.ultratb
         from IPython.core.ultratb import VerboseTB
