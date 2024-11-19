@@ -4,6 +4,7 @@
 
 ### API changes
 
+* The `add_configuration_observer` method was added to `SpyderConfigurationObserver`.
 * Add `items_elide_mode` kwarg to the constructors of `SpyderComboBox` and
   `SpyderComboBoxWithIcons`.
 * The `sig_item_in_popup_changed` and `sig_popup_is_hidden` signals were added
