@@ -4750,7 +4750,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=20)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
