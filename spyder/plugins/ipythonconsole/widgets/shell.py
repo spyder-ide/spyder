@@ -1444,7 +1444,7 @@ overrided by the Sympy module (e.g. plot)
             if changed is None:
                 return
             self.set_kernel_configuration(
-                "traceback_highlight_style", self.syntax_style, get_color_scheme(self.syntax_style)
+                "traceback_highlight_style", get_color_scheme(self.syntax_style)
             )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
