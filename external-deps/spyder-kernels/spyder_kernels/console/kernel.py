@@ -677,24 +677,19 @@ class SpyderKernel(IPythonKernel):
         elif getattr(VerboseTB, '_tb_highlight', None) is not None:
             VerboseTB._tb_highlight = color
 
-    def set_traceback_syntax_highlighting(self, syntax_style):
+    def set_traceback_syntax_highlighting(self, syntax_style, syntax_style_dict):
         """Set the traceback syntax highlighting style."""
-        try:
-            import IPython.core.ultratb
-            from IPython.core.ultratb import VerboseTB
+        import IPython.core.ultratb
+        from IPython.core.ultratb import VerboseTB
 
-            from spyder.plugins.ipythonconsole.utils.style import create_style_class
+        from spyder_kernels.utils.style import create_style_class
 
-            IPython.core.ultratb.get_style_by_name = create_style_class
+        IPython.core.ultratb.get_style_by_name = create_style_class
 
-            if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
-                VerboseTB.tb_highlight_style = syntax_style
-            elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
-                VerboseTB._tb_highlight_style = syntax_style
-        except Exception:
-            # Only usable if the kernel has access to Spyder syntax style function logic
-            # i.e spyder-kernels and Spyder are installed in the same environment
-            pass
+        if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
+            VerboseTB.tb_highlight_style = syntax_style
+        elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
+            VerboseTB._tb_highlight_style = syntax_style
 
     def get_cwd(self):
         """Get current working directory."""
