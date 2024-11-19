@@ -624,9 +624,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
             self.overwrite_mode = not self.overwrite_mode
             return
-        
+
         self.textCursor().beginEditBlock()
-        
+
         cursors = []
         accepted = []
         # Handle all signals before editing text
@@ -984,7 +984,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('select all', self.clears_extra_cursors(self.selectAll)),
             ('docstring', self.for_each_cursor(
                 self.writer_docstring.write_docstring_for_shortcut)),
-            ('autoformatting', self.format_document_or_range),  # TODO multi-cursor
+            ('autoformatting', self.clears_extra_cursors(
+                self.format_document_or_range)),
             ('scroll line down', self.scroll_line_down),
             ('scroll line up', self.scroll_line_up),
             ('enter array inline', self.clears_extra_cursors(
@@ -3850,7 +3851,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon("transparent"),
             register_shortcut=True,
             register_action=False,
-            triggered=self.format_document_or_range  # TODO multi-cursor how to consider?
+            triggered=self.clears_extra_cursors(self.format_document_or_range)
         )
         self.format_action.setEnabled(False)
 
@@ -5035,8 +5036,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 text=_("Generate docstring"),
                 icon=self.create_icon('TextFileIcon'),
                 register_action=False,
-                # TODO multi-cursor support only needed if we start sending
-                #    sig_key_pressed from multi-cursor key handler
                 triggered=self.for_each_cursor(writer.write_docstring)
             )
             self.menu_docstring.addAction(self.docstring_action)
