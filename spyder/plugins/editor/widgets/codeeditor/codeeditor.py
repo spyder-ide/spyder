@@ -624,11 +624,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
             self.overwrite_mode = not self.overwrite_mode
             return
-        
+
         increasing_position = True
         new_cursors = []
-        # some operations should be limited to once per line ?
-        handled_lines = []
         self.textCursor().beginEditBlock()
         for cursor in self.all_cursors:
             self.setTextCursor(cursor)
@@ -647,7 +645,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.indent(force=self.tab_mode)
             elif key == Qt.Key.Key_Backtab and not ctrl:
                 increasing_position = False
-                # TODO ignore indent level of neighboring lines and simply 
+                # TODO ignore indent level of neighboring lines and simply
                 #    indent by 1 level at a time. Cursor update order can
                 #    make this unpredictable otherwise.
                 self.unindent(force=self.tab_mode)
@@ -1649,26 +1647,28 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
-
         self.textCursor().beginEditBlock()
-        self.sig_delete_requested.emit()
+        new_cursors = []
         for cursor in self.all_cursors:
+            self.setTextCursor(cursor)
+            self.sig_delete_requested.emit()
+            new_cursors.append(self.textCursor())
+        # Signal all cursors first to call FoldingPanel._expand_selection
+        #    before calling deleteChar. This fixes some issues with deletion
+        #    order invalidating FoldingPanel properties in the wrong order
+        for cursor in new_cursors:
             cursor.deleteChar()
             self.setTextCursor(cursor)
+        self.extra_cursors = new_cursors[:-1]
+        self.merge_extra_cursors(True)
         self.textCursor().endEditBlock()
 
     def delete_line(self):
         """Delete current line."""
-        cursor = self.textCursor()
+        self.textCursor().beginEditBlock()
+        cursors = []
         for cursor in self.all_cursors:
-
-            if self.has_selected_text():
-                self.extend_selection_to_complete_lines()
-                start, end = cursor.selectionStart(), cursor.selectionEnd()
-                cursor.setPosition(start)
-            else:
-                start = end = cursor.position()
-
+            start, end = cursor.selectionStart(), cursor.selectionEnd()
             cursor.setPosition(start)
             cursor.movePosition(QTextCursor.StartOfBlock)
             while cursor.position() <= end:
@@ -1678,9 +1678,22 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     break
                 cursor.movePosition(QTextCursor.NextBlock,
                                     QTextCursor.KeepAnchor)
+            self.setTextCursor(cursor)
+            # Text folding looks for sig_delete_requested to expand selection
+            #    to entire folded region.
+            self.sig_delete_requested.emit()
+            cursors.append(self.textCursor())
 
-        self.setTextCursor(cursor)
-        self.delete()
+        new_cursors = []
+        for cursor in cursors:
+            self.setTextCursor(cursor)
+            self.remove_selected_text()
+            new_cursors.append(self.textCursor())
+
+        self.extra_cursors = new_cursors[:-1]
+        self.setTextCursor(new_cursors[-1])
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
         self.ensureCursorVisible()
 
     # ---- Scrolling
