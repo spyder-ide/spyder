@@ -10,9 +10,6 @@
 Style for IPython Console
 """
 
-# Local imports
-from spyder.config.gui import get_color_scheme
-
 # Third party imports
 from pygments.style import Style
 from pygments.token import (Name, Keyword, Comment, String, Number,
@@ -37,7 +34,7 @@ def create_pygments_dict(color_scheme_dict):
         else:
             return ''
 
-    color_scheme = get_color_scheme(color_scheme_dict)
+    color_scheme = color_scheme_dict
 
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
