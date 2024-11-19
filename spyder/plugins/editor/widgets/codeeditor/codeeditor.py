@@ -624,15 +624,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
             self.overwrite_mode = not self.overwrite_mode
             return
-
-        increasing_position = True
-        new_cursors = []
+        
         self.textCursor().beginEditBlock()
+        
+        cursors = []
+        accepted = []
+        # Handle all signals before editing text
         for cursor in self.all_cursors:
             self.setTextCursor(cursor)
             event.ignore()
             self.sig_key_pressed.emit(event)
-            if event.isAccepted():
+            cursors.append(self.textCursor())
+            accepted.append(event.isAccepted())
+
+        increasing_position = True
+        new_cursors = []
+        for skip, cursor in zip(accepted, cursors):
+            self.setTextCursor(cursor)
+            if skip:
                 # text folding swallows most input to prevent typing on folded
                 #    lines.
                 pass
