@@ -92,7 +92,7 @@ class UserModuleReloader:
         # Report reloaded modules
         if self.verbose and modnames_to_reload:
             modnames = modnames_to_reload
-            print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"
+            print("\x1b[1;4;31m%s\x1b[24m%s\x1b[0m"
                   % ("Reloaded modules", ": "+", ".join(modnames)))
 
         return modnames_to_reload

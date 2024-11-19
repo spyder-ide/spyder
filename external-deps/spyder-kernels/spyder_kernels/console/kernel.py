@@ -669,7 +669,7 @@ class SpyderKernel(IPythonKernel):
 
     def set_traceback_highlighting(self, color_scheme):
         """Set the traceback highlighting color."""
-        color = 'bg:ansired' if color_scheme == 'dark' else 'bg:ansiyellow'
+        color = 'bg:ansigreen' if color_scheme == 'dark' else 'bg:ansiyellow'
         from IPython.core.ultratb import VerboseTB
 
         if getattr(VerboseTB, 'tb_highlight', None) is not None:
