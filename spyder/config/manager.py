@@ -703,7 +703,12 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        config.set('shortcuts', context + '/' + name, keystr)
+        option = context + "/" + name
+        current_shortcut = config.get("shortcuts", option, default="")
+
+        if current_shortcut != keystr:
+            config.set('shortcuts', option, keystr)
+            self.notify_observers("shortcuts", option)
 
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
