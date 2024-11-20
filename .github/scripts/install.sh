@@ -42,6 +42,12 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
+    # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
+    # 0.19.2, although it passes locally
+    if [ "$OS" = "linux" ]; then
+        micromamba install jedi=0.19.1
+    fi
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -58,6 +64,11 @@ else
     # To check our manifest
     pip install -q check-manifest
 
+    # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
+    # 0.19.2, although it passes locally
+    if [ "$OS" = "linux" ]; then
+        pip install jedi==0.19.1
+    fi
 
 fi
 
