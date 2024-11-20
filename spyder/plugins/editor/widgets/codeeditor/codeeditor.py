@@ -514,6 +514,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     # ---- Multi Cursor
     def init_multi_cursor(self):
         """Initialize attrs and callbacks for multi-cursor functionality"""
+        # actual default comes from setup_editor default args
+        self.multi_cursor_enabled = False
         self.cursor_width = self.get_conf('cursor/width', section='main')
         self.overwrite_mode = self.overwriteMode()
         # track overwrite manually when for painting reasons with multi-cursor
@@ -533,9 +535,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.painted.connect(self.paint_cursors)
         # self.sig_key_pressed.connect(self.handle_multi_cursor_keypress)
 
+    def toggle_multi_cursor(self, enabled):
+        """Enable/Disable multi-cursor editing"""
+        self.multi_cursor_enabled = enabled
+        # TODO any restrictions on enabling? only python-like? only code?
+        if not enabled:
+            self.clear_extra_cursors()
+
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
-        # TODO remove cursor if duplicate: ctrl-click to add *and* remove
         self.extra_cursors.append(cursor)
         self.merge_extra_cursors(True)
 
@@ -663,7 +671,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
                     increasing_position = False
                 if (key in (Qt.Key.Key_Up, Qt.Key.Key_Down) and
-                    cursor.verticalMovementX() == -1):
+                        cursor.verticalMovementX() == -1):
                     # Builtin handler somehow does not set verticalMovementX
                     #    when moving up and down (but works fine for single
                     #    cursor somehow)  # TODO why
@@ -927,6 +935,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
+            # TODO should multi-cursor wrappers be applied as decorator to
+            #    function definitions instead where possible?
             ('code completion', self.restrict_single_cursor(
                 self.do_completion)),
             ('duplicate line down', self.for_each_cursor(
@@ -1079,7 +1089,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                      remove_trailing_spaces=False,
                      remove_trailing_newlines=False,
                      add_newline=False,
-                     format_on_save=False):
+                     format_on_save=False,
+                     multi_cursor_enabled=True):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -1159,6 +1170,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             Default False.
         format_on_save: Autoformat file automatically when saving.
             Default False.
+        multi_cursor_enabled: Enable/Disable multi-cursor functionality.
+            Default True
         """
 
         self.set_close_parentheses_enabled(close_parentheses)
@@ -1275,6 +1288,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                           and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
+
+        self.toggle_multi_cursor(multi_cursor_enabled)
 
     # ---- Set different attributes
     # -------------------------------------------------------------------------
@@ -3761,14 +3776,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Clear all ouput'),
             icon=self.create_icon('ipython_console'),
             register_action=False,
-            triggered=self.clear_all_output  # TODO multi-cursor how to consider?
+            triggered=self.clears_extra_cursors(self.clear_all_output)
         )
         self.ipynb_convert_action = self.create_action(
             CodeEditorActions.ConvertToPython,
             text=_('Convert to Python file'),
             icon=self.create_icon('python'),
             register_action=False,
-            triggered=self.convert_notebook  # TODO multi-cursor how to consider?
+            triggered=self.clears_extra_cursors(self.convert_notebook)
         )
         self.gotodef_action = self.create_action(
             CodeEditorActions.GoToDefinition,
@@ -4767,7 +4782,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         pos = event.pos()
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
-        if event.button() == Qt.LeftButton and ctrl and alt:
+        if (self.multi_cursor_enabled and event.button() == Qt.LeftButton and
+                ctrl and alt):
             # ---- Ctrl-Alt: multi-cursor mouse interactions
             if shift:
                 # Ctrl-Shift-Alt click adds colum of cursors towards primary
