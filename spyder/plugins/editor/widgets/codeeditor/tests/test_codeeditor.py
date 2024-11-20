@@ -16,8 +16,8 @@ from qtpy.QtWidgets import QApplication, QTextEdit
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
 from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
-from spyder.py3compat import to_text_string
 
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -652,6 +652,7 @@ def test_cell_highlight(codeeditor, qtbot):
     editor = codeeditor
     text = ('\n\n\n#%%\n\n\n')
     editor.set_text(text)
+
     # Set cursor to start of file
     cursor = editor.textCursor()
     cursor.setPosition(0)
@@ -691,6 +692,36 @@ def test_cell_highlight(codeeditor, qtbot):
     editor.redo()
     assert editor.current_cell[0].selectionStart() == 0
     assert editor.current_cell[0].selectionEnd() == 8
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CI"
+)
+def test_shortcut_for_widget_is_updated(codeeditor, qtbot):
+    """Test shortcuts for codeeditor are updated on the fly."""
+    editor = codeeditor
+    text = ('aa\nbb\ncc\ndd\n')
+    editor.set_text(text)
+
+    # Check shortcuts were registered
+    assert editor._shortcuts != {}
+
+    # Check "move line down" shortcut is working as expected
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\naa\ncc\ndd\n"
+
+    # Change "move line down" to a different shortcut
+    editor.set_conf("editor/move line down", "Ctrl+B", section="shortcuts")
+    qtbot.wait(300)
+
+    # Check new shortcut works
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Check previous shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
 
 
 if __name__ == '__main__':

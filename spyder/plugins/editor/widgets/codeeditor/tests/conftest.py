@@ -248,6 +248,11 @@ def codeeditor(qtbot):
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
     widget.show()
+
+    # Register shortcuts for CodeEditor
+    CONF.notify_section_all_observers("shortcuts")
+    qtbot.wait(300)
+
     yield widget
     widget.close()
 
