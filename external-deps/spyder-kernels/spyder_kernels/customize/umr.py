@@ -20,7 +20,7 @@ class UserModuleReloader:
     namelist [list]: blacklist in terms of module name
     """
 
-    def __init__(self, namelist=None, pathlist=None):
+    def __init__(self, namelist=None, pathlist=None, shell=None):
         if namelist is None:
             namelist = []
         else:
@@ -45,6 +45,7 @@ class UserModuleReloader:
         self.namelist = namelist + spy_modules + mpl_modules + other_modules
 
         self.pathlist = pathlist
+        self._shell = shell
 
         # List of previously loaded modules
         self.previous_modules = list(sys.modules.keys())
@@ -92,7 +93,11 @@ class UserModuleReloader:
         # Report reloaded modules
         if self.verbose and modnames_to_reload:
             modnames = modnames_to_reload
-            print("\x1b[1;4;31m%s\x1b[24m%s\x1b[0m"
-                  % ("Reloaded modules", ": "+", ".join(modnames)))
+            colors = {"dark": "33", "light": "31"}
+            color = colors["dark"]
+            if self._shell:
+                color = colors[self._shell.get_spyder_theme()]
+            print("\x1b[4;%sm%s\x1b[24m%s\x1b[0m"
+                  % (color, "Reloaded modules", ": "+", ".join(modnames)))
 
         return modnames_to_reload
