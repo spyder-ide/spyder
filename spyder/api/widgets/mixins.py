@@ -653,7 +653,6 @@ class SpyderActionMixin:
 
 class SpyderWidgetMixin(
     SpyderActionMixin,
-    SpyderConfigurationObserver,
     SpyderMenuMixin,
     SpyderToolbarMixin,
     SpyderToolButtonMixin,

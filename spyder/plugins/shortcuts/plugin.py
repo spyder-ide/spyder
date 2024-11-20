@@ -128,7 +128,8 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     def get_shortcut_data(self):
         """Return the registered shortcut data."""
         # We need to include the second list here so that those shortcuts are
-        # displayed in Preferences.
+        # displayed in Preferences. But they are updated using a different
+        # mechanism (see SpyderShortcutsMixin.register_shortcut_for_widget).
         return self._shortcut_data + SHORTCUTS_FOR_WIDGETS_DATA
 
     def reset_shortcuts(self):

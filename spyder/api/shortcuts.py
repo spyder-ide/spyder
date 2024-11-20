@@ -9,7 +9,8 @@ Helper classes to get and set shortcuts in Spyder.
 """
 
 # Standard library imports
-from typing import Callable, Optional
+import functools
+from typing import Callable, Dict, Optional
 
 # Third-party imports
 from qtpy.QtCore import Qt
@@ -17,6 +18,7 @@ from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QShortcut, QWidget
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.config.manager import CONF
 from spyder.plugins.shortcuts.utils import (
     ShortcutData,
@@ -24,8 +26,14 @@ from spyder.plugins.shortcuts.utils import (
 )
 
 
-class SpyderShortcutsMixin:
-    """Provide methods to get, set and register shortcuts."""
+class SpyderShortcutsMixin(SpyderConfigurationObserver):
+    """Provide methods to get, set and register shortcuts for widgets."""
+
+    def __init__(self):
+        super().__init__()
+
+        # This is used to keep track of the widget shortcuts
+        self._shortcuts: Dict[(str, str), QShortcut] = {}
 
     def get_shortcut(
         self,
@@ -123,14 +131,64 @@ class SpyderShortcutsMixin:
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
 
-        # Register shortcut to widget
-        keystr = self.get_shortcut(name, context)
-        qsc = QShortcut(QKeySequence(keystr), widget)
-        qsc.activated.connect(triggered)
-        qsc.setContext(Qt.WidgetWithChildrenShortcut)
+        # Add observer to register shortcut when its associated option is
+        # broadcasted by CONF or updated in Preferences.
+        config_observer = functools.partial(
+            self._register_shortcut,
+            name=name,
+            triggered=triggered,
+            context=context,
+            widget=widget,
+        )
+
+        self.add_configuration_observer(
+            config_observer, option=f"{context}/{name}", section="shortcuts"
+        )
 
         # Keep track of all widget shortcuts. This is necessary to show them in
         # Preferences.
         data = ShortcutData(qobject=None, name=name, context=context)
         if data not in SHORTCUTS_FOR_WIDGETS_DATA:
             SHORTCUTS_FOR_WIDGETS_DATA.append(data)
+
+    def _register_shortcut(
+        self,
+        keystr: str,
+        name: str,
+        triggered: Callable,
+        context: str,
+        widget: QWidget,
+    ):
+        """
+        Auxiliary function to register a shortcut for a widget.
+
+        Parameters
+        ----------
+        keystr: str
+            Key string for the shortcut (e.g. "Ctrl+Enter").
+        name: str
+            The shortcut name (e.g. "run cell").
+        triggered: Callable
+            Callable (i.e. function or method) that will be triggered by the
+            shortcut.
+        widget: QWidget, optional
+            Widget to which this shortcut will be registered. If not set, the
+            widget that calls this method will be used.
+        context: str, optional
+            Name of the shortcut context, e.g. "editor" for shortcuts that have
+            effect when the Editor is focused or "_" for global shortcuts.
+        """
+        # Disable current shortcut, if available
+        current_shortcut = self._shortcuts.get((context, name))
+        if current_shortcut:
+            current_shortcut.setEnabled(False)
+            current_shortcut.deleteLater()
+            self._shortcuts.pop((context, name))
+
+        # Create a new shortcut
+        new_shortcut = QShortcut(QKeySequence(keystr), widget)
+        new_shortcut.activated.connect(triggered)
+        new_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+
+        # Save shortcut
+        self._shortcuts[(context, name)] = new_shortcut
