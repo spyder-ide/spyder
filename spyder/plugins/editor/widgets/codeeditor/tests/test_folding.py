@@ -28,7 +28,7 @@ def myfunc2():
         3 , 4] # Arbitary Code
     x[0] = 2 # Desired break
     print(x[1]) # Arbitary Code
-
+# don't delete this comment
 responses = {
     100: ('Continue', 'Request received, please continue'),
     101: ('Switching Protocols','Switching to new protocol'),
@@ -182,6 +182,9 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     assert "print" not in editor.toPlainText()
     assert editor.blockCount() == 31
 
+    # Check line after folded region was not removed
+    assert "# don't delete this comment" in editor.toPlainText()
+
     # Press Ctrl+Z
     qtbot.keyClick(editor, Qt.Key_Z, Qt.ControlModifier)
 
@@ -192,6 +195,9 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     assert "myfunc2" not in editor.toPlainText()
     assert "print" not in editor.toPlainText()
     assert editor.blockCount() == 31
+
+    # Check line after folded region was not removed
+    assert "# don't delete this comment" in editor.toPlainText()
 
     # Press Ctrl+Z again
     qtbot.keyClick(editor, Qt.Key_Z, Qt.ControlModifier)
