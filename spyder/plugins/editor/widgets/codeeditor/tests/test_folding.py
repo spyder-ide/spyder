@@ -181,7 +181,7 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     assert "myfunc2" not in editor.toPlainText()
     assert "print" not in editor.toPlainText()
     assert editor.blockCount() == 31
-    
+
     # Check line after folded region was not removed
     assert "# don't delete this comment" in editor.toPlainText()
 
@@ -195,7 +195,7 @@ def test_delete_folded_line(completions_codeeditor, qtbot):
     assert "myfunc2" not in editor.toPlainText()
     assert "print" not in editor.toPlainText()
     assert editor.blockCount() == 31
-    
+
     # Check line after folded region was not removed
     assert "# don't delete this comment" in editor.toPlainText()
 
