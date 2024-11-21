@@ -109,6 +109,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         triggered: Callable,
         widget: Optional[QWidget] = None,
         context: Optional[str] = None,
+        plugin_name: Optional[str] = None,
     ):
         """
         Register a shortcut for a widget that inherits this mixin.
@@ -127,6 +128,10 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             Name of the shortcut context, e.g. "editor" for shortcuts that have
             effect when the Editor is focused or "_" for global shortcuts. If
             not set, the widget's CONF_SECTION will be used as context.
+        plugin_name: str, optional
+            Name of the plugin where the shortcut is defined. This is necessary
+            for third-party plugins that have shortcuts with a context
+            different from the plugin name.
         """
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
@@ -139,6 +144,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             triggered=triggered,
             context=context,
             widget=widget,
+            plugin_name=plugin_name,
         )
 
         self.add_configuration_observer(
@@ -147,7 +153,9 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
 
         # Keep track of all widget shortcuts. This is necessary to show them in
         # Preferences.
-        data = ShortcutData(qobject=None, name=name, context=context)
+        data = ShortcutData(
+            qobject=None, name=name, context=context, plugin_name=plugin_name
+        )
         if data not in SHORTCUTS_FOR_WIDGETS_DATA:
             SHORTCUTS_FOR_WIDGETS_DATA.append(data)
 
@@ -158,6 +166,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         triggered: Callable,
         context: str,
         widget: QWidget,
+        plugin_name: Optional[str]
     ):
         """
         Auxiliary function to register a shortcut for a widget.
@@ -177,13 +186,17 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         context: str, optional
             Name of the shortcut context, e.g. "editor" for shortcuts that have
             effect when the Editor is focused or "_" for global shortcuts.
+        plugin_name: str, optional
+            Name of the plugin where the shortcut is defined. This is necessary
+            for third-party plugins that have shortcuts with a context
+            different from the plugin name.
         """
         # Disable current shortcut, if available
-        current_shortcut = self._shortcuts.get((context, name))
+        current_shortcut = self._shortcuts.get((context, name, plugin_name))
         if current_shortcut:
             current_shortcut.setEnabled(False)
             current_shortcut.deleteLater()
-            self._shortcuts.pop((context, name))
+            self._shortcuts.pop((context, name, plugin_name))
 
         # Create a new shortcut
         new_shortcut = QShortcut(QKeySequence(keystr), widget)
@@ -191,4 +204,4 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         new_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
 
         # Save shortcut
-        self._shortcuts[(context, name)] = new_shortcut
+        self._shortcuts[(context, name, plugin_name)] = new_shortcut
