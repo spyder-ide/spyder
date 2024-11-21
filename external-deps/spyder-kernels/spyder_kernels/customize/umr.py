@@ -97,7 +97,7 @@ class UserModuleReloader:
             color = colors["dark"]
             if self._shell:
                 color = colors[self._shell.get_spyder_theme()]
-            print("\x1b[4;%sm%s\x1b[24m%s\x1b[0m"
-                  % (color, "Reloaded modules", ": "+", ".join(modnames)))
+            content = ": "+", ".join(modnames)
+            print(f"\x1b[4;{color}mReloaded modules\x1b[24m{content}\x1b[0m")
 
         return modnames_to_reload

@@ -143,9 +143,10 @@ class SpyderCodeRunner(Magics):
     Functions and magics related to code execution, debugging, profiling, etc.
     """
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.show_global_msg = True
         self.show_invalid_syntax_msg = True
-        super().__init__(*args, **kwargs)
         self.umr = UserModuleReloader(
             namelist=os.environ.get("SPY_UMR_NAMELIST", None),
             shell=self.shell,
