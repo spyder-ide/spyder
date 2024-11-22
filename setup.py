@@ -138,7 +138,7 @@ def get_qt_requirements(qt_requirements, default='pyqt5'):
     # Check if a Qt binding is set in the environment and normalizes
     env_qt_binding = os.environ.get('SPYDER_QT_BINDING', default)
     env_qt_binding = env_qt_binding.lower()
-    install_requires = env_qt_binding.get(env_qt_binding, qt_requirements[default])
+    install_requires = qt_requirements.get(env_qt_binding, qt_requirements[default])
 
     return install_requires
 
