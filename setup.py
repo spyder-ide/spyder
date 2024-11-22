@@ -111,6 +111,37 @@ def get_packages():
     packages = get_subpackages(LIBNAME)
     return packages
 
+def get_qt_requirements(qt_requirements, default='pyqt5'):
+    """
+    Return a list of requirements for the Qt binding according to the
+    environment variable SPYDER_QT_BINDING. If this variable is not set
+    or has an unsupported value it defaults to 'pyqt5'.
+
+    Parameters
+    ----------
+    qt_requirements : dict
+        A dictionary whose keys are supported Qt bindings and whose values are
+        lists of required packages to install for each binding.
+
+    default : str
+        Default Qt binding to use if the environment variable is not
+        in qt_requirements. Default is 'pyqt5'.
+
+    Returns
+    -------
+    install_requires : list
+        A list of required packages to install for the given Qt binding.
+    """
+
+    install_requires = []
+
+    # Check if a Qt binding is set in the environment and normalizes
+    env_qt_binding = os.environ.get('SPYDER_QT_BINDING', default)
+    env_qt_binding = env_qt_binding.lower()
+    install_requires = env_qt_binding.get(env_qt_binding, qt_requirements[default])
+
+    return install_requires
+
 
 # =============================================================================
 # Make Linux detect Spyder desktop file (will not work with wheels)
@@ -201,8 +232,16 @@ setup_args = dict(
     cmdclass=CMDCLASS,
 )
 
+# Qt bindings requirements
+qt_requirements = {
+    'pyqt5' : ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16'],
+    'pyqt6' : ['pyqt6>=6,<7', 'pyqt6-webengine>=6,<7'],
+}
 
-install_requires = [
+# Get the proper requirements for the selected Qt binding
+install_requires = get_qt_requirements(qt_requirements, default='pyqt5')
+
+install_requires += [
     'aiohttp>=3.9.3',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'asyncssh>=2.14.0,<3.0.0',
@@ -232,8 +271,6 @@ install_requires = [
     'pylint>=3.1,<4',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
-    'pyqt5>=5.15,<5.16',
-    'pyqtwebengine>=5.15,<5.16',
     'python-lsp-black>=2.0.0,<3.0.0',
     'python-lsp-server[all]>=1.12.0,<1.13.0',
     'pyuca>=1.2',
