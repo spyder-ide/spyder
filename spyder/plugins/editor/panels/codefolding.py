@@ -709,11 +709,13 @@ class FoldingPanel(Panel):
                 start_line in self.folding_regions
                 and self.folding_status[start_line]
             ):
-                end_line = self.folding_regions[start_line] + 1
+                end_line = self.folding_regions[start_line]
 
                 if cursor.hasSelection():
                     tc = TextHelper(self.editor).select_lines(
                         start_line, end_line)
+                    tc.movePosition(tc.MoveOperation.NextBlock,
+                                    tc.MoveMode.KeepAnchor)
 
                     if tc.selectionStart() > cursor.selectionStart():
                         start = cursor.selectionStart()
