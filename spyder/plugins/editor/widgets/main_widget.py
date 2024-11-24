@@ -29,7 +29,7 @@ from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QInputDialog, QSplitter, QVBoxLayout, QWidget)
+                            QSplitter, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -204,6 +204,17 @@ class EditorMainWidget(PluginMainWidget):
         be the new name.
     """
 
+    sig_save_action_enabled = Signal(bool)
+    """
+    This signal is emitted to enable or disable the 'Save' action.
+
+    Parameters
+    ----------
+    state: bool
+        True if the 'Save' action should be enabled, False if it should
+        disabled.
+    """
+
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
         super().__init__(name, plugin, parent)
 
@@ -308,15 +319,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('revert'),
             tip=_("Revert file from disk"),
             triggered=self.revert
-        )
-        self.save_action = self.create_action(
-            EditorWidgetActions.SaveFile,
-            text=_("&Save"),
-            icon=self.create_icon('filesave'),
-            tip=_("Save file"),
-            triggered=self.save,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
         )
         self.save_all_action = self.create_action(
             EditorWidgetActions.SaveAll,
@@ -777,7 +779,6 @@ class EditorMainWidget(PluginMainWidget):
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
-                self.save_action,
                 self.save_as_action,
                 self.save_copy_as_action,
                 self.print_preview_action,
@@ -1093,7 +1094,7 @@ class EditorMainWidget(PluginMainWidget):
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
         editorstack.refresh()
-        self.refresh_save_all_action()
+        self.refresh_save_actions()
 
     # ---- Update menus
     # -------------------------------------------------------------------------
@@ -1496,8 +1497,8 @@ class EditorMainWidget(PluginMainWidget):
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
             self.refresh_file_dependent_actions)
-        editorstack.refresh_save_all_action.connect(
-            self.refresh_save_all_action
+        editorstack.refresh_save_actions.connect(
+            self.refresh_save_actions
         )
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
@@ -1682,15 +1683,28 @@ class EditorMainWidget(PluginMainWidget):
             for action in self.file_dependent_actions:
                 action.setEnabled(enable)
 
-    def refresh_save_all_action(self):
-        """Enable 'Save All' if there are files to be saved"""
+    def refresh_save_actions(self):
+        """
+        Enable or disable 'Save' and 'Save All' actions.
+
+        The 'Save' action is enabled if the current document is either modified
+        or newly created. The 'Save all' action is enabled if any document is
+        either modified or newly created.
+        """
         editorstack = self.get_current_editorstack()
-        if editorstack:
-            state = any(
-                finfo.editor.document().isModified() or finfo.newly_created
-                for finfo in editorstack.data
-            )
-            self.save_all_action.setEnabled(state)
+        if not editorstack:
+            return
+
+        finfo = editorstack.get_current_finfo()
+        if finfo:
+            state = finfo.editor.document().isModified() or finfo.newly_created
+            self.sig_save_action_enabled.emit(state)
+
+        state = any(
+            finfo.editor.document().isModified() or finfo.newly_created
+            for finfo in editorstack.data
+        )
+        self.save_all_action.setEnabled(state)
 
     def update_warning_menu(self):
         """Update warning list menu"""

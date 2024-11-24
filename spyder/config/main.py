@@ -422,6 +422,7 @@ DEFAULTS = [
               'main/new file': "Ctrl+N",
               'main/open file': "Ctrl+O",
               'main/open last closed': "Ctrl+Shift+T",
+              'main/save file': "Ctrl+S",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -490,7 +491,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
