@@ -78,6 +78,7 @@ class ApplicationActions:
     OpenLastClosed = "Open last closed"
     MaxRecentFiles = "max_recent_files_action"
     ClearRecentFiles = "clear_recent_files_action"
+    SaveFile = "Save file"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -116,6 +117,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_open_last_closed_requested = Signal()
     """
     Signal to request that the last closed file be opened again.
+    """
+
+    sig_save_file_requested = Signal()
+    """
+    Signal to request that the current file be saved.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -270,8 +276,18 @@ class ApplicationContainer(PluginMainContainer):
         )
         self.clear_recent_action = self.create_action(
             ApplicationActions.ClearRecentFiles,
-            text=_("Clear this list"), tip=_("Clear recent files list"),
+            text=_("Clear this list"),
+            tip=_("Clear recent files list"),
             triggered=self.clear_recent_files
+        )
+        self.save_action = self.create_action(
+            ApplicationActions.SaveFile,
+            text=_("&Save"),
+            icon=self.create_icon('filesave'),
+            tip=_("Save file"),
+            triggered=self.sig_save_file_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
         )
 
         # Debug logs

@@ -73,6 +73,7 @@ class Application(SpyderPluginV2):
         container.sig_open_last_closed_requested.connect(
             self.open_last_closed_file
         )
+        container.sig_save_file_requested.connect(self.save_file)
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -123,7 +124,8 @@ class Application(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         for action in [
             container.new_action,
-            container.open_action
+            container.open_action,
+            container.save_action
         ]:
             toolbar.add_item_to_application_toolbar(
                 action,
@@ -164,7 +166,8 @@ class Application(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         for action in [
             ApplicationActions.NewFile,
-            ApplicationActions.OpenFile
+            ApplicationActions.OpenFile,
+            ApplicationActions.SaveFile
         ]:
             toolbar.remove_item_from_application_toolbar(
                 action,
@@ -232,6 +235,18 @@ class Application(SpyderPluginV2):
                 menu_id=ApplicationMenus.File,
                 section=FileMenuSections.Open,
                 before_section=FileMenuSections.Save
+            )
+
+        # Save section
+        save_actions = [
+            container.save_action
+        ]
+        for save_action in save_actions:
+            mainmenu.add_item_to_application_menu(
+                save_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Save,
+                before_section=FileMenuSections.Print
             )
 
         # Restart section
@@ -353,6 +368,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.OpenFile,
             ApplicationActions.OpenLastClosed,
             container.recent_file_menu,
+            ApplicationActions.SaveFile,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -531,6 +547,27 @@ class Application(SpyderPluginV2):
         length.
         """
         self.get_container().add_recent_file(fname)
+
+    def save_file(self) -> None:
+        """
+        Save current file.
+
+        For the moment, this instructs the Editor plugin to save the current
+        file.
+        """
+        editor = self.get_plugin(Plugins.Editor)
+        editor.save()
+
+    def enable_save_action(self, state: bool) -> None:
+        """
+        Enable or disable save action.
+
+        Parameters
+        ----------
+        state : bool
+            True to enable save action, False to disable it.
+        """
+        self.get_container().save_action.setEnabled(state)
 
     @property
     def documentation_action(self):

@@ -393,7 +393,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_action,
             widget.save_all_action,
             widget.save_as_action,
             widget.save_copy_as_action,
@@ -552,7 +551,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_action,
             widget.save_all_action,
             widget.save_as_action,
             widget.save_copy_as_action,
@@ -658,7 +656,6 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            widget.save_action,
             widget.save_all_action,
             widget.create_new_cell
         ]
@@ -672,7 +669,6 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         file_toolbar_actions = [
-            EditorWidgetActions.SaveFile,
             EditorWidgetActions.SaveAll,
             EditorWidgetActions.NewCell
         ]
@@ -783,12 +779,16 @@ class Editor(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
         widget.sig_new_recent_file.connect(application.add_recent_file)
+        widget.sig_save_action_enabled.connect(application.enable_save_action)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
+        widget.sig_save_action_enabled.disconnect(
+            application.enable_save_action
+        )
 
     def update_font(self):
         """Update font from Preferences"""
