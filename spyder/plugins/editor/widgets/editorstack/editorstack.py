@@ -123,7 +123,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
-    refresh_save_all_action = Signal()
+    refresh_save_actions = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
@@ -462,7 +462,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('Save file', self.save),
             ('Save all', self.save_all),
             ('Save As', self.sig_save_as),
             ('Close all', self.close_all_files),
@@ -535,6 +534,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "New file",
             "Open file",
             "Open last closed",
+            "Save file",
         ]:
             self.register_shortcut_for_widget(
                 name=action_id,
@@ -2472,8 +2472,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.set_stack_title(index, state)
 
         # Toggle save/save all actions state
-        self.save_action.setEnabled(state)
-        self.refresh_save_all_action.emit()
+        self.refresh_save_actions.emit()
 
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
