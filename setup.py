@@ -332,7 +332,6 @@ if 'dev' in __version__:
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
 
 extras_require = {
-    'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',
         'cython',
@@ -347,6 +346,7 @@ extras_require = {
         'pytest-order',
         'pytest-qt',
         'pytest-timeout',
+        'pywin32;platform_system=="Windows"',
         'pyyaml',
         'scipy',
         'sympy',
