@@ -472,20 +472,21 @@ class Shortcut(SpyderShortcutsMixin):
     original ordering index, key sequence for the shortcut and localized text.
     """
 
-    def __init__(self, context, name, key=None):
+    def __init__(self, context, name, key=None, plugin_name=None):
         self.index = 0  # Sorted index. Populated when loading shortcuts
         self.context = context
         self.name = name
         self.key = key
+        self.plugin_name = plugin_name
 
     def __str__(self):
         return "{0}/{1}: {2}".format(self.context, self.name, self.key)
 
     def load(self):
-        self.key = self.get_shortcut(self.name, self.context)
+        self.key = self.get_shortcut(self.name, self.context, self.plugin_name)
 
     def save(self):
-        self.set_shortcut(self.key, self.name, self.context)
+        self.set_shortcut(self.key, self.name, self.context, self.plugin_name)
 
 
 CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
@@ -705,25 +706,27 @@ class ShortcutsTable(HoverRowsTableView):
         """Load shortcuts and assign to table model."""
         # Data might be capitalized so we use lower() below.
         # See: spyder-ide/spyder/#12415
-        shortcut_data = set(
-            [
-                (data.context.lower(), data.name.lower())
-                for data in self.shortcut_data
-            ]
-        )
-        shortcut_data = list(sorted(set(shortcut_data)))
-        shortcuts = []
+        shortcut_data = {
+            (data.context.lower(), data.name.lower()): (
+                data.plugin_name
+                if data.plugin_name is not None
+                else data.plugin_name
+            )
+            for data in self.shortcut_data
+        }
 
+        shortcuts = []
         for context, name, keystr in CONF.iter_shortcuts():
             if (context, name) in shortcut_data:
                 context = context.lower()
                 name = name.lower()
-                # Only add to table actions that are registered from the main
-                # window
-                shortcut = Shortcut(context, name, keystr)
+                plugin_name = shortcut_data[(context, name)]
+                shortcut = Shortcut(context, name, keystr, plugin_name)
                 shortcuts.append(shortcut)
 
-        shortcuts = sorted(shortcuts, key=lambda item: item.context+item.name)
+        shortcuts = sorted(
+            shortcuts, key=lambda item: item.context + item.name
+        )
 
         # Store the original order of shortcuts
         for i, shortcut in enumerate(shortcuts):
