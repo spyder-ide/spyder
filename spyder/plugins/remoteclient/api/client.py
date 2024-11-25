@@ -65,9 +65,8 @@ class SpyderRemoteClient:
 
     _extra_options = ["platform", "id"]
 
-    START_SERVER_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server --jupyter-server"
-    CHECK_SERVER_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server -h"
-    GET_SERVER_INFO_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server --get-running-info"
+    START_SERVER_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
+    GET_SERVER_INFO_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server info"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
