@@ -31,13 +31,7 @@ from spyder.utils.programs import check_version
 
 logger = logging.getLogger(__name__)
 
-EXTRA_VALID_SHORTCUT_CONTEXTS = [
-    '_',
-    'array_builder',
-    'console',
-    'find_replace',
-    'switcher'
-]
+EXTRA_VALID_SHORTCUT_CONTEXTS = ['_', 'find_replace']
 
 
 class ConfigurationManager(object):
