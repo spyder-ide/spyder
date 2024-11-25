@@ -24,6 +24,7 @@ fi
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
     if [ -n "$QT6_BINDINGS" ]; then
+        # conda has no PyQt6 package
         echo "Cannot use Qt 6 with Conda" 1>&2
         exit 1
     fi
