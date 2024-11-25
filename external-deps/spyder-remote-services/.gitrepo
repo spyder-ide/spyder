@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
-	branch = main
-	commit = d425e769dc85783c1a95d1791d98a025341dafd1
-	parent = 56ea3e3573d9fa5b37c3ea0dfb3f66da5efcc114
+	branch = feat/refactor-as-server-extension
+	commit = e40acc45e3e5a75d317fe4f649129cc4a116c50c
+	parent = f1333abab561aaa9edc56dc4e020252390f4020f
 	method = merge
 	cmdver = 0.4.9

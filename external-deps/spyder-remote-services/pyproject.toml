@@ -17,6 +17,10 @@ version = {attr = "spyder_remote_services.__version__"}
 [project.scripts]
 spyder-server = "spyder_remote_services.__main__:main"
 
+[project.entry-points.'jupyter_client.kernel_provisioners']
+spyder-kernels-provisioner = 'spyder_remote_services.services.spyder_kernels.provisioner:SpyderKernelsProvisioner'
+
+
 [project.optional-dependencies]
 dev = [
     "pytest >= 7.3.1",
