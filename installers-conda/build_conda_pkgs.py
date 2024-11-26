@@ -132,11 +132,11 @@ class BuildCondaPkg:
 
     def _patch_conda_build_config(self):
         file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
-        if file.exists():
-            contents = yaml.load(file.read_text())
-            file.rename(file.parent / ("_" + file.name))  # copy of original
-        else:
-            contents = {}
+        if not file.exists():
+            return
+
+        contents = yaml.load(file.read_text())
+        file.rename(file.parent / ("_" + file.name))  # copy of original
 
         pyver = sys.version_info
         contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
