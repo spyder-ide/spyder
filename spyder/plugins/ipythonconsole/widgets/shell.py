@@ -187,8 +187,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.is_kernel_configured = False
         self._init_kernel_setup = False
         self._is_banner_shown = False
-        # Set bright colors instead of bold formating for better traceback
-        # readability
+
+        # Set bright colors instead of bold formatting for better traceback
+        # readability.
         self._ansi_processor.bold_text_enabled = False
 
         if handlers is None:
