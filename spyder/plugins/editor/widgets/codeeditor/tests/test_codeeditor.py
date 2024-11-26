@@ -7,21 +7,32 @@
 # Standard library imports
 import os.path as osp
 import sys
+from unittest.mock import MagicMock
 
 # Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent, QPointF
 from qtpy.QtGui import QTextCursor, QMouseEvent
-from qtpy.QtWidgets import QApplication, QTextEdit
+from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
 import pytest
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.plugins.preferences.tests.conftest import config_dialog
+from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
 
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
+
+
+class MainWindow(QMainWindow):
+
+    _cli_options = MagicMock()
+
+    def get_plugin(self, name, error=True):
+        return MagicMock()
 
 
 def test_editor_upper_to_lower(codeeditor):
@@ -694,11 +705,17 @@ def test_cell_highlight(codeeditor, qtbot):
     assert editor.current_cell[0].selectionEnd() == 8
 
 
+@pytest.mark.parametrize(
+    'config_dialog',
+    # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
+    [[MainWindow, [], [Shortcuts]]],
+    indirect=True
+)
 @pytest.mark.skipif(
     sys.platform.startswith("linux") and running_in_ci(),
     reason="Fails on Linux and CI"
 )
-def test_shortcut_for_widget_is_updated(codeeditor, qtbot):
+def test_shortcut_for_widget_is_updated(config_dialog, codeeditor, qtbot):
     """Test shortcuts for codeeditor are updated on the fly."""
     editor = codeeditor
     text = ('aa\nbb\ncc\ndd\n')
@@ -722,6 +739,25 @@ def test_shortcut_for_widget_is_updated(codeeditor, qtbot):
     # Check previous shortcut doesn't work
     qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
     assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Reset all shortcuts to defaults (as users would do it)
+    configpage = config_dialog.get_page()
+    configpage.reset_to_default(force=True)
+    qtbot.wait(300)
+
+    # Make sure we are at the right line before the next check
+    block_to_be = editor.document().findBlockByLineNumber(2)
+    cursor = editor.textCursor()
+    cursor.setPosition(block_to_be.position())
+    editor.setTextCursor(cursor)
+
+    # Check default shortcut works
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
+
+    # Check new shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
 
 
 if __name__ == '__main__':
