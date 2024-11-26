@@ -277,8 +277,8 @@ class RemoteClientContainer(PluginMainContainer):
             self,
             _("Remote server error"),
             _(
-                "The version of <tt>spyder-remote-services</tt> on the"
-                "remote host <b>{server}</b> (<b>{srs_version}</b>) is newer"
+                "The version of <tt>spyder-remote-services</tt> on the "
+                "remote host <b>{server}</b> (<b>{srs_version}</b>) is newer "
                 "than the latest Spyder supports (<b>{max_version}</b>)."
                 "<br><br>"
                 "Please update Spyder to be able to connect to this host."
