@@ -10,6 +10,7 @@
 # Third party imports
 import pytest
 from flaky import flaky
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.plugins.remoteclient.plugin import RemoteClient
@@ -164,6 +165,41 @@ class TestNewKerneLAndServer:
             )
             == []
         )
+
+
+class TestVersionCheck:
+    def test_wrong_version(
+        self,
+        remote_client: RemoteClient,
+        remote_client_id: str,
+        monkeypatch,
+        qtbot,
+    ):
+        monkeypatch.setattr(
+            "spyder.plugins.remoteclient.api.client.SPYDER_REMOTE_MAX_VERSION",
+            "0.0.1",
+        )
+        monkeypatch.setattr(
+            "spyder.plugins.remoteclient.widgets.container.SPYDER_REMOTE_MAX_VERSION",
+            "0.0.1",
+        )
+
+        def mock_critical(parent, title, text, buttons):
+            assert "spyder-remote-services" in text
+            assert "0.0.1" in text
+            assert "is newer than" in text
+            return QMessageBox.Ok
+
+        monkeypatch.setattr(
+            "spyder.plugins.remoteclient.widgets.container.QMessageBox.critical",
+            mock_critical,
+        )
+
+        with qtbot.waitSignal(
+            remote_client.sig_version_mismatch,
+            timeout=180000,
+        ):
+            remote_client.start_remote_server(remote_client_id)
 
 
 if __name__ == "__main__":
