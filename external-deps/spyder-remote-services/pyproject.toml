@@ -9,6 +9,7 @@ requires-python = ">=3.10"
 dependencies = [
     "jupyter_server >=2.14.2,<3.0",
     "jupyter_client >=8.6.2,<9.0",
+    "envs-manager <1.0.0",
 ]
 
 [tool.setuptools.dynamic]
