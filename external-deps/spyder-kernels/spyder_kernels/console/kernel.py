@@ -47,6 +47,7 @@ from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import automatic_backend, MPL_BACKENDS_TO_SPYDER
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
+from spyder_kernels.utils.style import create_style_class
 from spyder_kernels.console.shell import SpyderShell
 from spyder_kernels.comms.utils import WriteContext
 
@@ -639,6 +640,8 @@ class SpyderKernel(IPythonKernel):
                     ret["special_kernel_error"] = value
             elif key == "color scheme":
                 self.set_color_scheme(value)
+            elif key == "traceback_highlight_style":
+                self.set_traceback_syntax_highlighting(value)
             elif key == "jedi_completer":
                 self.set_jedi_completer(value)
             elif key == "greedy_completer":
@@ -657,13 +660,31 @@ class SpyderKernel(IPythonKernel):
         return ret
 
     def set_color_scheme(self, color_scheme):
-        if color_scheme == "dark":
-            # Needed to change the colors of tracebacks
-            self.shell.run_line_magic("colors", "linux")
-            self.set_sympy_forecolor(background_color='dark')
-        elif color_scheme == "light":
-            self.shell.run_line_magic("colors", "lightbg")
-            self.set_sympy_forecolor(background_color='light')
+        self.shell.set_spyder_theme(color_scheme)
+        self.set_sympy_forecolor(background_color=color_scheme)
+        self.set_traceback_highlighting(color_scheme)
+
+    def set_traceback_highlighting(self, color_scheme):
+        """Set the traceback highlighting color."""
+        color = 'bg:ansired' if color_scheme == 'dark' else 'bg:ansiyellow'
+        from IPython.core.ultratb import VerboseTB
+
+        if getattr(VerboseTB, 'tb_highlight', None) is not None:
+            VerboseTB.tb_highlight = color
+        elif getattr(VerboseTB, '_tb_highlight', None) is not None:
+            VerboseTB._tb_highlight = color
+
+    def set_traceback_syntax_highlighting(self, syntax_style):
+        """Set the traceback syntax highlighting style."""
+        import IPython.core.ultratb
+        from IPython.core.ultratb import VerboseTB
+
+        IPython.core.ultratb.get_style_by_name = create_style_class
+
+        if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
+            VerboseTB.tb_highlight_style = syntax_style
+        elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
+            VerboseTB._tb_highlight_style = syntax_style
 
     def get_cwd(self):
         """Get current working directory."""
