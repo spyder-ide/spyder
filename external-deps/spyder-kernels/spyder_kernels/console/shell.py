@@ -56,6 +56,7 @@ class SpyderShell(ZMQInteractiveShell):
         self._allow_kbdint = False
         self.register_debugger_sigint()
         self.update_gui_frontend = False
+        self._spyder_theme = 'dark'
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -83,6 +84,19 @@ class SpyderShell(ZMQInteractiveShell):
         if etype is bdb.BdbQuit:
             stb = ['']
         super(SpyderShell, self)._showtraceback(etype, evalue, stb)
+
+    def set_spyder_theme(self, theme):
+        """Set the theme for the console."""
+        self._spyder_theme = theme
+        if theme == "dark":
+            # Needed to change the colors of tracebacks
+            self.run_line_magic("colors", "linux")
+        elif theme == "light":
+            self.run_line_magic("colors", "lightbg")
+
+    def get_spyder_theme(self):
+        """Get the theme for the console."""
+        return self._spyder_theme
 
     def enable_matplotlib(self, gui=None):
         """Enable matplotlib."""

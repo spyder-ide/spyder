@@ -69,9 +69,6 @@ def kernel_config():
         # Don't load nor save history in our IPython consoles.
         spy_cfg.HistoryAccessor.enabled = False
 
-    # Until we implement Issue 1052
-    spy_cfg.InteractiveShell.xmode = 'Plain'
-
     # Jedi completer.
     jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
     spy_cfg.IPCompleter.use_jedi = jedi_o

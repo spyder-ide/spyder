@@ -188,6 +188,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._init_kernel_setup = False
         self._is_banner_shown = False
 
+        # Set bright colors instead of bold formatting for better traceback
+        # readability.
+        self._ansi_processor.bold_text_enabled = False
+
         if handlers is None:
             handlers = {}
         else:
@@ -697,7 +701,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
-        self._syntax_style_changed()
+        self._syntax_style_changed(changed={})
         if reset:
             self.reset(clear=True)
         if not self.spyder_kernel_ready:
@@ -1438,6 +1442,12 @@ overrided by the Sympy module (e.g. plot)
         if self.syntax_style:
             self._highlighter._style = create_style_class(self.syntax_style)
             self._highlighter._clear_caches()
+            if changed is None:
+                return
+            self.set_kernel_configuration(
+                "traceback_highlight_style",
+                get_color_scheme(self.syntax_style),
+            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 

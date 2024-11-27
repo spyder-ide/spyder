@@ -6499,7 +6499,7 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     control.setFocus()
     find_widget = main_window.ipyconsole.get_widget().find_widget
     find_widget.show()
-    find_widget.search_text.lineEdit().setText('  File')
+    find_widget.search_text.lineEdit().setText('File')
     find_widget.find_previous()
 
     # Position mouse on top of that line
