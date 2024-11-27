@@ -11,11 +11,6 @@ from asyncssh import SSHClientConnection, SSHClient
 from asyncssh.auth import PasswordChangeResponse
 from asyncssh.public_key import KeyPairListArg
 
-from spyder.api.translations import _
-from spyder.plugins.remoteclient.api.protocol import (
-    ConnectionInfo,
-    ConnectionStatus,
-)
 
 _logger = logging.getLogger(__name__)
 

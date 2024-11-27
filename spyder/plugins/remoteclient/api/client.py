@@ -11,9 +11,14 @@ import logging
 import socket
 
 import asyncssh
+from packaging.version import Version
 
 from spyder.api.translations import _
 from spyder.config.base import get_debug_level
+from spyder.plugins.remoteclient import (
+    SPYDER_REMOTE_MAX_VERSION,
+    SPYDER_REMOTE_MIN_VERSION,
+)
 from spyder.plugins.remoteclient.api.jupyterhub import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
@@ -26,6 +31,7 @@ from spyder.plugins.remoteclient.api.protocol import (
 from spyder.plugins.remoteclient.api.ssh import SpyderSSHClient
 from spyder.plugins.remoteclient.utils.installation import (
     get_installer_command,
+    get_server_version_command,
     SERVER_ENV,
 )
 
@@ -98,6 +104,10 @@ class SpyderRemoteClient:
                     id=self.config_id, status=status, message=message
                 )
             )
+
+    def __emit_version_mismatch(self, version: str):
+        if self._plugin is not None:
+            self._plugin.sig_version_mismatch.emit(self.config_id, version)
 
     @property
     def _api_token(self):
@@ -409,36 +419,47 @@ class SpyderRemoteClient:
         return False
 
     async def ensure_server_installed(self) -> bool:
-        """Ensure remote server is installed."""
-        if not await self.check_server_installed():
-            return await self.install_remote_server()
-
-        return True
-
-    async def check_server_installed(self) -> bool:
-        """Check if remote server is installed."""
+        """Check remote server version."""
         if not self.ssh_is_connected:
             self._logger.error("SSH connection is not open")
-            return False
+            return ""
+
+        commnad = get_server_version_command(self.options["platform"])
 
         try:
-            await self._ssh_connection.run(
-                self.CHECK_SERVER_COMMAND, check=True
+            output = await self._ssh_connection.run(
+                commnad, check=True
             )
         except asyncssh.ProcessError as err:
-            self._logger.warning(
-                f"spyder-remote-server is not installed: {err.stderr}"
-            )
-            return False
+            # Server is not installed
+            self._logger.warning(f"Error checking server version: {err.stderr}")
+            return await self.install_remote_server()
         except asyncssh.TimeoutError:
+            self._logger.error("Checking server version timed out")
+            return False
+
+        version = output.stdout.splitlines()[-1].strip()
+
+        if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self._logger.error(
-                "Checking if spyder-remote-server is installed timed out"
+                f"Server version mismatch: {version} is greater than "
+                f"the maximum supported version {SPYDER_REMOTE_MAX_VERSION}"
+            )
+            self.__emit_version_mismatch(version)
+            self.__emit_connection_status(
+                status=ConnectionStatus.Error,
+                message=_("Error connecting to the remote server"),
             )
             return False
 
-        self._logger.debug(
-            f"spyder-remote-server is installed on {self.peer_host}"
-        )
+        if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
+            self._logger.error(
+                f"Server version mismatch: {version} is lower than "
+                f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}"
+            )
+            return await self.install_remote_server()
+
+        self._logger.info(f"Supported Server version: {version}")
 
         return True
 
@@ -468,8 +489,10 @@ class SpyderRemoteClient:
         self._logger.debug(
             f"Installing spyder-remote-server on {self.peer_host}"
         )
-        command = get_installer_command(self.options["platform"])
-        if not command:
+
+        try:
+            command = get_installer_command(self.options["platform"])
+        except NotImplementedError as e:
             self._logger.error(
                 f"Cannot install spyder-remote-server on "
                 f"{self.options['platform']} automatically. Please install it "
