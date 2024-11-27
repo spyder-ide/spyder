@@ -66,6 +66,8 @@ class RemoteClient(SpyderPluginV2):
     sig_connection_lost = Signal(str)
     sig_connection_status_changed = Signal(dict)
 
+    sig_version_mismatch = Signal(str, str)
+
     _sig_kernel_started = Signal(object, dict)
 
     def __init__(self, *args, **kwargs):
@@ -111,6 +113,9 @@ class RemoteClient(SpyderPluginV2):
         )
         self.sig_client_message_logged.connect(
             container.sig_client_message_logged
+        )
+        self.sig_version_mismatch.connect(
+            container.on_server_version_mismatch
         )
         self._sig_kernel_started.connect(container.on_kernel_started)
 
