@@ -666,6 +666,46 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 #    indent by 1 level at a time. Cursor update order can
                 #    make this unpredictable otherwise.
                 self.unindent(force=self.tab_mode)
+            # ---- handle enter/return
+            elif key in (Qt.Key_Enter, Qt.Key_Return):
+                if not shift and not ctrl:
+                    if (
+                        self.add_colons_enabled and
+                        self.is_python_like() and
+                        self.autoinsert_colons()
+                    ):
+                        self.insert_text(':' + self.get_line_separator())
+                        if self.strip_trailing_spaces_on_modify:
+                            self.fix_and_strip_indent()
+                        else:
+                            self.fix_indent()
+                    else:
+                        cur_indent = self.get_block_indentation(
+                            self.textCursor().blockNumber())
+                        self._handle_keypress_event(event)
+                        # Check if we're in a comment or a string at the
+                        # current position
+                        cmt_or_str_cursor = self.in_comment_or_string()
+
+                        # Check if the line start with a comment or string
+                        cursor = self.textCursor()
+                        cursor.setPosition(cursor.block().position(),
+                                           QTextCursor.KeepAnchor)
+                        cmt_or_str_line_begin = self.in_comment_or_string(
+                            cursor=cursor)
+
+                        # Check if we are in a comment or a string
+                        cmt_or_str = cmt_or_str_cursor and \
+                            cmt_or_str_line_begin
+
+                        if self.strip_trailing_spaces_on_modify:
+                            self.fix_and_strip_indent(
+                                comment_or_string=cmt_or_str,
+                                cur_indent=cur_indent)
+                        else:
+                            self.fix_indent(comment_or_string=cmt_or_str,
+                                            cur_indent=cur_indent)
+
             # ---- use default handler for cursor (text)
             else:
                 if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
