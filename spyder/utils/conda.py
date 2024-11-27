@@ -193,7 +193,7 @@ def get_spyder_conda_channel():
             channel = package_info["channel"]
             channel_url = package_info["base_url"]
 
-    if "<develop>" in channel_url:
+    if channel_url is not None and "<develop>" in channel_url:
         channel_url = None
 
     return channel, channel_url
