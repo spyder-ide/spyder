@@ -9,6 +9,7 @@
 
 # Standard library imports
 from io import open
+import os
 import os.path as osp
 import sys
 from unittest.mock import Mock, MagicMock
@@ -333,6 +334,30 @@ def test_custom_interpreter(pylint_plugin, tmp_path, qtbot,
         assert not errors
     else:
         assert errors
+
+
+def test_get_environment(mocker):
+    """Test that the environment variables depend on the OS."""
+    if os.name == 'nt':
+        mocker.patch(
+            "spyder.plugins.pylint.main_widget.is_conda_env",
+            return_value=False
+        )
+        mocker.patch(
+            "spyder.plugins.pylint.main_widget.get_home_dir",
+            return_value=''
+        )
+
+    expected_vars = {
+        "nt": ["APPDATA", "PYTHONIOENCODING", "PYTHONPATH", "USERPROFILE"],
+        "posix": ["PYTHONIOENCODING", "PYTHONPATH"]
+    }
+
+    process_environment = Pylint.WIDGET_CLASS.get_environment(
+        pythonpath_manager_values=["project_dir"]
+    )
+
+    assert process_environment.keys() == expected_vars[os.name]
 
 
 if __name__ == "__main__":
