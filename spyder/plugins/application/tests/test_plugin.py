@@ -18,6 +18,17 @@ import pytest
 from spyder.api.plugins import Plugins
 
 
+def test_focused_plugin(application_plugin):
+    """
+    Test that focused_plugin is initially None and that it is set after
+    receiving sig_focused_plugin_changed.
+    """
+    assert application_plugin.focused_plugin is None
+    mock_plugin = Mock()
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin)
+    assert application_plugin.focused_plugin == mock_plugin
+
+
 @pytest.mark.parametrize(
     'action_name, editor_function_name',
     [
