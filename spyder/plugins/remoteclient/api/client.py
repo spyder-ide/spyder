@@ -245,7 +245,7 @@ class SpyderRemoteClient:
 
         try:
             info = json.loads(output.stdout.splitlines()[-1])
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, IndexError):
             self._logger.debug(
                 f"Error parsing server info, received: {output.stdout}"
             )
