@@ -152,6 +152,17 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         The window state.
     """
 
+    sig_focused_plugin_changed = Signal(object)
+    """
+    This signal is emitted when the another plugin received keyboard focus.
+
+    Parameters
+    ----------
+    plugin: Optional[SpyderDockablePlugin]
+        The plugin that currently has keyboard focus, or None if no dockable
+        plugin has focus.
+    """
+
     def __init__(self, splash=None, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
@@ -276,6 +287,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
+        self.last_focused_plugin = None
         self.previous_focused_widget = None
 
         # Server to open external files on a single instance
@@ -420,6 +432,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
         self.sig_window_state_changed.connect(
             plugin.sig_mainwindow_state_changed)
+        self.sig_focused_plugin_changed.connect(
+            plugin.sig_focused_plugin_changed)
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -1063,14 +1077,43 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         QApplication.processEvents()
 
     def change_last_focused_widget(self, old, now):
-        """To keep track of to the last focused widget"""
+        """
+        Keep track of widget and plugin that has keyboard focus.
+
+        This function is connected to the `focusChanged` signal. It keeps
+        track of the widget and plugin that currently has keyboard focus, so
+        that we can give focus to the last focused widget when restoring it
+        after minimization. It also emits `sig_focused_plugin_changed` if the
+        plugin with focus has changed.
+
+        Parameters
+        ----------
+        old : Optional[QWidget]
+            Widget that used to have keyboard focus.
+        now : Optional[QWidget]
+            Widget that currently has keyboard focus.
+        """
         if (now is None and QApplication.activeWindow() is not None):
             QApplication.activeWindow().setFocus()
             self.last_focused_widget = QApplication.focusWidget()
         elif now is not None:
             self.last_focused_widget = now
 
-        self.previous_focused_widget =  old
+        self.previous_focused_widget = old
+
+        if self.last_focused_widget:
+            for plugin_name, plugin in self.get_dockable_plugins():
+                if self.is_plugin_available(plugin_name):
+                    plugin_widget = plugin.get_widget()
+                    if plugin_widget.isAncestorOf(self.last_focused_widget):
+                        focused_plugin = plugin
+                        break
+            else:
+                focused_plugin = None
+
+            if focused_plugin != self.last_focused_plugin:
+                self.last_focused_plugin = focused_plugin
+                self.sig_focused_plugin_changed.emit(focused_plugin)
 
     def closing(self, cancelable=False, close_immediately=False):
         """Exit tasks"""

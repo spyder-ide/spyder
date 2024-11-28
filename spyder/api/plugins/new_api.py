@@ -298,6 +298,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         The window state.
     """
 
+    sig_focused_plugin_changed = Signal(object)
+    """
+    This signal is emitted when the plugin with keyboard focus changes.
+
+    Parameters
+    ----------
+    plugin: Optional[SpyderDockablePlugin]
+        The plugin that currently has keyboard focus, or None if no dockable
+        plugin has focus.
+    """
+
     # ---- Private attributes
     # -------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration

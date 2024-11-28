@@ -13,12 +13,13 @@ import os
 import os.path as osp
 import subprocess
 import sys
+from typing import Optional
 
 # Third party imports
 from qtpy.QtCore import Slot
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -47,6 +48,10 @@ class Application(SpyderPluginV2):
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
     CAN_BE_DISABLED = False
+
+    def __init__(self, parent, configuration=None):
+        super().__init__(parent, configuration)
+        self.focused_plugin: Optional[SpyderDockablePlugin] = None
 
     @staticmethod
     def get_name():
@@ -81,6 +86,7 @@ class Application(SpyderPluginV2):
         container.sig_close_file_requested.connect(self.close_file)
         container.sig_close_all_requested.connect(self.close_all)
         container.set_window(self._window)
+        self.sig_focused_plugin_changed.connect(self._update_focused_plugin)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
@@ -418,6 +424,16 @@ class Application(SpyderPluginV2):
             mainmenu.remove_item_from_application_menu(
                 ApplicationPluginMenus.DebugLogsMenu,
                 menu_id=ApplicationMenus.Tools)
+
+    def _update_focused_plugin(
+        self, plugin: Optional[SpyderDockablePlugin]
+    ) -> None:
+        """
+        Update which plugin has currently focus.
+
+        This function is called if another plugin gets keyboard focus.
+        """
+        self.focused_plugin = plugin
 
     # ---- Public API
     # ------------------------------------------------------------------------
