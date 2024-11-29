@@ -83,6 +83,7 @@ from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
     WorkingDirSource, RunContext)
+from spyder.plugins.shortcuts.widgets.table import SEQUENCE
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
 from spyder.utils.conda import get_list_conda_envs
@@ -5432,6 +5433,91 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
             external_names.append(name)
 
     assert 'spyder-boilerplate' in external_names
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CI"
+)
+@pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
+def test_shortcuts_in_external_plugins(main_window, qtbot):
+    """Test that keyboard shortcuts for widgets work in external plugins."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Show plugin
+    main_widget = main_window.get_plugin('spyder_boilerplate').get_widget()
+    main_widget.toggle_view_action.setChecked(True)
+
+    # Give focus to text edit area
+    example_widget = main_widget._example_widget
+    example_widget.setFocus()
+
+    # Check first shortcut is working
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    # Check second shortcut is working
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
+
+    # Open Preferences and select shortcuts table
+    dlg, index, page = preferences_dialog_helper(
+        qtbot, main_window, 'shortcuts'
+    )
+    table = page.table
+
+    # Change shortcuts in table
+    new_shortcuts = [("change text", "Ctrl+J"), ("new text", "Alt+K")]
+    for name, sequence in new_shortcuts:
+        table.finder.setFocus()
+        table.finder.clear()
+        qtbot.keyClicks(table.finder, name)
+        index = table.proxy_model.mapToSource(table.currentIndex())
+        row = index.row()
+        sequence_index = table.source_model.index(row, SEQUENCE)
+        table.source_model.setData(sequence_index, sequence)
+
+    # Save new shortcuts
+    dlg.ok_btn.animateClick()
+    qtbot.wait(1000)
+
+    # Check new shortcuts are working
+    example_widget.setFocus()
+    qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    qtbot.keyClick(example_widget, Qt.Key_K, modifier=Qt.AltModifier)
+    assert example_widget.toPlainText() == "Another text"
+
+    # Open Preferences again and reset shortcuts
+    dlg, index, page = preferences_dialog_helper(
+        qtbot, main_window, 'shortcuts'
+    )
+    page.reset_to_default(force=True)
+
+    # Close preferences
+    dlg.ok_btn.animateClick()
+    qtbot.wait(1000)
+
+    # Check default shortcuts are working again
+    example_widget.setFocus()
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
 
 
 def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
