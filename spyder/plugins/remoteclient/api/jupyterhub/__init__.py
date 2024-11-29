@@ -291,7 +291,9 @@ class JupyterAPI:
         await self.session.close()
 
     async def create_kernel(self, kernel_spec=None):
-        data = {"name": kernel_spec} if kernel_spec else None
+        data = {"spyder_kernel": True}
+        if kernel_spec:
+            data["name"] = kernel_spec
 
         async with self.session.post(
             self.api_url / "kernels", json=data
