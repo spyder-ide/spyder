@@ -266,13 +266,23 @@ class UserConfig(DefaultsConfig):
         else:
             raise ValueError('`defaults` must be a dict or a list of tuples!')
 
-        # This attribute is overriding a method from cp.ConfigParser
-        self.defaults = defaults
+        # We need to transform default options to lowercase because
+        # ConfigParser saves options like that (see its optionxform method).
+        # Otherwise, resetting to defaults fails when option names are
+        # capitalized.
+        defaults_with_lowercase_options = []
+        for sec, options in defaults:
+            defaults_with_lowercase_options.append(
+                (sec, {k.lower(): v for k, v in options.items()})
+            )
+
+        # This attribute is overriding a method from ConfigParser
+        self.defaults = defaults_with_lowercase_options
 
         if defaults is not None:
             self.reset_to_defaults(save=False)
 
-        return defaults
+        return self.defaults
 
     @classmethod
     def _check_section_option(cls, section, option):

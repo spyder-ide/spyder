@@ -149,6 +149,12 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
+        # Name and context are saved in lowercase in our config system, so we
+        # need to use them like that here.
+        # Note: That's how the Python ConfigParser class saves options.
+        name = name.lower()
+        context = context.lower()
+
         self._shortcut_data.append(
             ShortcutData(
                 qobject=qaction_or_qshortcut,
@@ -164,6 +170,12 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         """
         Unregister QAction or QShortcut from Spyder main application.
         """
+        # Name and context are saved in lowercase in our config system, so we
+        # need to use them like that here.
+        # Note: That's how the Python ConfigParser class saves options.
+        name = name.lower()
+        context = context.lower()
+
         data = ShortcutData(
             qobject=qaction_or_qshortcut,
             name=name,

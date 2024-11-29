@@ -136,6 +136,12 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
 
+        # Name and context are saved in lowercase in our config system, so we
+        # need to use them like that here.
+        # Note: That's how the Python ConfigParser class saves options.
+        name = name.lower()
+        context = context.lower()
+
         # Add observer to register shortcut when its associated option is
         # broadcasted by CONF or updated in Preferences.
         config_observer = functools.partial(
