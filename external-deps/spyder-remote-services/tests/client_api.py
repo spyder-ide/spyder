@@ -1,10 +1,15 @@
 import requests
 
-
 from jupyter_server.serverapp import list_running_servers
 
 
 class Session(requests.Session):
+    """Class to handle authentication with Jupyter Server.
+    
+    This class represents a session to communicate with a Jupyter Server.
+    It automatically handles the authentication with the current running
+    server and sets the headers, main URL, port and host.
+    """
     def __init__(self, host=None, port=None, token=None):
         running_servers = list_running_servers()
         base_url = None

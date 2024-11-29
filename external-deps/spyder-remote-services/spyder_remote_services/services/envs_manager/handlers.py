@@ -1,10 +1,9 @@
+from jupyter_server.auth.decorator import authorized
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.extension.handler import ExtensionHandlerMixin
 import tornado
 from tornado import web
 from tornado.escape import json_decode
-
-from jupyter_server.auth.decorator import authorized
 
 from envs_manager.manager import Manager, DEFAULT_BACKEND, DEFAULT_ENVS_ROOT_PATH, EXTERNAL_EXECUTABLE
 

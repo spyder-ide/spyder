@@ -1,5 +1,6 @@
-"""Jupyter server example application."""
+"""Spyder server application."""
 
+from contextlib import suppress
 import os
 import json
 from pathlib import Path
@@ -8,7 +9,6 @@ from jupyter_core.application import JupyterApp
 from jupyter_server.extension.application import ExtensionApp
 from jupyter_server.serverapp import ServerApp
 from traitlets import Bool, default
-from contextlib import suppress
 from jupyter_server.utils import check_pid
 from jupyter_core.paths import jupyter_runtime_dir
 
@@ -56,7 +56,7 @@ class SpyderServerApp(ServerApp):
 
 
 class SpyderServerInfoApp(JupyterApp):
-    description: str = "Show information about current running Spyder server."
+    description: str = "Show information about the currently running Spyder server."
 
     def start(self):
         """Start the server list application."""

@@ -54,7 +54,8 @@ class SpyderMainKernelHandler(MainKernelHandler):
 
 
 def __kernel_model(self, kernel_id):
-    """Return a JSON-safe dict representing a kernel
+    """
+    Return a JSON-safe dict representing a kernel
 
     For use in representing kernels in the JSON APIs.
     """
@@ -112,6 +113,7 @@ def patch_maping_kernel_manager(obj: AsyncMappingKernelManager):
     obj.kernel_model = MethodType(__kernel_model, obj)
     obj.default_kernel_name = "spyder-kernel"
     obj.kernel_manager_factory = _patch_kernel_manager(obj.kernel_manager_factory)
+
 
 def patch_main_kernel_handler(router: Router):
     for idx, rule in enumerate(router.rules):

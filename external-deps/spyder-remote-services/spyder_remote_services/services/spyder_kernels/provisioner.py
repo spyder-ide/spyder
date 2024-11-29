@@ -18,7 +18,8 @@ class SpyderKernelProvisioner(LocalProvisioner):
     """
 
     async def pre_launch(self, **kwargs: Any) -> dict[str, Any]:
-        """Perform any steps in preparation for kernel process launch.
+        """
+        Perform any steps in preparation for kernel process launch.
 
         This includes applying additional substitutions to the kernel launch command and env.
         It also includes preparation of launch parameters.
