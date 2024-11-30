@@ -263,6 +263,17 @@ class UserConfig(DefaultsConfig):
                 assert isinstance(options, dict)
                 for opt, _ in options.items():
                     assert is_text_string(opt)
+
+                    if sec == "shortcuts" and (
+                        "/" not in opt or len(opt.split("/")) > 2
+                    ):
+                        raise ValueError(
+                            f"Error in shortcut option '{opt}'. Shortcut "
+                            f"options need to be of the form context/name, "
+                            f"e.g. editor/run cell (for a shortcut that works "
+                            f"only in the editor) or _/file switcher (for "
+                            f"global shortcuts)"
+                        )
         else:
             raise ValueError('`defaults` must be a dict or a list of tuples!')
 

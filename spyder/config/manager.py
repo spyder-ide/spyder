@@ -12,6 +12,7 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
+import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
@@ -723,7 +724,7 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        option = context + "/" + name
+        option = f"{context}/{name}"
         current_shortcut = config.get("shortcuts", option, default="")
 
         if current_shortcut != keystr:
@@ -762,6 +763,9 @@ try:
     CONF = ConfigurationManager()
 except Exception:
     from qtpy.QtWidgets import QApplication, QMessageBox
+
+    # Print traceback to show error in the terminal in case it's needed
+    print(traceback.format_exc())  # spyder: test-skip
 
     # Check if there's an app already running
     app = QApplication.instance()
