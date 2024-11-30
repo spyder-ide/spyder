@@ -378,7 +378,7 @@ class KernelHandler(QObject):
         """
         connection_file = cls.new_connection_file()
         if connection_file is None:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             )
 
@@ -483,13 +483,13 @@ class KernelHandler(QObject):
         try:
             kernel_client.load_connection_file()
         except Exception as e:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 _(
                     "An error occurred while trying to load "
                     "the kernel connection file. The error "
                     "was:\n\n"
                 )
-                + str(e)
+                + f"<tt>{str(e)}</tt>"
             )
 
         if hostname is not None or ssh_connection is not None:
