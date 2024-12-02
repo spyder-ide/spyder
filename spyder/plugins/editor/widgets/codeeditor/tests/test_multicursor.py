@@ -7,30 +7,56 @@
 # Standard library imports
 
 # Third party imports
+import pytest
 from qtpy.QtCore import Qt, QPoint
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 
 
 def test_add_cursor(codeeditor, qtbot):
-    code_editor = codeeditor
     # enabled by default arg on CodeEditor.setup_editor (which is called in the
     #    pytest fixture creation in conftest.py)
-    assert code_editor.multi_cursor_enabled
-    code_editor.set_text("0123456789")
-    qtbot.wait(1000)
-    x, y = code_editor.get_coordinates(4)
-    point = code_editor.calculate_real_position(QPoint(x, y))
+    assert codeeditor.multi_cursor_enabled
+    codeeditor.set_text("0123456789")
+    qtbot.wait(100)
+    x, y = codeeditor.get_coordinates(6)
+    point = codeeditor.calculate_real_position(QPoint(x, y))
+    point = QPoint(x, y)
 
-    qtbot.mousePress(code_editor,
+    qtbot.mouseClick(codeeditor.viewport(),
                      Qt.MouseButton.LeftButton,
                      (Qt.KeyboardModifier.ControlModifier |
                       Qt.KeyboardModifier.AltModifier),
                      pos=point,
-                     delay=1000)
-
+                     delay=100)
     # A cursor was added
-    assert bool(code_editor.extra_cursors)
-    qtbot.keyClick(code_editor, "a")
+    assert bool(codeeditor.extra_cursors)
+    qtbot.keyClick(codeeditor, "a")
     # Text was inserted correctly from two cursors
-    assert code_editor.toPlainText() == "a0123a456789"
+    assert codeeditor.toPlainText() == "a012345a6789"
+
+def test_column_add_cursor(codeeditor, qtbot):
+    codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
+    cursor = codeeditor.textCursor()
+    cursor.movePosition(QTextCursor.MoveOperation.Down,
+                        QTextCursor.MoveMode.MoveAnchor,
+                        3)
+    codeeditor.setTextCursor(cursor)
+    x, y = codeeditor.get_coordinates(6)
+    point = codeeditor.calculate_real_position(QPoint(x, y))
+    point = QPoint(x, y)
+    qtbot.mouseClick(codeeditor.viewport(),
+                     Qt.MouseButton.LeftButton,
+                     (Qt.KeyboardModifier.ControlModifier |
+                      Qt.KeyboardModifier.AltModifier |
+                      Qt.KeyboardModifier.ShiftModifier),
+                     pos=point,
+                     delay=100)
+    assert bool(codeeditor.extra_cursors)
+    assert len(codeeditor.all_cursors) == 4
+    for cursor in codeeditor.all_cursors:
+        assert cursor.selectedText() == "012345"
+
+if __name__ == '__main__':
+    pytest.main(['test_multicursor.py'])
