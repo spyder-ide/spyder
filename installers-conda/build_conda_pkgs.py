@@ -177,8 +177,8 @@ class BuildCondaPkg:
     def _add_recipe_clobber(self):
         self.recipe_clobber.update({
             "source": {
-                "url": None,
-                "sha256": None,
+                "git_url": None,
+                "git_rev": None,
                 "path": self._bld_src.as_posix()},
         })
 
@@ -245,8 +245,8 @@ class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
-    feedstock = "https://github.com/conda-forge/spyder-feedstock"
-    feedstock_branch = "dev"
+    feedstock = "https://github.com/mrclary/spyder-feedstock"
+    feedstock_branch = "spyder-base"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
