@@ -679,6 +679,7 @@ class PythonShellWidget(
         )
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
+        SpyderShortcutsMixin.__init__(self)
 
         # Local shortcuts
         self.register_shortcuts()

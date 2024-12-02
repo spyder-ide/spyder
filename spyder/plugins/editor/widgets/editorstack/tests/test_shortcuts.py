@@ -20,9 +20,9 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.editorstack import EditorStack
-from spyder.config.manager import CONF
 
 
 # ---- Qt Test Fixtures
@@ -32,7 +32,6 @@ def editorstack(qtbot):
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
     """
-    EditorStack.CONF_SECTION = "Editor"
     editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -42,6 +41,10 @@ def editorstack(qtbot):
     qtbot.addWidget(editorstack)
     editorstack.show()
     editorstack.go_to_line(1)
+
+    # Register shortcuts
+    CONF.notify_section_all_observers("shortcuts")
+    qtbot.wait(300)
 
     return editorstack
 

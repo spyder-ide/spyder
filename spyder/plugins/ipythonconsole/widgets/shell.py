@@ -172,6 +172,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
+        SpyderWidgetMixin.__init__(self)
         self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole

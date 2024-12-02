@@ -74,7 +74,6 @@ from spyder.app.utils import (
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
@@ -122,12 +121,7 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(
-    QMainWindow,
-    SpyderMainWindowMixin,
-    SpyderConfigurationAccessor,
-    SpyderShortcutsMixin,
-):
+class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
     """Spyder main window"""
     CONF_SECTION = 'main'
 

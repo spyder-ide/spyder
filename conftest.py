@@ -109,7 +109,12 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def reset_conf_before_test():
+def reset_conf_before_test(request):
+    # To prevent running this fixture for a specific test, you need to use this
+    # marker.
+    if 'no_reset_conf' in request.keywords:
+        return
+
     from spyder.config.manager import CONF
     CONF.reset_to_defaults(notification=False)
 

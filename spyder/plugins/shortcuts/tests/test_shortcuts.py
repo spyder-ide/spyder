@@ -19,6 +19,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
+from spyder.plugins.shortcuts.utils import ShortcutData
 from spyder.plugins.shortcuts.widgets.table import (
     INVALID_KEY, NO_WARNING, SEQUENCE_CONFLICT, SEQUENCE_EMPTY,
     ShortcutEditor, ShortcutsTable, load_shortcuts)
@@ -77,8 +78,8 @@ def test_shortcut_in_conf_is_filtered_with_shortcut_data(qtbot):
 
     shortcut_table_empty = ShortcutsTable()
     shortcut_table_empty.set_shortcut_data([
-        (None, '_', 'switch to plots', None, None),
-        (None, '_', 'switch to editor', None, None),
+        ShortcutData(qobject=None, name='switch to plots', context='_'),
+        ShortcutData(qobject=None, name='switch to editor', context='_')
     ])
     shortcut_table_empty.load_shortcuts()
     qtbot.addWidget(shortcut_table_empty)
