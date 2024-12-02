@@ -68,7 +68,6 @@ def test_files(tmpdir_factory):
 @pytest.fixture
 def editorstack(qtbot, outlineexplorer):
     def _create_editorstack(files):
-        EditorStack.CONF_SECTION = "Editor"
         editorstack = EditorStack(None, [], False)
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())

@@ -29,7 +29,6 @@ from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 # ---- Qt Test Fixtures
 
 def editor_stack():
-    EditorStack.CONF_SECTION = "Editor"
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -39,7 +38,6 @@ def editor_stack():
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    EditorSplitter.CONF_SECTION = "Editor"
     main_widget = Mock(wraps=EditorMainWidgetExample())
     es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
@@ -83,7 +81,6 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
         editorstack.new('test.py', 'utf-8', text)
 
     mock_main_widget = Mock(wraps=EditorMainWidgetExample())
-    EditorSplitter.CONF_SECTION = "Editor"
     editorsplitter = EditorSplitter(
         None,
         mock_main_widget,

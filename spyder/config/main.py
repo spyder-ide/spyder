@@ -522,8 +522,8 @@ DEFAULTS = [
               # -- Profiler --
               'profiler/run file in profiler': "F10",
               # -- Switcher --
-              'switcher/file switcher': 'Ctrl+P',
-              'switcher/symbol finder': 'Ctrl+Alt+P',
+              '_/file switcher': 'Ctrl+P',
+              '_/symbol finder': 'Ctrl+Alt+P',
               # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -676,4 +676,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '84.3.0'
+CONF_VERSION = '85.0.0'

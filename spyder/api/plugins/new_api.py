@@ -298,8 +298,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         The window state.
     """
 
-    # --- Private attributes -------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private attributes
+    # -------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration
     # among several files. See spyder/config/main.py
     _CONF_NAME_MAP = None
@@ -361,8 +361,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             plugin_path = osp.join(self.get_path(), self.IMG_PATH)
             IMAGE_PATH_MANAGER.add_image_path(plugin_path)
 
-    # --- Private methods ----------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _register(self, omit_conf=False):
         """
         Setup and register plugin in Spyder's main window and connect it to
@@ -397,8 +397,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.is_compatible = None
         self.is_registered = False
 
-    # --- API: available methods ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: available methods
+    # -------------------------------------------------------------------------
     def get_path(self):
         """
         Return the plugin's system path.
@@ -765,8 +765,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
             return get_options(sys_argv)[0]
 
-    # --- API: Mandatory methods to define -----------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Mandatory methods to define
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         """
@@ -832,8 +832,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             f'The plugin {type(self)} is missing an implementation of '
             'on_initialize')
 
-    # --- API: Optional methods to override ----------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Optional methods to override
+    # -------------------------------------------------------------------------
     @staticmethod
     def check_compatibility():
         """
@@ -952,14 +952,14 @@ class SpyderDockablePlugin(SpyderPluginV2):
     """
     A Spyder plugin to enhance functionality with a dockable widget.
     """
-    # --- API: Mandatory attributes ------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Mandatory attributes
+    # -------------------------------------------------------------------------
     # This is the main widget of the dockable plugin.
     # It needs to be a subclass of PluginMainWidget.
     WIDGET_CLASS = None
 
-    # --- API: Optional attributes -------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Optional attributes
+    # -------------------------------------------------------------------------
     # Define a list of plugins next to which we want to to tabify this plugin.
     # Example: ['Plugins.Editor']
     TABIFY = []
@@ -972,8 +972,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the action to switch is called a second time.
     RAISE_AND_FOCUS = False
 
-    # --- API: Available signals ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Available signals
+    # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
     """
     This signal is emitted to inform the focus of this plugin has changed.
@@ -1010,8 +1010,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     needs its ancestor to be updated.
     """
 
-    # --- Private methods ----------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def __init__(self, parent, configuration):
         if not issubclass(self.WIDGET_CLASS, PluginMainWidget):
             raise SpyderAPIError(
@@ -1053,8 +1053,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.sig_update_ancestor_requested.connect(
             self.sig_update_ancestor_requested)
 
-    # --- API: available methods ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: available methods
+    # -------------------------------------------------------------------------
     def before_long_process(self, message):
         """
         Show a message in main window's status bar, change the mouse pointer
@@ -1116,8 +1116,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         self.get_widget().set_ancestor(ancestor_widget)
 
-    # --- Convenience methods from the widget exposed on the plugin
-    # ------------------------------------------------------------------------
+    # ---- Convenience methods from the widget exposed on the plugin
+    # -------------------------------------------------------------------------
     @property
     def dockwidget(self):
         return self.get_widget().dockwidget

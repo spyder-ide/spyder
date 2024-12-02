@@ -51,7 +51,6 @@ def add_files(editorstack):
 # ---- Qt Test Fixtures
 @pytest.fixture
 def base_editor_bot(qtbot):
-    EditorStack.CONF_SECTION = "Editor"
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
     editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -78,7 +77,6 @@ def editor_bot(base_editor_bot, request):
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    EditorSplitter.CONF_SECTION = "Editor"
     main_widget = Mock(wraps=EditorMainWidgetExample())
     es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
