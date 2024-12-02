@@ -22,7 +22,6 @@ import logging
 import os
 import os.path as osp
 import re
-import sre_constants
 import sys
 import textwrap
 import functools
@@ -554,7 +553,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                              kind="extra_cursor_selection")
 
             # TODO get colors from theme? or from stylesheet?
-            extra_selection.set_foreground(QColor("#ffffff"))
+            extra_selection.set_foreground(QColor("#dfe1e2"))
             extra_selection.set_background(QColor("#346792"))
             selections.append(extra_selection)
         self.set_extra_selections('extra_cursor_selections', selections)
@@ -1964,7 +1963,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
             regobj = re.compile(pattern, flags=re_flags)
-        except sre_constants.error:
+        except re.error:
             return
 
         extra_selections = []
@@ -4859,7 +4858,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def mousePressEvent(self, event: QKeyEvent):
         """Override Qt method."""
         self.hide_tooltip()
-
         ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
         shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
