@@ -4695,56 +4695,69 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.__move_line_or_selection(after_current_line=True)
 
     def __move_line_or_selection(self, after_current_line=True):
-        cursor = self.textCursor()
+        # TODO multi-cursor implementation improperly handles moving multiple
+        #    cursors up against the end of the file (lines get swapped)
+        # TODO multi-cursor implementation improperly handles multiple cursors
+        #    on the same line.
+        self.textCursor().beginEditBlock()
+        sorted_cursors = sorted(self.all_cursors,
+                                key=lambda cursor: cursor.position(),
+                                reverse=after_current_line)
+        new_cursors = []
+        for cursor in sorted_cursors:
+            self.setTextCursor(cursor)
 
-        # Unfold any folded code block before moving lines up/down
-        fold_start_line = cursor.blockNumber() + 1
-        block = cursor.block().next()
-
-        if fold_start_line in self.folding_panel.folding_status:
-            fold_status = self.folding_panel.folding_status[fold_start_line]
-            if fold_status:
-                self.folding_panel.toggle_fold_trigger(block)
-
-        if after_current_line:
-            # Unfold any folded region when moving lines down
-            fold_start_line = cursor.blockNumber() + 2
-            block = cursor.block().next().next()
+            # Unfold any folded code block before moving lines up/down
+            fold_start_line = cursor.blockNumber() + 1
+            block = cursor.block().next()
 
             if fold_start_line in self.folding_panel.folding_status:
-                fold_status = self.folding_panel.folding_status[
-                    fold_start_line
-                ]
-                if fold_status:
+                if self.folding_panel.folding_status[fold_start_line]:
                     self.folding_panel.toggle_fold_trigger(block)
-        else:
-            # Unfold any folded region when moving lines up
-            block = cursor.block()
-            offset = 0
-            if self.has_selected_text():
-                ((selection_start, _),
-                 (selection_end)) = self.get_selection_start_end()
-                if selection_end != selection_start:
-                    offset = 1
-            fold_start_line = block.blockNumber() - 1 - offset
 
-            # Find the innermost code folding region for the current position
-            enclosing_regions = sorted(list(
-                self.folding_panel.current_tree[fold_start_line]))
+            if after_current_line:
+                # Unfold any folded region when moving lines down
+                fold_start_line = cursor.blockNumber() + 2
+                block = cursor.block().next().next()
 
-            folding_status = self.folding_panel.folding_status
-            if len(enclosing_regions) > 0:
-                for region in enclosing_regions:
-                    fold_start_line = region.begin
-                    block = self.document().findBlockByNumber(fold_start_line)
-                    if fold_start_line in folding_status:
-                        fold_status = folding_status[fold_start_line]
-                        if fold_status:
-                            self.folding_panel.toggle_fold_trigger(block)
+                if fold_start_line in self.folding_panel.folding_status:
+                    if self.folding_panel.folding_status[fold_start_line]:
+                        self.folding_panel.toggle_fold_trigger(block)
+            else:
+                # Unfold any folded region when moving lines up
+                block = cursor.block()
+                offset = 0
+                if self.has_selected_text():
+                    ((selection_start, _),
+                     (selection_end)) = self.get_selection_start_end()
+                    if selection_end != selection_start:
+                        offset = 1
+                fold_start_line = block.blockNumber() - 1 - offset
 
-        self._TextEditBaseWidget__move_line_or_selection(
-            after_current_line=after_current_line
-        )
+                # Find the innermost code folding region for the current pos
+                enclosing_regions = sorted(list(
+                    self.folding_panel.current_tree[fold_start_line]))
+
+                folding_status = self.folding_panel.folding_status
+                if len(enclosing_regions) > 0:
+                    for region in enclosing_regions:
+                        fold_start_line = region.begin
+                        block = self.document().findBlockByNumber(
+                            fold_start_line
+                            )
+                        if fold_start_line in folding_status:
+                            fold_status = folding_status[fold_start_line]
+                            if fold_status:
+                                self.folding_panel.toggle_fold_trigger(block)
+
+            self._TextEditBaseWidget__move_line_or_selection(
+                after_current_line=after_current_line
+            )
+            new_cursors.append(self.textCursor())
+        self.extra_cursors = new_cursors[:-1]
+        self.setTextCursor(new_cursors[-1])
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
