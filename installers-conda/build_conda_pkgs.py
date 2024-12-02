@@ -248,7 +248,7 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
-    feedstock_branch = "dev"
+    feedstock_branch = "main"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
