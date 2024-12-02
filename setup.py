@@ -146,9 +146,9 @@ def get_qt_requirements(qt_requirements, default='pyqt5'):
 
     if install_requires is None:
         raise ValueError(
-                f"Unsupported Qt binding: {env_qt_binding}. "
-                "Supported: "  + ", ".join(qt_requirements.keys())
-            )
+            f"Unsupported Qt binding: {env_qt_binding}. "
+            f"Supported: "  + ", ".join(qt_requirements.keys())
+        )
 
     return install_requires
 
