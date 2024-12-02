@@ -624,10 +624,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
         shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-        # TODO handle other keys?
-        # TODO handle sig_key_pressed for each cursor?
-        #    (maybe not: extra extensions add complexity.
-        #    Keep multi-cursor simpler)
         # ---- handle insert
         if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
             self.overwrite_mode = not self.overwrite_mode
@@ -705,7 +701,41 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         else:
                             self.fix_indent(comment_or_string=cmt_or_str,
                                             cur_indent=cur_indent)
-
+            # ---- intelligent backspace handling
+            elif key == Qt.Key_Backspace and not shift and not ctrl:
+                increasing_position = False
+                if self.has_selected_text() or not self.intelligent_backspace:
+                    self._handle_keypress_event(event)
+                else:
+                    leading_text = self.get_text('sol', 'cursor')
+                    leading_length = len(leading_text)
+                    trailing_spaces = (
+                        leading_length - len(leading_text.rstrip())
+                        )
+                    trailing_text = self.get_text('cursor', 'eol')
+                    matches = ('()', '[]', '{}', '\'\'', '""')
+                    if (
+                        not leading_text.strip() and
+                        (leading_length > len(self.indent_chars))
+                    ):
+                        if leading_length % len(self.indent_chars) == 0:
+                            self.unindent()
+                        else:
+                            self._handle_keypress_event(event)
+                    elif trailing_spaces and not trailing_text.strip():
+                        self.remove_suffix(leading_text[-trailing_spaces:])
+                    elif (
+                        leading_text and
+                        trailing_text and
+                        (leading_text[-1] + trailing_text[0] in matches)
+                    ):
+                        cursor = self.textCursor()
+                        cursor.movePosition(QTextCursor.PreviousCharacter)
+                        cursor.movePosition(QTextCursor.NextCharacter,
+                                            QTextCursor.KeepAnchor, 2)
+                        cursor.removeSelectedText()
+                    else:
+                        self._handle_keypress_event(event)
             # ---- use default handler for cursor (text)
             else:
                 if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
@@ -714,7 +744,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.verticalMovementX() == -1):
                     # Builtin handler somehow does not set verticalMovementX
                     #    when moving up and down (but works fine for single
-                    #    cursor somehow)  # TODO why
+                    #    cursor somehow)
+                    # TODO why? Am I forgetting something?
                     x = self.cursorRect(cursor).x()
                     cursor.setVerticalMovementX(x)
                     self.setTextCursor(cursor)
