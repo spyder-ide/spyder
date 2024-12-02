@@ -35,7 +35,8 @@ class SwitcherContainer(PluginMainContainer):
             tip=_('Fast switch between files'),
             triggered=self.open_switcher,
             register_shortcut=True,
-            context=Qt.ApplicationShortcut
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_",
         )
 
         self.create_action(
@@ -45,7 +46,8 @@ class SwitcherContainer(PluginMainContainer):
             tip=_('Fast symbol search in file'),
             triggered=self.open_symbolfinder,
             register_shortcut=True,
-            context=Qt.ApplicationShortcut
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_",
         )
 
     def update_actions(self):

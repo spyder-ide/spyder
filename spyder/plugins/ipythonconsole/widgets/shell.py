@@ -20,6 +20,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.utils.style import create_style_class
 from traitlets import observe
 
 # Local imports
@@ -33,8 +34,7 @@ from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     ClientContextMenuSections
 )
-from spyder.plugins.ipythonconsole.utils.style import (
-    create_qss_style, create_style_class)
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import (
@@ -172,6 +172,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
+        SpyderWidgetMixin.__init__(self)
         self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
@@ -1440,13 +1441,14 @@ overrided by the Sympy module (e.g. plot)
             # ignore premature calls
             return
         if self.syntax_style:
-            self._highlighter._style = create_style_class(self.syntax_style)
+            color_scheme = get_color_scheme(self.syntax_style)
+            self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
             if changed is None:
                 return
             self.set_kernel_configuration(
                 "traceback_highlight_style",
-                get_color_scheme(self.syntax_style),
+                color_scheme,
             )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)

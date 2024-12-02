@@ -10,3 +10,4 @@ dependencies:
   - pip
   - jupyter_server >=2.14.2,<3.0
   - jupyter_client >=8.6.2,<9.0
+  - envs-manager <1.0.0

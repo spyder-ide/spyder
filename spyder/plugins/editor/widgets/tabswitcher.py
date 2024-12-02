@@ -13,13 +13,10 @@ from qtpy.QtWidgets import QListWidget, QListWidgetItem
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
-from spyder.api.widgets.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 
 
-class TabSwitcherWidget(
-    QListWidget, SpyderConfigurationAccessor, SpyderShortcutsMixin
-):
+class TabSwitcherWidget(QListWidget, SpyderShortcutsMixin):
     """Show tabs in mru order and change between them."""
 
     CONF_SECTION = "editor"

@@ -1,0 +1,7 @@
+{
+    "ServerApp": {
+        "jpserver_extensions": {
+            "spyder_remote_services": true
+        }
+    }
+}
