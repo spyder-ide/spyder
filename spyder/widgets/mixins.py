@@ -16,7 +16,6 @@ from io import StringIO
 import os
 import os.path as osp
 import re
-import sre_constants
 import sys
 import textwrap
 from token import NUMBER
@@ -1327,7 +1326,7 @@ class BaseEditMixin(object):
         text = to_text_string(self.toPlainText())
         try:
             regobj = re.compile(pattern)
-        except sre_constants.error:
+        except re.error:
             return
         if findflag & QTextDocument.FindBackward:
             # Find backward
@@ -1436,7 +1435,7 @@ class BaseEditMixin(object):
         try:
             re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
             regobj = re.compile(pattern, flags=re_flags)
-        except sre_constants.error:
+        except re.error:
             return None
 
         number_matches = 0
