@@ -23,6 +23,11 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
+    if [ -n "$QT6_BINDINGS" ]; then
+        # conda has no PyQt6 package
+        echo "Cannot use Qt 6 with Conda" 1>&2
+        exit 1
+    fi
 
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
@@ -70,6 +75,14 @@ else
         pip install jedi==0.19.1
     fi
 
+    if [ "$QT6_BINDINGS" = "pyqt6" ]; then
+        pip install pyqt6 pyqt6-webengine
+    elif [ "$QT6_BINDINGS" = "pyside6" ]; then
+        pip install pyside6
+    elif [ -n "$QT6_BINDINGS" ]; then
+        echo "Invalid Qt 6 bindings: $QT6_BINDINGS" 1>&2
+        exit 1
+    fi
 fi
 
 # Install subrepos from source
