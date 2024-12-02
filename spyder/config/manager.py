@@ -12,6 +12,7 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
+import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
@@ -25,18 +26,13 @@ from spyder.config.base import (
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
+from spyder.plugins.shortcuts.utils import SHORTCUTS_FOR_WIDGETS_DATA
 from spyder.utils.programs import check_version
 
 
 logger = logging.getLogger(__name__)
 
-EXTRA_VALID_SHORTCUT_CONTEXTS = [
-    '_',
-    'array_builder',
-    'console',
-    'find_replace',
-    'switcher'
-]
+EXTRA_VALID_SHORTCUT_CONTEXTS = ['_', 'find_replace']
 
 
 class ConfigurationManager(object):
@@ -100,24 +96,25 @@ class ConfigurationManager(object):
         # This dict maps from a configuration key (str/tuple) to a set
         # of objects that should be notified on changes to the corresponding
         # subscription key per section. The observer objects must be hashable.
-        #
-        # type: Dict[ConfigurationKey, Dict[str, Set[ConfigurationObserver]]]
-        self._observers = {}
+        self._observers: Dict[
+            ConfigurationKey, Dict[str, Set[ConfigurationObserver]]
+        ] = {}
 
         # Set of suscription keys per observer object
         # This dict maps from a observer object to the set of configuration
         # keys that the object is subscribed to per section.
-        #
-        # type: Dict[ConfigurationObserver, Dict[str, Set[ConfigurationKey]]]
-        self._observer_map_keys = weakref.WeakKeyDictionary()
+        self._observer_map_keys: Dict[
+            ConfigurationObserver, Dict[str, Set[ConfigurationKey]]
+        ] = weakref.WeakKeyDictionary()
 
         # List of options with disabled notifications.
         # This holds a list of (section, option) options that won't be notified
         # to observers. It can be used to temporarily disable notifications for
         # some options.
-        #
-        # type: List[Tuple(str, ConfigurationKey)]
-        self._disabled_options = []
+        self._disabled_options: List[Tuple(str, ConfigurationKey)] = []
+
+        # Mapping for shortcuts that need to be notified
+        self._shortcuts_to_notify: Dict[(str, str), Optional[str]] = {}
 
         # Setup
         self.remove_deprecated_config_locations()
@@ -361,8 +358,11 @@ class ConfigurationManager(object):
             if option == '__section':
                 self._notify_section(section)
             else:
-                value = self.get(section, option, secure=secure)
-                self._notify_option(section, option, value)
+                if section == "shortcuts":
+                    self._notify_shortcut(option)
+                else:
+                    value = self.get(section, option, secure=secure)
+                    self._notify_option(section, option, value)
 
     def _notify_option(self, section: str, option: ConfigurationKey,
                        value: Any):
@@ -391,6 +391,27 @@ class ConfigurationManager(object):
     def _notify_section(self, section: str):
         section_values = dict(self.items(section) or [])
         self._notify_option(section, '__section', section_values)
+
+    def _notify_shortcut(self, option: str):
+        # We need this mapping for two reasons:
+        # 1. We don't need to notify changes for all shortcuts, only for
+        #    widget shortcuts, which are the ones with associated observers
+        #    (see SpyderShortcutsMixin.register_shortcut_for_widget).
+        # 2. Besides context and name, we need the plugin_name to correctly get
+        #    the shortcut value to notify. That's not saved in our config
+        #    system, but it is in SHORTCUTS_FOR_WIDGETS_DATA.
+        if not self._shortcuts_to_notify:
+            # Populate mapping only once
+            self._shortcuts_to_notify = {
+                (data.context, data.name): data.plugin_name
+                for data in SHORTCUTS_FOR_WIDGETS_DATA
+            }
+
+        context, name = option.split("/")
+        if (context, name) in self._shortcuts_to_notify:
+            plugin_name = self._shortcuts_to_notify[(context, name)]
+            value = self.get_shortcut(context, name, plugin_name)
+            self._notify_option("shortcuts", option, value)
 
     def notify_section_all_observers(self, section: str):
         """Notify all the observers subscribed to any option of a section."""
@@ -703,7 +724,12 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        config.set('shortcuts', context + '/' + name, keystr)
+        option = f"{context}/{name}"
+        current_shortcut = config.get("shortcuts", option, default="")
+
+        if current_shortcut != keystr:
+            config.set('shortcuts', option, keystr)
+            self.notify_observers("shortcuts", option)
 
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
@@ -729,11 +755,17 @@ class ConfigurationManager(object):
             # TODO: check if the section exists?
             plugin_config.reset_to_defaults(section='shortcuts')
 
+        # This necessary to notify the observers of widget shortcuts
+        self.notify_section_all_observers(section="shortcuts")
+
 
 try:
     CONF = ConfigurationManager()
 except Exception:
     from qtpy.QtWidgets import QApplication, QMessageBox
+
+    # Print traceback to show error in the terminal in case it's needed
+    print(traceback.format_exc())  # spyder: test-skip
 
     # Check if there's an app already running
     app = QApplication.instance()

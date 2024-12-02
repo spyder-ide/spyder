@@ -10,7 +10,7 @@ Spyder Boilerplate Plugin.
 
 # Third party imports
 import qtawesome as qta
-from qtpy.QtWidgets import QHBoxLayout, QLabel
+from qtpy.QtWidgets import QHBoxLayout, QTextEdit
 
 # Spyder imports
 from spyder.api.config.decorators import on_conf_change
@@ -50,12 +50,13 @@ class SpyderBoilerplateWidget(PluginMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-        # Create an example label
-        self._example_label = QLabel("Example Label")
+        # Create example widgets
+        self._example_widget = QTextEdit(self)
+        self._example_widget.setText("Example text")
 
         # Add example label to layout
         layout = QHBoxLayout()
-        layout.addWidget(self._example_label)
+        layout.addWidget(self._example_widget)
         self.setLayout(layout)
 
     # --- PluginMainWidget API
@@ -72,7 +73,7 @@ class SpyderBoilerplateWidget(PluginMainWidget):
             name=SpyderBoilerplateActions.ExampleAction,
             text="Example action",
             tip="Example hover hint",
-            icon=self.create_icon("spyder"),
+            icon=self.create_icon("python"),
             triggered=lambda: print("Example action triggered!"),
         )
 
@@ -92,6 +93,19 @@ class SpyderBoilerplateWidget(PluginMainWidget):
             SpyderBoilerplateOptionsMenuSections.ExampleSection,
         )
 
+        # Shortcuts
+        self.register_shortcut_for_widget(
+            "Change text",
+            self.change_text,
+        )
+
+        self.register_shortcut_for_widget(
+            "new text",
+            self.new_text,
+            context="editor",
+            plugin_name=self._plugin.NAME,
+        )
+
     def update_actions(self):
         pass
 
@@ -101,6 +115,15 @@ class SpyderBoilerplateWidget(PluginMainWidget):
 
     # --- Public API
     # ------------------------------------------------------------------------
+    def change_text(self):
+        if self._example_widget.toPlainText() == "":
+            self._example_widget.setText("Example text")
+        else:
+            self._example_widget.setText("")
+
+    def new_text(self):
+        if self._example_widget.toPlainText() != "Another text":
+            self._example_widget.setText("Another text")
 
 
 class SpyderBoilerplate(SpyderDockablePlugin):
@@ -115,6 +138,15 @@ class SpyderBoilerplate(SpyderDockablePlugin):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = SpyderBoilerplateConfigPage
     CUSTOM_LAYOUTS = [VerticalSplitLayout2]
+    CONF_DEFAULTS = [
+        (CONF_SECTION, {}),
+        (
+            "shortcuts",
+            # Note: These shortcut names are capitalized to check we can
+            # set/get/reset them correctly.
+            {f"{NAME}/Change text": "Ctrl+B", "editor/New text": "Ctrl+H"},
+        ),
+    ]
 
     # --- Signals
 

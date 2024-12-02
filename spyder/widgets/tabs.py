@@ -625,6 +625,9 @@ class BaseTabs(QTabWidget):
 
 class Tabs(BaseTabs, SpyderShortcutsMixin):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
+    # Dummy CONF_SECTION to avoid a warning
+    CONF_SECTION = ""
+
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()

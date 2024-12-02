@@ -93,6 +93,12 @@ class EditorStackMenuSections:
 
 
 class EditorStack(QWidget, SpyderWidgetMixin):
+
+    # This is necessary for the EditorStack tests to run independently of the
+    # Editor plugin.
+    CONF_SECTION = "editor"
+
+    # Signals
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)

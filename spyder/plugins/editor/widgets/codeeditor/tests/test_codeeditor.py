@@ -7,20 +7,32 @@
 # Standard library imports
 import os.path as osp
 import sys
+from unittest.mock import MagicMock
 
 # Third party imports
 from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QTextCursor, QMouseEvent
-from qtpy.QtWidgets import QApplication, QTextEdit
+from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
+from spyder.plugins.preferences.tests.conftest import config_dialog
+from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
 
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
+
+
+class MainWindow(QMainWindow):
+
+    _cli_options = MagicMock()
+
+    def get_plugin(self, name, error=True):
+        return MagicMock()
 
 
 def test_editor_upper_to_lower(codeeditor):
@@ -586,6 +598,7 @@ def test_cell_highlight(codeeditor, qtbot):
     editor = codeeditor
     text = ('\n\n\n#%%\n\n\n')
     editor.set_text(text)
+
     # Set cursor to start of file
     cursor = editor.textCursor()
     cursor.setPosition(0)
@@ -625,6 +638,61 @@ def test_cell_highlight(codeeditor, qtbot):
     editor.redo()
     assert editor.current_cell[0].selectionStart() == 0
     assert editor.current_cell[0].selectionEnd() == 8
+
+
+@pytest.mark.parametrize(
+    'config_dialog',
+    # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
+    [[MainWindow, [], [Shortcuts]]],
+    indirect=True
+)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CI"
+)
+def test_shortcut_for_widget_is_updated(config_dialog, codeeditor, qtbot):
+    """Test shortcuts for codeeditor are updated on the fly."""
+    editor = codeeditor
+    text = ('aa\nbb\ncc\ndd\n')
+    editor.set_text(text)
+
+    # Check shortcuts were registered
+    assert editor._shortcuts != {}
+
+    # Check "move line down" shortcut is working as expected
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\naa\ncc\ndd\n"
+
+    # Change "move line down" to a different shortcut
+    editor.set_conf("editor/move line down", "Ctrl+B", section="shortcuts")
+    qtbot.wait(300)
+
+    # Check new shortcut works
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Check previous shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Reset all shortcuts to defaults (as users would do it)
+    configpage = config_dialog.get_page()
+    configpage.reset_to_default(force=True)
+    qtbot.wait(300)
+
+    # Make sure we are at the right line before the next check
+    block_to_be = editor.document().findBlockByLineNumber(2)
+    cursor = editor.textCursor()
+    cursor.setPosition(block_to_be.position())
+    editor.setTextCursor(cursor)
+
+    # Check default shortcut works
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
+
+    # Check new shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
 
 
 if __name__ == '__main__':
