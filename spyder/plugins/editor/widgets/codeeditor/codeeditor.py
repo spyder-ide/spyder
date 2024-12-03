@@ -1962,8 +1962,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         try:
             regobj = re.compile(pattern, flags=re_flags)
         except re.error:
-            # renamed PatternError in 3.13
-            # re.error kept for compatibility
             return
 
         extra_selections = []

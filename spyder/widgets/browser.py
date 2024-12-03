@@ -8,7 +8,6 @@
 
 # Standard library imports
 import re
-import sre_constants
 import sys
 
 # Third party imports
@@ -287,7 +286,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                 regobj = re.compile(pattern, re.MULTILINE)
             else:
                 regobj = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
-        except sre_constants.error:
+        except re.error:
             return
 
         number_matches = 0

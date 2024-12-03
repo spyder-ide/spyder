@@ -88,16 +88,22 @@ def parse_setup_install_requires(fpath):
     start = None
     end = None
     for idx, line in enumerate(lines):
-        if line.startswith('install_requires = '):
+        if "'pyqt5': " in line:
+            idx_qt = idx
+
+        if line.startswith('install_requires += '):
             start = idx + 1
 
         if start is not None and line.startswith(']'):
             end = idx
             break
 
+    qt_deps = lines[idx_qt].split("'pyqt5': ")[1]
+    qt_deps = literal_eval(qt_deps[:qt_deps.index("]") + 1])
     dep_list = literal_eval('[' + '\n'.join(lines[start:end + 1]))
     dep_list = [item for item in dep_list if item[0] != '#']
-    for dep in dep_list:
+
+    for dep in dep_list + qt_deps:
         dep = dep.split(';')[0]
         name, ver = None, None
 
