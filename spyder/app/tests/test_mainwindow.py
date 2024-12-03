@@ -5372,10 +5372,6 @@ def test_copy_paste(main_window, qtbot, tmpdir):
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
 
-    # Register codeeditor shortcuts
-    CONF.notify_section_all_observers("shortcuts")
-    qtbot.wait(300)
-
     # Test copy
     cursor = code_editor.textCursor()
     cursor.setPosition(69)

@@ -656,6 +656,9 @@ def test_shortcut_for_widget_is_updated(config_dialog, codeeditor, qtbot):
     text = ('aa\nbb\ncc\ndd\n')
     editor.set_text(text)
 
+    # We need to wait for a bit so shortcuts are registered correctly
+    qtbot.wait(300)
+
     # Check shortcuts were registered
     assert editor._shortcuts != {}
 
