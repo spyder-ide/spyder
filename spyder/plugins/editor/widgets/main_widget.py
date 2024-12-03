@@ -514,7 +514,6 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.find,
             context=Qt.WidgetShortcut,
             shortcut_context="find_replace",
-            register_shortcut=True
         )
         self.find_next_action = self.create_action(
             EditorWidgetActions.FindNext,
@@ -523,7 +522,6 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.find_next,
             context=Qt.WidgetShortcut,
             shortcut_context="find_replace",
-            register_shortcut=True
         )
         self.find_previous_action = self.create_action(
             EditorWidgetActions.FindPrevious,
@@ -532,7 +530,6 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.find_previous,
             context=Qt.WidgetShortcut,
             shortcut_context="find_replace",
-            register_shortcut=True
         )
         self.replace_action = self.create_action(
             EditorWidgetActions.ReplaceText,
@@ -542,7 +539,6 @@ class EditorMainWidget(PluginMainWidget):
             triggered=self.replace,
             context=Qt.WidgetShortcut,
             shortcut_context="find_replace",
-            register_shortcut=True
         )
         self.gotoline_action = self.create_action(
             EditorWidgetActions.GoToLine,
