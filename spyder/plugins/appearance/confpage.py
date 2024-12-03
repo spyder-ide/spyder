@@ -112,6 +112,10 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Syntax layout
         syntax_layout = QGridLayout(syntax_group)
+        if sys.platform == "darwin":
+            # Default spacing is too big on Mac
+            syntax_layout.setVerticalSpacing(2 * AppStyle. MarginSize)
+
         btns = [self.schemes_combobox, edit_button, self.reset_button,
                 create_button, self.delete_button]
         for i, btn in enumerate(btns):
