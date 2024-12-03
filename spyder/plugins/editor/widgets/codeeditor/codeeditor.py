@@ -1009,10 +1009,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             #    function definitions instead where possible?
             ('code completion', self.restrict_single_cursor(
                 self.do_completion)),
-            ('duplicate line down', self.for_each_cursor(
-                self.duplicate_line_down)),
-            ('duplicate line up', self.for_each_cursor(
-                self.duplicate_line_up)),
+            ('duplicate line down', self.duplicate_line_down),
+            ('duplicate line up', self.duplicate_line_up),
             ('delete line', self.delete_line),
             ('move line up', self.move_line_up),  # TODO multi-cursor
             ('move line down', self.move_line_down),  # TODO multi-cursor
@@ -1964,6 +1962,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         try:
             regobj = re.compile(pattern, flags=re_flags)
         except re.error:
+            # renamed PatternError in 3.13
+            # re.error kept for compatibility
             return
 
         extra_selections = []
@@ -3454,9 +3454,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def __unblockcomment(self, compatibility=False):
         """Un-block comment current line or selection helper."""
         def __is_comment_bar(cursor):
-            return to_text_string(cursor.block().text()
-                           ).startswith(
-                         self.__blockcomment_bar(compatibility=compatibility))
+            return to_text_string(cursor.block().text()).startswith(
+                         self.__blockcomment_bar(compatibility=compatibility)
+                         )
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
@@ -4716,6 +4716,30 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return N_strip
         return 0
 
+    def duplicate_line_up(self):
+        """Duplicate current line or selection"""
+        # TODO selection anchor is wrong (selects original and new line) if
+        #    selection starts or ends at the beginning of a block (for extra
+        #    cursors only, main cursor is fine).
+        self._unfold_lines()
+        self.for_each_cursor(super().duplicate_line_up)()
+
+    def duplicate_line_down(self):
+        """Duplicate current line or selection"""
+        self._unfold_lines()
+        self.for_each_cursor(super().duplicate_line_down)()
+
+    def _unfold_lines(self):
+        """for each cursor: unfold current line if folded"""
+        for cursor in self.all_cursors:
+            # Unfold any folded code block before duplicating lines up/down
+            fold_start_line = cursor.blockNumber() + 1
+            block = cursor.block().next()
+
+            if fold_start_line in self.folding_panel.folding_status:
+                if self.folding_panel.folding_status[fold_start_line]:
+                    self.folding_panel.toggle_fold_trigger(block)
+
     def move_line_up(self):
         """Move up current line or selected text"""
         self.__move_line_or_selection(after_current_line=False)
@@ -4779,8 +4803,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                             fold_status = folding_status[fold_start_line]
                             if fold_status:
                                 self.folding_panel.toggle_fold_trigger(block)
-
-            self._TextEditBaseWidget__move_line_or_selection(
+            # TODO refactor to eliminate hidden private method call?
+            self._TextEditBaseWidget__move_line_or_selection(  # this is ugly
                 after_current_line=after_current_line
             )
             new_cursors.append(self.textCursor())
