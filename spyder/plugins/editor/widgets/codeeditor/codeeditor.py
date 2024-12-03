@@ -22,7 +22,6 @@ import logging
 import os
 import os.path as osp
 import re
-import sre_constants
 import sys
 import textwrap
 
@@ -1515,7 +1514,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
             regobj = re.compile(pattern, flags=re_flags)
-        except sre_constants.error:
+        except re.error:
             return
 
         extra_selections = []
