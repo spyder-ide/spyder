@@ -2914,6 +2914,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.append(editor.get_line_separator())
 
         editor.move_cursor_to_next('line', 'down')
+        editor.merge_extra_cursors(True)
 
     def get_current_cell(self):
         """Get current cell attributes."""
