@@ -2721,8 +2721,8 @@ class EditorMainWidget(PluginMainWidget):
         self.cursor_undo_history.append((filename, cursor))
         self.update_cursorpos_actions()
 
-    def text_changed_at(self, filename, position):
-        self.last_edit_cursor_pos = (to_text_string(filename), position)
+    def text_changed_at(self, filename, positions):
+        self.last_edit_cursor_pos = (to_text_string(filename), positions)
 
     def current_file_changed(self, filename, position, line, column):
         editor = self.get_current_editor()
@@ -2772,7 +2772,7 @@ class EditorMainWidget(PluginMainWidget):
         if self.last_edit_cursor_pos is None:
             return
 
-        filename, position = self.last_edit_cursor_pos
+        filename, positions = self.last_edit_cursor_pos
         editor = None
         if osp.isfile(filename):
             self.load(filename)
@@ -2784,8 +2784,15 @@ class EditorMainWidget(PluginMainWidget):
             self.last_edit_cursor_pos = None
             return
 
-        if position < editor.document().characterCount():
-            editor.set_cursor_position(position)
+        character_count = editor.document().characterCount()
+        if positions[-1] < character_count:
+            editor.set_cursor_position(positions[-1])
+
+        for position in positions[:-1]:
+            if position < character_count:
+                cursor = editor.textCursor()
+                cursor.setPosition(position)
+                editor.add_cursor(cursor)
 
     def _pop_next_cursor_diff(self, history, current_filename, current_cursor):
         """Get the next cursor from history that is different from current."""
