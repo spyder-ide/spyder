@@ -49,6 +49,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def __init__(self, plugin, parent):
         super().__init__(plugin, parent)
+        self._is_shown = False
         self.pre_apply_callback = self.check_color_scheme_notification
 
         # Notifications for this option are disabled when the plugin is
@@ -112,6 +113,10 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Syntax layout
         syntax_layout = QGridLayout(syntax_group)
+        if sys.platform == "darwin":
+            # Default spacing is too big on Mac
+            syntax_layout.setVerticalSpacing(2 * AppStyle. MarginSize)
+
         btns = [self.schemes_combobox, edit_button, self.reset_button,
                 create_button, self.delete_button]
         for i, btn in enumerate(btns):
@@ -348,7 +353,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
         return set(self.changed_options)
 
-    # Helpers
+    # ---- Helpers
     # -------------------------------------------------------------------------
     @property
     def current_scheme_name(self):
@@ -366,6 +371,24 @@ class AppearanceConfigPage(PluginConfigPage):
     def current_ui_theme_index(self):
         return self.ui_combobox.currentIndex()
 
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        """Adjustments when the page is shown."""
+        super().showEvent(event)
+
+        if not self._is_shown:
+            # Set the right interface font for Mac in the respective combobox,
+            # so that preview_interface shows it appropriately.
+            if sys.platform == "darwin":
+                index = self.app_font.fontbox.findText("SF Pro")
+                if index != -1:
+                    self.app_font.fontbox.setCurrentIndex(index)
+
+        self._is_shown = True
+
+    # ---- Update contents
+    # -------------------------------------------------------------------------
     def update_combobox(self):
         """Recreates the combobox contents."""
         index = self.current_scheme_index
@@ -460,7 +483,7 @@ class AppearanceConfigPage(PluginConfigPage):
             for widget in subwidgets:
                 getattr(self.app_font, widget).setEnabled(True)
 
-    # Actions
+    # ---- Actions
     # -------------------------------------------------------------------------
     def create_new_scheme(self):
         """Creates a new color scheme with a custom name."""
