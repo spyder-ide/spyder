@@ -13,6 +13,7 @@
 
 # Standard library imports
 import re
+import sys
 
 # Third party imports
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
@@ -82,6 +83,9 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
             2 * AppStyle.MarginSize,
             0
         )
+        if sys.platform == "darwin":
+            # Spacing is too big on Mac, which makes the widget look bad
+            glayout.setSpacing(2 * AppStyle.MarginSize)
         self.setLayout(glayout)
 
         self.close_button = create_toolbutton(

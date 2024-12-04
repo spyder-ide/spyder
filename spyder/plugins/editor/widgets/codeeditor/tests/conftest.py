@@ -149,10 +149,6 @@ def mock_completions_codeeditor(qtbot_module, request):
     qtbot_module.addWidget(editor)
     editor.show()
 
-    # Register shortcuts for CodeEditor
-    CONF.notify_section_all_observers("shortcuts")
-    qtbot_module.wait(300)
-
     mock_response = Mock()
 
     def perform_request(lang, method, params):
@@ -185,10 +181,6 @@ def completions_codeeditor(completion_plugin_all_started, qtbot_module,
 
     completion_plugin, capabilities = completion_plugin_all_started
     completion_plugin.wait_for_ms = 2000
-
-    # Register shortcuts for CodeEditor
-    CONF.notify_section_all_observers("shortcuts")
-    qtbot_module.wait(300)
 
     CONF.set('completions', 'enable_code_snippets', False)
     completion_plugin.after_configuration_update([])
@@ -256,10 +248,6 @@ def codeeditor(qtbot):
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
     widget.show()
-
-    # Register shortcuts for CodeEditor
-    CONF.notify_section_all_observers("shortcuts")
-    qtbot.wait(300)
 
     yield widget
     widget.close()

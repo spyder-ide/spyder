@@ -142,8 +142,14 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         name = name.lower()
         context = context.lower()
 
-        # Add observer to register shortcut when its associated option is
-        # broadcasted by CONF or updated in Preferences.
+        # Register shortcurt for widget
+        keystr = self.get_shortcut(name, context, plugin_name)
+        self._register_shortcut(
+            keystr, name, triggered, context, widget, plugin_name
+        )
+
+        # Add observer for shortcut so that it's updated when changed by users
+        # in Preferences
         config_observer = functools.partial(
             self._register_shortcut,
             name=name,
@@ -200,6 +206,14 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         # Disable current shortcut, if available
         current_shortcut = self._shortcuts.get((context, name, plugin_name))
         if current_shortcut:
+            # Don't do the rest if we're trying to register the same shortcut
+            # again. This happens at startup because shortcuts are registered
+            # on widget creation and then the observer attached to the shortcut
+            # tries to do it again after CONF.notify_all_observers() is called.
+            if current_shortcut.key().toString() == keystr:
+                return
+
+            # Disable current shortcut to create a new one below
             current_shortcut.setEnabled(False)
             current_shortcut.deleteLater()
             self._shortcuts.pop((context, name, plugin_name))
