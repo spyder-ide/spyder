@@ -1043,12 +1043,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.create_cursor_callback('PreviousWord'), False)),
             ('next word', self.for_each_cursor(
                 self.create_cursor_callback('NextWord'))),
-            ('kill to line end', self.kill_line_end),  # TODO multi-cursor
-            ('kill to line start', self.kill_line_start),  # TODO multi-cursor
-            ('yank', self._kill_ring.yank),  # TODO multi-cursor
-            ('rotate kill ring', self._kill_ring.rotate),  # TODO multi-cursor
-            ('kill previous word', self.kill_prev_word),  # TODO multi-cursor
-            ('kill next word', self.kill_next_word),  # TODO multi-cursor
+            ('kill to line end', self.restrict_single_cursor(
+                self.kill_line_end)),
+            ('kill to line start', self.restrict_single_cursor(
+                self.kill_line_start)),
+            ('yank', self.restrict_single_cursor(self._kill_ring.yank)),
+            ('rotate kill ring', self.restrict_single_cursor(
+                self._kill_ring.rotate)),
+            ('kill previous word', self.restrict_single_cursor(
+                self.kill_prev_word)),
+            ('kill next word', self.restrict_single_cursor(
+                self.kill_next_word)),
             ('start of document', self.clears_extra_cursors(
                 self.create_cursor_callback('Start'))),
             ('end of document', self.clears_extra_cursors(
