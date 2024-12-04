@@ -17,13 +17,12 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import _
 from spyder.config.base import get_safe_mode, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.tours.container import TourActions, ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
-from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
+from spyder.plugins.tours.api import SpyderWidgets
 
 
-# --- Plugin
-# ----------------------------------------------------------------------------
 class Tours(SpyderPluginV2):
     """
     Tours Plugin.
@@ -34,8 +33,8 @@ class Tours(SpyderPluginV2):
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
-    # --- SpyderPluginV2 API
-    # ------------------------------------------------------------------------
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _("Interactive tours")
@@ -49,11 +48,7 @@ class Tours(SpyderPluginV2):
         return cls.create_icon('tour')
 
     def on_initialize(self):
-        self.register_tour(
-            TourIdentifiers.IntroductionTour,
-            _("Introduction to Spyder"),
-            INTRO_TOUR,
-        )
+        pass
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
@@ -74,10 +69,22 @@ class Tours(SpyderPluginV2):
             menu_id=ApplicationMenus.Help)
 
     def on_mainwindow_visible(self):
+        # Remove from intro tour steps for unavailable plugins.
+        # Fixes spyder-ide/spyder#22635
+        trimmed_intro_tour = self._trim_intro_tour()
+
+        # Register trimmed tour
+        self.register_tour(
+            TourIdentifiers.IntroductionTour,
+            _("Introduction to Spyder"),
+            trimmed_intro_tour,
+        )
+
+        # Show tour message (only the first time Spyder starts)
         self.show_tour_message()
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def register_tour(self, tour_id, title, tour_data):
         """
         Register a new interactive tour on spyder.
@@ -118,3 +125,34 @@ class Tours(SpyderPluginV2):
                      and not get_safe_mode()):
             self.set_conf('show_tour_message', False)
             self.get_container().show_tour_message()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _trim_intro_tour(self):
+        """Trim intro tour according to available plugins."""
+        # Mapping of SpyderWidgets to Plugins (some names are different)
+        # TODO: This should be fixed.
+        widgets_to_plugins = {
+            SpyderWidgets.editor: Plugins.Editor,
+            SpyderWidgets.ipython_console: Plugins.IPythonConsole,
+            SpyderWidgets.variable_explorer: Plugins.VariableExplorer,
+            SpyderWidgets.help_plugin: Plugins.Help,
+            SpyderWidgets.plots_plugin: Plugins.Plots,
+            SpyderWidgets.file_explorer: Plugins.Explorer,
+            SpyderWidgets.history_log: Plugins.History,
+            SpyderWidgets.find_plugin: Plugins.Find,
+            SpyderWidgets.profiler: Plugins.Profiler,
+            SpyderWidgets.code_analysis: Plugins.Pylint,
+        }
+
+        # Only leave on tour the steps for available plugins
+        trimmed_tour = []
+        for step in INTRO_TOUR:
+            if "widgets" in step:
+                widget = step["widgets"][0]
+                if self.is_plugin_available(widgets_to_plugins[widget]):
+                    trimmed_tour.append(step)
+            else:
+                trimmed_tour.append(step)
+
+        return trimmed_tour
