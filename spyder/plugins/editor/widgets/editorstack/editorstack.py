@@ -124,7 +124,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    text_changed_at = Signal(str, int)
+    text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
@@ -2590,8 +2590,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.set_text(txt)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
-            lambda fname, position:
-            self.text_changed_at.emit(fname, position))
+            lambda fname, positions:
+            self.text_changed_at.emit(fname, positions))
         editor.sig_cursor_position_changed.connect(
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
