@@ -543,8 +543,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def add_cursor(self, cursor: QTextCursor):
         """Add this cursor to the list of extra cursors"""
-        self.extra_cursors.append(cursor)
-        self.merge_extra_cursors(True)
+        if self.multi_cursor_enabled:
+            self.extra_cursors.append(cursor)
+            self.merge_extra_cursors(True)
 
     def set_extra_cursor_selections(self):
         selections = []
@@ -1012,8 +1013,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             ('duplicate line down', self.duplicate_line_down),
             ('duplicate line up', self.duplicate_line_up),
             ('delete line', self.delete_line),
-            ('move line up', self.move_line_up),  # TODO multi-cursor
-            ('move line down', self.move_line_down),  # TODO multi-cursor
+            ('move line up', self.move_line_up),
+            ('move line down', self.move_line_down),
             ('go to new line', self.for_each_cursor(self.go_to_new_line)),
             ('go to definition', self.go_to_definition_from_cursor),
             ('toggle comment', self.for_each_cursor(self.toggle_comment)),
