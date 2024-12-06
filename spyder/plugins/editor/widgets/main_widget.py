@@ -1541,6 +1541,7 @@ class EditorMainWidget(PluginMainWidget):
             ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
+            ('set_multicursor_support',             'multicursor_support'),
         )
 
         for method, setting in settings:

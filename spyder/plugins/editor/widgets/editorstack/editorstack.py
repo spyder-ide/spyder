@@ -1091,6 +1091,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         self.convert_eol_on_save_to = state
 
+    @on_conf_change(option='multicursor_support')
+    def set_multicursor_support(self, state):
+        """If `state` is `True`, multi-cursor editing is enabled."""
+        self.multicursor_support = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_multi_cursor(state)
+
     def set_current_project_path(self, root_path=None):
         """
         Set the current active project root path.
@@ -2583,7 +2591,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             remove_trailing_spaces=self.always_remove_trailing_spaces,
             remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline,
-            format_on_save=self.format_on_save
+            format_on_save=self.format_on_save,
+            multi_cursor_enabled=self.multicursor_support
         )
 
         if cloned_from is None:
