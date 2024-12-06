@@ -532,7 +532,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.focus_in.connect(self.start_cursor_blink)
         self.focus_changed.connect(self.stop_cursor_blink)
         self.painted.connect(self.paint_cursors)
-        # self.sig_key_pressed.connect(self.handle_multi_cursor_keypress)
+        self.multi_cursor_ignore_history = False
 
     def toggle_multi_cursor(self, enabled):
         """Enable/Disable multi-cursor editing"""
@@ -573,7 +573,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Merge overlapping cursors"""
         if not self.extra_cursors:
             return
-
+        previous_history = self.multi_cursor_ignore_history
+        self.multi_cursor_ignore_history = True
         while True:
             cursor_was_removed = False
 
@@ -615,6 +616,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             if not cursor_was_removed:
                 break
         self.set_extra_cursor_selections()
+        self.multi_cursor_ignore_history = previous_history
 
     @Slot(QKeyEvent)
     def handle_multi_cursor_keypress(self, event: QKeyEvent):
@@ -630,6 +632,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return
 
         self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
 
         cursors = []
         accepted = []
@@ -756,6 +759,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.extra_cursors = new_cursors[:-1]
         self.merge_extra_cursors(increasing_position)
         self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
         event.accept()  # TODO when to pass along keypress or not
 
     def _on_cursor_blinktimer_timeout(self):
@@ -853,11 +858,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         lines = clip_text.splitlines()
         if len(lines) == 1:
             lines = itertools.repeat(lines[0])
+        self.multi_cursor_ignore_history = True
         for cursor, text in zip(cursors, lines):
             self.setTextCursor(cursor)
             cursor.insertText(text)
             # handle extra lines or extra cursors?
         self.setTextCursor(main_cursor)
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
         # merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
         main_cursor.endEditBlock()
@@ -870,6 +878,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         def wrapper():
             self.textCursor().beginEditBlock()
             new_cursors = []
+            self.multi_cursor_ignore_history = True
             for cursor in self.all_cursors:
                 self.setTextCursor(cursor)
                 # may call setTtextCursor with modified copy
@@ -879,11 +888,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
             # re-add extra cursors
             self.clear_extra_cursors()
-            self.setTextCursor(new_cursors[-1])
             for cursor in new_cursors[:-1]:
                 self.add_cursor(cursor)
+            self.setTextCursor(new_cursors[-1])
             self.merge_extra_cursors(merge_increasing)
             self.textCursor().endEditBlock()
+            self.multi_cursor_ignore_history = False
+            self.cursorPositionChanged.emit()
         return wrapper
 
     def clears_extra_cursors(self, method):
@@ -1748,6 +1759,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Remove selected text or next character."""
         self.textCursor().beginEditBlock()
         new_cursors = []
+        self.multi_cursor_ignore_history = True
         for cursor in self.all_cursors:
             self.setTextCursor(cursor)
             self.sig_delete_requested.emit()
@@ -1761,10 +1773,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.extra_cursors = new_cursors[:-1]
         self.merge_extra_cursors(True)
         self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     def delete_line(self):
         """Delete current line."""
         self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
         cursors = []
         for cursor in self.all_cursors:
             start, end = cursor.selectionStart(), cursor.selectionEnd()
@@ -1794,6 +1809,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.merge_extra_cursors(True)
         self.textCursor().endEditBlock()
         self.ensureCursorVisible()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     # ---- Scrolling
     # -------------------------------------------------------------------------
@@ -4758,6 +4775,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # TODO multi-cursor implementation improperly handles multiple cursors
         #    on the same line.
         self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
         sorted_cursors = sorted(self.all_cursors,
                                 key=lambda cursor: cursor.position(),
                                 reverse=after_current_line)
@@ -4816,6 +4834,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.setTextCursor(new_cursors[-1])
         self.merge_extra_cursors(True)
         self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -4895,6 +4915,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if (self.multi_cursor_enabled and event.button() == Qt.LeftButton and
                 ctrl and alt):
             # ---- Ctrl-Alt: multi-cursor mouse interactions
+            self.multi_cursor_ignore_history = True
             if shift:
                 # Ctrl-Shift-Alt click adds colum of cursors towards primary
                 #    cursor
@@ -4970,6 +4991,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 if not removed_cursor:
                     self.setTextCursor(new_cursor)
                     self.add_cursor(old_cursor)
+            self.multi_cursor_ignore_history = False
+            self.cursorPositionChanged.emit()
         else:
             # ---- not multi-cursor
             if event.button() == Qt.MouseButton.LeftButton:
