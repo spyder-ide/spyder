@@ -533,6 +533,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.focus_changed.connect(self.stop_cursor_blink)
         self.painted.connect(self.paint_cursors)
         self.multi_cursor_ignore_history = False
+        self._drag_cursor = None
 
     def toggle_multi_cursor(self, enabled):
         """Enable/Disable multi-cursor editing"""
@@ -781,13 +782,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         else:
             cursor_width = self.cursor_width
 
-        if not self.extra_cursors:
-            # Revert to builtin cursor rendering if single cursor to handle
-            #    cursor drawing while dragging a selection of text around.
-            self.setCursorWidth(cursor_width)
-            return
-
-        self.setCursorWidth(0)
         qp = QPainter()
         qp.begin(self.viewport())
         offset = self.contentOffset()
@@ -796,6 +790,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         editable = not self.isReadOnly()
         flags = (self.textInteractionFlags() &
                  Qt.TextInteractionFlag.TextSelectableByKeyboard)
+
+        if self._drag_cursor is not None and (editable or flags):
+            cursor = self._drag_cursor
+            block = cursor.block()
+            if block.isVisible():
+                block_top = int(self.blockBoundingGeometry(block).top())
+                offset.setY(block_top + content_offset_y)
+                block.layout().drawCursor(qp, offset,
+                                          cursor.positionInBlock(),
+                                          cursor_width)
+
         draw_cursor = self.cursor_blink_state and (editable or flags)
 
         for cursor in self.all_cursors:
@@ -4910,7 +4915,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
         shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-        pos = event.pos()
+        cursor_for_pos = self.cursorForPosition(event.pos())
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
         if (self.multi_cursor_enabled and event.button() == Qt.LeftButton and
@@ -4923,9 +4928,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 first_cursor = self.textCursor()
                 anchor_block = first_cursor.block()
                 anchor_col = first_cursor.anchor() - anchor_block.position()
-                second_cursor = self.cursorForPosition(pos)
-                pos_block = second_cursor.block()
-                pos_col = second_cursor.positionInBlock()
+                pos_block = cursor_for_pos.block()
+                pos_col = cursor_for_pos.positionInBlock()
 
                 # Move primary cursor to pos_col
                 p_col = min(len(anchor_block.text()), pos_col)
@@ -4962,14 +4966,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 # move existing primary cursor to extra_cursors list and set
                 #   new primary cursor
                 old_cursor = self.textCursor()
-                new_cursor = self.cursorForPosition(pos)
 
                 removed_cursor = False
                 # don't attempt to remove cursor if there's only one
                 if self.extra_cursors:
                     same_cursor = None
                     for cursor in self.all_cursors:
-                        if new_cursor.position() == cursor.position():
+                        if cursor_for_pos.position() == cursor.position():
                             same_cursor = cursor
                             break
                     if same_cursor is not None:
@@ -4990,7 +4993,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         self.set_extra_cursor_selections()
 
                 if not removed_cursor:
-                    self.setTextCursor(new_cursor)
+                    self.setTextCursor(cursor_for_pos)
                     self.add_cursor(old_cursor)
             self.multi_cursor_ignore_history = False
             self.cursorPositionChanged.emit()
@@ -5000,12 +5003,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 self.clear_extra_cursors()
             if event.button() == Qt.LeftButton and ctrl:
                 TextEditBaseWidget.mousePressEvent(self, event)
-                cursor = self.cursorForPosition(pos)
                 uri = self._last_hover_pattern_text
                 if uri:
                     self.go_to_uri_from_cursor(uri)
                 else:
-                    self.go_to_definition_from_cursor(cursor)
+                    self.go_to_definition_from_cursor(cursor_for_pos)
             elif event.button() == Qt.LeftButton and alt:
                 self.sig_alt_left_mouse_pressed.emit(event)
             else:
@@ -5083,6 +5085,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         Inform Qt about the types of data that the widget accepts.
         """
         logger.debug("dragEnterEvent was received")
+        self._drag_cursor = self.cursorForPosition(event.pos())
         all_urls = mimedata2url(event.mimeData())
         if all_urls:
             # Let the parent widget handle this
@@ -5092,6 +5095,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
+    def dragMoveEvent(self, event):
+        """
+        Reimplemented Qt method.
+
+        Keep track of drag cursor while dragging
+        """
+        self._drag_cursor = self.cursorForPosition(event.pos())
+        TextEditBaseWidget.dragMoveEvent(self, event)
+
     def dropEvent(self, event):
         """
         Reimplemented Qt method.
@@ -5099,12 +5111,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         Unpack dropped data and handle it.
         """
         logger.debug("dropEvent was received")
+        self._drag_cursor = None
         if mimedata2url(event.mimeData()):
             logger.debug("Let the parent widget handle this")
             event.ignore()
         else:
             logger.debug("Call TextEditBaseWidget dropEvent method")
             TextEditBaseWidget.dropEvent(self, event)
+
+    def dragLeaveEvent(self, event):
+        """
+        Reimplemented Qt method.
+
+        Stop tracking of drag cursor when drag leaves
+        """
+        self._drag_cursor = None
+        TextEditBaseWidget.dragLeaveEvent(self, event)
+        # lost focus: need to manually paint to un-draw drag cursor
+        self.viewport().update()
 
     # ---- Paint event
     # -------------------------------------------------------------------------
