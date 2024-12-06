@@ -796,9 +796,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             if block.isVisible():
                 block_top = int(self.blockBoundingGeometry(block).top())
                 offset.setY(block_top + content_offset_y)
-                block.layout().drawCursor(qp, offset,
-                                          cursor.positionInBlock(),
-                                          cursor_width)
+                layout = block.layout()
+                if layout is not None:  # Fix exceptions in test_flag_painting
+                    layout.drawCursor(qp, offset,
+                                      cursor.positionInBlock(),
+                                      cursor_width)
 
         draw_cursor = self.cursor_blink_state and (editable or flags)
 
@@ -807,9 +809,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             if draw_cursor and block.isVisible():
                 block_top = int(self.blockBoundingGeometry(block).top())
                 offset.setY(block_top + content_offset_y)
-                block.layout().drawCursor(qp, offset,
-                                          cursor.positionInBlock(),
-                                          cursor_width)
+                layout = block.layout()
+                if layout is not None:
+                    layout.drawCursor(qp, offset,
+                                      cursor.positionInBlock(),
+                                      cursor_width)
         qp.end()
 
     @Slot()
