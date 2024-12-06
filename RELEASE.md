@@ -182,6 +182,35 @@ For that you need to run the following commands:
 
     - Publish the release to Conda-forge by doing a PR against the `rc` branch of the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock).
 
+        - Create branch for the update
+
+              git checkout rc
+              git fetch upstream
+              git merge upstream/rc
+              git checkout -b update_X.X.Xrc1
+
+        - Update `rc` branch in the Spyder feedstock with the latest changes in the `main` one:
+
+            - Create patches between the branches and apply them
+
+                  git checkout main
+                  git fetch upstream
+                  git merge upstream/main
+                  git diff main rc recipe/ ":(exclude)recipe/conda_build_config.yaml" > recipe.patch
+                  git diff main rc conda-forge.yml > conda-forge.patch
+                  patch -p1 -R < recipe.patch
+                  patch -p1 -R < conda-forge.patch
+
+            - Fix conflicts, if any, and add new files.
+
+            - Commit with `Update rc channel`.
+
+        - Update the Spyder version to the rc one just released and reset build number to `0`.
+
+        - Create PR with the title `Update to X.X.Xrc1`
+
+        - Re-render the feedstock.
+
     - Publish the release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases) to check the installers are built as expected.
 
     - Download and test the installation of the resulting installers.
