@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.0.2 (2024-12-04)
+
+### Pull Requests Merged
+
+* [PR 524](https://github.com/spyder-ide/spyder-kernels/pull/524) - PR: Improve release instructions for the new backporting workflow, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 521](https://github.com/spyder-ide/spyder-kernels/pull/521) - PR: Add logic to handle traceback color configuration, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.0.1 (2024-10-29)
 
 ### Pull Requests Merged
