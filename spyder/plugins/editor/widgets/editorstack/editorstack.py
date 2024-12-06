@@ -351,6 +351,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
+        self.multicursor_support = True
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False

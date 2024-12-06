@@ -774,6 +774,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot(QPaintEvent)
     def paint_cursors(self, event):
         """Paint all cursors"""
+        # TODO Critical: timer and cursor width sync with multiple editorstacks
         if self.overwrite_mode:
             font = self.textCursor().block().charFormat().font()
             cursor_width = QFontMetrics(font).horizontalAdvance(" ")
