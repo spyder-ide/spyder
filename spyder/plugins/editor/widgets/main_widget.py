@@ -2727,7 +2727,6 @@ class EditorMainWidget(PluginMainWidget):
             self.cursor_redo_history = []
 
         self.cursor_undo_history.append((filename, cursors))
-        print([cursor.position() for cursor in cursors])
         self.update_cursorpos_actions()
 
     def text_changed_at(self, filename, positions):
