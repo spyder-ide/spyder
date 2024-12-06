@@ -237,6 +237,8 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     # We can't declare these as dependencies in setup.py
     for dep in ['python.app', 'fzf', 'fcitx-qt5']:
         full_reqs.pop(dep)
+    # Ignored `pyqt5-sip` constraint on conda
+    spyder_setup.pop('pyqt5-sip')
 
     assert spyder_setup == full_reqs
 

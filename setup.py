@@ -244,7 +244,7 @@ setup_args = dict(
 
 # Qt bindings requirements
 qt_requirements = {
-    'pyqt5': ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16'],
+    'pyqt5': ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16', 'pyqt5-sip<12.16; python_version=="3.8"'],
     'pyqt6': ['pyqt6>=6.5,<7', 'pyqt6-webengine>=6.5,<7'],
 }
 
