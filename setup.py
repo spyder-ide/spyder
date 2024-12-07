@@ -244,7 +244,7 @@ setup_args = dict(
 
 # Qt bindings requirements
 qt_requirements = {
-    'pyqt5': ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16'],
+    'pyqt5': ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16', 'pyqt5-sip<12.16; python_version=="3.8"'],
     'pyqt6': ['pyqt6>=6.5,<7', 'pyqt6-webengine>=6.5,<7'],
 }
 
@@ -294,7 +294,7 @@ install_requires += [
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.1,<3.1.0',
+    'spyder-kernels>=3.0.2,<3.1.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
