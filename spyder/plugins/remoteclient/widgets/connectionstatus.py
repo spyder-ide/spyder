@@ -192,7 +192,10 @@ class ConnectionStatusWidget(
             self._copy_logs_button.setEnabled(True)
 
         formatted_log = (
-            LOG_LEVEL_TO_FMT_STRING[log["level"]] + " " + log["message"]
+            # Message
+            f"<p>{LOG_LEVEL_TO_FMT_STRING[log['level']]} {log['message']}</p>"
+            # Small vertical space to separate logs
+            f"<div style='font-size: 2pt;font-weight: normal;'><p></p></div>"
         )
 
         # Move cursor so that new logs are always shown at the end
