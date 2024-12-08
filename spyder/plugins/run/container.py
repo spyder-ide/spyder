@@ -324,6 +324,7 @@ class RunContainer(PluginMainContainer):
 
         if uuid is not None:
             self.run_action.setEnabled(True)
+            self.configure_action.setEnabled(True)
 
             metadata = self.metadata_model[uuid]
             self.current_input_provider = metadata['source']
@@ -336,7 +337,8 @@ class RunContainer(PluginMainContainer):
             return
 
         self.run_action.setEnabled(False)
-        
+        self.configure_action.setEnabled(False)
+
         for context, act, mod in self.context_actions:
             action, __ = self.context_actions[(context, act, mod)]
             action.setEnabled(False)

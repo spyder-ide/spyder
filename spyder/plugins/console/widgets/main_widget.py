@@ -134,6 +134,7 @@ class ConsoleWidget(PluginMainWidget):
         self.dialog_manager = DialogManager()
         self.error_dlg = None
         self.shell = InternalShell(  # TODO: Move to use SpyderWidgetMixin?
+            parent=parent,
             commands=[],
             message=message,
             max_line_count=self.get_conf('max_line_count'),
