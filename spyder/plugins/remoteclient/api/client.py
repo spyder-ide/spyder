@@ -171,10 +171,10 @@ class SpyderRemoteClient:
 
     @property
     def peer_host(self):
-        if not self.ssh_is_connected:
+        if self._ssh_connection is not None:
+            return self._ssh_connection.get_extra_info("peername")[0]
+        else:
             return None
-
-        return self._ssh_connection.get_extra_info("peername")[0]
 
     @property
     def peer_port(self):
@@ -247,7 +247,7 @@ class SpyderRemoteClient:
             info = json.loads(output.stdout.splitlines()[-1])
         except (json.JSONDecodeError, IndexError):
             self._logger.debug(
-                f"Error parsing server info, received: {output.stdout}"
+                f"Issue parsing server info: {output.stdout}"
             )
             return None
 
@@ -442,7 +442,9 @@ class SpyderRemoteClient:
             )
         except asyncssh.ProcessError as err:
             # Server is not installed
-            self._logger.warning(f"Error checking server version: {err.stderr}")
+            self._logger.warning(
+                f"Issue checking server version: {err.stderr}"
+            )
             return await self.install_remote_server()
         except asyncssh.TimeoutError:
             self._logger.error("Checking server version timed out")
@@ -467,9 +469,10 @@ class SpyderRemoteClient:
             return False
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
-            self._logger.error(
+            self._logger.warning(
                 f"Server version mismatch: {version} is lower than "
-                f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}"
+                f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}. "
+                f"A more recent version will be installed."
             )
             return await self.install_remote_server()
 
@@ -586,7 +589,7 @@ class SpyderRemoteClient:
             _("We're establishing the connection. Please be patient"),
         )
 
-        conect_kwargs = {
+        connect_kwargs = {
             k: v
             for k, v in self.options.items()
             if k not in self._extra_options
@@ -594,7 +597,7 @@ class SpyderRemoteClient:
         self._logger.debug("Opening SSH connection")
         try:
             self._ssh_connection = await asyncssh.connect(
-                **conect_kwargs, client_factory=self.client_factory
+                **connect_kwargs, client_factory=self.client_factory
             )
         except (OSError, asyncssh.Error) as e:
             self._logger.error(f"Failed to open ssh connection: {e}")
