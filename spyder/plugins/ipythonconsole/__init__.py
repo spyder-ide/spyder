@@ -44,5 +44,12 @@ else:
 
 
 class SpyderKernelError(RuntimeError):
-    """Error to be shown in client."""
-    pass
+    """
+    Error to be shown in the IPython console.
+
+    Notes
+    -----
+    * Use this exception if you want to show a nice formatted error in the
+      current console instead of a long and hard-to-read traceback.
+    * This should only be used for errors whose cause we are certain of.
+    """
