@@ -46,8 +46,12 @@ from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 MAX_LINES = 1000
 
 
-class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
-                      BrowseHistoryMixin):
+class ShellBaseWidget(
+    ConsoleBaseWidget,
+    SpyderShortcutsMixin,
+    SaveHistoryMixin,
+    BrowseHistoryMixin
+):
     """
     Shell base widget
     """
@@ -65,6 +69,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
+        SpyderShortcutsMixin.__init__(self)
         SaveHistoryMixin.__init__(self, history_filename)
         BrowseHistoryMixin.__init__(self)
 
@@ -642,9 +647,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 # from spyder.utils.debug import log_methods_calls
 # log_methods_calls('log.log', ShellBaseWidget)
 
-class PythonShellWidget(
-    TracebackLinksMixin, ShellBaseWidget, GetHelpMixin, SpyderShortcutsMixin
-):
+class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin, GetHelpMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
     INITHISTORY = ['# -*- coding: utf-8 -*-',
@@ -679,7 +682,6 @@ class PythonShellWidget(
         )
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
-        SpyderShortcutsMixin.__init__(self)
 
         # Local shortcuts
         self.register_shortcuts()
