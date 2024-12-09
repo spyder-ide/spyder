@@ -1143,7 +1143,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     new_name = self.next_index_name(indexes, new_name)
 
             item_value = eval(eval_type)
-            if item_value == ():
+            if isinstance(item_value, tuple) and item_value == ():
                 item_value = ('')
 
             df.insert(
