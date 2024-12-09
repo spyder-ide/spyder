@@ -187,7 +187,7 @@ For that you need to run the following commands:
               git checkout rc
               git fetch upstream
               git merge upstream/rc
-              git checkout -b update_X.X.Xrc1
+              git checkout -b update_X.X.XrcX
 
         - Update `rc` branch in the Spyder feedstock with the latest changes in the `main` one:
 
@@ -198,6 +198,7 @@ For that you need to run the following commands:
                   git merge upstream/main
                   git diff main rc recipe/ ":(exclude)recipe/conda_build_config.yaml" > recipe.patch
                   git diff main rc conda-forge.yml > conda-forge.patch
+                  git checkout update_X.X.XrcX
                   patch -p1 -R < recipe.patch
                   patch -p1 -R < conda-forge.patch
 
@@ -207,7 +208,7 @@ For that you need to run the following commands:
 
         - Update the Spyder version to the rc one just released and reset build number to `0`.
 
-        - Create PR with the title `Update to X.X.Xrc1`
+        - Create PR with the title `Update to X.X.XrcX`
 
         - Re-render the feedstock.
 
