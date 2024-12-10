@@ -254,6 +254,8 @@ jobs:
           # built in workspace
           [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
 
+          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
+
           python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
@@ -289,6 +291,8 @@ jobs:
 
       - name: Build Package Installer
         run: |
+          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
+
           [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
           python build_installers.py ${args[@]}
 

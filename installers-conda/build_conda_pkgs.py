@@ -132,11 +132,11 @@ class BuildCondaPkg:
 
     def _patch_conda_build_config(self):
         file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
-        if file.exists():
-            contents = yaml.load(file.read_text())
-            file.rename(file.parent / ("_" + file.name))  # copy of original
-        else:
-            contents = {}
+        if not file.exists():
+            return
+
+        contents = yaml.load(file.read_text())
+        file.rename(file.parent / ("_" + file.name))  # copy of original
 
         pyver = sys.version_info
         contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
@@ -177,8 +177,8 @@ class BuildCondaPkg:
     def _add_recipe_clobber(self):
         self.recipe_clobber.update({
             "source": {
-                "url": None,
-                "sha256": None,
+                "git_url": None,
+                "git_rev": None,
                 "path": self._bld_src.as_posix()},
         })
 
@@ -227,9 +227,7 @@ class BuildCondaPkg:
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call([
-                "conda", "build",
-                "--skip-existing", "--build-id-pat={n}",
-                "--no-test", "--no-anaconda-upload",
+                "conda", "build", "--build-only",
                 str(self._fdstk_path / "recipe")
             ])
         finally:
@@ -247,8 +245,8 @@ class SpyderCondaPkg(BuildCondaPkg):
     name = "spyder"
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
-    feedstock = "https://github.com/conda-forge/spyder-feedstock"
-    feedstock_branch = "dev"
+    feedstock = "https://github.com/mrclary/spyder-feedstock"
+    feedstock_branch = "spyder-base"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
@@ -273,27 +271,55 @@ class SpyderCondaPkg(BuildCondaPkg):
 
     def patch_recipe(self):
         # Get current Spyder requirements
-        current_requirements = ['python']
-        current_requirements += yaml.load(
+        spyder_base_reqs = ['python']
+        spyder_base_reqs += yaml.load(
             REQ_MAIN.read_text())['dependencies']
         if os.name == 'nt':
             win_requirements =  yaml.load(
                 REQ_WINDOWS.read_text())['dependencies']
-            current_requirements += win_requirements
-            current_requirements.append('ptyprocess >=0.5')
+            spyder_base_reqs += win_requirements
+            spyder_base_reqs.append('ptyprocess >=0.5')
         elif sys.platform == 'darwin':
             mac_requirements =  yaml.load(
                 REQ_MAC.read_text())['dependencies']
             if 'python.app' in mac_requirements:
                 mac_requirements.remove('python.app')
-            current_requirements += mac_requirements
+            spyder_base_reqs += mac_requirements
         else:
             linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
-            current_requirements += linux_requirements
+            spyder_base_reqs += linux_requirements
+
+        spyder_reqs = [f"spyder-base =={self.version}"]
+        for req in spyder_base_reqs.copy():
+            if req.startswith(('pyqt ', 'pyqtwebengine ', 'qtconsole ')):
+                spyder_reqs.append(req)
+                spyder_base_reqs.remove(req)
+
+            if req.startswith('qtconsole '):
+                spyder_base_reqs.append(
+                    req.replace('qtconsole', 'qtconsole-base')
+                )
 
         self.recipe_clobber.update({
-            "requirements": {"run": current_requirements}
+            "requirements": {"run": spyder_base_reqs},
+            # Since outputs is a list, the entire list must be reproduced with
+            # the current run requirements
+            "outputs": [
+                {
+                    "name": "spyder-base"
+                },
+                {
+                    "name": "spyder",
+                    "build": {"noarch": "python"},
+                    "requirements": {"run": spyder_reqs},
+                    "test": {
+                        "requires": ["pip"],
+                        "commands": ["spyder -h", "python -m pip check"],
+                        "imports": ["spyder"]
+                    }
+                }
+            ]
         })
 
         super().patch_recipe()
