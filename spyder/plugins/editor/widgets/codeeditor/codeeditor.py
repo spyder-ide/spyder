@@ -24,6 +24,8 @@ import os.path as osp
 import re
 import sys
 import textwrap
+import functools
+import itertools
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
@@ -32,9 +34,9 @@ from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
-                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
-                        QTextDocument, QTextFormat, QTextOption,
+from qtpy.QtGui import (QColor, QCursor, QFont, QFontMetrics, QPaintEvent,
+                        QPainter, QMouseEvent, QTextCursor, QDesktopServices,
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
@@ -254,7 +256,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.current_project_path = None
 
         # Caret (text cursor)
-        self.setCursorWidth(self.get_conf('cursor/width', section='main'))
+        self.init_multi_cursor()
 
         self.text_helper = TextHelper(self)
 
@@ -508,6 +510,433 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
+    # ---- Multi Cursor
+    def init_multi_cursor(self):
+        """Initialize attrs and callbacks for multi-cursor functionality"""
+        # actual default comes from setup_editor default args
+        self.multi_cursor_enabled = False
+        self.cursor_width = self.get_conf('cursor/width', section='main')
+        self.overwrite_mode = self.overwriteMode()
+        # track overwrite manually when for painting reasons with multi-cursor
+        self.setOverwriteMode(False)
+        self.setCursorWidth(0)  # draw our own cursor
+        self.extra_cursors = []
+        self.cursor_blink_state = False
+        self.cursor_blink_timer = QTimer(self)
+        self.cursor_blink_timer.setInterval(
+            QApplication.cursorFlashTime() // 2
+        )
+        self.cursor_blink_timer.timeout.connect(
+            self._on_cursor_blinktimer_timeout
+        )
+        self.focus_in.connect(self.start_cursor_blink)
+        self.focus_changed.connect(self.stop_cursor_blink)
+        self.painted.connect(self.paint_cursors)
+        self.multi_cursor_ignore_history = False
+        self._drag_cursor = None
+
+    def toggle_multi_cursor(self, enabled):
+        """Enable/Disable multi-cursor editing"""
+        self.multi_cursor_enabled = enabled
+        # TODO any restrictions on enabling? only python-like? only code?
+        if not enabled:
+            self.clear_extra_cursors()
+
+    def add_cursor(self, cursor: QTextCursor):
+        """Add this cursor to the list of extra cursors"""
+        if self.multi_cursor_enabled:
+            self.extra_cursors.append(cursor)
+            self.merge_extra_cursors(True)
+
+    def set_extra_cursor_selections(self):
+        selections = []
+        for cursor in self.extra_cursors:
+            extra_selection = TextDecoration(cursor, draw_order=5,
+                                             kind="extra_cursor_selection")
+
+            # TODO get colors from theme? or from stylesheet?
+            extra_selection.set_foreground(QColor("#dfe1e2"))
+            extra_selection.set_background(QColor("#346792"))
+            selections.append(extra_selection)
+        self.set_extra_selections('extra_cursor_selections', selections)
+
+    def clear_extra_cursors(self):
+        """Remove all extra cursors"""
+        self.extra_cursors = []
+        self.set_extra_selections('extra_cursor_selections', [])
+
+    @property
+    def all_cursors(self):
+        """Return list of all extra_cursors (if any) plus the primary cursor"""
+        return self.extra_cursors + [self.textCursor()]
+
+    def merge_extra_cursors(self, increasing_position):
+        """Merge overlapping cursors"""
+        if not self.extra_cursors:
+            return
+        previous_history = self.multi_cursor_ignore_history
+        self.multi_cursor_ignore_history = True
+        while True:
+            cursor_was_removed = False
+
+            cursors = self.all_cursors
+            main_cursor = cursors[-1]
+            cursors.sort(key=lambda cursor: cursor.position())
+
+            for i, cursor1 in enumerate(cursors[:-1]):
+                if cursor_was_removed:
+                    break  # list will be modified, so re-start at while loop
+                for cursor2 in cursors[i + 1:]:
+                    # given cursors.sort, pos1 should be <= pos2
+                    pos1 = cursor1.position()
+                    pos2 = cursor2.position()
+                    anchor1 = cursor1.anchor()
+                    anchor2 = cursor2.anchor()
+
+                    if not pos1 == pos2:
+                        continue  # only merge coincident cursors
+
+                    if cursor1 is main_cursor:
+                        # swap cursors to keep main_cursor
+                        cursor1, cursor2 = cursor2, cursor1
+                    self.extra_cursors.remove(cursor1)
+                    cursor_was_removed = True
+
+                    # reposition cursor we're keeping
+                    positions = sorted([pos1, anchor1, anchor2])
+                    if not increasing_position:
+                        positions.reverse()
+                    cursor2.setPosition(positions[0],
+                                        QTextCursor.MoveMode.MoveAnchor)
+                    cursor2.setPosition(positions[2],
+                                        QTextCursor.MoveMode.KeepAnchor)
+                    if cursor2 is main_cursor:
+                        self.setTextCursor(cursor2)
+                    break
+
+            if not cursor_was_removed:
+                break
+        self.set_extra_cursor_selections()
+        self.multi_cursor_ignore_history = previous_history
+
+    @Slot(QKeyEvent)
+    def handle_multi_cursor_keypress(self, event: QKeyEvent):
+        """Re-Implement keyEvent handler for multi-cursor"""
+
+        key = event.key()
+        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
+        shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        # ---- handle insert
+        if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
+            self.overwrite_mode = not self.overwrite_mode
+            return
+
+        self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
+
+        cursors = []
+        accepted = []
+        # Handle all signals before editing text
+        for cursor in self.all_cursors:
+            self.setTextCursor(cursor)
+            event.ignore()
+            self.sig_key_pressed.emit(event)
+            cursors.append(self.textCursor())
+            accepted.append(event.isAccepted())
+
+        increasing_position = True
+        new_cursors = []
+        for skip, cursor in zip(accepted, cursors):
+            self.setTextCursor(cursor)
+            if skip:
+                # text folding swallows most input to prevent typing on folded
+                #    lines.
+                pass
+            # ---- handle Tab
+            elif key == Qt.Key.Key_Tab and not ctrl:  # ctrl-tab is shortcut
+                # Don't do intelligent tab with multi-cursor to skip
+                #   calls to do_completion. Avoiding completions with multi
+                #   cursor is much easier than solving all the edge cases.
+
+                self.indent(force=self.tab_mode)
+            elif key == Qt.Key.Key_Backtab and not ctrl:
+                increasing_position = False
+                # TODO ignore indent level of neighboring lines and simply
+                #    indent by 1 level at a time. Cursor update order can
+                #    make this unpredictable otherwise.
+                self.unindent(force=self.tab_mode)
+            # ---- handle enter/return
+            elif key in (Qt.Key_Enter, Qt.Key_Return):
+                if not shift and not ctrl:
+                    if (
+                        self.add_colons_enabled and
+                        self.is_python_like() and
+                        self.autoinsert_colons()
+                    ):
+                        self.insert_text(':' + self.get_line_separator())
+                        if self.strip_trailing_spaces_on_modify:
+                            self.fix_and_strip_indent()
+                        else:
+                            self.fix_indent()
+                    else:
+                        cur_indent = self.get_block_indentation(
+                            self.textCursor().blockNumber())
+                        self._handle_keypress_event(event)
+                        # Check if we're in a comment or a string at the
+                        # current position
+                        cmt_or_str_cursor = self.in_comment_or_string()
+
+                        # Check if the line start with a comment or string
+                        cursor = self.textCursor()
+                        cursor.setPosition(cursor.block().position(),
+                                           QTextCursor.KeepAnchor)
+                        cmt_or_str_line_begin = self.in_comment_or_string(
+                            cursor=cursor)
+
+                        # Check if we are in a comment or a string
+                        cmt_or_str = cmt_or_str_cursor and \
+                            cmt_or_str_line_begin
+
+                        if self.strip_trailing_spaces_on_modify:
+                            self.fix_and_strip_indent(
+                                comment_or_string=cmt_or_str,
+                                cur_indent=cur_indent)
+                        else:
+                            self.fix_indent(comment_or_string=cmt_or_str,
+                                            cur_indent=cur_indent)
+            # ---- intelligent backspace handling
+            elif key == Qt.Key_Backspace and not shift and not ctrl:
+                increasing_position = False
+                if self.has_selected_text() or not self.intelligent_backspace:
+                    self._handle_keypress_event(event)
+                else:
+                    leading_text = self.get_text('sol', 'cursor')
+                    leading_length = len(leading_text)
+                    trailing_spaces = (
+                        leading_length - len(leading_text.rstrip())
+                        )
+                    trailing_text = self.get_text('cursor', 'eol')
+                    matches = ('()', '[]', '{}', '\'\'', '""')
+                    if (
+                        not leading_text.strip() and
+                        (leading_length > len(self.indent_chars))
+                    ):
+                        if leading_length % len(self.indent_chars) == 0:
+                            self.unindent()
+                        else:
+                            self._handle_keypress_event(event)
+                    elif trailing_spaces and not trailing_text.strip():
+                        self.remove_suffix(leading_text[-trailing_spaces:])
+                    elif (
+                        leading_text and
+                        trailing_text and
+                        (leading_text[-1] + trailing_text[0] in matches)
+                    ):
+                        cursor = self.textCursor()
+                        cursor.movePosition(QTextCursor.PreviousCharacter)
+                        cursor.movePosition(QTextCursor.NextCharacter,
+                                            QTextCursor.KeepAnchor, 2)
+                        cursor.removeSelectedText()
+                    else:
+                        self._handle_keypress_event(event)
+            # ---- use default handler for cursor (text)
+            else:
+                if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
+                    increasing_position = False
+                if (key in (Qt.Key.Key_Up, Qt.Key.Key_Down) and
+                        cursor.verticalMovementX() == -1):
+                    # Builtin handler somehow does not set verticalMovementX
+                    #    when moving up and down (but works fine for single
+                    #    cursor somehow)
+                    # TODO why? Am I forgetting something?
+                    x = self.cursorRect(cursor).x()
+                    cursor.setVerticalMovementX(x)
+                    self.setTextCursor(cursor)
+                self._handle_keypress_event(event)
+
+            # Update edited extra_cursors
+            new_cursors.append(self.textCursor())
+        self.extra_cursors = new_cursors[:-1]
+        self.merge_extra_cursors(increasing_position)
+        self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
+        event.accept()  # TODO when to pass along keypress or not
+
+    def _on_cursor_blinktimer_timeout(self):
+        """
+        Text cursor blink timer generates paint events and inverts draw state
+        """
+        self.cursor_blink_state = not self.cursor_blink_state
+        if self.isVisible():
+            self.viewport().update()
+
+    @Slot(QPaintEvent)
+    def paint_cursors(self, event):
+        """Paint all cursors"""
+        if self.overwrite_mode:
+            font = self.textCursor().block().charFormat().font()
+            cursor_width = QFontMetrics(font).horizontalAdvance(" ")
+        else:
+            cursor_width = self.cursor_width
+
+        qp = QPainter()
+        qp.begin(self.viewport())
+        offset = self.contentOffset()
+        content_offset_y = offset.y()
+        qp.setBrushOrigin(offset)
+        editable = not self.isReadOnly()
+        flags = (self.textInteractionFlags() &
+                 Qt.TextInteractionFlag.TextSelectableByKeyboard)
+
+        if self._drag_cursor is not None and (editable or flags):
+            cursor = self._drag_cursor
+            block = cursor.block()
+            if block.isVisible():
+                block_top = int(self.blockBoundingGeometry(block).top())
+                offset.setY(block_top + content_offset_y)
+                layout = block.layout()
+                if layout is not None:  # Fix exceptions in test_flag_painting
+                    layout.drawCursor(qp, offset,
+                                      cursor.positionInBlock(),
+                                      cursor_width)
+
+        draw_cursor = self.cursor_blink_state and (editable or flags)
+
+        for cursor in self.all_cursors:
+            block = cursor.block()
+            if draw_cursor and block.isVisible():
+                block_top = int(self.blockBoundingGeometry(block).top())
+                offset.setY(block_top + content_offset_y)
+                layout = block.layout()
+                if layout is not None:
+                    layout.drawCursor(qp, offset,
+                                      cursor.positionInBlock(),
+                                      cursor_width)
+        qp.end()
+
+    @Slot()
+    def start_cursor_blink(self):
+        """start manually updating the cursor(s) blink state: Show cursors"""
+        self.cursor_blink_state = True
+        self.cursor_blink_timer.start()
+
+    @Slot()
+    def stop_cursor_blink(self):
+        """stop manually updating the cursor(s) blink state: Hide cursors"""
+        self.cursor_blink_state = False
+        self.cursor_blink_timer.stop()
+
+    def multi_cursor_copy(self):
+        """
+        Join all cursor selections in position sorted order by line_separator,
+        and put text to clipboard.
+        """
+        cursors = self.all_cursors
+        cursors.sort(key=lambda cursor: cursor.position())
+        selections = []
+        for cursor in cursors:
+            text = cursor.selectedText().replace(u"\u2029",
+                                                 self.get_line_separator())
+            selections.append(text)
+        clip_text = self.get_line_separator().join(selections)
+        QApplication.clipboard().setText(clip_text)
+
+    def multi_cursor_cut(self):
+        """Multi-cursor copy then removeSelectedText"""
+        self.multi_cursor_copy()
+        self.textCursor().beginEditBlock()
+        for cursor in self.all_cursors:
+            cursor.removeSelectedText()
+        # merge direction doesn't matter here as all selections are removed
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
+
+    def multi_cursor_paste(self, clip_text):
+        """
+        Split clipboard by lines, and paste one line per cursor in position
+        sorted order.
+        """
+        main_cursor = self.textCursor()
+        main_cursor.beginEditBlock()
+        cursors = self.all_cursors
+        cursors.sort(key=lambda cursor: cursor.position())
+        self.skip_rstrip = True
+        self.sig_will_paste_text.emit(clip_text)
+        lines = clip_text.splitlines()
+        if len(lines) == 1:
+            lines = itertools.repeat(lines[0])
+        self.multi_cursor_ignore_history = True
+        for cursor, text in zip(cursors, lines):
+            self.setTextCursor(cursor)
+            cursor.insertText(text)
+            # handle extra lines or extra cursors?
+        self.setTextCursor(main_cursor)
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
+        # merge direction doesn't matter here as all selections are removed
+        self.merge_extra_cursors(True)
+        main_cursor.endEditBlock()
+        self.sig_text_was_inserted.emit()
+        self.skip_rstrip = False
+
+    def for_each_cursor(self, method, merge_increasing=True):
+        """Wrap callable to execute once for each cursor"""
+        @functools.wraps(method)
+        def wrapper():
+            self.textCursor().beginEditBlock()
+            new_cursors = []
+            self.multi_cursor_ignore_history = True
+            for cursor in self.all_cursors:
+                self.setTextCursor(cursor)
+                # may call setTtextCursor with modified copy
+                method()
+                # get modified cursor to re-add to extra_cursors
+                new_cursors.append(self.textCursor())
+
+            # re-add extra cursors
+            self.clear_extra_cursors()
+            for cursor in new_cursors[:-1]:
+                self.add_cursor(cursor)
+            self.setTextCursor(new_cursors[-1])
+            self.merge_extra_cursors(merge_increasing)
+            self.textCursor().endEditBlock()
+            self.multi_cursor_ignore_history = False
+            self.cursorPositionChanged.emit()
+        return wrapper
+
+    def clears_extra_cursors(self, method):
+        """Wrap callable to clear extra_cursors prior to calling"""
+        @functools.wraps(method)
+        def wrapper():
+            self.clear_extra_cursors()
+            method()
+        return wrapper
+
+    def restrict_single_cursor(self, method):
+        """Wrap callable to only execute if there is a single cursor"""
+        @functools.wraps(method)
+        def wrapper():
+            if not self.extra_cursors:
+                method()
+        return wrapper
+
+    def go_to_next_cell(self):
+        """
+        reimplements TextEditBaseWidget.go_to_next_cell to clear extra cursors
+        """
+        self.clear_extra_cursors()
+        super().go_to_next_cell()
+
+    def go_to_previous_cell(self):
+        """
+        reimplements TextEditBaseWidget.go_to_previous_cell to clear extra
+        cursors
+        """
+        self.clear_extra_cursors()
+        super().go_to_previous_cell()
+
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
     def _should_display_hover(self, point):
@@ -597,51 +1026,76 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ('code completion', self.do_completion),
+            # TODO should multi-cursor wrappers be applied as decorator to
+            #    function definitions instead where possible?
+            ('code completion', self.restrict_single_cursor(
+                self.do_completion)),
             ('duplicate line down', self.duplicate_line_down),
             ('duplicate line up', self.duplicate_line_up),
             ('delete line', self.delete_line),
             ('move line up', self.move_line_up),
             ('move line down', self.move_line_down),
-            ('go to new line', self.go_to_new_line),
+            ('go to new line', self.for_each_cursor(self.go_to_new_line)),
             ('go to definition', self.go_to_definition_from_cursor),
-            ('toggle comment', self.toggle_comment),
-            ('blockcomment', self.blockcomment),
-            ('create_new_cell', self.create_new_cell),
-            ('unblockcomment', self.unblockcomment),
-            ('transform to uppercase', self.transform_to_uppercase),
-            ('transform to lowercase', self.transform_to_lowercase),
-            ('indent', lambda: self.indent(force=True)),
-            ('unindent', lambda: self.unindent(force=True)),
-            ('start of line', self.create_cursor_callback('StartOfLine')),
-            ('end of line', self.create_cursor_callback('EndOfLine')),
-            ('previous line', self.create_cursor_callback('Up')),
-            ('next line', self.create_cursor_callback('Down')),
-            ('previous char', self.create_cursor_callback('Left')),
-            ('next char', self.create_cursor_callback('Right')),
-            ('previous word', self.create_cursor_callback('PreviousWord')),
-            ('next word', self.create_cursor_callback('NextWord')),
-            ('kill to line end', self.kill_line_end),
-            ('kill to line start', self.kill_line_start),
-            ('yank', self._kill_ring.yank),
-            ('rotate kill ring', self._kill_ring.rotate),
-            ('kill previous word', self.kill_prev_word),
-            ('kill next word', self.kill_next_word),
-            ('start of document', self.create_cursor_callback('Start')),
-            ('end of document', self.create_cursor_callback('End')),
-            ('undo', self.undo),
-            ('redo', self.redo),
+            ('toggle comment', self.for_each_cursor(self.toggle_comment)),
+            ('blockcomment', self.for_each_cursor(self.blockcomment)),
+            ('create_new_cell', self.for_each_cursor(self.create_new_cell)),
+            ('unblockcomment', self.for_each_cursor(self.unblockcomment)),
+            ('transform to uppercase', self.for_each_cursor(
+                self.transform_to_uppercase)),
+            ('transform to lowercase', self.for_each_cursor(
+                self.transform_to_lowercase)),
+            ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
+            ('unindent', self.for_each_cursor(
+                lambda: self.unindent(force=True), False)),
+            ('start of line', self.for_each_cursor(
+                self.create_cursor_callback('StartOfLine'), False)),
+            ('end of line', self.for_each_cursor(
+                self.create_cursor_callback('EndOfLine'))),
+            ('previous line', self.for_each_cursor(
+                self.create_cursor_callback('Up'), False)),
+            ('next line', self.for_each_cursor(
+                self.create_cursor_callback('Down'))),
+            ('previous char', self.for_each_cursor(
+                self.create_cursor_callback('Left'), False)),
+            ('next char', self.for_each_cursor(
+                self.create_cursor_callback('Right'))),
+            ('previous word', self.for_each_cursor(
+                self.create_cursor_callback('PreviousWord'), False)),
+            ('next word', self.for_each_cursor(
+                self.create_cursor_callback('NextWord'))),
+            ('kill to line end', self.restrict_single_cursor(
+                self.kill_line_end)),
+            ('kill to line start', self.restrict_single_cursor(
+                self.kill_line_start)),
+            ('yank', self.restrict_single_cursor(self._kill_ring.yank)),
+            ('rotate kill ring', self.restrict_single_cursor(
+                self._kill_ring.rotate)),
+            ('kill previous word', self.restrict_single_cursor(
+                self.kill_prev_word)),
+            ('kill next word', self.restrict_single_cursor(
+                self.kill_next_word)),
+            ('start of document', self.clears_extra_cursors(
+                self.create_cursor_callback('Start'))),
+            ('end of document', self.clears_extra_cursors(
+                self.create_cursor_callback('End'))),
+            ('undo', self.undo),  # TODO multi-cursor (cursor positions?)
+            ('redo', self.redo),  # TODO multi-cursor (cursor positions?)
             ('cut', self.cut),
             ('copy', self.copy),
             ('paste', self.paste),
             ('delete', self.delete),
-            ('select all', self.selectAll),
-            ('docstring', self.writer_docstring.write_docstring_for_shortcut),
-            ('autoformatting', self.format_document_or_range),
+            ('select all', self.clears_extra_cursors(self.selectAll)),
+            ('docstring', self.for_each_cursor(
+                self.writer_docstring.write_docstring_for_shortcut)),
+            ('autoformatting', self.clears_extra_cursors(
+                self.format_document_or_range)),
             ('scroll line down', self.scroll_line_down),
             ('scroll line up', self.scroll_line_up),
-            ('enter array inline', self.enter_array_inline),
-            ('enter array table', self.enter_array_table),
+            ('enter array inline', self.clears_extra_cursors(
+                self.enter_array_inline)),
+            ('enter array table', self.clears_extra_cursors(
+                self.enter_array_table)),
         )
 
         for name, callback in shortcuts:
@@ -729,7 +1183,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                      remove_trailing_spaces=False,
                      remove_trailing_newlines=False,
                      add_newline=False,
-                     format_on_save=False):
+                     format_on_save=False,
+                     multi_cursor_enabled=True):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -809,6 +1264,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             Default False.
         format_on_save: Autoformat file automatically when saving.
             Default False.
+        multi_cursor_enabled: Enable/Disable multi-cursor functionality.
+            Default True
         """
 
         self.set_close_parentheses_enabled(close_parentheses)
@@ -925,6 +1382,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                           and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
+
+        self.toggle_multi_cursor(multi_cursor_enabled)
 
     # ---- Set different attributes
     # -------------------------------------------------------------------------
@@ -1307,40 +1766,60 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def delete(self):
         """Remove selected text or next character."""
-        self.sig_delete_requested.emit()
-
-        if not self.has_selected_text():
-            cursor = self.textCursor()
-            if not cursor.atEnd():
-                cursor.setPosition(
-                    self.next_cursor_position(), QTextCursor.KeepAnchor
-                )
+        self.textCursor().beginEditBlock()
+        new_cursors = []
+        self.multi_cursor_ignore_history = True
+        for cursor in self.all_cursors:
             self.setTextCursor(cursor)
-
-        self.remove_selected_text()
+            self.sig_delete_requested.emit()
+            new_cursors.append(self.textCursor())
+        # Signal all cursors first to call FoldingPanel._expand_selection
+        #    before calling deleteChar. This fixes some issues with deletion
+        #    order invalidating FoldingPanel properties in the wrong order
+        for cursor in new_cursors:
+            cursor.deleteChar()
+            self.setTextCursor(cursor)
+        self.extra_cursors = new_cursors[:-1]
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     def delete_line(self):
         """Delete current line."""
-        cursor = self.textCursor()
+        self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
+        cursors = []
+        for cursor in self.all_cursors:
+            start, end = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            while cursor.position() <= end:
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+                if cursor.atEnd():
+                    break
+                cursor.movePosition(QTextCursor.NextBlock,
+                                    QTextCursor.KeepAnchor)
+            self.setTextCursor(cursor)
+            # Text folding looks for sig_delete_requested to expand selection
+            #    to entire folded region.
+            self.sig_delete_requested.emit()
+            cursors.append(self.textCursor())
 
-        if self.has_selected_text():
-            self.extend_selection_to_complete_lines()
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
-        else:
-            start_pos = end_pos = cursor.position()
+        new_cursors = []
+        for cursor in cursors:
+            self.setTextCursor(cursor)
+            self.remove_selected_text()
+            new_cursors.append(self.textCursor())
 
-        cursor.setPosition(start_pos)
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        while cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
-            if cursor.atEnd():
-                break
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-
-        self.setTextCursor(cursor)
-        self.delete()
+        self.extra_cursors = new_cursors[:-1]
+        self.setTextCursor(new_cursors[-1])
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
         self.ensureCursorVisible()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     # ---- Scrolling
     # -------------------------------------------------------------------------
@@ -1841,6 +2320,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """
         clipboard = QApplication.clipboard()
         text = to_text_string(clipboard.text())
+        if self.extra_cursors:
+            self.multi_cursor_paste(text)
+            return
 
         if clipboard.mimeData().hasUrls():
             # Have copied file and folder urls pasted as text paths.
@@ -1949,10 +2431,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def cut(self):
         """Reimplement cut to signal listeners about changes on the text."""
+        if self.extra_cursors:
+            self.multi_cursor_cut()
+            return
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
             self.select_current_line_and_sep()
-
         start, end = self.get_selection_start_end()
         self.sig_will_remove_selection.emit(start, end)
         self.sig_delete_requested.emit()
@@ -1963,6 +2447,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     @Slot()
     def copy(self):
         """Reimplement copy to save indentation."""
+        if self.extra_cursors:
+            self.multi_cursor_copy()
+            return
         TextEditBaseWidget.copy(self)
         self._save_clipboard_indentation()
 
@@ -2002,6 +2489,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
+        # handles go to warnings, todo, line number, definition, etc.
+        self.clear_extra_cursors()
         self.text_helper.goto_line(line, column=start_column,
                                    end_column=end_column, move=True,
                                    word=word)
@@ -2412,8 +2901,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         cursor = self.textCursor()
         if self.has_selected_text():
             # Remove prefix from selected line(s)
-            start_pos, end_pos = sorted([cursor.selectionStart(),
-                                         cursor.selectionEnd()])
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.setPosition(start_pos)
             if not cursor.atBlockStart():
                 cursor.movePosition(QTextCursor.StartOfBlock)
@@ -2867,8 +3355,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def toggle_comment(self):
         """Toggle comment on current line or selection"""
         cursor = self.textCursor()
-        start_pos, end_pos = sorted([cursor.selectionStart(),
-                                     cursor.selectionEnd()])
+        start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
         cursor.setPosition(end_pos)
         last_line = cursor.block().blockNumber()
         if cursor.atBlockStart() and start_pos != end_pos:
@@ -2990,16 +3477,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         # See spyder-ide/spyder#2845.
         unblockcomment = self.__unblockcomment()
         if not unblockcomment:
-            unblockcomment =  self.__unblockcomment(compatibility=True)
+            unblockcomment = self.__unblockcomment(compatibility=True)
         else:
             return unblockcomment
 
     def __unblockcomment(self, compatibility=False):
         """Un-block comment current line or selection helper."""
         def __is_comment_bar(cursor):
-            return to_text_string(cursor.block().text()
-                           ).startswith(
-                         self.__blockcomment_bar(compatibility=compatibility))
+            return to_text_string(cursor.block().text()).startswith(
+                         self.__blockcomment_bar(compatibility=compatibility)
+                         )
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
@@ -3334,7 +3821,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('undo'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.undo,
+            triggered=self.undo,  # TODO multi-cursor position history
         )
         self.redo_action = self.create_action(
             CodeEditorActions.Redo,
@@ -3342,7 +3829,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('redo'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.redo
+            triggered=self.redo  # TODO multi-cursor position history
         )
         self.cut_action = self.create_action(
             CodeEditorActions.Cut,
@@ -3374,7 +3861,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon('selectall'),
             register_shortcut=True,
             register_action=False,
-            triggered=self.selectAll
+            triggered=self.clears_extra_cursors(self.selectAll)
         )
         toggle_comment_action = self.create_action(
             CodeEditorActions.ToggleComment,
@@ -3389,14 +3876,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             text=_('Clear all ouput'),
             icon=self.create_icon('ipython_console'),
             register_action=False,
-            triggered=self.clear_all_output
+            triggered=self.clears_extra_cursors(self.clear_all_output)
         )
         self.ipynb_convert_action = self.create_action(
             CodeEditorActions.ConvertToPython,
             text=_('Convert to Python file'),
             icon=self.create_icon('python'),
             register_action=False,
-            triggered=self.convert_notebook
+            triggered=self.clears_extra_cursors(self.convert_notebook)
         )
         self.gotodef_action = self.create_action(
             CodeEditorActions.GoToDefinition,
@@ -3479,7 +3966,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             icon=self.create_icon("transparent"),
             register_shortcut=True,
             register_action=False,
-            triggered=self.format_document_or_range
+            triggered=self.clears_extra_cursors(self.format_document_or_range)
         )
         self.format_action.setEnabled(False)
 
@@ -3667,6 +4154,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         else:
             self._set_completions_hint_idle()
 
+        # Only set overwrite mode during key handling to allow correct painting
+        #   of multiple overwrite cursors. Must unset overwrite before return.
+        self.setOverwriteMode(self.overwrite_mode)
+        self.start_cursor_blink()  # reset cursor blink by reseting timer
+        if self.extra_cursors:
+            self.handle_multi_cursor_keypress(event)
+            self.setOverwriteMode(False)
+            return
+
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
@@ -3689,10 +4185,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
         if event.isAccepted():
             # The event was handled by one of the editor extension.
+            self.setOverwriteMode(False)
             return
 
         if key in [Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt,
                    Qt.Key_Meta, Qt.KeypadModifier]:
+            self.setOverwriteMode(False)
             # The user pressed only a modifier key.
             if ctrl:
                 pos = self.mapFromGlobal(QCursor.pos())
@@ -3759,7 +4257,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                         cur_indent=cur_indent)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
-            self.setOverwriteMode(not self.overwriteMode())
+            self.overwrite_mode = not self.overwrite_mode
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             if has_selection or not self.intelligent_backspace:
                 self._handle_keypress_event(event)
@@ -3881,10 +4379,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
+        self.setOverwriteMode(False)
 
     def do_automatic_completions(self):
         """Perform on the fly completions."""
-        if not self.automatic_completions:
+        if not self.automatic_completions or self.extra_cursors:
             return
 
         cursor = self.textCursor()
@@ -4247,6 +4746,30 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             return N_strip
         return 0
 
+    def duplicate_line_up(self):
+        """Duplicate current line or selection"""
+        # TODO selection anchor is wrong (selects original and new line) if
+        #    selection starts or ends at the beginning of a block (for extra
+        #    cursors only, main cursor is fine).
+        self._unfold_lines()
+        self.for_each_cursor(super().duplicate_line_up)()
+
+    def duplicate_line_down(self):
+        """Duplicate current line or selection"""
+        self._unfold_lines()
+        self.for_each_cursor(super().duplicate_line_down)()
+
+    def _unfold_lines(self):
+        """for each cursor: unfold current line if folded"""
+        for cursor in self.all_cursors:
+            # Unfold any folded code block before duplicating lines up/down
+            fold_start_line = cursor.blockNumber() + 1
+            block = cursor.block().next()
+
+            if fold_start_line in self.folding_panel.folding_status:
+                if self.folding_panel.folding_status[fold_start_line]:
+                    self.folding_panel.toggle_fold_trigger(block)
+
     def move_line_up(self):
         """Move up current line or selected text"""
         self.__move_line_or_selection(after_current_line=False)
@@ -4256,56 +4779,72 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.__move_line_or_selection(after_current_line=True)
 
     def __move_line_or_selection(self, after_current_line=True):
-        cursor = self.textCursor()
+        # TODO multi-cursor implementation improperly handles moving multiple
+        #    cursors up against the end of the file (lines get swapped)
+        # TODO multi-cursor implementation improperly handles multiple cursors
+        #    on the same line.
+        self.textCursor().beginEditBlock()
+        self.multi_cursor_ignore_history = True
+        sorted_cursors = sorted(self.all_cursors,
+                                key=lambda cursor: cursor.position(),
+                                reverse=after_current_line)
+        new_cursors = []
+        for cursor in sorted_cursors:
+            self.setTextCursor(cursor)
 
-        # Unfold any folded code block before moving lines up/down
-        fold_start_line = cursor.blockNumber() + 1
-        block = cursor.block().next()
-
-        if fold_start_line in self.folding_panel.folding_status:
-            fold_status = self.folding_panel.folding_status[fold_start_line]
-            if fold_status:
-                self.folding_panel.toggle_fold_trigger(block)
-
-        if after_current_line:
-            # Unfold any folded region when moving lines down
-            fold_start_line = cursor.blockNumber() + 2
-            block = cursor.block().next().next()
+            # Unfold any folded code block before moving lines up/down
+            fold_start_line = cursor.blockNumber() + 1
+            block = cursor.block().next()
 
             if fold_start_line in self.folding_panel.folding_status:
-                fold_status = self.folding_panel.folding_status[
-                    fold_start_line
-                ]
-                if fold_status:
+                if self.folding_panel.folding_status[fold_start_line]:
                     self.folding_panel.toggle_fold_trigger(block)
-        else:
-            # Unfold any folded region when moving lines up
-            block = cursor.block()
-            offset = 0
-            if self.has_selected_text():
-                ((selection_start, _),
-                 (selection_end)) = self.get_selection_start_end()
-                if selection_end != selection_start:
-                    offset = 1
-            fold_start_line = block.blockNumber() - 1 - offset
 
-            # Find the innermost code folding region for the current position
-            enclosing_regions = sorted(list(
-                self.folding_panel.current_tree[fold_start_line]))
+            if after_current_line:
+                # Unfold any folded region when moving lines down
+                fold_start_line = cursor.blockNumber() + 2
+                block = cursor.block().next().next()
 
-            folding_status = self.folding_panel.folding_status
-            if len(enclosing_regions) > 0:
-                for region in enclosing_regions:
-                    fold_start_line = region.begin
-                    block = self.document().findBlockByNumber(fold_start_line)
-                    if fold_start_line in folding_status:
-                        fold_status = folding_status[fold_start_line]
-                        if fold_status:
-                            self.folding_panel.toggle_fold_trigger(block)
+                if fold_start_line in self.folding_panel.folding_status:
+                    if self.folding_panel.folding_status[fold_start_line]:
+                        self.folding_panel.toggle_fold_trigger(block)
+            else:
+                # Unfold any folded region when moving lines up
+                block = cursor.block()
+                offset = 0
+                if self.has_selected_text():
+                    ((selection_start, _),
+                     (selection_end)) = self.get_selection_start_end()
+                    if selection_end != selection_start:
+                        offset = 1
+                fold_start_line = block.blockNumber() - 1 - offset
 
-        self._TextEditBaseWidget__move_line_or_selection(
-            after_current_line=after_current_line
-        )
+                # Find the innermost code folding region for the current pos
+                enclosing_regions = sorted(list(
+                    self.folding_panel.current_tree[fold_start_line]))
+
+                folding_status = self.folding_panel.folding_status
+                if len(enclosing_regions) > 0:
+                    for region in enclosing_regions:
+                        fold_start_line = region.begin
+                        block = self.document().findBlockByNumber(
+                            fold_start_line
+                            )
+                        if fold_start_line in folding_status:
+                            fold_status = folding_status[fold_start_line]
+                            if fold_status:
+                                self.folding_panel.toggle_fold_trigger(block)
+            # TODO refactor to eliminate hidden private method call?
+            self._TextEditBaseWidget__move_line_or_selection(  # this is ugly
+                after_current_line=after_current_line
+            )
+            new_cursors.append(self.textCursor())
+        self.extra_cursors = new_cursors[:-1]
+        self.setTextCursor(new_cursors[-1])
+        self.merge_extra_cursors(True)
+        self.textCursor().endEditBlock()
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
@@ -4373,27 +4912,109 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self._restore_editor_cursor_and_selections()
         TextEditBaseWidget.leaveEvent(self, event)
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QKeyEvent):
         """Override Qt method."""
         self.hide_tooltip()
-
-        ctrl = event.modifiers() & Qt.ControlModifier
-        alt = event.modifiers() & Qt.AltModifier
-        pos = event.pos()
+        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
+        shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        cursor_for_pos = self.cursorForPosition(event.pos())
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
-        if event.button() == Qt.LeftButton and ctrl:
-            TextEditBaseWidget.mousePressEvent(self, event)
-            cursor = self.cursorForPosition(pos)
-            uri = self._last_hover_pattern_text
-            if uri:
-                self.go_to_uri_from_cursor(uri)
-            else:
-                self.go_to_definition_from_cursor(cursor)
-        elif event.button() == Qt.LeftButton and alt:
-            self.sig_alt_left_mouse_pressed.emit(event)
+        if (self.multi_cursor_enabled and event.button() == Qt.LeftButton and
+                ctrl and alt):
+            # ---- Ctrl-Alt: multi-cursor mouse interactions
+            self.multi_cursor_ignore_history = True
+            if shift:
+                # Ctrl-Shift-Alt click adds colum of cursors towards primary
+                #    cursor
+                first_cursor = self.textCursor()
+                anchor_block = first_cursor.block()
+                anchor_col = first_cursor.anchor() - anchor_block.position()
+                pos_block = cursor_for_pos.block()
+                pos_col = cursor_for_pos.positionInBlock()
+
+                # Move primary cursor to pos_col
+                p_col = min(len(anchor_block.text()), pos_col)
+                # block.length() includes line seperator? just /n?
+                # use len(block.text()) instead
+                first_cursor.setPosition(anchor_block.position() + p_col,
+                                         QTextCursor.MoveMode.KeepAnchor)
+                self.setTextCursor(first_cursor)
+                block = anchor_block
+                while True:
+                    # Get the next block
+                    if anchor_block < pos_block:
+                        block = block.next()
+                    else:
+                        block = block.previous()
+
+                    # Add a cursor for this block
+                    if block.isVisible() and block.isValid():
+                        cursor = QTextCursor(first_cursor)
+
+                        a_col = min(len(block.text()), anchor_col)
+                        cursor.setPosition(block.position() + a_col,
+                                           QTextCursor.MoveMode.MoveAnchor)
+                        p_col = min(len(block.text()), pos_col)
+                        cursor.setPosition(block.position() + p_col,
+                                           QTextCursor.MoveMode.KeepAnchor)
+                        self.add_cursor(cursor)
+
+                    # Break if it's the last block
+                    if block == pos_block:
+                        break
+
+            else:  # Ctrl-Alt click adds and removes cursors
+                # move existing primary cursor to extra_cursors list and set
+                #   new primary cursor
+                old_cursor = self.textCursor()
+
+                removed_cursor = False
+                # don't attempt to remove cursor if there's only one
+                if self.extra_cursors:
+                    same_cursor = None
+                    for cursor in self.all_cursors:
+                        if cursor_for_pos.position() == cursor.position():
+                            same_cursor = cursor
+                            break
+                    if same_cursor is not None:
+                        removed_cursor = True
+                        if same_cursor in self.extra_cursors:
+                            # cursor to be removed was not primary
+                            self.extra_cursors.remove(same_cursor)
+                        else:
+                            # cursor to be removed is primary cursor
+                            # pick a new primary by position
+                            new_primary = max(
+                                self.extra_cursors,
+                                key=lambda cursor: cursor.position()
+                            )
+                            self.extra_cursors.remove(new_primary)
+                            self.setTextCursor(new_primary)
+                        # possibly clear selection of removed cursor
+                        self.set_extra_cursor_selections()
+
+                if not removed_cursor:
+                    self.setTextCursor(cursor_for_pos)
+                    self.add_cursor(old_cursor)
+            self.multi_cursor_ignore_history = False
+            self.cursorPositionChanged.emit()
         else:
-            TextEditBaseWidget.mousePressEvent(self, event)
+            # ---- not multi-cursor
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.clear_extra_cursors()
+            if event.button() == Qt.LeftButton and ctrl:
+                TextEditBaseWidget.mousePressEvent(self, event)
+                uri = self._last_hover_pattern_text
+                if uri:
+                    self.go_to_uri_from_cursor(uri)
+                else:
+                    self.go_to_definition_from_cursor(cursor_for_pos)
+            elif event.button() == Qt.LeftButton and alt:
+                self.sig_alt_left_mouse_pressed.emit(event)
+            else:
+                TextEditBaseWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
@@ -4467,6 +5088,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         Inform Qt about the types of data that the widget accepts.
         """
         logger.debug("dragEnterEvent was received")
+        self._drag_cursor = self.cursorForPosition(event.pos())
         all_urls = mimedata2url(event.mimeData())
         if all_urls:
             # Let the parent widget handle this
@@ -4476,6 +5098,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
+    def dragMoveEvent(self, event):
+        """
+        Reimplemented Qt method.
+
+        Keep track of drag cursor while dragging
+        """
+        self._drag_cursor = self.cursorForPosition(event.pos())
+        TextEditBaseWidget.dragMoveEvent(self, event)
+
     def dropEvent(self, event):
         """
         Reimplemented Qt method.
@@ -4483,12 +5114,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         Unpack dropped data and handle it.
         """
         logger.debug("dropEvent was received")
+        self._drag_cursor = None
         if mimedata2url(event.mimeData()):
             logger.debug("Let the parent widget handle this")
             event.ignore()
         else:
             logger.debug("Call TextEditBaseWidget dropEvent method")
             TextEditBaseWidget.dropEvent(self, event)
+
+    def dragLeaveEvent(self, event):
+        """
+        Reimplemented Qt method.
+
+        Stop tracking of drag cursor when drag leaves
+        """
+        self._drag_cursor = None
+        TextEditBaseWidget.dragLeaveEvent(self, event)
+        # lost focus: need to manually paint to un-draw drag cursor
+        self.viewport().update()
 
     # ---- Paint event
     # -------------------------------------------------------------------------
@@ -4570,7 +5213,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 text=_("Generate docstring"),
                 icon=self.create_icon('TextFileIcon'),
                 register_action=False,
-                triggered=writer.write_docstring
+                triggered=self.for_each_cursor(writer.write_docstring)
             )
             self.menu_docstring.addAction(self.docstring_action)
             self.menu_docstring.setActiveAction(self.docstring_action)
@@ -4635,8 +5278,8 @@ class TestWidget(QSplitter):
     def __init__(self, parent):
         QSplitter.__init__(self, parent)
         self.editor = CodeEditor(self)
-        self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                                 font=QFont("Courier New", 10),
+        self.editor.setup_editor(linenumbers=True, markers=True,
+                                 tab_mode=False, font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
         self.setWindowIcon(ima.icon('spyder'))
