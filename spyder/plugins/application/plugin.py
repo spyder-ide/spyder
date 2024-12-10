@@ -83,6 +83,7 @@ class Application(SpyderPluginV2):
             self.open_last_closed_file
         )
         container.sig_save_file_requested.connect(self.save_file)
+        container.sig_save_all_requested.connect(self.save_all)
         container.set_window(self._window)
         self.sig_focused_plugin_changed.connect(self.update_focused_plugin)
 
@@ -135,7 +136,8 @@ class Application(SpyderPluginV2):
         for action in [
             container.new_action,
             container.open_action,
-            container.save_action
+            container.save_action,
+            container.save_all_action
         ]:
             toolbar.add_item_to_application_toolbar(
                 action,
@@ -177,7 +179,8 @@ class Application(SpyderPluginV2):
         for action in [
             ApplicationActions.NewFile,
             ApplicationActions.OpenFile,
-            ApplicationActions.SaveFile
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll
         ]:
             toolbar.remove_item_from_application_toolbar(
                 action,
@@ -249,7 +252,8 @@ class Application(SpyderPluginV2):
 
         # Save section
         save_actions = [
-            container.save_action
+            container.save_action,
+            container.save_all_action
         ]
         for save_action in save_actions:
             mainmenu.add_item_to_application_menu(
@@ -379,6 +383,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.OpenLastClosed,
             container.recent_file_menu,
             ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -618,6 +623,16 @@ class Application(SpyderPluginV2):
             editor = self.get_plugin(Plugins.Editor)
             editor.save()
 
+    def save_all(self) -> None:
+        """
+        Save all files.
+
+        Save all files in the Editor plugin.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_all()
+
     def enable_file_action(
         self,
         action_name: str,
@@ -632,7 +647,7 @@ class Application(SpyderPluginV2):
         enabled : bool
             True to enable the action, False to disable it.
         plugin : SpyderDockablePlugin
-            The plugin for which the save action is enabled or disabled.
+            The plugin for which the save actions are enabled or disabled.
         """
         self.file_action_enabled[(plugin, action_name)] = enabled
         self.update_file_actions()
@@ -652,6 +667,7 @@ class Application(SpyderPluginV2):
                 ApplicationActions.NewFile,
                 ApplicationActions.OpenLastClosed,
                 ApplicationActions.SaveFile,
+                ApplicationActions.SaveAll
             ]:
                 action = self.get_action(action_name)
                 key = (plugin, action_name)

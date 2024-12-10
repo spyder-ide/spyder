@@ -72,7 +72,6 @@ logger = logging.getLogger(__name__)
 class EditorWidgetActions:
     # File operations
     RevertFileFromDisk = "Revert file from disk"
-    SaveAll = "Save all"
     SaveAs = "Save As"
     SaveCopyAs = "save_copy_as_action"
     PrintPreview = "print_preview_action"
@@ -390,15 +389,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('revert'),
             tip=_("Revert file from disk"),
             triggered=self.revert
-        )
-        self.save_all_action = self.create_action(
-            EditorWidgetActions.SaveAll,
-            text=_("Sav&e all"),
-            icon=self.create_icon('save_all'),
-            tip=_("Save all files"),
-            triggered=self.save_all,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
         )
         self.save_as_action = self.create_action(
             EditorWidgetActions.SaveAs,
@@ -854,7 +844,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.save_copy_as_action,
                 self.print_preview_action,
                 self.print_action,
-                self.save_all_action,
                 self.gotoline_action,
                 self.workdir_action,
                 self.close_file_action,
@@ -1788,11 +1777,11 @@ class EditorMainWidget(PluginMainWidget):
             enabled = False
         self.sig_file_action_enabled.emit(ApplicationActions.SaveFile, enabled)
 
-        state = any(
+        enabled = any(
             finfo.editor.document().isModified() or finfo.newly_created
             for finfo in editorstack.data
         )
-        self.save_all_action.setEnabled(state)
+        self.sig_file_action_enabled.emit(ApplicationActions.SaveAll, enabled)
 
     def update_warning_menu(self):
         """Update warning list menu"""
