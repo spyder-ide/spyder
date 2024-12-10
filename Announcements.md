@@ -13,12 +13,11 @@ This release comes six weeks after version 6.0.2 and it contains the
 following important fixes and API changes:
 
 * Restore widget shortcuts to Preferences and allow to change them on the fly.
-* Add support for IPython enhanced tracebacks and use selected syntax style when showing them.
+* Add support for IPython enhanced tracebacks and use the selected color scheme in the editor when showing them.
 * Improve the way users can select the interface font in Preferences.
 * Activate `Open last closed` shortcut and restore some missing context menu actions in the Editor.
-* Fix shortcuts for new files in the Editor.
 * Fix several issues when getting selections to run them.
-* Do not launch Spyder if installing in CI or batch/silent mode from the installers.
+* Use the `INSTALLER_UNATTENDED` environment variable to not launch Spyder automatically if installing it in batch/silent mode from the standalone installers.
 * Add `plugin_name` kwarg to the `register_shortcut_for_widget` method of
   `SpyderShortcutsMixin`.
 * The `add_configuration_observer` method was added to `SpyderConfigurationObserver`.
