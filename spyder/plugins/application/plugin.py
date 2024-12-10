@@ -74,6 +74,7 @@ class Application(SpyderPluginV2):
             self.open_last_closed_file
         )
         container.sig_save_file_requested.connect(self.save_file)
+        container.sig_save_all_requested.connect(self.save_all)
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -125,7 +126,8 @@ class Application(SpyderPluginV2):
         for action in [
             container.new_action,
             container.open_action,
-            container.save_action
+            container.save_action,
+            container.save_all_action
         ]:
             toolbar.add_item_to_application_toolbar(
                 action,
@@ -167,7 +169,8 @@ class Application(SpyderPluginV2):
         for action in [
             ApplicationActions.NewFile,
             ApplicationActions.OpenFile,
-            ApplicationActions.SaveFile
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll
         ]:
             toolbar.remove_item_from_application_toolbar(
                 action,
@@ -239,7 +242,8 @@ class Application(SpyderPluginV2):
 
         # Save section
         save_actions = [
-            container.save_action
+            container.save_action,
+            container.save_all_action
         ]
         for save_action in save_actions:
             mainmenu.add_item_to_application_menu(
@@ -369,6 +373,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.OpenLastClosed,
             container.recent_file_menu,
             ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -558,6 +563,16 @@ class Application(SpyderPluginV2):
         editor = self.get_plugin(Plugins.Editor)
         editor.save()
 
+    def save_all(self) -> None:
+        """
+        Save all files.
+
+        Save all files in the Editor plugin.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_all()
+
     def enable_save_action(self, state: bool) -> None:
         """
         Enable or disable save action.
@@ -568,6 +583,17 @@ class Application(SpyderPluginV2):
             True to enable save action, False to disable it.
         """
         self.get_container().save_action.setEnabled(state)
+
+    def enable_save_all_action(self, state: bool) -> None:
+        """
+        Enable or disable "Save All" action.
+
+        Parameters
+        ----------
+        state : bool
+            True to enable "Save All" action, False to disable it.
+        """
+        self.get_container().save_all_action.setEnabled(state)
 
     @property
     def documentation_action(self):

@@ -79,6 +79,7 @@ class ApplicationActions:
     MaxRecentFiles = "max_recent_files_action"
     ClearRecentFiles = "clear_recent_files_action"
     SaveFile = "Save file"
+    SaveAll = "Save all"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -122,6 +123,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_save_file_requested = Signal()
     """
     Signal to request that the current file be saved.
+    """
+
+    sig_save_all_requested = Signal()
+    """
+    Signal to request that all files in the current plugin be saved.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -286,6 +292,15 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('filesave'),
             tip=_("Save file"),
             triggered=self.sig_save_file_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.save_all_action = self.create_action(
+            ApplicationActions.SaveAll,
+            text=_("Sav&e all"),
+            icon=self.create_icon('save_all'),
+            tip=_("Save all files"),
+            triggered=self.sig_save_all_requested.emit,
             shortcut_context="main",
             register_shortcut=True
         )

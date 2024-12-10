@@ -393,7 +393,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_all_action,
             widget.save_as_action,
             widget.save_copy_as_action,
             widget.revert_action,
@@ -551,7 +550,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_all_action,
             widget.save_as_action,
             widget.save_copy_as_action,
             widget.revert_action,
@@ -655,28 +653,18 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_available(self):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        file_toolbar_actions = [
-            widget.save_all_action,
-            widget.create_new_cell
-        ]
-        for file_toolbar_action in file_toolbar_actions:
-            toolbar.add_item_to_application_toolbar(
-                file_toolbar_action,
-                toolbar_id=ApplicationToolbars.File,
-            )
+        toolbar.add_item_to_application_toolbar(
+            widget.create_new_cell,
+            toolbar_id=ApplicationToolbars.File,
+        )
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        file_toolbar_actions = [
-            EditorWidgetActions.SaveAll,
-            EditorWidgetActions.NewCell
-        ]
-        for file_toolbar_action_id in file_toolbar_actions:
-            toolbar.remove_item_from_application_toolbar(
-                file_toolbar_action_id,
-                toolbar_id=ApplicationToolbars.File,
-            )
+        toolbar.remove_item_from_application_toolbar(
+            EditorWidgetActions.NewCell,
+            toolbar_id=ApplicationToolbars.File,
+        )
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -780,6 +768,9 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.sig_new_recent_file.connect(application.add_recent_file)
         widget.sig_save_action_enabled.connect(application.enable_save_action)
+        widget.sig_save_all_action_enabled.connect(
+            application.enable_save_all_action
+        )
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
@@ -788,6 +779,9 @@ class Editor(SpyderDockablePlugin):
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_save_action_enabled.disconnect(
             application.enable_save_action
+        )
+        widget.sig_save_all_action_enabled.disconnect(
+            application.enable_save_all_action
         )
 
     def update_font(self):
@@ -1112,6 +1106,12 @@ class Editor(SpyderDockablePlugin):
             `True` if the save operation was sucessfull. `False` otherwise.
         """
         return self.get_widget().save(index=None, force=False)
+
+    def save_all(self) -> None:
+        """
+        Save all files.
+        """
+        return self.get_widget().save_all()
 
     def save_bookmark(self, slot_num):
         """
