@@ -256,7 +256,7 @@ qt_requirements = {
         'qtconsole>=5.6.1,<5.7.0',
     ],
     'conda-forge': [
-        'qtconsole-base>=5.6.1,<5.7.0',
+        'qtconsole>=5.6.1,<5.7.0',
     ]
 }
 
@@ -325,10 +325,7 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
 
     install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
-    base = ''
-    if os.getenv('SPYDER_QT_BINDING', 'pyqt5').lower() == 'conda-forge':
-        base = '-base'
-    install_requires.append(f'qtconsole{base}>=5.5.1,<5.7.0')
+    install_requires.append('qtconsole>=5.5.1,<5.7.0')
 
 extras_require = {
     'test:platform_system == "Windows"': ['pywin32'],
