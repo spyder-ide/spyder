@@ -466,7 +466,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('Save all', self.save_all),
             ('Save As', self.sig_save_as),
             ('Close all', self.close_all_files),
             ("Last edit location", self.sig_prev_edit_pos),
@@ -535,6 +534,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "Open file",
             "Open last closed",
             "Save file",
+            "Save all"
         ]:
             self.register_shortcut_for_widget(
                 name=action_id,

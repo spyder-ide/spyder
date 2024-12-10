@@ -24,6 +24,7 @@ from spyder.api.plugins import Plugins
         ('new_action', 'new'),
         ('open_last_closed_action', 'open_last_closed'),
         ('save_action', 'save'),
+        ('save_all_action', 'save_all'),
     ],
 )
 def test_file_actions(application_plugin, action_name, editor_function_name):
@@ -74,3 +75,16 @@ def test_enable_save_action(application_plugin):
 
     application_plugin.enable_save_action(False)
     assert container.save_action.isEnabled() == False
+
+
+def test_enable_save_all_action(application_plugin):
+    """
+    Test that enable_save_all_action does indeed enable or disable the
+    "Save All" action.
+    """
+    container = application_plugin.get_container()
+    application_plugin.enable_save_all_action(True)
+    assert container.save_all_action.isEnabled() == True
+
+    application_plugin.enable_save_all_action(False)
+    assert container.save_all_action.isEnabled() == False

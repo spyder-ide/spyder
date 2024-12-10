@@ -215,6 +215,17 @@ class EditorMainWidget(PluginMainWidget):
         disabled.
     """
 
+    sig_save_all_action_enabled = Signal(bool)
+    """
+    This signal is emitted to enable or disable the 'Save All' action.
+
+    Parameters
+    ----------
+    state: bool
+        True if the 'Save All' action should be enabled, False if it should
+        disabled.
+    """
+
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
         super().__init__(name, plugin, parent)
 
@@ -319,15 +330,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('revert'),
             tip=_("Revert file from disk"),
             triggered=self.revert
-        )
-        self.save_all_action = self.create_action(
-            EditorWidgetActions.SaveAll,
-            text=_("Sav&e all"),
-            icon=self.create_icon('save_all'),
-            tip=_("Save all files"),
-            triggered=self.save_all,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
         )
         self.save_as_action = self.create_action(
             EditorWidgetActions.SaveAs,
@@ -783,7 +785,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.save_copy_as_action,
                 self.print_preview_action,
                 self.print_action,
-                self.save_all_action,
                 self.gotoline_action,
                 self.workdir_action,
                 self.close_file_action,
@@ -1704,7 +1705,7 @@ class EditorMainWidget(PluginMainWidget):
             finfo.editor.document().isModified() or finfo.newly_created
             for finfo in editorstack.data
         )
-        self.save_all_action.setEnabled(state)
+        self.sig_save_all_action_enabled.emit(state)
 
     def update_warning_menu(self):
         """Update warning list menu"""
