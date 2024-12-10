@@ -1,25 +1,32 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.2 is released!
+**Subject**: [ANN] Spyder 6.0.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.2** has been released and is available for
+I'm pleased to announce that Spyder **6.0.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes five weeks after version 6.0.1 and it contains the
-following important fixes:
+This release comes six weeks after version 6.0.2 and it contains the
+following important fixes and API changes:
 
-* Fix plots not being generated with the Matplotlib inline backend.
-* Restore missing debugger buttons to the main toolbar.
-* Several fixes and improvements to the update detection mechanism.
-* Fix SSH tunneling info handling for remote kernels connection and add remote client tests.
-* Handle kernel fault file not being available.
-* Update QtConsole constraint to 5.6.1 to support ANSI codes that move cursor.
+* Restore widget shortcuts to Preferences and allow to change them on the fly.
+* Add support for IPython enhanced tracebacks and use the selected color scheme in the editor when showing them.
+* Improve the way users can select the interface font in Preferences.
+* Activate `Open last closed` shortcut and restore some missing context menu actions in the Editor.
+* Fix several issues when getting selections to run them.
+* Use the `INSTALLER_UNATTENDED` environment variable to not launch Spyder automatically if installing it in batch/silent mode from the standalone installers.
+* Add `plugin_name` kwarg to the `register_shortcut_for_widget` method of
+  `SpyderShortcutsMixin`.
+* The `add_configuration_observer` method was added to `SpyderConfigurationObserver`.
+* Add `items_elide_mode` kwarg to the constructors of `SpyderComboBox` and
+  `SpyderComboBoxWithIcons`.
+* The `sig_item_in_popup_changed` and `sig_popup_is_hidden` signals were added
+  to `SpyderComboBox`, `SpyderComboBoxWithIcons` and `SpyderFontComboBox`.
 
-In this release we fixed 15 issues and merged 31 pull requests. For a full
+In this release we fixed 25 issues and merged 37 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
