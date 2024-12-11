@@ -77,13 +77,15 @@ def setup_kernel(cmd):
         )
         # wait for connection file to exist, timeout after 5s
         tic = time.time()
-        while not os.path.exists(connection_file) \
-            and kernel.poll() is None \
-            and time.time() < tic + SETUP_TIMEOUT:
+        while (
+            not os.path.exists(connection_file)
+            and kernel.poll() is None
+            and time.time() < tic + SETUP_TIMEOUT
+        ):
             time.sleep(0.1)
 
         if kernel.poll() is not None:
-            o,e = kernel.communicate()
+            o, e = kernel.communicate()
             raise IOError("Kernel failed to start:\n%s" % e)
 
         if not os.path.exists(connection_file):
@@ -229,7 +231,7 @@ def kernel(request):
             'True_'
         ],
         'minmax': False,
-        'filter_on':True
+        'filter_on': True
     }
 
     # Teardown
@@ -468,8 +470,11 @@ def test_is_defined(kernel):
 def test_get_doc(kernel):
     """Test to get object documentation dictionary."""
     objtxt = 'help'
-    assert ("Define the builtin 'help'" in kernel.get_doc(objtxt)['docstring'] or
-            "Define the built-in 'help'" in kernel.get_doc(objtxt)['docstring'])
+    assert (
+        "Define the builtin 'help'" in kernel.get_doc(objtxt)['docstring']
+        or "Define the built-in 'help'" in kernel.get_doc(objtxt)['docstring']
+    )
+
 
 def test_get_source(kernel):
     """Test to get object source."""
@@ -507,7 +512,7 @@ def test_cwd_in_sys_path():
     with setup_kernel(cmd) as client:
         reply = client.execute_interactive(
             "import sys; sys_path = sys.path",
-            user_expressions={'output':'sys_path'}, timeout=TIMEOUT)
+            user_expressions={'output': 'sys_path'}, timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -516,6 +521,21 @@ def test_cwd_in_sys_path():
 
         # Assert the first value of sys_path is an empty string
         assert '' in value
+
+
+def test_prioritize(kernel):
+    """Test that user path priority is honored in sys.path."""
+    syspath = kernel.get_syspath()
+    append_path = ['/test/append/path']
+    prepend_path = ['/test/prepend/path']
+
+    kernel.update_syspath(append_path, prioritize=False)
+    new_syspath = kernel.get_syspath()
+    assert new_syspath == syspath + append_path
+
+    kernel.update_syspath(prepend_path, prioritize=True)
+    new_syspath = kernel.get_syspath()
+    assert new_syspath == prepend_path + syspath
 
 
 @flaky(max_runs=3)
@@ -701,8 +721,10 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` with current namespace
-        msg = client.execute_interactive("%runfile {} --current-namespace"
-                                        .format(repr(str(u))), timeout=TIMEOUT)
+        msg = client.execute_interactive(
+            "%runfile {} --current-namespace".format(repr(str(u))),
+            timeout=TIMEOUT
+        )
         content = msg['content']
 
         # Verify that the variable `result3` is defined
@@ -727,7 +749,9 @@ def test_runfile(tmpdir):
     sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
     reason="Fails on Mac with Python 3.8")
 def test_np_threshold(kernel):
-    """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
+    """
+    Test that setting Numpy threshold doesn't make the Variable Explorer slow.
+    """
 
     cmd = "from spyder_kernels.console import start; start.main()"
 
@@ -786,7 +810,9 @@ f = np.get_printoptions()['formatter']
         while "data" not in msg['content']:
             msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
-        assert "{'float_kind': <built-in method format of str object" in content
+        assert (
+            "{'float_kind': <built-in method format of str object" in content
+        )
 
 
 @flaky(max_runs=3)
@@ -952,10 +978,11 @@ def test_comprehensions_with_locals_in_pdb(kernel):
 
     # Check that the variable is not reported as being part of globals.
     kernel.shell.pdb_session.default("in_globals = 'zz' in globals()")
-    assert kernel.get_value('in_globals') == False
+    assert kernel.get_value('in_globals') is False
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
+
 
 def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
@@ -1001,6 +1028,7 @@ def test_namespaces_in_pdb(kernel):
     # Create wrapper to check for errors
     old_error = pdb_obj.error
     pdb_obj._error_occured = False
+
     def error_wrapper(*args, **kwargs):
         print(args, kwargs)
         pdb_obj._error_occured = True
@@ -1051,7 +1079,6 @@ def test_functions_with_locals_in_pdb(kernel):
     kernel.shell.pdb_session.default(
         'zz = fun_a()')
     assert kernel.get_value('zz') == 1
-
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
@@ -1110,11 +1137,11 @@ def test_locals_globals_in_pdb(kernel):
 
     kernel.shell.pdb_session.default(
         'test = "a" in globals()')
-    assert kernel.get_value('test') == False
+    assert kernel.get_value('test') is False
 
     kernel.shell.pdb_session.default(
         'test = "a" in locals()')
-    assert kernel.get_value('test') == True
+    assert kernel.get_value('test') is True
 
     kernel.shell.pdb_session.default(
         'def f(): return a')
@@ -1128,11 +1155,11 @@ def test_locals_globals_in_pdb(kernel):
 
     kernel.shell.pdb_session.default(
         'test = "a" in globals()')
-    assert kernel.get_value('test') == False
+    assert kernel.get_value('test') is False
 
     kernel.shell.pdb_session.default(
         'test = "a" in locals()')
-    assert kernel.get_value('test') == True
+    assert kernel.get_value('test') is True
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
@@ -1210,7 +1237,7 @@ def test_global_message(tmpdir):
 
         def check_found(msg):
             if "text" in msg["content"]:
-                if ("WARNING: This file contains a global statement"  in
+                if ("WARNING: This file contains a global statement" in
                         msg["content"]["text"]):
                     global found
                     found = True
@@ -1256,7 +1283,7 @@ def test_debug_namespace(tmpdir):
                 if 'hello' in msg["content"].get("text"):
                     break
 
-         # make sure that get_value('bb') returns 'hello'
+        # make sure that get_value('bb') returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)
         client.input("get_ipython().kernel.get_value('bb')")
 

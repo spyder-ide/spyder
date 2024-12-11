@@ -27,7 +27,9 @@ import psutil
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, running_in_ci, get_conf_path
+from spyder.config.base import (
+    _, running_in_ci, get_conf_path, running_under_pytest
+)
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
@@ -111,7 +113,7 @@ def get_user_environment_variables():
         # We only need to do this if Spyder was **not** launched from a
         # terminal. Otherwise, it'll inherit the env vars present in it.
         # Fixes spyder-ide/spyder#22415
-        if not launched_from_terminal:
+        if not launched_from_terminal or running_under_pytest():
             try:
                 user_env_script = _get_user_env_script()
                 proc = run_shell_command(user_env_script, env={}, text=True)
