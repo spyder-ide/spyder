@@ -4942,7 +4942,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                                          QTextCursor.MoveMode.KeepAnchor)
                 self.setTextCursor(first_cursor)
                 block = anchor_block
-                while True:
+                while block != pos_block:
+
                     # Get the next block
                     if anchor_block < pos_block:
                         block = block.next()
@@ -4960,10 +4961,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.setPosition(block.position() + p_col,
                                            QTextCursor.MoveMode.KeepAnchor)
                         self.add_cursor(cursor)
-
-                    # Break if it's the last block
-                    if block == pos_block:
-                        break
 
             else:  # Ctrl-Alt click adds and removes cursors
                 # move existing primary cursor to extra_cursors list and set
