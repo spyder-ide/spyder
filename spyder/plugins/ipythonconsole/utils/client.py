@@ -20,6 +20,7 @@ from traitlets import Type
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
+from spyder.plugins.ipythonconsole import SpyderKernelError
 
 
 class KernelClientTunneler:
@@ -63,10 +64,10 @@ class KernelClientTunneler:
                 )
             )
         except asyncssh.Error as err:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 _(
-                    "It was not possible to open an SSH tunnel for the "
-                    "remote kernel. Please check your credentials and the "
+                    "It was not possible to open an SSH tunnel to connect to "
+                    "the remote kernel. Please check your credentials and the "
                     "server connection status."
                 )
             ) from err

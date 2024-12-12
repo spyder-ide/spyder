@@ -10,7 +10,7 @@ on:
   workflow_call:
     inputs:
       branch:
-        required: true
+        required: false
         type: string
 
   workflow_dispatch:
@@ -79,4 +79,5 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
+          python_min: '3.9'
         run: python build_conda_pkgs.py --build $pkg

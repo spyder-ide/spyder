@@ -47,6 +47,7 @@
   <url type="donation">https://opencollective.com/spyder</url>
   <content_rating type="oars-1.1"/>
   <releases>
+      <release version="v6.0.3" date="2024-12-10"/>
       <release version="v6.0.2" date="2024-10-31"/>
       <release version="v6.0.1" date="2024-09-23"/>
       <release version="v6.0.0" date="2024-09-03"/>
