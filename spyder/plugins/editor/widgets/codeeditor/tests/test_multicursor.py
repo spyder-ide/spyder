@@ -128,9 +128,9 @@ def test_overwrite_mode(codeeditor, qtbot):
     click_at(codeeditor, qtbot, 16, ctrl=True, alt=True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_B)
     assert codeeditor.toPlainText() == "0123ab6789\n01234b6789\n"
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Insert)
     assert not codeeditor.overwriteMode()
     assert not codeeditor.overwrite_mode
-    qtbot.keyClick(codeeditor, Qt.Key.Key_Insert)
     qtbot.keyClick(codeeditor, Qt.Key.Key_C)
     assert codeeditor.toPlainText() == "0123abc6789\n01234bc6789\n"
 
