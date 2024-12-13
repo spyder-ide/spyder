@@ -54,6 +54,7 @@ SKIP_CHECK_UPDATE = (
         not is_anaconda()
         and osp.exists(osp.join(get_path('stdlib'), 'EXTERNALLY-MANAGED'))
     )
+    or sys.platform not in ('linux', 'darwin', 'win32')  # Supported platforms
 )
 
 
