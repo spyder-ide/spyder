@@ -627,9 +627,14 @@ class Application(SpyderPluginV2):
         """
         Save all files.
 
-        Save all files in the Editor plugin.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save all files
+        in that plugin. Otherwise, save all files in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_all()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_all()
 
