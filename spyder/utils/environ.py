@@ -170,6 +170,7 @@ def set_user_env(env, parent=None):
                   "Please restart this Windows <i>session</i> "
                   "(not the computer) for changes to take effect.")
             )
+        get_user_environment_variables.cache_clear()
     elif os.name == 'posix' and running_in_ci():
         text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
         amend_user_shell_init(text)
@@ -213,6 +214,7 @@ def amend_user_shell_init(text="", restore=False):
         _script = script.rstrip() + "\n\n" + new_text
 
     init_file.write_text(_script.rstrip() + "\n")
+    get_user_environment_variables.cache_clear()
 
 
 def clean_env(env_vars):
