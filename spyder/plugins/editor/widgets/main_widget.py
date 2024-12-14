@@ -331,13 +331,6 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Revert file from disk"),
             triggered=self.revert
         )
-        self.save_copy_as_action = self.create_action(
-            EditorWidgetActions.SaveCopyAs,
-            text=_("Save copy as..."),
-            icon=self.create_icon('filesaveas'),
-            tip=_("Save copy of current file as..."),
-            triggered=self.save_copy_as
-        )
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
             text=_("Print preview..."),
@@ -772,7 +765,6 @@ class EditorMainWidget(PluginMainWidget):
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
-                self.save_copy_as_action,
                 self.print_preview_action,
                 self.print_action,
                 self.gotoline_action,
