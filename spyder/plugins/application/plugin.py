@@ -85,6 +85,7 @@ class Application(SpyderPluginV2):
         container.sig_save_file_requested.connect(self.save_file)
         container.sig_save_all_requested.connect(self.save_all)
         container.sig_save_file_as_requested.connect(self.save_file_as)
+        container.sig_save_copy_as_requested.connect(self.save_copy_as)
         container.set_window(self._window)
         self.sig_focused_plugin_changed.connect(self.update_focused_plugin)
 
@@ -255,7 +256,8 @@ class Application(SpyderPluginV2):
         save_actions = [
             container.save_action,
             container.save_all_action,
-            container.save_as_action
+            container.save_as_action,
+            container.save_copy_as_action,
         ]
         for save_action in save_actions:
             mainmenu.add_item_to_application_menu(
@@ -387,6 +389,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.SaveFile,
             ApplicationActions.SaveAll,
             ApplicationActions.SaveAs,
+            ApplicationActions.SaveCopyAs,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -642,6 +645,14 @@ class Application(SpyderPluginV2):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_as()
 
+    def save_copy_as(self) -> None:
+        """
+        Save copy of current file in Editor plugin under a different name.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_copy_as()
+
     def save_all(self) -> None:
         """
         Save all files.
@@ -692,7 +703,8 @@ class Application(SpyderPluginV2):
                 ApplicationActions.OpenLastClosed,
                 ApplicationActions.SaveFile,
                 ApplicationActions.SaveAs,
-                ApplicationActions.SaveAll
+                ApplicationActions.SaveAll,
+                ApplicationActions.SaveCopyAs
             ]:
                 action = self.get_action(action_name)
                 key = (plugin, action_name)
