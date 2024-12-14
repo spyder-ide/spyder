@@ -54,6 +54,9 @@ class Application(SpyderPluginV2):
         super().__init__(parent, configuration)
         self.focused_plugin: Optional[SpyderDockablePlugin] = None
 
+        FileActionEnabledKey = tuple[SpyderDockablePlugin, str]
+        self.file_action_enabled: dict[FileActionEnabledKey, bool] = {}
+
     @staticmethod
     def get_name():
         return _('Application')
@@ -505,6 +508,7 @@ class Application(SpyderPluginV2):
         This function is called if another plugin gets keyboard focus.
         """
         self.focused_plugin = plugin
+        self.update_file_actions()
 
     def create_new_file(self) -> None:
         """
@@ -614,16 +618,45 @@ class Application(SpyderPluginV2):
             editor = self.get_plugin(Plugins.Editor)
             editor.save()
 
-    def enable_save_action(self, state: bool) -> None:
+    def enable_file_action(
+        self,
+        action_name: str,
+        enabled: bool,
+        plugin: SpyderDockablePlugin
+    ) -> None:
         """
-        Enable or disable save action.
+        Enable or disable file actions for given plugin.
+        action_name : str
+            The name of the action to be enabled or disabled. These names
+            are listed in ApplicationActions, for instance "New file"
+        enabled : bool
+            True to enable the action, False to disable it.
+        plugin : SpyderDockablePlugin
+            The plugin for which the save action is enabled or disabled.
+        """
+        self.file_action_enabled[(plugin, action_name)] = enabled
+        self.update_file_actions()
 
-        Parameters
-        ----------
-        state : bool
-            True to enable save action, False to disable it.
+    def update_file_actions(self) -> None:
         """
-        self.get_container().save_action.setEnabled(state)
+        Update which file actions are enabled.
+
+        File actions are enabled depending on whether the plugin that would
+        currently process the file action has enabled it or not.
+        """
+        plugin = self.focused_plugin
+        if not plugin or not getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin = self.get_plugin(Plugins.Editor, error=False)
+        if plugin:
+            for action_name in [
+                ApplicationActions.NewFile,
+                ApplicationActions.OpenLastClosed,
+                ApplicationActions.SaveFile,
+            ]:
+                action = self.get_action(action_name)
+                key = (plugin, action_name)
+                state = self.file_action_enabled.get(key, True)
+                action.setEnabled(state)
 
     @property
     def documentation_action(self):

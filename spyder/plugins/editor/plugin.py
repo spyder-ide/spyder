@@ -781,16 +781,14 @@ class Editor(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
         widget.sig_new_recent_file.connect(application.add_recent_file)
-        widget.sig_save_action_enabled.connect(application.enable_save_action)
+        widget.sig_file_action_enabled.connect(self._enable_file_action)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
-        widget.sig_save_action_enabled.disconnect(
-            application.enable_save_action
-        )
+        widget.sig_file_action_enabled.disconnect(self._enable_file_action)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1282,3 +1280,11 @@ class Editor(SpyderDockablePlugin):
         if debugger is None:
             return True
         return debugger.can_close_file(filename)
+
+    # ---- Methods related to Application plugin
+    def _enable_file_action(self, action_name: str, enabled: bool) -> None:
+        """
+        Enable or disable file action for this plugin.
+        """
+        application = self.get_plugin(Plugins.Application)
+        application.enable_file_action(action_name, enabled, self)
