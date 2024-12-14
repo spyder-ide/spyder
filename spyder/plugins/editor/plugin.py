@@ -393,7 +393,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_copy_as_action,
             widget.revert_action,
         ]
         for save_action in save_actions:
@@ -549,7 +548,6 @@ class Editor(SpyderDockablePlugin):
 
         # Save section
         save_actions = [
-            widget.save_copy_as_action,
             widget.revert_action,
         ]
         for save_action in save_actions:
@@ -1116,6 +1114,12 @@ class Editor(SpyderDockablePlugin):
         Save all files.
         """
         self.get_widget().save_as()
+
+    def save_copy_as(self) -> None:
+        """
+        Save copy of file under a different name.
+        """
+        self.get_widget().save_copy_as()
 
     def save_bookmark(self, slot_num):
         """

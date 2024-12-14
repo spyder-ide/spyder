@@ -11,7 +11,6 @@ Actions defined in the Spyder editor plugin.
 class EditorWidgetActions:
     # File operations
     RevertFileFromDisk = "Revert file from disk"
-    SaveCopyAs = "save_copy_as_action"
     PrintPreview = "print_preview_action"
     Print = "print_action"
     CloseFile = "Close current file"

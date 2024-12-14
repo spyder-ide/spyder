@@ -81,6 +81,7 @@ class ApplicationActions:
     SaveFile = "Save file"
     SaveAll = "Save all"
     SaveAs = "Save as"
+    SaveCopyAs = "save_copy_as_action"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -134,6 +135,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_save_file_as_requested = Signal()
     """
     Signal to request that the current file be saved under a different name.
+    """
+
+    sig_save_copy_as_requested = Signal()
+    """
+    Signal to request that copy of current file be saved under a new name.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -318,6 +324,13 @@ class ApplicationContainer(PluginMainContainer):
             triggered=self.sig_save_file_as_requested.emit,
             shortcut_context="main",
             register_shortcut=True
+        )
+        self.save_copy_as_action = self.create_action(
+            ApplicationActions.SaveCopyAs,
+            text=_("Save copy as..."),
+            icon=self.create_icon('filesaveas'),
+            tip=_("Save copy of current file as..."),
+            triggered=self.sig_save_copy_as_requested.emit
         )
 
         # Debug logs
