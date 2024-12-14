@@ -16,6 +16,7 @@ import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.plugins.application.api import ApplicationActions
 
 
 def test_focused_plugin(application_plugin):
@@ -91,27 +92,42 @@ def test_open_file(application_plugin):
     editor_plugin.load.assert_any_call('/home/file2')
 
 
-def test_enable_save_action(application_plugin):
+def test_enable_file_action(application_plugin):
     """
-    Test that enable_save_action does indeed enable or disable the "Save"
-    action.
+    Test that enable_file_action enables or disabled the specified file action
+    on the plugin, and that switching plugins updates whether actions are
+    enabled according to previous calls to enable_file_action.
     """
     container = application_plugin.get_container()
-    application_plugin.enable_save_action(True)
+    mock_plugin1 = Mock(CAN_HANDLE_FILE_ACTIONS=True)
+    mock_plugin2 = Mock()
+
+    # Initially, actions are enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
+    assert container.save_action.isEnabled() is True
+
+    # Disabling the Save action in the active plugin works
+    application_plugin.enable_file_action(
+        ApplicationActions.SaveFile, False, mock_plugin1
+    )
+    assert container.save_action.isEnabled() is False
+
+    # After changing to another plugin, the Save action is enabled again
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin2)
+    assert container.save_action.isEnabled() is True
+
+    # Disabling the Save action in the second plugin (which has focus) works
+    application_plugin.enable_file_action(
+        ApplicationActions.SaveFile, False, mock_plugin2
+    )
+    assert container.save_action.isEnabled() is False
+
+    # Enabling the Save action in the first plugin has no immediate effect
+    application_plugin.enable_file_action(
+        ApplicationActions.SaveFile, True, mock_plugin1
+    )
+    assert container.save_action.isEnabled() is False
+
+    # When changing to the first plugin, the Save action is enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
     assert container.save_action.isEnabled() == True
-
-    application_plugin.enable_save_action(False)
-    assert container.save_action.isEnabled() == False
-
-
-def test_enable_save_all_action(application_plugin):
-    """
-    Test that enable_save_all_action does indeed enable or disable the
-    "Save All" action.
-    """
-    container = application_plugin.get_container()
-    application_plugin.enable_save_all_action(True)
-    assert container.save_all_action.isEnabled() == True
-
-    application_plugin.enable_save_all_action(False)
-    assert container.save_all_action.isEnabled() == False
