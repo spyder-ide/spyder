@@ -602,11 +602,17 @@ class Application(SpyderPluginV2):
         """
         Save current file.
 
-        For the moment, this instructs the Editor plugin to save the current
-        file.
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin. Otherwise, save the current file in the
+        Editor plugin.
         """
-        editor = self.get_plugin(Plugins.Editor)
-        editor.save()
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save()
 
     def enable_save_action(self, state: bool) -> None:
         """

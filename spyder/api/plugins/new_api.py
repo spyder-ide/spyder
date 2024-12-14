@@ -990,8 +990,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     FILE_EXTENSIONS = []
     
     # Whether the plugin can handle file actions.
-    # If set to true, then the `create_new_file` and `open_last_closed`
-    # functions will be called to handle the corresponding actions.
+    # If set to true, then the `create_new_file`, `open_last_closed` and
+    # `save_file` functions will be called to handle the corresponding actions.
     CAN_HANDLE_FILE_ACTIONS = False
 
     # ---- API: Available signals
@@ -1109,6 +1109,16 @@ class SpyderDockablePlugin(SpyderPluginV2):
         This function will be called if the `File > Open last closed` menu item
         is selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS`
         is set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_file(self) -> None:
+        """
+        Save the current file.
+
+        This function will be called if the user saves the current file using
+        the `File > Save` menu item or the "Save file" button in the toolbar,
+        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
         """
         raise NotImplementedError
 
