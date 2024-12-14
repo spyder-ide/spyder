@@ -80,6 +80,7 @@ class ApplicationActions:
     ClearRecentFiles = "clear_recent_files_action"
     SaveFile = "Save file"
     SaveAll = "Save all"
+    SaveAs = "Save as"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -128,6 +129,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_save_all_requested = Signal()
     """
     Signal to request that all files in the current plugin be saved.
+    """
+
+    sig_save_file_as_requested = Signal()
+    """
+    Signal to request that the current file be saved under a different name.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -301,6 +307,15 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('save_all'),
             tip=_("Save all files"),
             triggered=self.sig_save_all_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.save_as_action = self.create_action(
+            ApplicationActions.SaveAs,
+            text=_("Save &as"),
+            icon=self.create_icon('filesaveas'),
+            tip=_("Save current file as..."),
+            triggered=self.sig_save_file_as_requested.emit,
             shortcut_context="main",
             register_shortcut=True
         )

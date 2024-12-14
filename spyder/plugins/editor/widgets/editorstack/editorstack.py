@@ -132,7 +132,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_split_vertically = Signal()
     sig_split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
-    sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
@@ -466,7 +465,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('Save As', self.sig_save_as),
             ('Close all', self.close_all_files),
             ("Last edit location", self.sig_prev_edit_pos),
             ("Previous cursor position", self.sig_prev_cursor),
@@ -534,7 +532,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "Open file",
             "Open last closed",
             "Save file",
-            "Save all"
+            "Save all",
+            "Save as"
         ]:
             self.register_shortcut_for_widget(
                 name=action_id,
