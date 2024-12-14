@@ -628,9 +628,17 @@ class Application(SpyderPluginV2):
 
     def save_file_as(self) -> None:
         """
-        Save current file in Editor plugin under a different name.
+        Save current file under a different name.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin under a different name. Otherwise, save
+        the current file in the Editor plugin under a different name.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file_as()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_as()
 
