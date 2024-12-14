@@ -72,7 +72,6 @@ logger = logging.getLogger(__name__)
 class EditorWidgetActions:
     # File operations
     RevertFileFromDisk = "Revert file from disk"
-    SaveAs = "Save As"
     SaveCopyAs = "save_copy_as_action"
     PrintPreview = "print_preview_action"
     Print = "print_action"
@@ -389,15 +388,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('revert'),
             tip=_("Revert file from disk"),
             triggered=self.revert
-        )
-        self.save_as_action = self.create_action(
-            EditorWidgetActions.SaveAs,
-            text=_("Save &as..."),
-            icon=self.create_icon('filesaveas'),
-            tip=_("Save current file as..."),
-            triggered=self.save_as,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
         )
         self.save_copy_as_action = self.create_action(
             EditorWidgetActions.SaveCopyAs,
@@ -840,7 +830,6 @@ class EditorMainWidget(PluginMainWidget):
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
-                self.save_as_action,
                 self.save_copy_as_action,
                 self.print_preview_action,
                 self.print_action,
@@ -1580,7 +1569,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
-        editorstack.sig_save_as.connect(self.save_as)
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(
             self.go_to_previous_cursor_position
