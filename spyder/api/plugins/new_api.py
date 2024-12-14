@@ -987,7 +987,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # If set to true, then the `create_new_file`, `open_last_closed_file`,
     # `save_file`, `save_file_as`, `save_copy_as`, `save_all`, `revert_file`,
     # `close_file` and `close_all` functions will be called to handle the
-    # corresponding actions.
+    # corresponding actions. Individual actions can be disabled with
+    # `enable_file_action` in the Applications plugin.
     CAN_HANDLE_FILE_ACTIONS = False
 
     # ---- API: Available signals

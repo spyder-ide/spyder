@@ -204,26 +204,16 @@ class EditorMainWidget(PluginMainWidget):
         be the new name.
     """
 
-    sig_save_action_enabled = Signal(bool)
+    sig_file_action_enabled = Signal(str, bool)
     """
-    This signal is emitted to enable or disable the 'Save' action.
+    This signal is emitted to enable or disable a file action.
 
     Parameters
     ----------
-    state: bool
-        True if the 'Save' action should be enabled, False if it should
-        disabled.
-    """
-
-    sig_save_all_action_enabled = Signal(bool)
-    """
-    This signal is emitted to enable or disable the 'Save All' action.
-
-    Parameters
-    ----------
-    state: bool
-        True if the 'Save All' action should be enabled, False if it should
-        disabled.
+    action_name: str
+        Name of the file action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
     """
 
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
@@ -1654,13 +1644,15 @@ class EditorMainWidget(PluginMainWidget):
         finfo = editorstack.get_current_finfo()
         if finfo:
             state = finfo.editor.document().isModified() or finfo.newly_created
-            self.sig_save_action_enabled.emit(state)
+        else:
+            state = False
+        self.sig_file_action_enabled.emit(ApplicationActions.SaveFile, state)
 
         state = any(
             finfo.editor.document().isModified() or finfo.newly_created
             for finfo in editorstack.data
         )
-        self.sig_save_all_action_enabled.emit(state)
+        self.sig_file_action_enabled.emit(ApplicationActions.SaveAll, state)
 
     def update_warning_menu(self):
         """Update warning list menu"""
