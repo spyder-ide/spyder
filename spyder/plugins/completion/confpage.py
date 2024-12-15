@@ -15,7 +15,8 @@ from spyder.api.preferences import PluginConfigPage
 
 
 class CompletionConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent, providers=[]):
+    def __init__(self, plugin, parent, providers=None):
+        providers = [] if providers is None else providers
         super().__init__(plugin, parent)
         self.providers = providers
 

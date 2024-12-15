@@ -498,7 +498,8 @@ class SnippetModelsProxy:
             model.delete_queue = list(model.snippets)
             self.load_snippets(language, model, defaults)
 
-    def load_snippets(self, language, model, snippets=None, to_add=[]):
+    def load_snippets(self, language, model, snippets=None, to_add=None):
+        to_add = [] if to_add is None else to_add
         snippets = iter_snippets(language, self.parent.get_option,
                                  self.parent.set_option,
                                  snippets=snippets)

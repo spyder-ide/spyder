@@ -56,7 +56,8 @@ class BuildCondaPkg:
     feedstock_branch = None
     shallow_ver = None
 
-    def __init__(self, data={}, debug=False, shallow=False):
+    def __init__(self, data=None, debug=False, shallow=False):
+        data = {} if data is None else data
         self.logger = getLogger(self.__class__.__name__)
         if not self.logger.handlers:
             self.logger.addHandler(h)

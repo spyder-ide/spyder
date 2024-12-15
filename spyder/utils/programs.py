@@ -71,7 +71,7 @@ def get_temp_dir(suffix=None):
     return tempdir
 
 
-def is_program_installed(basename, extra_paths=[]):
+def is_program_installed(basename, extra_paths=None):
     """
     Return program absolute path if installed in PATH.
     Otherwise, return None.
@@ -83,6 +83,7 @@ def is_program_installed(basename, extra_paths=[]):
 
     On macOS systems, a .app is considered installed if it exists.
     """
+    extra_paths = [] if extra_paths is None else extra_paths
     home = get_home_dir()
     req_paths = []
     if (
@@ -118,13 +119,14 @@ def is_program_installed(basename, extra_paths=[]):
             return abspath
 
 
-def find_program(basename, extra_paths=[]):
+def find_program(basename, extra_paths=None):
     """
     Find program in PATH and return absolute path
 
     Try adding .exe or .bat to basename on Windows platforms
     (return None if not found)
     """
+    extra_paths = [] if extra_paths is None else extra_paths
     names = [basename]
     if os.name == 'nt':
         # Windows platforms
@@ -657,11 +659,13 @@ def python_script_exists(package=None, module=None):
             return path
 
 
-def run_python_script(package=None, module=None, args=[], p_args=[]):
+def run_python_script(package=None, module=None, args=None, p_args=None):
     """
     Run Python script in a separate process
     package=None -> module is in sys.path (standard library modules)
     """
+    args = [] if args is None else args
+    p_args = [] if p_args is None else p_args
     assert module is not None
     assert isinstance(args, (tuple, list)) and isinstance(p_args, (tuple, list))
     path = python_script_exists(package, module)
