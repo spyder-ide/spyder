@@ -440,8 +440,9 @@ class DebuggerWidget(ShellConnectMainWidget):
                 action = self.get_action(action_name)
                 action.setEnabled(pdb_prompt)
 
-            self._set_visible_control_debugger_buttons(pdb_prompt or
-                                                       is_debugging)
+            self._set_visible_control_debugger_buttons(
+                pdb_prompt or is_debugging
+            )
 
             rows = self.breakpoints_table.selectionModel().selectedRows()
             initial_row = rows[0] if rows else None
