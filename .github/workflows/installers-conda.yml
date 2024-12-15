@@ -165,7 +165,7 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -174,7 +174,7 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -183,7 +183,7 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -262,8 +262,9 @@ jobs:
         run: |
           mkdir -p $CONDA_BLD_PATH
           conda config --set bld_path $CONDA_BLD_PATH
+          conda config --set conda_build.root-dir $CONDA_BLD_PATH
           conda index $CONDA_BLD_PATH
-          mamba search -c local --override-channels || true
+          conda search -c local --override-channels || true
 
       - name: Create Keychain
         if: runner.os == 'macOS' && env.NOTARIZE == 'true'
