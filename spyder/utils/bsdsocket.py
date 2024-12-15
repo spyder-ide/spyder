@@ -96,6 +96,7 @@ def read_packet(sock, timeout=None):
 # spyder-ide/spyder#857.
 COMMUNICATE_LOCK = threading.Lock()
 
+
 # * Old com implementation *
 # See solution (1) in spyder-ide/spyder#434, comment 13:
 def communicate(sock, command, settings=None):

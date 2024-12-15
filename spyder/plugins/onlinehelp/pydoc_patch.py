@@ -164,7 +164,9 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
         """Make a link to source file."""
         return '<a href="file:%s">%s</a>' % (url, path)
 
-    def markup(self, text, escape=None, funcs=None, classes=None, methods=None):
+    def markup(
+        self, text, escape=None, funcs=None, classes=None, methods=None
+    ):
         """
         Mark up some plain text, given a context of symbols to look for.
 
