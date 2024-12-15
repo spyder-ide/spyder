@@ -146,7 +146,7 @@ class AnsiCodeProcessor(object):
             self.actions.append(NewLineAction('newline'))
             yield None
 
-    def set_csi_code(self, command, params=[]):
+    def set_csi_code(self, command, params=None):
         """ Set attributes based on CSI (Control Sequence Introducer) code.
 
         Parameters
@@ -157,6 +157,7 @@ class AnsiCodeProcessor(object):
         params : sequence of integers, optional
             The parameter codes for the command.
         """
+        params = [] if params is None else params
         if command == 'm':   # SGR - Select Graphic Rendition
             if params:
                 self.set_sgr_code(params)
@@ -196,7 +197,7 @@ class AnsiCodeProcessor(object):
             dir = 'leftup'
             count = params[0] if params else 1
             self.actions.append(MoveAction('move', dir, 'line', count))
-        
+
 
     def set_osc_code(self, params):
         """ Set attributes based on OSC (Operating System Command) parameters.

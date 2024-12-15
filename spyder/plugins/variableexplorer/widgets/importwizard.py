@@ -267,7 +267,8 @@ class ContentsWidget(QWidget):
 
 class PreviewTableModel(QAbstractTableModel):
     """Import wizard preview table model"""
-    def __init__(self, data=[], parent=None):
+    def __init__(self, data=None, parent=None):
+        data = [] if data is None else data
         QAbstractTableModel.__init__(self, parent)
         self._data = data
 

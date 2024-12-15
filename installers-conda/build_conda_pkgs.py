@@ -48,6 +48,9 @@ class BuildCondaPkg:
 
     def __init__(self, data={}, debug=False):
         self.logger = logger.getChild(self.__class__.__name__)
+        if not self.logger.handlers:
+            self.logger.addHandler(h)
+        self.logger.setLevel('INFO')
 
         self.debug = debug
 
