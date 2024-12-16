@@ -420,8 +420,14 @@ class GenericSH(BaseSH):
 #==============================================================================
 # Python syntax highlighter
 #==============================================================================
-def make_python_patterns(additional_keywords=[], additional_builtins=[]):
+def make_python_patterns(additional_keywords=None, additional_builtins=None):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    additional_keywords = (
+        [] if additional_keywords is None else additional_keywords
+    )
+    additional_builtins = (
+        [] if additional_builtins is None else additional_builtins
+    )
     kwlist = keyword.kwlist + additional_keywords
     builtinlist = [str(name) for name in dir(builtins)
                    if not name.startswith('_')] + additional_builtins
