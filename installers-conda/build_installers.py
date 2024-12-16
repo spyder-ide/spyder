@@ -137,9 +137,9 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
         if extra_specs or no_local:
             rt_specs = yaml.load(env_file.read_text())
 
-            if not no_local:
+            if not no_local and os.getenv("CONDA_BLD_PATH"):
                 # Add local channel
-                rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH", ""))
+                rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH"))
 
             if extra_specs:
                 # Update runtime environment dependencies
