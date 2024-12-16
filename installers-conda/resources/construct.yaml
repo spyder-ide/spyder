@@ -3,11 +3,11 @@
 {% set INSTALL_TYPE = environ["INSTALL_TYPE"] or "exe" %}
 {% set INSTALL_VER = environ["INSTALL_VER"] %}
 {% set RESOURCE_PATH = environ["REPO_PATH"] + '/installers-conda/resources/' %}  # [linux or osx]
-{% set RESOURCE_PATH = environ["REPO_PATH"] + '\installers-conda\resources\' %}  # [win]
+{% set RESOURCE_PATH = environ["REPO_PATH"] + '\\installers-conda\\resources\\' %}  # [win]
 {% set BUILD_PATH = environ["REPO_PATH"] + '/installers-conda/build/' %}  # [linux or osx]
-{% set BUILD_PATH = environ["REPO_PATH"] + '\installers-conda\build\' %}  # [win]
+{% set BUILD_PATH = environ["REPO_PATH"] + '\\installers-conda\\build\\' %}  # [win]
 {% set CERT_ID = environ["CERT_ID"] %}  # [osx]
-{% set WIN_SIGN_CERT = environ["WIN_SIGN_CERT"] %}
+{% set WIN_SIGN_CERT = environ["WIN_SIGN_CERT"] or "" %}  # [win]
 
 # ---- Installer parameters
 
@@ -43,9 +43,9 @@ signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
 # ---- Payload parameters
 
 default_prefix: $HOME/.local/spyder-6  # [linux or osx]
-default_prefix: '%LOCALAPPDATA%/spyder-6'  # [win]
-default_prefix_domain_user: '%LOCALAPPDATA%/spyder-6'  # [win]
-default_prefix_all_users: '%ALLUSERSPROFILE%/spyder-6'  # [win]
+default_prefix: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix_domain_user: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix_all_users: '%ALLUSERSPROFILE%\spyder-6'  # [win]
 
 pre_install: {{ RESOURCE_PATH }}pre-install.sh  # [linux or osx]
 pre_install: {{ RESOURCE_PATH }}pre-install.bat  # [win]
@@ -57,7 +57,7 @@ extra_files:
   - {{ RESOURCE_PATH }}bundle_readme.md: README.txt
   - {{ RESOURCE_PATH }}condarc: .condarc
   - {{ RESOURCE_PATH }}menuinst_cli.py: bin/menuinst_cli.py  # [linux or osx]
-  - {{ RESOURCE_PATH }}menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
+  - {{ RESOURCE_PATH }}menuinst_cli.py: Scripts\menuinst_cli.py  # [win]
 
 initialize_by_default: false
 initialize_conda: false
