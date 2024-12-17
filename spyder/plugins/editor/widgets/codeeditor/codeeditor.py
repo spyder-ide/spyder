@@ -740,9 +740,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.removeSelectedText()
                     else:
                         self._handle_keypress_event(event)
+            # ---- handle home, end
+            elif key == Qt.Key.Key_Home:
+                increasing_position = False
+                self.stdkey_home(shift, ctrl)
+            elif key == Qt.Key.Key_End:
+                # See spyder-ide/spyder#495: on MacOS X, it is necessary to
+                # redefine this basic action which should have been implemented
+                # natively
+                self.stdkey_end(shift, ctrl)
             # ---- use default handler for cursor (text)
             else:
-                if key in (Qt.Key.Key_Up, Qt.Key.Key_Left, Qt.Key.Key_Home):
+                if key in (Qt.Key.Key_Up, Qt.Key.Key_Left):
                     increasing_position = False
                 if (key in (Qt.Key.Key_Up, Qt.Key.Key_Down) and
                         cursor.verticalMovementX() == -1):
