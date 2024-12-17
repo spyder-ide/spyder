@@ -86,8 +86,17 @@ def listdict2envdict(listdict):
     return listdict
 
 
+def get_user_environment_variables(clear_cache=False):
+    if clear_cache:
+        _get_user_environment_variables.cache_clear()
+
+    # Return copy in order to protect the cached object from mutation
+    env_var = _get_user_environment_variables().copy()
+    return env_var
+
+
 @lru_cache
-def get_user_environment_variables():
+def _get_user_environment_variables():
     """
     Get user environment variables from a subprocess.
 
@@ -170,7 +179,7 @@ def set_user_env(env, parent=None):
                   "Please restart this Windows <i>session</i> "
                   "(not the computer) for changes to take effect.")
             )
-        get_user_environment_variables.cache_clear()
+        _get_user_environment_variables.cache_clear()
     elif os.name == 'posix' and running_in_ci():
         text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
         amend_user_shell_init(text)
@@ -214,7 +223,7 @@ def amend_user_shell_init(text="", restore=False):
         _script = script.rstrip() + "\n\n" + new_text
 
     init_file.write_text(_script.rstrip() + "\n")
-    get_user_environment_variables.cache_clear()
+    _get_user_environment_variables.cache_clear()
 
 
 def clean_env(env_vars):
