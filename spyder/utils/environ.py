@@ -86,7 +86,20 @@ def listdict2envdict(listdict):
     return listdict
 
 
-def get_user_environment_variables(clear_cache=False):
+def get_user_environment_variables(clear_cache: bool = False) -> dict:
+    """
+    Get cached user environment variables.
+
+    Parameters
+    ----------
+    clear_cache : bool (False)
+        Get user environment variables after resetting the cache.
+
+    Returns
+    -------
+    env_var : dict
+        Key-value pairs of environment variables.
+    """
     if clear_cache:
         _get_user_environment_variables.cache_clear()
 
@@ -96,9 +109,9 @@ def get_user_environment_variables(clear_cache=False):
 
 
 @lru_cache
-def _get_user_environment_variables():
+def _get_user_environment_variables() -> dict:
     """
-    Get user environment variables from a subprocess.
+    Get user environment variables from a subprocess and cache the result.
 
     Returns
     -------
