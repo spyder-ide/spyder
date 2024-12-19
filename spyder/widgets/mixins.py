@@ -24,7 +24,7 @@ from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
@@ -1497,6 +1497,30 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def inputMethodQuery(self, query):
+        """
+        Prevent Chinese input method to block edit input area.
+
+        Notes
+        -----
+        This was suggested by a user in spyder-ide/spyder#23313. So, it's not
+        tested by us.
+        """
+        if query == Qt.ImInputItemClipRectangle:
+            cursor_rect = self.cursorRect()
+            margins = self.viewportMargins()
+            cursor_rect.moveTopLeft(
+                cursor_rect.topLeft() + QPoint(margins.left(), margins.top())
+            )
+            return cursor_rect
+
+        if isinstance(self, QPlainTextEdit):
+            QPlainTextEdit.inputMethodQuery(self, query)
+        elif isinstance(self, QTextEdit):
+            QTextEdit.inputMethodQuery(self, query)
 
 
 class TracebackLinksMixin(object):
