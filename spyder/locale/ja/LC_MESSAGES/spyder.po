@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-11-29 16:23-0500\n"
-"PO-Revision-Date: 2024-11-29 21:41\n"
+"PO-Revision-Date: 2024-12-19 04:48\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -563,11 +563,11 @@ msgstr "エディタ"
 
 #: spyder/plugins/appearance/confpage.py:164
 msgid "Interface font"
-msgstr ""
+msgstr "インターフェイスフォント"
 
 #: spyder/plugins/appearance/confpage.py:208
 msgid "Previews"
-msgstr ""
+msgstr "プレビュー"
 
 #: spyder/plugins/appearance/confpage.py:532 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:423 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editorstack/editorstack.py:399 spyder/plugins/ipythonconsole/widgets/main_widget.py:2309 spyder/plugins/ipythonconsole/widgets/main_widget.py:2409 spyder/plugins/layout/container.py:308 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:498 spyder/plugins/layout/plugin.py:515 spyder/plugins/maininterpreter/confpage.py:187 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:151 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:552 spyder/utils/environ.py:169 spyder/utils/environ.py:249 spyder/utils/environ.py:280 spyder/widgets/collectionseditor.py:1220 spyder/widgets/collectionseditor.py:1402 spyder/widgets/collectionseditor.py:1414
 msgid "Warning"
@@ -745,7 +745,7 @@ msgstr "Spyderサポート..."
 
 #: spyder/plugins/application/container.py:143
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Spyder ヘルプ..."
 
 #: spyder/plugins/application/container.py:151
 msgid "About %s..."
@@ -825,7 +825,7 @@ msgstr "メインアプリケーションベースのアクションを提供し
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "Spyderについて"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -845,11 +845,11 @@ msgstr "バージョン情報をコピー"
 
 #: spyder/plugins/application/widgets/status.py:44
 msgid "Help Spyder"
-msgstr ""
+msgstr "Spyderヘルプ"
 
 #: spyder/plugins/application/widgets/status.py:148
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Spyderヘルプ！"
 
 #: spyder/plugins/completion/confpage.py:28
 msgid "Providers"
@@ -4441,7 +4441,7 @@ msgstr "クラッシュファイルの場所:"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1412
 msgid "It was not possible to connect to the kernel. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "カーネルに接続できませんでした。 既存のカーネルに接続しようとしている場合、選択した接続ファイルが実際に接続したいカーネルに対応していることを確認してください"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1487
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
@@ -5455,7 +5455,7 @@ msgstr "サーバー情報取得エラー"
 
 #: spyder/plugins/remoteclient/api/client.py:451
 msgid "Error connecting to the remote server"
-msgstr ""
+msgstr "リモートサーバーへの接続エラー"
 
 #: spyder/plugins/remoteclient/api/client.py:556
 msgid "We're establishing the connection. Please be patient"
@@ -5587,7 +5587,7 @@ msgstr "接続情報"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:729
 msgid "Remote connections"
-msgstr ""
+msgstr "リモート接続"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:765
 msgid "Save connection"
@@ -5671,7 +5671,7 @@ msgstr "サーバー <b>{}</b>への接続時にエラーが発生しました�
 
 #: spyder/plugins/remoteclient/widgets/container.py:278
 msgid "Remote server error"
-msgstr ""
+msgstr "リモートサーバーエラー"
 
 #: spyder/plugins/remoteclient/widgets/container.py:279
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
