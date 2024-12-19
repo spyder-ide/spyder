@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2024-11-29 16:23-0500\n"
-"PO-Revision-Date: 2024-12-19 04:48\n"
+"PO-Revision-Date: 2024-12-19 06:24\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -5675,7 +5675,7 @@ msgstr "リモートサーバーエラー"
 
 #: spyder/plugins/remoteclient/widgets/container.py:279
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
-msgstr ""
+msgstr "この <tt>Spyderリモートサービス</tt> はリモートホスト<b>{server}</b> (<b>{srs_version}</b>)で動作しており、ローカルのSpyderがサポートするバージョン (<b>{max_version}</b>)よりも新しいです。<br><br>このホストに接続するためにはSpyderをアップデートして下さい。"
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
@@ -6251,7 +6251,7 @@ msgstr "ツアーを実行するには、(非フルスクリーンモードで) 
 
 #: spyder/plugins/tours/widgets.py:1078
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyderツアー"
 
 #: spyder/plugins/tours/widgets.py:1103
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
