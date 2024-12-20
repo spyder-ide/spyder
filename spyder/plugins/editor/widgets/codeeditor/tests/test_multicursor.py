@@ -26,26 +26,31 @@ def click_at(codeeditor, qtbot, position, ctrl=False, alt=False, shift=False):
         modifiers |= Qt.KeyboardModifier.AltModifier
     if shift:
         modifiers |= Qt.KeyboardModifier.ShiftModifier
-    qtbot.mouseClick(codeeditor.viewport(),
-                     Qt.MouseButton.LeftButton,
-                     modifiers,
-                     pos=point)
+
+    qtbot.mouseClick(
+        codeeditor.viewport(),
+        Qt.MouseButton.LeftButton,
+        modifiers,
+        pos=point
+    )
 
 
 def test_add_cursor(codeeditor, qtbot):
-    # enabled by default arg on CodeEditor.setup_editor (which is called in the
-    #    pytest fixture creation in conftest.py)
+    # Enabled by default arg on CodeEditor.setup_editor (which is called in the
+    # pytest fixture creation in conftest.py)
     assert codeeditor.multi_cursor_enabled
     assert codeeditor.cursorWidth() == 0  # required for multi-cursor rendering
     codeeditor.set_text("0123456789")
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+
     # A cursor was added
     assert bool(codeeditor.extra_cursors)
     qtbot.keyClick(codeeditor, "a")
+
     # Text was inserted correctly from two cursors
     assert codeeditor.toPlainText() == "a012345a6789"
 
-    # regular click to set main cursor and clear extra cursors
+    # Regular click to set main cursor and clear extra cursors
     click_at(codeeditor, qtbot, 6)
     assert not bool(codeeditor.extra_cursors)
     qtbot.keyClick(codeeditor, "b")
@@ -55,9 +60,11 @@ def test_add_cursor(codeeditor, qtbot):
 def test_column_add_cursor(codeeditor, qtbot):
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
-    cursor.movePosition(QTextCursor.MoveOperation.Down,
-                        QTextCursor.MoveMode.MoveAnchor,
-                        3)
+    cursor.movePosition(
+        QTextCursor.MoveOperation.Down,
+        QTextCursor.MoveMode.MoveAnchor,
+        3
+    )
     codeeditor.setTextCursor(cursor)
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
 
@@ -72,15 +79,19 @@ def test_settings_toggle(codeeditor, qtbot):
     assert codeeditor.cursorWidth() == 0  # required for multi-cursor rendering
     codeeditor.set_text("0123456789\n0123456789\n")
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+
     # A cursor was added
     assert bool(codeeditor.extra_cursors)
     codeeditor.toggle_multi_cursor(False)
+
     # Extra cursors removed on settings toggle
     assert not bool(codeeditor.extra_cursors)
     click_at(codeeditor, qtbot, 3, ctrl=True, alt=True)
+
     # Extra cursors not added wnen settings "multi-cursor enabled" is False
     assert not bool(codeeditor.extra_cursors)
     click_at(codeeditor, qtbot, 13, ctrl=True, alt=True, shift=True)
+
     # Column cursors not added wnen settings "multi-cursor enabled" is False
     assert not bool(codeeditor.extra_cursors)
 
@@ -88,9 +99,11 @@ def test_settings_toggle(codeeditor, qtbot):
 def test_extra_selections_decoration(codeeditor, qtbot):
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
-    cursor.movePosition(QTextCursor.MoveOperation.Down,
-                        QTextCursor.MoveMode.MoveAnchor,
-                        3)  # column 0 row 4
+    cursor.movePosition(
+        QTextCursor.MoveOperation.Down,
+        QTextCursor.MoveMode.MoveAnchor,
+        3  # column 0 row 4
+    )
     codeeditor.setTextCursor(cursor)
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
     selections = codeeditor.get_extra_selections("extra_cursor_selections")

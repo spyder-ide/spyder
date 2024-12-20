@@ -2813,9 +2813,11 @@ class EditorMainWidget(PluginMainWidget):
                 return filename, cursors
             if len(cursors) != len(current_cursors):
                 return filename, cursors
+
             for cursor, current_cursor in zip(cursors, current_cursors):
                 if cursor.position() != current_cursor.position():
                     return filename, cursors
+
         return None, None
 
     def _history_step(self, backwards_history, forwards_history,
@@ -2832,6 +2834,7 @@ class EditorMainWidget(PluginMainWidget):
                 self._pop_next_cursor_diff(
                     forwards_history,
                     current_filename, current_cursors))
+
         if current_cursors is None:
             # Went too far, back up once
             current_filename, current_cursors = (

@@ -165,8 +165,7 @@ class FileInfo(QObject):
         self.default = False
         all_cursors = self.editor.all_cursors
         positions = tuple(cursor.position() for cursor in all_cursors)
-        self.text_changed_at.emit(self.filename,
-                                  positions)
+        self.text_changed_at.emit(self.filename, positions)
 
     def get_source_code(self):
         """Return associated editor source code."""
