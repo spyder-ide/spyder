@@ -32,9 +32,9 @@ from qtpy import QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent,
-                        QPainter, QMouseEvent, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
+from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
+                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
+                        QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
@@ -60,7 +60,8 @@ from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
-from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import MultiCursorMixin
+from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
+    MultiCursorMixin,)
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import to_text_string, is_string
