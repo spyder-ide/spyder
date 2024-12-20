@@ -1035,8 +1035,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
-            # TODO should multi-cursor wrappers be applied as decorator to
-            #    function definitions instead where possible?
+            # TODO: Should multi-cursor wrappers be applied as decorator to
+            # function definitions instead where possible?
             ('code completion', self.restrict_single_cursor(
                 self.do_completion)),
             ('duplicate line down', self.duplicate_line_down),
@@ -1782,9 +1782,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self.setTextCursor(cursor)
             self.sig_delete_requested.emit()
             new_cursors.append(self.textCursor())
+
         # Signal all cursors first to call FoldingPanel._expand_selection
-        #    before calling deleteChar. This fixes some issues with deletion
-        #    order invalidating FoldingPanel properties in the wrong order
+        # before calling deleteChar. This fixes some issues with deletion
+        # order invalidating FoldingPanel properties in the wrong order
         for cursor in new_cursors:
             cursor.deleteChar()
             self.setTextCursor(cursor)
@@ -1810,9 +1811,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                     break
                 cursor.movePosition(QTextCursor.NextBlock,
                                     QTextCursor.KeepAnchor)
+
             self.setTextCursor(cursor)
+
             # Text folding looks for sig_delete_requested to expand selection
-            #    to entire folded region.
+            # to entire folded region.
             self.sig_delete_requested.emit()
             cursors.append(self.textCursor())
 
@@ -2443,6 +2446,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.extra_cursors:
             self.multi_cursor_cut()
             return
+
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
             self.select_current_line_and_sep()
@@ -2459,6 +2463,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         if self.extra_cursors:
             self.multi_cursor_copy()
             return
+
         TextEditBaseWidget.copy(self)
         self._save_clipboard_indentation()
 
@@ -3494,8 +3499,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         """Un-block comment current line or selection helper."""
         def __is_comment_bar(cursor):
             return to_text_string(cursor.block().text()).startswith(
-                         self.__blockcomment_bar(compatibility=compatibility)
-                         )
+                self.__blockcomment_bar(compatibility=compatibility)
+            )
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
@@ -4164,7 +4169,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             self._set_completions_hint_idle()
 
         # Only set overwrite mode during key handling to allow correct painting
-        #   of multiple overwrite cursors. Must unset overwrite before return.
+        # of multiple overwrite cursors. Must unset overwrite before return.
         self.setOverwriteMode(self.overwrite_mode)
         self.start_cursor_blink()  # reset cursor blink by reseting timer
         if self.extra_cursors:
@@ -4388,6 +4393,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
+
         self.setOverwriteMode(False)
 
     def do_automatic_completions(self):
@@ -4757,9 +4763,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
     def duplicate_line_up(self):
         """Duplicate current line or selection"""
-        # TODO selection anchor is wrong (selects original and new line) if
-        #    selection starts or ends at the beginning of a block (for extra
-        #    cursors only, main cursor is fine).
+        # TODO: Selection anchor is wrong (selects original and new line) if
+        # selection starts or ends at the beginning of a block (for extra
+        # cursors only, main cursor is fine).
         self._unfold_lines()
         self.for_each_cursor(super().duplicate_line_up)()
 
@@ -4769,7 +4775,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.for_each_cursor(super().duplicate_line_down)()
 
     def _unfold_lines(self):
-        """for each cursor: unfold current line if folded"""
+        """Unfold current line if folded for each cursor."""
         for cursor in self.all_cursors:
             # Unfold any folded code block before duplicating lines up/down
             fold_start_line = cursor.blockNumber() + 1
@@ -4788,15 +4794,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
         self.__move_line_or_selection(after_current_line=True)
 
     def __move_line_or_selection(self, after_current_line=True):
-        # TODO multi-cursor implementation improperly handles moving multiple
-        #    cursors up against the end of the file (lines get swapped)
-        # TODO multi-cursor implementation improperly handles multiple cursors
-        #    on the same line.
+        # TODO: Multi-cursor implementation improperly handles moving multiple
+        # cursors up against the end of the file (lines get swapped)
+        # TODO: Multi-cursor implementation improperly handles multiple cursors
+        # on the same line.
         self.textCursor().beginEditBlock()
         self.multi_cursor_ignore_history = True
-        sorted_cursors = sorted(self.all_cursors,
-                                key=lambda cursor: cursor.position(),
-                                reverse=after_current_line)
+        sorted_cursors = sorted(
+            self.all_cursors,
+            key=lambda cursor: cursor.position(),
+            reverse=after_current_line
+        )
+
         new_cursors = []
         for cursor in sorted_cursors:
             self.setTextCursor(cursor)
@@ -4822,8 +4831,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 block = cursor.block()
                 offset = 0
                 if self.has_selected_text():
-                    ((selection_start, _),
-                     (selection_end)) = self.get_selection_start_end()
+                    (
+                        (selection_start, _),
+                        (selection_end),
+                    ) = self.get_selection_start_end()
                     if selection_end != selection_start:
                         offset = 1
                 fold_start_line = block.blockNumber() - 1 - offset
@@ -4848,6 +4859,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                 after_current_line=after_current_line
             )
             new_cursors.append(self.textCursor())
+
         self.extra_cursors = new_cursors[:-1]
         self.setTextCursor(new_cursors[-1])
         self.merge_extra_cursors(True)
@@ -4924,19 +4936,24 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
     def mousePressEvent(self, event: QKeyEvent):
         """Override Qt method."""
         self.hide_tooltip()
+
         ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
         shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
         cursor_for_pos = self.cursorForPosition(event.pos())
         self._mouse_left_button_pressed = event.button() == Qt.LeftButton
 
-        if (self.multi_cursor_enabled and event.button() == Qt.LeftButton and
-                ctrl and alt):
+        if (
+            self.multi_cursor_enabled
+            and event.button() == Qt.LeftButton
+            and ctrl
+            and alt
+        ):
             # ---- Ctrl-Alt: multi-cursor mouse interactions
             self.multi_cursor_ignore_history = True
             if shift:
                 # Ctrl-Shift-Alt click adds colum of cursors towards primary
-                #    cursor
+                # cursor
                 first_cursor = self.textCursor()
                 anchor_block = first_cursor.block()
                 anchor_col = first_cursor.anchor() - anchor_block.position()
@@ -4945,7 +4962,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
 
                 # Move primary cursor to pos_col
                 p_col = min(len(anchor_block.text()), pos_col)
-                # block.length() includes line seperator? just /n?
+
+                # block.length() includes line separator? just \n?
                 # use len(block.text()) instead
                 first_cursor.setPosition(anchor_block.position() + p_col,
                                          QTextCursor.MoveMode.KeepAnchor)
@@ -4970,14 +4988,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         cursor.setPosition(block.position() + p_col,
                                            QTextCursor.MoveMode.KeepAnchor)
                         self.add_cursor(cursor)
-
             else:  # Ctrl-Alt click adds and removes cursors
-                # move existing primary cursor to extra_cursors list and set
-                #   new primary cursor
+                # Move existing primary cursor to extra_cursors list and set
+                # new primary cursor
                 old_cursor = self.textCursor()
 
+                # Don't attempt to remove cursor if there's only one
                 removed_cursor = False
-                # don't attempt to remove cursor if there's only one
                 if self.extra_cursors:
                     same_cursor = None
                     for cursor in self.all_cursors:
@@ -4998,18 +5015,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                             )
                             self.extra_cursors.remove(new_primary)
                             self.setTextCursor(new_primary)
-                        # possibly clear selection of removed cursor
+
+                        # Possibly clear selection of removed cursor
                         self.set_extra_cursor_selections()
 
                 if not removed_cursor:
                     self.setTextCursor(cursor_for_pos)
                     self.add_cursor(old_cursor)
+
             self.multi_cursor_ignore_history = False
             self.cursorPositionChanged.emit()
         else:
             # ---- not multi-cursor
             if event.button() == Qt.MouseButton.LeftButton:
                 self.clear_extra_cursors()
+
             if event.button() == Qt.LeftButton and ctrl:
                 TextEditBaseWidget.mousePressEvent(self, event)
                 uri = self._last_hover_pattern_text
