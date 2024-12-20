@@ -4359,9 +4359,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def __move_line_or_selection(self, after_current_line=True):
         # TODO: Multi-cursor implementation improperly handles moving multiple
-        # cursors up against the end of the file (lines get swapped)
-        # TODO: Multi-cursor implementation improperly handles multiple cursors
-        # on the same line.
+        # cursors up against the start or end of the file (lines get swapped)
         self.textCursor().beginEditBlock()
         self.multi_cursor_ignore_history = True
         sorted_cursors = sorted(
@@ -4369,9 +4367,18 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             key=lambda cursor: cursor.position(),
             reverse=after_current_line
         )
+        lines_to_move = set()
+        one_cursor_per_line = []
+        for cursor in sorted_cursors:
+            line_number = cursor.block().blockNumber()
+            if line_number in lines_to_move:
+                continue
+            else:
+                one_cursor_per_line.append(cursor)
+                lines_to_move.add(line_number)
 
         new_cursors = []
-        for cursor in sorted_cursors:
+        for cursor in one_cursor_per_line:
             self.setTextCursor(cursor)
 
             # Unfold any folded code block before moving lines up/down
