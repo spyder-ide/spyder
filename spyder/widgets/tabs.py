@@ -639,6 +639,7 @@ class Tabs(BaseTabs, SpyderShortcutsMixin):
                  split_index=0):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
+        SpyderShortcutsMixin.__init__(self)
         tab_bar = TabBar(self, parent,
                          rename_tabs=rename_tabs,
                          split_char=split_char,
