@@ -803,7 +803,7 @@ class FoldingPanel(Panel):
         """Expands all fold triggers."""
         block = self.editor.document().firstBlock()
         while block.isValid():
-            line_number = block.BlockNumber()
+            line_number = block.blockNumber()
             if line_number in self.folding_regions:
                 end_line = self.folding_regions[line_number]
                 self.unfold_region(block, line_number, end_line)
