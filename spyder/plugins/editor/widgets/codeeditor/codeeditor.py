@@ -4303,7 +4303,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget):
                         if fold_status:
                             self.folding_panel.toggle_fold_trigger(block)
 
-        self._TextEditBaseWidget__move_line_or_selection(
+        self.move_line_or_selection(
             after_current_line=after_current_line
         )
 
