@@ -881,14 +881,6 @@ class TextEditBaseWidget(
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
 
-    def move_line_up(self):
-        """Move up current line or selected text"""
-        self.move_line_or_selection(after_current_line=False)
-
-    def move_line_down(self):
-        """Move down current line or selected text"""
-        self.move_line_or_selection(after_current_line=True)
-
     def go_to_new_line(self):
         """Go to the end of the current line and create a new line"""
         self.stdkey_end(False, False)
