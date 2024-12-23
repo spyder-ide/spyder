@@ -324,13 +324,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.revert_action = self.create_action(
-            EditorWidgetActions.RevertFileFromDisk,
-            text=_("&Revert"),
-            icon=self.create_icon('revert'),
-            tip=_("Revert file from disk"),
-            triggered=self.revert
-        )
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
             text=_("Print preview..."),
@@ -772,7 +765,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.close_file_action,
                 self.close_all_action,
                 self.toggle_comment_action,
-                self.revert_action,
                 self.indent_action,
                 self.unindent_action
             ]

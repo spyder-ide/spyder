@@ -77,6 +77,7 @@ class Application(SpyderPluginV2):
         container.sig_save_all_requested.connect(self.save_all)
         container.sig_save_file_as_requested.connect(self.save_file_as)
         container.sig_save_copy_as_requested.connect(self.save_copy_as)
+        container.sig_revert_file_requested.connect(self.revert_file)
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -248,6 +249,7 @@ class Application(SpyderPluginV2):
             container.save_all_action,
             container.save_as_action,
             container.save_copy_as_action,
+            container.revert_action
         ]
         for save_action in save_actions:
             mainmenu.add_item_to_application_menu(
@@ -380,6 +382,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.SaveAll,
             ApplicationActions.SaveAs,
             ApplicationActions.SaveCopyAs,
+            ApplicationActions.RevertFile,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -594,6 +597,14 @@ class Application(SpyderPluginV2):
         if self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.save_all()
+
+    def revert_file(self) -> None:
+        """
+        Revert current file in Editor plugin to version on disk.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.revert_file()
 
     def enable_save_action(self, state: bool) -> None:
         """
