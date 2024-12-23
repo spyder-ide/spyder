@@ -83,6 +83,7 @@ class ApplicationActions:
     SaveAs = "Save as"
     SaveCopyAs = "save_copy_as_action"
     RevertFile = "Revert file"
+    CloseFile = "Close file"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -146,6 +147,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_revert_file_requested = Signal()
     """
     Signal to request that the current file be reverted from disk.
+    """
+
+    sig_close_file_requested = Signal()
+    """
+    Signal to request that the current file be closed.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -344,6 +350,13 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('revert'),
             tip=_("Revert file from disk"),
             triggered=self.sig_revert_file_requested.emit
+        )
+        self.close_file_action = self.create_action(
+            ApplicationActions.CloseFile,
+            text=_("&Close"),
+            icon=self.create_icon('fileclose'),
+            tip=_("Close current file"),
+            triggered=self.sig_close_file_requested.emit
         )
 
         # Debug logs
