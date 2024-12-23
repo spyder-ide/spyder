@@ -71,7 +71,6 @@ logger = logging.getLogger(__name__)
 
 class EditorWidgetActions:
     # File operations
-    RevertFileFromDisk = "Revert file from disk"
     PrintPreview = "print_preview_action"
     Print = "print_action"
     CloseFile = "Close current file"
@@ -381,13 +380,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.revert_action = self.create_action(
-            EditorWidgetActions.RevertFileFromDisk,
-            text=_("&Revert"),
-            icon=self.create_icon('revert'),
-            tip=_("Revert file from disk"),
-            triggered=self.revert
-        )
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
             text=_("Print preview..."),
@@ -829,7 +821,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.close_file_action,
                 self.close_all_action,
                 self.toggle_comment_action,
-                self.revert_action,
                 self.indent_action,
                 self.unindent_action
             ]
@@ -1432,8 +1423,12 @@ class EditorMainWidget(PluginMainWidget):
             ApplicationActions.SaveFile,
             plugin=Plugins.Application
         )
+        revert_action = self.get_action(
+            ApplicationActions.RevertFile,
+            plugin=Plugins.Application
+        )
         editorstack.set_io_actions(new_action, open_action,
-                                   save_action, self.revert_action)
+                                   save_action, revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
