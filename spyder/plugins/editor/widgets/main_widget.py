@@ -337,13 +337,6 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Print current file..."),
             triggered=self.print_file
         )
-        self.close_file_action = self.create_action(
-            EditorWidgetActions.CloseFile,
-            text=_("&Close"),
-            icon=self.create_icon('fileclose'),
-            tip=_("Close current file"),
-            triggered=self.close_file
-        )
         self.close_all_action = self.create_action(
             EditorWidgetActions.CloseAll,
             text=_("C&lose all"),
@@ -762,7 +755,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.print_action,
                 self.gotoline_action,
                 self.workdir_action,
-                self.close_file_action,
                 self.close_all_action,
                 self.toggle_comment_action,
                 self.indent_action,

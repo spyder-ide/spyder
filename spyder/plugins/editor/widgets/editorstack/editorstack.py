@@ -473,8 +473,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ("zoom in 2", self.zoom_in),
             ("zoom out", self.zoom_out),
             ("zoom reset", self.zoom_reset),
-            ("close file 1", self.close_file),
-            ("close file 2", self.close_file),
             ("go to next cell", self.advance_cell),
             ("go to previous cell", lambda: self.advance_cell(reverse=True)),
             ("Previous warning", self.sig_prev_warning),
@@ -527,16 +525,25 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
 
         # Register shortcuts for file actions defined in Applications plugin
-        for action_id in [
+        for shortcut_name in [
             "New file",
             "Open file",
             "Open last closed",
             "Save file",
             "Save all",
-            "Save as"
+            "Save as",
+            "Close file 1",
+            "Close file 2"
         ]:
+            # The shortcut has the same name as the action, except for
+            # "Close file" which has two shortcuts associated to it
+            if shortcut_name.startswith('Close file'):
+                action_id = 'Close file'
+            else:
+                action_id = shortcut_name
+
             self.register_shortcut_for_widget(
-                name=action_id,
+                name=shortcut_name,
                 triggered=functools.partial(
                     self.sig_trigger_action.emit,
                     action_id,

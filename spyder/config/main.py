@@ -425,6 +425,8 @@ DEFAULTS = [
               'main/save file': "Ctrl+S",
               'main/save all': "Ctrl+Alt+S",
               'main/save as': 'Ctrl+Shift+S',
+              'main/close file 1': "Ctrl+W",
+              'main/close file 2': "Ctrl+F4",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -503,8 +505,6 @@ DEFAULTS = [
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
               'editor/zoom reset': "Ctrl+0",
-              'editor/close file 1': "Ctrl+W",
-              'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
               'editor/run selection and advance': "F9",
