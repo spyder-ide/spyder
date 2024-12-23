@@ -681,9 +681,17 @@ class Application(SpyderPluginV2):
 
     def revert_file(self) -> None:
         """
-        Revert current file in Editor plugin to version on disk.
+        Revert current file to version on disk.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.revert_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.revert_file()
 

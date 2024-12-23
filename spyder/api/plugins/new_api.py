@@ -991,8 +991,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     
     # Whether the plugin can handle file actions.
     # If set to true, then the `create_new_file`, `open_last_closed`,
-    # `save_file`, `save_file_as`, `save_copy_as` and `save_all` functions
-    # will be called to handle the corresponding actions.
+    # `save_file`, `save_file_as`, `save_copy_as`, `save_all` and `revert_file`
+    # functions will be called to handle the corresponding actions.
     CAN_HANDLE_FILE_ACTIONS = False
 
     # ---- API: Available signals
@@ -1150,6 +1150,16 @@ class SpyderDockablePlugin(SpyderPluginV2):
         This function will be called if the user saves all files using the
         `File > Save all` menu item or the "Save all" button in the toolbar,
         the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def revert_file(self) -> None:
+        """
+        Revert the current file to the version stored on disk.
+
+        This function will be called if the `File > Revert` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
         """
         raise NotImplementedError
 
