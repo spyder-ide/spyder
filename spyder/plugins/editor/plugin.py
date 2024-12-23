@@ -391,18 +391,6 @@ class Editor(SpyderDockablePlugin):
                     before_section=FileMenuSections.Restart
                 )
 
-        # Save section
-        save_actions = [
-            widget.revert_action,
-        ]
-        for save_action in save_actions:
-            mainmenu.add_item_to_application_menu(
-                save_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Save,
-                before_section=FileMenuSections.Print
-            )
-
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
@@ -545,16 +533,6 @@ class Editor(SpyderDockablePlugin):
                     tab_navigation_action,
                     menu_id=ApplicationMenus.File
                 )
-
-        # Save section
-        save_actions = [
-            widget.revert_action,
-        ]
-        for save_action in save_actions:
-            mainmenu.remove_item_from_application_menu(
-                save_action,
-                menu_id=ApplicationMenus.File
-            )
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
@@ -1120,6 +1098,12 @@ class Editor(SpyderDockablePlugin):
         Save copy of file under a different name.
         """
         self.get_widget().save_copy_as()
+
+    def revert_file(self) -> None:
+        """
+        Revert the currently edited file from disk.
+        """
+        self.get_widget().revert()
 
     def save_bookmark(self, slot_num):
         """

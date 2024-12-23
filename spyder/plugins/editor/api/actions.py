@@ -10,7 +10,6 @@ Actions defined in the Spyder editor plugin.
 
 class EditorWidgetActions:
     # File operations
-    RevertFileFromDisk = "Revert file from disk"
     PrintPreview = "print_preview_action"
     Print = "print_action"
     CloseFile = "Close current file"

@@ -82,6 +82,7 @@ class ApplicationActions:
     SaveAll = "Save all"
     SaveAs = "Save as"
     SaveCopyAs = "save_copy_as_action"
+    RevertFile = "Revert file"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -140,6 +141,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_save_copy_as_requested = Signal()
     """
     Signal to request that copy of current file be saved under a new name.
+    """
+
+    sig_revert_file_requested = Signal()
+    """
+    Signal to request that the current file be reverted from disk.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -331,6 +337,13 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('filesaveas'),
             tip=_("Save copy of current file as..."),
             triggered=self.sig_save_copy_as_requested.emit
+        )
+        self.revert_action = self.create_action(
+            ApplicationActions.RevertFile,
+            text=_("&Revert"),
+            icon=self.create_icon('revert'),
+            tip=_("Revert file from disk"),
+            triggered=self.sig_revert_file_requested.emit
         )
 
         # Debug logs
