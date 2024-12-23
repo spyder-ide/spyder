@@ -368,7 +368,6 @@ class Editor(SpyderDockablePlugin):
 
         # Close
         close_actions = [
-            widget.close_action,
             widget.close_all_action
         ]
         for close_action in close_actions:
@@ -515,7 +514,6 @@ class Editor(SpyderDockablePlugin):
 
         # Close
         close_actions = [
-            widget.close_action,
             widget.close_all_action
         ]
         for close_action in close_actions:

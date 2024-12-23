@@ -87,6 +87,7 @@ class Application(SpyderPluginV2):
         container.sig_save_file_as_requested.connect(self.save_file_as)
         container.sig_save_copy_as_requested.connect(self.save_copy_as)
         container.sig_revert_file_requested.connect(self.revert_file)
+        container.sig_close_file_requested.connect(self.close_file)
         container.set_window(self._window)
         self.sig_focused_plugin_changed.connect(self.update_focused_plugin)
 
@@ -269,6 +270,18 @@ class Application(SpyderPluginV2):
                 before_section=FileMenuSections.Print
             )
 
+        # Close section
+        close_actions = [
+            container.close_file_action
+        ]
+        for close_action in close_actions:
+            mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Restart
+            )
+
         # Restart section
         mainmenu.add_item_to_application_menu(
             self.restart_action,
@@ -393,6 +406,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.SaveAs,
             ApplicationActions.SaveCopyAs,
             ApplicationActions.RevertFile,
+            ApplicationActions.CloseFile,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -694,6 +708,14 @@ class Application(SpyderPluginV2):
         elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.revert_file()
+
+    def close_file(self) -> None:
+        """
+        Close current file in Editor plugin to version on disk.
+        """
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.close_file()
 
     def enable_file_action(
         self,
