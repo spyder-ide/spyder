@@ -1163,6 +1163,16 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         raise NotImplementedError
 
+    def close_file(self) -> None:
+        """
+        Close the current file.
+
+        This function will be called if the `File > Close` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
     def get_current_filename(self) -> Optional[str]:
         """
         Return file name of the file that is currently displayed.

@@ -711,9 +711,17 @@ class Application(SpyderPluginV2):
 
     def close_file(self) -> None:
         """
-        Close current file in Editor plugin to version on disk.
+        Close the current file.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
         """
-        if self.is_plugin_available(Plugins.Editor):
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.close_file()
+        elif self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.close_file()
 
