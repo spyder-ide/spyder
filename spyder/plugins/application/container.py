@@ -84,6 +84,7 @@ class ApplicationActions:
     SaveCopyAs = "save_copy_as_action"
     RevertFile = "Revert file"
     CloseFile = "Close file"
+    CloseAll = "Close all"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -152,6 +153,11 @@ class ApplicationContainer(PluginMainContainer):
     sig_close_file_requested = Signal()
     """
     Signal to request that the current file be closed.
+    """
+
+    sig_close_all_requested = Signal()
+    """
+    Signal to request that all open files be closed.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -357,6 +363,15 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('fileclose'),
             tip=_("Close current file"),
             triggered=self.sig_close_file_requested.emit
+        )
+        self.close_all_action = self.create_action(
+            ApplicationActions.CloseAll,
+            text=_("C&lose all"),
+            icon=ima.icon('filecloseall'),
+            tip=_("Close all opened files"),
+            triggered=self.sig_close_all_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
         )
 
         # Debug logs

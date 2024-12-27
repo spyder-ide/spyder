@@ -27,6 +27,9 @@ from spyder.api.plugins import Plugins
         ('save_all_action', 'save_all'),
         ('save_as_action', 'save_as'),
         ('save_copy_as_action', 'save_copy_as'),
+        ('revert_action', 'revert_file'),
+        ('close_file_action', 'close_file'),
+        ('close_all_action', 'close_all_files'),
     ],
 )
 def test_file_actions(application_plugin, action_name, editor_function_name):

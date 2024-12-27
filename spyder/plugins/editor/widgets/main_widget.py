@@ -337,15 +337,6 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Print current file..."),
             triggered=self.print_file
         )
-        self.close_all_action = self.create_action(
-            EditorWidgetActions.CloseAll,
-            text=_("C&lose all"),
-            icon=ima.icon('filecloseall'),
-            tip=_("Close all opened files"),
-            triggered=self.close_all_files,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
         self.workdir_action = self.create_action(
             EditorWidgetActions.SetWorkingDirectory,
             text=_("Set console working directory"),
@@ -755,7 +746,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.print_action,
                 self.gotoline_action,
                 self.workdir_action,
-                self.close_all_action,
                 self.toggle_comment_action,
                 self.indent_action,
                 self.unindent_action

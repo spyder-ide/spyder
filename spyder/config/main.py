@@ -427,6 +427,7 @@ DEFAULTS = [
               'main/save as': 'Ctrl+Shift+S',
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
+              'main/close all': "Ctrl+Shift+W",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -495,7 +496,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Alt+Left",
               'editor/next cursor position': "Alt+Right",

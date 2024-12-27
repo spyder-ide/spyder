@@ -465,7 +465,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('Close all', self.close_all_files),
             ("Last edit location", self.sig_prev_edit_pos),
             ("Previous cursor position", self.sig_prev_cursor),
             ("Next cursor position", self.sig_next_cursor),
@@ -533,7 +532,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "Save all",
             "Save as",
             "Close file 1",
-            "Close file 2"
+            "Close file 2",
+            "Close all"
         ]:
             # The shortcut has the same name as the action, except for
             # "Close file" which has two shortcuts associated to it
