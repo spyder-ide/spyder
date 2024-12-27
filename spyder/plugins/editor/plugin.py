@@ -364,18 +364,6 @@ class Editor(SpyderDockablePlugin):
                 before_section=FileMenuSections.Close
             )
 
-        # Close
-        close_actions = [
-            widget.close_all_action
-        ]
-        for close_action in close_actions:
-            mainmenu.add_item_to_application_menu(
-                close_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart
-            )
-
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -507,16 +495,6 @@ class Editor(SpyderDockablePlugin):
         for print_action in print_actions:
             mainmenu.remove_item_from_application_menu(
                 print_action,
-                menu_id=ApplicationMenus.File
-            )
-
-        # Close
-        close_actions = [
-            widget.close_all_action
-        ]
-        for close_action in close_actions:
-            mainmenu.remove_item_from_application_menu(
-                close_action,
                 menu_id=ApplicationMenus.File
             )
 

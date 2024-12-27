@@ -79,6 +79,7 @@ class Application(SpyderPluginV2):
         container.sig_save_copy_as_requested.connect(self.save_copy_as)
         container.sig_revert_file_requested.connect(self.revert_file)
         container.sig_close_file_requested.connect(self.close_file)
+        container.sig_close_all_requested.connect(self.close_all)
         container.set_window(self._window)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
@@ -262,7 +263,8 @@ class Application(SpyderPluginV2):
 
         # Close section
         close_actions = [
-            container.close_file_action
+            container.close_file_action,
+            container.close_all_action
         ]
         for close_action in close_actions:
             mainmenu.add_item_to_application_menu(
@@ -397,6 +399,7 @@ class Application(SpyderPluginV2):
             ApplicationActions.SaveCopyAs,
             ApplicationActions.RevertFile,
             ApplicationActions.CloseFile,
+            ApplicationActions.CloseAll,
             ApplicationActions.SpyderRestart,
             ApplicationActions.SpyderRestartDebug
         ]:
@@ -627,6 +630,13 @@ class Application(SpyderPluginV2):
         if self.is_plugin_available(Plugins.Editor):
             editor = self.get_plugin(Plugins.Editor)
             editor.close_file()
+
+    def close_all(self) -> None:
+        """
+        Close all opened files in the Editor plugin.
+        """
+        editor = self.get_plugin(Plugins.Editor)
+        editor.close_all_files()
 
     def enable_save_action(self, state: bool) -> None:
         """

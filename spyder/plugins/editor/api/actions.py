@@ -12,7 +12,6 @@ class EditorWidgetActions:
     # File operations
     PrintPreview = "print_preview_action"
     Print = "print_action"
-    CloseAll = "Close all"
 
     # Navigation
     GoToNextFile = "Go to next file"
