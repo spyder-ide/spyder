@@ -1173,6 +1173,16 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         raise NotImplementedError
 
+    def close_all(self) -> None:
+        """
+        Close all opened files.
+
+        This function will be called if the `File > Close all` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
     def get_current_filename(self) -> Optional[str]:
         """
         Return file name of the file that is currently displayed.
