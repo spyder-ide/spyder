@@ -73,7 +73,6 @@ class EditorWidgetActions:
     # File operations
     PrintPreview = "print_preview_action"
     Print = "print_action"
-    CloseAll = "Close all"
 
     # Navigation
     GoToNextFile = "Go to next file"
@@ -391,15 +390,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('print'),
             tip=_("Print current file..."),
             triggered=self.print_file
-        )
-        self.close_all_action = self.create_action(
-            EditorWidgetActions.CloseAll,
-            text=_("C&lose all"),
-            icon=ima.icon('filecloseall'),
-            tip=_("Close all opened files"),
-            triggered=self.close_all_files,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
         )
         self.workdir_action = self.create_action(
             EditorWidgetActions.SetWorkingDirectory,
@@ -810,7 +800,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.print_action,
                 self.gotoline_action,
                 self.workdir_action,
-                self.close_all_action,
                 self.toggle_comment_action,
                 self.indent_action,
                 self.unindent_action
