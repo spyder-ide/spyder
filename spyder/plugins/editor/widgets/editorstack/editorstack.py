@@ -510,6 +510,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "continue",
             "step",
             "return",
+            "stop",
             "toggle breakpoint",
             "toggle conditional breakpoint",
         ]:
