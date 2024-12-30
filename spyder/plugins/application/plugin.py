@@ -13,7 +13,7 @@ import os
 import os.path as osp
 import subprocess
 import sys
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 # Third party imports
 from qtpy.QtCore import Slot
@@ -54,8 +54,8 @@ class Application(SpyderPluginV2):
         super().__init__(parent, configuration)
         self.focused_plugin: Optional[SpyderDockablePlugin] = None
 
-        FileActionEnabledKey = tuple[SpyderDockablePlugin, str]
-        self.file_action_enabled: dict[FileActionEnabledKey, bool] = {}
+        FileActionEnabledKey = Tuple[SpyderDockablePlugin, str]
+        self.file_action_enabled: Dict[FileActionEnabledKey, bool] = {}
 
     @staticmethod
     def get_name():
