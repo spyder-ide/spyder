@@ -244,8 +244,20 @@ setup_args = dict(
 
 # Qt bindings requirements
 qt_requirements = {
-    'pyqt5': ['pyqt5>=5.15,<5.16', 'pyqtwebengine>=5.15,<5.16', 'pyqt5-sip<12.16; python_version=="3.8"'],
-    'pyqt6': ['pyqt6>=6.5,<7', 'pyqt6-webengine>=6.5,<7'],
+    'pyqt5': [
+        'pyqt5>=5.15,<5.16',
+        'pyqt5-sip<12.16; python_version=="3.8"',
+        'pyqtwebengine>=5.15,<5.16',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
+    'pyqt6': [
+        'pyqt6>=6.5,<7',
+        'pyqt6-webengine>=6.5,<7',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
+    'conda-forge': [
+        'qtconsole>=5.6.1,<5.7.0',
+    ]
 }
 
 # Get the proper requirements for the selected Qt binding
@@ -289,7 +301,6 @@ install_requires += [
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.3.1,<1.4.0',
-    'qtconsole>=5.6.1,<5.7.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
@@ -304,9 +315,15 @@ install_requires += [
 
 # Loosen constraints to ensure dev versions still work
 if 'dev' in __version__:
-    reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
+    reqs_to_loosen = {
+        'python-lsp-server[all]',
+        'qtconsole',
+        'qtconsole-base',
+        'spyder-kernels',
+    }
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
+
     install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
 

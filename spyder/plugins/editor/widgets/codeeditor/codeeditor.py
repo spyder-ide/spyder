@@ -4425,8 +4425,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                             fold_status = folding_status[fold_start_line]
                             if fold_status:
                                 self.folding_panel.toggle_fold_trigger(block)
-            # TODO refactor to eliminate hidden private method call?
-            self._TextEditBaseWidget__move_line_or_selection(  # this is ugly
+
+            self.move_line_or_selection(
                 after_current_line=after_current_line
             )
             new_cursors.append(self.textCursor())
@@ -4437,6 +4437,35 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.textCursor().endEditBlock()
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
+
+        else:
+            # Unfold any folded region when moving lines up
+            block = cursor.block()
+            offset = 0
+            if self.has_selected_text():
+                ((selection_start, _),
+                 (selection_end)) = self.get_selection_start_end()
+                if selection_end != selection_start:
+                    offset = 1
+            fold_start_line = block.blockNumber() - 1 - offset
+
+            # Find the innermost code folding region for the current position
+            enclosing_regions = sorted(list(
+                self.folding_panel.current_tree[fold_start_line]))
+
+            folding_status = self.folding_panel.folding_status
+            if len(enclosing_regions) > 0:
+                for region in enclosing_regions:
+                    fold_start_line = region.begin
+                    block = self.document().findBlockByNumber(fold_start_line)
+                    if fold_start_line in folding_status:
+                        fold_status = folding_status[fold_start_line]
+                        if fold_status:
+                            self.folding_panel.toggle_fold_trigger(block)
+
+        self.move_line_or_selection(
+            after_current_line=after_current_line
+        )
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""

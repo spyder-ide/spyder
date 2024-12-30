@@ -416,6 +416,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                 post_mortem = False
                 executing = False
                 pdb_prompt = False
+                is_debugging = False
             else:
                 search_action.setEnabled(True)
                 search_action.setChecked(widget.finder_is_visible())
@@ -423,6 +424,7 @@ class DebuggerWidget(ShellConnectMainWidget):
                 sw = widget.shellwidget
                 executing = sw._executing
                 pdb_prompt = sw.is_waiting_pdb_input()
+                is_debugging = sw.is_debugging()
 
             enter_debug_action.setEnabled(post_mortem and not executing)
             interrupt_and_debug_action.setEnabled(executing)
@@ -438,7 +440,9 @@ class DebuggerWidget(ShellConnectMainWidget):
                 action = self.get_action(action_name)
                 action.setEnabled(pdb_prompt)
 
-            self._set_visible_control_debugger_buttons(pdb_prompt)
+            self._set_visible_control_debugger_buttons(
+                pdb_prompt or is_debugging
+            )
 
             rows = self.breakpoints_table.selectionModel().selectedRows()
             initial_row = rows[0] if rows else None
