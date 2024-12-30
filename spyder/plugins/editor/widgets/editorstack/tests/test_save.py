@@ -485,6 +485,10 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     assert not debugger_panel.isVisible()
 
 
+@pytest.mark.order(1)
+@flaky(max_runs=5)
+@pytest.mark.skipif(running_in_ci() and sys.platform.startswith('linux'),
+                    reason="Stalls test suite with Linux on CI")
 def test_save_when_completions_are_visible(completions_editor, qtbot):
     """
     Test that save works when the completion widget is visible and the user
