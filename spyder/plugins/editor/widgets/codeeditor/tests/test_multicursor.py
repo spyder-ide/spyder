@@ -14,91 +14,122 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 
 
+ControlModifier = Qt.KeyboardModifier.ControlModifier
+AltModifier = Qt.KeyboardModifier.AltModifier
+ShiftModifier = Qt.KeyboardModifier.ShiftModifier
+
+
 def click_at(codeeditor, qtbot, position, ctrl=False, alt=False, shift=False):
+    """
+    Convienience function to generate a mouseClick at a given text position
+    with the specified modifiers held.
+    """
+
     x, y = codeeditor.get_coordinates(position)
     point = QPoint(x, y)
 
     modifiers = Qt.KeyboardModifier.NoModifier
     if ctrl:
-        modifiers |= Qt.KeyboardModifier.ControlModifier
+        modifiers |= ControlModifier
     if alt:
-        modifiers |= Qt.KeyboardModifier.AltModifier
+        modifiers |= AltModifier
     if shift:
-        modifiers |= Qt.KeyboardModifier.ShiftModifier
-    qtbot.mouseClick(codeeditor.viewport(),
-                     Qt.MouseButton.LeftButton,
-                     modifiers,
-                     pos=point)
+        modifiers |= ShiftModifier
+    qtbot.mouseClick(
+            codeeditor.viewport(),
+            Qt.MouseButton.LeftButton,
+            modifiers,
+            pos=point
+        )
 
 
+@pytest.mark.order(1)
 def test_add_cursor(codeeditor, qtbot):
-    # enabled by default arg on CodeEditor.setup_editor (which is called in the
-    #    pytest fixture creation in conftest.py)
-    assert codeeditor.multi_cursor_enabled
-    assert codeeditor.cursorWidth() == 0  # required for multi-cursor rendering
+    """Test adding and removing extra cursors with crtl-alt click"""
+
+    # Enabled by default arg on CodeEditor.setup_editor (which is called in the
+    # pytest fixture creation in conftest.py)
+    assert codeeditor.multi_cursor_enabled  # This is assumed for other tests
+    assert codeeditor.cursorWidth() == 0  # Required for multi-cursor rendering
     codeeditor.set_text("0123456789")
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+
     # A cursor was added
     assert bool(codeeditor.extra_cursors)
     qtbot.keyClick(codeeditor, "a")
+
     # Text was inserted correctly from two cursors
     assert codeeditor.toPlainText() == "a012345a6789"
 
-    # regular click to set main cursor and clear extra cursors
+    # Regular click to set main cursor and clear extra cursors
     click_at(codeeditor, qtbot, 6)
     assert not bool(codeeditor.extra_cursors)
     qtbot.keyClick(codeeditor, "b")
     assert codeeditor.toPlainText() == "a01234b5a6789"
-    # don't add another cursor on top of main cursor
+    # Don't add another cursor on top of main cursor
     click_at(codeeditor, qtbot, 7, ctrl=True, alt=True)
     assert not bool(codeeditor.extra_cursors)
 
-    # test removing cursors
+    # Test removing cursors
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
-    # remove main cursor
+    # Remove main cursor
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
     assert codeeditor.textCursor().position() == 7
 
 
 def test_column_add_cursor(codeeditor, qtbot):
+    """Test adding a column of extra cursors with ctrl-alt-shift click"""
+
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
-    cursor.movePosition(QTextCursor.MoveOperation.Down,
-                        QTextCursor.MoveMode.MoveAnchor,
-                        3)
+    # Move main cursor to bottom left
+    cursor.movePosition(
+            QTextCursor.MoveOperation.Down,
+            QTextCursor.MoveMode.MoveAnchor,
+            3
+        )
     codeeditor.setTextCursor(cursor)
+    # Column cursor click at top row 6th column
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
 
-    assert bool(codeeditor.extra_cursors)
+    assert codeeditor.extra_cursors
     assert len(codeeditor.all_cursors) == 4
     for cursor in codeeditor.all_cursors:
         assert cursor.selectedText() == "012345"
 
 
 def test_settings_toggle(codeeditor, qtbot):
-    assert codeeditor.multi_cursor_enabled
-    assert codeeditor.cursorWidth() == 0  # required for multi-cursor rendering
+    """Test toggling multicursor support in settings"""
+
     codeeditor.set_text("0123456789\n0123456789\n")
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+
     # A cursor was added
     assert bool(codeeditor.extra_cursors)
     codeeditor.toggle_multi_cursor(False)
+
     # Extra cursors removed on settings toggle
     assert not bool(codeeditor.extra_cursors)
     click_at(codeeditor, qtbot, 3, ctrl=True, alt=True)
+
     # Extra cursors not added wnen settings "multi-cursor enabled" is False
     assert not bool(codeeditor.extra_cursors)
     click_at(codeeditor, qtbot, 13, ctrl=True, alt=True, shift=True)
+
     # Column cursors not added wnen settings "multi-cursor enabled" is False
     assert not bool(codeeditor.extra_cursors)
 
 
 def test_extra_selections_decoration(codeeditor, qtbot):
+    """Ensure text decorations are created to paint extra cursor selections."""
+
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
-    cursor.movePosition(QTextCursor.MoveOperation.Down,
-                        QTextCursor.MoveMode.MoveAnchor,
-                        3)  # column 0 row 4
+    cursor.movePosition(
+            QTextCursor.MoveOperation.Down,
+            QTextCursor.MoveMode.MoveAnchor,
+            3
+        )
     codeeditor.setTextCursor(cursor)
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
     selections = codeeditor.get_extra_selections("extra_cursor_selections")
@@ -106,8 +137,7 @@ def test_extra_selections_decoration(codeeditor, qtbot):
 
 
 def test_multi_cursor_verticalMovementX(codeeditor, qtbot):
-    # Ensure extra cursors (and primary cursor) keep column position when
-    #    moving up and down
+    """Ensure cursors keep their column position when moving up and down."""
     codeeditor.set_text("012345678\n012345678\n\n012345678\n012345678\n")
     click_at(codeeditor, qtbot, 4)
     click_at(codeeditor, qtbot, 14, ctrl=True, alt=True)
@@ -122,20 +152,32 @@ def test_multi_cursor_verticalMovementX(codeeditor, qtbot):
 
 
 def test_overwrite_mode(codeeditor, qtbot):
-    # Multi-cursor rendering requires overwrite mode be handled manually as
-    #    there is no way to hide the primary textCursor with overwriteMode, and
-    #    there is no way to sync the blinking of extra cursors with native
-    #    rendering.
+    """
+    Multi-cursor rendering requires overwrite mode be handled manually as there
+    is no way to hide the primary textCursor with overwriteMode, and there is
+    no way to sync the blinking of extra cursors with native rendering.
+
+    Test overwrite mode (insert key)
+    """
+
     codeeditor.set_text("0123456789\n0123456789\n")
     click_at(codeeditor, qtbot, 4)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Insert)
+
+    # Overwrite mode is tracked manually, ensure the Qt property is False
     assert not codeeditor.overwriteMode()
     assert codeeditor.overwrite_mode
+
+    # Test overwrite mode functionality for single cursor
     qtbot.keyClick(codeeditor, Qt.Key.Key_A)
     assert codeeditor.toPlainText() == "0123a56789\n0123456789\n"
+
+    # Test overwrite mode for multiple cursors
     click_at(codeeditor, qtbot, 16, ctrl=True, alt=True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_B)
     assert codeeditor.toPlainText() == "0123ab6789\n01234b6789\n"
+
+    # Test returning to insert mode
     qtbot.keyClick(codeeditor, Qt.Key.Key_Insert)
     assert not codeeditor.overwriteMode()
     assert not codeeditor.overwrite_mode
@@ -175,27 +217,30 @@ def test_overwrite_mode(codeeditor, qtbot):
 #     assert codeeditor.toPlainText() == "abcdefghij\n0123456789\n"
 
 def test_smart_text(codeeditor, qtbot):
-    # test smart backspace, whitespace insertion, colon insertion, and
-    #    parenthesis/quote matching
+    """
+    Test smart text features: Smart backspace, whitespace insertion, colon
+    insertion, parenthesis and quote matching.
+    """
+
     codeeditor.set_text("def test1\n"
                         "def test2\n")
     click_at(codeeditor, qtbot, 9)
     click_at(codeeditor, qtbot, 19, ctrl=True, alt=True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_ParenLeft)
-    # closing paren was inserted?
+    # Closing paren was inserted?
     assert codeeditor.toPlainText() == ("def test1()\n"
                                         "def test2()\n")
     qtbot.keyClick(codeeditor, Qt.Key.Key_ParenRight)
-    # typing close paren advances cursor without adding extra paren?
+    # Typing close paren advances cursor without adding extra paren?
     assert codeeditor.toPlainText() == ("def test1()\n"
                                         "def test2()\n")
     qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
-    # auto colon and indent?
+    # Auto colon and indent?
     assert codeeditor.toPlainText() == ("def test1():\n"
                                         "    \n"
                                         "def test2():\n"
                                         "    \n")
-    # add some extraneous whitespace
+    # Add some extraneous whitespace
     qtbot.keyClick(codeeditor, Qt.Key.Key_Tab)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Tab)
     assert codeeditor.toPlainText() == ("def test1():\n"
@@ -203,7 +248,7 @@ def test_smart_text(codeeditor, qtbot):
                                         "def test2():\n"
                                         "            \n")
     qtbot.keyClick(codeeditor, Qt.Key.Key_Backspace)
-    # smart backspace to correct indent?
+    # Smart backspace to correct indent?
     assert codeeditor.toPlainText() == ("def test1():\n"
                                         "    \n"
                                         "def test2():\n"
@@ -217,19 +262,19 @@ def test_smart_text(codeeditor, qtbot):
     codeeditor.set_close_quotes_enabled(True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Space)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Apostrophe)
-    # automatic quote
+    # Automatic quote
     assert codeeditor.toPlainText() == ("def test1():\n"
                                         "    return ''\n"
                                         "def test2():\n"
                                         "    return ''\n")
     qtbot.keyClick(codeeditor, Qt.Key.Key_Apostrophe)
-    # automatic close quote
+    # Automatic close quote
     assert codeeditor.toPlainText() == ("def test1():\n"
                                         "    return ''\n"
                                         "def test2():\n"
                                         "    return ''\n")
     qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
-    # automatic dedent?
+    # Automatic dedent?
     assert codeeditor.toPlainText() == ("def test1():\n"
                                         "    return ''\n"
                                         "\n"
@@ -264,10 +309,89 @@ def test_smart_text(codeeditor, qtbot):
 #     assert completion.isHidden()
 #     # TODO test ctrl-space shortcut too
 
+def test_move_line(codeeditor, qtbot):
+    """Test multi-cursor move line up and down shortcut"""
 
-# TODO test duplicate/move line up/down
-# TODO test delete line
-# TODO test goto new line
+    codeeditor.set_text("\n".join("123456"))
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+
+    # Move line down (twice)
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Down,
+            AltModifier
+        )
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Down,
+            AltModifier
+        )
+    assert codeeditor.toPlainText() == "\n".join("241536")
+
+    # Move line up
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Up,
+            AltModifier
+        )
+    assert codeeditor.toPlainText() == "\n".join("214356")
+
+
+def test_duplicate_line(codeeditor, qtbot):
+    """Test multi-cursor duplicate line up and down shortcut"""
+
+    codeeditor.set_text("\n".join("123456"))
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+
+    # Duplicate line down
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Down,
+            ControlModifier | AltModifier
+        )
+    assert codeeditor.toPlainText() == "\n".join("11233456")
+    assert codeeditor.textCursor().position() == 8
+    assert codeeditor.extra_cursors[0].position() == 2
+
+    # Duplicate line up
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Up,
+            ControlModifier | AltModifier
+        )
+    assert codeeditor.toPlainText() == "\n".join("1112333456")
+    assert codeeditor.textCursor().position() == 10
+    assert codeeditor.extra_cursors[0].position() == 2
+
+
+def test_delete_line(codeeditor, qtbot):
+    """Test delete line shortcut"""
+
+    codeeditor.set_text("\n".join("123456"))
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+    # Delete line
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_D,
+            ControlModifier
+        )
+    assert codeeditor.toPlainText() == "\n".join("2456")
+
+
+def test_goto_new_line(codeeditor, qtbot):
+    """Test 'go to new line' shortcut"""
+
+    codeeditor.set_text("\n".join("123456"))
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+    # Delete line
+    qtbot.keyClick(
+            codeeditor,
+            Qt.Key.Key_Return,
+            ControlModifier | ShiftModifier
+        )
+    assert codeeditor.toPlainText() == "1\n\n2\n3\n\n4\n5\n6"
+
+
 # TODO test goto line number / definition / next cell / previous cell
 # TODO test toggle comment, blockcomment, unblockcomment
 # TODO test transform to UPPER / lower case
