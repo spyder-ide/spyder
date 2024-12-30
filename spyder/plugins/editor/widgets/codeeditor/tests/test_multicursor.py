@@ -43,6 +43,17 @@ def click_at(codeeditor, qtbot, position, ctrl=False, alt=False, shift=False):
         )
 
 
+def call_shortcut(codeeditor, name):
+    """
+    Convienience function to call a QShortcut without having to simulate the
+    key sequence (which may be different for each platform?)
+    """
+    context = codeeditor.CONF_SECTION.lower()
+    plugin_name = None
+    qshortcut = codeeditor._shortcuts[(context, name, plugin_name)]
+    qshortcut.activated.emit()
+
+
 @pytest.mark.order(1)
 def test_add_cursor(codeeditor, qtbot):
     """Test adding and removing extra cursors with crtl-alt click"""
@@ -315,25 +326,11 @@ def test_move_line(codeeditor, qtbot):
     codeeditor.set_text("\n".join("123456"))
     click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
 
-    # Move line down (twice)
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Down,
-            AltModifier
-        )
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Down,
-            AltModifier
-        )
+    call_shortcut(codeeditor, "move line down")
+    call_shortcut(codeeditor, "move line down")
     assert codeeditor.toPlainText() == "\n".join("241536")
 
-    # Move line up
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Up,
-            AltModifier
-        )
+    call_shortcut(codeeditor, "move line up")
     assert codeeditor.toPlainText() == "\n".join("214356")
 
 
@@ -343,22 +340,12 @@ def test_duplicate_line(codeeditor, qtbot):
     codeeditor.set_text("\n".join("123456"))
     click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
 
-    # Duplicate line down
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Down,
-            ControlModifier | AltModifier
-        )
+    call_shortcut(codeeditor, "duplicate line down")
     assert codeeditor.toPlainText() == "\n".join("11233456")
     assert codeeditor.textCursor().position() == 8
     assert codeeditor.extra_cursors[0].position() == 2
 
-    # Duplicate line up
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Up,
-            ControlModifier | AltModifier
-        )
+    call_shortcut(codeeditor, "duplicate line up")
     assert codeeditor.toPlainText() == "\n".join("1112333456")
     assert codeeditor.textCursor().position() == 10
     assert codeeditor.extra_cursors[0].position() == 2
@@ -369,12 +356,7 @@ def test_delete_line(codeeditor, qtbot):
 
     codeeditor.set_text("\n".join("123456"))
     click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
-    # Delete line
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_D,
-            ControlModifier
-        )
+    call_shortcut(codeeditor, "delete line")
     assert codeeditor.toPlainText() == "\n".join("2456")
 
 
@@ -383,12 +365,7 @@ def test_goto_new_line(codeeditor, qtbot):
 
     codeeditor.set_text("\n".join("123456"))
     click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
-    # Delete line
-    qtbot.keyClick(
-            codeeditor,
-            Qt.Key.Key_Return,
-            ControlModifier | ShiftModifier
-        )
+    call_shortcut(codeeditor, "go to new line")
     assert codeeditor.toPlainText() == "1\n\n2\n3\n\n4\n5\n6"
 
 
