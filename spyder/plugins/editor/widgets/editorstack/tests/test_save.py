@@ -38,7 +38,6 @@ from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 def add_files(editorstack):
     editorstack.close_split_action.setEnabled(False)
     editorstack.set_find_widget(Mock())
-    editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
                                        'print(a)\n'
                                        '\n'
@@ -54,7 +53,6 @@ def add_files(editorstack):
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
-    editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
 
 
