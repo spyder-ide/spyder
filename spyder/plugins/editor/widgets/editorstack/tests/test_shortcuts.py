@@ -34,7 +34,6 @@ def editorstack(qtbot):
     """
     editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(Mock())
-    editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.close_split_action.setEnabled(False)
     editorstack.new('foo.py', 'utf-8', 'Line1\nLine2\nLine3\nLine4')
 

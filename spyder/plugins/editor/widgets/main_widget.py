@@ -1418,8 +1418,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.vcs_status.update_vcs_state)
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
-        editorstack.set_io_actions(self.new_action, self.open_action,
-                                   self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
