@@ -22,7 +22,7 @@ from zipfile import ZipFile
 from packaging.version import parse, Version
 from qtpy.QtCore import QObject, Signal
 import requests
-from requests.exceptions import ConnectionError, HTTPError, SSLError, OSError
+from requests.exceptions import ConnectionError, HTTPError, SSLError
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -50,11 +50,11 @@ SSL_ERROR_MSG = _(
     'SSL certificate verification failed while checking for Spyder updates.'
     '<br><br>Please contact your network administrator for assistance.'
 )
-TLS_ERROR_MSG = _(
-    'TLS certificate configuration error while checking for Spyder updates.'
-    '<br><br>Please verify that the TLS CA certificate bundle is correctly '
-    'configured. If you are using a custom Python environment, '
-    'ensure the certificate file path is valid and try again later.'
+
+OS_ERROR_MSG = _(
+    'An error occurred while checking for Spyder updates, possibly related to'
+    ' system configuration or file access. <br><br>Please verify your system '
+    'settings, including file paths and permissions.'
 )
 
 def _rate_limits(page):
@@ -195,6 +195,7 @@ class WorkerUpdate(BaseWorker):
         self.latest_release = None
         self.update_available = False
         self.error = None
+        self.checkbox = False
         self.channel = None
 
     def _check_update_available(
@@ -300,7 +301,8 @@ class WorkerUpdate(BaseWorker):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except OSError as err:
-            error_msg = TLS_ERROR_MSG
+            error_msg = OS_ERROR_MSG
+            self.checkbox = True
             logger.warning(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
