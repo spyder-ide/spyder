@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
@@ -1391,24 +1390,6 @@ class EditorMainWidget(PluginMainWidget):
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
 
-        new_action = self.get_action(
-            ApplicationActions.NewFile,
-            plugin=Plugins.Application
-        )
-        open_action = self.get_action(
-            ApplicationActions.OpenFile,
-            plugin=Plugins.Application
-        )
-        save_action = self.get_action(
-            ApplicationActions.SaveFile,
-            plugin=Plugins.Application
-        )
-        revert_action = self.get_action(
-            ApplicationActions.RevertFile,
-            plugin=Plugins.Application
-        )
-        editorstack.set_io_actions(new_action, open_action,
-                                   save_action, revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************

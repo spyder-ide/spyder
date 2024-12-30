@@ -39,6 +39,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -313,10 +314,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
         self._given_actions = actions
         self.outlineexplorer = None
-        self.new_action = None
-        self.open_action = None
-        self.save_action = None
-        self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
         self.todolist_enabled = True
@@ -784,13 +781,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
-
-    def set_io_actions(self, new_action, open_action,
-                       save_action, revert_action):
-        self.new_action = new_action
-        self.open_action = open_action
-        self.save_action = save_action
-        self.revert_action = revert_action
 
     def set_find_widget(self, find_widget):
         self.find_widget = find_widget
@@ -1323,9 +1313,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     section=EditorStackMenuSections.CloseOrderSection
                 )
         else:
-            actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-            for menu_action in actions:
+            new_action = self.get_action(
+                ApplicationActions.NewFile,
+                plugin=Plugins.Application
+            )
+            open_action = self.get_action(
+                ApplicationActions.OpenFile,
+                plugin=Plugins.Application
+            )
+            for menu_action in (new_action, open_action):
                 self.menu.add_action(menu_action)
 
         for split_actions in self.__get_split_actions():
