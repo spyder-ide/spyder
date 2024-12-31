@@ -483,10 +483,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
                 display = value
         if role == Qt.ToolTipRole:
             if self.parent().over_select_row_button:
-                tooltip = _(
-                    "Click to select this row. Maintain pressed Ctrl (Cmd on "
-                    "macOS) for multiple rows"
-                )
+                if index.row() in self.parent().selected_rows():
+                    tooltip = _("Click to deselect this row")
+                else:
+                    tooltip = _(
+                        "Click to select this row. Maintain pressed Ctrl (Cmd "
+                        "on macOS) for multiple rows"
+                    )
                 return '\n'.join(textwrap.wrap(tooltip, 50))
             return display
         if role == Qt.UserRole:
@@ -1558,6 +1561,12 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         else:
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
+
+    def selected_rows(self):
+        """Get the rows currently selected."""
+        return {
+            index.row() for index in self.selectionModel().selectedRows()
+        }
 
 
 class CollectionsEditorTableView(BaseTableView):
