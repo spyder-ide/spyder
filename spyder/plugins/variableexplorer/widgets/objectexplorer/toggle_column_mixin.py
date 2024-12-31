@@ -190,6 +190,10 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
         """Resize all the columns to its contents."""
         self._horizontal_header().resizeSections(QHeaderView.ResizeToContents)
 
+    def selected_rows(self):
+        """Dummy method to be compatible with BaseTableView."""
+        return set()
+
     def _horizontal_header(self):
         """
         Returns the horizontal header (of type QHeaderView).

@@ -19,6 +19,8 @@ from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QDateTime,
     QEvent,
+    QItemSelection,
+    QItemSelectionModel,
     QModelIndex,
     QRect,
     QSize,
@@ -522,7 +524,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 x, y, SELECT_ROW_BUTTON_SIZE, SELECT_ROW_BUTTON_SIZE
             )
             button.text = ""
-            button.icon = ima.icon("select_row")
+            button.icon = (
+                ima.icon("select_row")
+                if index.row() not in self.parent().selected_rows()
+                else ima.icon("deselect_row")
+            )
             button.iconSize = QSize(20, 20)
             button.state = QStyle.State_Enabled
             QApplication.style().drawControl(
@@ -545,9 +551,19 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             x = rect.left() + rect.width() - SELECT_ROW_BUTTON_SIZE
             y = rect.top()
 
-            # Select row when clicking on the button
+            # Select/deselect row when clicking on the button
             if click_x > x and (y < click_y < (y + SELECT_ROW_BUTTON_SIZE)):
-                self.parent().selectRow(index.row())
+                row = index.row()
+                if row in self.parent().selected_rows():
+                    # Deselect row if selected
+                    index_left = index.sibling(row, 0)
+                    index_right = index.sibling(row, 3)
+                    selection = QItemSelection(index_left, index_right)
+                    self.parent().selectionModel().select(
+                        selection, QItemSelectionModel.Deselect
+                    )
+                else:
+                    self.parent().selectRow(row)
             else:
                 super().editorEvent(event, model, option, index)
         else:
