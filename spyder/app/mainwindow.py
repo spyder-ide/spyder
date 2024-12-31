@@ -1102,10 +1102,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.previous_focused_widget = old
 
         if self.last_focused_widget:
-            for plugin in (self.widgetlist + self.thirdparty_plugins):
-                if plugin.get_widget().isAncestorOf(self.last_focused_widget):
-                    focused_plugin = plugin
-                    break
+            for plugin_name, plugin in self.get_dockable_plugins():
+                if self.is_plugin_available(plugin_name):
+                    plugin_widget = plugin.get_widget()
+                    if plugin_widget.isAncestorOf(self.last_focused_widget):
+                        focused_plugin = plugin
+                        break
             else:
                 focused_plugin = None
 
