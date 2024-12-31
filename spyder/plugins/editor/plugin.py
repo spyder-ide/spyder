@@ -1248,5 +1248,6 @@ class Editor(SpyderDockablePlugin):
         """
         Enable or disable file action for this plugin.
         """
-        application = self.get_plugin(Plugins.Application)
-        application.enable_file_action(action_name, enabled, self)
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_file_action(action_name, enabled, self)
