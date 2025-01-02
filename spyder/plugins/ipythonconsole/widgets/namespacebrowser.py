@@ -42,9 +42,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_other = _("An unkown error occurred. Check the console because "
                          "its contents could have been printed there")
         reason_comm = _("The comm channel is not working")
+        reason_missing_package = _("The required package to open this variable"
+                                   " is not installed")
         msg = _("<br><i>%s.</i><br><br><br>"
-                "<b>Note</b>: Please don't report this problem on Github, "
-                "there's nothing to do about it.")
+                "<b>Note</b>: This issue is related to your Python "
+                "environment or interpreter configuration. For workarounds"
+                " and troubleshooting, please refer to "
+                "https://docs.spyder-ide.org/current/faq.html")
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -63,6 +67,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise
         except CommError:
             raise ValueError(msg % reason_comm)
+        except ModuleNotFoundError:
+            raise ValueError(msg % reason_missing_package)
         except Exception:
             raise ValueError(msg % reason_other)
 
