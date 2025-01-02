@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------
 
 # Standard library imports
+from functools import lru_cache
 import logging
 from typing import Any, Callable, Optional
 
@@ -190,6 +191,7 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
         """Resize all the columns to its contents."""
         self._horizontal_header().resizeSections(QHeaderView.ResizeToContents)
 
+    @lru_cache(maxsize=1)
     def selected_rows(self):
         """Dummy method to be compatible with BaseTableView."""
         return set()

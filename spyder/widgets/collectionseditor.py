@@ -20,6 +20,7 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 
 # Standard library imports
 import datetime
+from functools import lru_cache
 import io
 import re
 import sys
@@ -1504,6 +1505,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
 
+    @lru_cache(maxsize=1)
     def selected_rows(self):
         """Get the rows currently selected."""
         return {

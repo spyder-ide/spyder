@@ -499,8 +499,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         if (
             # Do this only for the last column
             index.column() == 3
-            # Do this when the row is hovered.
-            and index.row() == self.parent().hovered_row
+            # Do this when the row is hovered or if it's selected
+            and (
+                index.row() == self.parent().hovered_row
+                or index.row() in self.parent().selected_rows()
+            )
         ):
             # Paint regular contents
             super().paint(painter, option, index)
@@ -553,8 +556,14 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
             # Select/deselect row when clicking on the button
             if click_x > x and (y < click_y < (y + SELECT_ROW_BUTTON_SIZE)):
+                current_selected_rows = self.parent().selected_rows()
+
+                # Clear cache of selected rows because either a selection or
+                # deselection is going to change it.
+                self.parent().selected_rows.cache_clear()
+
                 row = index.row()
-                if row in self.parent().selected_rows():
+                if row in current_selected_rows:
                     # Deselect row if selected
                     index_left = index.sibling(row, 0)
                     index_right = index.sibling(row, 3)
