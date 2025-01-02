@@ -499,8 +499,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         if (
             # Do this only for the last column
             index.column() == 3
-            # Do this when the row is hovered.
-            and index.row() == self.parent().hovered_row
+            # Do this when the row is hovered or if it's selected
+            and (
+                index.row() == self.parent().hovered_row
+                or index.row() in self.parent().selected_rows()
+            )
         ):
             # Paint regular contents
             super().paint(painter, option, index)

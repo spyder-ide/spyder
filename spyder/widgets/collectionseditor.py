@@ -20,6 +20,7 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 
 # Standard library imports
 import datetime
+from functools import lru_cache
 import io
 import re
 import sys
@@ -722,10 +723,17 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
+
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+
+        # Actions to take when the selection changes
         self.selectionModel().selectionChanged.connect(self.refresh_menu)
+        self.selectionModel().selectionChanged.connect(
+            # We need this because selected_rows is cached
+            self.selected_rows.cache_clear
+        )
 
     def setup_menu(self):
         """Setup actions and context menu"""
@@ -1562,8 +1570,17 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
 
+    @lru_cache(maxsize=1)
     def selected_rows(self):
-        """Get the rows currently selected."""
+        """
+        Get the rows currently selected.
+
+        Notes
+        -----
+        The result of this function is cached because it's called in the paint
+        method of CollectionsDelegate. So, we need it to run as quickly as
+        possible.
+        """
         return {
             index.row() for index in self.selectionModel().selectedRows()
         }
