@@ -79,12 +79,14 @@ def test_add_cursor(codeeditor, qtbot):
     qtbot.keyClick(codeeditor, "b")
     assert codeeditor.toPlainText() == "a01234b5a6789"
 
+
     # Don't add another cursor on top of main cursor
     click_at(codeeditor, qtbot, 7, ctrl=True, alt=True)
     assert not bool(codeeditor.extra_cursors)
 
     # Test removing cursors
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
+
 
     # Remove main cursor
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
@@ -104,6 +106,7 @@ def test_column_add_cursor(codeeditor, qtbot):
         3
     )
     codeeditor.setTextCursor(cursor)
+
 
     # Column cursor click at top row 6th column
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
@@ -161,6 +164,7 @@ def test_multi_cursor_verticalMovementX(codeeditor, qtbot):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Down)
     assert codeeditor.extra_cursors[0].position() == 25
     assert codeeditor.textCursor().position() == 35
+
 
     for _ in range(3):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Up)
