@@ -401,7 +401,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 # Ask to save file if the user pressed the sequence for that.
                 # Fixes spyder-ide/spyder#14806
                 save_shortcut = self.get_conf(
-                    'editor/save file', section='shortcuts')
+                    'main/save file', section='shortcuts')
                 if key_sequence == save_shortcut:
                     self.textedit.sig_save_requested.emit()
 

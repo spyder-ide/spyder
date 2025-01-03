@@ -13,6 +13,9 @@ from unittest.mock import MagicMock, Mock
 
 from qtpy.QtCore import QCoreApplication, Qt
 
+# ImportError: QtWebEngineWidgets must be imported before a QCoreApplication instance is created
+from qtpy import QtWebEngineWidgets  # Jitse
+
 from spyder.api.plugins import Plugins
 from spyder.utils.qthelpers import qapplication
 

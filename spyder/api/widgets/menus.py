@@ -370,7 +370,6 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                     self._sections.remove(after_section)
 
                 idx = self._sections.index(section)
-                idx = idx if (idx == 0) else (idx - 1)
                 self._sections.insert(idx, after_section)
 
     def _set_icons(self):
