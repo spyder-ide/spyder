@@ -214,6 +214,8 @@ class IconManager():
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
             'edit_add':                [('mdi.plus-box',), {'color': self.MAIN_FG_COLOR}],
+            'select_row':              [('mdi.plus-box-outline',), {'color': self.MAIN_FG_COLOR}],
+            'deselect_row':            [('mdi.minus-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'duplicate_row':           [('ph.rows',), {'color': self.MAIN_FG_COLOR}],
             'duplicate_column':        [('ph.columns',), {'color': self.MAIN_FG_COLOR}],
             'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
