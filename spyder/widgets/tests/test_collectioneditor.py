@@ -33,6 +33,9 @@ from spyder.widgets.collectionseditor import (
     CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
     CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
     ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+    SELECT_ROW_BUTTON_SIZE
+)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
@@ -1080,6 +1083,46 @@ def test_collectioneditor_plot(qtbot):
 
     cew.editor.plot('list', 'plot')
     mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
+
+
+def test_collectionseditor_select_row_button(qtbot):
+    """Test that the button to select rows is working as expected."""
+    data = {"a": 10, "b": "This is a string"}
+    editor = CollectionsEditor()
+    editor.setup(data)
+    editor.show()
+
+    # This is necessary so that Qt paints
+    qtbot.wait(300)
+
+    # Coordinates to position the cursor on top of the select row button for
+    # the first row
+    table_view = editor.widget.editor
+    x = (
+        # Left x ccordinate for the first row
+        + table_view.columnViewportPosition(0)
+        + table_view.width()
+        - SELECT_ROW_BUTTON_SIZE // 2
+    )
+
+    y = (
+        # Top y ccordinate for the first row
+        + table_view.rowViewportPosition(0)
+        + table_view.rowHeight(0) // 2
+    )
+
+    # Move cursor
+    qtbot.mouseMove(table_view.viewport(), QPoint(x, y), delay=100)
+
+    # Click on that posiiton and check the first row was selected.
+    # Note: We can't use LeftButton here because it edits the row. However, it
+    # works as exoected in regular usage.
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == {0}
+
+    # Click again and check the row was deselected
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == set()
 
 
 if __name__ == "__main__":
