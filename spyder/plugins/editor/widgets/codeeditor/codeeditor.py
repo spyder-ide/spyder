@@ -61,7 +61,8 @@ from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
-    MultiCursorMixin,)
+    MultiCursorMixin
+)
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.py3compat import to_text_string, is_string
@@ -4418,7 +4419,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                         fold_start_line = region.begin
                         block = self.document().findBlockByNumber(
                             fold_start_line
-                            )
+                        )
                         if fold_start_line in folding_status:
                             fold_status = folding_status[fold_start_line]
                             if fold_status:
@@ -4539,7 +4540,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.setTextCursor(first_cursor)
                 block = anchor_block
                 while block != pos_block:
-
                     # Get the next block
                     if anchor_block < pos_block:
                         block = block.next()

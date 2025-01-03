@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Editor mixin and utils to manage Multiple cursor editing
+Mixin to manage editing with multiple cursors.
 """
 
 # Standard library imports
@@ -23,14 +23,16 @@ from spyder.plugins.editor.api.decoration import TextDecoration
 
 
 class MultiCursorMixin:
-    # ---- Multi Cursor
+    """Mixin to manage editing with multiple cursors."""
+
     def init_multi_cursor(self):
         """Initialize attrs and callbacks for multi-cursor functionality"""
         # actual default comes from setup_editor default args
         self.multi_cursor_enabled = False
         self.cursor_width = self.get_conf('cursor/width', section='main')
         self.overwrite_mode = self.overwriteMode()
-        # track overwrite manually when for painting reasons with multi-cursor
+
+        # Track overwrite manually when for painting reasons with multi-cursor
         self.setOverwriteMode(False)
         self.setCursorWidth(0)  # draw our own cursor
         self.extra_cursors = []
@@ -49,9 +51,10 @@ class MultiCursorMixin:
         self._drag_cursor = None
 
     def toggle_multi_cursor(self, enabled):
-        """Enable/Disable multi-cursor editing"""
+        """Enable/disable multi-cursor editing."""
         self.multi_cursor_enabled = enabled
-        # TODO any restrictions on enabling? only python-like? only code?
+
+        # TODO: Any restrictions on enabling? only python-like? only code?
         if not enabled:
             self.clear_extra_cursors()
 
@@ -64,8 +67,9 @@ class MultiCursorMixin:
     def set_extra_cursor_selections(self):
         selections = []
         for cursor in self.extra_cursors:
-            extra_selection = TextDecoration(cursor, draw_order=5,
-                                             kind="extra_cursor_selection")
+            extra_selection = TextDecoration(
+                cursor, draw_order=5, kind="extra_cursor_selection"
+            )
 
             # TODO get colors from theme? or from stylesheet?
             extra_selection.set_foreground(QColor("#dfe1e2"))
@@ -87,8 +91,10 @@ class MultiCursorMixin:
         """Merge overlapping cursors"""
         if not self.extra_cursors:
             return
+
         previous_history = self.multi_cursor_ignore_history
         self.multi_cursor_ignore_history = True
+
         while True:
             cursor_was_removed = False
 
@@ -99,6 +105,7 @@ class MultiCursorMixin:
             for i, cursor1 in enumerate(cursors[:-1]):
                 if cursor_was_removed:
                     break  # list will be modified, so re-start at while loop
+
                 for cursor2 in cursors[i + 1:]:
                     # given cursors.sort, pos1 should be <= pos2
                     pos1 = cursor1.position()
@@ -112,6 +119,7 @@ class MultiCursorMixin:
                     if cursor1 is main_cursor:
                         # swap cursors to keep main_cursor
                         cursor1, cursor2 = cursor2, cursor1
+
                     self.extra_cursors.remove(cursor1)
                     cursor_was_removed = True
 
@@ -119,16 +127,21 @@ class MultiCursorMixin:
                     positions = sorted([pos1, anchor1, anchor2])
                     if not increasing_position:
                         positions.reverse()
-                    cursor2.setPosition(positions[0],
-                                        QTextCursor.MoveMode.MoveAnchor)
-                    cursor2.setPosition(positions[2],
-                                        QTextCursor.MoveMode.KeepAnchor)
+                    cursor2.setPosition(
+                        positions[0],
+                        QTextCursor.MoveMode.MoveAnchor
+                    )
+                    cursor2.setPosition(
+                        positions[2],
+                        QTextCursor.MoveMode.KeepAnchor
+                    )
                     if cursor2 is main_cursor:
                         self.setTextCursor(cursor2)
                     break
 
             if not cursor_was_removed:
                 break
+
         self.set_extra_cursor_selections()
         self.multi_cursor_ignore_history = previous_history
 
@@ -140,7 +153,8 @@ class MultiCursorMixin:
         ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
         alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
         shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-        # ---- handle insert
+
+        # ---- Handle insert
         if key == Qt.Key.Key_Insert and not (ctrl or alt or shift):
             self.overwrite_mode = not self.overwrite_mode
             return
@@ -148,9 +162,9 @@ class MultiCursorMixin:
         self.textCursor().beginEditBlock()
         self.multi_cursor_ignore_history = True
 
+        # Handle all signals before editing text
         cursors = []
         accepted = []
-        # Handle all signals before editing text
         for cursor in self.all_cursors:
             self.setTextCursor(cursor)
             event.ignore()
@@ -163,23 +177,22 @@ class MultiCursorMixin:
         for skip, cursor in zip(accepted, cursors):
             self.setTextCursor(cursor)
             if skip:
-                # text folding swallows most input to prevent typing on folded
-                #    lines.
+                # Text folding swallows most input to prevent typing on folded
+                # lines.
                 pass
-            # ---- handle Tab
+            # ---- Handle Tab
             elif key == Qt.Key.Key_Tab and not ctrl:  # ctrl-tab is shortcut
                 # Don't do intelligent tab with multi-cursor to skip
-                #   calls to do_completion. Avoiding completions with multi
-                #   cursor is much easier than solving all the edge cases.
-
+                # calls to do_completion. Avoiding completions with multi
+                # cursor is much easier than solving all the edge cases.
                 self.indent(force=self.tab_mode)
             elif key == Qt.Key.Key_Backtab and not ctrl:
                 increasing_position = False
-                # TODO ignore indent level of neighboring lines and simply
-                #    indent by 1 level at a time. Cursor update order can
-                #    make this unpredictable otherwise.
+                # TODO: Ignore indent level of neighboring lines and simply
+                # indent by 1 level at a time. Cursor update order can
+                # make this unpredictable otherwise.
                 self.unindent(force=self.tab_mode)
-            # ---- handle enter/return
+            # ---- Handle enter/return
             elif key in (Qt.Key_Enter, Qt.Key_Return):
                 if not shift and not ctrl:
                     if (
@@ -196,29 +209,37 @@ class MultiCursorMixin:
                         cur_indent = self.get_block_indentation(
                             self.textCursor().blockNumber())
                         self._handle_keypress_event(event)
+
                         # Check if we're in a comment or a string at the
                         # current position
                         cmt_or_str_cursor = self.in_comment_or_string()
 
                         # Check if the line start with a comment or string
                         cursor = self.textCursor()
-                        cursor.setPosition(cursor.block().position(),
-                                           QTextCursor.KeepAnchor)
+                        cursor.setPosition(
+                            cursor.block().position(),
+                            QTextCursor.KeepAnchor
+                        )
                         cmt_or_str_line_begin = self.in_comment_or_string(
-                            cursor=cursor)
+                            cursor=cursor
+                        )
 
                         # Check if we are in a comment or a string
-                        cmt_or_str = cmt_or_str_cursor and \
-                            cmt_or_str_line_begin
+                        cmt_or_str = (
+                            cmt_or_str_cursor and cmt_or_str_line_begin
+                        )
 
                         if self.strip_trailing_spaces_on_modify:
                             self.fix_and_strip_indent(
                                 comment_or_string=cmt_or_str,
-                                cur_indent=cur_indent)
+                                cur_indent=cur_indent
+                            )
                         else:
-                            self.fix_indent(comment_or_string=cmt_or_str,
-                                            cur_indent=cur_indent)
-            # ---- intelligent backspace handling
+                            self.fix_indent(
+                                comment_or_string=cmt_or_str,
+                                cur_indent=cur_indent
+                            )
+            # ---- Intelligent backspace handling
             elif key == Qt.Key_Backspace and not shift and not ctrl:
                 increasing_position = False
                 if self.has_selected_text() or not self.intelligent_backspace:
@@ -228,7 +249,7 @@ class MultiCursorMixin:
                     leading_length = len(leading_text)
                     trailing_spaces = (
                         leading_length - len(leading_text.rstrip())
-                        )
+                    )
                     trailing_text = self.get_text('cursor', 'eol')
                     matches = ('()', '[]', '{}', '\'\'', '""')
                     if (
@@ -248,12 +269,14 @@ class MultiCursorMixin:
                     ):
                         cursor = self.textCursor()
                         cursor.movePosition(QTextCursor.PreviousCharacter)
-                        cursor.movePosition(QTextCursor.NextCharacter,
-                                            QTextCursor.KeepAnchor, 2)
+                        cursor.movePosition(
+                            QTextCursor.NextCharacter,
+                            QTextCursor.KeepAnchor, 2
+                        )
                         cursor.removeSelectedText()
                     else:
                         self._handle_keypress_event(event)
-            # ---- handle home, end
+            # ---- Handle home, end
             elif key == Qt.Key.Key_Home:
                 increasing_position = False
                 self.stdkey_home(shift, ctrl)
@@ -262,16 +285,18 @@ class MultiCursorMixin:
                 # redefine this basic action which should have been implemented
                 # natively
                 self.stdkey_end(shift, ctrl)
-            # ---- use default handler for cursor (text)
+            # ---- Use default handler for cursor (text)
             else:
                 if key in (Qt.Key.Key_Up, Qt.Key.Key_Left):
                     increasing_position = False
-                if (key in (Qt.Key.Key_Up, Qt.Key.Key_Down) and
-                        cursor.verticalMovementX() == -1):
+                if (
+                    key in (Qt.Key.Key_Up, Qt.Key.Key_Down)
+                    and cursor.verticalMovementX() == -1
+                ):
                     # Builtin handler somehow does not set verticalMovementX
-                    #    when moving up and down (but works fine for single
-                    #    cursor somehow)
-                    # TODO why? Am I forgetting something?
+                    # when moving up and down (but works fine for single
+                    # cursor somehow)
+                    # TODO: Why? Are we forgetting something?
                     x = self.cursorRect(cursor).x()
                     cursor.setVerticalMovementX(x)
                     self.setTextCursor(cursor)
@@ -279,6 +304,7 @@ class MultiCursorMixin:
 
             # Update edited extra_cursors
             new_cursors.append(self.textCursor())
+
         self.extra_cursors = new_cursors[:-1]
         self.merge_extra_cursors(increasing_position)
         self.textCursor().endEditBlock()
@@ -309,8 +335,10 @@ class MultiCursorMixin:
         content_offset_y = offset.y()
         qp.setBrushOrigin(offset)
         editable = not self.isReadOnly()
-        flags = (self.textInteractionFlags() &
-                 Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        flags = (
+            self.textInteractionFlags()
+            & Qt.TextInteractionFlag.TextSelectableByKeyboard
+        )
 
         if self._drag_cursor is not None and (editable or flags):
             cursor = self._drag_cursor
@@ -320,9 +348,12 @@ class MultiCursorMixin:
                 offset.setY(block_top + content_offset_y)
                 layout = block.layout()
                 if layout is not None:  # Fix exceptions in test_flag_painting
-                    layout.drawCursor(qp, offset,
-                                      cursor.positionInBlock(),
-                                      cursor_width)
+                    layout.drawCursor(
+                        qp,
+                        offset,
+                        cursor.positionInBlock(),
+                        cursor_width
+                    )
 
         draw_cursor = self.cursor_blink_state and (editable or flags)
 
@@ -333,20 +364,23 @@ class MultiCursorMixin:
                 offset.setY(block_top + content_offset_y)
                 layout = block.layout()
                 if layout is not None:
-                    layout.drawCursor(qp, offset,
-                                      cursor.positionInBlock(),
-                                      cursor_width)
+                    layout.drawCursor(
+                        qp,
+                        offset,
+                        cursor.positionInBlock(),
+                        cursor_width
+                    )
         qp.end()
 
     @Slot()
     def start_cursor_blink(self):
-        """start manually updating the cursor(s) blink state: Show cursors"""
+        """Start manually updating the cursor(s) blink state: Show cursors."""
         self.cursor_blink_state = True
         self.cursor_blink_timer.start()
 
     @Slot()
     def stop_cursor_blink(self):
-        """stop manually updating the cursor(s) blink state: Hide cursors"""
+        """Stop manually updating the cursor(s) blink state: Hide cursors."""
         self.cursor_blink_state = False
         self.cursor_blink_timer.stop()
 
@@ -359,8 +393,10 @@ class MultiCursorMixin:
         cursors.sort(key=lambda cursor: cursor.position())
         selections = []
         for cursor in cursors:
-            text = cursor.selectedText().replace(u"\u2029",
-                                                 self.get_line_separator())
+            text = cursor.selectedText().replace(
+                "\u2029",
+                self.get_line_separator()
+            )
             selections.append(text)
         clip_text = self.get_line_separator().join(selections)
         QApplication.clipboard().setText(clip_text)
@@ -371,7 +407,8 @@ class MultiCursorMixin:
         self.textCursor().beginEditBlock()
         for cursor in self.all_cursors:
             cursor.removeSelectedText()
-        # merge direction doesn't matter here as all selections are removed
+
+        # Merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
         self.textCursor().endEditBlock()
 
@@ -387,17 +424,21 @@ class MultiCursorMixin:
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(clip_text)
         lines = clip_text.splitlines()
+
         if len(lines) == 1:
             lines = itertools.repeat(lines[0])
+
         self.multi_cursor_ignore_history = True
         for cursor, text in zip(cursors, lines):
             self.setTextCursor(cursor)
             cursor.insertText(text)
             # handle extra lines or extra cursors?
+
         self.setTextCursor(main_cursor)
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
-        # merge direction doesn't matter here as all selections are removed
+
+        # Merge direction doesn't matter here as all selections are removed
         self.merge_extra_cursors(True)
         main_cursor.endEditBlock()
         self.sig_text_was_inserted.emit()
@@ -412,9 +453,11 @@ class MultiCursorMixin:
             self.multi_cursor_ignore_history = True
             for cursor in self.all_cursors:
                 self.setTextCursor(cursor)
-                # may call setTtextCursor with modified copy
+
+                # May call setTtextCursor with modified copy
                 method()
-                # get modified cursor to re-add to extra_cursors
+
+                # Get modified cursor to re-add to extra_cursors
                 new_cursors.append(self.textCursor())
 
             # re-add extra cursors
@@ -426,6 +469,7 @@ class MultiCursorMixin:
             self.textCursor().endEditBlock()
             self.multi_cursor_ignore_history = False
             self.cursorPositionChanged.emit()
+
         return wrapper
 
     def clears_extra_cursors(self, method):
@@ -434,6 +478,7 @@ class MultiCursorMixin:
         def wrapper():
             self.clear_extra_cursors()
             method()
+
         return wrapper
 
     def restrict_single_cursor(self, method):
@@ -442,19 +487,20 @@ class MultiCursorMixin:
         def wrapper():
             if not self.extra_cursors:
                 method()
+
         return wrapper
 
     def go_to_next_cell(self):
         """
-        reimplements TextEditBaseWidget.go_to_next_cell to clear extra cursors
+        Reimplement TextEditBaseWidget.go_to_next_cell to clear extra cursors.
         """
         self.clear_extra_cursors()
         super().go_to_next_cell()
 
     def go_to_previous_cell(self):
         """
-        reimplements TextEditBaseWidget.go_to_previous_cell to clear extra
-        cursors
+        Reimplement TextEditBaseWidget.go_to_previous_cell to clear extra
+        cursors.
         """
         self.clear_extra_cursors()
         super().go_to_previous_cell()

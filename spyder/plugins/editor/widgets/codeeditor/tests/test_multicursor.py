@@ -35,12 +35,13 @@ def click_at(codeeditor, qtbot, position, ctrl=False, alt=False, shift=False):
         modifiers |= AltModifier
     if shift:
         modifiers |= ShiftModifier
+
     qtbot.mouseClick(
-            codeeditor.viewport(),
-            Qt.MouseButton.LeftButton,
-            modifiers,
-            pos=point
-        )
+        codeeditor.viewport(),
+        Qt.MouseButton.LeftButton,
+        modifiers,
+        pos=point
+    )
 
 
 def call_shortcut(codeeditor, name):
@@ -77,12 +78,14 @@ def test_add_cursor(codeeditor, qtbot):
     assert not bool(codeeditor.extra_cursors)
     qtbot.keyClick(codeeditor, "b")
     assert codeeditor.toPlainText() == "a01234b5a6789"
+
     # Don't add another cursor on top of main cursor
     click_at(codeeditor, qtbot, 7, ctrl=True, alt=True)
     assert not bool(codeeditor.extra_cursors)
 
     # Test removing cursors
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
+
     # Remove main cursor
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
     assert codeeditor.textCursor().position() == 7
@@ -93,13 +96,15 @@ def test_column_add_cursor(codeeditor, qtbot):
 
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
+
     # Move main cursor to bottom left
     cursor.movePosition(
-            QTextCursor.MoveOperation.Down,
-            QTextCursor.MoveMode.MoveAnchor,
-            3
-        )
+        QTextCursor.MoveOperation.Down,
+        QTextCursor.MoveMode.MoveAnchor,
+        3
+    )
     codeeditor.setTextCursor(cursor)
+
     # Column cursor click at top row 6th column
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
 
@@ -137,10 +142,10 @@ def test_extra_selections_decoration(codeeditor, qtbot):
     codeeditor.set_text("0123456789\n0123456789\n0123456789\n0123456789\n")
     cursor = codeeditor.textCursor()
     cursor.movePosition(
-            QTextCursor.MoveOperation.Down,
-            QTextCursor.MoveMode.MoveAnchor,
-            3
-        )
+        QTextCursor.MoveOperation.Down,
+        QTextCursor.MoveMode.MoveAnchor,
+        3
+    )
     codeeditor.setTextCursor(cursor)
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
     selections = codeeditor.get_extra_selections("extra_cursor_selections")
@@ -156,6 +161,7 @@ def test_multi_cursor_verticalMovementX(codeeditor, qtbot):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Down)
     assert codeeditor.extra_cursors[0].position() == 25
     assert codeeditor.textCursor().position() == 35
+
     for _ in range(3):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Up)
     assert codeeditor.extra_cursors[0].position() == 4
