@@ -305,7 +305,6 @@ class MultiCursorMixin:
             # Update edited extra_cursors
             new_cursors.append(self.textCursor())
 
-
         self.extra_cursors = new_cursors[:-1]
         self.merge_extra_cursors(increasing_position)
         self.textCursor().endEditBlock()
@@ -325,7 +324,7 @@ class MultiCursorMixin:
     def paint_cursors(self, event):
         """Paint all cursors"""
         if self.overwrite_mode:
-            font = self.textCursor().block().charFormat().font()
+            font = self.font()
             cursor_width = QFontMetrics(font).horizontalAdvance(" ")
         else:
             cursor_width = self.cursor_width
@@ -426,17 +425,14 @@ class MultiCursorMixin:
         self.sig_will_paste_text.emit(clip_text)
         lines = clip_text.splitlines()
 
-
         if len(lines) == 1:
             lines = itertools.repeat(lines[0])
-
 
         self.multi_cursor_ignore_history = True
         for cursor, text in zip(cursors, lines):
             self.setTextCursor(cursor)
             cursor.insertText(text)
             # handle extra lines or extra cursors?
-
 
         self.setTextCursor(main_cursor)
         self.multi_cursor_ignore_history = False
@@ -474,7 +470,6 @@ class MultiCursorMixin:
             self.multi_cursor_ignore_history = False
             self.cursorPositionChanged.emit()
 
-
         return wrapper
 
     def clears_extra_cursors(self, method):
@@ -484,7 +479,6 @@ class MultiCursorMixin:
             self.clear_extra_cursors()
             method()
 
-
         return wrapper
 
     def restrict_single_cursor(self, method):
@@ -493,7 +487,6 @@ class MultiCursorMixin:
         def wrapper():
             if not self.extra_cursors:
                 method()
-
 
         return wrapper
 
