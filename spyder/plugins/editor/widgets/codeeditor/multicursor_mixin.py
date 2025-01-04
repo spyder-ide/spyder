@@ -53,9 +53,9 @@ class MultiCursorMixin:
 
     def __selection_colors(self, cache=[]):
         """
-        Delayed retrival of highlighted text style colors with cached results.
-        This is needed as the palette hasn't been correctly set at the time
-        init_multi_cursor is called.
+        Delayed retrival of highlighted text style colors. This is needed as
+        the palette hasn't been correctly set at the time init_multi_cursor is
+        called.
         """
         if not cache:
             # Text Color
