@@ -266,7 +266,16 @@ class PathComboBox(EditableComboBox):
         # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
         if not self.is_valid():
             lineedit = self.lineEdit()
-            QTimer.singleShot(50, lambda: lineedit.setText(self.selected_text))
+
+            # Avoid error when lineedit is no longer available (probably
+            # because this widget's parent was garbage collected).
+            # Fixes spyder-ide/spyder#23361
+            try:
+                QTimer.singleShot(
+                    50, lambda: lineedit.setText(self.selected_text)
+                )
+            except RuntimeError:
+                pass
 
         hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
         if hide_status:
