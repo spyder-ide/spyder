@@ -14,13 +14,13 @@ import itertools
 
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Slot
-from qtpy.QtGui import (QColor, QFontMetrics, QPaintEvent, QPainter,
-                        QTextCursor, QKeyEvent)
+from qtpy.QtGui import (
+    QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
+)
 from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.utils.palette import SpyderPalette
 
 
 class MultiCursorMixin:
