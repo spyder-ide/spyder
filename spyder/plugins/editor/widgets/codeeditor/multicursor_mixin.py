@@ -20,6 +20,7 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.utils.palette import SpyderPalette
 
 
 class MultiCursorMixin:
@@ -72,8 +73,12 @@ class MultiCursorMixin:
             )
 
             # TODO get colors from theme? or from stylesheet?
-            extra_selection.set_foreground(QColor("#dfe1e2"))
-            extra_selection.set_background(QColor("#346792"))
+            extra_selection.set_foreground(
+                QColor(SpyderPalette.COLOR_TEXT_1)
+            )
+            extra_selection.set_background(
+                QColor(SpyderPalette.COLOR_ACCENT_2)
+            )
             selections.append(extra_selection)
         self.set_extra_selections('extra_cursor_selections', selections)
 
