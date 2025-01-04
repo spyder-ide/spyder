@@ -294,7 +294,9 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        # history[1] is a tuple of editor.all_cursor(s)
+        # only a single cursor is expected for this test
+        assert history[1][0].position() == expected_history[1]
 
     # Navigate to previous and next cursor positions.
 
@@ -318,11 +320,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history[:1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     for history, expected_history in zip(main_widget.cursor_redo_history,
                                          expected_cursor_undo_history[:0:-1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
 
     # So we are now expected to be at index 0 in the cursor position history.
     # From there, we go to the fourth file.
@@ -337,7 +339,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     assert main_widget.cursor_redo_history == []
 
 

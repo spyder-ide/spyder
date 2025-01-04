@@ -954,8 +954,9 @@ class EditorMainWidget(PluginMainWidget):
         current_editor = self.get_current_editor()
         if current_editor is not None:
             filename = self.get_current_filename()
-            cursor = current_editor.textCursor()
-            self.add_cursor_to_history(filename, cursor)
+            cursors = tuple(current_editor.all_cursors)
+            if not current_editor.multi_cursor_ignore_history:
+                self.add_cursor_to_history(filename, cursors)
         self.update_cursorpos_actions()
 
         # TODO: How the maintoolbar should be handled?
@@ -1540,6 +1541,7 @@ class EditorMainWidget(PluginMainWidget):
             ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
+            ('set_multicursor_support',             'multicursor_support'),
         )
 
         for method, setting in settings:
@@ -2698,18 +2700,25 @@ class EditorMainWidget(PluginMainWidget):
             return
         if filename is None:
             filename = self.get_current_filename()
-        if cursor is None:
+        if isinstance(cursor, tuple):
+            cursors = cursor
+        elif cursor is None:
             editor = self.get_editor(filename)
             if editor is None:
                 return
-            cursor = editor.textCursor()
+            cursors = tuple(editor.all_cursors)
+        else:
+            cursors = (cursor,)
 
         replace_last_entry = False
         if len(self.cursor_undo_history) > 0:
-            fname, hist_cursor = self.cursor_undo_history[-1]
-            if fname == filename:
-                if cursor.blockNumber() == hist_cursor.blockNumber():
-                    # Only one cursor per line
+            fname, hist_cursors = self.cursor_undo_history[-1]
+            if fname == filename and len(cursors) == len(hist_cursors):
+                for cursor, hist_cursor in zip(cursors, hist_cursors):
+                    if not cursor.blockNumber() == hist_cursor.blockNumber():
+                        break  # If any cursor is now on a different line
+                else:
+                    # No cursors have changed line
                     replace_last_entry = True
 
         if replace_last_entry:
@@ -2718,11 +2727,11 @@ class EditorMainWidget(PluginMainWidget):
             # Drop redo stack as we moved
             self.cursor_redo_history = []
 
-        self.cursor_undo_history.append((filename, cursor))
+        self.cursor_undo_history.append((filename, cursors))
         self.update_cursorpos_actions()
 
-    def text_changed_at(self, filename, position):
-        self.last_edit_cursor_pos = (to_text_string(filename), position)
+    def text_changed_at(self, filename, positions):
+        self.last_edit_cursor_pos = (to_text_string(filename), positions)
 
     def current_file_changed(self, filename, position, line, column):
         editor = self.get_current_editor()
@@ -2730,8 +2739,9 @@ class EditorMainWidget(PluginMainWidget):
         # Needed to validate if an editor exists.
         # See spyder-ide/spyder#20643
         if editor:
-            cursor = editor.textCursor()
-            self.add_cursor_to_history(to_text_string(filename), cursor)
+            cursors = tuple(editor.all_cursors)
+            if not editor.multi_cursor_ignore_history:
+                self.add_cursor_to_history(to_text_string(filename), cursors)
 
             # Hide any open tooltips
             current_stack = self.get_current_editorstack()
@@ -2747,24 +2757,24 @@ class EditorMainWidget(PluginMainWidget):
         if editor:
             code_editor = self.get_current_editor()
             filename = code_editor.filename
-            cursor = code_editor.textCursor()
-            self.add_cursor_to_history(
-                to_text_string(filename), cursor)
+            cursors = tuple(code_editor.all_cursors)
+            if not editor.multi_cursor_ignore_history:
+                self.add_cursor_to_history(to_text_string(filename), cursors)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file if the file is closed."""
         new_history = []
-        for i, (cur_filename, cursor) in enumerate(
+        for i, (cur_filename, cursors) in enumerate(
                 self.cursor_undo_history):
             if cur_filename != filename:
-                new_history.append((cur_filename, cursor))
+                new_history.append((cur_filename, cursors))
         self.cursor_undo_history = new_history
 
         new_redo_history = []
-        for i, (cur_filename, cursor) in enumerate(
+        for i, (cur_filename, cursors) in enumerate(
                 self.cursor_redo_history):
             if cur_filename != filename:
-                new_redo_history.append((cur_filename, cursor))
+                new_redo_history.append((cur_filename, cursors))
         self.cursor_redo_history = new_redo_history
 
     @Slot()
@@ -2772,7 +2782,7 @@ class EditorMainWidget(PluginMainWidget):
         if self.last_edit_cursor_pos is None:
             return
 
-        filename, position = self.last_edit_cursor_pos
+        filename, positions = self.last_edit_cursor_pos
         editor = None
         if osp.isfile(filename):
             self.load(filename)
@@ -2784,41 +2794,54 @@ class EditorMainWidget(PluginMainWidget):
             self.last_edit_cursor_pos = None
             return
 
-        if position < editor.document().characterCount():
-            editor.set_cursor_position(position)
+        character_count = editor.document().characterCount()
+        if positions[-1] < character_count:
+            editor.set_cursor_position(positions[-1])
 
-    def _pop_next_cursor_diff(self, history, current_filename, current_cursor):
+        for position in positions[:-1]:
+            if position < character_count:
+                cursor = editor.textCursor()
+                cursor.setPosition(position)
+                editor.add_cursor(cursor)
+
+    def _pop_next_cursor_diff(self, history, current_filename,
+                              current_cursors):
         """Get the next cursor from history that is different from current."""
         while history:
-            filename, cursor = history.pop()
-            if (filename != current_filename or
-                    cursor.position() != current_cursor.position()):
-                return filename, cursor
+            filename, cursors = history.pop()
+            if filename != current_filename:
+                return filename, cursors
+            if len(cursors) != len(current_cursors):
+                return filename, cursors
+
+            for cursor, current_cursor in zip(cursors, current_cursors):
+                if cursor.position() != current_cursor.position():
+                    return filename, cursors
+
         return None, None
 
-    def _history_steps(self, number_steps,
-                       backwards_history, forwards_history,
-                       current_filename, current_cursor):
+    def _history_step(self, backwards_history, forwards_history,
+                      current_filename, current_cursors):
         """
         Move number_steps in the forwards_history, filling backwards_history.
         """
-        for i in range(number_steps):
-            if len(forwards_history) > 0:
-                # Put the current cursor in history
-                backwards_history.append(
-                    (current_filename, current_cursor))
-                # Extract the next different cursor
-                current_filename, current_cursor = (
-                    self._pop_next_cursor_diff(
-                        forwards_history,
-                        current_filename, current_cursor))
-        if current_cursor is None:
-            # Went too far, back up once
-            current_filename, current_cursor = (
-                backwards_history.pop())
-        return current_filename, current_cursor
+        if len(forwards_history) > 0:
+            # Put the current cursor in history
+            backwards_history.append(
+                (current_filename, current_cursors))
+            # Extract the next different cursor
+            current_filename, current_cursors = (
+                self._pop_next_cursor_diff(
+                    forwards_history,
+                    current_filename, current_cursors))
 
-    def __move_cursor_position(self, index_move):
+        if current_cursors is None:
+            # Went too far, back up once
+            current_filename, current_cursors = (
+                backwards_history.pop())
+        return current_filename, current_cursors
+
+    def __move_cursor_position(self, undo: bool):
         """
         Move the cursor position forward or backward in the cursor
         position history by the specified index increment.
@@ -2830,27 +2853,22 @@ class EditorMainWidget(PluginMainWidget):
 
         # Update last position on the line
         current_filename = self.get_current_filename()
-        current_cursor = self.get_current_editor().textCursor()
+        current_cursors = tuple(self.get_current_editor().all_cursors)
 
-        if index_move < 0:
-            # Undo
-            current_filename, current_cursor = self._history_steps(
-                -index_move,
+        if undo:
+            current_filename, current_cursors = self._history_step(
                 self.cursor_redo_history,
                 self.cursor_undo_history,
-                current_filename, current_cursor)
-
-        else:
-            # Redo
-            current_filename, current_cursor = self._history_steps(
-                index_move,
+                current_filename, current_cursors)
+        else:  # Redo
+            current_filename, current_cursors = self._history_step(
                 self.cursor_undo_history,
                 self.cursor_redo_history,
-                current_filename, current_cursor)
+                current_filename, current_cursors)
 
         # Place current cursor in history
         self.cursor_undo_history.append(
-            (current_filename, current_cursor))
+            (current_filename, current_cursors))
         filenames = self.get_current_editorstack().get_filenames()
         if (not osp.isfile(current_filename)
                 and current_filename not in filenames):
@@ -2858,7 +2876,11 @@ class EditorMainWidget(PluginMainWidget):
         else:
             self.load(current_filename)
             editor = self.get_current_editor()
-            editor.setTextCursor(current_cursor)
+            editor.clear_extra_cursors()
+            editor.setTextCursor(current_cursors[-1])
+            for cursor in current_cursors[:-1]:
+                editor.add_cursor(cursor)
+            editor.merge_extra_cursors(True)
             editor.ensureCursorVisible()
         self.__ignore_cursor_history = False
         self.update_cursorpos_actions()
@@ -2873,13 +2895,13 @@ class EditorMainWidget(PluginMainWidget):
     def go_to_previous_cursor_position(self):
         self.__ignore_cursor_history = True
         self.switch_to_plugin()
-        self.__move_cursor_position(-1)
+        self.__move_cursor_position(undo=True)
 
     @Slot()
     def go_to_next_cursor_position(self):
         self.__ignore_cursor_history = True
         self.switch_to_plugin()
-        self.__move_cursor_position(1)
+        self.__move_cursor_position(undo=False)
 
     @Slot()
     def go_to_line(self, line=None):

@@ -245,6 +245,7 @@ DEFAULTS = [
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
+              'multicursor_support': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
