@@ -15,12 +15,13 @@ import itertools
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Slot
 from qtpy.QtGui import (
-    QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
+    QColor, QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
 )
 from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.utils.palette import SpyderPalette
 
 
 class MultiCursorMixin:
@@ -51,19 +52,6 @@ class MultiCursorMixin:
         self.multi_cursor_ignore_history = False
         self._drag_cursor = None
 
-    def __selection_colors(self, cache=[]):
-        """
-        Delayed retrival of highlighted text style colors. This is needed as
-        the palette hasn't been correctly set at the time init_multi_cursor is
-        called.
-        """
-        if not cache:
-            # Text Color
-            cache.append(self.palette().highlightedText().color())
-            # Background Color
-            cache.append(self.palette().highlight().color())
-        return cache
-
     def toggle_multi_cursor(self, enabled):
         """Enable/disable multi-cursor editing."""
         self.multi_cursor_enabled = enabled
@@ -85,9 +73,12 @@ class MultiCursorMixin:
                 cursor, draw_order=5, kind="extra_cursor_selection"
             )
 
-            foreground, background = self.__selection_colors()
-            extra_selection.set_foreground(foreground)
-            extra_selection.set_background(background)
+            extra_selection.set_foreground(
+                QColor(SpyderPalette.COLOR_TEXT_1)
+            )
+            extra_selection.set_background(
+                QColor(SpyderPalette.COLOR_ACCENT_2)
+            )
 
             selections.append(extra_selection)
         self.set_extra_selections('extra_cursor_selections', selections)
