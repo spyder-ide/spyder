@@ -847,6 +847,12 @@ class ThumbnailScrollBar(QFrame):
                     self.scene.insertWidget(i - 1, dropped_thumbnail)
                     break
 
+        # Recreate thumbnails list to take into account the new order
+        # Fixes spyder-ide/spyder#22458
+        self._thumbnails = []
+        for i in range(n_thumbnails):
+            self._thumbnails.append(self.scene.itemAt(i).widget())
+
         event.accept()
 
     # ---- Save Figure
@@ -1041,7 +1047,7 @@ class ThumbnailScrollBar(QFrame):
         if thumbnail in self._thumbnails:
             self._thumbnails.remove(thumbnail)
 
-        # Select a new thumbnail if any :
+        # Select a new thumbnail, if any
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
                 self.set_current_index(
