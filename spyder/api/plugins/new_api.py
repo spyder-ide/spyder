@@ -19,7 +19,7 @@ import logging
 import os
 import os.path as osp
 import sys
-from typing import List, Union
+from typing import List, Optional, Union
 import warnings
 
 # Third party imports
@@ -296,6 +296,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     ----------
     window_state: Qt.WindowStates
         The window state.
+    """
+
+    sig_focused_plugin_changed = Signal(object)
+    """
+    This signal is emitted when the plugin with keyboard focus changes.
+
+    Parameters
+    ----------
+    plugin: Optional[SpyderDockablePlugin]
+        The plugin that currently has keyboard focus, or None if no dockable
+        plugin has focus.
     """
 
     # ---- Private attributes
@@ -972,6 +983,18 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the action to switch is called a second time.
     RAISE_AND_FOCUS = False
 
+    # List of file extensions which the plugin can open.
+    # If the user opens a file with one of these extensions, then the file
+    # will open in this plugin using the `open_file` function.
+    # Example: ['.ipynb'] for spyder-notebook
+    FILE_EXTENSIONS = []
+    
+    # Whether the plugin can handle file actions.
+    # If set to true, then the `create_new_file`, `open_last_closed`,
+    # `save_file`, `save_file_as`, `save_copy_as`, `save_all` and `revert_file`
+    # functions will be called to handle the corresponding actions.
+    CAN_HANDLE_FILE_ACTIONS = False
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1052,6 +1075,135 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.sig_toggle_view_changed.connect(self.sig_toggle_view_changed)
         widget.sig_update_ancestor_requested.connect(
             self.sig_update_ancestor_requested)
+
+    # ---- API: Optional methods to override
+    # -------------------------------------------------------------------------
+    def create_new_file(self) -> None:
+        """
+        Create a new file inside the plugin.
+
+        This function will be called if the user create a new file using
+        the `File > New` menu item or the "New file" button in the toolbar,
+        and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def open_file(self, filename: str):
+        """
+        Open file inside plugin.
+
+        This method will be called if the user wants to open a file with one
+        of the file name extensions listed in `FILE_EXTENSIONS`, so you need
+        to define that variable too.
+
+        Parameters
+        ----------
+        filename: str
+            The name of the file to be opened.
+        """
+        raise NotImplementedError
+
+    def open_last_closed_file(self) -> None:
+        """
+        Open the last closed file again.
+
+        This function will be called if the `File > Open last closed` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS`
+        is set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_file(self) -> None:
+        """
+        Save the current file.
+
+        This function will be called if the user saves the current file using
+        the `File > Save` menu item or the "Save file" button in the toolbar,
+        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_file_as(self) -> None:
+        """
+        Save the current file under a different name.
+
+        This function will be called if the `File > Save as` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_copy_as(self) -> None:
+        """
+        Save a copy of the current file under a different name.
+
+        This function will be called if the `File > Save copy as` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def save_all(self) -> None:
+        """
+        Save all files that are opened in the plugin.
+
+        This function will be called if the user saves all files using the
+        `File > Save all` menu item or the "Save all" button in the toolbar,
+        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        """
+        raise NotImplementedError
+
+    def revert_file(self) -> None:
+        """
+        Revert the current file to the version stored on disk.
+
+        This function will be called if the `File > Revert` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def close_file(self) -> None:
+        """
+        Close the current file.
+
+        This function will be called if the `File > Close` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def close_all(self) -> None:
+        """
+        Close all opened files.
+
+        This function will be called if the `File > Close all` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def get_current_filename(self) -> Optional[str]:
+        """
+        Return file name of the file that is currently displayed.
+
+        This is meant for plugins like the Editor or Notebook plugin which
+        editor display files. Return `None` if no file is displayed or if this
+        does not display files.
+
+        This function is used in the `Open file` action to initialize the
+        "Open file" dialog.
+        """
+        return None
+
+    def current_file_is_temporary(self) -> bool:
+        """
+        Return whether currently displayed file is a temporary file.
+
+        This function should only be called if a file is displayed, that is,
+        if `self.get_current_filename()` does not return `None`.
+        """
+        return False
 
     # ---- API: available methods
     # -------------------------------------------------------------------------

@@ -36,7 +36,6 @@ from spyder.widgets.findreplace import FindReplace
 def editor_factory(new_file=True, text=None):
     editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(FindReplace(editorstack))
-    editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     if new_file:
         if not text:
             text = (
