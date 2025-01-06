@@ -20,6 +20,7 @@ from spyder_kernels.comms.commbase import CommError
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.utils import is_anaconda
 
 # For logging
 logger = logging.getLogger(__name__)
@@ -42,8 +43,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_other = _("An unkown error occurred. Check the console because "
                          "its contents could have been printed there")
         reason_comm = _("The comm channel is not working")
-        reason_missing_package = _("The required package to open this variable"
+        reason_missing_package = _("The required package '{}' to open this variable"
                                    " is not installed")
+        reason_missing_package_conda = _("The required package '{}' to open this "
+                                         "variable is not installed. You can try to "
+                                         "install the missing modules in the "
+                                         "environment you are trying to run Spyder.")
         msg = _("<br><i>%s.</i><br><br><br>"
                 "<b>Note</b>: This issue is related to your Python "
                 "environment or interpreter configuration. For workarounds"
@@ -67,8 +72,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise
         except CommError:
             raise ValueError(msg % reason_comm)
-        except ModuleNotFoundError:
-            raise ValueError(msg % reason_missing_package)
+        except ModuleNotFoundError as e:
+            if is_anaconda():
+                raise ValueError(msg % reason_missing_package_conda
+                                 .format(e.name))
+            else:
+                raise ValueError(msg % reason_missing_package.format(e.name))
         except Exception:
             raise ValueError(msg % reason_other)
 
