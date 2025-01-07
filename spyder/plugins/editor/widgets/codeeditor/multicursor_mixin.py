@@ -66,6 +66,18 @@ class MultiCursorMixin:
             self.extra_cursors.append(cursor)
             self.merge_extra_cursors(True)
 
+    def add_cursor_up(self):
+        if self.multi_cursor_enabled:
+            self.extra_cursors.append(self.textCursor())
+            self.moveCursor(QTextCursor.MoveOperation.Up)
+            self.merge_extra_cursors(True)
+
+    def add_cursor_down(self):
+        if self.multi_cursor_enabled:
+            self.extra_cursors.append(self.textCursor())
+            self.moveCursor(QTextCursor.MoveOperation.Down)
+            self.merge_extra_cursors(True)
+
     def set_extra_cursor_selections(self):
         selections = []
         for cursor in self.extra_cursors:
