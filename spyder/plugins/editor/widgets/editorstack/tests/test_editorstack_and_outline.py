@@ -16,6 +16,7 @@ from unittest.mock import Mock
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.config.base import running_in_ci
@@ -74,6 +75,11 @@ def editorstack(qtbot, outlineexplorer):
         editorstack.analysis_timer = Mock()
         editorstack.save_dialog_on_tests = True
         editorstack.set_outlineexplorer(outlineexplorer)
+
+        # Some tests explicitly close the editorstack widget. qtbot also
+        # closes the widget after the test finishes. The latter action
+        # may fail when "delete on close" flag is set => clear the flag.
+        editorstack.setAttribute(Qt.WA_DeleteOnClose, False)
 
         qtbot.addWidget(editorstack)
         editorstack.show()
