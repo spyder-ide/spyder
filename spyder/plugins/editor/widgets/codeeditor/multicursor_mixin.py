@@ -66,6 +66,102 @@ class MultiCursorMixin:
             self.extra_cursors.append(cursor)
             self.merge_extra_cursors(True)
 
+    def add_column_cursor(self, event):
+        """
+        Add a cursor on each row between primary cursor and click location.
+        """
+
+        if not self.multi_cursor_enabled:
+            return
+
+        self.multi_cursor_ignore_history = True
+
+        # Ctrl-Shift-Alt click adds colum of cursors towards primary
+        # cursor
+        cursor_for_pos = self.cursorForPosition(event.pos())
+        first_cursor = self.textCursor()
+        anchor_block = first_cursor.block()
+        anchor_col = first_cursor.anchor() - anchor_block.position()
+        pos_block = cursor_for_pos.block()
+        pos_col = cursor_for_pos.positionInBlock()
+
+        # Move primary cursor to pos_col
+        p_col = min(len(anchor_block.text()), pos_col)
+
+        # block.length() includes line separator? just \n?
+        # use len(block.text()) instead
+        first_cursor.setPosition(anchor_block.position() + p_col,
+                                 QTextCursor.MoveMode.KeepAnchor)
+        self.setTextCursor(first_cursor)
+        block = anchor_block
+        while block != pos_block:
+            # Get the next block
+            if anchor_block < pos_block:
+                block = block.next()
+            else:
+                block = block.previous()
+
+            # Add a cursor for this block
+            if block.isVisible() and block.isValid():
+                cursor = QTextCursor(first_cursor)
+
+                a_col = min(len(block.text()), anchor_col)
+                cursor.setPosition(block.position() + a_col,
+                                   QTextCursor.MoveMode.MoveAnchor)
+                p_col = min(len(block.text()), pos_col)
+                cursor.setPosition(block.position() + p_col,
+                                   QTextCursor.MoveMode.KeepAnchor)
+                self.add_cursor(cursor)
+
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
+
+    def add_remove_cursor(self, event):
+        """Add or remove extra cursor on mouse click event"""
+
+        if not self.multi_cursor_enabled:
+            return
+
+        self.multi_cursor_ignore_history = True
+
+        # Move existing primary cursor to extra_cursors list and set
+        # new primary cursor
+        cursor_for_pos = self.cursorForPosition(event.pos())
+        old_cursor = self.textCursor()
+
+        # Don't attempt to remove cursor if there's only one
+        removed_cursor = False
+        if self.extra_cursors:
+            same_cursor = None
+            for cursor in self.all_cursors:
+                if cursor_for_pos.position() == cursor.position():
+                    same_cursor = cursor
+                    break
+            if same_cursor is not None:
+                removed_cursor = True
+                if same_cursor in self.extra_cursors:
+                    # cursor to be removed was not primary
+                    self.extra_cursors.remove(same_cursor)
+                else:
+                    # cursor to be removed is primary cursor
+                    # pick a new primary by position
+                    new_primary = max(
+                        self.extra_cursors,
+                        key=lambda cursor: cursor.position()
+                    )
+                    self.extra_cursors.remove(new_primary)
+                    self.setTextCursor(new_primary)
+
+                # Possibly clear selection of removed cursor
+                self.set_extra_cursor_selections()
+
+        if not removed_cursor:
+            self.setTextCursor(cursor_for_pos)
+            self.add_cursor(old_cursor)
+
+        self.multi_cursor_ignore_history = False
+        self.cursorPositionChanged.emit()
+
     def add_cursor_up(self):
         if self.multi_cursor_enabled:
             self.extra_cursors.append(self.textCursor())
