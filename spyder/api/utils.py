@@ -8,6 +8,7 @@
 """
 API utilities.
 """
+from abc import ABCMeta as BaseABCMeta
 
 
 def get_class_values(cls):
@@ -64,3 +65,65 @@ class classproperty(property):
 
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()
+
+
+class DummyAttribute:
+    """
+    Dummy class to mark abstract attributes.
+    """
+    pass
+
+
+def abstract_attribute(obj=None):
+    """
+    Decorator to mark abstract attributes. Must be used in conjunction with the
+    ABCMeta metaclass.
+    """
+    if obj is None:
+        obj = DummyAttribute()
+    obj.__is_abstract_attribute__ = True
+    return obj
+
+
+class ABCMeta(BaseABCMeta):
+    """
+    Metaclass to mark abstract classes.
+
+    Adds support for abstract attributes. If a class has abstract attributes
+    and is instantiated, a NotImplementedError is raised.
+
+    Usage
+    -----
+    class MyABC(metaclass=ABCMeta):
+        @abstract_attribute
+        def my_abstract_attribute(self):
+            pass
+            
+    class MyClassOK(MyABC):
+        def __init__(self):
+            self.my_abstract_attribute = 1
+    
+    class MyClassNotOK(MyABC):
+        pass
+    
+    Raises
+    ------
+    NotImplementedError: Can't instantiate abstract class with abstract attributes.
+    """
+
+    def __call__(cls, *args, **kwargs):
+        instance = BaseABCMeta.__call__(cls, *args, **kwargs)
+        abstract_attributes = {
+            name
+            for name in dir(instance)
+            if hasattr(getattr(instance, name), '__is_abstract_attribute__')
+        }
+        if abstract_attributes:
+            raise NotImplementedError(
+                "Can't instantiate abstract class {} with"
+                " abstract attributes: {}".format(
+                    cls.__name__,
+                    ', '.join(abstract_attributes)
+                )
+            )
+        return instance
