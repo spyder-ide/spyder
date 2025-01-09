@@ -3,7 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-
+from abc import abstractmethod
 import uuid
 import logging
 import time
@@ -12,7 +12,8 @@ import asyncio
 import yarl
 import aiohttp
 
-from spyder.plugins.remoteclient.api.jupyterhub import auth
+from spyder.api.utils import ABCMeta, abstract_attribute
+from spyder.plugins.remoteclient.api.rest import auth
 
 
 logger = logging.getLogger(__name__)
@@ -470,3 +471,65 @@ class JupyterKernelAPI:
                     # cell did not produce output
                     elif msg["content"].get("execution_state") == "idle":
                         return ""
+
+
+class JupyterPluginBaseAPI(metaclass=ABCMeta):
+    """
+    Base class for Jupyter API plugins.
+
+    This class is must be subclassed to implement the API for a specific
+    Jupyter extension. Provides a context manager for the API session.
+
+    Class Attributes
+    ----------
+    base_url: str
+        The base URL for the Jupyter Extension's rest API.
+    
+    Attributes
+    ----------
+    api_url: yarl.URL
+        The full URL for the rest.
+    
+    api_token: str
+        The API token for the Jupyter API.
+    
+    verify_ssl: bool
+        Whether to verify SSL certificates.
+
+    session: aiohttp.ClientSession
+        The session for the Jupyter API requests.
+    """
+
+    @abstract_attribute
+    def base_url(self):
+        ...
+
+    def __init__(self, hub_url, api_token, verify_ssl=True):
+        self.api_url = yarl.URL(hub_url) / self.base_url
+        self.api_token = api_token
+        self.verify_ssl = verify_ssl
+
+    @classmethod
+    async def new(cls, hub_url, api_token, verify_ssl=True):
+        self = cls(hub_url, api_token, verify_ssl=verify_ssl)
+        return await self.__aenter__()
+
+    async def close(self):
+        await self.__aexit__(None, None, None)
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(
+            headers={"Authorization": f"token {self.api_token}"},
+            connector=aiohttp.TCPConnector(
+                ssl=None if self.verify_ssl else False
+            ),
+            raise_for_status = self._raise_for_status,
+        )
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.session.close()
+
+    @abstractmethod
+    async def _raise_for_status(self, response: aiohttp.ClientResponse):
+        ...

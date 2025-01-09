@@ -19,7 +19,7 @@ from spyder.plugins.remoteclient import (
     SPYDER_REMOTE_MAX_VERSION,
     SPYDER_REMOTE_MIN_VERSION,
 )
-from spyder.plugins.remoteclient.api.jupyterhub import JupyterAPI
+from spyder.plugins.remoteclient.api.rest.base import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,

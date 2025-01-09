@@ -9,8 +9,8 @@ import difflib
 import logging
 import textwrap
 
-from spyder.plugins.remoteclient.api.jupyterhub import JupyterHubAPI
-from spyder.plugins.remoteclient.api.jupyterhub.utils import (
+from spyder.plugins.remoteclient.api.rest.base import JupyterHubAPI
+from spyder.plugins.remoteclient.api.rest.utils import (
     parse_notebook_cells,
 )
 
