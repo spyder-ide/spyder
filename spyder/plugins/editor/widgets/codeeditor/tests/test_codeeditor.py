@@ -10,7 +10,7 @@ import sys
 from unittest.mock import MagicMock
 
 # Third party imports
-from qtpy import QT_VERSION
+from qtpy import QT_VERSION, PYQT6
 from qtpy.QtCore import Qt, QEvent, QPointF
 from qtpy.QtGui import QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
@@ -438,6 +438,7 @@ def test_editor_delete_selection(codeeditor, qtbot):
 
 @pytest.mark.skipif(QT_VERSION.startswith('5.15'),
                     reason='Fixed on Qt 5.15')
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
     If that happens, then the workarounds for spyder-ide/spyder#12663

@@ -27,6 +27,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -160,6 +161,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -1664,6 +1666,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
 @pytest.mark.skipif(
     sys.version_info[:2] == (3, 8), reason="Fails in Python 3.8"
 )
+@pytest.mark.skipif(PYQT6, reason="Crashes ('QThread destroyed while running')")
 def test_pdb_magics_are_recursive(ipyconsole, qtbot, tmp_path):
     """
     Check that calls to Pdb magics start a recursive debugger when called in
@@ -1975,6 +1978,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
