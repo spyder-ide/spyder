@@ -559,7 +559,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         return self.get_widget().close_all_clients()
 
     def on_mainwindow_visible(self):
-        self.create_new_client(give_focus=False)
+        cli_options = self.get_command_line_options()
+        connection_file = cli_options.connection_file
+        if connection_file is not None:
+            self.create_client_for_kernel(connection_file)
+        else:
+            self.create_new_client(give_focus=False)
+
 
     # ---- Private methods
     # -------------------------------------------------------------------------
