@@ -514,6 +514,7 @@ DEFAULTS = [
               'editor/run selection in debugger': CTRL + '+F9',
               'editor/add cursor up': 'Alt+Shift+Up',
               'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/clear extra cursors': 'Esc',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",

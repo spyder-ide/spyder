@@ -670,6 +670,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.enter_array_table)),
             ('add cursor up', self.add_cursor_up),
             ('add cursor down', self.add_cursor_down),
+            ('clear extra cursors', self.clear_extra_cursors)
         )
 
         for name, callback in shortcuts:
