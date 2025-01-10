@@ -566,7 +566,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         else:
             self.create_new_client(give_focus=False)
 
-
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _on_project_loaded(self, path):
