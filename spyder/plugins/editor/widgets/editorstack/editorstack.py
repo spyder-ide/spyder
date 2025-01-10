@@ -124,7 +124,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    text_changed_at = Signal(str, int)
+    text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
@@ -351,6 +351,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
+        self.multicursor_support = True
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
@@ -1091,6 +1092,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_convert_eol_on_save_to(self, state):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         self.convert_eol_on_save_to = state
+
+    @on_conf_change(option='multicursor_support')
+    def set_multicursor_support(self, state):
+        """If `state` is `True`, multi-cursor editing is enabled."""
+        self.multicursor_support = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_multi_cursor(state)
 
     def set_current_project_path(self, root_path=None):
         """
@@ -2584,15 +2593,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             remove_trailing_spaces=self.always_remove_trailing_spaces,
             remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline,
-            format_on_save=self.format_on_save
+            format_on_save=self.format_on_save,
+            multi_cursor_enabled=self.multicursor_support
         )
 
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
-            lambda fname, position:
-            self.text_changed_at.emit(fname, position))
+            lambda fname, positions:
+            self.text_changed_at.emit(fname, positions))
         editor.sig_cursor_position_changed.connect(
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2915,6 +2925,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.append(editor.get_line_separator())
 
         editor.move_cursor_to_next('line', 'down')
+        editor.merge_extra_cursors(True)
 
     def get_current_cell(self):
         """Get current cell attributes."""
