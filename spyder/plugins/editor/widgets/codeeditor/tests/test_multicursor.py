@@ -79,14 +79,12 @@ def test_add_cursor(codeeditor, qtbot):
     qtbot.keyClick(codeeditor, "b")
     assert codeeditor.toPlainText() == "a01234b5a6789"
 
-
     # Don't add another cursor on top of main cursor
     click_at(codeeditor, qtbot, 7, ctrl=True, alt=True)
     assert not bool(codeeditor.extra_cursors)
 
     # Test removing cursors
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
-
 
     # Remove main cursor
     click_at(codeeditor, qtbot, 2, ctrl=True, alt=True)
@@ -106,7 +104,6 @@ def test_column_add_cursor(codeeditor, qtbot):
         3
     )
     codeeditor.setTextCursor(cursor)
-
 
     # Column cursor click at top row 6th column
     click_at(codeeditor, qtbot, 6, ctrl=True, alt=True, shift=True)
@@ -164,7 +161,6 @@ def test_multi_cursor_verticalMovementX(codeeditor, qtbot):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Down)
     assert codeeditor.extra_cursors[0].position() == 25
     assert codeeditor.textCursor().position() == 35
-
 
     for _ in range(3):
         qtbot.keyClick(codeeditor, Qt.Key.Key_Up)
@@ -237,72 +233,95 @@ def test_overwrite_mode(codeeditor, qtbot):
 #     assert codeeditor._drag_cursor is None
 #     assert codeeditor.toPlainText() == "abcdefghij\n0123456789\n"
 
+# fmt: off
+# Disable formatting so that Black/Ruff don't incorrectly format the multiline
+# strings below.
 def test_smart_text(codeeditor, qtbot):
     """
     Test smart text features: Smart backspace, whitespace insertion, colon
     insertion, parenthesis and quote matching.
     """
 
-    codeeditor.set_text("def test1\n"
-                        "def test2\n")
+    # Closing paren was inserted?
+    codeeditor.set_text("def test1\ndef test2\n")
     click_at(codeeditor, qtbot, 9)
     click_at(codeeditor, qtbot, 19, ctrl=True, alt=True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_ParenLeft)
-    # Closing paren was inserted?
-    assert codeeditor.toPlainText() == ("def test1()\n"
-                                        "def test2()\n")
-    qtbot.keyClick(codeeditor, Qt.Key.Key_ParenRight)
+    assert codeeditor.toPlainText() == ("def test1()\ndef test2()\n")
+
     # Typing close paren advances cursor without adding extra paren?
-    assert codeeditor.toPlainText() == ("def test1()\n"
-                                        "def test2()\n")
-    qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
+    qtbot.keyClick(codeeditor, Qt.Key.Key_ParenRight)
+    assert codeeditor.toPlainText() == ("def test1()\ndef test2()\n")
+
     # Auto colon and indent?
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    \n"
-                                        "def test2():\n"
-                                        "    \n")
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    \n"
+        "def test2():\n"
+        "    \n"
+    )
+
     # Add some extraneous whitespace
     qtbot.keyClick(codeeditor, Qt.Key.Key_Tab)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Tab)
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "            \n"
-                                        "def test2():\n"
-                                        "            \n")
-    qtbot.keyClick(codeeditor, Qt.Key.Key_Backspace)
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "            \n"
+        "def test2():\n"
+        "            \n"
+    )
+
     # Smart backspace to correct indent?
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    \n"
-                                        "def test2():\n"
-                                        "    \n")
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Backspace)
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    \n"
+        "def test2():\n"
+        "    \n"
+    )
+
     for cursor in codeeditor.all_cursors:
         cursor.insertText("return")
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    return\n"
-                                        "def test2():\n"
-                                        "    return\n")
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    return\n"
+        "def test2():\n"
+        "    return\n"
+    )
+
+    # Automatic quote
     codeeditor.set_close_quotes_enabled(True)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Space)
     qtbot.keyClick(codeeditor, Qt.Key.Key_Apostrophe)
-    # Automatic quote
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    return ''\n"
-                                        "def test2():\n"
-                                        "    return ''\n")
-    qtbot.keyClick(codeeditor, Qt.Key.Key_Apostrophe)
-    # Automatic close quote
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    return ''\n"
-                                        "def test2():\n"
-                                        "    return ''\n")
-    qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
-    # Automatic dedent?
-    assert codeeditor.toPlainText() == ("def test1():\n"
-                                        "    return ''\n"
-                                        "\n"
-                                        "def test2():\n"
-                                        "    return ''\n"
-                                        "\n")
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    return ''\n"
+        "def test2():\n"
+        "    return ''\n"
+    )
 
+    # Automatic close quote
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Apostrophe)
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    return ''\n"
+        "def test2():\n"
+        "    return ''\n"
+    )
+
+    # Automatic dedent?
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Return)
+    assert codeeditor.toPlainText() == (
+        "def test1():\n"
+        "    return ''\n"
+        "\n"
+        "def test2():\n"
+        "    return ''\n"
+        "\n"
+    )
+
+# fmt: on
 
 # ---- shortcuts
 
