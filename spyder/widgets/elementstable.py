@@ -170,6 +170,10 @@ class ElementsTable(HoverRowsTableView):
         # To make adjustments when the widget is shown
         self._is_shown = False
 
+        # To use these widths where necessary
+        self._info_column_width = 0
+        self._widgets_column_width = 0
+
         # This is used to paint the entire row's background color when its
         # hovered.
         self.sig_hover_index_changed.connect(self._on_hover_index_changed)
@@ -192,7 +196,6 @@ class ElementsTable(HoverRowsTableView):
              title_delegate.on_hover_index_changed)
 
         # Adjustments for the additional info column
-        self._info_column_width = 0
         if self._with_addtional_info:
             info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
@@ -207,22 +210,12 @@ class ElementsTable(HoverRowsTableView):
                 self.model.columns['additional_info'])
 
         # Adjustments for the widgets column
-        self._widgets_column_width = 0
         if self._with_widgets:
             widgets_delegate = HTMLDelegate(self, margin=0)
             self.setItemDelegateForColumn(
                 self.model.columns['widgets'], widgets_delegate)
             self.sig_hover_index_changed.connect(
                  widgets_delegate.on_hover_index_changed)
-
-            # This is necessary to get this column's width below
-            self.resizeColumnsToContents()
-
-            # Note: We add 15 pixels to the Qt width so that the widgets are
-            # not so close to the right border of the table, which doesn't look
-            # good.
-            self._widgets_column_width = self.horizontalHeader().sectionSize(
-                self.model.columns['widgets']) + 15
 
             # Add widgets
             for i in range(len(self.elements)):
@@ -350,10 +343,26 @@ class ElementsTable(HoverRowsTableView):
         """Check if it's necessary to build the table with `feature_name`."""
         return len([e for e in self.elements if e.get(feature_name)]) > 0
 
+    def _compute_widgets_column_width(self):
+        if self._with_widgets:
+            # This is necessary to get the right width
+            self.resizeColumnsToContents()
+
+            # We add 10 pixels to the width computed by Qt so that the widgets
+            # are not so close to the right border of the table, which doesn't
+            # look good.
+            self._widgets_column_width = (
+                self.horizontalHeader().sectionSize(
+                    self.model.columns["widgets"]
+                )
+                + 10
+            )
+
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         if not self._is_shown:
+            self._compute_widgets_column_width()
             self._set_layout()
 
             # To not run the adjustments above every time the widget is shown
