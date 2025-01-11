@@ -153,9 +153,15 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
 
 class ElementsTable(HoverRowsTableView):
 
-    def __init__(self, parent: Optional[QWidget], elements: List[Element]):
+    def __init__(
+        self,
+        parent: Optional[QWidget],
+        elements: List[Element],
+        highlight_hovered_row: bool = True,
+    ):
         HoverRowsTableView.__init__(self, parent, custom_delegate=True)
         self.elements = elements
+        self._highlight_hovered_row = highlight_hovered_row
 
         # Check for additional features
         self._with_icons = self._with_feature('icon')
@@ -176,7 +182,8 @@ class ElementsTable(HoverRowsTableView):
 
         # This is used to paint the entire row's background color when its
         # hovered.
-        self.sig_hover_index_changed.connect(self._on_hover_index_changed)
+        if self._highlight_hovered_row:
+            self.sig_hover_index_changed.connect(self._on_hover_index_changed)
 
         # Set model
         self.model = ElementsModel(
@@ -191,17 +198,23 @@ class ElementsTable(HoverRowsTableView):
         # Adjustments for the title column
         title_delegate = HTMLDelegate(self, margin=9, wrap_text=True)
         self.setItemDelegateForColumn(
-            self.model.columns['title'], title_delegate)
-        self.sig_hover_index_changed.connect(
-             title_delegate.on_hover_index_changed)
+            self.model.columns['title'], title_delegate
+        )
+        if self._highlight_hovered_row:
+            self.sig_hover_index_changed.connect(
+                 title_delegate.on_hover_index_changed
+            )
 
         # Adjustments for the additional info column
         if self._with_addtional_info:
             info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
-                self.model.columns['additional_info'], info_delegate)
-            self.sig_hover_index_changed.connect(
-                 info_delegate.on_hover_index_changed)
+                self.model.columns['additional_info'], info_delegate
+            )
+            if self._highlight_hovered_row:
+                self.sig_hover_index_changed.connect(
+                     info_delegate.on_hover_index_changed
+                )
 
             # This is necessary to get this column's width below
             self.resizeColumnsToContents()
@@ -213,9 +226,12 @@ class ElementsTable(HoverRowsTableView):
         if self._with_widgets:
             widgets_delegate = HTMLDelegate(self, margin=0)
             self.setItemDelegateForColumn(
-                self.model.columns['widgets'], widgets_delegate)
-            self.sig_hover_index_changed.connect(
-                 widgets_delegate.on_hover_index_changed)
+                self.model.columns['widgets'], widgets_delegate
+            )
+            if self._highlight_hovered_row:
+                self.sig_hover_index_changed.connect(
+                     widgets_delegate.on_hover_index_changed
+                )
 
             # Add widgets
             for i in range(len(self.elements)):
