@@ -18,15 +18,13 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown,
 )
 from spyder.api.translations import _
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
 )
 from spyder.plugins.editor.confpage import EditorConfigPage
-from spyder.plugins.editor.widgets.main_widget import (
-    EditorMainWidget,
-    EditorWidgetActions
-)
+from spyder.plugins.editor.widgets.main_widget import EditorMainWidget
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
     EditMenuSections,

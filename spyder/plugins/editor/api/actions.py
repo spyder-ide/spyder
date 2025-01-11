@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+"""
+Actions defined in the Spyder editor plugin.
+"""
+
+class EditorWidgetActions:
+    # File operations
+    NewFile = "New file"
+    OpenLastClosed = "Open last closed"
+    OpenFile = "Open file"
+    RevertFileFromDisk = "Revert file from disk"
+    SaveFile = "Save file"
+    SaveAll = "Save all"
+    SaveAs = "Save As"
+    SaveCopyAs = "save_copy_as_action"
+    PrintPreview = "print_preview_action"
+    Print = "print_action"
+    CloseFile = "Close current file"
+    CloseAll = "Close all"
+    MaxRecentFiles = "max_recent_files_action"
+    ClearRecentFiles = "clear_recent_files_action"
+
+    # Navigation
+    GoToNextFile = "Go to next file"
+    GoToPreviousFile = "Go to previous file"
+
+    # Find/Search operations
+    FindText = "Find text"
+    FindNext = "Find next"
+    FindPrevious = "Find previous"
+    ReplaceText = "Replace text"
+
+    # Source code operations
+    ShowTodoList = "show_todo_list_action"
+    ShowCodeAnalysisList = "show_code_analaysis_action"
+    GoToPreviousWarning = "Previous warning"
+    GoToNextWarning = "Next warning"
+    GoToLastEditLocation = "Last edit location"
+    GoToPreviousCursorPosition = "Previous cursor position"
+    GoToNextCursorPosition = "Next cursor position"
+    WinEOL = "win_eol_action"
+    LinuxEOL = "linux_eol_action"
+    MacEOL = "mac_eol_action"
+    RemoveTrailingSpaces = "remove_trailing_spaces_action"
+    FormatCode = "autoformating"
+    FixIndentation = "fix_indentation_action"
+
+    # Checkable operations
+    ShowBlanks = "blank_spaces_action"
+    ScrollPastEnd = "scroll_past_end_action"
+    ShowIndentGuides = "show_indent_guides_action"
+    ShowCodeFolding = "show_code_folding_action"
+    ShowClassFuncDropdown = "show_class_func_dropdown_action"
+    ShowCodeStyleWarnings = "pycodestyle_action"
+    ShowDoctringWarnings = "pydocstyle_action"
+    UnderlineErrors = "underline_errors_action"
+
+    # Stack menu
+    GoToLine = "Go to line"
+    SetWorkingDirectory = "set_working_directory_action"
+
+    # Edit operations
+    NewCell = "create_new_cell"
+    ToggleComment = "Toggle comment"
+    Blockcomment = "Blockcomment"
+    Unblockcomment = "Unblockcomment"
+
+    Indent = "indent_action"
+    Unindent = "unindent_action"
+    TransformToUppercase = "transform to uppercase"
+    TransformToLowercase = "transform to lowercase"
+
+    Undo = "Undo"
+    Redo = "Redo"
+    Copy = "Copy"
+    Cut = "Cut"
+    Paste = "Paste"
+    SelectAll = "Select All"
+
+
