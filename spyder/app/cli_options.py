@@ -162,7 +162,10 @@ def get_options(argv=None):
         type=str,
         dest="connection_file",
         default=None,
-        help="Start Spyder and connect to an existing ipython kernel."
+        help=(
+            "Connect to an existing kernel whose info is available in a "
+            "kernel-*.json file"
+        )
     )
 
     parser.add_argument('files', nargs='*')
