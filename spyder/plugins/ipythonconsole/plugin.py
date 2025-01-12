@@ -753,7 +753,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             The created client.
         """
         return self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password, server_id, give_focus, can_close
+            connection_file,
+            hostname,
+            sshkey,
+            password,
+            server_id,
+            give_focus,
+            can_close,
         )
 
     def get_client_for_file(self, filename):

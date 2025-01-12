@@ -1726,7 +1726,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, server_id=None, give_focus=False, can_close=True):
+                                 password, server_id=None, give_focus=False,
+                                 can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
