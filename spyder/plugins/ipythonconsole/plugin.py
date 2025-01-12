@@ -562,7 +562,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
         if connection_file is not None:
-            self.create_client_for_kernel(connection_file)
+            self.create_client_for_kernel(connection_file, give_focus=False)
         else:
             self.create_new_client(give_focus=False)
 
@@ -720,6 +720,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         sshkey=None,
         password=None,
         server_id=None,
+        give_focus=False,
         can_close=True,
     ):
         """
@@ -752,7 +753,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             The created client.
         """
         return self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password, server_id, can_close
+            connection_file, hostname, sshkey, password, server_id, give_focus, can_close
         )
 
     def get_client_for_file(self, filename):
