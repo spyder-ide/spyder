@@ -534,6 +534,8 @@ class ProgressDialog(UpdateMessageBox):
 
 
 def error_messagebox(parent, error_msg, checkbox=False):
+    # Use a message box with a checkbox for enabling update checks,
+    # or a standard one otherwise.
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     box = box_class(icon=QMessageBox.Warning, text=error_msg, parent=parent)
     box.setWindowTitle(_("Spyder update error"))
