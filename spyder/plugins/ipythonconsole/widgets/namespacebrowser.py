@@ -19,8 +19,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from spyder_kernels.comms.commbase import CommError
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.utils import is_anaconda
+from spyder.config.base import _, is_conda_based_app
 
 # For logging
 logger = logging.getLogger(__name__)
@@ -73,11 +72,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except CommError:
             raise ValueError(msg % reason_comm)
         except ModuleNotFoundError as e:
-            if is_anaconda():
+            if is_conda_based_app():
+                raise ValueError(msg % reason_missing_package.format(e.name))
+            else:
                 raise ValueError(msg % reason_missing_package_conda
                                  .format(e.name))
-            else:
-                raise ValueError(msg % reason_missing_package.format(e.name))
         except Exception:
             raise ValueError(msg % reason_other)
 
