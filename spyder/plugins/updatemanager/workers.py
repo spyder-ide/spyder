@@ -52,9 +52,10 @@ SSL_ERROR_MSG = _(
 )
 
 OS_ERROR_MSG = _(
-    'An error occurred while checking for Spyder updates, possibly related to'
-    ' system configuration or file access. <br><br>Please verify your system '
-    'settings, including file paths and permissions.'
+    "An error occurred while checking for Spyder updates, possibly related to "
+    "your operating system configuration or file access.<br><br>If you're not "
+    "sure what to do about it, you can disable checking for updates below. "
+    "<br><br>The error was:<br><br><tt>{error}</tt>"
 )
 
 def _rate_limits(page):
@@ -301,7 +302,7 @@ class WorkerUpdate(BaseWorker):
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
             logger.warning(err, exc_info=err)
         except OSError as err:
-            error_msg = OS_ERROR_MSG
+            error_msg = OS_ERROR_MSG.format(error=err)
             self.checkbox = True
             logger.warning(err, exc_info=err)
         except Exception as err:
