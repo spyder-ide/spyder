@@ -282,7 +282,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             triggered=lambda: self.debug_command("step"),
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
-            shortcut_context="debugger"
+            shortcut_context="_"
         )
 
         return_action = self.create_action(
@@ -292,7 +292,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             triggered=lambda: self.debug_command("return"),
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
-            shortcut_context="debugger"
+            shortcut_context="_"
         )
 
         stop_action = self.create_action(
@@ -302,7 +302,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             triggered=self.stop_debugging,
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
-            shortcut_context="debugger"
+            shortcut_context="_"
         )
 
         goto_cursor_action = self.create_action(
