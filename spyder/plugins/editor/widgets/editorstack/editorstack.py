@@ -2606,7 +2606,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             add_newline=self.add_newline,
             format_on_save=self.format_on_save,
             multi_cursor_enabled=self.multicursor_support,
-            mouse_shortcuts = self.mouse_shortcuts
+            mouse_shortcuts=self.mouse_shortcuts
         )
 
         if cloned_from is None:
