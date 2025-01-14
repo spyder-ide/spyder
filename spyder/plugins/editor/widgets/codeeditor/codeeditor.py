@@ -4570,7 +4570,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         elif (left_button and
               modifiers == self._mouse_modifiers['jump_to_position']):
 
-            self.sig_jump_position_mouse_pressed(event)
+            self.sig_jump_position_mouse_pressed.emit(event)
 
         # Handle goto definition
         elif (left_button and
