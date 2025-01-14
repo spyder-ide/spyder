@@ -1384,13 +1384,32 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
     @Slot()
     def copy(self):
-        """Copy text to clipboard"""
+        """
+        Copy text representation of objects to clipboard.
+
+        Notes
+        -----
+        For Numpy arrays and dataframes we try to get a better representation
+        by using their `savetxt` and `to_csv` methods, respectively.
+        """
         clipboard = QApplication.clipboard()
         clipl = []
+        retrieve_failed = False
+        array_failed = False
+        dataframe_failed = False
+
         for idx in self.selectedIndexes():
             if not idx.isValid():
                 continue
-            obj = self.delegate.get_value(idx)
+
+            # Prevent error when it's not possible to get the object's value
+            # Fixes spyder-ide/spyder#12913
+            try:
+                obj = self.delegate.get_value(idx)
+            except Exception:
+                retrieve_failed = True
+                continue
+
             # Check if we are trying to copy a numpy array, and if so make sure
             # to copy the whole thing in a tab separated format
             if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
@@ -1399,10 +1418,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 try:
                     np.savetxt(output, obj, delimiter='\t')
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this array"))
-                    return
+                    array_failed = True
+                    continue
                 obj = output.getvalue().decode('utf-8')
                 output.close()
             elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
@@ -1411,18 +1428,59 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 try:
                     obj.to_csv(output, sep='\t', index=True, header=True)
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this dataframe"))
-                    return
+                    dataframe_failed = True
+                    continue
                 obj = output.getvalue()
                 output.close()
             elif is_binary_string(obj):
                 obj = to_text_string(obj, 'utf8')
             else:
-                obj = to_text_string(obj)
+                obj = str(obj)
+
             clipl.append(obj)
+
+        # Copy to clipboard the final result
         clipboard.setText('\n'.join(clipl))
+
+        # Show appropriate error messages after we tried to copy all objects
+        # selected by users.
+        if retrieve_failed:
+            QMessageBox.warning(
+                self.parent(),
+                _("Warning"),
+                _(
+                    "It was not possible to retrieve the value of one or more "
+                    "of the variables you selected in order to copy them."
+                ),
+            )
+
+        if array_failed and dataframe_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "dataframes and Numpy arrays you selected"
+                ),
+            )
+        elif array_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "Numpy arrays you selected"
+                ),
+            )
+        elif dataframe_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "dataframes you selected"
+                ),
+            )
 
     def import_from_string(self, text, title=None):
         """Import data from string"""
