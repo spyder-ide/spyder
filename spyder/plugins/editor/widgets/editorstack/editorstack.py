@@ -355,6 +355,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
+        self.mouse_shortcuts = {'jump_to_position': 'Alt',
+                                'goto_definition': 'Ctrl',
+                                'add_remove_cursor': 'Ctrl+Alt',
+                                'column_cursor': 'Ctrl+Alt+Shift'}
 
         # Set default color scheme
         color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
@@ -1100,6 +1104,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_multi_cursor(state)
+
+    @on_conf_change(option='mouse_shortcuts')
+    def set_mouse_shortcuts(self, state):
+        self.mouse_shortcuts = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_mouse_shortcuts(state)
 
     def set_current_project_path(self, root_path=None):
         """
@@ -2594,7 +2605,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline,
             format_on_save=self.format_on_save,
-            multi_cursor_enabled=self.multicursor_support
+            multi_cursor_enabled=self.multicursor_support,
+            mouse_shortcuts = self.mouse_shortcuts
         )
 
         if cloned_from is None:
