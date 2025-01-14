@@ -180,13 +180,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     #: Signal emitted when a key is released
     sig_key_released = Signal(QKeyEvent)
 
-    #: Signal emitted when the alt key is pressed and the left button of the
-    #  mouse is clicked
-    sig_alt_left_mouse_pressed = Signal(QMouseEvent)
+    #: Signal emitted when the jump position modifiers are pressed and the left
+    #  button of the mouse is clicked
+    sig_jump_position_mouse_pressed = Signal(QMouseEvent)
 
-    #: Signal emitted when the alt key is pressed and the cursor moves over
-    #  the editor
-    sig_alt_mouse_moved = Signal(QMouseEvent)
+    #: Signal emitted when the jump position modifiers are pressed and the
+    #  cursor moves over the editor
+    sig_jump_position_mouse_moved = Signal(QMouseEvent)
 
     #: Signal emitted when the cursor leaves the editor
     sig_leave_out = Signal()
@@ -474,6 +474,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.__cursor_changed = False
         self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
+        self._mouse_shortcuts = None
+        self._mouse_modifiers = None
+        # init _mouse_modifiers to default values
+        self.set_mouse_shortcuts(None)
 
         self._bookmarks_blocks = {}
         self.bookmarks = []
@@ -759,7 +763,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                      remove_trailing_newlines=False,
                      add_newline=False,
                      format_on_save=False,
-                     multi_cursor_enabled=True):
+                     multi_cursor_enabled=True,
+                     mouse_shortcuts=None):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -841,6 +846,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             Default False.
         multi_cursor_enabled: Enable/Disable multi-cursor functionality.
             Default True
+        mouse_shortcuts: Configure modifiers used for mouse click actions
+            Default None
         """
 
         self.set_close_parentheses_enabled(close_parentheses)
@@ -959,6 +966,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.set_strip_mode(strip_mode)
 
         self.toggle_multi_cursor(multi_cursor_enabled)
+
+        self.set_mouse_shortcuts(mouse_shortcuts)
 
     # ---- Set different attributes
     # -------------------------------------------------------------------------
@@ -1133,6 +1142,37 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.highlighter.sig_font_changed.connect(self.sync_font)
         self._rehighlight_timer.timeout.connect(
             self.highlighter.rehighlight)
+
+    def set_mouse_shortcuts(self, shortcuts):
+        self._mouse_shortcuts = shortcuts
+
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        alt = Qt.KeyboardModifier.AltModifier
+        shift = Qt.KeyboardModifier.ShiftModifier
+        meta = Qt.KeyboardModifier.MetaModifier
+
+        # Default values
+        self._mouse_modifiers = {
+            'jump_to_position': alt,
+            'goto_definition': ctrl,
+            'add_remove_cursor': ctrl | alt,
+            'column_cursor': ctrl | alt | shift
+        }
+
+        if shortcuts:
+            for key, value in shortcuts.items():
+                if not value:
+                    self._mouse_modifiers[key] = None
+                modifiers = Qt.KeyboardModifier.NoModifier
+                if "ctrl" in value.lower():
+                    modifiers |= ctrl
+                if "alt" in value.lower():
+                    modifiers |= alt
+                if "shift" in value.lower():
+                    modifiers |= shift
+                if "meta" in value.lower():
+                    modifiers |= meta
+                self._mouse_modifiers[key] = modifiers
 
     def sync_font(self):
         """Highlighter changed font, update."""
@@ -3772,7 +3812,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                    Qt.Key_Meta, Qt.KeypadModifier]:
             self.setOverwriteMode(False)
             # The user pressed only a modifier key.
-            if ctrl:
+            if event.modifiers() == self._mouse_modifiers['goto_definition']:
                 pos = self.mapFromGlobal(QCursor.pos())
                 pos = self.calculate_real_position_from_global(pos)
                 if self._handle_goto_uri_event(pos):
@@ -4448,20 +4488,21 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         pos = event.pos()
         self._last_point = pos
-        alt = event.modifiers() & Qt.AltModifier
-        ctrl = event.modifiers() & Qt.ControlModifier
 
-        if alt:
-            self.sig_alt_mouse_moved.emit(event)
+        modifiers = event.modifiers()
+
+        if modifiers == self._mouse_modifiers['jump_to_position']:
+            self.sig_jump_position_mouse_moved.emit(event)
             event.accept()
             return
 
-        if ctrl:
+        if modifiers == self._mouse_modifiers['goto_definition']:
             if self._handle_goto_uri_event(pos):
                 event.accept()
                 return
 
-        if self.go_to_definition_enabled and ctrl:
+        if (self.go_to_definition_enabled and
+            modifiers == self._mouse_modifiers['goto_definition']):
             if self._handle_goto_definition_event(pos):
                 event.accept()
                 return
@@ -4510,43 +4551,44 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         """Override Qt method."""
         self.hide_tooltip()
 
-        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
-        alt = event.modifiers() & Qt.KeyboardModifier.AltModifier
-        shift = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-        cursor_for_pos = self.cursorForPosition(event.pos())
-        self._mouse_left_button_pressed = event.button() == Qt.LeftButton
+        modifiers = event.modifiers()
+        left_button = event.button() == Qt.LeftButton
+        self._mouse_left_button_pressed = left_button
 
-        if (
-            self.multi_cursor_enabled
-            and event.button() == Qt.LeftButton
-            and ctrl
-            and alt
-        ):
-            # ---- Ctrl-Alt: multi-cursor mouse interactions
-            if shift:
-                # Ctrl-Shift-Alt click adds colum of cursors towards primary
-                # cursor
-                self.add_column_cursor(event)
-            else:  # Ctrl-Alt click adds and removes cursors
-                # Move existing primary cursor to extra_cursors list and set
-                # new primary cursor
+        # Handle adding cursors
+        if (self.multi_cursor_enabled and left_button and
+            modifiers == self._mouse_modifiers['add_remove_cursor']):
+
                 self.add_remove_cursor(event)
-        else:
-            # ---- not multi-cursor
-            if event.button() == Qt.MouseButton.LeftButton:
-                self.clear_extra_cursors()
 
-            if event.button() == Qt.LeftButton and ctrl:
-                TextEditBaseWidget.mousePressEvent(self, event)
-                uri = self._last_hover_pattern_text
-                if uri:
-                    self.go_to_uri_from_cursor(uri)
-                else:
-                    self.go_to_definition_from_cursor(cursor_for_pos)
-            elif event.button() == Qt.LeftButton and alt:
-                self.sig_alt_left_mouse_pressed.emit(event)
+        elif (self.multi_cursor_enabled and left_button and
+              modifiers == self._mouse_modifiers['column_cursor']):
+
+                self.add_column_cursor(event)
+
+        # Handle jump (scrollflag click)
+        elif (left_button and
+              modifiers == self._mouse_modifiers['jump_to_position']):
+
+            self.sig_jump_position_mouse_pressed(event)
+
+        # Handle goto definition
+        elif (left_button and
+              modifiers == self._mouse_modifiers['goto_definition']):
+
+            self.clear_extra_cursors()
+            TextEditBaseWidget.mousePressEvent(self, event)
+            uri = self._last_hover_pattern_text
+            if uri:
+                self.go_to_uri_from_cursor(uri)
             else:
-                TextEditBaseWidget.mousePressEvent(self, event)
+                cursor_for_pos = self.cursorForPosition(event.pos())
+                self.go_to_definition_from_cursor(cursor_for_pos)
+
+        else:
+            if left_button:
+                self.clear_extra_cursors()
+            TextEditBaseWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
