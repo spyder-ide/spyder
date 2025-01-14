@@ -505,19 +505,11 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
         ...
 
     def __init__(self, hub_url, api_token, verify_ssl=True):
-        self.api_url = yarl.URL(hub_url) / self.base_url
+        self.hub_url = yarl.URL(hub_url)
+        self.api_url = self.hub_url / self.base_url
         self.api_token = api_token
         self.verify_ssl = verify_ssl
 
-    @classmethod
-    async def new(cls, hub_url, api_token, verify_ssl=True):
-        self = cls(hub_url, api_token, verify_ssl=verify_ssl)
-        return await self.__aenter__()
-
-    async def close(self):
-        await self.__aexit__(None, None, None)
-
-    async def __aenter__(self):
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.api_token}"},
             connector=aiohttp.TCPConnector(
@@ -525,10 +517,19 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
             ),
             raise_for_status = self._raise_for_status,
         )
+
+    async def __aenter__(self) -> "JupyterPluginBaseAPI":
         return self
 
-    async def __aexit__(self, exc_type, exc, tb):
+    async def close(self):
         await self.session.close()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
+
+    @property
+    def closed(self):
+        return self.session.closed
 
     @abstractmethod
     async def _raise_for_status(self, response: aiohttp.ClientResponse):
