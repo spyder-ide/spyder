@@ -4501,8 +4501,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 event.accept()
                 return
 
-        if (self.go_to_definition_enabled and
-            modifiers == self._mouse_modifiers['goto_definition']):
+        if (
+                self.go_to_definition_enabled and
+                modifiers == self._mouse_modifiers['goto_definition']
+        ):
             if self._handle_goto_definition_event(pos):
                 event.accept()
                 return
@@ -4556,15 +4558,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._mouse_left_button_pressed = left_button
 
         # Handle adding cursors
-        if (self.multi_cursor_enabled and left_button and
-            modifiers == self._mouse_modifiers['add_remove_cursor']):
+        if (
+                self.multi_cursor_enabled and left_button and
+                modifiers == self._mouse_modifiers['add_remove_cursor']
+        ):
+            self.add_remove_cursor(event)
 
-                self.add_remove_cursor(event)
-
-        elif (self.multi_cursor_enabled and left_button and
-              modifiers == self._mouse_modifiers['column_cursor']):
-
-                self.add_column_cursor(event)
+        elif (
+                self.multi_cursor_enabled and left_button and
+                modifiers == self._mouse_modifiers['column_cursor']
+        ):
+            self.add_column_cursor(event)
 
         # Handle jump (scrollflag click)
         elif (left_button and
