@@ -30,17 +30,19 @@ class RemoteFileServicesError(SpyderServicesError):
         return f"(type='{self.type}', message='{self.message}', url='{self.url}')"
 
 class RemoteOSError(OSError, RemoteFileServicesError):
-    def __init__(self, *args):
-        super(RemoteFileServicesError, self).__init__(*args)
+    def __init__(self, errno, strerror, filename, url):
+        super().__init__(errno, strerror, filename)
+        super(OSError, self).__init__(OSError,
+                                      super().__str__(),
+                                      url,
+                                      [])
 
     @classmethod
     def from_json(cls, data, url):
-        err = cls(data["message"], url)
-        err.errno = data["errno"]
-        return err
+        return cls(data["errno"], data["strerror"], data["filename"], url)
 
     def __str__(self):
-        return f'{self.args[0]} ({self.args[1]})'
+        return super(OSError, self).__str__()
 
 
 class SpyderRemoteFileAPI:
@@ -192,29 +194,33 @@ class SpyderRemoteFileAPI:
         return await self._get_response()
 
 
-class SpyderRemoteServicesFileAPI(JupyterPluginBaseAPI):
+class SpyderRemoteFileServicesAPI(JupyterPluginBaseAPI):
     base_url = SPYDER_PLUGIN_NAME + "/fsspec"
 
-    async def _raise_for_status(self, response):
-        if response.status == 500:
-            try:
-                data = await response.json()
-            except json.JSONDecodeError:
-                data = {}
+    async def _raise_for_status(self, response: aiohttp.ClientResponse):
+        if response.status not in (HTTPStatus.INTERNAL_SERVER_ERROR,
+                                   HTTPStatus.EXPECTATION_FAILED):
+            return response.raise_for_status()
 
-            # If we're in a context we can rely on __aexit__() to release as the
-            # exception propagates.
-            if not response._in_context:
-                response.release()
+        try:
+            data = await response.json()
+        except json.JSONDecodeError:
+            data = {}
 
-            raise RemoteFileServicesError(
-                data.get("type", "UnknownError"),
-                data.get("message", "Unknown error"),
-                response.url,
-                data.get("tracebacks", []),
-            )
-        elif not response.ok:
-            response.raise_for_status()
+        # If we're in a context we can rely on __aexit__() to release as the
+        # exception propagates.
+        if not response._in_context:
+            response.release()
+
+        if response.status == HTTPStatus.EXPECTATION_FAILED:
+            raise RemoteOSError.from_json(data, response.url)
+
+        raise RemoteFileServicesError(
+            data.get("type", "UnknownError"),
+            data.get("message", "Unknown error"),
+            response.url,
+            data.get("tracebacks", []),
+        )
 
     async def ls(self, path: Path, detail: bool=True):
         async with self.session.get(self.api_url / "ls" / f"file://{path}", params={"detail": str(detail).lower()}) as response:
