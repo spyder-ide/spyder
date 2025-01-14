@@ -1384,9 +1384,19 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
     @Slot()
     def copy(self):
-        """Copy text to clipboard"""
+        """
+        Copy text representation of objects to clipboard.
+
+        Notes
+        -----
+        For Numpy arrays and dataframes we try to get a better representation
+        by using their `savetxt` and `to_csv` methods, respectively.
+        """
         clipboard = QApplication.clipboard()
         clipl = []
+        array_failed = False
+        dataframe_failed = False
+
         for idx in self.selectedIndexes():
             if not idx.isValid():
                 continue
@@ -1399,10 +1409,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 try:
                     np.savetxt(output, obj, delimiter='\t')
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this array"))
-                    return
+                    array_failed = True
+                    continue
                 obj = output.getvalue().decode('utf-8')
                 output.close()
             elif (isinstance(obj, (pd.DataFrame, pd.Series)) and
@@ -1411,18 +1419,48 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 try:
                     obj.to_csv(output, sep='\t', index=True, header=True)
                 except Exception:
-                    QMessageBox.warning(self, _("Warning"),
-                                        _("It was not possible to copy "
-                                          "this dataframe"))
-                    return
+                    dataframe_failed = True
+                    continue
                 obj = output.getvalue()
                 output.close()
             elif is_binary_string(obj):
                 obj = to_text_string(obj, 'utf8')
             else:
-                obj = to_text_string(obj)
+                obj = str(obj)
+
             clipl.append(obj)
+
+        # Copy to clipboard the final result
         clipboard.setText('\n'.join(clipl))
+
+        # Show appropriate error message
+        if array_failed and dataframe_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "dataframes and Numpy arrays you selected"
+                ),
+            )
+        elif array_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "Numpy arrays you selected"
+                ),
+            )
+        elif dataframe_failed:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _(
+                    "It was not possible to copy one or more of the "
+                    "dataframes you selected"
+                ),
+            )
 
     def import_from_string(self, text, title=None):
         """Import data from string"""
