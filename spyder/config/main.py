@@ -269,6 +269,10 @@ DEFAULTS = [
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': False,
               'show_outline_in_editor_window': True,
+              'mouse_shortcuts': {'jump_to_position': 'Alt',
+                                  'goto_definition': 'Ctrl',
+                                  'add_remove_cursor': 'Ctrl+Alt',
+                                  'column_cursor': 'Ctrl+Alt+Shift'},
               }),
             ('historylog',
              {
