@@ -1,6 +1,7 @@
 from __future__ import annotations
 import base64
 from http import HTTPStatus
+from io import FileIO
 import json
 from pathlib import Path
 
@@ -45,9 +46,12 @@ class RemoteOSError(OSError, RemoteFileServicesError):
         return super(OSError, self).__str__()
 
 
-class SpyderRemoteFileAPI:
-    def __init__(self, path, mode="r", atomic=False, lock=False, encoding="utf-8"):
-        self.path = path
+class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, FileIO):
+    base_url = SPYDER_PLUGIN_NAME + "/fsspec/open"
+
+    def __init__(self, file, mode="r", atomic=False, lock=False, encoding="utf-8", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = file
         self.mode = mode
         self.encoding = encoding
         self.atomic = atomic
@@ -55,13 +59,23 @@ class SpyderRemoteFileAPI:
 
         self._websocket: aiohttp.ClientWebSocketResponse = None
 
-    async def connect(self, session: aiohttp.ClientSession, api_url):
-        self._websocket = await session.ws_connect(api_url / "open" / f"file://{self.path}",
-                                                   params={"mode": self.mode, 
-                                                           "atomic": str(self.atomic).lower(),
-                                                           "lock": str(self.lock).lower(),
-                                                           "encoding": self.encoding})
-        await self._check_connection()
+    async def connect(self):
+        if self._websocket is not None:
+            return
+        self._websocket = await self.session.ws_connect(self.api_url / f"file://{self.name}",
+                                                        params={"mode": self.mode, 
+                                                                "atomic": str(self.atomic).lower(),
+                                                                "lock": str(self.lock).lower(),
+                                                                "encoding": self.encoding})
+        try:
+            await self._check_connection()
+        except Exception as e:
+            self._websocket = None
+            raise e
+
+    async def __aenter__(self):
+        await self.connect()
+        return self
 
     async def _check_connection(self):
         status = await self._websocket.receive()
@@ -84,6 +98,11 @@ class SpyderRemoteFileAPI:
     
     async def close(self):
         await self._websocket.close()
+        await super().close()
+    
+    @property
+    def closed(self):
+        return self._websocket.closed and super().closed
 
     def _decode_data(self, data: str | object) -> str | bytes | object:
         """Decode data from a message."""
@@ -127,10 +146,24 @@ class SpyderRemoteFileAPI:
             return [self._decode_data(d) for d in data]
         
         return self._decode_data(data)
+    
+    @property
+    def closefd(self):
+        return True
 
-    async def write(self, data: bytes | str) -> int:
+    async def __iter__(self):
+        while response := await self.readline():
+            yield response
+
+    async def __next__(self):
+        response = await self.readline()
+        if not response:
+            raise StopIteration
+        return response
+
+    async def write(self, s: bytes | str) -> int:
         """Write data to the file."""
-        await self._send_request("write", data=self._encode_data(data))
+        await self._send_request("write", data=self._encode_data(s))
         return await self._get_response()
 
     async def flush(self):
@@ -138,14 +171,20 @@ class SpyderRemoteFileAPI:
         await self._send_request("flush")
         return await self._get_response()
 
-    async def read(self, n: int = -1) -> bytes | str:
+    async def read(self, size: int = -1) -> bytes | str:
         """Read data from the file."""
-        await self._send_request("read", n=n)
+        await self._send_request("read", n=size)
         return await self._get_response()
+    
+    async def readall(self):
+        return await self.read(size = -1)
+    
+    async def readinto(self, b) -> int:
+        raise NotImplementedError("readinto() is not supported by the remote file API")
 
-    async def seek(self, offset: int, whence: int = 0) -> int:
+    async def seek(self, pos: int, whence: int = 0) -> int:
         """Seek to a new position in the file."""
-        await self._send_request("seek", offset=offset, whence=whence)
+        await self._send_request("seek", offset=pos, whence=whence)
         return await self._get_response()
 
     async def tell(self) -> int:
