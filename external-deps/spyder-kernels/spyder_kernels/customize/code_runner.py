@@ -332,7 +332,7 @@ class SpyderCodeRunner(Magics):
 
             try:
                 if self.shell.is_debugging():
-                    def prof_exec(code, glob, loc):
+                    def prof_exec(code, glob=None, loc=None):
                         """
                         If we are debugging (tracing), call_tracing is
                         necessary for profiling.
