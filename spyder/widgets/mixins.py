@@ -12,12 +12,14 @@ IPython console plugin.
 """
 
 # Standard library imports
+from io import StringIO
 import os
 import os.path as osp
 import re
-import sre_constants
 import sys
 import textwrap
+from token import NUMBER
+from tokenize import generate_tokens, TokenError
 
 # Third party imports
 from packaging.version import parse
@@ -25,7 +27,7 @@ from qtpy import QT_VERSION
 from qtpy.QtCore import QPoint, QRegularExpression, Qt, QUrl
 from qtpy.QtGui import (
     QDesktopServices, QFontMetrics, QTextCursor, QTextDocument)
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
@@ -1324,7 +1326,7 @@ class BaseEditMixin(object):
         text = to_text_string(self.toPlainText())
         try:
             regobj = re.compile(pattern)
-        except sre_constants.error:
+        except re.error:
             return
         if findflag & QTextDocument.FindBackward:
             # Find backward
@@ -1433,7 +1435,7 @@ class BaseEditMixin(object):
         try:
             re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
             regobj = re.compile(pattern, flags=re_flags)
-        except sre_constants.error:
+        except re.error:
             return None
 
         number_matches = 0
@@ -1452,7 +1454,7 @@ class BaseEditMixin(object):
                                                word=word)
         return match_number
 
-    # ---- Array builder helper / See 'spyder/widgets/arraybuilder.py'
+    # ---- Array builder helper methods
     # -------------------------------------------------------------------------
     def enter_array_inline(self):
         """Enter array builder inline mode."""
@@ -1498,6 +1500,66 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def mouseDoubleClickEvent(self, event):
+        """Select NUMBER tokens to select numeric literals on double click."""
+        cursor = self.cursorForPosition(event.pos())
+        block = cursor.block()
+        text = block.text()
+        pos = block.position()
+        pos_in_block = cursor.positionInBlock()
+
+        # Strip quotes to prevent tokenizer from trying to emit STRING tokens
+        #   because we want to interpret numbers inside strings. This solves
+        #   an EOF error trying to double click a line with opening or closing
+        #   triple quotes as well.
+        text = text.replace('"', ' ').replace("'", ' ')
+        readline = StringIO(text).read
+
+        try:
+            for t_type, _, start, end, _ in generate_tokens(readline):
+                if t_type == NUMBER and start[1] <= pos_in_block <= end[1]:
+                    cursor.setPosition(pos + start[1])
+                    cursor.setPosition(
+                        pos + end[1], QTextCursor.MoveMode.KeepAnchor
+                    )
+                    self.setTextCursor(cursor)
+                    return
+                elif start[1] > pos_in_block:
+                    break
+        except TokenError:
+            # Ignore 'EOF in multi-line statement' from tokenize._tokenize
+            # IndentationError should be impossible from tokenizing one line
+            pass
+
+        if isinstance(self, QPlainTextEdit):
+            QPlainTextEdit.mouseDoubleClickEvent(self, event)
+        elif isinstance(self, QTextEdit):
+            QTextEdit.mouseDoubleClickEvent(self, event)
+
+    def inputMethodQuery(self, query):
+        """
+        Prevent Chinese input method to block edit input area.
+
+        Notes
+        -----
+        This was suggested by a user in spyder-ide/spyder#23313. So, it's not
+        tested by us.
+        """
+        if query == Qt.ImInputItemClipRectangle:
+            cursor_rect = self.cursorRect()
+            margins = self.viewportMargins()
+            cursor_rect.moveTopLeft(
+                cursor_rect.topLeft() + QPoint(margins.left(), margins.top())
+            )
+            return cursor_rect
+
+        if isinstance(self, QPlainTextEdit):
+            QPlainTextEdit.inputMethodQuery(self, query)
+        elif isinstance(self, QTextEdit):
+            QTextEdit.inputMethodQuery(self, query)
 
 
 class TracebackLinksMixin(object):

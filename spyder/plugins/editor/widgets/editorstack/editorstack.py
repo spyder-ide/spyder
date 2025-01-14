@@ -28,6 +28,7 @@ from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -35,8 +36,9 @@ from spyder.api.plugins import Plugins
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import is_dark_interface
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter, is_kde_desktop, is_anaconda)
+from spyder.config.utils import (
+    get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
+)
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -93,6 +95,12 @@ class EditorStackMenuSections:
 
 
 class EditorStack(QWidget, SpyderWidgetMixin):
+
+    # This is necessary for the EditorStack tests to run independently of the
+    # Editor plugin.
+    CONF_SECTION = "editor"
+
+    # Signals
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
@@ -116,7 +124,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    text_changed_at = Signal(str, int)
+    text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
@@ -136,6 +144,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmarks = Signal(str, str)
     sig_trigger_run_action = Signal(str)
     sig_trigger_debugger_action = Signal(str)
+
+    sig_open_last_closed = Signal()
+    """
+    This signal requests that the last closed tab be re-opened.
+    """
 
     sig_codeeditor_created = Signal(object)
     """
@@ -309,7 +322,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.close_quotes_enabled = True
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
-        self.indent_chars = " "*4
+        self.indent_chars = " " * 4
         self.tab_stop_width_spaces = 4
         self.show_class_func_dropdown = False
         self.help_enabled = False
@@ -338,6 +351,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
+        self.multicursor_support = True
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
@@ -410,12 +424,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             and osp.splitdrive(getcwd_or_home())[0] != file_drive
         ):
             QMessageBox.warning(
-               self,
-               _("No available relative path"),
-               _("It is not possible to copy a relative path "
-                 "for this file because it is placed in a "
-                 "different drive than your current working "
-                 "directory. Please copy its absolute path.")
+                self,
+                _("No available relative path"),
+                _("It is not possible to copy a relative path "
+                  "for this file because it is placed in a "
+                  "different drive than your current working "
+                  "directory. Please copy its absolute path.")
             )
         else:
             base_path = getcwd_or_home()
@@ -442,6 +456,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
             ('New file', self.sig_new_file[()]),
             ('Open file', self.plugin_load[()]),
+            ('Open last closed', self.sig_open_last_closed),
             ('Save file', self.save),
             ('Save all', self.save_all),
             ('Save As', self.sig_save_as),
@@ -496,6 +511,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             "continue",
             "step",
             "return",
+            "stop",
             "toggle breakpoint",
             "toggle conditional breakpoint",
         ]:
@@ -1077,6 +1093,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         self.convert_eol_on_save_to = state
 
+    @on_conf_change(option='multicursor_support')
+    def set_multicursor_support(self, state):
+        """If `state` is `True`, multi-cursor editing is enabled."""
+        self.multicursor_support = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_multi_cursor(state)
+
     def set_current_project_path(self, root_path=None):
         """
         Set the current active project root path.
@@ -1296,8 +1320,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
 
         for new_window_and_close_action in (
-                self.__get_new_window_and_close_actions()
-                ):
+            self.__get_new_window_and_close_actions()
+        ):
             self.menu.add_action(
                 new_window_and_close_action,
                 section=EditorStackMenuSections.NewWindowCloseSection
@@ -1511,13 +1535,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             return
         else:
             steps = abs(end - start)
-            direction = (end-start) // steps  # +1 for right, -1 for left
+            direction = (end - start) // steps  # +1 for right, -1 for left
 
         data = self.data
         self.blockSignals(True)
 
         for i in range(start, end, direction):
-            data[i], data[i+direction] = data[i+direction], data[i]
+            data[i], data[i + direction] = data[i + direction], data[i]
 
         self.blockSignals(False)
         self.refresh()
@@ -1654,8 +1678,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """ Close all files opened to the right """
         num = self.get_stack_index()
         n = self.get_stack_count()
-        for __ in range(num, n-1):
-            self.close_file(num+1)
+        for __ in range(num, n - 1):
+            self.close_file(num + 1)
 
     def close_all_but_this(self):
         """Close all files but the current one"""
@@ -1970,7 +1994,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # Don't use filters on KDE to not make the dialog incredible
         # slow
         # Fixes spyder-ide/spyder#4156.
-        if is_kde_desktop() and not is_anaconda():
+        if is_kde_desktop() and not is_conda_env(sys.prefix):
             filters = ''
             selectedfilter = ''
         else:
@@ -2569,15 +2593,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             remove_trailing_spaces=self.always_remove_trailing_spaces,
             remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline,
-            format_on_save=self.format_on_save
+            format_on_save=self.format_on_save,
+            multi_cursor_enabled=self.multicursor_support
         )
 
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
-            lambda fname, position:
-            self.text_changed_at.emit(fname, position))
+            lambda fname, positions:
+            self.text_changed_at.emit(fname, positions))
         editor.sig_cursor_position_changed.connect(
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2829,15 +2854,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         editor = self.get_current_editor()
         finfo = self.get_current_finfo()
         enc = finfo.encoding
-
-        # Move cursor to start of line then move to beginning or end of
-        # document with KeepAnchor
         cursor = editor.textCursor()
-        cursor.movePosition(QTextCursor.StartOfLine)
 
         if direction == 'up':
+            # Select everything from the beginning of the file up to the
+            # current line
+            cursor.movePosition(QTextCursor.EndOfLine)
             cursor.movePosition(QTextCursor.Start, QTextCursor.KeepAnchor)
         elif direction == 'down':
+            # Select everything from the current line to the end of the file
+            cursor.movePosition(QTextCursor.StartOfLine)
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
         selection = editor.get_selection_as_executable_code(cursor)
@@ -2899,6 +2925,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.append(editor.get_line_separator())
 
         editor.move_cursor_to_next('line', 'down')
+        editor.merge_extra_cursors(True)
 
     def get_current_cell(self):
         """Get current cell attributes."""

@@ -133,11 +133,14 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 get_conda_env_path(pyexec)
             ])
 
-            if conda_exe.endswith('micromamba'):
+            # We need to use this flag to prevent conda_exe from capturing the
+            # kernel process stdout/stderr streams. That way we are able to
+            # show them in Spyder.
+            if conda_exe.endswith(('micromamba', 'micromamba.exe')):
                 kernel_cmd.extend(['--attach', '""'])
             else:
                 # Note: We use --no-capture-output instead of --live-stream
-                # here because it works for very old Conda versions.
+                # here because it works for older Conda versions.
                 kernel_cmd.append('--no-capture-output')
 
         kernel_cmd.extend([

@@ -148,12 +148,14 @@ class SpyderCodeRunner(Magics):
     Functions and magics related to code execution, debugging, profiling, etc.
     """
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.show_global_msg = True
         self.show_invalid_syntax_msg = True
         self.umr = UserModuleReloader(
-            namelist=os.environ.get("SPY_UMR_NAMELIST", None)
+            namelist=os.environ.get("SPY_UMR_NAMELIST", None),
+            shell=self.shell,
         )
-        super().__init__(*args, **kwargs)
 
     @runfile_arguments
     @needs_local_scope
@@ -301,7 +303,7 @@ class SpyderCodeRunner(Magics):
             debugger.set_remote_filename(filename)
             debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
-            def debug_exec(code, glob, loc):
+            def debug_exec(code, glob=None, loc=None):
                 return sys.call_tracing(debugger.run, (code, glob, loc))
 
             # Enter recursive debugger

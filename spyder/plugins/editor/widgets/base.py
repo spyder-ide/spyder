@@ -480,6 +480,9 @@ class TextEditBaseWidget(
         """
         if self.get_selected_text():
             QApplication.clipboard().setText(self.get_selected_text())
+        else:
+            cursor = self.select_current_line_and_sep(set_cursor=False)
+            QApplication.clipboard().setText(self.get_selected_text(cursor))
 
     def toPlainText(self):
         """
@@ -515,7 +518,9 @@ class TextEditBaseWidget(
         return []
 
     def get_selection_as_executable_code(self, cursor=None):
-        """Get selected text in a way that allows other plugins executed it."""
+        """
+        Get selected text in a way that allows other plugins to execute it.
+        """
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
@@ -532,7 +537,7 @@ class TextEditBaseWidget(
         if len(lines) > 1:
             # Multiline selection -> eventually fixing indentation
             original_indent = _indent(self.get_text_line(line_from))
-            text = (" "*(original_indent-_indent(lines[0])))+text
+            text = (" " * (original_indent - _indent(lines[0]))) + text
 
         # If there is a common indent to all lines, find it.
         # Moving from bottom line to top line ensures that blank
@@ -541,7 +546,7 @@ class TextEditBaseWidget(
         min_indent = 999
         current_indent = 0
         lines = text.split(ls)
-        for i in range(len(lines)-1, -1, -1):
+        for i in range(len(lines) - 1, -1, -1):
             line = lines[i]
             if line.strip():
                 current_indent = _indent(line)
@@ -561,11 +566,6 @@ class TextEditBaseWidget(
                 lines.pop(0)
             else:
                 break
-
-        # Add an EOL character after the last line of code so that it gets
-        # evaluated automatically by the console and any quote characters
-        # are separated from the triple quotes of runcell
-        lines.append(ls)
 
         # Add removed lines back to have correct traceback line numbers
         leading_lines_str = ls * lines_removed
@@ -647,6 +647,44 @@ class TextEditBaseWidget(
         self.current_cell = (cursor, cell_full_file)
 
         return cursor, cell_full_file
+
+    def select_current_line_and_sep(self, cursor=None, set_cursor=True):
+        """
+        Selects the current line, including the correct line separator to
+        delete or copy the whole current line.
+
+        This means:
+        - If there is a next block, select the current block's newline char.
+        - Else if there is a previous block, select the previous newline char.
+        - Else select no newline char (1-line file)
+
+        Does a similar thing to `cursor.select(QTextCursor.BlockUnderCursor)`,
+        which always selects the previous newline char.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+
+        cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.MoveAnchor)
+
+        if not cursor.movePosition(QTextCursor.NextBlock,
+                                   QTextCursor.KeepAnchor):
+            # if there is no next Block, we select the previous newline
+            if cursor.movePosition(QTextCursor.PreviousBlock,
+                                   QTextCursor.MoveAnchor):
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.MoveAnchor)
+                cursor.movePosition(QTextCursor.NextBlock,
+                                    QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+            else:
+                # if there is no previous block, we can select the current line
+                # this is the 1-line file case
+                cursor.select(QTextCursor.BlockUnderCursor)
+
+        if set_cursor:
+            self.setTextCursor(cursor)
+        return cursor
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""
@@ -768,7 +806,7 @@ class TextEditBaseWidget(
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def __move_line_or_selection(self, after_current_line=True):
+    def move_line_or_selection(self, after_current_line=True):
         """Move current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
@@ -842,14 +880,6 @@ class TextEditBaseWidget(
         cursor.endEditBlock()
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
-
-    def move_line_up(self):
-        """Move up current line or selected text"""
-        self.__move_line_or_selection(after_current_line=False)
-
-    def move_line_down(self):
-        """Move down current line or selected text"""
-        self.__move_line_or_selection(after_current_line=True)
 
     def go_to_new_line(self):
         """Go to the end of the current line and create a new line"""
@@ -1111,7 +1141,7 @@ class TextEditBaseWidget(
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()
-            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+            event = QMouseEvent(QEvent.MouseButtonPress, event.position(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)

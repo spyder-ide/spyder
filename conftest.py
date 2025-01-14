@@ -74,7 +74,9 @@ def pytest_collection_modifyitems(config, items):
     # This provides a more balanced partitioning of our test suite (in terms of
     # necessary time to run it) between the slow and fast slots we have on CIs.
     slow_items = []
-    if os.environ.get('CI'):
+    if os.environ.get("CI") and not os.environ.get(
+        "SPYDER_TEST_REMOTE_CLIENT"
+    ):
         slow_items = [
             item for item in items if 'test_mainwindow' in item.nodeid
         ]
@@ -107,7 +109,12 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def reset_conf_before_test():
+def reset_conf_before_test(request):
+    # To prevent running this fixture for a specific test, you need to use this
+    # marker.
+    if 'no_reset_conf' in request.keywords:
+        return
+
     from spyder.config.manager import CONF
     CONF.reset_to_defaults(notification=False)
 

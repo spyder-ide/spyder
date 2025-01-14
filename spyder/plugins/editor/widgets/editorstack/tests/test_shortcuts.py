@@ -20,9 +20,9 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.base import running_in_ci
+from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
 from spyder.plugins.editor.widgets.editorstack import EditorStack
-from spyder.config.manager import CONF
 
 
 # ---- Qt Test Fixtures
@@ -32,7 +32,6 @@ def editorstack(qtbot):
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
     """
-    EditorStack.CONF_SECTION = "Editor"
     editorstack = EditorStack(None, [], False)
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
@@ -42,6 +41,9 @@ def editorstack(qtbot):
     qtbot.addWidget(editorstack)
     editorstack.show()
     editorstack.go_to_line(1)
+
+    # We need to wait for a bit so shortcuts are registered correctly
+    qtbot.wait(300)
 
     return editorstack
 
@@ -339,6 +341,27 @@ def test_builtin_undo_redo(editorstack, qtbot):
     # Redo the last action with Ctrl+Y.
     qtbot.keyClick(editor, Qt.Key_Y, modifier=Qt.ControlModifier)
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason='Fails on Linux and CI'
+)
+def test_shortcuts_for_new_editors(editorstack, qtbot):
+    """
+    Test that widget shortcuts are working for new editors.
+
+    This is a regression test for spyder-ide/spyder#23151.
+    """
+    # Create new file and give it focus
+    editorstack.new('bar.py', 'utf-8', 'Line5\nLine6\nLine7\nLine8')
+    editorstack.tabs.setCurrentIndex(1)
+
+    # Go to its first line, click the shortcut to comment it and check it was
+    editorstack.go_to_line(1)
+    editor = editorstack.get_current_editor()
+    qtbot.keyClick(editor, Qt.Key_1, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == '# Line5\nLine6\nLine7\nLine8\n'
 
 
 if __name__ == "__main__":

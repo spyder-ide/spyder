@@ -20,6 +20,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.utils.style import create_style_class
 from traitlets import observe
 
 # Local imports
@@ -33,8 +34,7 @@ from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     ClientContextMenuSections
 )
-from spyder.plugins.ipythonconsole.utils.style import (
-    create_qss_style, create_style_class)
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import (
@@ -172,6 +172,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
+        SpyderWidgetMixin.__init__(self)
         self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
@@ -187,6 +188,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.is_kernel_configured = False
         self._init_kernel_setup = False
         self._is_banner_shown = False
+
+        # Set bright colors instead of bold formatting for better traceback
+        # readability.
+        self._ansi_processor.bold_text_enabled = False
 
         if handlers is None:
             handlers = {}
@@ -697,7 +702,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
-        self._syntax_style_changed()
+        self._syntax_style_changed(changed={})
         if reset:
             self.reset(clear=True)
         if not self.spyder_kernel_ready:
@@ -799,7 +804,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             )
 
             banner = ''.join(banner_parts)
-        except (CommError, TimeoutError):
+        except (CommError, TimeoutError, RuntimeError):
+            # RuntimeError happens when the kernel crashes after it starts.
+            # See spyder-ide/spyder#22929
             banner = ""
 
         # Pylab additions
@@ -1395,10 +1402,21 @@ overrided by the Sympy module (e.g. plot)
             and not self.is_remote()
         ):
             # The kernel might never restart, show position of fault file
-            msg += (
-                "\n" + _("Its crash file is located at:") + " "
-                + self.kernel_handler.fault_filename()
-            )
+            # if available else show kernel error
+            if self.kernel_handler.fault_filename():
+                msg += (
+                    "\n" + _("Its crash file is located at:") + " "
+                    + self.kernel_handler.fault_filename()
+                )
+            else:
+                self.ipyclient.show_kernel_error(
+                    _(
+                        "It was not possible to connect to the kernel. If you "
+                        "are trying to connect to an existing kernel, check "
+                        "that the connection file you selected actually "
+                        "corresponds to the kernel you want to connect to."
+                    )
+                )
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
         self.insert_horizontal_ruler()
@@ -1423,8 +1441,15 @@ overrided by the Sympy module (e.g. plot)
             # ignore premature calls
             return
         if self.syntax_style:
-            self._highlighter._style = create_style_class(self.syntax_style)
+            color_scheme = get_color_scheme(self.syntax_style)
+            self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
+            if changed is None:
+                return
+            self.set_kernel_configuration(
+                "traceback_highlight_style",
+                color_scheme,
+            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 

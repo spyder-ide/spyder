@@ -20,6 +20,7 @@ from traitlets import Type
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
+from spyder.plugins.ipythonconsole import SpyderKernelError
 
 
 class KernelClientTunneler:
@@ -63,10 +64,10 @@ class KernelClientTunneler:
                 )
             )
         except asyncssh.Error as err:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 _(
-                    "It was not possible to open an SSH tunnel for the "
-                    "remote kernel. Please check your credentials and the "
+                    "It was not possible to open an SSH tunnel to connect to "
+                    "the remote kernel. Please check your credentials and the "
                     "server connection status."
                 )
             ) from err
@@ -102,14 +103,14 @@ class SpyderKernelClient(QtKernelClient):
             )
         elif sshkey is not None:
             self.__tunnel_handler = KernelClientTunneler.new_connection(
-                tunnel=hostname,
                 password=password,
                 client_keys=[sshkey],
+                **self._split_shh_address(hostname),
             )
         else:
             self.__tunnel_handler = KernelClientTunneler.new_connection(
-                tunnel=hostname,
                 password=password,
+                **self._split_shh_address(hostname),
             )
 
         (
@@ -129,3 +130,14 @@ class SpyderKernelClient(QtKernelClient):
             )
         )
         self.ip = "127.0.0.1"  # Tunneled to localhost
+
+    @staticmethod
+    def _split_shh_address(address):
+        """Split ssh address into host and port."""
+        user_host, _, port = address.partition(':')
+        user, _, host = user_host.rpartition('@')
+        return {
+            'username': user if user else None,
+            'host': host if host else None,
+            'port': int(port) if port else None
+        }

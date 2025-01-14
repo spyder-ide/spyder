@@ -17,6 +17,8 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+      - '!.github/scripts/installer_test.sh'
 
   pull_request:
     branches:
@@ -34,6 +36,10 @@ on:
       - '!installers-conda/**'
       - '!.github/workflows/installers-conda.yml'
       - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+      - '!.github/scripts/installer_test.sh'
+
+  workflow_call:
 
   workflow_dispatch:
 

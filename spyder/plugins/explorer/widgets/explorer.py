@@ -1301,31 +1301,40 @@ class DirView(QTreeView, SpyderWidgetMixin):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        name, valid = QInputDialog.getText(self, title, subtitle,
-                                           QLineEdit.Normal, "")
+        name, valid = QInputDialog.getText(
+            self, title, subtitle, QLineEdit.Normal, ""
+        )
+
         if valid:
             dirname = osp.join(current_path, str(name))
             try:
                 os.mkdir(dirname)
-            except EnvironmentError as error:
+            except OSError as error:
                 QMessageBox.critical(
-                    self, title,
-                    _("<b>Unable to create folder <i>%s</i></b>"
-                      "<br><br>Error message:<br>%s"
-                      ) % (dirname, str(error)))
+                    self,
+                    title,
+                    _(
+                        "<b>Unable to create folder <i>%s</i></b>"
+                        "<br><br>Error message:<br>%s"
+                    )
+                    % (dirname, str(error)),
+                )
             finally:
                 if is_package:
                     fname = osp.join(dirname, '__init__.py')
                     try:
                         with open(fname, 'wb') as f:
                             f.write(to_binary_string('#'))
-                        return dirname
-                    except EnvironmentError as error:
+                    except OSError as error:
                         QMessageBox.critical(
-                            self, title,
-                            _("<b>Unable to create file <i>%s</i></b>"
-                              "<br><br>Error message:<br>%s"
-                              ) % (fname, str(error)))
+                            self,
+                            title,
+                            _(
+                                "<b>Unable to create file <i>%s</i></b>"
+                                "<br><br>Error message:<br>%s"
+                            )
+                            % (fname, str(error)),
+                        )
 
     def get_selected_dir(self):
         """ Get selected dir

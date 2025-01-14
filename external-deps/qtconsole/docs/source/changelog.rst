@@ -8,6 +8,13 @@ Changes in Jupyter Qt console
 5.6
 ~~~
 
+5.6.1
+-----
+
+`5.6.1 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.6.1>`__
+
+* Handle ANSI escape sequences that move the cursor.
+
 5.6.0
 -----
 

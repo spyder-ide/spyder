@@ -37,10 +37,11 @@ from packaging.version import parse
 import pylint
 import pytest
 from qtpy import PYQT_VERSION, PYQT5
-from qtpy.QtCore import QPoint, Qt, QTimer
+from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __trouble_url__
@@ -66,7 +67,6 @@ from spyder.config.base import (
     get_home_dir, get_conf_path, get_module_path, running_in_ci,
     running_in_ci_with_conda)
 from spyder.config.manager import CONF
-from spyder.config.utils import is_anaconda
 from spyder.dependencies import DEPENDENCIES
 from spyder.plugins.debugger.api import DebuggerWidgetActions
 from spyder.plugins.externalterminal.api import ExtTerminalShConfiguration
@@ -84,6 +84,7 @@ from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
     WorkingDirSource, RunContext)
+from spyder.plugins.shortcuts.widgets.table import SEQUENCE
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
 from spyder.utils.conda import get_list_conda_envs
@@ -1492,7 +1493,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     assert shell.get_value('li') == [1, 2, 3]
 
     # Test that lines below did not run
-    assert 'arr' not in nsb.editor.source_model._data.keys()
+    assert 'arr' in nsb.editor.source_model._data.keys()
     assert 's' not in nsb.editor.source_model._data.keys()
 
     reset_run_code(qtbot, shell, code_editor, nsb)
@@ -1504,7 +1505,9 @@ def test_run_code(main_window, qtbot, tmpdir):
     shell.execute('a = 100')
     editor.go_to_line(6)
     qtbot.keyClick(code_editor, Qt.Key_Right)
-    run_from_line_action = main_window.run.get_action('run selection from line')
+    run_from_line_action = main_window.run.get_action(
+        'run selection from line'
+    )
     with qtbot.waitSignal(shell.executed):
         run_from_line_action.trigger()
     qtbot.wait(500)
@@ -2269,7 +2272,7 @@ def test_plots_scroll(main_window, qtbot):
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
-    # make sure we didn't scroll to the end and a new thumbnail was not selected
+    # Ensure we didn't scroll to the end and a new thumbnail was not selected
     assert len(sb._thumbnails) == 45
     assert sb._thumbnails[-1] != sb.current_thumbnail
     assert scrollbar.value() != scrollbar.maximum()
@@ -2788,14 +2791,13 @@ def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
 
     application_plugin = main_window.application
     MockQDesktopServices = Mock()
-    mockQDesktopServices_instance = MockQDesktopServices()
     attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
     application_plugin.trouble_action.trigger()
-    assert MockQDesktopServices.openUrl.call_count == 1
-    mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
+    MockQDesktopServices.openUrl.assert_called_once_with(
+        QUrl(__trouble_url__))
 
 
 @flaky(max_runs=3)
@@ -3346,7 +3348,9 @@ def test_preferences_shortcut_reset_regression(main_window, qtbot):
 @pytest.mark.order(1)
 @flaky(max_runs=3)
 @pytest.mark.order(before="test_PYTHONPATH_in_consoles")
-@pytest.mark.skipif(not is_anaconda(), reason='Only works with Anaconda')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Only works with Anaconda'
+)
 @pytest.mark.skipif(not running_in_ci(), reason='Only works on CIs')
 @pytest.mark.skipif(
     not sys.platform.startswith("linux"),
@@ -3619,37 +3623,37 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Rename one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.rename_item(new_name='arr2')
 
     # Wait until all objects have updated in the variable explorer
     def data(cm, i, j):
         return cm.data(cm.index(i, j))
-    qtbot.waitUntil(lambda: data(nsb.editor.model, 1, 0) == 'arr2',
+    qtbot.waitUntil(lambda: data(nsb.editor.model(), 1, 0) == 'arr2',
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr2'
-    assert data(nsb.editor.model, 2, 0) == 'li'
-    assert data(nsb.editor.model, 3, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr2'
+    assert data(nsb.editor.model(), 2, 0) == 'li'
+    assert data(nsb.editor.model(), 3, 0) == 's'
 
     # ---- Run file again ----
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 5,
                     timeout=EVAL_TIMEOUT)
 
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'arr'
-    assert data(nsb.editor.model, 2, 0) == 'arr2'
-    assert data(nsb.editor.model, 3, 0) == 'li'
-    assert data(nsb.editor.model, 4, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'arr'
+    assert data(nsb.editor.model(), 2, 0) == 'arr2'
+    assert data(nsb.editor.model(), 3, 0) == 'li'
+    assert data(nsb.editor.model(), 4, 0) == 's'
 
 
 @flaky(max_runs=3)
@@ -3686,23 +3690,23 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
         qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
     # Remove one element
-    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.setCurrentIndex(nsb.editor.model().index(1, 0))
     nsb.editor.remove_item(force=True)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model().rowCount() == 3,
                     timeout=EVAL_TIMEOUT)
 
     def data(cm, i, j):
         assert cm.rowCount() == 3
         return cm.data(cm.index(i, j))
-    assert data(nsb.editor.model, 0, 0) == 'a'
-    assert data(nsb.editor.model, 1, 0) == 'li'
-    assert data(nsb.editor.model, 2, 0) == 's'
+    assert data(nsb.editor.model(), 0, 0) == 'a'
+    assert data(nsb.editor.model(), 1, 0) == 'li'
+    assert data(nsb.editor.model(), 2, 0) == 's'
 
 
 @flaky(max_runs=3)
@@ -4748,7 +4752,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=20)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
@@ -5360,7 +5364,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "            print()\n"
         "        def c():\n"
         "            print()\n"
-        )
+    )
 
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
@@ -5406,7 +5410,7 @@ def test_copy_paste(main_window, qtbot, tmpdir):
         "\n"
         "            def c():\n"
         "                print()\n"
-        )
+    )
     assert expected in code_editor.toPlainText()
 
 
@@ -5426,6 +5430,91 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
             external_names.append(name)
 
     assert 'spyder-boilerplate' in external_names
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CI"
+)
+@pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
+def test_shortcuts_in_external_plugins(main_window, qtbot):
+    """Test that keyboard shortcuts for widgets work in external plugins."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Show plugin
+    main_widget = main_window.get_plugin('spyder_boilerplate').get_widget()
+    main_widget.toggle_view_action.setChecked(True)
+
+    # Give focus to text edit area
+    example_widget = main_widget._example_widget
+    example_widget.setFocus()
+
+    # Check first shortcut is working
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    # Check second shortcut is working
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
+
+    # Open Preferences and select shortcuts table
+    dlg, index, page = preferences_dialog_helper(
+        qtbot, main_window, 'shortcuts'
+    )
+    table = page.table
+
+    # Change shortcuts in table
+    new_shortcuts = [("change text", "Ctrl+J"), ("new text", "Alt+K")]
+    for name, sequence in new_shortcuts:
+        table.finder.setFocus()
+        table.finder.clear()
+        qtbot.keyClicks(table.finder, name)
+        index = table.proxy_model.mapToSource(table.currentIndex())
+        row = index.row()
+        sequence_index = table.source_model.index(row, SEQUENCE)
+        table.source_model.setData(sequence_index, sequence)
+
+    # Save new shortcuts
+    dlg.ok_btn.animateClick()
+    qtbot.wait(1000)
+
+    # Check new shortcuts are working
+    example_widget.setFocus()
+    qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    qtbot.keyClick(example_widget, Qt.Key_K, modifier=Qt.AltModifier)
+    assert example_widget.toPlainText() == "Another text"
+
+    # Open Preferences again and reset shortcuts
+    dlg, index, page = preferences_dialog_helper(
+        qtbot, main_window, 'shortcuts'
+    )
+    page.reset_to_default(force=True)
+
+    # Close preferences
+    dlg.ok_btn.animateClick()
+    qtbot.wait(1000)
+
+    # Check default shortcuts are working again
+    example_widget.setFocus()
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == ""
+    qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Example text"
+
+    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert example_widget.toPlainText() == "Another text"
 
 
 def test_profiler(main_window, qtbot, tmpdir):
@@ -5888,7 +5977,7 @@ def test_out_runfile_runcell(main_window, qtbot):
         "a = 1 + 3; a;": (4, False),
         "a = 1 + 5\na": (6, True),
         "a = 1 + 7\na;": (8, False)
-        }
+    }
     for code in codes:
         num, shown = codes[code]
         # create new file
@@ -6667,7 +6756,7 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     control.setFocus()
     find_widget = main_window.ipyconsole.get_widget().find_widget
     find_widget.show()
-    find_widget.search_text.lineEdit().setText('  File')
+    find_widget.search_text.lineEdit().setText('File')
     find_widget.find_previous()
 
     # Position mouse on top of that line
@@ -6794,19 +6883,16 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
-@pytest.mark.skipif(
-    os.name == 'nt',
-    reason="No quotes on Windows file paths"
-)
-def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
+@pytest.mark.skipif(os.name == "nt", reason="No quotes on Windows file paths")
+def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
     Test that we can run files with quotes in name, renamed files,
     and ipy files.
     """
     # create a file with a funky name
     path = "a'b\"c\\.py"
-    file = tmpdir.join(path)
-    file.write("print(23 + 780)")
+    file = tmp_path / path
+    file.write_text("print(23 + 780)")
     path = to_text_string(file)
     main_window.editor.load(path)
 
@@ -6866,18 +6952,19 @@ def test_quotes_rename_ipy(main_window, qtbot, tmpdir):
     # Save file in a new folder
     code_editor.set_text("print(19 + 780)")
 
-    with tempfile.TemporaryDirectory() as td:
+    new_dir = tmp_path / f"foo_{random.randint(1, 1000)}"
+    new_dir.mkdir()
 
-        editorstack = main_window.editor.get_current_editorstack()
-        editorstack.select_savename = lambda fn: os.path.join(td, "fn.ipy")
-        main_window.editor.save()
-        with qtbot.waitSignal(shell.executed):
-            qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.select_savename = lambda fn: str(new_dir / "fn.ipy")
+    editorstack.save_as()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(main_window.run_cell_button, Qt.LeftButton)
 
-        assert "799" in control.toPlainText()
-        assert "error" not in control.toPlainText()
-        assert "fn.ipy" in control.toPlainText()
-        main_window.editor.close_file()
+    assert "799" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "fn.ipy" in control.toPlainText()
+    main_window.editor.close_file()
 
 
 @flaky(max_runs=5)

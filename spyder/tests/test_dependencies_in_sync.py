@@ -80,38 +80,40 @@ def parse_setup_install_requires(fpath):
     """
     Parse Spyder setup.py and return a dict of deps and versions.
     """
-    deps = {}
     with open(fpath, 'r') as fh:
         data = fh.read()
 
+    # Extract dependencies
     lines = data.split('\n')
-    start = None
-    end = None
-    for idx, line in enumerate(lines):
-        if line.startswith('install_requires = '):
-            start = idx + 1
+    is_dep_line = False
+    deps_list = []
+    for line in lines:
+        if is_dep_line:
+            if line.strip() in ('],', ']'):
+                # End of dependency lines
+                is_dep_line = False
+            elif not line.strip().startswith('#'):
+                # Add dependency
+                deps_list.append(line.strip().strip(',').strip("'"))
+        if (
+            line.strip() in ("'pyqt5': [", "install_requires += [")
+            and not is_dep_line
+        ):
+            # Depencies begin on next line
+            is_dep_line = True
 
-        if start is not None and line.startswith(']'):
-            end = idx
-            break
-
-    dep_list = literal_eval('[' + '\n'.join(lines[start:end + 1]))
-    dep_list = [item for item in dep_list if item[0] != '#']
-    for dep in dep_list:
+    # Process dependencies
+    deps = {}
+    for dep in deps_list:
         dep = dep.split(';')[0]
         name, ver = None, None
 
         for sep in ['>=', '==', '<=', '<', '>']:
             if sep in dep:
-                idx = dep.index(sep)
-                name = dep[:idx]
-                ver = dep[idx:]
+                name, ver = dep.split(sep)
+                name = name.split('[')[0]  # Discard e.g. [all]
+                ver = sep + ver  # Include comparator
                 break
-
-        if name is not None:
-            name = name.split('[')[0]
-        else:
-            name = dep.split('[')[0]
 
         # Transform pypi to conda name
         if name == 'pyqt5':
@@ -231,6 +233,8 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     # We can't declare these as dependencies in setup.py
     for dep in ['python.app', 'fzf', 'fcitx-qt5']:
         full_reqs.pop(dep)
+    # Ignored `pyqt5-sip` constraint on conda
+    spyder_setup.pop('pyqt5-sip')
 
     assert spyder_setup == full_reqs
 

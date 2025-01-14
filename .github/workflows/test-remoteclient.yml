@@ -1,0 +1,161 @@
+name: Remote Client Tests
+
+on:
+  push:
+    branches:
+      - master
+      - 6.*
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+      - '!.github/scripts/installer_test.sh'
+
+  pull_request:
+    branches:
+      - master
+      - 6.*
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.yml'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+      - '!.github/workflows/installers-conda.yml'
+      - '!.github/workflows/build-subrepos.yml'
+      - '!.github/workflows/purge-cache.yml'
+      - '!.github/scripts/installer_test.sh'
+
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      ssh:
+        # github_cli: gh workflow run test-remoteclient.yml --ref <branch> -f ssh=true
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: test-remoteclient-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+
+jobs:
+  build:
+    # Use this to disable the workflow
+    # if: false
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}
+    runs-on: ubuntu-20.04
+    env:
+      CI: 'true'
+      QTCONSOLE_TESTING: 'true'
+      CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      SPYDER_TEST_REMOTE_CLIENT: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        INSTALL_TYPE: ['pip', 'conda']
+        PYTHON_VERSION: ['3.8', '3.12']
+        exclude:
+          # Only test Python 3.8 with pip because Conda-forge will drop it soon
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '3.8'
+    timeout-minutes: 90
+    steps:
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          detached: true
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
+      - name: Cache conda
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache if requirements/*.txt has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
+      - name: Create conda test environment
+        if: env.USE_CONDA == 'true'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          micromamba-version: '1.5.10-0'
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+      - name: Create pip test environment
+        if: env.USE_CONDA != 'true'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          micromamba-version: '1.5.10-0'
+          environment-name: test
+          cache-downloads: true
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+          condarc: |
+            channels:
+              - conda-forge
+      - name: Install additional dependencies
+        shell: bash -l {0}
+        run: bash -l .github/scripts/install.sh
+      - name: Show conda test environment
+        if: env.USE_CONDA == 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+      - name: Show pip test environment
+        if: env.USE_CONDA != 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          pip list
+      - name: Run tests
+        shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -f pytest_log.txt
+          rm -f pytest_log.txt  # Must remove any log file from a previous run
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh

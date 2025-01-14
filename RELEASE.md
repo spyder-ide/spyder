@@ -114,48 +114,129 @@ For that you need to run the following commands:
 
   - Review carefully the release notes of those packages to see if it's necessary to add new dependencies or update the constraints on the current ones (e.g. `jedi >=0.17.2`).
 
-* Create a new branch in your fork with the name `update-core-deps`
+* For spyder-kernels:
 
-* Update the version of any packages required before the release in the following files:
+  - Switch to the stable branch
 
-  - `setup.py` (look up for the `install_requires` variable and also for the `Loosen constraints to ensure dev versions still work` patch )
-  - `spyder/dependencies.py`
-  - `requirements/{main,windows,macos,linux}.yml`
-  - `binder/environment.yml`
-  - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
+        git checkout 6.x
+
+  - Create a new branch in your fork with the name `update-spyder-kernels`
+
+  - Update version in
+    - `setup.py`
+    - `spyder/dependencies.py`
+    - `requirements/{main,windows,macos,linux}.yml`
+    - `binder/environment.yml`
+    - `spyder/plugins/ipythonconsole/__init__.py` (look up for the constants `SPYDER_KERNELS_MIN_VERSION` and `SPYDER_KERNELS_MAX_VERSION`)
 
       **Note**: Usually, the version of `spyder-kernels` for validation in the IPython Console only needs to be updated for minor or major releases of that package or when doing alphas for Spyder. For bugfix releases the value should remain the same to not hassle users using custom interpreters into updating `spyder-kernels` in their environments. However, this depends on the type of bugs resolved and if it's worthy to reinforce the need of an update even for those versions.
 
-* Commit with
+  - Commit with
 
-      git add .
-      git commit -m "Update core dependencies"
+        git add .
+        git commit -m "Update spyder-kernels"
 
-* Update our subrepos with the following commands, but only if new versions are available!
+  - Update our subrepo with the following command, but only if a new version is available!
 
-      git subrepo pull external-deps/spyder-kernels
-      git subrepo pull external-deps/python-lsp-server
-      git subrepo pull external-deps/qtconsole
+        git subrepo pull external-deps/spyder-kernels
 
-* Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
+  - Merge this PR to the stable branch.
+
+* For other dependencies
+
+  - Create a new branch in your fork with the name `update-core-deps`
+
+  - Update the version of any packages required before the release in the following files:
+
+    - `setup.py` (look up for the `install_requires` variable and also for the `Loosen constraints to ensure dev versions still work` patch)
+    - `spyder/dependencies.py`
+    - `requirements/{main,windows,macos,linux}.yml`
+    - `binder/environment.yml`
+
+  - Commit with
+
+        git add .
+        git commit -m "Update core dependencies"
+
+  - Update our subrepos with the following commands, but only if new versions are available!
+
+        git subrepo pull external-deps/python-lsp-server
+        git subrepo pull external-deps/qtconsole
+
+  - Merge this PR following the procedure mentioned on [`MAINTENANCE.md`](MAINTENANCE.md)
 
 ### Check release candidate
 
-* Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
+* For pre-releases of a new bug fix version
 
-      git add .
-      git commit -m "Release X.X.XrcX [ci skip]"
+    - Switch to the stable branch
 
-* Push changes to the corresponding branch (e.g `6.x` - stable branch  or `master` - new major version)
+          git checkout 6.x
 
-      git push upstream <branch-name>
+    - Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
 
-* Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
-    - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
+          git add .
+          git commit -m "Release X.X.XrcX"
 
-* Download and test the installation of the resulting artifacts.
+    - Follow the instructions in the **To do the PyPI release and version tag** section, from the `git clean -xfdi` one onwards.
 
-* If one of the previous steps fail, merge a fix PR and start the process again with an incremented 'rcX' commit.
+    - Publish the release to Conda-forge by doing a PR against the `rc` branch of the [spyder-feedstock repo](https://github.com/conda-forge/spyder-feedstock).
+
+        - Create branch for the update
+
+              git checkout rc
+              git fetch upstream
+              git merge upstream/rc
+              git checkout -b update_X.X.XrcX
+
+        - Update `rc` branch in the Spyder feedstock with the latest changes in the `main` one:
+
+            - Create patches between the branches and apply them
+
+                  git checkout main
+                  git fetch upstream
+                  git merge upstream/main
+                  git diff main rc recipe/ ":(exclude)recipe/conda_build_config.yaml" > recipe.patch
+                  git diff main rc conda-forge.yml > conda-forge.patch
+                  git checkout update_X.X.XrcX
+                  patch -p1 -R < recipe.patch
+                  patch -p1 -R < conda-forge.patch
+
+            - Fix conflicts, if any, and add new files.
+
+            - Commit with `Update rc channel`.
+
+        - Update the Spyder version to the rc one just released and reset build number to `0`.
+
+        - Create PR with the title `Update to X.X.XrcX`
+
+        - Re-render the feedstock.
+
+    - Publish the release in our [Github Releases page](https://github.com/spyder-ide/spyder/releases) to check the installers are built as expected.
+
+    - Download and test the installation of the resulting installers.
+
+* For pre-releases of a new minor or major version:
+
+    - Switch to master
+
+          git checkout master
+
+    - Update version in `__init__.py` (set release version, remove 'dev0', add 'rcX'), then
+
+          git add .
+          git commit -m "Release X.X.XrcX [ci skip]"
+
+    - Push changes to master
+
+          git push upstream master
+
+    - Manually activate the following workflows (see [Running a workflow](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow)) via the `Run workflow` button:
+        - [Nightly conda-based installers (`installers-conda.yml` workflow)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml)
+
+    - Download and test the installation of the resulting artifacts.
+
+* If one of the previous steps fails, merge a fix PR and start the process again with an incremented 'rcX' commit.
 
 
 ## Update Changelog, Announcements and metadata files
@@ -205,11 +286,11 @@ For that you need to run the following commands:
     - `git add .` and `git commit -m "Bump version to new minor version"`
     - `git checkout 6.x`
 
-* `git clean -xfdi` and select option `1`
-
 * Update version in `__init__.py` (Remove '{a/b/rc}X' and 'dev0' for stable versions; or remove 'dev0' for pre-releases)
 
 * `git add .` and `git commit -m "Release X.X.X"`
+
+* `git clean -xfdi` and select option `1`
 
 * `python setup.py sdist`
 
@@ -233,7 +314,9 @@ For that you need to run the following commands:
 
 * `git tag -a vX.X.X -m "Release X.X.X"`
 
-* Update version in `__init__.py` (add 'a1', 'dev0' and increment patch version for stable versions; or increment alpha/beta/rc version for pre-releases)
+* Update version in `__init__.py`:
+    - Add 'a1', 'dev0' and increment patch version for final version releases
+    - Add 'dev0' and increment alpha/beta/rc version for pre-releases
 
 * `git add .` and `git commit -m "Back to work [ci skip]"`
 

@@ -4,11 +4,11 @@ on:
   push:
     branches:
     - master
-    - 2.*
+    - 3.*
   pull_request:
     branches:
     - master
-    - 2.*
+    - 3.*
 
 concurrency:
   group: linux-pip-tests-${{ github.ref }}
@@ -24,7 +24,7 @@ jobs:
       RUNNER_OS: 'ubuntu'
       USE_CONDA: 'false'
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['3.8', '3.9', '3.10']
     timeout-minutes: 20
@@ -32,16 +32,16 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v1
       - name: Install System Packages
-        run: | 
+        run: |
           sudo apt-get update
           sudo apt-get install libegl1-mesa libopengl0
       - name: Install Conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
            activate-environment: test
            auto-update-conda: false
            auto-activate-base: false
-           python-version: ${{ matrix.PYTHON_VERSION }} 
+           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Install package and dependencies
         shell: bash -l {0}
         run: |
@@ -61,7 +61,7 @@ jobs:
           xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -vv || \
           xvfb-run --auto-servernum pytest spyder_kernels --color=yes --cov=spyder_kernels -vv
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
           verbose: true

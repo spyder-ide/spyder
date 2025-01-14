@@ -22,6 +22,7 @@ from spyder.api.plugins import Plugins
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor_module
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.run.api import RunContext
 from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
 
 
@@ -293,7 +294,9 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        # history[1] is a tuple of editor.all_cursor(s)
+        # only a single cursor is expected for this test
+        assert history[1][0].position() == expected_history[1]
 
     # Navigate to previous and next cursor positions.
 
@@ -317,11 +320,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history[:1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     for history, expected_history in zip(main_widget.cursor_redo_history,
                                          expected_cursor_undo_history[:0:-1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
 
     # So we are now expected to be at index 0 in the cursor position history.
     # From there, we go to the fourth file.
@@ -336,7 +339,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     assert main_widget.cursor_redo_history == []
 
 
@@ -508,6 +511,36 @@ def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
     editor_plugin.get_current_editorstack().close()
     qtbot.wait(500)  # Wait for bit so the editorstack is actually deleted
     assert len(editor_plugin.get_widget().editorstacks) == 1
+
+
+def test_register_run_metadata(editor_plugin):
+    """
+    Check that run metadata is registered for Python files and deregistered for
+    non-Python ones on renames.
+
+    This is a regression test for spyder-ide/spyder#22630.
+    """
+    # Add run config for Python files
+    widget = editor_plugin.get_widget()
+    widget.supported_run_configurations = {
+        "py": {RunContext.File, RunContext.Selection, RunContext.Cell}
+    }
+
+    # Create empty file
+    editor_plugin.new()
+
+    # Check the file was registered to be run
+    editorstack = editor_plugin.get_current_editorstack()
+    filename = editorstack.get_filenames()[0]
+    assert filename in widget.file_per_id.values()
+
+    # Rename file to a type that can't be run
+    editor_plugin.renamed(filename, 'foo.md')
+
+    # Check the file is no longer available to be run
+    filename = editorstack.get_filenames()[0]
+    assert filename not in widget.file_per_id.values()
+    assert widget.file_per_id == {}
 
 
 if __name__ == "__main__":

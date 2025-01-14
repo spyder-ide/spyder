@@ -8,7 +8,6 @@
 
 # Standard library imports
 import re
-import sre_constants
 import sys
 
 # Third party imports
@@ -287,7 +286,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                 regobj = re.compile(pattern, re.MULTILINE)
             else:
                 regobj = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
-        except sre_constants.error:
+        except re.error:
             return
 
         number_matches = 0
@@ -444,13 +443,13 @@ class WebBrowser(QWidget):
                 self.webview.pageAction(prop), parent=self.webview, icon=icon)
 
         refresh_button = pageact2btn(
-            QWebEnginePage.Reload, icon=ima.icon('refresh'))
+            QWebEnginePage.WebAction.Reload, icon=ima.icon('refresh'))
         stop_button = pageact2btn(
-            QWebEnginePage.Stop, icon=ima.icon('stop'))
+            QWebEnginePage.WebAction.Stop, icon=ima.icon('stop'))
         previous_button = pageact2btn(
-            QWebEnginePage.Back, icon=ima.icon('previous'))
+            QWebEnginePage.WebAction.Back, icon=ima.icon('previous'))
         next_button = pageact2btn(
-            QWebEnginePage.Forward, icon=ima.icon('next'))
+            QWebEnginePage.WebAction.Forward, icon=ima.icon('next'))
 
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))

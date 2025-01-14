@@ -56,6 +56,7 @@ class SpyderShell(ZMQInteractiveShell):
         self._allow_kbdint = False
         self.register_debugger_sigint()
         self.update_gui_frontend = False
+        self._spyder_theme = 'dark'
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -84,6 +85,19 @@ class SpyderShell(ZMQInteractiveShell):
             stb = ['']
         super(SpyderShell, self)._showtraceback(etype, evalue, stb)
 
+    def set_spyder_theme(self, theme):
+        """Set the theme for the console."""
+        self._spyder_theme = theme
+        if theme == "dark":
+            # Needed to change the colors of tracebacks
+            self.run_line_magic("colors", "linux")
+        elif theme == "light":
+            self.run_line_magic("colors", "lightbg")
+
+    def get_spyder_theme(self):
+        """Get the theme for the console."""
+        return self._spyder_theme
+
     def enable_matplotlib(self, gui=None):
         """Enable matplotlib."""
         if gui is None or gui.lower() == "auto":
@@ -100,6 +114,33 @@ class SpyderShell(ZMQInteractiveShell):
         if enabled_gui is None and gui == "inline":
             enabled_gui = "inline"
         gui = enabled_gui
+
+        # Check if the inline backend is registered. It should be at this
+        # point, but sometimes that can fail due to a mismatch between
+        # the installed versions of IPython, matplotlib and matplotlib-inline.
+        # Fixes spyder-ide/spyder#22420.
+        if gui == "inline":
+            is_inline_registered = False
+
+            # The flush_figures callback should be listed as a post_execute
+            # event if the backend was registered successfully.
+            for event in self.events.callbacks["post_execute"]:
+                if "matplotlib_inline.backend_inline.flush_figures" in repr(
+                    event
+                ):
+                    is_inline_registered = True
+                    break
+
+            # Manually register the backend in case it wasn't
+            if not is_inline_registered:
+                from IPython.core.pylabtools import activate_matplotlib
+                from matplotlib_inline.backend_inline import (
+                    configure_inline_support
+                )
+
+                backend = "module://matplotlib_inline.backend_inline"
+                activate_matplotlib(backend)
+                configure_inline_support(self, backend)
 
         # To easily track the current interactive backend
         if self.kernel.interactive_backend is None:

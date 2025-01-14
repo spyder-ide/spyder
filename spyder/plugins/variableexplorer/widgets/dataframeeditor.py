@@ -1006,10 +1006,9 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(
-            int(QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable | Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable | Qt.EditRole)
+        return (QAbstractTableModel.flags(self, index) |
+                Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.EditRole
         )
 
     def edit_header_item(self):
@@ -1086,8 +1085,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         if not index.isValid():
             return
 
-        # TODO: Remove hard coded "Value" column number (3 here)
-        self.edit(index.child(index.row(), index.column()))
+        self.edit(index)
 
     def insert_item(self, axis=0, before_above=False):
         """Insert row or column."""
@@ -1145,7 +1143,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     new_name = self.next_index_name(indexes, new_name)
 
             item_value = eval(eval_type)
-            if item_value == ():
+            if isinstance(item_value, tuple) and item_value == ():
                 item_value = ('')
 
             df.insert(
@@ -1570,11 +1568,10 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(
-            int(QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable |
-                Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable)
+        return (QAbstractTableModel.flags(self, index) |
+                Qt.ItemFlag.ItemIsEditable |
+                Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable
         )
 
     def setData(self, index, value, role):
@@ -1995,11 +1992,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(
-            int(QAbstractTableModel.flags(self, index) |
-                Qt.ItemIsEditable |
-                Qt.ItemIsEnabled |
-                Qt.ItemIsSelectable)
+        return (QAbstractTableModel.flags(self, index) |
+                Qt.ItemFlag.ItemIsEditable |
+                Qt.ItemFlag.ItemIsEnabled |
+                Qt.ItemFlag.ItemIsSelectable
         )
 
     def create_table_level(self):

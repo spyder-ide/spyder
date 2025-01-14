@@ -26,13 +26,13 @@ from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
 from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
                             QTreeWidgetItem, QStackedWidget, QVBoxLayout)
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import get_conf_path, is_conda_based_app
-from spyder.config.utils import is_anaconda
+from spyder.config.base import get_conf_path
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
@@ -229,7 +229,7 @@ class ResultsTree(OneColumnTree):
                     modname = osp.join(modname, "__init__")
 
                 for ext in (".py", ".pyw"):
-                    if osp.isfile(modname+ext):
+                    if osp.isfile(modname + ext):
                         modname = modname + ext
                         break
 
@@ -373,21 +373,12 @@ class PylintWidget(PluginMainWidget):
             lambda ec, es=QProcess.ExitStatus: self._finished(ec, es))
 
         command_args = self.get_command(self.get_filename())
-        processEnvironment = QProcessEnvironment()
-        processEnvironment.insert("PYTHONIOENCODING", "utf8")
-
-        if os.name == 'nt':
-            # Needed due to changes in Pylint 2.14.0
-            # See spyder-ide/spyder#18175
-            home_dir = get_home_dir()
-            user_profile = os.environ.get("USERPROFILE", home_dir)
-            processEnvironment.insert("USERPROFILE", user_profile)
-            # Needed for Windows installations using standalone Python and pip.
-            # See spyder-ide/spyder#19385
-            if not is_conda_based_app() and not is_anaconda():
-                processEnvironment.insert("APPDATA", os.environ.get("APPDATA"))
-
-        process.setProcessEnvironment(processEnvironment)
+        pythonpath_manager_values = self.get_conf(
+            'spyder_pythonpath', default=[], section='pythonpath_manager'
+        )
+        process.setProcessEnvironment(
+            self.get_environment(pythonpath_manager_values)
+        )
         process.start(sys.executable, command_args)
         running = process.waitForStarted()
         if not running:
@@ -946,6 +937,34 @@ class PylintWidget(PluginMainWidget):
         command_args.append(filename)
         return command_args
 
+    @staticmethod
+    def get_environment(
+        pythonpath_manager_values: list
+    ) -> QProcessEnvironment:
+        """Get evironment variables for pylint command."""
+        process_environment = QProcessEnvironment()
+        process_environment.insert("PYTHONIOENCODING", "utf8")
+
+        if pythonpath_manager_values:
+            pypath = os.pathsep.join(pythonpath_manager_values)
+            # See PR spyder-ide/spyder#21891
+            process_environment.insert("PYTHONPATH", pypath)
+
+        if os.name == 'nt':
+            # Needed due to changes in Pylint 2.14.0
+            # See spyder-ide/spyder#18175
+            home_dir = get_home_dir()
+            user_profile = os.environ.get("USERPROFILE", home_dir)
+            process_environment.insert("USERPROFILE", user_profile)
+            # Needed for Windows installations using standalone Python and pip.
+            # See spyder-ide/spyder#19385
+            if not is_conda_env(sys.prefix):
+                process_environment.insert(
+                    "APPDATA", os.environ.get("APPDATA")
+                )
+
+        return process_environment
+
     def parse_output(self, output):
         """
         Parse output and return current revious rate and results.
@@ -998,7 +1017,7 @@ class PylintWidget(PluginMainWidget):
         if i_rate > 0:
             i_rate_end = output.find("/10", i_rate)
             if i_rate_end > 0:
-                rate = output[i_rate+len(txt_rate):i_rate_end]
+                rate = output[i_rate + len(txt_rate):i_rate_end]
 
         # Previous run
         previous = ""
@@ -1007,7 +1026,7 @@ class PylintWidget(PluginMainWidget):
             i_prun = output.find(txt_prun, i_rate_end)
             if i_prun > 0:
                 i_prun_end = output.find("/10", i_prun)
-                previous = output[i_prun+len(txt_prun):i_prun_end]
+                previous = output[i_prun + len(txt_prun):i_prun_end]
 
         return rate, previous, results
 

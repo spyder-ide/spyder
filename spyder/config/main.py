@@ -16,6 +16,7 @@ import os
 import sys
 
 # Local import
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
@@ -93,7 +94,14 @@ DEFAULTS = [
              {
               'enable': True,
               'toolbars_visible': True,
-              'last_visible_toolbars': [],
+              'last_visible_toolbars': [
+                  ApplicationToolbars.File,
+                  ApplicationToolbars.Run,
+                  ApplicationToolbars.Debug,
+                  ApplicationToolbars.Main,
+                  ApplicationToolbars.WorkingDirectory,
+              ],
+              'last_toolbars': [],
              }),
             ('statusbar',
              {
@@ -237,6 +245,7 @@ DEFAULTS = [
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
+              'multicursor_support': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
@@ -423,10 +432,8 @@ DEFAULTS = [
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line up': (
-                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
-              'editor/duplicate line down': (
-                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
+              'editor/duplicate line up': CTRL + "+Alt+PgUp",
+              'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -507,6 +514,9 @@ DEFAULTS = [
               'editor/enter array table': "Ctrl+M",
               'editor/run cell in debugger': 'Alt+Shift+Return',
               'editor/run selection in debugger': CTRL + '+F9',
+              'editor/add cursor up': 'Alt+Shift+Up',
+              'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/clear extra cursors': 'Esc',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
@@ -519,8 +529,8 @@ DEFAULTS = [
               'profiler/run selection in profiler': "",
               'profiler/find_action': "Ctrl+F",
               # -- Switcher --
-              'switcher/file switcher': 'Ctrl+P',
-              'switcher/symbol finder': 'Ctrl+Alt+P',
+              '_/file switcher': 'Ctrl+P',
+              '_/symbol finder': 'Ctrl+Alt+P',
               # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -590,10 +600,6 @@ NAME_MAP = {
             'window/position',
             'window/size',
             'window/state',
-            ]
-         ),
-        ('toolbar', [
-            'last_visible_toolbars',
             ]
          ),
         ('editor', [
@@ -677,4 +683,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '84.2.0'
+CONF_VERSION = '85.1.0'

@@ -111,16 +111,16 @@ class RunParametersTableView(HoverRowsTableView):
             (extension, context, params) = model[index]
 
         self.dialog = ExecutionParametersDialog(
-            self,
-            plugin_name,
-            executor_params,
-            self.model().get_parameter_names(),
-            extensions,
-            contexts,
-            params,
-            extension,
-            context,
-            new
+            parent=self,
+            executor_name=plugin_name,
+            executor_params=executor_params,
+            param_names=self.model().get_parameter_names(),
+            extensions=extensions,
+            contexts=contexts,
+            current_params=params,
+            extension=extension,
+            context=context,
+            new_config=new,
         )
 
         self.dialog.setup()
@@ -506,5 +506,9 @@ class RunConfigPage(PluginConfigPage):
                 )
 
         self._params_to_delete = {}
+
+        # This is necessary to prevent giving focus to the executor combobox,
+        # which is odd.
+        self.setFocus()
 
         return {'parameters'}

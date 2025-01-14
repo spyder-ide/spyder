@@ -248,6 +248,7 @@ def codeeditor(qtbot):
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
     widget.show()
+
     yield widget
     widget.close()
 

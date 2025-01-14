@@ -313,13 +313,18 @@ class RunContainer(PluginMainContainer):
 
     def switch_focused_run_configuration(self, uuid: Optional[str]):
         uuid = uuid or None
-        if uuid == self.currently_selected_configuration:
+
+        # We need the first check to correctly update the run and context
+        # actions when the config is None.
+        # Fixes spyder-ide/spyder#22607
+        if uuid is not None and uuid == self.currently_selected_configuration:
             return
 
         self.metadata_model.set_current_run_configuration(uuid)
 
         if uuid is not None:
             self.run_action.setEnabled(True)
+            self.configure_action.setEnabled(True)
 
             metadata = self.metadata_model[uuid]
             self.current_input_provider = metadata['source']
@@ -332,7 +337,8 @@ class RunContainer(PluginMainContainer):
             return
 
         self.run_action.setEnabled(False)
-        
+        self.configure_action.setEnabled(False)
+
         for context, act, mod in self.context_actions:
             action, __ = self.context_actions[(context, act, mod)]
             action.setEnabled(False)

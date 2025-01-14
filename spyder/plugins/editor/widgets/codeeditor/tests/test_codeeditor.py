@@ -7,20 +7,32 @@
 # Standard library imports
 import os.path as osp
 import sys
+from unittest.mock import MagicMock
 
 # Third party imports
 from qtpy import QT_VERSION
-from qtpy.QtCore import Qt, QEvent
+from qtpy.QtCore import Qt, QEvent, QPointF
 from qtpy.QtGui import QTextCursor, QMouseEvent
-from qtpy.QtWidgets import QApplication, QTextEdit
+from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
 import pytest
 
 # Local imports
+from spyder.config.base import running_in_ci
+from spyder.plugins.preferences.tests.conftest import config_dialog
+from spyder.plugins.shortcuts.plugin import Shortcuts
 from spyder.widgets.mixins import TIP_PARAMETER_HIGHLIGHT_COLOR
 
 
 HERE = osp.dirname(osp.abspath(__file__))
 ASSETS = osp.join(HERE, 'assets')
+
+
+class MainWindow(QMainWindow):
+
+    _cli_options = MagicMock()
+
+    def get_plugin(self, name, error=True):
+        return MagicMock()
 
 
 def test_editor_upper_to_lower(codeeditor):
@@ -138,7 +150,7 @@ def test_editor_rstrip_keypress(codeeditor, qtbot, input_text, expected_text,
             button, position = key
             cursor = widget.textCursor()
             cursor.setPosition(position)
-            xypos = widget.cursorRect(cursor).center()
+            xypos = QPointF(widget.cursorRect(cursor).center())
             widget.mousePressEvent(QMouseEvent(
                     QEvent.MouseButtonPress, xypos,
                     button, button,
@@ -548,6 +560,71 @@ def test_delete(codeeditor):
     assert editor.get_text_line(0) == ' f1(a, b):'
 
 
+def test_copy_entire_line(codeeditor):
+    """Test copying an entire line, if nothing is selected."""
+    editor = codeeditor
+    text = "import this\nmsg='Hello World!'\nprint(msg)"
+    editor.set_text(text)
+
+    # copy first line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.copy()
+
+    cb = QApplication.clipboard()
+    assert cb.text() == "import this\n"
+
+    # copy second line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.copy()
+    cb = QApplication.clipboard()
+    assert cb.text() == "msg='Hello World!'\n"
+
+    # copy third line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.copy()
+    cb = QApplication.clipboard()
+    # since it is the last line, the newline should be
+    # at the start with the current implementation
+    assert cb.text() == "\nprint(msg)"
+
+
+def test_cut_entire_line(codeeditor):
+    """Test cutting an entire line, if nothing is selected."""
+    editor = codeeditor
+    text = "import this\nmsg='Hello World!'\nprint(msg)"
+    editor.set_text(text)
+
+    # cut first line
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Start)
+    editor.setTextCursor(cursor)
+    editor.cut()
+
+    cb = QApplication.clipboard()
+    assert cb.text() == "import this\n"
+
+    # cut third line (tests last line case)
+    cb = QApplication.clipboard()
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+    editor.cut()
+    assert cb.text() == "\nprint(msg)"
+
+    # cut third line
+    editor.cut()
+    cb = QApplication.clipboard()
+    # since it is the last line in the document,
+    # there is no newline to cut, thus this has no newline anymore
+    assert cb.text() == "msg='Hello World!'"
+
+
 def test_paste_files(codeeditor, copy_files_clipboard):
     """Test pasting files/folders into the editor."""
     editor = codeeditor
@@ -586,6 +663,7 @@ def test_cell_highlight(codeeditor, qtbot):
     editor = codeeditor
     text = ('\n\n\n#%%\n\n\n')
     editor.set_text(text)
+
     # Set cursor to start of file
     cursor = editor.textCursor()
     cursor.setPosition(0)
@@ -625,6 +703,64 @@ def test_cell_highlight(codeeditor, qtbot):
     editor.redo()
     assert editor.current_cell[0].selectionStart() == 0
     assert editor.current_cell[0].selectionEnd() == 8
+
+
+@pytest.mark.parametrize(
+    'config_dialog',
+    # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
+    [[MainWindow, [], [Shortcuts]]],
+    indirect=True
+)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CI"
+)
+def test_shortcut_for_widget_is_updated(config_dialog, codeeditor, qtbot):
+    """Test shortcuts for codeeditor are updated on the fly."""
+    editor = codeeditor
+    text = ('aa\nbb\ncc\ndd\n')
+    editor.set_text(text)
+
+    # We need to wait for a bit so shortcuts are registered correctly
+    qtbot.wait(300)
+
+    # Check shortcuts were registered
+    assert editor._shortcuts != {}
+
+    # Check "move line down" shortcut is working as expected
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\naa\ncc\ndd\n"
+
+    # Change "move line down" to a different shortcut
+    editor.set_conf("editor/move line down", "Ctrl+B", section="shortcuts")
+    qtbot.wait(300)
+
+    # Check new shortcut works
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Check previous shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\naa\ndd\n"
+
+    # Reset all shortcuts to defaults (as users would do it)
+    configpage = config_dialog.get_page()
+    configpage.reset_to_default(force=True)
+    qtbot.wait(300)
+
+    # Make sure we are at the right line before the next check
+    block_to_be = editor.document().findBlockByLineNumber(2)
+    cursor = editor.textCursor()
+    cursor.setPosition(block_to_be.position())
+    editor.setTextCursor(cursor)
+
+    # Check default shortcut works
+    qtbot.keyClick(editor, Qt.Key_Down, modifier=Qt.AltModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
+
+    # Check new shortcut doesn't work
+    qtbot.keyClick(editor, Qt.Key_B, modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == "bb\ncc\ndd\naa\n"
 
 
 if __name__ == '__main__':

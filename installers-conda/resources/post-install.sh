@@ -186,7 +186,10 @@ fi
 echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 # ---- Launch Spyder
-[[ -n "$CI" ]] && exit 0  # Running in CI, don't launch Spyder
+if [[ -n "$CI" || "$INSTALLER_UNATTENDED" == "1" || "$COMMAND_LINE_INSTALL" == "1" ]]; then
+    echo Installing in batch mode, do not launch Spyder
+    exit 0
+fi
 
 echo "Launching Spyder now..."
 if [[ "$OSTYPE" == "darwin"* ]]; then

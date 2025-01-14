@@ -27,6 +27,7 @@ from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_VERSION,
     SPYDER_KERNELS_CONDA,
     SPYDER_KERNELS_PIP,
+    SpyderKernelError,
 )
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
@@ -35,8 +36,8 @@ from spyder.utils.programs import check_version_range
 
 
 PERMISSION_ERROR_MSG = _(
-    "The directory {} is not writable and it is required to create IPython "
-    "consoles. Please make it writable."
+    "The directory <tt>{}</tt> is not writable and it is required to create "
+    "IPython consoles. Please make it writable."
 )
 
 ERROR_SPYDER_KERNEL_VERSION = _(
@@ -377,7 +378,7 @@ class KernelHandler(QObject):
         """
         connection_file = cls.new_connection_file()
         if connection_file is None:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
             )
 
@@ -390,11 +391,19 @@ class KernelHandler(QObject):
 
         kernel_manager._kernel_spec = kernel_spec
 
-        kernel_manager.start_kernel(
-            stderr=PIPE,
-            stdout=PIPE,
-            env=kernel_spec.env,
-        )
+        try:
+            kernel_manager.start_kernel(
+                stderr=PIPE,
+                stdout=PIPE,
+                env=kernel_spec.env,
+            )
+        except PermissionError:
+            # Show a nice error message when jupyter_runtime_dir is not
+            # writable.
+            # Fixes spyder-ide/spyder#23124
+            raise SpyderKernelError(
+                PERMISSION_ERROR_MSG.format(jupyter_runtime_dir())
+            )
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -474,13 +483,13 @@ class KernelHandler(QObject):
         try:
             kernel_client.load_connection_file()
         except Exception as e:
-            raise RuntimeError(
+            raise SpyderKernelError(
                 _(
                     "An error occurred while trying to load "
                     "the kernel connection file. The error "
                     "was:\n\n"
                 )
-                + str(e)
+                + f"<tt>{str(e)}</tt>"
             )
 
         if hostname is not None or ssh_connection is not None:

@@ -10,7 +10,7 @@ Spyder API helper mixins.
 
 # Standard library imports
 import logging
-from typing import Any, Union, Optional
+from typing import Any, Callable, Optional, Union
 import warnings
 
 # Local imports
@@ -239,8 +239,10 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
             section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
             for option in observed_options:
-                logger.debug(f'{self} is observing {option} '
-                             f'in section {section}')
+                logger.debug(
+                    f'{self} is observing option "{option}" in section '
+                    f'"{section}"'
+                )
                 CONF.observe_configuration(self, section, option)
 
     def __del__(self):
@@ -257,12 +259,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                     self._multi_option_listeners |= {method_name}
 
                 for section, option in info:
-                    section_listeners = self._configuration_listeners.get(
-                        section, {})
-                    option_listeners = section_listeners.get(option, [])
-                    option_listeners.append(method_name)
-                    section_listeners[option] = option_listeners
-                    self._configuration_listeners[section] = section_listeners
+                    self._add_listener(method_name, option, section)
 
     def _merge_none_observers(self):
         """Replace observers that declared section as None by CONF_SECTION."""
@@ -279,6 +276,27 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
 
         self._configuration_listeners[self.CONF_SECTION] = section_selectors
         self._configuration_listeners.pop(None, None)
+
+    def _add_listener(
+        self, func: Callable, option: ConfigurationKey, section: str
+    ):
+        """
+        Add a callable as listener of the option `option` on section `section`.
+
+        Parameters
+        ----------
+        func: Callable
+            Function/method that will be called when `option` changes.
+        option: ConfigurationKey
+            Configuration option to observe.
+        section: str
+            Name of the section where `option` is contained.
+        """
+        section_listeners = self._configuration_listeners.get(section, {})
+        option_listeners = section_listeners.get(option, [])
+        option_listeners.append(func)
+        section_listeners[option] = option_listeners
+        self._configuration_listeners[section] = section_listeners
 
     def on_configuration_change(self, option: ConfigurationKey, section: str,
                                 value: Any):
@@ -298,8 +316,41 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         section_receivers = self._configuration_listeners.get(section, {})
         option_receivers = section_receivers.get(option, [])
         for receiver in option_receivers:
-            method = getattr(self, receiver)
+            method = (
+                receiver if callable(receiver) else getattr(self, receiver)
+            )
             if receiver in self._multi_option_listeners:
                 method(option, value)
             else:
                 method(value)
+
+    def add_configuration_observer(
+        self, func: Callable, option: str, section: Optional[str] = None
+    ):
+        """
+        Add a callable to observe the option `option` on section `section`.
+
+        Parameters
+        ----------
+        func: Callable
+            Function that will be called when `option` changes.
+        option: ConfigurationKey
+            Configuration option to observe.
+        section: str
+            Name of the section where `option` is contained.
+
+        Notes
+        -----
+        - This is only necessary if you need to add a callable that is not a
+          class method to observe an option. Otherwise, you simply need to
+          decorate your method with
+          :function:`spyder.api.config.decorators.on_conf_change`.
+        """
+        if section is None:
+            section = self.CONF_SECTION
+
+        logger.debug(
+            f'{self} is observing "{option}" option on section "{section}"'
+        )
+        self._add_listener(func, option, section)
+        CONF.observe_configuration(self, section, option)
