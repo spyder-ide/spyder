@@ -1394,13 +1394,22 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         """
         clipboard = QApplication.clipboard()
         clipl = []
+        retrieve_failed = False
         array_failed = False
         dataframe_failed = False
 
         for idx in self.selectedIndexes():
             if not idx.isValid():
                 continue
-            obj = self.delegate.get_value(idx)
+
+            # Prevent error when it's not possible to get the object's value
+            # Fixes spyder-ide/spyder#12913
+            try:
+                obj = self.delegate.get_value(idx)
+            except Exception:
+                retrieve_failed = True
+                continue
+
             # Check if we are trying to copy a numpy array, and if so make sure
             # to copy the whole thing in a tab separated format
             if (isinstance(obj, (np.ndarray, np.ma.MaskedArray)) and
@@ -1433,7 +1442,18 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         # Copy to clipboard the final result
         clipboard.setText('\n'.join(clipl))
 
-        # Show appropriate error message
+        # Show appropriate error messages after we tried to copy all objects
+        # selected by users.
+        if retrieve_failed:
+            QMessageBox.warning(
+                self.parent(),
+                _("Warning"),
+                _(
+                    "It was not possible to retrieve the value of one or more "
+                    "of the variables you selected in order to copy them."
+                ),
+            )
+
         if array_failed and dataframe_failed:
             QMessageBox.warning(
                 self,
