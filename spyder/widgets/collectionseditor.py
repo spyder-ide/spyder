@@ -20,11 +20,13 @@ Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 
 # Standard library imports
 import datetime
+from functools import lru_cache
 import io
 import re
 import sys
-import warnings
+import textwrap
 from typing import Any, Callable, Optional
+import warnings
 
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
@@ -55,7 +57,9 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import mimedata2url
 from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
-    CollectionsDelegate)
+    CollectionsDelegate,
+    SELECT_ROW_BUTTON_SIZE,
+)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
@@ -479,6 +483,15 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             else:
                 display = value
         if role == Qt.ToolTipRole:
+            if self.parent().over_select_row_button:
+                if index.row() in self.parent().selected_rows():
+                    tooltip = _("Click to deselect this row")
+                else:
+                    tooltip = _(
+                        "Click to select this row. Maintain pressed Ctrl (Cmd "
+                        "on macOS) for multiple rows"
+                    )
+                return '\n'.join(textwrap.wrap(tooltip, 50))
             return display
         if role == Qt.UserRole:
             if isinstance(value, NUMERIC_TYPES):
@@ -653,6 +666,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
     def __init__(self, parent):
         super().__init__(parent=parent)
 
+        # Main attributes
         self.array_filename = None
         self.menu = None
         self.empty_ws_menu = None
@@ -678,6 +692,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.source_model = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
+
+        # Headder attributes
         self.setHorizontalHeader(BaseHeaderView(parent=self))
         self.horizontalHeader().sig_user_resized_section.connect(
             self.user_resize_columns)
@@ -698,15 +714,26 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self._edit_value_timer.setSingleShot(True)
         self._edit_value_timer.timeout.connect(self._edit_value)
 
+        # To paint the select row button and check if we are over it
+        self.hovered_row = -1
+        self.over_select_row_button = False
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
+
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+
+        # Actions to take when the selection changes
         self.selectionModel().selectionChanged.connect(self.refresh_menu)
+        self.selectionModel().selectionChanged.connect(
+            # We need this because selected_rows is cached
+            self.selected_rows.cache_clear
+        )
 
     def setup_menu(self):
         """Setup actions and context menu"""
@@ -1037,9 +1064,17 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
     def _edit_value(self):
         self.edit(self.__index_clicked)
 
+    def _update_hovered_row(self, event):
+        current_index = self.indexAt(event.pos())
+        if current_index.isValid():
+            self.hovered_row = current_index.row()
+            self.viewport().update()
+        else:
+            self.hovered_row = -1
+
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.LeftButton or self.over_select_row_button:
             QTableView.mousePressEvent(self, event)
             return
 
@@ -1070,9 +1105,26 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         pass
 
     def mouseMoveEvent(self, event):
-        """Change cursor shape."""
+        """Actions to take when the mouse moves over the widget."""
+        self.over_select_row_button = False
+        self._update_hovered_row(event)
+
         if self.rowAt(event.y()) != -1:
-            self.setCursor(Qt.PointingHandCursor)
+            # The +3 here is necessary to avoid mismatches when trying to click
+            # the button in a position too close to its left border.
+            select_row_button_width = SELECT_ROW_BUTTON_SIZE + 3
+
+            # Include scrollbar width when computing the select row button
+            # width
+            if self.verticalScrollBar().isVisible():
+                select_row_button_width += self.verticalScrollBar().width()
+
+            # Decide if the cursor is on top of the select row button
+            if (self.width() - event.x()) < select_row_button_width:
+                self.over_select_row_button = True
+                self.setCursor(Qt.ArrowCursor)
+            else:
+                self.setCursor(Qt.PointingHandCursor)
         else:
             self.setCursor(Qt.ArrowCursor)
 
@@ -1123,6 +1175,16 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             self.sig_files_dropped.emit(urls)
         else:
             event.ignore()
+
+    def leaveEvent(self, event):
+        """Actions to take when the mouse leaves the widget."""
+        self.hovered_row = -1
+        super().leaveEvent(event)
+
+    def wheelEvent(self, event):
+        """Actions to take on mouse wheel."""
+        self._update_hovered_row(event)
+        super().wheelEvent(event)
 
     def showEvent(self, event):
         """Resize columns when the widget is shown."""
@@ -1507,6 +1569,21 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         else:
             QMessageBox.warning(self, _( "Empty clipboard"),
                                 _("Nothing to be imported from clipboard."))
+
+    @lru_cache(maxsize=1)
+    def selected_rows(self):
+        """
+        Get the rows currently selected.
+
+        Notes
+        -----
+        The result of this function is cached because it's called in the paint
+        method of CollectionsDelegate. So, we need it to run as quickly as
+        possible.
+        """
+        return {
+            index.row() for index in self.selectionModel().selectedRows()
+        }
 
 
 class CollectionsEditorTableView(BaseTableView):
