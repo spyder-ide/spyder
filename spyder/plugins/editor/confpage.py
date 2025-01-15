@@ -62,7 +62,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Display tab ---
+        # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
@@ -130,7 +130,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         other_layout.addWidget(scroll_past_end_box)
         other_group.setLayout(other_layout)
 
-        # --- Source code tab ---
+        # ---- Source code tab
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
             'close_parentheses')
@@ -242,7 +242,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
 
-        # --- Advanced tab ---
+        # ---- Advanced tab
         # -- Templates
         templates_group = QGroupBox(_('Templates'))
         template_btn = self.create_button(
@@ -361,6 +361,23 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
+        # -- Multi-cursor
+        multicursor_group = QGroupBox(_("Multi-Cursor"))
+        multicursor_label = QLabel(
+            _("Enable adding multiple cursors for simultaneous editing. "
+              "Additional cursors are added and removed using the Ctrl-Alt "
+              "click shortcut. A column of cursors can be added using the "
+              "Ctrl-Alt-Shift click shortcut."))
+        multicursor_label.setWordWrap(True)
+        multicursor_box = newcb(
+            _("Enable Multi-Cursor "),
+            'multicursor_support')
+
+        multicursor_layout = QVBoxLayout()
+        multicursor_layout.addWidget(multicursor_label)
+        multicursor_layout.addWidget(multicursor_box)
+        multicursor_group.setLayout(multicursor_layout)
+
         # --- Tabs ---
         self.create_tab(
             _("Interface"),
@@ -372,7 +389,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group]
+             annotations_group, eol_group, multicursor_group]
         )
 
     @on_conf_change(

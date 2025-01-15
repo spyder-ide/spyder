@@ -16,10 +16,30 @@ from typing import Any, Callable, Optional
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QDateTime, QModelIndex, Qt, Signal
+from qtpy.QtCore import (
+    QDateTime,
+    QEvent,
+    QItemSelection,
+    QItemSelectionModel,
+    QModelIndex,
+    QRect,
+    QSize,
+    Qt,
+    Signal,
+)
+from qtpy.QtGui import QMouseEvent
 from qtpy.QtWidgets import (
-    QAbstractItemDelegate, QDateEdit, QDateTimeEdit, QItemDelegate, QLineEdit,
-    QMessageBox, QTableView)
+    QAbstractItemDelegate,
+    QApplication,
+    QDateEdit,
+    QDateTimeEdit,
+    QItemDelegate,
+    QLineEdit,
+    QMessageBox,
+    QStyle,
+    QStyleOptionButton,
+    QTableView,
+)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
@@ -33,10 +53,12 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.utils.icon_manager import ima
 
 
 LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
+SELECT_ROW_BUTTON_SIZE = 22
 
 
 class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
@@ -471,6 +493,86 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         else:
             super(CollectionsDelegate, self).updateEditorGeometry(
                 editor, option, index)
+
+    def paint(self, painter, option, index):
+        """Actions to take when painting a cell."""
+        if (
+            # Do this only for the last column
+            index.column() == 3
+            # Do this when the row is hovered or if it's selected
+            and (
+                index.row() == self.parent().hovered_row
+                or index.row() in self.parent().selected_rows()
+            )
+        ):
+            # Paint regular contents
+            super().paint(painter, option, index)
+
+            # Paint an extra button to select the entire row. This is necessary
+            # because in Spyder 6 is not intuitive how to do that since we use
+            # a single click to open the editor associated to the cell.
+            # Fixes spyder-ide/spyder#22524
+            # Solution adapted from https://stackoverflow.com/a/11778012/438386
+
+            # Getting the cell's rectangle
+            rect = option.rect
+
+            # Button left/top coordinates
+            x = rect.left() + rect.width() - SELECT_ROW_BUTTON_SIZE
+            y = rect.top() + rect.height() // 2 - SELECT_ROW_BUTTON_SIZE // 2
+
+            # Create and paint button
+            button = QStyleOptionButton()
+            button.rect = QRect(
+                x, y, SELECT_ROW_BUTTON_SIZE, SELECT_ROW_BUTTON_SIZE
+            )
+            button.text = ""
+            button.icon = (
+                ima.icon("select_row")
+                if index.row() not in self.parent().selected_rows()
+                else ima.icon("deselect_row")
+            )
+            button.iconSize = QSize(20, 20)
+            button.state = QStyle.State_Enabled
+            QApplication.style().drawControl(
+                QStyle.CE_PushButtonLabel, button, painter
+            )
+        else:
+            super().paint(painter, option, index)
+
+    def editorEvent(self, event, model, option, index):
+        """Actions to take when interacting with a cell."""
+        if event.type() == QEvent.MouseButtonRelease and index.column() == 3:
+            # Getting the position of the mouse click
+            click_x = QMouseEvent(event).x()
+            click_y = QMouseEvent(event).y()
+
+            # Getting the cell's rectangle
+            rect = option.rect
+
+            # Region for the select row button
+            x = rect.left() + rect.width() - SELECT_ROW_BUTTON_SIZE
+            y = rect.top()
+
+            # Select/deselect row when clicking on the button
+            if click_x > x and (y < click_y < (y + SELECT_ROW_BUTTON_SIZE)):
+                row = index.row()
+                if row in self.parent().selected_rows():
+                    # Deselect row if selected
+                    index_left = index.sibling(row, 0)
+                    index_right = index.sibling(row, 3)
+                    selection = QItemSelection(index_left, index_right)
+                    self.parent().selectionModel().select(
+                        selection, QItemSelectionModel.Deselect
+                    )
+                else:
+                    self.parent().selectRow(row)
+            else:
+                super().editorEvent(event, model, option, index)
+        else:
+            super().editorEvent(event, model, option, index)
+
+        return False
 
 
 class ToggleColumnDelegate(CollectionsDelegate):

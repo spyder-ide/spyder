@@ -1,5 +1,12 @@
 # History of changes for Spyder 6
 
+## Version 6.0.4 (Unreleased)
+
+### API changes
+
+* Add `give_focus` kwarg to the `create_client_for_kernel` method of the
+  IPython console plugin.
+
 ## Version 6.0.3 (2024/12/10)
 
 ### Important fixes

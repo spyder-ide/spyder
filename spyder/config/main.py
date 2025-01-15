@@ -245,6 +245,7 @@ DEFAULTS = [
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
+              'multicursor_support': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
@@ -429,10 +430,8 @@ DEFAULTS = [
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line up': (
-                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
-              'editor/duplicate line down': (
-                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
+              'editor/duplicate line up': CTRL + "+Alt+PgUp",
+              'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -513,6 +512,9 @@ DEFAULTS = [
               'editor/enter array table': "Ctrl+M",
               'editor/run cell in debugger': 'Alt+Shift+Return',
               'editor/run selection in debugger': CTRL + '+F9',
+              'editor/add cursor up': 'Alt+Shift+Up',
+              'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/clear extra cursors': 'Esc',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
@@ -676,4 +678,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '85.0.0'
+CONF_VERSION = '85.1.0'
