@@ -55,7 +55,7 @@ OS_ERROR_MSG = _(
     "An error occurred while checking for Spyder updates, possibly related to "
     "your operating system configuration or file access.<br><br>If you're not "
     "sure what to do about it, you can disable checking for updates below. "
-    "<br><br>The error was:<br><br><tt>{error}</tt>"
+    "<br><br>The error was:<br><br><i>{error}</i>"
 )
 
 def _rate_limits(page):
