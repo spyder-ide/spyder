@@ -562,7 +562,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
         if connection_file is not None:
-            self.create_client_for_kernel(connection_file, give_focus=False)
+            self.create_client_for_kernel(
+                self.get_widget().find_connection_file(connection_file),
+                give_focus=False,
+            )
         else:
             self.create_new_client(give_focus=False)
 
