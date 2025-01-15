@@ -504,11 +504,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Register shortcuts for debugger actions
         for action_id in [
-            "next",
-            "continue",
-            "step",
-            "return",
-            "stop",
             "toggle breakpoint",
             "toggle conditional breakpoint",
         ]:
