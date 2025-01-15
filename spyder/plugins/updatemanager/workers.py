@@ -51,6 +51,12 @@ SSL_ERROR_MSG = _(
     '<br><br>Please contact your network administrator for assistance.'
 )
 
+OS_ERROR_MSG = _(
+    "An error occurred while checking for Spyder updates, possibly related to "
+    "your operating system configuration or file access.<br><br>If you're not "
+    "sure what to do about it, you can disable checking for updates below. "
+    "<br><br>The error was:<br><br><i>{error}</i>"
+)
 
 def _rate_limits(page):
     """Log rate limits for GitHub.com"""
@@ -190,6 +196,7 @@ class WorkerUpdate(BaseWorker):
         self.latest_release = None
         self.update_available = False
         self.error = None
+        self.checkbox = False
         self.channel = None
 
     def _check_update_available(
@@ -293,6 +300,10 @@ class WorkerUpdate(BaseWorker):
             logger.warning(err, exc_info=err)
         except HTTPError as err:
             error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
+            logger.warning(err, exc_info=err)
+        except OSError as err:
+            error_msg = OS_ERROR_MSG.format(error=err)
+            self.checkbox = True
             logger.warning(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
