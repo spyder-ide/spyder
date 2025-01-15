@@ -182,11 +182,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     #: Signal emitted when the jump position modifiers are pressed and the left
     #  button of the mouse is clicked
-    sig_jump_position_mouse_pressed = Signal(QMouseEvent)
+    sig_scrollflag_shortcut_click = Signal(QMouseEvent)
 
     #: Signal emitted when the jump position modifiers are pressed and the
     #  cursor moves over the editor
-    sig_jump_position_mouse_moved = Signal(QMouseEvent)
+    sig_scrollflag_shortcut_move = Signal(QMouseEvent)
 
     #: Signal emitted when the cursor leaves the editor
     sig_leave_out = Signal()
@@ -4491,7 +4491,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         modifiers = event.modifiers()
 
         if modifiers == self.mouse_shortcuts['jump_to_position']:
-            self.sig_jump_position_mouse_moved.emit(event)
+            self.sig_scrollflag_shortcut_move.emit(event)
             event.accept()
             return
 
@@ -4573,7 +4573,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         elif (left_button and
               modifiers == self.mouse_shortcuts['jump_to_position']):
 
-            self.sig_jump_position_mouse_pressed.emit(event)
+            self.sig_scrollflag_shortcut_click.emit(event)
 
         # Handle goto definition
         elif (left_button and
