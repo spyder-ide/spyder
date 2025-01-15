@@ -12,7 +12,7 @@ Debugger Main Plugin Widget.
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QSplitter
 
 # Local imports
@@ -260,7 +260,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Execute current line"),
             icon=self.create_icon('arrow-step-over'),
             triggered=lambda: self.debug_command("next"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         continue_action = self.create_action(
@@ -268,7 +270,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Continue execution until next breakpoint"),
             icon=self.create_icon('arrow-continue'),
             triggered=lambda: self.debug_command("continue"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         step_action = self.create_action(
@@ -276,7 +280,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Step into function or method"),
             icon=self.create_icon('arrow-step-in'),
             triggered=lambda: self.debug_command("step"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         return_action = self.create_action(
@@ -284,7 +290,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Execute until function or method returns"),
             icon=self.create_icon('arrow-step-out'),
             triggered=lambda: self.debug_command("return"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         stop_action = self.create_action(
@@ -292,7 +300,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Stop debugging"),
             icon=self.create_icon('stop_debug'),
             triggered=self.stop_debugging,
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         goto_cursor_action = self.create_action(
