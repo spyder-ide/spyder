@@ -474,9 +474,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.__cursor_changed = False
         self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
-        self._mouse_shortcuts = None
-        self._mouse_modifiers = None
-        # init _mouse_modifiers to default values
+        self.mouse_shortcuts = None
+        # init mouse_shortcuts to default values
         self.set_mouse_shortcuts(None)
 
         self._bookmarks_blocks = {}
@@ -1144,7 +1143,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.highlighter.rehighlight)
 
     def set_mouse_shortcuts(self, shortcuts):
-        self._mouse_shortcuts = shortcuts
+        """Apply mouse_shortcuts from CONF"""
 
         ctrl = Qt.KeyboardModifier.ControlModifier
         alt = Qt.KeyboardModifier.AltModifier
@@ -1152,7 +1151,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         meta = Qt.KeyboardModifier.MetaModifier
 
         # Default values
-        self._mouse_modifiers = {
+        self.mouse_shortcuts = {
             'jump_to_position': alt,
             'goto_definition': ctrl,
             'add_remove_cursor': ctrl | alt,
@@ -1162,7 +1161,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if shortcuts:
             for key, value in shortcuts.items():
                 if not value:
-                    self._mouse_modifiers[key] = None
+                    self.mouse_shortcuts[key] = None
                 modifiers = Qt.KeyboardModifier.NoModifier
                 if "ctrl" in value.lower():
                     modifiers |= ctrl
@@ -1172,7 +1171,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                     modifiers |= shift
                 if "meta" in value.lower():
                     modifiers |= meta
-                self._mouse_modifiers[key] = modifiers
+                self.mouse_shortcuts[key] = modifiers
 
     def sync_font(self):
         """Highlighter changed font, update."""
@@ -3812,7 +3811,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                    Qt.Key_Meta, Qt.KeypadModifier]:
             self.setOverwriteMode(False)
             # The user pressed only a modifier key.
-            if event.modifiers() == self._mouse_modifiers['goto_definition']:
+            if event.modifiers() == self.mouse_shortcuts['goto_definition']:
                 pos = self.mapFromGlobal(QCursor.pos())
                 pos = self.calculate_real_position_from_global(pos)
                 if self._handle_goto_uri_event(pos):
@@ -4491,19 +4490,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         modifiers = event.modifiers()
 
-        if modifiers == self._mouse_modifiers['jump_to_position']:
+        if modifiers == self.mouse_shortcuts['jump_to_position']:
             self.sig_jump_position_mouse_moved.emit(event)
             event.accept()
             return
 
-        if modifiers == self._mouse_modifiers['goto_definition']:
+        if modifiers == self.mouse_shortcuts['goto_definition']:
             if self._handle_goto_uri_event(pos):
                 event.accept()
                 return
 
         if (
                 self.go_to_definition_enabled and
-                modifiers == self._mouse_modifiers['goto_definition']
+                modifiers == self.mouse_shortcuts['goto_definition']
         ):
             if self._handle_goto_definition_event(pos):
                 event.accept()
@@ -4560,25 +4559,25 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Handle adding cursors
         if (
                 self.multi_cursor_enabled and left_button and
-                modifiers == self._mouse_modifiers['add_remove_cursor']
+                modifiers == self.mouse_shortcuts['add_remove_cursor']
         ):
             self.add_remove_cursor(event)
 
         elif (
                 self.multi_cursor_enabled and left_button and
-                modifiers == self._mouse_modifiers['column_cursor']
+                modifiers == self.mouse_shortcuts['column_cursor']
         ):
             self.add_column_cursor(event)
 
         # Handle jump (scrollflag click)
         elif (left_button and
-              modifiers == self._mouse_modifiers['jump_to_position']):
+              modifiers == self.mouse_shortcuts['jump_to_position']):
 
             self.sig_jump_position_mouse_pressed.emit(event)
 
         # Handle goto definition
         elif (left_button and
-              modifiers == self._mouse_modifiers['goto_definition']):
+              modifiers == self.mouse_shortcuts['goto_definition']):
 
             self.clear_extra_cursors()
             TextEditBaseWidget.mousePressEvent(self, event)
