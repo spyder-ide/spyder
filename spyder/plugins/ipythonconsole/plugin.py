@@ -559,6 +559,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         return self.get_widget().close_all_clients()
 
     def on_mainwindow_visible(self):
+        """
+        Connect to an existing kernel if a `kernel-*.json` file is given via 
+        command line options. Otherwise create a new client.
+        """
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
         if connection_file is not None:
