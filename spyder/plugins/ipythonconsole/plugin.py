@@ -745,6 +745,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             running.
         server_id: str, optional
             The remote server id to which this client is connected to.
+        give_focus : bool, optional
+            True if the new client should gain the window
+            focus, False otherwise. The default is True.
         can_close: bool, optional
             Whether the client can be closed. This is useful to prevent closing
             the client that will be connected to a remote kernel before the
