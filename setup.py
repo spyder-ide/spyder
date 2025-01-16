@@ -272,7 +272,6 @@ install_requires += [
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
-    'fsspec>=2021.10.0',
     # While this is only required for python <3.10, it is safe enough to
     # install in all cases and helps the tests to pass.
     'importlib-metadata>=4.6.0',

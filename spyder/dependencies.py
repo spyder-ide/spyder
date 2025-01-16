@@ -42,7 +42,6 @@ CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-FSSPEC_REQVER = '>=2021.10.0'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0,!=8.17.1"
@@ -131,10 +130,6 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': "fsspec",
-     'package_name': "fsspec",
-     'features': _("File system abstraction layer for remote file systems"),
-     'required_version': FSSPEC_REQVER},
     {'modname': 'importlib_metadata',
      'package_name': 'importlib-metadata',
      'features': _('Access the metadata for a Python package'),

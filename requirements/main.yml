@@ -13,7 +13,6 @@ dependencies:
   - cloudpickle >=0.5.0
   - cookiecutter >=1.6.0
   - diff-match-patch >=20181111
-  - fsspec >= 2021.10.0
   - fzf >=0.42.0
   # Need at least some compatibility with python 3.10 features
   - importlib-metadata >=4.6.0
