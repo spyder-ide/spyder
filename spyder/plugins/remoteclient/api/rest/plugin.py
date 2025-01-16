@@ -1,7 +1,7 @@
 from __future__ import annotations
 import base64
 from http import HTTPStatus
-from io import FileIO
+from io import RawIOBase
 import json
 from pathlib import Path
 
@@ -46,7 +46,7 @@ class RemoteOSError(OSError, RemoteFileServicesError):
         return super(OSError, self).__str__()
 
 
-class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, FileIO):
+class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, RawIOBase):
     base_url = SPYDER_PLUGIN_NAME + "/fsspec/open"
 
     def __init__(self, file, mode="r", atomic=False, lock=False, encoding="utf-8", *args, **kwargs):
@@ -60,8 +60,11 @@ class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, FileIO):
         self._websocket: aiohttp.ClientWebSocketResponse = None
 
     async def connect(self):
-        if self._websocket is not None:
+        await super().connect()
+
+        if self._websocket is not None and not self._websocket.closed:
             return
+
         self._websocket = await self.session.ws_connect(self.api_url / f"file://{self.name}",
                                                         params={"mode": self.mode, 
                                                                 "atomic": str(self.atomic).lower(),
@@ -72,10 +75,6 @@ class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, FileIO):
         except Exception as e:
             self._websocket = None
             raise e
-
-    async def __aenter__(self):
-        await self.connect()
-        return self
 
     async def _check_connection(self):
         status = await self._websocket.receive()
@@ -98,10 +97,16 @@ class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, FileIO):
     
     async def close(self):
         await self._websocket.close()
+        try:
+            await self._websocket.receive()
+        except Exception:
+            pass
         await super().close()
     
     @property
     def closed(self):
+        if self._websocket is None:
+            return super().closed
         return self._websocket.closed and super().closed
 
     def _decode_data(self, data: str | object) -> str | bytes | object:

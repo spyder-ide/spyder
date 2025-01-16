@@ -510,6 +510,12 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
         self.api_token = api_token
         self.verify_ssl = verify_ssl
 
+        self.session = None
+
+    async def connect(self):
+        if self.session is not None and not self.session.closed:
+            return
+
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.api_token}"},
             connector=aiohttp.TCPConnector(
@@ -519,6 +525,7 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
         )
 
     async def __aenter__(self) -> "JupyterPluginBaseAPI":
+        await self.connect()
         return self
 
     async def close(self):
@@ -529,6 +536,8 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
 
     @property
     def closed(self):
+        if self.session is None:
+            return True
         return self.session.closed
 
     @abstractmethod
