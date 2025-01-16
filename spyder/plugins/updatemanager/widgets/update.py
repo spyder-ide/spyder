@@ -228,6 +228,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         # Get results from worker
         update_available = self.update_worker.update_available
         error_msg = self.update_worker.error
+        checkbox = self.update_worker.checkbox
 
         # Always set status, regardless of error, DEV, or startup
         self.set_status(PENDING if update_available else NO_STATUS)
@@ -243,7 +244,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             # Do not alert the user to anything
             pass
         elif error_msg is not None:
-            error_messagebox(self, error_msg)
+            error_messagebox(self, error_msg, checkbox)
         elif update_available:
             self.start_update()
         else:
@@ -532,10 +533,11 @@ class ProgressDialog(UpdateMessageBox):
         self._progress_bar.setValue(progress)
 
 
-def error_messagebox(parent, error_msg):
-    box = UpdateMessageBox(
-        icon=QMessageBox.Warning, text=error_msg, parent=parent
-    )
+def error_messagebox(parent, error_msg, checkbox=False):
+    # Use a message box with a checkbox to disable updates when required, or a
+    # standard one otherwise.
+    box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
+    box = box_class(icon=QMessageBox.Warning, text=error_msg, parent=parent)
     box.setWindowTitle(_("Spyder update error"))
     box.setStandardButtons(QMessageBox.Ok)
     box.setDefaultButton(QMessageBox.Ok)
