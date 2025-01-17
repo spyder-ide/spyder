@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = filter-traceback-frames
-	commit = 92bcb3061c3afeda76c7a83f1315971d8f5e966e
-	parent = 1e20d173762e6236e037bfa6d299002a9590d872
+	commit = 8b9c4f0c8375318c88e21c44cacbb2b5bf5515f5
+	parent = 5106b0f412b4c1e1af621c26f303f8b711618012
 	method = merge
 	cmdver = 0.4.9
