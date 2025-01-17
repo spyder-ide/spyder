@@ -641,7 +641,12 @@ class SpyderKernel(IPythonKernel):
             elif key == "color scheme":
                 self.set_color_scheme(value)
             elif key == "traceback_highlight_style":
-                self.set_traceback_syntax_highlighting(value)
+                # This doesn't work in Python 3.8 because the last IPython
+                # version compatible with it doesn't allow to customize the
+                # syntax highlighting scheme used for tracebacks.
+                # Fixes spyder-ide/spyder#23484
+                if sys.version_info >= (3, 9):
+                    self.set_traceback_syntax_highlighting(value)
             elif key == "jedi_completer":
                 self.set_jedi_completer(value)
             elif key == "greedy_completer":
