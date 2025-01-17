@@ -45,8 +45,20 @@ class SpyderServerApp(ServerApp):
     def info_file(self):
         return str(Path(self.runtime_dir) / self.spyder_server_info_file)
 
-    def write_server_info_file(self) -> None:
-        if os.path.exists(self.info_file):
+    def write_server_info_file(self, *, __pid_check=True) -> None:
+        info_file = Path(self.info_file)
+        if info_file.exists():
+            if __pid_check:
+                with info_file.open(mode="rb") as f:
+                    info = json.load(f)
+
+                # Simple check whether that process is really still running
+                if ("pid" in info) and not check_pid(info["pid"]):
+                    # If the process has died, try to delete its info file
+                    with suppress(OSError):
+                        info_file.unlink()
+                    self.write_server_info_file(__pid_check=False)
+
             raise FileExistsError(
                 f"Server info file {self.info_file} already exists."
                 "Muliple servers are not supported, please make sure"
@@ -64,12 +76,12 @@ class SpyderServerInfoApp(JupyterApp):
 
         # The runtime dir might not exist
         if not runtime_dir.is_dir():
-            return None
+            return
 
         conf_file = runtime_dir / SpyderServerApp.spyder_server_info_file
 
         if not conf_file.exists():
-            return None
+            return
 
         with conf_file.open(mode="rb") as f:
             info = json.load(f)
@@ -88,7 +100,7 @@ class SpyderRemoteServices(ExtensionApp):
     """A simple jupyter server application."""
 
     # The name of the extension.
-    name = "spyder_remote_services"
+    name = "spyder-services"
 
     open_browser = False
 
@@ -100,7 +112,7 @@ class SpyderRemoteServices(ExtensionApp):
 
     def initialize_handlers(self):
         """Initialize handlers."""
-        self.handlers.extend(handlers)
+        self.handlers.extend([(rf"/{self.name}{h[0]}", h[1]) for h in handlers])
 
     def initialize(self):
         super().initialize()
