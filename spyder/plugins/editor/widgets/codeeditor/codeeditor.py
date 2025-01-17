@@ -1162,6 +1162,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             for key, value in shortcuts.items():
                 if not value:
                     self.mouse_shortcuts[key] = None
+                    continue
                 modifiers = Qt.KeyboardModifier.NoModifier
                 if "ctrl" in value.lower():
                     modifiers |= ctrl
