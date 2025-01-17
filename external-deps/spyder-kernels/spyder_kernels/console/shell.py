@@ -14,6 +14,7 @@ Spyder shell for Jupyter kernels.
 import bdb
 import logging
 import os
+import re
 import signal
 import sys
 import traceback
@@ -58,6 +59,15 @@ class SpyderShell(ZMQInteractiveShell):
         self.update_gui_frontend = False
         self._spyder_theme = 'dark'
 
+        # Substrings of the directory where Spyder-kernels is installed
+        self._package_locations = [
+            # When the package is properly installed
+            os.path.join("site-packages", "spyder_kernels"),
+            # When it's installed from the external-deps subrepo. We need this
+            # for our tests
+            os.path.join("external-deps", "spyder-kernels", "spyder_kernels")
+        ]
+
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
 
@@ -74,16 +84,37 @@ class SpyderShell(ZMQInteractiveShell):
         super().ask_exit()
 
     def _showtraceback(self, etype, evalue, stb):
-        """
-        Don't show a traceback when exiting our debugger after entering
-        it through a `breakpoint()` call.
-
-        This is because calling `!exit` after `breakpoint()` raises
-        BdbQuit, which throws a long and useless traceback.
-        """
+        """Handle how tracebacks are displayed in the console."""
+        spyder_stb = []
         if etype is bdb.BdbQuit:
-            stb = ['']
-        super(SpyderShell, self)._showtraceback(etype, evalue, stb)
+            # Don't show a traceback when exiting our debugger after entering
+            # it through a `breakpoint()` call. This is because calling `!exit`
+            # after `breakpoint()` raises BdbQuit, which throws a long and
+            # useless traceback.
+            spyder_stb.append('')
+        else:
+            # Skip internal frames from the traceback's string representation
+            for line in stb:
+                if (
+                    # Verbose mode
+                    re.match(r"File (.*)", line)
+                    # Plain mode
+                    or re.match(r"\x1b\[(.*)  File (.*)", line)
+                ) and (
+                    # The file line should not contain a location where
+                    # Spyder-kernels is installed
+                    any(
+                        [
+                            location in line
+                            for location in self._package_locations
+                        ]
+                    )
+                ):
+                    continue
+                else:
+                    spyder_stb.append(line)
+
+        super()._showtraceback(etype, evalue, spyder_stb)
 
     def set_spyder_theme(self, theme):
         """Set the theme for the console."""
