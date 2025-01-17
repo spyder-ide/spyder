@@ -600,8 +600,7 @@ class ShortcutSelector(QWidget):
         self.shift_check.toggled.connect(self.validate)
         layout.addWidget(self.shift_check)
 
-        plugin = parent.editor_config_page.plugin
-        warning_icon = plugin.create_icon("MessageBoxWarning")
+        warning_icon = ima.icon("MessageBoxWarning")
         self.warning = TipWidget(
             _("Shortcut Conflicts With Another"),
             warning_icon,
