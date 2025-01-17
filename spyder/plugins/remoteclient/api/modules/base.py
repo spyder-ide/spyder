@@ -8,18 +8,66 @@ import uuid
 import logging
 import time
 import asyncio
+import re
 
 import yarl
 import aiohttp
 
 from spyder.api.utils import ABCMeta, abstract_attribute
-from spyder.plugins.remoteclient.api.rest import auth
 
 
 logger = logging.getLogger(__name__)
 
 
 REQUEST_TIMEOUT = 5  # seconds
+
+
+async def token_authentication(api_token, verify_ssl=True):
+    return aiohttp.ClientSession(
+        headers={"Authorization": f"token {api_token}"},
+        connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),
+    )
+
+
+async def basic_authentication(hub_url, username, password, verify_ssl=True):
+    session = aiohttp.ClientSession(
+        headers={"Referer": str(yarl.URL(hub_url) / "hub" / "api")},
+        connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),
+    )
+
+    await session.post(
+        yarl.URL(hub_url) / "hub" / "login",
+        data={
+            "username": username,
+            "password": password,
+        },
+    )
+
+    return session
+
+
+async def keycloak_authentication(
+    hub_url, username, password, verify_ssl=True
+):
+    session = aiohttp.ClientSession(
+        headers={"Referer": str(yarl.URL(hub_url) / "hub" / "api")},
+        connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),
+    )
+
+    response = await session.get(yarl.URL(hub_url) / "hub" / "oauth_login")
+    content = await response.content.read()
+    auth_url = re.search('action="([^"]+)"', content.decode("utf8")).group(1)
+
+    response = await session.post(
+        auth_url.replace("&amp;", "&"),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data={
+            "username": username,
+            "password": password,
+            "credentialId": "",
+        },
+    )
+    return session
 
 
 class JupyterHubAPI:
@@ -37,11 +85,11 @@ class JupyterHubAPI:
 
     async def __aenter__(self):
         if self.auth_type == "token":
-            self.session = await auth.token_authentication(
+            self.session = await token_authentication(
                 self.api_token, verify_ssl=self.verify_ssl
             )
         elif self.auth_type == "basic":
-            self.session = await auth.basic_authentication(
+            self.session = await basic_authentication(
                 self.hub_url,
                 self.username,
                 self.password,
@@ -52,11 +100,11 @@ class JupyterHubAPI:
             logger.debug(
                 "upgrading basic authentication to token authentication"
             )
-            self.session = await auth.token_authentication(
+            self.session = await token_authentication(
                 self.api_token, verify_ssl=self.verify_ssl
             )
         elif self.auth_type == "keycloak":
-            self.session = await auth.keycloak_authentication(
+            self.session = await keycloak_authentication(
                 self.hub_url,
                 self.username,
                 self.password,
@@ -67,7 +115,7 @@ class JupyterHubAPI:
             logger.debug(
                 "upgrading keycloak authentication to token authentication"
             )
-            self.session = await auth.token_authentication(
+            self.session = await token_authentication(
                 self.api_token, verify_ssl=self.verify_ssl
             )
         return self
@@ -473,7 +521,7 @@ class JupyterKernelAPI:
                         return ""
 
 
-class JupyterPluginBaseAPI(metaclass=ABCMeta):
+class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     """
     Base class for Jupyter API plugins.
 
@@ -524,7 +572,7 @@ class JupyterPluginBaseAPI(metaclass=ABCMeta):
             raise_for_status = self._raise_for_status,
         )
 
-    async def __aenter__(self) -> "JupyterPluginBaseAPI":
+    async def __aenter__(self) -> "SpyderBaseJupyterAPI":
         await self.connect()
         return self
 

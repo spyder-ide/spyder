@@ -6,9 +6,11 @@
 
 from __future__ import annotations
 import asyncio
+from functools import partial
 import json
 import logging
 import socket
+import typing
 
 import asyncssh
 from packaging.version import Version
@@ -19,7 +21,7 @@ from spyder.plugins.remoteclient import (
     SPYDER_REMOTE_MAX_VERSION,
     SPYDER_REMOTE_MIN_VERSION,
 )
-from spyder.plugins.remoteclient.api.rest.base import JupyterAPI
+from spyder.plugins.remoteclient.api.modules.base import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
@@ -34,6 +36,9 @@ from spyder.plugins.remoteclient.utils.installation import (
     get_server_version_command,
     SERVER_ENV,
 )
+
+if typing.TYPE_CHECKING:
+    from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
 
 
 class SpyderRemoteClientLoggerHandler(logging.Handler):
@@ -58,8 +63,10 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         )
 
 
-class SpyderRemoteClient:
-    """Class to manage a remote server and its kernels."""
+class SpyderRemoteAPIManager:
+    """Class to manage a remote server and its apis."""
+
+    REGISTERED_MODULE_APIS = {}
 
     JUPYTER_SERVER_TIMEOUT = 5  # seconds
 
@@ -878,3 +885,23 @@ class SpyderRemoteClient:
         with socket.socket() as s:
             s.bind(("", 0))
             return s.getsockname()[1]
+
+    @classmethod
+    def register_api(cls, kclass: type[SpyderBaseJupyterAPI]):
+        """Register a REST API class."""
+        cls.REGISTERED_MODULE_APIS[kclass.__qualname__] = kclass
+        return kclass
+
+    def get_api(
+        self,
+        api: str | type[SpyderBaseJupyterAPI]
+    ) -> typing.Callable[..., SpyderBaseJupyterAPI]:
+        """Get a registered REST API class."""
+        if isinstance(api, type):
+            api = api.__qualname__
+        
+        api_class = self.REGISTERED_MODULE_APIS.get(api)
+        if api_class is None:
+            raise ValueError(f"API {api} is not registered")
+
+        return partial(api_class, hub_url=self.server_url, api_token=self.api_token)

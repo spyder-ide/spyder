@@ -7,8 +7,8 @@ from pathlib import Path
 
 import aiohttp
 
-from spyder.plugins.remoteclient.api.rest.base import JupyterPluginBaseAPI
-
+from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
+from spyder.plugins.remoteclient.api.client import SpyderRemoteAPIManager
 
 SPYDER_PLUGIN_NAME = "spyder-services"  # jupyter server's extension name for spyder-remote-services
 
@@ -45,8 +45,8 @@ class RemoteOSError(OSError, RemoteFileServicesError):
     def __str__(self):
         return super(OSError, self).__str__()
 
-
-class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, RawIOBase):
+@SpyderRemoteAPIManager.register_api
+class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     base_url = SPYDER_PLUGIN_NAME + "/fsspec/open"
 
     def __init__(self, file, mode="r", atomic=False, lock=False, encoding="utf-8", *args, **kwargs):
@@ -237,8 +237,8 @@ class SpyderRemoteFileIOAPI(JupyterPluginBaseAPI, RawIOBase):
         await self._send_request("writable")
         return await self._get_response()
 
-
-class SpyderRemoteFileServicesAPI(JupyterPluginBaseAPI):
+@SpyderRemoteAPIManager.register_api
+class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     base_url = SPYDER_PLUGIN_NAME + "/fsspec"
 
     async def _raise_for_status(self, response: aiohttp.ClientResponse):

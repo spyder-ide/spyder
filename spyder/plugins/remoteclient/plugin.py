@@ -34,11 +34,13 @@ from spyder.plugins.remoteclient.api import (
     RemoteClientActions,
     RemoteClientMenus,
 )
-from spyder.plugins.remoteclient.api.client import SpyderRemoteClient
+from spyder.plugins.remoteclient.api.client import SpyderRemoteAPIManager
 from spyder.plugins.remoteclient.api.protocol import (
     SSHClientOptions,
     ConnectionStatus,
 )
+from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
+from spyder.plugins.remoteclient.api.modules.file_services import SpyderRemoteFileServicesAPI
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 _logger = logging.getLogger(__name__)
@@ -73,7 +75,7 @@ class RemoteClient(SpyderPluginV2):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._remote_clients: dict[str, SpyderRemoteClient] = {}
+        self._remote_clients: dict[str, SpyderRemoteAPIManager] = {}
 
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
@@ -221,7 +223,7 @@ class RemoteClient(SpyderPluginV2):
 
     def load_client(self, config_id: str, options: SSHClientOptions):
         """Load remote server."""
-        client = SpyderRemoteClient(config_id, options, _plugin=self)
+        client = SpyderRemoteAPIManager(config_id, options, _plugin=self)
         self._remote_clients[config_id] = client
 
     def load_conf(self, config_id):
@@ -300,6 +302,17 @@ class RemoteClient(SpyderPluginV2):
             )
         )
 
+    @staticmethod
+    def register_api(kclass):
+        return SpyderRemoteAPIManager.register_api(kclass)
+
+    def get_api(self, config_id, api) -> 'SpyderBaseJupyterAPI':
+        client = self._remote_clients.get(config_id)
+        if client is None:
+            return
+
+        return client.get_api(api)
+
     # ---- Private API
     # -------------------------------------------------------------------------
     # --- Remote Server Kernel Methods
@@ -375,3 +388,11 @@ class RemoteClient(SpyderPluginV2):
         )
 
         self._is_consoles_menu_added = True
+
+    def get_file_api(self, config_id):
+        """Get file API."""
+        client = self._remote_clients.get(config_id)
+        if client is None:
+            return
+        
+        return client.get_api(SpyderRemoteFileServicesAPI)
