@@ -8,6 +8,7 @@
 
 import os
 import sys
+from itertools import combinations
 
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout, QDialog, QDialogButtonBox, QWidget,
@@ -20,6 +21,7 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
+from spyder.widgets.helperwidgets import TipWidget
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -489,6 +491,7 @@ class MouseShortcutEditor(QDialog):
         self.apply_button = apply_b
         ok_b = button_box.addButton(QDialogButtonBox.StandardButton.Ok)
         ok_b.clicked.connect(self.accept)
+        self.ok_button = ok_b
         cancel_b = button_box.addButton(QDialogButtonBox.StandardButton.Cancel)
         cancel_b.clicked.connect(self.reject)
         layout.addWidget(button_box)
@@ -507,13 +510,32 @@ class MouseShortcutEditor(QDialog):
         super().accept()
 
     def validate(self):
-        # TODO check for conflicts
+        shortcut_selectors = (
+            self.scrollflag_shortcut,
+            self.goto_def_shortcut,
+            self.add_cursor_shortcut,
+            self.column_cursor_shortcut
+        )
+
+        for selector in shortcut_selectors:
+            selector.warning.setVisible(False)
+
+        conflict = False
+        for a, b in combinations(shortcut_selectors, 2):
+            if a.modifiers() and a.modifiers() == b.modifiers():
+                conflict = True
+                a.warning.setVisible(True)
+                b.warning.setVisible(True)
+
+        self.ok_button.setEnabled(not conflict)
 
         self.apply_button.setEnabled(
-            self.scrollflag_shortcut.is_changed() or
-            self.goto_def_shortcut.is_changed() or
-            self.add_cursor_shortcut.is_changed() or
-            self.column_cursor_shortcut.is_changed()
+            not conflict and (
+                self.scrollflag_shortcut.is_changed() or
+                self.goto_def_shortcut.is_changed() or
+                self.add_cursor_shortcut.is_changed() or
+                self.column_cursor_shortcut.is_changed()
+            )
         )
 
     @property
@@ -530,7 +552,6 @@ class ShortcutSelector(QWidget):
 
     def __init__(self, parent, label, modifiers):
         super().__init__(parent)
-        self._parent = parent
 
         layout = QHBoxLayout(self)
 
@@ -542,6 +563,8 @@ class ShortcutSelector(QWidget):
                              QSizePolicy.Policy.Preferred)
         layout.addWidget(spacer)
 
+        # TODO _() translate these checkboxes?
+        # TODO rename based on OS? (CONF strings should stay the same)
         self.ctrl_check = QCheckBox("Ctrl")
         self.ctrl_check.setChecked("ctrl" in modifiers.lower())
         self.ctrl_check.toggled.connect(self.validate)
@@ -561,6 +584,20 @@ class ShortcutSelector(QWidget):
         self.shift_check.setChecked("shift" in modifiers.lower())
         self.shift_check.toggled.connect(self.validate)
         layout.addWidget(self.shift_check)
+
+        plugin = parent.editor_config_page.plugin
+        warning_icon = plugin.create_icon("MessageBoxWarning")
+        self.warning = TipWidget(
+            _("Shortcut Conflicts With Another"),
+            warning_icon,
+            warning_icon
+        )
+        # Thanks to https://stackoverflow.com/a/34663079/3220135
+        sp_retain = self.warning.sizePolicy()
+        sp_retain.setRetainSizeWhenHidden(True)
+        self.warning.setSizePolicy(sp_retain)
+        self.warning.setVisible(False)
+        layout.addWidget(self.warning)
 
         self.setLayout(layout)
 
