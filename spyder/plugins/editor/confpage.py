@@ -445,7 +445,6 @@ class MouseShortcutEditor(QDialog):
         super().__init__(parent)
         self.editor_config_page = parent
         mouse_shortcuts = CONF.get('editor', 'mouse_shortcuts')
-        self.modified = False
         self.setWindowFlags(self.windowFlags() &
                             ~Qt.WindowContextHelpButtonHint)
 
@@ -497,7 +496,11 @@ class MouseShortcutEditor(QDialog):
     def apply_mouse_shortcuts(self):
         self.editor_config_page.set_option('mouse_shortcuts',
                                            self.mouse_shortcuts)
-        self.modified = False
+        self.scrollflag_shortcut.apply_modifiers()
+        self.goto_def_shortcut.apply_modifiers()
+        self.add_cursor_shortcut.apply_modifiers()
+        self.column_cursor_shortcut.apply_modifiers()
+        self.apply_button.setEnabled(False)
 
     def accept(self):
         self.apply_mouse_shortcuts()
@@ -512,9 +515,6 @@ class MouseShortcutEditor(QDialog):
             self.add_cursor_shortcut.is_changed() or
             self.column_cursor_shortcut.is_changed()
         )
-
-        # TODO enable/disable ok/apply based on if changed
-        pass
 
     @property
     def mouse_shortcuts(self):
@@ -564,7 +564,7 @@ class ShortcutSelector(QWidget):
 
         self.setLayout(layout)
 
-        self.initial_modifiers = self.modifiers()
+        self.apply_modifiers()
 
     def validate(self):
         if (
@@ -593,5 +593,7 @@ class ShortcutSelector(QWidget):
         return "+".join(modifiers)
 
     def is_changed(self):
-        print(self.initial_modifiers, self.modifiers())
-        return self.initial_modifiers != self.modifiers()
+        return self.current_modifiers != self.modifiers()
+
+    def apply_modifiers(self):
+        self.current_modifiers = self.modifiers()
