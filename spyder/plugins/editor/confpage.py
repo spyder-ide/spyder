@@ -10,7 +10,9 @@ import os
 import sys
 
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout)
+                            QVBoxLayout, QDialog, QDialogButtonBox, QWidget,
+                            QCheckBox, QSizePolicy)
+from qtpy.QtCore import Qt, Signal
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
@@ -378,6 +380,17 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 
+        # -- Mouse Shortcuts
+        mouse_shortcuts_group = QGroupBox(_("Mouse Shortcuts"))
+        mouse_shortcuts_button = self.create_button(
+            lambda: MouseShortcutEditor(self).exec_(),
+            _("Edit Mouse Shortcut Modifiers")
+        )
+
+        mouse_shortcuts_layout = QVBoxLayout()
+        mouse_shortcuts_layout.addWidget(mouse_shortcuts_button)
+        mouse_shortcuts_group.setLayout(mouse_shortcuts_layout)
+
         # --- Tabs ---
         self.create_tab(
             _("Interface"),
@@ -389,7 +402,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group, multicursor_group]
+             annotations_group, eol_group, multicursor_group,
+             mouse_shortcuts_group]
         )
 
     @on_conf_change(
@@ -424,3 +438,160 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 else:
                     option.setToolTip("")
                 option.setDisabled(value)
+
+
+class MouseShortcutEditor(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.editor_config_page = parent
+        mouse_shortcuts = CONF.get('editor', 'mouse_shortcuts')
+        self.modified = False
+        self.setWindowFlags(self.windowFlags() &
+                            ~Qt.WindowContextHelpButtonHint)
+
+        layout = QVBoxLayout(self)
+
+        self.scrollflag_shortcut = ShortcutSelector(
+            self,
+            _("Jump Within Document"),
+            mouse_shortcuts['jump_to_position']
+        )
+        self.scrollflag_shortcut.sig_changed.connect(self.validate)
+        layout.addWidget(self.scrollflag_shortcut)
+
+        self.goto_def_shortcut = ShortcutSelector(
+            self,
+            _("Goto Definition"),
+            mouse_shortcuts['goto_definition']
+        )
+        self.goto_def_shortcut .sig_changed.connect(self.validate)
+        layout.addWidget(self.goto_def_shortcut)
+
+        self.add_cursor_shortcut = ShortcutSelector(
+            self,
+            _("Add / Remove Cursor"),
+            mouse_shortcuts['add_remove_cursor']
+        )
+        self.add_cursor_shortcut.sig_changed.connect(self.validate)
+        layout.addWidget(self.add_cursor_shortcut)
+
+        self.column_cursor_shortcut = ShortcutSelector(
+            self,
+            _("Add Column Cursor"),
+            mouse_shortcuts['column_cursor']
+        )
+        self.column_cursor_shortcut.sig_changed.connect(self.validate)
+        layout.addWidget(self.column_cursor_shortcut)
+
+        button_box = QDialogButtonBox(self)
+        apply_b = button_box.addButton(QDialogButtonBox.StandardButton.Apply)
+        apply_b.clicked.connect(self.apply_mouse_shortcuts)
+        apply_b.setEnabled(False)
+        self.apply_button = apply_b
+        ok_b = button_box.addButton(QDialogButtonBox.StandardButton.Ok)
+        ok_b.clicked.connect(self.accept)
+        cancel_b = button_box.addButton(QDialogButtonBox.StandardButton.Cancel)
+        cancel_b.clicked.connect(self.reject)
+        layout.addWidget(button_box)
+
+    def apply_mouse_shortcuts(self):
+        self.editor_config_page.set_option('mouse_shortcuts',
+                                           self.mouse_shortcuts)
+        self.modified = False
+
+    def accept(self):
+        self.apply_mouse_shortcuts()
+        super().accept()
+
+    def validate(self):
+        # TODO check for conflicts
+
+        self.apply_button.setEnabled(
+            self.scrollflag_shortcut.is_changed() or
+            self.goto_def_shortcut.is_changed() or
+            self.add_cursor_shortcut.is_changed() or
+            self.column_cursor_shortcut.is_changed()
+        )
+
+        # TODO enable/disable ok/apply based on if changed
+        pass
+
+    @property
+    def mouse_shortcuts(self):
+        return {'jump_to_position': self.scrollflag_shortcut.modifiers(),
+                'goto_definition': self.goto_def_shortcut.modifiers(),
+                'add_remove_cursor': self.add_cursor_shortcut.modifiers(),
+                'column_cursor': self.column_cursor_shortcut.modifiers()}
+
+
+class ShortcutSelector(QWidget):
+
+    sig_changed = Signal()
+
+    def __init__(self, parent, label, modifiers):
+        super().__init__(parent)
+        self._parent = parent
+
+        layout = QHBoxLayout(self)
+
+        label = QLabel(label)
+        layout.addWidget(label)
+
+        spacer = QWidget(self)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding,
+                             QSizePolicy.Policy.Preferred)
+        layout.addWidget(spacer)
+
+        self.ctrl_check = QCheckBox("Ctrl")
+        self.ctrl_check.setChecked("ctrl" in modifiers.lower())
+        self.ctrl_check.toggled.connect(self.validate)
+        layout.addWidget(self.ctrl_check)
+
+        self.alt_check = QCheckBox("Alt")
+        self.alt_check.setChecked("alt" in modifiers.lower())
+        self.alt_check.toggled.connect(self.validate)
+        layout.addWidget(self.alt_check)
+
+        self.meta_check = QCheckBox("Meta")
+        self.meta_check.setChecked("meta" in modifiers.lower())
+        self.meta_check.toggled.connect(self.validate)
+        layout.addWidget(self.meta_check)
+
+        self.shift_check = QCheckBox("Shift")
+        self.shift_check.setChecked("shift" in modifiers.lower())
+        self.shift_check.toggled.connect(self.validate)
+        layout.addWidget(self.shift_check)
+
+        self.setLayout(layout)
+
+        self.initial_modifiers = self.modifiers()
+
+    def validate(self):
+        if (
+            self.ctrl_check.isChecked() or
+            self.alt_check.isChecked() or
+            self.meta_check.isChecked()
+        ):
+            self.shift_check.setEnabled(True)
+
+        else:
+            self.shift_check.setEnabled(False)
+            self.shift_check.setChecked(False)
+
+        self.sig_changed.emit()
+
+    def modifiers(self):
+        modifiers = []
+        if self.ctrl_check.isChecked():
+            modifiers.append("Ctrl")
+        if self.alt_check.isChecked():
+            modifiers.append("Alt")
+        if self.meta_check.isChecked():
+            modifiers.append("Meta")
+        if self.shift_check.isChecked():
+            modifiers.append("Shift")
+        return "+".join(modifiers)
+
+    def is_changed(self):
+        print(self.initial_modifiers, self.modifiers())
+        return self.initial_modifiers != self.modifiers()
