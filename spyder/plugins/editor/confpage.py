@@ -443,6 +443,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
 
 class MouseShortcutEditor(QDialog):
+    """A dialog to edit the modifier keys for CodeEditor mouse interactions."""
+
     def __init__(self, parent):
         super().__init__(parent)
         self.editor_config_page = parent
@@ -497,6 +499,8 @@ class MouseShortcutEditor(QDialog):
         layout.addWidget(button_box)
 
     def apply_mouse_shortcuts(self):
+        """Set new config to CONF"""
+
         self.editor_config_page.set_option('mouse_shortcuts',
                                            self.mouse_shortcuts)
         self.scrollflag_shortcut.apply_modifiers()
@@ -506,10 +510,18 @@ class MouseShortcutEditor(QDialog):
         self.apply_button.setEnabled(False)
 
     def accept(self):
+        """Apply new settings and close dialog."""
+
         self.apply_mouse_shortcuts()
         super().accept()
 
     def validate(self):
+        """
+        Detect conflicts between shortcuts, and detect if current selection is
+        different from current config. Set Ok and Apply buttons enabled or
+        disabled accordingly, as well as set visibility of the warning for
+        shortcut conflict.
+        """
         shortcut_selectors = (
             self.scrollflag_shortcut,
             self.goto_def_shortcut,
@@ -540,6 +552,8 @@ class MouseShortcutEditor(QDialog):
 
     @property
     def mouse_shortcuts(self):
+        """Format shortcuts dict for CONF."""
+
         return {'jump_to_position': self.scrollflag_shortcut.modifiers(),
                 'goto_definition': self.goto_def_shortcut.modifiers(),
                 'add_remove_cursor': self.add_cursor_shortcut.modifiers(),
@@ -547,6 +561,7 @@ class MouseShortcutEditor(QDialog):
 
 
 class ShortcutSelector(QWidget):
+    """Line representing an editor for a single mouse shortcut."""
 
     sig_changed = Signal()
 
@@ -604,6 +619,13 @@ class ShortcutSelector(QWidget):
         self.apply_modifiers()
 
     def validate(self):
+        """
+        Cannot have shortcut of Shift alone as that conflicts with setting the
+        cursor position without moving the anchor. Enable/Disable the Shift
+        checkbox accordingly. (Re)Emit a signal to MouseShortcutEditor which
+        will perform other validation.
+        """
+
         if (
             self.ctrl_check.isChecked() or
             self.alt_check.isChecked() or
@@ -618,6 +640,8 @@ class ShortcutSelector(QWidget):
         self.sig_changed.emit()
 
     def modifiers(self):
+        """Get the current modifiers string."""
+
         modifiers = []
         if self.ctrl_check.isChecked():
             modifiers.append("Ctrl")
@@ -630,7 +654,9 @@ class ShortcutSelector(QWidget):
         return "+".join(modifiers)
 
     def is_changed(self):
+        """Is the current selection different from when last applied?"""
         return self.current_modifiers != self.modifiers()
 
     def apply_modifiers(self):
+        """Informs ShortcutSelector that settings have been applied."""
         self.current_modifiers = self.modifiers()
