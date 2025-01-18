@@ -163,9 +163,10 @@ class TouchHandler(BaseFSSpecHandler):
 class CopyHandler(BaseFSSpecHandler):
     @web.authenticated
     @authorized
-    def post(self, src, dest):
+    def post(self, path):
+        dest = re.match(_path_regex, self.get_argument("dest")).group("path")
         metadata = (self.get_argument("metadata", "false").lower() == "true")
-        result = self.fs_copy(src, dest, metadata=metadata)
+        result = self.fs_copy(path, dest, metadata=metadata)
         self.write_json(result)
 
 
