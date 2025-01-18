@@ -2449,5 +2449,60 @@ def test_floats_selected_on_double_click(ipyconsole, qtbot):
     assert control.get_selected_text() == float_number
 
 
+def test_filter_frames_in_tracebacks(ipyconsole, qtbot, tmp_path):
+    """Check that we filter some unnecessary frames in tracebacks."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Write code to file
+    file = tmp_path / 'test_filter_frames.py'
+    file.write_text("# Comment\n1/0")
+
+    # Filename in the format used when running magics from the main toolbar
+    fname = str(file).replace('\\', '/')
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    # Check frames related to spyder-kernels are not displayed
+    assert "spyder_kernels" not in control.toPlainText()
+
+    # Switch to %xmode plain and check again
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%xmode plain")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "spyder_kernels" not in control.toPlainText()
+
+    # Switch back to %xmode verbose (the default)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%xmode verbose")
+
+    # Check we don't display a traceback when exiting our debugger if it's
+    # started with breakpoint().
+    file.write_text("# Comment\nbreakpoint()")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    shell.clear_console()
+    empty_console_text = (
+        "\n\nIPdb [2]: " if os.name == "nt" else "\nIPdb [2]: "
+    )
+    qtbot.waitUntil(lambda: empty_console_text == control.toPlainText())
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!exit')
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    assert "BdbQuit" not in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()

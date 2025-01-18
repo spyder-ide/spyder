@@ -559,7 +559,19 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         return self.get_widget().close_all_clients()
 
     def on_mainwindow_visible(self):
-        self.create_new_client(give_focus=False)
+        """
+        Connect to an existing kernel if a `kernel-*.json` file is given via 
+        command line options. Otherwise create a new client.
+        """
+        cli_options = self.get_command_line_options()
+        connection_file = cli_options.connection_file
+        if connection_file is not None:
+            self.create_client_for_kernel(
+                self.get_widget().find_connection_file(connection_file),
+                give_focus=False,
+            )
+        else:
+            self.create_new_client(give_focus=False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -715,6 +727,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         sshkey=None,
         password=None,
         server_id=None,
+        give_focus=False,
         can_close=True,
     ):
         """
@@ -736,6 +749,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             running.
         server_id: str, optional
             The remote server id to which this client is connected to.
+        give_focus : bool, optional
+            True if the new client should gain the window
+            focus, False otherwise. The default is True.
         can_close: bool, optional
             Whether the client can be closed. This is useful to prevent closing
             the client that will be connected to a remote kernel before the
@@ -747,7 +763,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             The created client.
         """
         return self.get_widget().create_client_for_kernel(
-            connection_file, hostname, sshkey, password, server_id, can_close
+            connection_file,
+            hostname,
+            sshkey,
+            password,
+            server_id,
+            give_focus,
+            can_close,
         )
 
     def get_client_for_file(self, filename):
