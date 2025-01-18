@@ -59,6 +59,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
         self._websocket: aiohttp.ClientWebSocketResponse = None
 
+    async def _raise_for_status(self, response):
+        response.raise_for_status()
+
     async def connect(self):
         await super().connect()
 
