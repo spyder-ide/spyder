@@ -278,6 +278,7 @@ install_requires += [
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
     'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
+    'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
