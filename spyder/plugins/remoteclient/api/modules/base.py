@@ -15,6 +15,7 @@ import re
 import yarl
 import aiohttp
 
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.utils import ABCMeta, abstract_attribute
 
 if typing.TYPE_CHECKING:
@@ -569,6 +570,13 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return yarl.URL(self.manager.server_url) / self.base_url
 
     async def connect(self):
+        if not await AsyncDispatcher(
+            self.manager.ensure_connection_and_server,
+            loop="asyncssh",
+            return_awaitable=True
+        )():
+            raise RuntimeError("Failed to connect to Jupyter server")
+
         if self.session is not None and not self.session.closed:
             return
 
