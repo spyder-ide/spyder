@@ -10,14 +10,14 @@
 # Third party imports
 import pytest
 
-
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.plugin import RemoteClient
 
 
 class TestRemoteFilesAPI:
     remote_temp_dir = "/tmp/spyder-remote-tests"
 
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_create_dir(
         self,
         remote_client: RemoteClient,
@@ -30,7 +30,7 @@ class TestRemoteFilesAPI:
         async with file_api_class() as file_api:
             assert await file_api.mkdir(self.remote_temp_dir) == {"success": True}
 
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_list_dir(
         self,
         remote_client: RemoteClient,
@@ -43,7 +43,7 @@ class TestRemoteFilesAPI:
         async with file_api_class() as file_api:
             assert await file_api.ls(self.remote_temp_dir) == []
 
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_write_file(
         self,
         remote_client: RemoteClient,
@@ -60,7 +60,7 @@ class TestRemoteFilesAPI:
                 await f.seek(0)
                 assert await f.read() == "Hello, world!"
     
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_list_directories(
         self,
         remote_client: RemoteClient,
@@ -85,7 +85,7 @@ class TestRemoteFilesAPI:
             assert ls_content[0]["ino"] > 0
             assert ls_content[0]["nlink"] == 1
 
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_copy_file(
         self,
         remote_client: RemoteClient,
@@ -108,7 +108,7 @@ class TestRemoteFilesAPI:
             assert ls_content[1]["name"] == self.remote_temp_dir + "/test2.txt"
             assert ls_content[0]["size"] == ls_content[1]["size"]
 
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_rm_file(
         self,
         remote_client: RemoteClient,
@@ -122,7 +122,7 @@ class TestRemoteFilesAPI:
             assert await file_api.unlink(self.remote_temp_dir + "/test.txt") == {"success": True}
             assert await file_api.unlink(self.remote_temp_dir + "/test2.txt") == {"success": True}
     
-    @pytest.mark.asyncio
+    @AsyncDispatcher.dispatch(early_return=False)
     async def test_rm_dir(
         self,
         remote_client: RemoteClient,
