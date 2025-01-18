@@ -112,18 +112,23 @@ class ABCMeta(BaseABCMeta):
     """
 
     def __call__(cls, *args, **kwargs):
-        instance = BaseABCMeta.__call__(cls, *args, **kwargs)
-        abstract_attributes = {
-            name
-            for name in dir(instance)
-            if hasattr(getattr(instance, name), '__is_abstract_attribute__')
-        }
-        if abstract_attributes:
+        # Collect all abstract-attribute names from the entire MRO
+        abstract_attr_names = set()
+        for base in cls.__mro__:
+            for name, value in base.__dict__.items():
+                if getattr(value, '__is_abstract_attribute__', False):
+                    abstract_attr_names.add(name)
+
+        for name, value in cls.__dict__.items():
+            if not getattr(value, '__is_abstract_attribute__', False):
+                abstract_attr_names.discard(name)
+
+        if abstract_attr_names:
             raise NotImplementedError(
-                "Can't instantiate abstract class {} with"
-                " abstract attributes: {}".format(
+                "Can't instantiate abstract class {} with abstract attributes: {}".format(
                     cls.__name__,
-                    ', '.join(abstract_attributes)
+                    ", ".join(abstract_attr_names)
                 )
             )
-        return instance
+
+        return super().__call__(*args, **kwargs)
