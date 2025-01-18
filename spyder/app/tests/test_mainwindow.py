@@ -1627,7 +1627,32 @@ def test_run_code(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
 
-    # try running cell without file name
+    # Clean namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
+
+    # Wait until there are no objects in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0,
+                    timeout=EVAL_TIMEOUT)
+
+    # Open a new file
+    editor.load(osp.join(LOCATION, 'script_pylint.py'))
+    qtbot.wait(500)
+
+    # Re-run last cell (from the previous file).
+    # This is a regression for spyder-ide/spyder#23076
+    with qtbot.waitSignal(shell.executed):
+        re_run_action.trigger()
+
+    # We should get the same result as before
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
+    assert shell.get_value('li') == [1, 2, 3]
+
+    # Close new file
+    editor.close_file()
+
+    # Try running cell without file name
     shell.clear()
 
     # Clean namespace
