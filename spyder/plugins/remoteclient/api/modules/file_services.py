@@ -8,7 +8,7 @@ from pathlib import Path
 import aiohttp
 
 from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
-from spyder.plugins.remoteclient.api.client import SpyderRemoteAPIManager
+from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
 SPYDER_PLUGIN_NAME = "spyder-services"  # jupyter server's extension name for spyder-remote-services
 
@@ -322,6 +322,6 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
             return await response.json()
 
     async def open(self, path, mode="r", atomic=False, lock=False, encoding="utf-8"):
-        file = SpyderRemoteFileIOAPI(path, mode, atomic, lock, encoding, hub_url=self.hub_url, api_token=self.api_token)
+        file = SpyderRemoteFileIOAPI(path, mode, atomic, lock, encoding, manager=self.manager)
         await file.connect()
         return file

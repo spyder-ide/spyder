@@ -34,7 +34,7 @@ from spyder.plugins.remoteclient.api import (
     RemoteClientActions,
     RemoteClientMenus,
 )
-from spyder.plugins.remoteclient.api.client import SpyderRemoteAPIManager
+from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 from spyder.plugins.remoteclient.api.protocol import (
     SSHClientOptions,
     ConnectionStatus,

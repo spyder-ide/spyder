@@ -3,10 +3,12 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+from __future__ import annotations
 from abc import abstractmethod
 import uuid
 import logging
 import time
+import typing
 import asyncio
 import re
 
@@ -14,6 +16,12 @@ import yarl
 import aiohttp
 
 from spyder.api.utils import ABCMeta, abstract_attribute
+
+if typing.TYPE_CHECKING:
+    from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
+
+
+SpyderBaseJupyterAPIType = typing.TypeVar("SpyderBaseJupyterAPIType", bound="SpyderBaseJupyterAPI")
 
 
 logger = logging.getLogger(__name__)
@@ -552,27 +560,25 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     def base_url(self):
         ...
 
-    def __init__(self, hub_url, api_token, verify_ssl=True):
-        self.hub_url = yarl.URL(hub_url)
-        self.api_url = self.hub_url / self.base_url
-        self.api_token = api_token
-        self.verify_ssl = verify_ssl
-
+    def __init__(self, manager: SpyderRemoteAPIManager):
+        self.manager = manager
         self.session = None
+
+    @property
+    def api_url(self):
+        return yarl.URL(self.manager.server_url) / self.base_url
 
     async def connect(self):
         if self.session is not None and not self.session.closed:
             return
 
         self.session = aiohttp.ClientSession(
-            headers={"Authorization": f"token {self.api_token}"},
-            connector=aiohttp.TCPConnector(
-                ssl=None if self.verify_ssl else False
-            ),
+            headers={"Authorization": f"token {self.manager.api_token}"},
+            connector=aiohttp.TCPConnector(ssl=None),
             raise_for_status = self._raise_for_status,
         )
 
-    async def __aenter__(self) -> "SpyderBaseJupyterAPI":
+    async def __aenter__(self):
         await self.connect()
         return self
 
