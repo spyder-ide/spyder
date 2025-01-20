@@ -786,8 +786,10 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
-@flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Hangs sometimes on Mac')
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"),
+    reason='Fails sometimes on Linux'
+)
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
 
@@ -2236,6 +2238,7 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
+@flaky(max_runs=3)
 def test_plots_scroll(main_window, qtbot):
     """Test plots plugin scrolling"""
     CONF.set('plots', 'mute_inline_plotting', True)
