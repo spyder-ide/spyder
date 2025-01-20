@@ -165,8 +165,11 @@ class RunContainer(PluginMainContainer):
                 run_conf = input_provider.get_run_configuration(uuid)
             else:
                 run_conf = input_provider.get_run_configuration_per_context(
-                    context, extra_action_name, context_modificator,
-                    re_run=re_run)
+                    context,
+                    extra_action_name,
+                    context_modificator,
+                    re_run=re_run,
+                )
 
             if run_conf is None:
                 return
@@ -183,11 +186,15 @@ class RunContainer(PluginMainContainer):
                 last_executor = last_executor['executor']
 
             run_comb = (extension, context)
-            if (last_executor is None or
-                    not self.executor_model.executor_supports_configuration(
-                        last_executor, run_comb)):
+            if (
+                last_executor is None
+                or not self.executor_model.executor_supports_configuration(
+                    last_executor, run_comb
+                )
+            ):
                 last_executor = self.executor_model.get_default_executor(
                     run_comb)
+
             executor_metadata = self.executor_model[
                 ((extension, context), last_executor)]
             ConfWidget = executor_metadata['configuration_widget']
