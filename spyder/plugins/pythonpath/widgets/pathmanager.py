@@ -696,14 +696,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         )
         super().accept()
 
-    def reject(self):
-        # ??? Do we need this?
-        super().reject()
-
-    def closeEvent(self, event):
-        # ??? Do we need this?
-        super().closeEvent(event)
-
 
 def test():
     """Run path manager test."""

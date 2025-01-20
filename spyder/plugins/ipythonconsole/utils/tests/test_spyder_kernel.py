@@ -8,40 +8,10 @@
 Tests for the Spyder kernel
 """
 
-import os
 import pytest
 
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.py3compat import to_text_string
-
-
-@pytest.mark.parametrize('default_interpreter', [True, False])
-def test_kernel_pypath(tmpdir, default_interpreter):
-    """
-    Test that PYTHONPATH and spyder_pythonpath option are properly handled
-    when an external interpreter is used or not.
-
-    Regression test for spyder-ide/spyder#8681.
-    Regression test for spyder-ide/spyder#17511.
-    """
-    # Set default interpreter value
-    CONF.set('main_interpreter', 'default', default_interpreter)
-
-    # Add a path to PYTHONPATH and spyder_pythonpath config option
-    pypath = to_text_string(tmpdir.mkdir('test-pypath'))
-    os.environ['PYTHONPATH'] = pypath
-    CONF.set('pythonpath_manager', 'spyder_pythonpath', [pypath])
-
-    kernel_spec = SpyderKernelSpec()
-
-    # Check that PYTHONPATH is not in our kernelspec
-    assert 'PYTHONPATH' not in kernel_spec.env
-
-    # Restore default values
-    CONF.set('main_interpreter', 'default', True)
-    CONF.set('pythonpath_manager', 'spyder_pythonpath', [])
-    del os.environ['PYTHONPATH']
 
 
 def test_python_interpreter(tmpdir):
