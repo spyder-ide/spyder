@@ -47,7 +47,7 @@ class RemoteOSError(OSError, RemoteFileServicesError):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
-    base_url = SPYDER_PLUGIN_NAME + "/fsspec/open"
+    base_url = SPYDER_PLUGIN_NAME + "/fs/open"
 
     def __init__(self, file, mode="r", atomic=False, lock=False, encoding="utf-8", *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -242,7 +242,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
-    base_url = SPYDER_PLUGIN_NAME + "/fsspec"
+    base_url = SPYDER_PLUGIN_NAME + "/fs"
 
     async def _raise_for_status(self, response: aiohttp.ClientResponse):
         if response.status not in (HTTPStatus.INTERNAL_SERVER_ERROR,
