@@ -103,7 +103,7 @@ class PythonpathContainer(PluginMainContainer):
         # see spyder-ide/spyder#20808.
         if not self.path_manager_dialog.isVisible():
             self.path_manager_dialog.update_paths(
-                project_paths=self._project_path,
+                project_path=self._project_path,
                 user_paths=self._user_paths,
                 system_paths=self._system_paths,
                 prioritize=self._prioritize
@@ -117,7 +117,7 @@ class PythonpathContainer(PluginMainContainer):
 
     def get_spyder_pythonpath(self):
         """Return active Spyder PYTHONPATH as a list of paths."""
-        # Desired behavior is project_paths | user_paths | system_paths, but
+        # Desired behavior is project_path | user_paths | system_paths, but
         # Python 3.8 does not support | operator for OrderedDict.
         all_paths = OrderedDict(reversed(self._system_paths.items()))
         all_paths.update(reversed(self._user_paths.items()))

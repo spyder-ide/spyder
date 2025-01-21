@@ -28,12 +28,12 @@ from spyder.plugins.pythonpath.widgets import pathmanager as pathmanager_mod
 @pytest.fixture
 def pathmanager(qtbot, request):
     """Set up PathManager."""
-    user_paths, project_paths, system_paths = request.param
+    user_paths, project_path, system_paths = request.param
 
     widget = pathmanager_mod.PathManager(None)
     widget.update_paths(
         user_paths=OrderedDict({p: True for p in user_paths}),
-        project_paths=OrderedDict({p: True for p in project_paths}),
+        project_path=OrderedDict({p: True for p in project_path}),
         system_paths=OrderedDict({p: True for p in system_paths}),
         prioritize=False
     )
