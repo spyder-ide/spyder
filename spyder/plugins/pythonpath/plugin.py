@@ -46,10 +46,6 @@ class PythonpathManager(SpyderPluginV2):
 
     prioritize
         Whether to prioritize PYTHONPATH in sys.path
-
-    See Also
-    --------
-    :py:meth:`.PythonpathContainer._get_spyder_pythonpath_dict`
     """
 
     # ---- SpyderPluginV2 API
