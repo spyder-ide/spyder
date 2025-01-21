@@ -49,7 +49,7 @@ class PythonpathContainer(PluginMainContainer):
 
         # This attribute is only used to detect changes and after initializing
         # here should only be set in update_active_project_path.
-        self._project_paths = OrderedDict()
+        self._project_path = OrderedDict()
 
         # These attributes are only used to detect changes and after
         # initializing here should only be set in _save_paths.
@@ -83,16 +83,15 @@ class PythonpathContainer(PluginMainContainer):
         """
         Update active project path.
 
-        _project_paths is set in this method and nowhere else.
+        _project_path is set in this method and nowhere else.
         """
-        # _project_paths should be reset whenever it is updated.
-        self._project_paths = OrderedDict()
+        # _project_path should be reset whenever it is updated.
+        self._project_path = OrderedDict()
         if path is None:
             logger.debug("Update Spyder PYTHONPATH because project was closed")
         else:
             logger.debug(f"Add project paths to Spyder PYTHONPATH: {path}")
-            path = [path] if isinstance(path, str) else path
-            self._project_paths.update({p: True for p in path})
+            self._project_path.update({path: True})
 
         self._save_paths()
 
@@ -104,7 +103,7 @@ class PythonpathContainer(PluginMainContainer):
         # see spyder-ide/spyder#20808.
         if not self.path_manager_dialog.isVisible():
             self.path_manager_dialog.update_paths(
-                project_paths=self._project_paths,
+                project_paths=self._project_path,
                 user_paths=self._user_paths,
                 system_paths=self._system_paths,
                 prioritize=self._prioritize
@@ -122,7 +121,7 @@ class PythonpathContainer(PluginMainContainer):
         # Python 3.8 does not support | operator for OrderedDict.
         all_paths = OrderedDict(reversed(self._system_paths.items()))
         all_paths.update(reversed(self._user_paths.items()))
-        all_paths.update(reversed(self._project_paths.items()))
+        all_paths.update(reversed(self._project_path.items()))
         all_paths = OrderedDict(reversed(all_paths.items()))
 
         return [p for p, v in all_paths.items() if v]
