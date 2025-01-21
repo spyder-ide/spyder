@@ -10,18 +10,16 @@ import aiohttp
 from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
 from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
-SPYDER_PLUGIN_NAME = "spyder-services"  # jupyter server's extension name for spyder-remote-services
+SPYDER_PLUGIN_NAME = (
+    "spyder-services"  # jupyter server's extension name for spyder-remote-services
+)
 
 
-class SpyderServicesError(Exception):
-    ...
+class SpyderServicesError(Exception): ...
+
 
 class RemoteFileServicesError(SpyderServicesError):
-    def __init__(self,
-                 type,
-                 message,
-                 url,
-                 tracebacks):
+    def __init__(self, type, message, url, tracebacks):
         self.type = type
         self.message = message
         self.url = url
@@ -30,13 +28,11 @@ class RemoteFileServicesError(SpyderServicesError):
     def __str__(self):
         return f"(type='{self.type}', message='{self.message}', url='{self.url}')"
 
+
 class RemoteOSError(OSError, RemoteFileServicesError):
     def __init__(self, errno, strerror, filename, url):
         super().__init__(errno, strerror, filename)
-        super(OSError, self).__init__(OSError,
-                                      super().__str__(),
-                                      url,
-                                      [])
+        super(OSError, self).__init__(OSError, super().__str__(), url, [])
 
     @classmethod
     def from_json(cls, data, url):
@@ -45,11 +41,21 @@ class RemoteOSError(OSError, RemoteFileServicesError):
     def __str__(self):
         return super(OSError, self).__str__()
 
+
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     base_url = SPYDER_PLUGIN_NAME + "/fs/open"
 
-    def __init__(self, file, mode="r", atomic=False, lock=False, encoding="utf-8", *args, **kwargs):
+    def __init__(
+        self,
+        file,
+        mode="r",
+        atomic=False,
+        lock=False,
+        encoding="utf-8",
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.name = file
         self.mode = mode
@@ -68,11 +74,15 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         if self._websocket is not None and not self._websocket.closed:
             return
 
-        self._websocket = await self.session.ws_connect(self.api_url / f"file://{self.name}",
-                                                        params={"mode": self.mode, 
-                                                                "atomic": str(self.atomic).lower(),
-                                                                "lock": str(self.lock).lower(),
-                                                                "encoding": self.encoding})
+        self._websocket = await self.session.ws_connect(
+            self.api_url / f"file://{self.name}",
+            params={
+                "mode": self.mode,
+                "atomic": str(self.atomic).lower(),
+                "lock": str(self.lock).lower(),
+                "encoding": self.encoding,
+            },
+        )
         try:
             await self._check_connection()
         except Exception as e:
@@ -87,8 +97,10 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
             if status.data == 1002:
                 data = json.loads(status.extra)
                 if data["status"] in (HTTPStatus.LOCKED, HTTPStatus.EXPECTATION_FAILED):
-                    raise RemoteOSError.from_json(data, url=self._websocket._response.url)
-                
+                    raise RemoteOSError.from_json(
+                        data, url=self._websocket._response.url
+                    )
+
                 raise RemoteFileServicesError(
                     data.get("type", "UnknownError"),
                     data.get("message", "Unknown error"),
@@ -96,8 +108,13 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
                     data.get("tracebacks", []),
                 )
             else:
-                raise RemoteFileServicesError("UnknownError", "Failed to open file", self._websocket._response.url, [])
-    
+                raise RemoteFileServicesError(
+                    "UnknownError",
+                    "Failed to open file",
+                    self._websocket._response.url,
+                    [],
+                )
+
     async def close(self):
         await self._websocket.close()
         try:
@@ -105,7 +122,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         except Exception:
             pass
         await super().close()
-    
+
     @property
     def closed(self):
         if self._websocket is None:
@@ -138,8 +155,10 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
         if message["status"] > 400:
             if message["status"] == HTTPStatus.EXPECTATION_FAILED:
-                raise RemoteOSError.from_json(message, url=self._websocket._response.url)
-            
+                raise RemoteOSError.from_json(
+                    message, url=self._websocket._response.url
+                )
+
             raise RemoteFileServicesError(
                 message.get("type", "UnknownError"),
                 message.get("message", "Unknown error"),
@@ -149,12 +168,12 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         data = message.get("data")
         if data is None:
             return None
-        
+
         if isinstance(data, list):
             return [self._decode_data(d) for d in data]
-        
+
         return self._decode_data(data)
-    
+
     @property
     def closefd(self):
         return True
@@ -183,10 +202,10 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         """Read data from the file."""
         await self._send_request("read", n=size)
         return await self._get_response()
-    
+
     async def readall(self):
-        return await self.read(size = -1)
-    
+        return await self.read(size=-1)
+
     async def readinto(self, b) -> int:
         raise NotImplementedError("readinto() is not supported by the remote file API")
 
@@ -222,7 +241,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
     async def writelines(self, lines: list[bytes | str]):
         """Write lines to the file."""
-        await self._send_request("writelines", lines=[self._encode_data(l) for l in lines])
+        await self._send_request(
+            "writelines", lines=[self._encode_data(l) for l in lines]
+        )
         return await self._get_response()
 
     async def isatty(self) -> bool:
@@ -240,13 +261,16 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         await self._send_request("writable")
         return await self._get_response()
 
+
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     base_url = SPYDER_PLUGIN_NAME + "/fs"
 
     async def _raise_for_status(self, response: aiohttp.ClientResponse):
-        if response.status not in (HTTPStatus.INTERNAL_SERVER_ERROR,
-                                   HTTPStatus.EXPECTATION_FAILED):
+        if response.status not in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.EXPECTATION_FAILED,
+        ):
             return response.raise_for_status()
 
         try:
@@ -269,62 +293,93 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
             data.get("tracebacks", []),
         )
 
-    async def ls(self, path: Path, detail: bool=True):
-        async with self.session.get(self.api_url / "ls" / f"file://{path}", params={"detail": str(detail).lower()}) as response:
+    async def ls(self, path: Path, detail: bool = True):
+        async with self.session.get(
+            self.api_url / "ls" / f"file://{path}",
+            params={"detail": str(detail).lower()},
+        ) as response:
             return await response.json()
 
     async def info(self, path: Path):
-        async with self.session.get(self.api_url / "info" / f"file://{path}") as response:
+        async with self.session.get(
+            self.api_url / "info" / f"file://{path}"
+        ) as response:
             return await response.json()
 
     async def exists(self, path: Path):
-        async with self.session.get(self.api_url / "exists" / f"file://{path}") as response:
+        async with self.session.get(
+            self.api_url / "exists" / f"file://{path}"
+        ) as response:
             return await response.json()
 
     async def is_file(self, path: Path):
-        async with self.session.get(self.api_url / "isfile" / f"file://{path}") as response:
+        async with self.session.get(
+            self.api_url / "isfile" / f"file://{path}"
+        ) as response:
             return await response.json()
-    
+
     async def is_dir(self, path: Path):
-        async with self.session.get(self.api_url / "isdir" / f"file://{path}") as response:
+        async with self.session.get(
+            self.api_url / "isdir" / f"file://{path}"
+        ) as response:
             return await response.json()
-    
-    async def mkdir(self, path: Path, create_parents: bool=True, exist_ok: bool=False):
-        async with self.session.post(self.api_url / "mkdir" / f"file://{path}",
-                                     params={"create_parents": str(create_parents).lower(),
-                                             "exist_ok": str(exist_ok).lower()}) as response:
+
+    async def mkdir(
+        self, path: Path, create_parents: bool = True, exist_ok: bool = False
+    ):
+        async with self.session.post(
+            self.api_url / "mkdir" / f"file://{path}",
+            params={
+                "create_parents": str(create_parents).lower(),
+                "exist_ok": str(exist_ok).lower(),
+            },
+        ) as response:
             return await response.json()
-    
+
     async def rmdir(self, path: Path):
-        async with self.session.delete(self.api_url / "rmdir" / f"file://{path}") as response:
+        async with self.session.delete(
+            self.api_url / "rmdir" / f"file://{path}"
+        ) as response:
             return await response.json()
-    
-    async def unlink(self, path: Path, missing_ok: bool=False):
-        async with self.session.delete(self.api_url / "file" / f"file://{path}",
-                                      params={"missing_ok": str(missing_ok).lower()}) as response:
+
+    async def unlink(self, path: Path, missing_ok: bool = False):
+        async with self.session.delete(
+            self.api_url / "file" / f"file://{path}",
+            params={"missing_ok": str(missing_ok).lower()},
+        ) as response:
             return await response.json()
-    
+
     async def copy(self, path1: Path, path2: Path):
-        async with self.session.post(self.api_url / "copy" / f"file://{path1}",
-                                     params={"dest": f"file://{path2}"}) as response:
+        async with self.session.post(
+            self.api_url / "copy" / f"file://{path1}",
+            params={"dest": f"file://{path2}"},
+        ) as response:
             return await response.json()
 
     async def copy2(self, path1: Path, path2: Path):
-        async with self.session.post(self.api_url / "copy" / f"file://{path1}",
-                                     params={"dest": f"file://{path2}", "metadata": "true"}) as response:
+        async with self.session.post(
+            self.api_url / "copy" / f"file://{path1}",
+            params={"dest": f"file://{path2}", "metadata": "true"},
+        ) as response:
             return await response.json()
 
     async def replace(self, path1: Path, path2: Path):
-        async with self.session.post(self.api_url / "move" / f"file://{path1}",
-                                     params={"dest": f"file://{path2}"}) as response:
+        async with self.session.post(
+            self.api_url / "move" / f"file://{path1}",
+            params={"dest": f"file://{path2}"},
+        ) as response:
             return await response.json()
 
-    async def touch(self, path: Path, truncate: bool=True):
-        async with self.session.post(self.api_url / "touch" / f"file://{path}",
-                                     params={"truncate": str(truncate).lower()}) as response:
+    async def touch(self, path: Path, truncate: bool = True):
+        async with self.session.post(
+            self.api_url / "touch" / f"file://{path}",
+            params={"truncate": str(truncate).lower()},
+        ) as response:
             return await response.json()
 
     async def open(self, path, mode="r", atomic=False, lock=False, encoding="utf-8"):
-        file = SpyderRemoteFileIOAPI(path, mode, atomic, lock, encoding, manager=self.manager)
+        file = SpyderRemoteFileIOAPI(
+            path, mode, atomic, lock, encoding, manager=self.manager
+        )
         await file.connect()
         return file

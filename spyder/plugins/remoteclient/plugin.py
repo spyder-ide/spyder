@@ -40,7 +40,9 @@ from spyder.plugins.remoteclient.api.protocol import (
     ConnectionStatus,
 )
 from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
-from spyder.plugins.remoteclient.api.modules.file_services import SpyderRemoteFileServicesAPI
+from spyder.plugins.remoteclient.api.modules.file_services import (
+    SpyderRemoteFileServicesAPI,
+)
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 _logger = logging.getLogger(__name__)
@@ -105,20 +107,14 @@ class RemoteClient(SpyderPluginV2):
             self.create_ipyclient_for_server
         )
         container.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
-        container.sig_interrupt_kernel_requested.connect(
-            self._interrupt_kernel
-        )
+        container.sig_interrupt_kernel_requested.connect(self._interrupt_kernel)
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
         )
-        self.sig_client_message_logged.connect(
-            container.sig_client_message_logged
-        )
-        self.sig_version_mismatch.connect(
-            container.on_server_version_mismatch
-        )
+        self.sig_client_message_logged.connect(container.sig_client_message_logged)
+        self.sig_version_mismatch.connect(container.on_server_version_mismatch)
         self._sig_kernel_started.connect(container.on_kernel_started)
 
     def on_first_registration(self):
@@ -127,9 +123,7 @@ class RemoteClient(SpyderPluginV2):
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
         for client in self._remote_clients.values():
-            AsyncDispatcher(
-                client.close, loop="asyncssh", early_return=False
-            )()
+            AsyncDispatcher(client.close, loop="asyncssh", early_return=False)()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -228,9 +222,7 @@ class RemoteClient(SpyderPluginV2):
 
     def load_conf(self, config_id):
         """Load remote server configuration."""
-        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
-            config_id, {}
-        )
+        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(config_id, {})
 
         # We couldn't find saved options for config_id
         if not options:
@@ -297,16 +289,14 @@ class RemoteClient(SpyderPluginV2):
         # and odd issues (e.g. the Variable Explorer not working).
         future = self._start_new_kernel(config_id)
         future.add_done_callback(
-            lambda future: self._sig_kernel_started.emit(
-                ipyclient, future.result()
-            )
+            lambda future: self._sig_kernel_started.emit(ipyclient, future.result())
         )
 
     @staticmethod
     def register_api(kclass):
         return SpyderRemoteAPIManager.register_api(kclass)
 
-    def get_api(self, config_id, api) -> 'SpyderBaseJupyterAPI':
+    def get_api(self, config_id, api) -> "SpyderBaseJupyterAPI":
         client = self._remote_clients.get(config_id)
         if client is None:
             return
@@ -394,5 +384,5 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients.get(config_id)
         if client is None:
             return
-        
+
         return client.get_api(SpyderRemoteFileServicesAPI)

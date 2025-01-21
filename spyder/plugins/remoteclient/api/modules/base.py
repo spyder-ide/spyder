@@ -22,7 +22,9 @@ if typing.TYPE_CHECKING:
     from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
 
-SpyderBaseJupyterAPIType = typing.TypeVar("SpyderBaseJupyterAPIType", bound="SpyderBaseJupyterAPI")
+SpyderBaseJupyterAPIType = typing.TypeVar(
+    "SpyderBaseJupyterAPIType", bound="SpyderBaseJupyterAPI"
+)
 
 
 logger = logging.getLogger(__name__)
@@ -55,9 +57,7 @@ async def basic_authentication(hub_url, username, password, verify_ssl=True):
     return session
 
 
-async def keycloak_authentication(
-    hub_url, username, password, verify_ssl=True
-):
+async def keycloak_authentication(hub_url, username, password, verify_ssl=True):
     session = aiohttp.ClientSession(
         headers={"Referer": str(yarl.URL(hub_url) / "hub" / "api")},
         connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),
@@ -106,9 +106,7 @@ class JupyterHubAPI:
             )
             self.api_token = await self.create_token(self.username)
             await self.session.close()
-            logger.debug(
-                "upgrading basic authentication to token authentication"
-            )
+            logger.debug("upgrading basic authentication to token authentication")
             self.session = await token_authentication(
                 self.api_token, verify_ssl=self.verify_ssl
             )
@@ -121,9 +119,7 @@ class JupyterHubAPI:
             )
             self.api_token = await self.create_token(self.username)
             await self.session.close()
-            logger.debug(
-                "upgrading keycloak authentication to token authentication"
-            )
+            logger.debug("upgrading keycloak authentication to token authentication")
             self.session = await token_authentication(
                 self.api_token, verify_ssl=self.verify_ssl
             )
@@ -146,9 +142,7 @@ class JupyterHubAPI:
         return user
 
     async def get_user(self, username):
-        async with self.session.get(
-            self.api_url / "users" / username
-        ) as response:
+        async with self.session.get(self.api_url / "users" / username) as response:
             if response.status == 200:
                 return await response.json()
             elif response.status == 404:
@@ -156,9 +150,7 @@ class JupyterHubAPI:
                 return None
 
     async def create_user(self, username):
-        async with self.session.post(
-            self.api_url / "users" / username
-        ) as response:
+        async with self.session.post(self.api_url / "users" / username) as response:
             if response.status == 201:
                 logger.info(f"created username={username}")
                 response = await response.json()
@@ -168,15 +160,11 @@ class JupyterHubAPI:
                 raise ValueError(f"username={username} already exists")
 
     async def delete_user(self, username):
-        async with self.session.delete(
-            self.api_url / "users" / username
-        ) as response:
+        async with self.session.delete(self.api_url / "users" / username) as response:
             if response.status == 204:
                 logger.info(f"deleted username={username}")
             elif response.status == 404:
-                raise ValueError(
-                    f"username={username} does not exist cannot delete"
-                )
+                raise ValueError(f"username={username} does not exist cannot delete")
 
     async def ensure_server(
         self, username, timeout, user_options=None, create_user=False
@@ -198,16 +186,12 @@ class JupyterHubAPI:
             await asyncio.sleep(5)
             total_time = time.time() - start_time
             if total_time > timeout:
-                logger.error(
-                    f"jupyterhub server creation timeout={timeout:.0f} [s]"
-                )
+                logger.error(f"jupyterhub server creation timeout={timeout:.0f} [s]")
                 raise TimeoutError(
                     f"jupyterhub server creation timeout={timeout:.0f} [s]"
                 )
 
-            logger.info(
-                f"pending spawn polling for seconds={total_time:.0f} [s]"
-            )
+            logger.info(f"pending spawn polling for seconds={total_time:.0f} [s]")
 
     async def ensure_server_deleted(self, username, timeout):
         user = await self.get_user(username)
@@ -223,16 +207,12 @@ class JupyterHubAPI:
             await asyncio.sleep(5)
             total_time = time.time() - start_time
             if total_time > timeout:
-                logger.error(
-                    f"jupyterhub server deletion timeout={timeout:.0f} [s]"
-                )
+                logger.error(f"jupyterhub server deletion timeout={timeout:.0f} [s]")
                 raise TimeoutError(
                     f"jupyterhub server deletion timeout={timeout:.0f} [s]"
                 )
 
-            logger.info(
-                f"pending deletion polling for seconds={total_time:.0f} [s]"
-            )
+            logger.info(f"pending deletion polling for seconds={total_time:.0f} [s]")
 
     async def create_token(self, username, token_name=None):
         token_name = token_name or "jhub-client"
@@ -249,13 +229,10 @@ class JupyterHubAPI:
             self.api_url / "users" / username / "server", json=user_options
         ) as response:
             logger.info(
-                f"creating cluster username={username} "
-                f"user_options={user_options}"
+                f"creating cluster username={username} " f"user_options={user_options}"
             )
             if response.status == 400:
-                raise ValueError(
-                    f"server for username={username} is already running"
-                )
+                raise ValueError(f"server for username={username} is already running")
             elif response.status == 201:
                 logger.info(
                     f"created server for username={username} with "
@@ -338,9 +315,7 @@ class JupyterAPI:
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.api_token}"},
-            connector=aiohttp.TCPConnector(
-                ssl=None if self.verify_ssl else False
-            ),
+            connector=aiohttp.TCPConnector(ssl=None if self.verify_ssl else False),
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         )
         return self
@@ -353,16 +328,10 @@ class JupyterAPI:
         if kernel_spec:
             data["name"] = kernel_spec
 
-        async with self.session.post(
-            self.api_url / "kernels", json=data
-        ) as response:
+        async with self.session.post(self.api_url / "kernels", json=data) as response:
             if response.status != 201:
-                logger.error(
-                    f"failed to create kernel_spec={kernel_spec}"
-                )
-                raise ValueError(
-                    await response.text()
-                )
+                logger.error(f"failed to create kernel_spec={kernel_spec}")
+                raise ValueError(await response.text())
             return await response.json()
 
     async def list_kernel_specs(self):
@@ -397,9 +366,7 @@ class JupyterAPI:
         )
 
     async def get_kernel(self, kernel_id):
-        async with self.session.get(
-            self.api_url / "kernels" / kernel_id
-        ) as response:
+        async with self.session.get(self.api_url / "kernels" / kernel_id) as response:
             if response.status == 404:
                 return {}
             elif response.status == 200:
@@ -444,9 +411,7 @@ class JupyterAPI:
                 return False
 
     async def shutdown_server(self):
-        async with self.session.post(
-            self.api_url / "shutdown"
-        ) as response:
+        async with self.session.post(self.api_url / "shutdown") as response:
             if response.status == 200:
                 logger.info(f"Server for jupyter has been shutdown")
                 return True
@@ -463,13 +428,9 @@ class JupyterKernelAPI:
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.api_token}"},
-            connector=aiohttp.TCPConnector(
-                ssl=None if self.verify_ssl else False
-            ),
+            connector=aiohttp.TCPConnector(ssl=None if self.verify_ssl else False),
         )
-        self.websocket = await self.session.ws_connect(
-            self.kernel_url / "channels"
-        )
+        self.websocket = await self.session.ws_connect(self.kernel_url / "channels")
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -515,10 +476,7 @@ class JupyterKernelAPI:
 
             msg = msg_text.json()
 
-            if (
-                "parent_header" in msg
-                and msg["parent_header"].get("msg_id") == msg_id
-            ):
+            if "parent_header" in msg and msg["parent_header"].get("msg_id") == msg_id:
                 # These are responses to our request
                 if msg["channel"] == "iopub":
                     if msg["msg_type"] == "execute_result":
@@ -541,15 +499,15 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     ----------
     base_url: str
         The base URL for the Jupyter Extension's rest API.
-    
+
     Attributes
     ----------
     api_url: yarl.URL
         The full URL for the rest.
-    
+
     api_token: str
         The API token for the Jupyter API.
-    
+
     verify_ssl: bool
         Whether to verify SSL certificates.
 
@@ -558,8 +516,7 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     """
 
     @abstract_attribute
-    def base_url(self):
-        ...
+    def base_url(self): ...
 
     def __init__(self, manager: SpyderRemoteAPIManager):
         self.manager = manager
@@ -573,7 +530,7 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         if not await AsyncDispatcher(
             self.manager.ensure_connection_and_server,
             loop="asyncssh",
-            return_awaitable=True
+            return_awaitable=True,
         )():
             raise RuntimeError("Failed to connect to Jupyter server")
 
@@ -583,7 +540,7 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.manager.api_token}"},
             connector=aiohttp.TCPConnector(ssl=None),
-            raise_for_status = self._raise_for_status,
+            raise_for_status=self._raise_for_status,
         )
 
     async def __aenter__(self):
@@ -603,5 +560,4 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self.session.closed
 
     @abstractmethod
-    async def _raise_for_status(self, response: aiohttp.ClientResponse):
-        ...
+    async def _raise_for_status(self, response: aiohttp.ClientResponse): ...

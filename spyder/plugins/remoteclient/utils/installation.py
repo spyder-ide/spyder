@@ -19,9 +19,9 @@ SCRIPT_URL = (
 def get_installer_command(platform: str) -> str:
     if platform == "win":
         raise NotImplementedError("Windows is not supported yet")
-    
+
     if running_remoteclient_tests():
-        return '\n'  # server should be aready installed in the test environment
+        return "\n"  # server should be aready installed in the test environment
 
     return (
         f'"${{SHELL}}" <(curl -L {SCRIPT_URL}/installer.sh) '

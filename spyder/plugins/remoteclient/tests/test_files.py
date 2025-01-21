@@ -54,12 +54,14 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            async with await file_api.open(self.remote_temp_dir + "/test.txt", "w+") as f:
+            async with await file_api.open(
+                self.remote_temp_dir + "/test.txt", "w+"
+            ) as f:
                 await f.write("Hello, world!")
                 await f.flush()
                 await f.seek(0)
                 assert await f.read() == "Hello, world!"
-    
+
     @AsyncDispatcher.dispatch(early_return=False)
     async def test_list_directories(
         self,
@@ -100,7 +102,7 @@ class TestRemoteFilesAPI:
                 self.remote_temp_dir + "/test.txt",
                 self.remote_temp_dir + "/test2.txt",
             ) == {"success": True}
-        
+
         async with file_api_class() as file_api:
             ls_content = await file_api.ls(self.remote_temp_dir)
             assert len(ls_content) == 2
@@ -119,9 +121,13 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            assert await file_api.unlink(self.remote_temp_dir + "/test.txt") == {"success": True}
-            assert await file_api.unlink(self.remote_temp_dir + "/test2.txt") == {"success": True}
-    
+            assert await file_api.unlink(self.remote_temp_dir + "/test.txt") == {
+                "success": True
+            }
+            assert await file_api.unlink(self.remote_temp_dir + "/test2.txt") == {
+                "success": True
+            }
+
     @AsyncDispatcher.dispatch(early_return=False)
     async def test_rm_dir(
         self,
