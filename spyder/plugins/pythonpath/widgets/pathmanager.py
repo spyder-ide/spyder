@@ -175,7 +175,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             PathManagerToolbuttons.ImportPaths,
             tip=_('Import from PYTHONPATH environment variable'),
             icon=self.create_icon('fileimport'),
-            triggered=lambda x: self.import_paths())
+            triggered=lambda x: self.import_pythonpath())
         self.export_button = self.create_toolbutton(
             PathManagerToolbuttons.ExportPaths,
             icon=self.create_icon('fileexport'),
@@ -619,7 +619,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 self.refresh()
 
     @Slot()
-    def import_paths(self):
+    def import_pythonpath(self):
         """Import PYTHONPATH from environment."""
         current_system_paths = self.get_system_paths()
         system_paths = get_system_pythonpath()

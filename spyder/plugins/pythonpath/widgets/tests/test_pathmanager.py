@@ -70,7 +70,7 @@ def test_import_PYTHONPATH(qtbot, pathmanager, tmp_path, restore_user_env):
     assert pathmanager.get_system_paths() == OrderedDict()
 
     # Import PYTHONPATH from environment
-    pathmanager.import_paths()
+    pathmanager.import_pythonpath()
     assert len(pathmanager.headers) == 1
 
     assert pathmanager.get_system_paths() == OrderedDict({str(sys_dir): True})
