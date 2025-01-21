@@ -43,8 +43,20 @@ class PythonpathContainer(PluginMainContainer):
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-        # Load Python paths
-        self._load_paths()
+        # Migrate to new config options if necessary
+        if not self.get_conf("config_options_migrated", False):
+            self._migrate_to_config_options()
+
+        # This attribute is only used to detect changes and after initializing
+        # here should only be set in update_active_project_path.
+        self._project_paths = OrderedDict()
+
+        # These attributes are only used to detect changes and after
+        # initializing here should only be set in _save_paths.
+        self._user_paths = OrderedDict(self.get_conf('user_paths'))
+        self._system_paths = self.get_conf('system_paths')
+        self._prioritize = self.get_conf('prioritize')
+        self._spyder_pythonpath = self.get_conf('spyder_pythonpath')
 
         # Path manager dialog
         self.path_manager_dialog = PathManager(parent=self, sync=True)
@@ -71,8 +83,7 @@ class PythonpathContainer(PluginMainContainer):
         """
         Update active project path.
 
-        _project_paths is initialized in _load_paths, but set in this method
-        and nowhere else.
+        _project_paths is set in this method and nowhere else.
         """
         # _project_paths should be reset whenever it is updated.
         self._project_paths = OrderedDict()
@@ -88,14 +99,6 @@ class PythonpathContainer(PluginMainContainer):
     def show_path_manager(self):
         """
         Show path manager dialog.
-
-        Notes
-        -----
-        Send the most up-to-date system paths to the dialog in case they have
-        changed. But do not _save_paths until after the dialog exits, in order
-        to consolidate possible changes and avoid emitting multiple signals.
-        This requires that the dialog return its original paths on cancel or
-        close.
         """
         # Do not update paths if widget is already open,
         # see spyder-ide/spyder#20808.
@@ -126,38 +129,13 @@ class PythonpathContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _load_paths(self):
-        """Load Python paths.
-
-        The attributes _project_paths, _user_paths, _system_paths, _prioritize,
-        and _spyder_pythonpath, are initialized here. All but _project_paths
-        should be updated only in _save_paths. They are only used to detect
-        changes.
-        """
-        self._project_paths = OrderedDict()
-        self._user_paths = OrderedDict()
-        self._system_paths = OrderedDict()
-        self._prioritize = False
-        self._spyder_pythonpath = []
-
-        # Get user paths. Check migration from old conf files
-        user_paths = self._migrate_to_config_options()
-        if user_paths is None:
-            user_paths = self.get_conf('user_paths', {})
-        user_paths = OrderedDict(user_paths)
-
-        # Get current system PYTHONPATH
-        system_paths = self._get_system_paths()
-
-        # Get prioritize
-        prioritize = self.get_conf('prioritize', False)
-
-        self._save_paths(user_paths, system_paths, prioritize)
-
     def _get_system_paths(self):
         system_paths = get_system_pythonpath()
         conf_system_paths = self.get_conf('system_paths', {})
 
+        # If a system path already exists in the configuration, use the
+        # configuration active state. If it does not exist in the
+        # configuration, then set the active state to True.
         system_paths = OrderedDict(
             {p: conf_system_paths.get(p, True) for p in system_paths}
         )
@@ -167,7 +145,7 @@ class PythonpathContainer(PluginMainContainer):
     def _save_paths(self, user_paths=None, system_paths=None, prioritize=None):
         """
         Save user and system path dictionaries and prioritize to config.
-        
+
         Notes
         -----
         - Each dictionary key is a path and the value is the active state.
@@ -226,7 +204,7 @@ class PythonpathContainer(PluginMainContainer):
         Migrate paths saved in the `path` and `not_active_path` files located
         in our config directory to our config system.
 
-        This was the way we save those paths in Spyder 5 and before.
+        ??? When should we remove this?
         """
         path_file = get_conf_path('path')
         not_active_path_file = get_conf_path('not_active_path')
@@ -234,17 +212,6 @@ class PythonpathContainer(PluginMainContainer):
         config_not_active_path = self.get_conf('not_active_path', None)
         paths_in_conf_files = self.get_conf('paths_in_conf_files', None)
         system_path = self.get_conf('system_path', None)
-
-        if (
-            not osp.isfile(path_file)
-            and not osp.isfile(not_active_path_file)
-            and config_path is not None
-            and config_not_active_path is not None
-            and paths_in_conf_files is not None
-            and system_path is not None
-        ):
-            # The configuration does not need to be updated
-            return
 
         path = []
         not_active_path = []
@@ -281,7 +248,9 @@ class PythonpathContainer(PluginMainContainer):
             self.remove_conf('paths_in_conf_files')
 
         # Get system path
+        system_paths = {}
         if system_path is not None:
+            system_paths = {p: p not in not_active_path for p in system_path}
             self.remove_conf('system_path')
 
         # path config has all user and system paths; only want user paths
@@ -289,4 +258,10 @@ class PythonpathContainer(PluginMainContainer):
             p: p not in not_active_path for p in path if p not in system_path
         }
 
-        return user_paths
+
+        # Update the configuration
+        self.set_conf('user_paths', user_paths)
+        self.set_conf('system_paths', system_paths)
+
+        # Do not migrate again
+        self.set_conf("config_options_migrated", True)
