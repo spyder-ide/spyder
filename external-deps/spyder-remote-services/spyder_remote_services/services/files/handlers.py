@@ -11,15 +11,17 @@ from jupyter_server.base.websocket import WebSocketMixin
 import orjson
 from tornado import web
 
-from spyder_remote_services.services.fsspec.mixin import (
-    FileOpenWebSocketHandler,
-    FSSpecRESTMixin,
+from spyder_remote_services.services.files.base import (
+    FileWebSocketHandler,
+    FilesRESTMixin,
 )
 
 
-class ReadWriteWebsocketHandler(WebSocketMixin,
-                                FileOpenWebSocketHandler,
-                                JupyterHandler):
+class ReadWriteWebsocketHandler(
+    WebSocketMixin,
+    FileWebSocketHandler,
+    JupyterHandler,
+):
     auth_resource = "spyder-services"
 
     @ws_authenticated
@@ -28,7 +30,7 @@ class ReadWriteWebsocketHandler(WebSocketMixin,
         await super().get(*args, **kwargs)
 
 
-class BaseFSSpecHandler(FSSpecRESTMixin, JupyterHandler):
+class BaseFSHandler(FilesRESTMixin, JupyterHandler):
     auth_resource = "spyder-services"
 
     def write_json(self, data, status=200):
@@ -82,7 +84,8 @@ class BaseFSSpecHandler(FSSpecRESTMixin, JupyterHandler):
                 exc_info=(typ, value, tb),  # type: ignore
             )
 
-class LsHandler(BaseFSSpecHandler):
+
+class LsHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def get(self, path):
@@ -92,7 +95,7 @@ class LsHandler(BaseFSSpecHandler):
         self.write_json(result)
 
 
-class InfoHandler(BaseFSSpecHandler):
+class InfoHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def get(self, path):
@@ -101,7 +104,7 @@ class InfoHandler(BaseFSSpecHandler):
 
 
 
-class ExistsHandler(BaseFSSpecHandler):
+class ExistsHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def get(self, path):
@@ -109,7 +112,7 @@ class ExistsHandler(BaseFSSpecHandler):
         self.write_json({"exists": result})
 
 
-class IsFileHandler(BaseFSSpecHandler):
+class IsFileHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def get(self, path):
@@ -117,7 +120,7 @@ class IsFileHandler(BaseFSSpecHandler):
         self.write_json({"isfile": result})
 
 
-class IsDirHandler(BaseFSSpecHandler):
+class IsDirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def get(self, path):
@@ -125,7 +128,7 @@ class IsDirHandler(BaseFSSpecHandler):
         self.write_json({"isdir": result})
 
 
-class MkdirHandler(BaseFSSpecHandler):
+class MkdirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def post(self, path):
@@ -135,7 +138,7 @@ class MkdirHandler(BaseFSSpecHandler):
         self.write_json(result)
 
 
-class RmdirHandler(BaseFSSpecHandler):
+class RmdirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def delete(self, path):
@@ -143,7 +146,7 @@ class RmdirHandler(BaseFSSpecHandler):
         self.write_json(result)
 
 
-class RemoveFileHandler(BaseFSSpecHandler):
+class RemoveFileHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def delete(self, path):
@@ -152,7 +155,7 @@ class RemoveFileHandler(BaseFSSpecHandler):
         self.write_json(result)
 
 
-class TouchHandler(BaseFSSpecHandler):
+class TouchHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def post(self, path):
@@ -161,7 +164,7 @@ class TouchHandler(BaseFSSpecHandler):
         self.write_json(result)
 
 
-class CopyHandler(BaseFSSpecHandler):
+class CopyHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def post(self, path):
@@ -174,15 +177,15 @@ class CopyHandler(BaseFSSpecHandler):
 _path_regex = r"file://(?P<path>.+)"
 
 handlers = [
-    (rf"/fsspec/open/{_path_regex}", ReadWriteWebsocketHandler),  # WebSocket
-    (rf"/fsspec/ls/{_path_regex}", LsHandler),                  # GET
-    (rf"/fsspec/info/{_path_regex}", InfoHandler),              # GET
-    (rf"/fsspec/exists/{_path_regex}", ExistsHandler),          # GET
-    (rf"/fsspec/isfile/{_path_regex}", IsFileHandler),          # GET
-    (rf"/fsspec/isdir/{_path_regex}", IsDirHandler),            # GET
-    (rf"/fsspec/mkdir/{_path_regex}", MkdirHandler),            # POST
-    (rf"/fsspec/rmdir/{_path_regex}", RmdirHandler),            # DELETE
-    (rf"/fsspec/file/{_path_regex}", RemoveFileHandler),        # DELETE
-    (rf"/fsspec/touch/{_path_regex}", TouchHandler),            # POST
-    (rf"/fsspec/copy/{_path_regex}", CopyHandler),              # POST
+    (rf"/fs/open/{_path_regex}", ReadWriteWebsocketHandler),  # WebSocket
+    (rf"/fs/ls/{_path_regex}", LsHandler),                  # GET
+    (rf"/fs/info/{_path_regex}", InfoHandler),              # GET
+    (rf"/fs/exists/{_path_regex}", ExistsHandler),          # GET
+    (rf"/fs/isfile/{_path_regex}", IsFileHandler),          # GET
+    (rf"/fs/isdir/{_path_regex}", IsDirHandler),            # GET
+    (rf"/fs/mkdir/{_path_regex}", MkdirHandler),            # POST
+    (rf"/fs/rmdir/{_path_regex}", RmdirHandler),            # DELETE
+    (rf"/fs/file/{_path_regex}", RemoveFileHandler),        # DELETE
+    (rf"/fs/touch/{_path_regex}", TouchHandler),            # POST
+    (rf"/fs/copy/{_path_regex}", CopyHandler),              # POST
 ]
