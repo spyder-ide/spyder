@@ -132,6 +132,12 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
 
+        # Attributes
+        self.project_path = None
+        self.user_paths = None
+        self.system_paths = None
+        self.prioritize = None
+
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _add_buttons_to_layout(self, widgets, layout):
@@ -200,7 +206,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
 
-        if path in self.project_paths:
+        if path in self.project_path:
             item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked)
         else:
@@ -279,7 +285,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         bottom_row = 0
 
         if self.project_header:
-            bottom_row += len(self.project_paths) + 1
+            bottom_row += len(self.project_path) + 1
         if self.user_header:
             bottom_row += len(self.get_user_paths())
 
@@ -291,7 +297,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         top_row = 0
 
         if self.project_header:
-            top_row += len(self.project_paths) + 1
+            top_row += len(self.project_path) + 1
         if self.user_header:
             top_row += 1
 
@@ -306,7 +312,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.system_header = None
 
         # Project path
-        if self.project_paths:
+        if self.project_path:
             self.project_header, project_widget = (
                 self._create_header(_("Project path"))
             )
@@ -314,7 +320,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             self.listwidget.addItem(self.project_header)
             self.listwidget.setItemWidget(self.project_header, project_widget)
 
-            for path, active in self.project_paths.items():
+            for path, active in self.project_path.items():
                 item = self._create_item(path, active)
                 self.listwidget.addItem(item)
 
@@ -438,7 +444,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     def update_paths(
         self,
-        project_paths=None,
+        project_path=None,
         user_paths=None,
         system_paths=None,
         prioritize=None
@@ -451,8 +457,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         used to compare with what is shown in the listwidget in order to detect
         changes.
         """
-        if project_paths is not None:
-            self.project_paths = project_paths
+        if project_path is not None:
+            self.project_path = project_path
         if user_paths is not None:
             self.user_paths = user_paths
         if system_paths is not None:
@@ -707,7 +713,7 @@ def test():
     )
     dlg.update_paths(
         user_paths={p: True for p in sys.path[1:-2]},
-        project_paths={p: True for p in sys.path[:1]},
+        project_path={p: True for p in sys.path[:1]},
         system_paths={p: True for p in sys.path[-2:]},
         prioritize=False
     )
