@@ -9,7 +9,6 @@
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
                             QHBoxLayout, QVBoxLayout, QWidget, QMessageBox)
-from qtpy import QtWidgets
 
 import re
 
@@ -46,7 +45,6 @@ class SchemeEditor(QDialog):
 
         # Signals
         bbox.accepted.connect(self.validate_colors)
-        #bbox.accepted.connect(self.accept)
         bbox.accepted.connect(self.get_edited_color_scheme)
         bbox.rejected.connect(self.reject)
 
@@ -66,8 +64,8 @@ class SchemeEditor(QDialog):
 
     def validate_colors(self):
         """
-        Get the values of the last edited color scheme to be used in an instant
-        preview in the preview editor, without using `apply`.
+        Validate the current color scheme and display a message box listing 
+        any invalid colors.
         """
         invalid_colors = {}
         scheme_name = self.last_used_scheme
