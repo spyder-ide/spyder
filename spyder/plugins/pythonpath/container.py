@@ -49,7 +49,8 @@ class PythonpathContainer(PluginMainContainer):
         # Path manager dialog
         self.path_manager_dialog = PathManager(parent=self, sync=True)
         self.path_manager_dialog.sig_path_changed.connect(
-            self._save_paths)
+            self._save_paths
+        )
         self.path_manager_dialog.redirect_stdio.connect(
             self.sig_redirect_stdio_requested)
 
@@ -67,7 +68,8 @@ class PythonpathContainer(PluginMainContainer):
     # ---- Public API
     # -------------------------------------------------------------------------
     def update_active_project_path(self, path):
-        """Update active project path.
+        """
+        Update active project path.
 
         _project_paths is initialized in _load_paths, but set in this method
         and nowhere else.
@@ -84,8 +86,11 @@ class PythonpathContainer(PluginMainContainer):
         self._save_paths()
 
     def show_path_manager(self):
-        """Show path manager dialog.
+        """
+        Show path manager dialog.
 
+        Notes
+        -----
         Send the most up-to-date system paths to the dialog in case they have
         changed. But do not _save_paths until after the dialog exits, in order
         to consolidate possible changes and avoid emitting multiple signals.
@@ -161,16 +166,24 @@ class PythonpathContainer(PluginMainContainer):
 
     def _save_paths(self, user_paths=None, system_paths=None, prioritize=None):
         """
-        Save user and system path dictionaries to config and prioritize to
-        config. Each dictionary key is a path and the value is the active
-        state.
-
-        `user_paths` is user paths. `system_paths` is system paths, and
-        `prioritize` is a boolean indicating whether paths should be
-        prepended (True) or appended (False) to sys.path.
-
-        sig_pythonpath_changed is emitted from this method, and nowhere else,
+        Save user and system path dictionaries and prioritize to config.
+        
+        Notes
+        -----
+        - Each dictionary key is a path and the value is the active state.
+        - sig_pythonpath_changed is emitted from this method, and nowhere else,
         on condition that _spyder_pythonpath changed.
+
+        Parameters
+        ----------
+        user_paths: OrderedDict
+            Paths set by the user.
+        system_paths: OrderedDict
+            Paths set in the PYTHONPATH environment variable.
+        prioritize: bool
+            Whether paths should be prepended (True) or appended (False) to
+            sys.path.
+
         """
         assert isinstance(user_paths, (type(None), OrderedDict))
         assert isinstance(system_paths, (type(None), OrderedDict))
@@ -231,7 +244,7 @@ class PythonpathContainer(PluginMainContainer):
             and system_path is not None
         ):
             # The configuration does not need to be updated
-            return None
+            return
 
         path = []
         not_active_path = []
@@ -240,20 +253,26 @@ class PythonpathContainer(PluginMainContainer):
         if osp.isfile(path_file):
             with open(path_file, 'r', encoding='utf-8') as f:
                 path = f.read().splitlines()
-            os.remove(path_file)
+            try:
+                os.remove(path_file)
+            except OSError:
+                pass
 
         # Get inactive paths from file
         if osp.isfile(not_active_path_file):
             with open(not_active_path_file, 'r', encoding='utf-8') as f:
                 not_active_path = f.read().splitlines()
-            os.remove(not_active_path_file)
+            try:
+                os.remove(not_active_path_file)
+            except OSError:
+                pass
 
-        # Get path from config; supercedes paths from file
+        # Get path from config; supersedes paths from file
         if config_path is not None:
             path = config_path
             self.remove_conf('path')
 
-        # Get inactive path from config; supercedes paths from file
+        # Get inactive path from config; supersedes paths from file
         if config_not_active_path is not None:
             not_active_path = config_not_active_path
             self.remove_conf('not_active_path')
