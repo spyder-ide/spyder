@@ -103,7 +103,6 @@ class InfoHandler(BaseFSHandler):
         self.write_json(result)
 
 
-
 class ExistsHandler(BaseFSHandler):
     @web.authenticated
     @authorized

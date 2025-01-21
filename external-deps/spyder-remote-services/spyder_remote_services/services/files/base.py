@@ -94,6 +94,8 @@ class FileWebSocketHandler(WebSocketHandler):
 
     # ----------------------------------------------------------------
     # Internal Helpers
+    # ----------------------------------------------------------------
+    async def handle_message(self, raw_message):
         method, kwargs = await self._parse_message(msg)
         msg = self._decode_json(raw_message)
 
