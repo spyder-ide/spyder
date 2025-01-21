@@ -8,7 +8,10 @@
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QVBoxLayout, QWidget)
+                            QHBoxLayout, QVBoxLayout, QWidget, QMessageBox)
+from qtpy import QtWidgets
+
+import re
 
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
@@ -42,7 +45,8 @@ class SchemeEditor(QDialog):
         self.setLayout(layout)
 
         # Signals
-        bbox.accepted.connect(self.accept)
+        bbox.accepted.connect(self.validate_colors)
+        #bbox.accepted.connect(self.accept)
         bbox.accepted.connect(self.get_edited_color_scheme)
         bbox.rejected.connect(self.reject)
 
@@ -59,6 +63,39 @@ class SchemeEditor(QDialog):
         scheme creation.
         """
         return self.scheme_name_textbox[self.last_used_scheme].text()
+
+    def validate_colors(self):
+        """
+        Get the values of the last edited color scheme to be used in an instant
+        preview in the preview editor, without using `apply`.
+        """
+        invalid_colors = {}
+        scheme_name = self.last_used_scheme
+        pattern = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8}|[A-Fa-f0-9]{4})$"
+        for key in self.widgets[scheme_name]:
+            items = self.widgets[scheme_name][key]
+
+            if(not bool(re.match(pattern, items[0].text()))):
+                    invalid_colors[key] = items[0].text()
+
+        if invalid_colors:
+            message = _("The following properties have invalid colors:\n")
+            for property_name, color in invalid_colors.items():
+                message += _(
+                    "The property {} has an invalid color: {}.\n"
+                    ).format(property_name.upper(), color)
+            title = _('Error getting colors.')
+            self.msgbox = QMessageBox(
+                        QMessageBox.Warning,
+                        title,
+                        message,
+                        QMessageBox.Ok,
+                        self
+                    )
+            self.msgbox.exec_()         
+        else:
+            self.accept()
+
 
     def get_edited_color_scheme(self):
         """
