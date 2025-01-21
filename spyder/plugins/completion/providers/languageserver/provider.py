@@ -537,8 +537,12 @@ class LanguageServerProvider(SpyderCompletionProvider):
         Update server configuration after a change in Spyder's Python
         path.
 
-        `new_path` corresponds to the new state of the Python path.
-        `prioritize` determines whether to prioritize Python path in sys.path.
+        Parameters
+        ----------
+        new_path: list of str
+            New state of the Python path handled by Spyder.
+        prioritize: bool
+            Whether to prioritize Python path in sys.path.
         """
         # Opening/closing a project will create a diff between old_path
         # and new_path, but we don't know if prioritize changed.

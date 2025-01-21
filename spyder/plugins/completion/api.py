@@ -1068,7 +1068,7 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         ----------
         new_path: list of str
             Dictionary containing the current Python path values.
-        prioritize
+        prioritize: bool
             Whether to prioritize Python path values in sys.path
         """
         pass
