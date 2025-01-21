@@ -1851,7 +1851,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.master_clients -= 1
 
         # Rename client tab with filename
-        if (client):
+        if client is not None:
             client.allow_rename = False
             tab_text = self.disambiguate_fname(filename)
             self.rename_client_tab(client, tab_text)
