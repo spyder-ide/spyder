@@ -786,8 +786,10 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
-@flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin', reason='Hangs sometimes on Mac')
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"),
+    reason='Fails sometimes on Linux'
+)
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
 
@@ -1627,7 +1629,32 @@ def test_run_code(main_window, qtbot, tmpdir):
                     timeout=EVAL_TIMEOUT)
     assert shell.get_value('li') == [1, 2, 3]
 
-    # try running cell without file name
+    # Clean namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
+
+    # Wait until there are no objects in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 0,
+                    timeout=EVAL_TIMEOUT)
+
+    # Open a new file
+    editor.load(osp.join(LOCATION, 'script_pylint.py'))
+    qtbot.wait(500)
+
+    # Re-run last cell (from the previous file).
+    # This is a regression for spyder-ide/spyder#23076
+    with qtbot.waitSignal(shell.executed):
+        re_run_action.trigger()
+
+    # We should get the same result as before
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
+                    timeout=EVAL_TIMEOUT)
+    assert shell.get_value('li') == [1, 2, 3]
+
+    # Close new file
+    editor.close_file()
+
+    # Try running cell without file name
     shell.clear()
 
     # Clean namespace
@@ -2211,6 +2238,7 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
+@flaky(max_runs=3)
 def test_plots_scroll(main_window, qtbot):
     """Test plots plugin scrolling"""
     CONF.set('plots', 'mute_inline_plotting', True)
