@@ -1034,9 +1034,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         Parameters
         ----------
         new_path : list of str
-            Corresponds to the new state of the PYTHONPATH.
+            New state of the Python path handled by Spyder.
         prioritize : bool
-            Whether to prioritize PYTHONPATH in sys.path
+            Whether to prioritize Python path in sys.path
 
         Returns
         -------

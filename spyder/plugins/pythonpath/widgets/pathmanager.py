@@ -372,12 +372,20 @@ class PathManager(QDialog, SpyderWidgetMixin):
             return
 
         user_paths = self.get_user_paths()
-        active_user_paths = OrderedDict({p: v for p, v in user_paths.items() if v})
-        new_user_paths = OrderedDict({p: v for p, v in user_paths.items() if not v})
+        active_user_paths = OrderedDict(
+            {p: v for p, v in user_paths.items() if v}
+        )
+        new_user_paths = OrderedDict(
+            {p: v for p, v in user_paths.items() if not v}
+        )
 
         system_paths = self.get_system_paths()
-        active_system_paths = OrderedDict({p: v for p, v in system_paths.items() if v})
-        inactive_system_paths = OrderedDict({p: v for p, v in system_paths.items() if not v})
+        active_system_paths = OrderedDict(
+            {p: v for p, v in system_paths.items() if v}
+        )
+        inactive_system_paths = OrderedDict(
+            {p: v for p, v in system_paths.items() if not v}
+        )
 
         # Desired behavior is active_user | active_system, but Python 3.8 does
         # not support | operator for OrderedDict.
@@ -435,7 +443,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         system_paths=None,
         prioritize=None
     ):
-        """Update path attributes.
+        """
+        Update path attributes.
 
         These attributes should only be set in this method and upon activating
         the dialog. They should remain fixed while the dialog is active and are

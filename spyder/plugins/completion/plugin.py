@@ -126,7 +126,8 @@ class CompletionPlugin(SpyderPluginV2):
 
     sig_pythonpath_changed = Signal(object, bool)
     """
-    This signal is used to receive changes on the PYTHONPATH.
+    This signal is used to receive changes on the Python path values handled
+    by Spyder.
 
     Parameters
     ----------
